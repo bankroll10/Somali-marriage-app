@@ -1,0 +1,41 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# local env
+.env.local
+.env*.local
+
+# Sibling projects in this workspace — not part of the Niyyah repo
+/rite
+/forge
+/axis
+/sovereign
+/affiliate-simulator
+
+# Unrelated large file living at workspace root
+/THE HIDDEN MONEY GATE.pdf
+
+# Local dev tooling config — references sibling projects + a machine-specific path
+/.claude

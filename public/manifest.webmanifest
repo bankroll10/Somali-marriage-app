@@ -1,0 +1,25 @@
+{
+  "name": "Niyyah — marriage, done right",
+  "short_name": "Niyyah",
+  "description": "The trusted marriage platform for the Somali diaspora — powered by AI, guided by faith, designed for serious people.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#16271f",
+  "theme_color": "#16271f",
+  "orientation": "portrait",
+  "categories": ["lifestyle", "social"],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
