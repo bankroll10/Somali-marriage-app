@@ -4,7 +4,14 @@ import gate from '../../netlify/edge-functions/gate.ts'
 const PASSWORD = 'open-sesame'
 
 function withPassword(value: string | undefined) {
-  vi.stubGlobal('Netlify', { env: { get: () => value } })
+  vi.stubGlobal('Netlify', {
+    env: { get: (k: string) => (k === 'PREVIEW_PASSWORD' ? value : 'stub') },
+  })
+}
+
+/** Netlify's own variables missing too — env access itself is broken. */
+function withNoEnvAtAll() {
+  vi.stubGlobal('Netlify', { env: { get: () => undefined } })
 }
 
 function req(auth?: string, path = '/'): Request {
@@ -125,6 +132,23 @@ describe('/gate-status — the deployed-or-not probe', () => {
     withPassword(PASSWORD)
     const res = await gate(req(undefined, '/gate-status'))
     expect(await res!.text()).not.toContain(PASSWORD)
+  })
+
+  it('blames the variable when the environment otherwise works', async () => {
+    // Netlify's own vars visible but ours missing → it is scoped wrong or unset.
+    withPassword(undefined)
+    const text = await (await gate(req(undefined, '/gate-status')))!.text()
+    expect(text).toMatch(/Netlify's own variables: visible/)
+    expect(text).toMatch(/UNCHECKED/)
+  })
+
+  it('says so plainly when no environment reaches the function at all', async () => {
+    // Then re-creating the variable is wasted effort, and it should say so
+    // rather than sending someone back to the dashboard for nothing.
+    withNoEnvAtAll()
+    const text = await (await gate(req(undefined, '/gate-status')))!.text()
+    expect(text).toMatch(/Netlify's own variables: NOT visible/)
+    expect(text).toMatch(/will not help/)
   })
 
   it('does not open any other path', async () => {

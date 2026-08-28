@@ -63,15 +63,34 @@ function unauthorized(): Response {
 const STATUS_PATH = '/gate-status'
 
 function status(password: string | undefined): Response {
-  return new Response(
-    [
-      'Niyyah edge gate: deployed and running.',
-      password
-        ? 'PREVIEW_PASSWORD: visible to this function — the gate is ON.'
-        : 'PREVIEW_PASSWORD: NOT visible to this function — the gate is OFF and the site is open.',
-    ].join('\n'),
-    { status: 200, headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' } },
-  )
+  // Netlify sets these itself for every deploy. Reading them separates "this
+  // one variable isn't reaching me" from "no environment reaches me at all" —
+  // two very different fixes, and otherwise two more round trips to tell apart.
+  const siteName = Netlify.env.get('SITE_NAME')
+  const context = Netlify.env.get('CONTEXT')
+  const envWorks = !!siteName || !!context
+
+  const lines = [
+    'Niyyah edge gate: deployed and running.',
+    '',
+    password
+      ? 'PREVIEW_PASSWORD: visible — the gate is ON.'
+      : 'PREVIEW_PASSWORD: NOT visible — the gate is OFF and the site is open.',
+    `Netlify's own variables: ${envWorks ? 'visible' : 'NOT visible'}` +
+      (siteName ? ` (site ${siteName}` : '') +
+      (siteName && context ? `, context ${context})` : siteName ? ')' : ''),
+    '',
+    password
+      ? 'Nothing to do — try the site itself.'
+      : envWorks
+        ? 'Diagnosis: the environment reaches this function, so PREVIEW_PASSWORD is either unset or scoped where edge functions cannot read it. Re-create it with "Contains secret values" UNCHECKED, then redeploy.'
+        : 'Diagnosis: no environment variables reach this function at all, so re-creating PREVIEW_PASSWORD will not help. The gate needs a different mechanism.',
+  ]
+
+  return new Response(lines.join('\n'), {
+    status: 200,
+    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
+  })
 }
 
 export default async function gate(request: Request): Promise<Response | undefined> {
