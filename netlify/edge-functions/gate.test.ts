@@ -7,8 +7,8 @@ function withPassword(value: string | undefined) {
   vi.stubGlobal('Netlify', { env: { get: () => value } })
 }
 
-function req(auth?: string): Request {
-  return new Request('https://niyyah.example/', {
+function req(auth?: string, path = '/'): Request {
+  return new Request(`https://niyyah.example${path}`, {
     headers: auth ? { authorization: auth } : {},
   })
 }
@@ -95,5 +95,43 @@ describe('the founding-preview gate', () => {
     withPassword(PASSWORD)
     const res = await gate(req())
     expect(await res!.text()).not.toContain(PASSWORD)
+  })
+})
+
+describe('/gate-status — the deployed-or-not probe', () => {
+  it('answers even with no credentials, so it can report the gate is off', async () => {
+    // Behind the challenge it would be useless: you could never learn that the
+    // gate is open, which is the exact case it exists to detect.
+    withPassword(PASSWORD)
+    const res = await gate(req(undefined, '/gate-status'))
+    expect(res?.status).toBe(200)
+    expect(await res!.text()).toMatch(/gate is ON/)
+  })
+
+  it('says the gate is OFF when no password is configured', async () => {
+    withPassword(undefined)
+    const res = await gate(req(undefined, '/gate-status'))
+    expect(res?.status).toBe(200)
+    expect(await res!.text()).toMatch(/gate is OFF/)
+  })
+
+  it('reports as plain text, so a phone shows words rather than downloading', async () => {
+    withPassword(PASSWORD)
+    const res = await gate(req(undefined, '/gate-status'))
+    expect(res?.headers.get('Content-Type')).toMatch(/^text\/plain/)
+  })
+
+  it('never reveals the password itself', async () => {
+    withPassword(PASSWORD)
+    const res = await gate(req(undefined, '/gate-status'))
+    expect(await res!.text()).not.toContain(PASSWORD)
+  })
+
+  it('does not open any other path', async () => {
+    // The probe must not become a hole: everything else still challenges.
+    withPassword(PASSWORD)
+    for (const path of ['/', '/gate-status-x', '/profile', '/gate']) {
+      expect((await gate(req(undefined, path)))?.status, path).toBe(401)
+    }
   })
 })

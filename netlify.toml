@@ -5,6 +5,13 @@
   edge_functions = "netlify/edge-functions"
 
 [build.environment]
+  # Pinned, not left to Netlify's default. Vite 8 and TypeScript 6 need a modern
+  # Node, and a site defaulting to Node 18 fails `npm run build` — at which point
+  # Netlify silently keeps serving the last deploy that worked, so the site looks
+  # fine while being weeks out of date. 22 is what this project is built and
+  # tested against locally.
+  NODE_VERSION = "22"
+
   # Names the Netlify form src/lib/waitlist.ts posts to. Unset this and the app
   # falls back to a mailto rather than pretending anyone joined a list.
   VITE_WAITLIST_FORM = "niyyah-waitlist"
