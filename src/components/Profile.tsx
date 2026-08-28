@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Answers, Identity, Reflection, TrustSettings, WaitlistState } from '../types'
+import { MAX_AGE, MIN_AGE } from '../types'
 import { getScene, scenes } from '../data/scenes'
 import { shareOrCopy } from '../lib/share'
 import Waitlist from './Waitlist'
@@ -140,22 +141,35 @@ export default function Profile({
               <div className="mt-4 rounded-2xl border border-line bg-white/50 p-4">
                 <div className="flex items-end gap-3">
                   <div className="w-24 flex-none">
-                    <label className="mb-2 block text-sm font-medium text-ink-soft">Age</label>
+                    <label
+                      htmlFor="profile-age"
+                      className="mb-2 block text-sm font-medium text-ink-soft"
+                    >
+                      Age
+                    </label>
                     <input
+                      id="profile-age"
                       type="text"
                       inputMode="numeric"
                       maxLength={2}
                       value={identity.age ?? ''}
                       onChange={(e) => {
                         const n = parseInt(e.target.value, 10)
+                        // Below the gate is not a valid age here — someone who
+                        // confirmed 18+ at the door cannot type their way under it.
+                        const valid = Number.isFinite(n) && n >= MIN_AGE && n <= MAX_AGE
                         onChangeIdentity((prev) => ({
                           ...prev,
-                          age: Number.isFinite(n) ? n : undefined,
+                          age: valid ? n : undefined,
                         }))
                       }}
                       placeholder="—"
+                      aria-describedby="profile-age-hint"
                       className={`w-full px-4 py-2.5 text-center text-[1rem] ${fieldClass}`}
                     />
+                    <p id="profile-age-hint" className="mt-1.5 text-[0.7rem] text-muted">
+                      {MIN_AGE}–{MAX_AGE}
+                    </p>
                   </div>
                   <button
                     onClick={() => setDetailsOpen(false)}
@@ -164,10 +178,19 @@ export default function Profile({
                     Done
                   </button>
                 </div>
-                <label className="mb-2 mt-4 block text-sm font-medium text-ink-soft">
+                {/* A heading for a group of choices, not a field label — so it
+                    names the group rather than pointing at a single control. */}
+                <p
+                  id="profile-scene-label"
+                  className="mb-2 mt-4 block text-sm font-medium text-ink-soft"
+                >
                   Where’s your community?
-                </label>
-                <div className="flex flex-wrap gap-2">
+                </p>
+                <div
+                  role="group"
+                  aria-labelledby="profile-scene-label"
+                  className="flex flex-wrap gap-2"
+                >
                   {scenes.map((s) => {
                     const selected = identity.scene === s.id
                     return (
@@ -180,6 +203,7 @@ export default function Profile({
                             scene: selected ? undefined : s.id,
                           }))
                         }
+                        aria-pressed={selected}
                         className={`rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition-all ${
                           selected
                             ? 'border-forest bg-forest text-cream'

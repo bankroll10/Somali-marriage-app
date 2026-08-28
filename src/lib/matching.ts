@@ -18,13 +18,9 @@ export interface Alignment {
   headline: string
 }
 
+// Candidate practice ids and the intake's 'practice' option ids are the same
+// vocabulary, so one scale serves both sides of the comparison.
 const PRACTICE_SCALE: Record<Candidate['practice'], number> = {
-  devout: 4,
-  consistent: 3,
-  returning: 2,
-  cultural: 1,
-}
-const USER_PRACTICE_SCALE: Record<string, number> = {
   devout: 4,
   consistent: 3,
   returning: 2,
@@ -56,7 +52,8 @@ function overlap(a: string[] = [], b: string[] = []): { ratio: number; shared: s
 export function alignment(answers: Answers, c: Candidate): Alignment {
   // Faith: blend of how central faith is + practice level.
   const userFaithRole = typeof answers['faith-role'] === 'number' ? (answers['faith-role'] as number) : 3
-  const userPractice = USER_PRACTICE_SCALE[answers['practice'] as string] ?? 2.5
+  const userPractice =
+    PRACTICE_SCALE[answers['practice'] as Candidate['practice']] ?? 2.5
   const faithScore =
     (closeness(userFaithRole, c.faithRole, 4) + closeness(userPractice, PRACTICE_SCALE[c.practice], 3)) / 2
 

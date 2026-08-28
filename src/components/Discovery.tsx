@@ -334,6 +334,13 @@ function CandidateDetail({
           {c.name}’s photo is shared only after you both express interest.
         </p>
 
+        {/* The disclosure belongs here too, not only under the list. This is
+            the screen where someone decides to reach for a person. */}
+        <p className="mx-auto mt-3 max-w-sm text-center text-[0.78rem] leading-relaxed text-muted/80 text-pretty">
+          Founding preview — {c.name} is an illustrative profile showing how
+          introductions work while your city’s community opens.
+        </p>
+
         {/* Report & block — the promise on the trust screen, made real. */}
         <div className="mt-4 pb-2 text-center">
           {confirmReport ? (

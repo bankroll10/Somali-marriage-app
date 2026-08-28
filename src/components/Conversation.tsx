@@ -127,12 +127,23 @@ export default function Conversation({
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-xl flex-col gap-4 px-5 py-6">
+        <div
+          role="log"
+          aria-live="polite"
+          aria-label={`Conversation with ${candidate.name}`}
+          className="mx-auto flex max-w-xl flex-col gap-4 px-5 py-6"
+        >
           <div className="rounded-2xl border border-gold/25 bg-gold/[0.07] px-4 py-3 text-center text-[0.85rem] leading-relaxed text-ink-soft">
             {note
               ? `You both expressed serious interest — and you said ${candidate.name}’s answer to “${note}” stood out. A good place to begin.`
               : 'You both expressed serious interest. Photos are now revealed. Keep it meaningful — Niyyah is here if you need it.'}
           </div>
+          {/* Said once, at the top of the thread. Someone practising a real
+              conversation deserves to know who is on the other end of it. */}
+          <p className="text-center text-[0.76rem] leading-relaxed text-muted/80 text-pretty">
+            Founding preview — {candidate.name} is an illustrative member, so these
+            replies are written by Niyyah, not a person.
+          </p>
 
           {messages.map((m) =>
             m.from === 'system' ? (

@@ -47,6 +47,7 @@ const demoAnswers: Answers = {
 const demoIdentity: Identity = {
   firstName: 'Hodan',
   gender: 'woman',
+  adult: true,
   age: 27,
   scene: 'twin-cities',
   bio: 'Nurse, big sister, early-morning walker. I want a home built on deen, honesty, and a lot of laughter.',

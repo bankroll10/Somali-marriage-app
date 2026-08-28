@@ -262,7 +262,12 @@ export default function Coach({
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-xl flex-col gap-5 px-5 py-7">
+        <div
+          role="log"
+          aria-live="polite"
+          aria-label={`Conversation with ${activeMode.label}`}
+          className="mx-auto flex max-w-xl flex-col gap-5 px-5 py-7"
+        >
           {/* Why this voice. Routing you didn't ask for has to be legible, and
               reversible in one tap — otherwise it's just the app deciding. */}
           {askedWhy && (

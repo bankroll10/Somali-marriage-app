@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Identity, TrustSettings } from '../types'
+import { trustScore } from '../lib/trust'
 import {
   BackButton,
   CheckIcon,
@@ -19,25 +20,16 @@ interface Props {
   onBack: () => void
 }
 
-const WEIGHTS: Record<keyof TrustSettings, number> = {
-  identityVerified: 35,
-  seriousIntention: 15,
-  waliFriendly: 15,
-  blurPhotos: 15,
-  privacyShield: 20,
-}
-
-function trustScore(t: TrustSettings): number {
-  return (Object.keys(WEIGHTS) as (keyof TrustSettings)[]).reduce(
-    (sum, k) => sum + (t[k] ? WEIGHTS[k] : 0),
-    0,
-  )
-}
-
 export default function Trust({ identity, trust, onChange, onBack }: Props) {
   const [verifying, setVerifying] = useState(false)
   const score = trustScore(trust)
   const isWoman = identity.gender === 'woman'
+
+  // Cleared on unmount — leaving the screen mid-check must not resolve later.
+  const verifyTimer = useRef<number | null>(null)
+  useEffect(() => () => {
+    if (verifyTimer.current !== null) window.clearTimeout(verifyTimer.current)
+  }, [])
 
   function set<K extends keyof TrustSettings>(key: K, value: TrustSettings[K]) {
     onChange((prev) => ({ ...prev, [key]: value }))
@@ -47,7 +39,8 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
     if (trust.identityVerified || verifying) return
     setVerifying(true)
     // Simulated verification — a real build would run an ID/liveness check here.
-    setTimeout(() => {
+    verifyTimer.current = window.setTimeout(() => {
+      verifyTimer.current = null
       set('identityVerified', true)
       setVerifying(false)
     }, 1600)
@@ -74,9 +67,10 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
             Built to feel safe.
           </h1>
           <p className="animate-rise mt-4 max-w-lg text-[1.04rem] leading-relaxed text-ink-soft text-pretty">
-            No fake profiles, no time-wasters, no creeps in the shadows. These are
-            the controls that protect you — and signal to others that you’re here
-            for something real. {isWoman ? 'Sister, these are yours to set.' : ''}
+            No time-wasters, no creeps in the shadows, and every member verified
+            before your city opens. These are the controls that protect you — and
+            signal to others that you’re here for something real.{' '}
+            {isWoman ? 'Sister, these are yours to set.' : ''}
           </p>
 
           {/* Trust score */}
@@ -130,7 +124,11 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
             desc="Publicly mark that you’re here for marriage, not for passing time. It tells the unserious to keep scrolling."
             icon={<RingGlyph />}
           >
-            <Toggle on={trust.seriousIntention} onClick={() => set('seriousIntention', !trust.seriousIntention)} />
+            <Toggle
+              on={trust.seriousIntention}
+              label="Serious-intention badge"
+              onClick={() => set('seriousIntention', !trust.seriousIntention)}
+            />
           </Control>
 
           <Control
@@ -138,7 +136,11 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
             desc="Welcome family or a wali into the process from the start. A green flag for those who take this the honourable way."
             icon={<PeopleGlyph />}
           >
-            <Toggle on={trust.waliFriendly} onClick={() => set('waliFriendly', !trust.waliFriendly)} />
+            <Toggle
+              on={trust.waliFriendly}
+              label="Wali-friendly"
+              onClick={() => set('waliFriendly', !trust.waliFriendly)}
+            />
           </Control>
 
           <Control
@@ -147,7 +149,11 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
             icon={<EyeOffGlyph />}
             recommended={isWoman}
           >
-            <Toggle on={trust.blurPhotos} onClick={() => set('blurPhotos', !trust.blurPhotos)} />
+            <Toggle
+              on={trust.blurPhotos}
+              label="Blur photos until mutual interest"
+              onClick={() => set('blurPhotos', !trust.blurPhotos)}
+            />
           </Control>
 
           <Control
@@ -156,7 +162,11 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
             icon={<LockGlyph />}
             recommended={isWoman}
           >
-            <Toggle on={trust.privacyShield} onClick={() => set('privacyShield', !trust.privacyShield)} />
+            <Toggle
+              on={trust.privacyShield}
+              label="Privacy shield"
+              onClick={() => set('privacyShield', !trust.privacyShield)}
+            />
           </Control>
         </div>
 
@@ -227,12 +237,15 @@ function Control({
   )
 }
 
-function Toggle({ on, onClick }: { on: boolean; onClick: () => void }) {
+function Toggle({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
       role="switch"
       aria-checked={on}
+      // Without this the control announces as "switch, off" with no name —
+      // the surrounding title is not associated with it.
+      aria-label={label}
       className={`relative h-7 w-12 flex-none rounded-full transition-colors duration-200 ${
         on ? 'bg-forest' : 'bg-sand'
       }`}

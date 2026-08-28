@@ -64,6 +64,16 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     />
   )
 
+  const connections = (
+    <Connections
+      matched={n.matched}
+      conversations={n.conversations}
+      onOpen={n.openConversation}
+      onDiscover={() => n.setScreen('discovery')}
+      onBack={() => n.setScreen('home')}
+    />
+  )
+
   switch (n.screen) {
     case 'welcome':
       return welcome
@@ -237,23 +247,14 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       )
 
     case 'connections':
-      return (
-        <Connections
-          matched={n.matched}
-          conversations={n.conversations}
-          onOpen={n.openConversation}
-          onDiscover={() => n.setScreen('discovery')}
-          onBack={() => n.setScreen('home')}
-        />
-      )
+      return connections
 
     case 'conversation': {
       const candidate = n.activeMatch ? getCandidate(n.activeMatch) : undefined
-      if (!candidate || !n.activeMatch) {
-        // Stale or missing match — land somewhere sane, not on a blank screen.
-        n.setScreen('connections')
-        return null
-      }
+      // Stale or missing match — render the list they came from rather than a
+      // blank screen. Setting state here instead would be a state update during
+      // render, which React rejects and which costs a blank frame either way.
+      if (!candidate || !n.activeMatch) return connections
       const matchId = n.activeMatch
       return (
         <Conversation

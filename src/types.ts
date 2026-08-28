@@ -15,9 +15,20 @@ export type Gender = 'woman' | 'man'
 /** Where someone is in the whole arc — see data/stages.ts. */
 export type Stage = 'preparing' | 'talking' | 'deciding' | 'married'
 
+/** Nobody under this may use Niyyah. Marriage is an adults-only process. */
+export const MIN_AGE = 18
+/** Upper bound on the profile age field — a two-digit sanity guard, not a limit on who belongs. */
+export const MAX_AGE = 99
+
 export interface Identity {
   firstName?: string
   gender?: Gender
+  /**
+   * Confirmed 18 or older. Required to continue past the first screen — a
+   * marriage platform cannot be ambiguous about this, and the confirmation is
+   * deliberately an explicit act rather than a buried line of terms.
+   */
+  adult?: boolean
   age?: number
   /** Diaspora community / scene id (see data/scenes.ts). */
   scene?: string
