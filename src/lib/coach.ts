@@ -1,19 +1,17 @@
 import { getMode, type CoachContext, type CoachIntent } from '../data/coach'
-import type { ModeId } from '../types'
+import type { CoachMessage, ModeId } from '../types'
 
 /**
- * The AI Guide engine — now mode-aware.
+ * The AI Guide engine — mode-aware, with two voices behind one call.
  *
- * Today: pick the active mode, intent-match over its hand-authored wisdom, fall
- * back to the mode's own fallback. Instant, private, no keys.
+ * `askCoach` tries the live guide first (netlify/functions/guide.ts, prompted
+ * with `guideSystemPrompt` below) and falls back to the local intent matcher for
+ * every failure: not configured, offline, rate limited, or a safety decline.
  *
- * ─── Claude seam ───────────────────────────────────────────────────────────
- * To go live, `askCoach` calls a server route that prompts Claude
- * (claude-opus-4-8) using the active mode's voice as the system prompt, passing
- * the readiness map + recent messages as context. Each GuidanceMode in
- * data/coach.ts already encodes a distinct persona — those become the prompts.
- * The local matcher stays as the offline fallback; the UI never changes.
- * ───────────────────────────────────────────────────────────────────────────
+ * The local matcher is therefore not scaffolding — it is the offline voice, and
+ * the only one that speaks until an ANTHROPIC_API_KEY is set. Until then nothing
+ * a member writes leaves their device, which is what the Trust screen promises.
+ * Switching the live guide on means rewriting that promise in the same change.
  */
 
 function normalize(s: string): string {
@@ -75,15 +73,53 @@ function situationPrefix(message: string, ctx: CoachContext): string {
   return ''
 }
 
+/**
+ * Ask the live guide, if one is switched on.
+ *
+ * Returns null for every failure — not configured, rate limited, offline, a
+ * safety decline — so the caller falls back to the local voice. A member in the
+ * middle of a hard night should never see an error where an answer was.
+ */
+async function askLiveGuide(
+  message: string,
+  ctx: CoachContext,
+  modeId: ModeId,
+  history: CoachMessage[],
+): Promise<string | null> {
+  try {
+    const res = await fetch('/.netlify/functions/guide', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: guideSystemPrompt(modeId, ctx),
+        message,
+        history: history.map((m) => ({ role: m.role, text: m.text })),
+      }),
+    })
+    if (!res.ok) return null
+    const data = (await res.json()) as { text?: string }
+    return data.text?.trim() || null
+  } catch {
+    return null
+  }
+}
+
 export async function askCoach(
   message: string,
   ctx: CoachContext,
   modeId: ModeId,
+  history: CoachMessage[] = [],
 ): Promise<CoachReply> {
+  const mode = getMode(modeId)
+
+  // The live guide first. Its own latency is the considered pause, so there is
+  // no artificial wait on this path.
+  const live = await askLiveGuide(message, ctx, modeId, history)
+  if (live) return { text: live, followUps: DEFAULT_FOLLOW_UPS }
+
   // A short, considered pause — a guide thinks before speaking.
   await new Promise((r) => setTimeout(r, 700 + Math.random() * 500))
 
-  const mode = getMode(modeId)
   let best: CoachIntent | null = null
   let bestScore = 0
   for (const intent of mode.intents) {
@@ -106,10 +142,10 @@ export async function askCoach(
 }
 
 /**
- * ─── Live-Claude seam: the actual system prompt, ready to ship ─────────────
- * Unused by the local engine. When askCoach becomes an API call, THIS is the
- * system prompt — persona + the user's real map + live app state + grounding
- * rules that keep the model honest.
+ * The guide's system prompt — persona + the member's real map + live app state
+ * + the grounding rules that keep the model honest. Built on the client and
+ * sent with each request, so the voices stay defined in one place
+ * (data/coach.ts) rather than drifting between the app and the server.
  */
 export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
   const mode = getMode(modeId)

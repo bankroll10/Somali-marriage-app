@@ -159,7 +159,9 @@ export default function Coach({
     setInput('')
     setFollowUps([])
     setThinking(true)
-    const reply = await askCoach(trimmed, ctx, mode)
+    // The thread so far, so the live guide picks up mid-conversation instead of
+    // meeting them fresh on every message.
+    const reply = await askCoach(trimmed, ctx, mode, threads[mode] ?? [])
     setThreads((prev) => ({
       ...prev,
       [mode]: [...(prev[mode] ?? []), { id: nextId(), role: 'coach', text: reply.text }],

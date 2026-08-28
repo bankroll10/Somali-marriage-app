@@ -29,14 +29,31 @@ export interface WaitlistEntry {
 
 export const CONTACT_EMAIL = 'salaam@niyyah.app'
 
-/** True when a real endpoint is configured. */
+/**
+ * Netlify Forms, when the build names one. Chosen over a third-party form
+ * service because it needs no account, no key, and no other company holding a
+ * list of Somali women who want to get married — the submissions live in the
+ * same place the site does.
+ *
+ * Netlify registers a form by scanning the deployed HTML at build time, so
+ * index.html carries a hidden form declaring these fields. Submissions must be
+ * url-encoded and name the form; JSON is silently ignored.
+ */
+function formName(): string | undefined {
+  return (import.meta.env.VITE_WAITLIST_FORM as string | undefined) || undefined
+}
+
+/** True when there is somewhere real to send a signup. */
 export function waitlistConfigured(): boolean {
-  return !!import.meta.env.VITE_WAITLIST_URL
+  return !!formName() || !!import.meta.env.VITE_WAITLIST_URL
 }
 
 export type JoinResult = 'joined' | 'queued' | 'unconfigured'
 
 async function post(entry: WaitlistEntry): Promise<boolean> {
+  const form = formName()
+  if (form) return postToNetlifyForm(form, entry)
+
   const url = import.meta.env.VITE_WAITLIST_URL as string | undefined
   if (!url) return false
   try {
@@ -44,6 +61,26 @@ async function post(entry: WaitlistEntry): Promise<boolean> {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify(entry),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<boolean> {
+  const body = new URLSearchParams({ 'form-name': form })
+  // Only send what we have; an empty field is noise in the submissions table.
+  if (entry.email) body.set('email', entry.email)
+  if (entry.scene) body.set('scene', entry.scene)
+  if (entry.gender) body.set('gender', entry.gender)
+  if (typeof entry.overall === 'number') body.set('overall', String(entry.overall))
+  body.set('at', entry.at)
+  try {
+    const res = await fetch('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body.toString(),
     })
     return res.ok
   } catch {

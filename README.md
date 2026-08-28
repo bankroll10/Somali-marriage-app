@@ -121,17 +121,34 @@ npm run build    # typecheck + production build
 
 ## Collecting real people
 
-Until an endpoint is configured, Niyyah cannot reach anyone who closes the tab —
-no email, no account, no server. That is the single biggest thing standing
-between this and real users.
+A signup has to reach a server or the person is lost the moment they close the
+tab. `src/lib/waitlist.ts` supports three transports, in order:
 
-1. Make an endpoint that accepts a JSON POST (Formspree takes ~2 minutes).
-2. `cp .env.example .env.local` and paste the URL into `VITE_WAITLIST_URL`.
-3. Rebuild. Signups now arrive as `{ email, scene, gender, overall, at }`.
+1. **Netlify Forms** (what the deploy uses) — `VITE_WAITLIST_FORM` names the
+   form, set in `netlify.toml`. `index.html` carries the hidden form Netlify
+   scans at build time to register it. No third-party account, no key, and the
+   submissions live wherever the site does.
+2. **Any JSON endpoint** — set `VITE_WAITLIST_URL` (`cp .env.example .env.local`)
+   and signups POST as `{ email, scene, gender, overall, at }`.
+3. **Neither** — the card falls back to a mailto rather than pretending someone
+   joined a list that does not exist.
 
 `scene` is the city signal: it tells you which city has enough serious people
 to open first. A failed POST is queued in localStorage and retried on the
 member's next visit, so one bad connection never costs a real person.
 
-With no URL set, the signup card falls back to a mailto instead of pretending
-someone joined a list that does not exist.
+## The AI Guide
+
+`askCoach` (`src/lib/coach.ts`) calls `netlify/functions/guide.ts`, which prompts
+Claude (`claude-opus-5`) with `guideSystemPrompt` — the mode's persona, the
+member's readiness map, live app state, and grounding rules that defer fiqh to a
+scholar and forbid inventing people. The thread's recent turns go along, so the
+guide remembers mid-conversation.
+
+**It is dormant until `ANTHROPIC_API_KEY` is set** as a Netlify environment
+variable. Without it the function returns 503 and the local intent matcher
+answers — which is why the matcher is the offline voice, not scaffolding.
+
+> Switching the live guide on means members' answers leave their device. The
+> Trust screen currently promises they don't. **Rewrite that copy in the same
+> commit that adds the key** — never before it, never after.
