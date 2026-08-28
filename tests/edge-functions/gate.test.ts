@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import gate from './gate.ts'
+import gate from '../../netlify/edge-functions/gate.ts'
 
 const PASSWORD = 'open-sesame'
 
