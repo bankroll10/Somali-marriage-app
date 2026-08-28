@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Niyyah — form registry</title>
+    <meta name="robots" content="noindex" />
+  </head>
+  <body>
+    <!--
+      Not a page anyone visits. Netlify registers a form by scanning deployed
+      HTML at build time, and Niyyah's real signup form is rendered by React, so
+      it never appears in any built HTML. This file is that declaration.
+
+      It lives here rather than in index.html for a specific reason: the app is a
+      single-page app, so netlify.toml rewrites /* to /index.html. A form POST to
+      "/" can be swallowed by that rewrite before Netlify's form handler sees it,
+      and a signup lost that way fails silently — no error, no row, nobody knows.
+      /__forms.html is a real static file, so no rewrite applies to it.
+
+      Fields must match WaitlistEntry in src/lib/waitlist.ts, which posts here.
+    -->
+    <form name="niyyah-waitlist" data-netlify="true" hidden>
+      <input type="email" name="email" />
+      <input type="text" name="scene" />
+      <input type="text" name="gender" />
+      <input type="text" name="overall" />
+      <input type="text" name="at" />
+    </form>
+  </body>
+</html>

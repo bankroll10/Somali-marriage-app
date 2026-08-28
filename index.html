@@ -34,19 +34,8 @@
     <title>Niyyah — the trusted marriage platform for the Somali diaspora</title>
   </head>
   <body>
-    <!--
-      Netlify registers a form by scanning the deployed HTML at build time, and
-      the app's real form is rendered by React so it is never in that HTML. This
-      hidden declaration is what makes the form exist; src/lib/waitlist.ts posts
-      to it. Fields must match WaitlistEntry.
-    -->
-    <form name="niyyah-waitlist" data-netlify="true" hidden>
-      <input type="email" name="email" />
-      <input type="text" name="scene" />
-      <input type="text" name="gender" />
-      <input type="text" name="overall" />
-      <input type="text" name="at" />
-    </form>
+    <!-- The Netlify form declaration lives in public/__forms.html, not here —
+         see that file for why posting to "/" would lose signups. -->
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

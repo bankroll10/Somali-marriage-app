@@ -35,13 +35,16 @@ export const CONTACT_EMAIL = 'salaam@niyyah.app'
  * list of Somali women who want to get married — the submissions live in the
  * same place the site does.
  *
- * Netlify registers a form by scanning the deployed HTML at build time, so
- * index.html carries a hidden form declaring these fields. Submissions must be
- * url-encoded and name the form; JSON is silently ignored.
+ * Netlify registers a form by scanning deployed HTML at build time, so
+ * public/__forms.html carries a hidden form declaring these fields. Submissions
+ * must be url-encoded and name the form; JSON is silently ignored.
  */
 function formName(): string | undefined {
   return (import.meta.env.VITE_WAITLIST_FORM as string | undefined) || undefined
 }
+
+/** The static file that declares the form. See public/__forms.html. */
+export const NETLIFY_FORM_ENDPOINT = '/__forms.html'
 
 /** True when there is somewhere real to send a signup. */
 export function waitlistConfigured(): boolean {
@@ -77,7 +80,10 @@ async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<bo
   if (typeof entry.overall === 'number') body.set('overall', String(entry.overall))
   body.set('at', entry.at)
   try {
-    const res = await fetch('/', {
+    // Posts to the static declaration, NOT to "/". The app is a single-page app
+    // whose /* rewrite would otherwise swallow the POST before Netlify's form
+    // handler saw it — and a signup lost that way fails silently.
+    const res = await fetch(NETLIFY_FORM_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: body.toString(),
