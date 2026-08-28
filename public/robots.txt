@@ -1,0 +1,5 @@
+# FOUNDING PREVIEW ONLY — delete this file at real launch.
+# Niyyah is password-gated at the edge and not ready to be found. Search engines
+# get a 401 anyway; this is the polite version of the same message.
+User-agent: *
+Disallow: /

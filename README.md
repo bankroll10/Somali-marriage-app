@@ -137,6 +137,28 @@ tab. `src/lib/waitlist.ts` supports three transports, in order:
 to open first. A failed POST is queued in localStorage and retried on the
 member's next visit, so one bad connection never costs a real person.
 
+## The founding-preview gate
+
+`netlify/edge-functions/gate.ts` password-protects the whole site at the edge, so
+an unauthenticated visitor never receives the app's HTML. This is the same
+protection Netlify sells on its paid plans — that feature is HTTP Basic Auth with
+a dashboard on top — implemented on the free tier.
+
+Set `PREVIEW_PASSWORD` in Netlify (Site configuration → Environment variables).
+It stays server-side: never bundled, never in this repository. Any username is
+accepted; only the password is checked, in constant time.
+
+**Unset means no gate.** That is deliberate — a missing variable must not lock
+you out of your own site — so after setting it, confirm a bare request really is
+refused:
+
+```bash
+curl -sI https://<your-site>/ | head -1     # expect: HTTP/2 401
+```
+
+At real launch, remove three things together: the `[[headers]]` block in
+`netlify.toml`, `public/robots.txt`, and this gate.
+
 ## The AI Guide
 
 `askCoach` (`src/lib/coach.ts`) calls `netlify/functions/guide.ts`, which prompts

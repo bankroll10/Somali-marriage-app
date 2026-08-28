@@ -2,6 +2,7 @@
   command = "npm run build"
   publish = "dist"
   functions = "netlify/functions"
+  edge_functions = "netlify/edge-functions"
 
 [build.environment]
   # Names the Netlify form src/lib/waitlist.ts posts to. Unset this and the app
@@ -18,3 +19,14 @@
 
 [functions]
   node_bundler = "esbuild"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# FOUNDING PREVIEW ONLY — remove this block and public/robots.txt at real launch.
+# The edge-function gate already returns 401 to anyone without the password, so
+# these are belt and braces. They matter most on the day the gate comes off,
+# which is exactly the day they are easy to forget.
+# ─────────────────────────────────────────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow"

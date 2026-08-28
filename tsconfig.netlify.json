@@ -10,6 +10,8 @@
     /* Bundler mode */
     "module": "esnext",
     "moduleResolution": "bundler",
+    /* Deno resolves edge-function imports with their real .ts extension. */
+    "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
@@ -20,5 +22,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["netlify/functions"]
+  "include": ["netlify/functions", "netlify/edge-functions"]
 }
