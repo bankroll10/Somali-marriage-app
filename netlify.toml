@@ -12,6 +12,13 @@
   # tested against locally.
   NODE_VERSION = "22"
 
+  # Install devDependencies. Under NODE_ENV=production `npm ci` prunes them, and
+  # every tool this build needs — vite, tsc, the @types packages, the Netlify
+  # type packages — is a devDependency, so the build dies on "cannot find
+  # module". Reproduced exactly with `NODE_ENV=production npm ci` on a clean
+  # clone; this flag is what makes it pass.
+  NPM_FLAGS = "--include=dev"
+
   # Names the Netlify form src/lib/waitlist.ts posts to. Unset this and the app
   # falls back to a mailto rather than pretending anyone joined a list.
   VITE_WAITLIST_FORM = "niyyah-waitlist"

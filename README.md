@@ -99,6 +99,28 @@ In both, the local version stays as baseline + offline fallback.
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # typecheck + production build
+npm run verify   # typecheck + lint + tests — run before pushing
+```
+
+Node 20+ (the deploy pins 22).
+
+### Before changing dependencies
+
+The deploy runs **`npm ci` on a clean clone**, not `npm install` in a warm tree,
+and it may run with `NODE_ENV=production`. Two consequences:
+
+- `package-lock.json` must be committed in the same change as `package.json`, or
+  `npm ci` fails outright.
+- Every build tool here is a devDependency, so `netlify.toml` sets
+  `NPM_FLAGS = "--include=dev"`. Without it `npm ci` prunes them and the build
+  dies on "cannot find module" — while Netlify quietly keeps serving the last
+  deploy that worked, so the site looks fine and is silently stale.
+
+To reproduce the deploy build exactly before pushing:
+
+```bash
+git clone . /tmp/cibuild && cd /tmp/cibuild
+NODE_ENV=production npm ci --include=dev && npm run build
 ```
 
 ## Next slices (roadmap)
