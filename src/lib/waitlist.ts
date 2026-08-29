@@ -24,6 +24,16 @@ export interface WaitlistEntry {
   gender?: string
   /** Readiness score, so demand can be read against seriousness. */
   overall?: number
+  /**
+   * What they named as the hardest part, in their own words rather than as an
+   * id — "Trusting again after being hurt" is a finding; `trust` is a lookup.
+   *
+   * This is the most useful thing a signup can carry. It is the second question
+   * the app asks, it decides how the whole experience speaks to them, and read
+   * across a handful of people it says what Niyyah is actually for: which guide
+   * voice to make real first, and what the landing page should lead with.
+   */
+  hardestPart?: string
   at: string
 }
 
@@ -87,6 +97,7 @@ async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<bo
   if (entry.scene) body.set('scene', entry.scene)
   if (entry.gender) body.set('gender', entry.gender)
   if (typeof entry.overall === 'number') body.set('overall', String(entry.overall))
+  if (entry.hardestPart) body.set('hardest_part', entry.hardestPart)
   body.set('at', entry.at)
   try {
     const res = await fetch(NETLIFY_FORM_ENDPOINT, {

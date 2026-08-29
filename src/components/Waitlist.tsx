@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Identity, WaitlistState } from '../types'
 import { scenes } from '../data/scenes'
+import { getHookOption } from '../data/hook'
 import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../lib/waitlist'
 import { track } from '../lib/analytics'
 import { ArrowRight, CheckIcon, Spinner, fieldClass } from './ui'
@@ -9,6 +10,8 @@ interface Props {
   identity: Identity
   /** Readiness score, sent along so demand can be read against seriousness. */
   overall?: number
+  /** Their answer to "what's the hardest part" — see WaitlistEntry.hardestPart. */
+  hookId?: string
   joined: WaitlistState | null
   onJoined: (state: WaitlistState) => void
   /** Quiet variant for Profile; the full card is for the map reveal. */
@@ -24,7 +27,7 @@ interface Props {
  * That turns the cold-start problem into the plan, and it's the only way this
  * app can reach a person again after they close the tab.
  */
-export default function Waitlist({ identity, overall, joined, onJoined, compact }: Props) {
+export default function Waitlist({ identity, overall, hookId, joined, onJoined, compact }: Props) {
   const configured = waitlistConfigured()
   const [email, setEmail] = useState('')
   const [scene, setScene] = useState(identity.scene ?? '')
@@ -58,6 +61,8 @@ export default function Waitlist({ identity, overall, joined, onJoined, compact 
       scene: scene || undefined,
       gender: identity.gender,
       overall,
+      // The label, not the id — this is read by a person, not a program.
+      hardestPart: getHookOption(hookId)?.label,
       at: new Date().toISOString(),
     })
     if (result === 'unconfigured') {

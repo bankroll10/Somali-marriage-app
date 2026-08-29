@@ -180,6 +180,8 @@ interface Props {
   onCompleteStep: () => void
   /** Their saved place — asked for once, at the map reveal. */
   waitlist: WaitlistState | null
+  /** Their "hardest part" answer, carried onto the signup. */
+  hookId?: string
   onJoinWaitlist: (s: WaitlistState) => void
   /** First-time reveal shows an "enter" CTA; revisits show "back". */
   firstReveal?: boolean
@@ -198,6 +200,7 @@ export default function ReflectionView({
   onTakeStep,
   onCompleteStep,
   waitlist,
+  hookId,
   onJoinWaitlist,
   firstReveal = false,
   onContinue,
@@ -477,6 +480,7 @@ export default function ReflectionView({
             <Waitlist
               identity={identity}
               overall={r.overall}
+              hookId={hookId}
               joined={waitlist}
               onJoined={onJoinWaitlist}
             />

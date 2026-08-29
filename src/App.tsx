@@ -125,6 +125,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onTakeStep={n.takeStep}
           onCompleteStep={n.completeStep}
           waitlist={n.waitlist}
+          hookId={n.answers['hardest-part'] as string | undefined}
           onJoinWaitlist={n.setWaitlist}
           firstReveal={n.mapReveal}
           onContinue={n.enterHome}

@@ -396,6 +396,7 @@ export default function Profile({
         <div className="mt-5">
           <Waitlist
             identity={identity}
+            hookId={answers['hardest-part'] as string | undefined}
             overall={reflection.overall}
             joined={waitlist}
             onJoined={onJoinWaitlist}

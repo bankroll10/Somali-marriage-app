@@ -380,14 +380,23 @@ function CandidateDetail({
       {/* Action bar */}
       <div className="fixed inset-x-0 bottom-0 border-t border-line/70 bg-cream/90 backdrop-blur-md">
         <div className="mx-auto max-w-2xl px-6 py-4">
+          {/* The mutual panel below is the highest-stakes moment on this screen,
+              and the one place a person could form a false belief about someone
+              who does not exist. It says what a mutual connection *will* be, in
+              the future tense, rather than announcing one that just happened —
+              small print elsewhere cannot undo a sentence read here. */}
           {matched ? (
             <div className="animate-rise rounded-card bg-forest/10 px-5 py-4 text-center">
-              <p className="font-display text-[1.1rem] font-medium text-forest">
-                It’s mutual — you’re connected.
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-gold">
+                How a connection will work
+              </p>
+              <p className="mt-1.5 font-display text-[1.1rem] font-medium text-forest">
+                When it’s mutual, this is where you’d meet.
               </p>
               <p className="mt-1 text-[0.88rem] text-muted text-pretty">
-                {c.name} expressed serious interest too. Photos are revealed, and a
-                guided conversation is ready.
+                Photos are revealed to each other, and a guided conversation
+                opens. {c.name} is an illustrative member, so what follows is a
+                walkthrough of that — not a real reply.
               </p>
               <button
                 onClick={onOpenConversation}
@@ -401,9 +410,12 @@ function CandidateDetail({
               <p className="font-display text-[1.05rem] font-medium text-ink">
                 Interest sent, with your serious intention.
               </p>
+              {/* Future tense on purpose: nobody is deciding on the other end
+                  of this yet, and saying otherwise would be the lie. */}
               <p className="mt-1 text-[0.88rem] text-muted text-pretty">
-                If {c.name} feels the same, you’ll be introduced here and in your
-                connections. No pressure, no chasing.
+                When your city opens, this is where you’d hear back — here and in
+                your connections, only if they feel the same. No pressure, no
+                chasing, and nothing you have to do next.
               </p>
             </div>
           ) : (

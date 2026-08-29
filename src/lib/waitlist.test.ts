@@ -6,6 +6,7 @@ const entry = {
   scene: 'twin-cities',
   gender: 'woman',
   overall: 88,
+  hardestPart: 'Trusting again after being hurt',
   at: '2026-08-28T12:00:00.000Z',
 }
 
@@ -79,6 +80,9 @@ describe('the waitlist — the only line out of this app', () => {
     // The city signal — which city has enough serious people to open first.
     expect(sent.get('scene')).toBe('twin-cities')
     expect(sent.get('overall')).toBe('88')
+    // Why they came — the most useful thing a signup can carry, and sent as the
+    // human label rather than the id so a row reads as a finding.
+    expect(sent.get('hardest_part')).toBe('Trusting again after being hurt')
   })
 
   it('queues a failed signup instead of losing a real person', async () => {

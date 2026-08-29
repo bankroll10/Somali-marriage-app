@@ -1,4 +1,4 @@
-import { readdirSync, existsSync } from 'node:fs'
+import { readdirSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
@@ -35,6 +35,28 @@ describe('Netlify deploy directories hold only deployable code', () => {
       ).toEqual([])
     })
   }
+
+  it('the form registry declares every field the app actually sends', () => {
+    // Netlify silently drops fields public/__forms.html does not declare: no
+    // error in the app, no column in the dashboard, no way to tell from either
+    // side. That file IS the form's schema, so it has to move whenever the
+    // payload does — and this reads the payload from the source rather than
+    // repeating it, so the two cannot drift apart unnoticed.
+    const source = readFileSync(join(process.cwd(), 'src/lib/waitlist.ts'), 'utf8')
+    const registry = readFileSync(join(process.cwd(), 'public/__forms.html'), 'utf8')
+
+    const sent = [...source.matchAll(/body\.set\(\s*'([^']+)'/g)]
+      .map((m) => m[1])
+      .filter((f) => f !== 'form-name')
+
+    expect(sent.length, 'no body.set() calls found — did waitlist.ts change shape?')
+      .toBeGreaterThan(0)
+    for (const field of sent) {
+      expect(registry, `public/__forms.html is missing name="${field}"`).toContain(
+        `name="${field}"`,
+      )
+    }
+  })
 
   it('the gate is still where netlify.toml expects it', () => {
     // A guard that passes because the file was deleted would be worse than none.
