@@ -9,11 +9,6 @@ function withPassword(value: string | undefined) {
   })
 }
 
-/** Netlify's own variables missing too — env access itself is broken. */
-function withNoEnvAtAll() {
-  vi.stubGlobal('Netlify', { env: { get: () => undefined } })
-}
-
 function req(auth?: string, path = '/'): Request {
   return new Request(`https://niyyah.example${path}`, {
     headers: auth ? { authorization: auth } : {},
@@ -102,60 +97,5 @@ describe('the founding-preview gate', () => {
     withPassword(PASSWORD)
     const res = await gate(req())
     expect(await res!.text()).not.toContain(PASSWORD)
-  })
-})
-
-describe('/gate-status — the deployed-or-not probe', () => {
-  it('answers even with no credentials, so it can report the gate is off', async () => {
-    // Behind the challenge it would be useless: you could never learn that the
-    // gate is open, which is the exact case it exists to detect.
-    withPassword(PASSWORD)
-    const res = await gate(req(undefined, '/gate-status'))
-    expect(res?.status).toBe(200)
-    expect(await res!.text()).toMatch(/gate is ON/)
-  })
-
-  it('says the gate is OFF when no password is configured', async () => {
-    withPassword(undefined)
-    const res = await gate(req(undefined, '/gate-status'))
-    expect(res?.status).toBe(200)
-    expect(await res!.text()).toMatch(/gate is OFF/)
-  })
-
-  it('reports as plain text, so a phone shows words rather than downloading', async () => {
-    withPassword(PASSWORD)
-    const res = await gate(req(undefined, '/gate-status'))
-    expect(res?.headers.get('Content-Type')).toMatch(/^text\/plain/)
-  })
-
-  it('never reveals the password itself', async () => {
-    withPassword(PASSWORD)
-    const res = await gate(req(undefined, '/gate-status'))
-    expect(await res!.text()).not.toContain(PASSWORD)
-  })
-
-  it('blames the variable when the environment otherwise works', async () => {
-    // Netlify's own vars visible but ours missing → it is scoped wrong or unset.
-    withPassword(undefined)
-    const text = await (await gate(req(undefined, '/gate-status')))!.text()
-    expect(text).toMatch(/Netlify's own variables: visible/)
-    expect(text).toMatch(/UNCHECKED/)
-  })
-
-  it('says so plainly when no environment reaches the function at all', async () => {
-    // Then re-creating the variable is wasted effort, and it should say so
-    // rather than sending someone back to the dashboard for nothing.
-    withNoEnvAtAll()
-    const text = await (await gate(req(undefined, '/gate-status')))!.text()
-    expect(text).toMatch(/Netlify's own variables: NOT visible/)
-    expect(text).toMatch(/will not help/)
-  })
-
-  it('does not open any other path', async () => {
-    // The probe must not become a hole: everything else still challenges.
-    withPassword(PASSWORD)
-    for (const path of ['/', '/gate-status-x', '/profile', '/gate']) {
-      expect((await gate(req(undefined, path)))?.status, path).toBe(401)
-    }
   })
 })

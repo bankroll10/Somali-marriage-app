@@ -47,59 +47,8 @@ function unauthorized(): Response {
   )
 }
 
-/**
- * TEMPORARY — remove once the gate is confirmed working.
- *
- * A gate that fails open is indistinguishable from a gate that was never
- * deployed: both just serve the site. This path tells the two apart in one tap
- * from a phone, which matters because nobody debugging this can reach the site
- * with curl.
- *
- *   plain text back → the edge function is deployed, so the build succeeded
- *   the app back    → it is not; the SPA rewrite caught the path instead
- *
- * It reports only whether a password is visible, never the value.
- */
-const STATUS_PATH = '/gate-status'
-
-function status(password: string | undefined): Response {
-  // Netlify sets these itself for every deploy. Reading them separates "this
-  // one variable isn't reaching me" from "no environment reaches me at all" —
-  // two very different fixes, and otherwise two more round trips to tell apart.
-  const siteName = Netlify.env.get('SITE_NAME')
-  const context = Netlify.env.get('CONTEXT')
-  const envWorks = !!siteName || !!context
-
-  const lines = [
-    'Niyyah edge gate: deployed and running.',
-    '',
-    password
-      ? 'PREVIEW_PASSWORD: visible — the gate is ON.'
-      : 'PREVIEW_PASSWORD: NOT visible — the gate is OFF and the site is open.',
-    `Netlify's own variables: ${envWorks ? 'visible' : 'NOT visible'}` +
-      (siteName ? ` (site ${siteName}` : '') +
-      (siteName && context ? `, context ${context})` : siteName ? ')' : ''),
-    '',
-    password
-      ? 'Nothing to do — try the site itself.'
-      : envWorks
-        ? 'Diagnosis: the environment reaches this function, so PREVIEW_PASSWORD is either unset or scoped where edge functions cannot read it. Re-create it with "Contains secret values" UNCHECKED, then redeploy.'
-        : 'Diagnosis: no environment variables reach this function at all, so re-creating PREVIEW_PASSWORD will not help. The gate needs a different mechanism.',
-  ]
-
-  return new Response(lines.join('\n'), {
-    status: 200,
-    headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-  })
-}
-
 export default async function gate(request: Request): Promise<Response | undefined> {
   const password = Netlify.env.get('PREVIEW_PASSWORD')
-
-  // Answered before the auth check on purpose: if it sat behind the challenge
-  // it could not report that the gate is off.
-  if (new URL(request.url).pathname === STATUS_PATH) return status(password)
-
   // No password configured — the site is open, by design. See the note above.
   if (!password) return undefined
 
