@@ -166,9 +166,28 @@ an unauthenticated visitor never receives the app's HTML. This is the same
 protection Netlify sells on its paid plans — that feature is HTTP Basic Auth with
 a dashboard on top — implemented on the free tier.
 
-Set `PREVIEW_PASSWORD` in Netlify (Site configuration → Environment variables).
-It stays server-side: never bundled, never in this repository. Any username is
-accepted; only the password is checked, in constant time.
+In Netlify (Site configuration → Environment variables) add:
+
+| Field | Value |
+|---|---|
+| **Key** | `PREVIEW_PASSWORD` — exactly this, it is the name the code looks up |
+| **Value** | the password itself |
+| Contains secret values | **unchecked** |
+
+The Key is a fixed label, not something to fill in — think of a jar: the label
+is `PREVIEW_PASSWORD` and the password goes *inside*. Putting the password in
+the Key field creates a variable the gate never looks for, and `/gate-status`
+then reports it as missing.
+
+Leave "Contains secret values" unchecked. Secret-scoped variables do not reach
+Edge Functions, despite Netlify's UI listing Edge Functions under the Functions
+scope — verified the hard way. Non-secret only means readable by someone already
+signed in to the Netlify account; it is still never bundled and never in this
+repository. Any username is accepted; only the password is checked, in constant
+time.
+
+Environment changes apply only to builds that start after them, so **trigger a
+deploy** once it is saved.
 
 **Unset means no gate.** That is deliberate — a missing variable must not lock
 you out of your own site — so after setting it, confirm a bare request really is
