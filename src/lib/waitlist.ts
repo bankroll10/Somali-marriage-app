@@ -43,8 +43,17 @@ function formName(): string | undefined {
   return (import.meta.env.VITE_WAITLIST_FORM as string | undefined) || undefined
 }
 
-/** The static file that declares the form. See public/__forms.html. */
-export const NETLIFY_FORM_ENDPOINT = '/__forms.html'
+/**
+ * Where a signup is POSTed.
+ *
+ * "/" — Netlify's documented target. Its form handler matches on the form-name
+ * field and runs *before* redirects, so the app's /* → /index.html rewrite does
+ * not swallow it. An earlier version posted to /__forms.html instead, on the
+ * theory that the rewrite would eat it; that theory was wrong and it cost the
+ * first real signup. The registry file still declares the form for build-time
+ * detection (see public/__forms.html) — it is just not the submission target.
+ */
+export const NETLIFY_FORM_ENDPOINT = '/'
 
 /** True when there is somewhere real to send a signup. */
 export function waitlistConfigured(): boolean {
@@ -80,9 +89,6 @@ async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<bo
   if (typeof entry.overall === 'number') body.set('overall', String(entry.overall))
   body.set('at', entry.at)
   try {
-    // Posts to the static declaration, NOT to "/". The app is a single-page app
-    // whose /* rewrite would otherwise swallow the POST before Netlify's form
-    // handler saw it — and a signup lost that way fails silently.
     const res = await fetch(NETLIFY_FORM_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

@@ -48,16 +48,19 @@ describe('the waitlist — the only line out of this app', () => {
     expect(await joinWaitlist(entry)).toBe('unconfigured')
   })
 
-  it('posts to the static form file, never to "/"', async () => {
-    // Posting to "/" is swallowed by the SPA rewrite and the signup is lost
-    // with no error. This test exists so that regression cannot come back.
+  it('posts where Netlify actually listens', async () => {
+    // Netlify's form handler matches on form-name and runs before redirects,
+    // so "/" is correct and the SPA rewrite does not intercept it. A previous
+    // version posted to /__forms.html on the opposite assumption and silently
+    // dropped every signup — the form registered, the submissions never
+    // arrived. This pins the target that is known to work.
     stubEnv({ VITE_WAITLIST_FORM: 'niyyah-waitlist' })
     const spy = vi.fn(async (_u: string, _i: RequestInit) => new Response('', { status: 200 }))
     vi.stubGlobal('fetch', spy)
 
     expect(await joinWaitlist(entry)).toBe('joined')
     expect(spy.mock.calls[0][0]).toBe(NETLIFY_FORM_ENDPOINT)
-    expect(NETLIFY_FORM_ENDPOINT).not.toBe('/')
+    expect(NETLIFY_FORM_ENDPOINT).toBe('/')
   })
 
   it('sends url-encoded fields naming the form — JSON is silently ignored by Netlify', async () => {
