@@ -40,6 +40,46 @@ interface Body {
 }
 
 export default async function handler(req: Request, _context: Context) {
+  // A GET is a health check, openable from a phone. It exists because every
+  // failure on the POST path is deliberately invisible — the app falls back to
+  // its offline voice on 404, 503, a hang, or a bad key alike, and the member
+  // just gets a lesser answer with nothing to indicate why. When that happens
+  // there is otherwise no way to tell "the key is wrong" from "this route was
+  // never reachable". Reports booleans and error names only; never the key.
+  if (req.method === 'GET') {
+    const key = process.env.ANTHROPIC_API_KEY
+    const diagnostic: Record<string, unknown> = {
+      route: 'reachable',
+      keyPresent: !!key,
+      keyLooksValid: !!key && key.startsWith('sk-ant-'),
+      keyLength: key ? key.length : 0,
+      model: MODEL,
+      effort: EFFORT,
+    }
+    if (key) {
+      try {
+        const started = Date.now()
+        const res = await new Anthropic().messages.create({
+          model: MODEL,
+          max_tokens: 16,
+          system: 'Reply with exactly: OK',
+          thinking: { type: 'adaptive' },
+          output_config: { effort: EFFORT },
+          messages: [{ role: 'user', content: 'Reply with exactly: OK' }],
+        })
+        diagnostic.call = 'ok'
+        diagnostic.ms = Date.now() - started
+        diagnostic.stopReason = res.stop_reason
+      } catch (err) {
+        diagnostic.call = 'failed'
+        diagnostic.errorName = err instanceof Error ? err.name : typeof err
+        diagnostic.errorStatus = (err as { status?: number })?.status ?? null
+        diagnostic.errorMessage = err instanceof Error ? err.message.slice(0, 300) : String(err).slice(0, 300)
+      }
+    }
+    return Response.json(diagnostic)
+  }
+
   if (req.method !== 'POST') {
     return Response.json({ error: 'POST only' }, { status: 405 })
   }
