@@ -1,3 +1,4 @@
+import { SITE_HOST } from './site'
 /**
  * The shareable card — today's reflection, rendered as an image.
  *
@@ -184,7 +185,7 @@ export async function renderReflectionCard(r: CardContent): Promise<Blob | null>
   ctx.fillStyle = 'rgba(247,242,232,0.32)'
   ctx.font = '400 27px Inter, sans-serif'
   ctx.textAlign = 'right'
-  ctx.fillText('are you actually ready? · niyyah.app', W - PAD, footY - 6)
+  ctx.fillText(`are you actually ready? · ${SITE_HOST}`, W - PAD, footY - 6)
 
   return new Promise((resolve) => canvas.toBlob((b) => resolve(b), 'image/png'))
 }

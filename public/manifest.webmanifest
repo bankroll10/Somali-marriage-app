@@ -7,19 +7,21 @@
   "background_color": "#16271f",
   "theme_color": "#16271f",
   "orientation": "portrait",
-  "categories": ["lifestyle", "social"],
+  "categories": [
+    "lifestyle",
+    "social"
+  ],
   "icons": [
     {
       "src": "/favicon.svg",
       "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
+      "type": "image/svg+xml"
     },
     {
-      "src": "/apple-touch-icon.svg",
+      "src": "/apple-touch-icon.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

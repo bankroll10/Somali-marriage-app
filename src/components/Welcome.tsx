@@ -69,7 +69,7 @@ export default function Welcome({
 
         <main className="flex flex-1 flex-col justify-center py-16">
           <p className="animate-fade mb-5 text-sm font-medium uppercase tracking-[0.25em] text-gold-soft">
-            Before you meet anyone
+            Built for the Somali diaspora
           </p>
 
           {/* The hook keeps the shape of a question you can't answer about
@@ -87,8 +87,8 @@ export default function Welcome({
             className="animate-rise mt-6 max-w-lg text-[1.05rem] leading-relaxed text-cream/75 text-pretty"
             style={{ animationDelay: '80ms' }}
           >
-            Thirteen questions. Three chapters. About two minutes. Then a
-            straight answer: the ground you’re standing on, the one place you’re
+            Before you meet anyone: thirteen questions, about two minutes. Then a
+            straight answer — the ground you’re standing on, the one place you’re
             thinnest right now, and one honest thing to do about it this week.
           </p>
 
@@ -161,7 +161,7 @@ export default function Welcome({
             className="animate-fade mt-4 text-xs text-cream/45"
             style={{ animationDelay: '300ms' }}
           >
-            Private to you · Your first insight in under a minute · We open one city at a time
+            Private to you · Your first insight in under a minute · Minneapolis opens first
           </p>
           <button
             onClick={onPhilosophy}

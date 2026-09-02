@@ -4,9 +4,10 @@ import { MAX_AGE, MIN_AGE } from '../types'
 import { getScene, scenes } from '../data/scenes'
 import { shareOrCopy } from '../lib/share'
 import Waitlist from './Waitlist'
+import { SITE_HOST, SITE_URL } from '../lib/site'
 import { CheckIcon, ScreenHeader, ShieldGlyph, fieldClass } from './ui'
 
-const INVITE_TEXT = `Salaam — I’ve been using Niyyah, a marriage platform actually built for us: serious, wali-friendly, no swiping. It starts with an honest readiness reflection, not photos. I think you’d get it. niyyah.app`
+const INVITE_TEXT = `Salaam — I’ve been using Niyyah, a marriage platform actually built for us: serious, wali-friendly, no swiping. It starts with an honest readiness reflection, not photos. I think you’d get it. ${SITE_HOST}`
 
 interface Props {
   identity: Identity
@@ -73,7 +74,7 @@ export default function Profile({
   const [invited, setInvited] = useState(false)
   async function handleInvite() {
     const result = await shareOrCopy(
-      { text: INVITE_TEXT, url: 'https://niyyah.app' },
+      { text: INVITE_TEXT, url: SITE_URL },
       'invite_copied',
     )
     if (result === 'copied') {

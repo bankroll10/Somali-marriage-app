@@ -37,7 +37,9 @@ export interface WaitlistEntry {
   at: string
 }
 
-export const CONTACT_EMAIL = 'salaam@niyyah.app'
+import { CONTACT_EMAIL } from './site'
+
+export { CONTACT_EMAIL }
 
 /**
  * Netlify Forms, when the build names one. Chosen over a third-party form

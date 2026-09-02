@@ -3,6 +3,7 @@ import type { DailyPrefs, DailyReflection } from '../../data/daily'
 import { tomorrowTag } from '../../data/daily'
 import { renderReflectionCard } from '../../lib/card'
 import { shareImage, shareOrCopy } from '../../lib/share'
+import { SITE_HOST, SITE_URL } from '../../lib/site'
 import { CheckIcon, Logo } from '../ui'
 
 interface Props {
@@ -20,7 +21,7 @@ interface Props {
  */
 export default function TodaysReflection({ daily, prefs, whyThisOne }: Props) {
   const [shareState, setShareState] = useState<'idle' | 'working' | 'saved'>('idle')
-  const shareText = `“${daily.title}” — ${daily.body}\n\nFrom Niyyah, the marriage platform built for the Somali diaspora. niyyah.app`
+  const shareText = `“${daily.title}” — ${daily.body}\n\nFrom Niyyah, the marriage platform built for the Somali diaspora. ${SITE_HOST}`
   const fileName = `niyyah-${daily.tag.toLowerCase()}.png`
 
   // Draw the card ahead of the tap, while the browser is idle. Two reasons: the
@@ -76,7 +77,7 @@ export default function TodaysReflection({ daily, prefs, whyThisOne }: Props) {
           blob
             ? shareImage(blob, fileName, 'reflection_shared')
             : // Canvas unavailable — the words still travel.
-              shareOrCopy({ text: shareText, url: 'https://niyyah.app' }, 'reflection_shared'),
+              shareOrCopy({ text: shareText, url: SITE_URL }, 'reflection_shared'),
         ),
     )
   }
