@@ -1,3 +1,4 @@
+import { useLayoutEffect } from 'react'
 import Welcome from './components/Welcome'
 import IdentityStep from './components/Identity'
 import Hook from './components/Hook'
@@ -19,6 +20,23 @@ import { useNiyyah } from './hooks/useNiyyah'
 
 export default function App() {
   const n = useNiyyah()
+
+  // Start every screen at its top.
+  //
+  // Nothing here is a real page load, so the browser has no reason to move the
+  // scroll position — it simply keeps whatever offset the previous screen was
+  // left at. Read your whole map, tap into your space, and Home opens halfway
+  // down; go back and you land in the middle of where you came from rather
+  // than at the thing you tapped to reach. Only the intake handled this, one
+  // question at a time.
+  //
+  // A layout effect rather than an effect: this runs before the browser paints,
+  // so the new screen never appears at the old offset and then jump. Instant
+  // rather than smooth for the same reason — the content has already changed,
+  // so animating the scroll would look like a glitch, not a movement.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [n.screen])
 
   // Keyed by screen so every navigation gets one soft, uniform fade-in.
   return (

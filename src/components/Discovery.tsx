@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useState } from 'react'
 import type { Answers, Identity, TrustSettings } from '../types'
 import { candidatesFor, type Candidate } from '../data/candidates'
 import { getScene } from '../data/scenes'
@@ -45,6 +45,13 @@ export default function Discovery({
 }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const userScene = identity.scene
+
+  // Opening a person, and closing them again, are navigations to the member
+  // even though they are only local state here — so they get the same
+  // top-of-screen treatment App gives a real screen change.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [selected])
 
   const ranked = useMemo<Ranked[]>(() => {
     return candidatesFor(identity.gender)

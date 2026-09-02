@@ -115,9 +115,42 @@ export default function Coach({
   const activeMode = mode ? getMode(mode) : null
   const showStarters = !!activeMode && messages.length <= 1 && !thinking
 
+  // Where to land after each turn.
+  //
+  // This used to always jump to the bottom of the scroller, which is right for
+  // a short exchange and wrong for this one: a guide reply runs several
+  // paragraphs, so the member was dropped at the *end* of an answer they had
+  // not read a word of, and had to scroll up to find its first line.
+  //
+  // So it depends on who just spoke. Their own message, or a reply still being
+  // written: keep the newest thing in view at the bottom, which is what makes
+  // the typing indicator feel like an answer coming. A finished guide reply:
+  // put its first line at the top of the view and let them read downward.
+  const lastMessage = messages[messages.length - 1]
+  const lastId = lastMessage?.id
+  const lastRole = lastMessage?.role
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
-  }, [messages, thinking])
+    const container = scrollRef.current
+    if (!container) return
+    const toBottom = () =>
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
+
+    if (thinking || !lastId || lastRole !== 'coach') {
+      toBottom()
+      return
+    }
+    const el = container.querySelector<HTMLElement>(`[data-mid="${CSS.escape(lastId)}"]`)
+    if (!el) {
+      toBottom()
+      return
+    }
+    // Measured against the live boxes rather than offsetTop, which depends on
+    // which ancestor happens to be positioned.
+    const delta = el.getBoundingClientRect().top - container.getBoundingClientRect().top
+    container.scrollTo({ top: Math.max(0, container.scrollTop + delta - 12), behavior: 'smooth' })
+    // Deps are the identity of the last turn, not the array: `messages` is
+    // rebuilt on every render, so depending on it re-ran this constantly.
+  }, [lastId, lastRole, thinking])
 
   // A question asked from Home arrives already typed: seed the voice's greeting
   // if this is a first meeting, then send it. The ref guards against React's
@@ -417,7 +450,7 @@ function ModeMark({ glyph, accent }: { glyph: string; accent: string }) {
 function MessageBubble({ message, glyph, accent }: { message: CoachMessage; glyph: string; accent: string }) {
   if (message.role === 'user') {
     return (
-      <div className="flex justify-end">
+      <div data-mid={message.id} className="flex justify-end">
         <div className="max-w-[82%] animate-rise rounded-2xl rounded-br-md bg-forest px-4 py-3 text-[0.98rem] leading-relaxed text-cream">
           {message.text}
         </div>
@@ -425,7 +458,7 @@ function MessageBubble({ message, glyph, accent }: { message: CoachMessage; glyp
     )
   }
   return (
-    <div className="flex items-start gap-3">
+    <div data-mid={message.id} className="flex items-start gap-3">
       <ModeMark glyph={glyph} accent={accent} />
       <div className="max-w-[85%] animate-rise rounded-2xl rounded-tl-md border border-line bg-white/70 px-4 py-3.5 text-[0.98rem] leading-relaxed text-ink-soft">
         <RichText text={message.text} />
