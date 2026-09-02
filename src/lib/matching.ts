@@ -1,3 +1,4 @@
+import { allQuestions } from '../data/intake'
 import type { Candidate } from '../data/candidates'
 import type { Answers } from '../types'
 
@@ -49,6 +50,27 @@ function overlap(a: string[] = [], b: string[] = []): { ratio: number; shared: s
   return { ratio: shared.length / Math.min(a.length, b.length), shared }
 }
 
+/**
+ * Translate a multi-select answer from option ids into the shared tag vocabulary.
+ *
+ * The two sides of this comparison speak different languages: the intake stores
+ * what the user tapped as ids ('deen-char', 'emotional'), while candidates carry
+ * human labels ('Taqwa', 'Maturity'). Comparing them directly is always empty —
+ * which is exactly what happened: `values.ratio` was 0 for every user against
+ * every candidate, silently zeroing a fifth of the score and putting "Strong
+ * alignment" mathematically out of reach.
+ *
+ * Each option's `tags` field already IS the candidate vocabulary, so translating
+ * through it keeps one source of truth rather than a lookup table that can drift.
+ */
+function answerTags(answers: Answers, questionId: string): string[] {
+  const value = answers[questionId]
+  if (!Array.isArray(value)) return []
+  const question = allQuestions.find((q) => q.id === questionId)
+  if (!question) return []
+  return value.flatMap((id) => question.options?.find((o) => o.id === id)?.tags ?? [])
+}
+
 export function alignment(answers: Answers, c: Candidate): Alignment {
   // Faith: blend of how central faith is + practice level.
   const userFaithRole = typeof answers['faith-role'] === 'number' ? (answers['faith-role'] as number) : 3
@@ -79,31 +101,36 @@ export function alignment(answers: Answers, c: Candidate): Alignment {
     else childrenScore = 0.45
   }
 
-  const values = overlap(answers['value-most'] as string[], c.values)
-  const partnership = overlap(answers['partnership-style'] as string[], c.partnership)
+  const values = overlap(answerTags(answers, 'value-most'), c.values)
 
+  // No partnership term: the intake stopped asking 'partnership-style' when it
+  // was cut to 13 questions, so that slice scored a flat 0.55 for everyone and
+  // was pure dead weight dragging the ceiling down. Its 0.08 is redistributed
+  // proportionally across the five signals we actually collect. If a partnership
+  // question ever returns, restore the term and take the weight back from here.
   const score = Math.round(
     100 *
-      (faithScore * 0.28 +
-        timelineScore * 0.14 +
-        familyScore * 0.16 +
-        childrenScore * 0.16 +
-        values.ratio * 0.18 +
-        partnership.ratio * 0.08),
+      (faithScore * 0.3 +
+        timelineScore * 0.15 +
+        familyScore * 0.17 +
+        childrenScore * 0.18 +
+        values.ratio * 0.2),
   )
 
-  // Build human reasons, strongest first.
+  // Build human reasons, most persuasive first — only three are shown, so the
+  // order decides what she actually reads. The shared-value line names her own
+  // taps back to her ("you share a value of taqwa and kindness"), which is more
+  // specific than any of the band-based reasons, so it sits second behind deen.
+  // It used to sit last and was cut by the slice below every single time.
   const reasons: string[] = []
   if (faithScore >= 0.8 && (userFaithRole >= 4 || c.faithRole >= 4))
     reasons.push('you both put deen at the center')
+  if (values.shared.length)
+    reasons.push(`you share a value of ${values.shared.slice(0, 2).join(' and ').toLowerCase()}`)
   if (childrenScore >= 0.9 && userKids === 'want') reasons.push('you both want a family')
   if (timelineScore >= 0.8 && (userTl >= 3 || TIMELINE_SCALE[c.timeline] >= 3))
     reasons.push('you’re both ready to move with intention')
   if (familyScore >= 0.8) reasons.push('you see family’s role the same way')
-  if (values.shared.length)
-    reasons.push(`you share a value of ${values.shared.slice(0, 2).join(' and ').toLowerCase()}`)
-  if (partnership.shared.length && reasons.length < 3)
-    reasons.push(`you want the same kind of partnership`)
 
   const headline =
     score >= 85

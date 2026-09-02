@@ -162,6 +162,14 @@ function collectTags(answers: Answers, dims: Dimension[], cap: number): string[]
   return out.slice(0, cap)
 }
 
+/** The tags behind one multi-select answer, in her chosen order. */
+function tagsForQuestion(answers: Answers, questionId: string): string[] {
+  const q = allQuestions.find((x) => x.id === questionId)
+  const v = answers[questionId]
+  if (!q || !Array.isArray(v)) return []
+  return v.flatMap((id) => optionById(q, String(id))?.tags ?? [])
+}
+
 function nonNegotiables(answers: Answers): string[] {
   const q = allQuestions.find((x) => x.id === 'dealbreakers')
   const v = answers['dealbreakers']
@@ -195,7 +203,7 @@ function growthNote(answers: Answers): string {
   return base
 }
 
-function alignmentParagraph(answers: Answers, coreValues: string[]): string {
+function alignmentParagraph(answers: Answers): string {
   const faithRole = answers['faith-role']
   const familyRole = answers['family-role']
   const parts: string[] = []
@@ -214,9 +222,14 @@ function alignmentParagraph(answers: Answers, coreValues: string[]): string {
     parts.push('a match who respects that you lead your own decisions while honoring family')
   }
 
+  // Only what she said she wants in a person. `coreValues` also carries her
+  // timeline, motive and practice tags in its first three slots, so reading
+  // from it printed "Above all, you're drawn to soon, intentional, grounded"
+  // as the closing line of the map.
+  const wanted = tagsForQuestion(answers, 'value-most')
   const valueLine =
-    coreValues.length >= 2
-      ? `Above all, you’re drawn to ${coreValues.slice(0, 3).join(', ').toLowerCase()}.`
+    wanted.length >= 2
+      ? `Above all, you’re drawn to ${wanted.slice(0, 3).join(', ').toLowerCase()}.`
       : ''
 
   return `Alignment for you looks like ${parts.join(', and ')}. ${valueLine}`.trim()
@@ -239,7 +252,7 @@ function summaryFor(overall: number, top: DimensionReading, low: DimensionReadin
           ? 'You have a real foundation, with a few things still taking shape.'
           : 'You are early in this — and arriving honestly is worth more than arriving fast.'
 
-  return `${opener} Your strongest ground is ${top.label.toLowerCase()}: ${top.note} The place with the most room to grow is ${low.label.toLowerCase()} — not a flaw, just where a little more reflection will pay off most.`
+  return `${opener} Your strongest ground is ${top.label.toLowerCase()}, and the place with the most room to grow is ${low.label.toLowerCase()} — not a flaw, just where a little more reflection will pay off most.`
 }
 
 /** Pure synthesis — deterministic, no I/O. */
@@ -279,7 +292,7 @@ export function buildReflection(answers: Answers): Reflection {
     coreValues,
     nonNegotiables: nonNegotiables(answers),
     growthNote: growthNote(answers),
-    alignment: alignmentParagraph(answers, coreValues),
+    alignment: alignmentParagraph(answers),
   }
 }
 

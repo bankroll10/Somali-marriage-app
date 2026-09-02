@@ -120,10 +120,21 @@ const themes: Theme[] = [
   },
 ]
 
+/**
+ * Whole-word match. Plain `includes` meant the greeting theme's 'hi' matched
+ * "I t**hi**nk honesty matters" and 'hey' matched "t**hey**", so substantive
+ * questions were answered with "Wa alaykum salaam… tell me something real
+ * about you" — the reply that most obviously exposes a machine.
+ */
+function mentions(message: string, keyword: string): boolean {
+  const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`(?:^|[^a-z0-9])${escaped}(?:[^a-z0-9]|$)`, 'i').test(message)
+}
+
 export function candidateReply(c: Candidate, message: string, userName?: string): string {
   const m = message.toLowerCase().replace(/[’']/g, "'")
   for (const theme of themes) {
-    if (theme.keywords.some((k) => m.includes(k.replace(/[’']/g, "'")))) {
+    if (theme.keywords.some((k) => mentions(m, k.replace(/[’']/g, "'")))) {
       return theme.reply(c, userName)
     }
   }

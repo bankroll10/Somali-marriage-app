@@ -26,15 +26,22 @@ function candidate(over: Partial<Candidate> = {}): Candidate {
   }
 }
 
+/**
+ * Exactly what the app stores: QuestionCard writes option *ids*, not labels.
+ *
+ * This fixture used to hold ['Kindness', 'Loyalty'] — capitalised labels the
+ * app never produces — and that is why every test passed while `values.ratio`
+ * scored zero for every real user against every candidate. A fixture that
+ * doesn't match the shipped shape is worse than no fixture: it guards nothing
+ * and reports success.
+ */
 const aligned: Answers = {
   'faith-role': 4,
   practice: 'consistent',
   timeline: '1-2',
   'family-role': 'guided',
   children: 'want',
-  'value-most': ['Kindness', 'Loyalty'],
-  // No partnership-style: the intake no longer asks it, so this is exactly
-  // what the app sends. The engine treats its absence as neutral.
+  'value-most': ['kindness', 'loyalty'],
 }
 
 describe('alignment', () => {
@@ -42,6 +49,28 @@ describe('alignment', () => {
     const a = alignment(aligned, candidate())
     expect(a.score).toBeGreaterThanOrEqual(85)
     expect(a.headline).toBe('Strong alignment')
+  })
+
+  it('translates option ids to the candidate tag vocabulary', () => {
+    // The regression that hid for the life of the project: the intake stores
+    // 'deen-char'/'emotional', candidates carry 'Taqwa'/'Maturity', and a raw
+    // comparison silently shares nothing. Assert on the human reason, because
+    // that is the sentence the user actually reads on the card.
+    const a = alignment(
+      { ...aligned, 'value-most': ['deen-char', 'emotional'] },
+      candidate({ values: ['Taqwa', 'Maturity'] }),
+    )
+    expect(a.reasons.join(' ')).toContain('you share a value of')
+    expect(a.reasons.join(' ')).toContain('taqwa')
+  })
+
+  it('shares nothing when the values genuinely differ', () => {
+    // Guards the opposite failure: a translation so loose everything matches.
+    const a = alignment(
+      { ...aligned, 'value-most': ['humor'] },
+      candidate({ values: ['Taqwa', 'Depth'] }),
+    )
+    expect(a.reasons.join(' ')).not.toContain('you share a value of')
   })
 
   it('punishes the one mismatch that actually ends marriages', () => {

@@ -104,8 +104,8 @@ export default function Conversation({
         <div className="animate-rise flex-none border-b border-clay/30 bg-clay/[0.06] px-5 py-3">
           <div className="mx-auto flex max-w-xl items-center justify-between gap-3">
             <p className="text-[0.85rem] leading-snug text-ink">
-              Report and block {candidate.name}? This ends the connection — our team
-              reviews every report.
+              Report and block {candidate.name}? This ends the connection and removes
+              them completely. Reports will reach our team when the city opens.
             </p>
             <div className="flex flex-none gap-2">
               <button
@@ -136,7 +136,7 @@ export default function Conversation({
           <div className="rounded-2xl border border-gold/25 bg-gold/[0.07] px-4 py-3 text-center text-[0.85rem] leading-relaxed text-ink-soft">
             {note
               ? `You both expressed serious interest — and you said ${candidate.name}’s answer to “${note}” stood out. A good place to begin.`
-              : 'You both expressed serious interest. Photos are now revealed. Keep it meaningful — Niyyah is here if you need it.'}
+              : `You both expressed serious interest — the point where a real connection opens. Keep it meaningful; Niyyah is here if you need it.`}
           </div>
           {/* Said once, at the top of the thread. Someone practising a real
               conversation deserves to know who is on the other end of it. */}

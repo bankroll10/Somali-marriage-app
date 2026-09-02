@@ -331,7 +331,7 @@ function CandidateDetail({
         )}
 
         <p className="mt-6 text-center text-[0.85rem] text-muted">
-          {c.name}’s photo is shared only after you both express interest.
+          Faces stay private here until interest is mutual — on both sides.
         </p>
 
         {/* The disclosure belongs here too, not only under the list. This is
@@ -349,7 +349,8 @@ function CandidateDetail({
                 Report and block {c.name}?
               </p>
               <p className="mt-1 text-[0.82rem] leading-snug text-muted">
-                They’re removed completely and can’t see you. Our team reviews every report.
+                They’re removed completely and can’t see you. Reports will reach our
+                team when the city opens.
               </p>
               <div className="mt-3 flex justify-center gap-2">
                 <button

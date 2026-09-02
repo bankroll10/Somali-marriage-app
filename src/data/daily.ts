@@ -114,8 +114,10 @@ export function getDailyReflection(date = new Date(), prefs?: DailyPrefs): Daily
   const matching = dailyReflections.filter((r) => preferred.includes(r.tag))
   const rest = dailyReflections.filter((r) => !preferred.includes(r.tag))
 
-  // Need at least two on-theme readings, or it becomes the same card repeating.
-  if (matching.length < 2) return dailyReflections[day % dailyReflections.length]
+  // Need a real pool on-theme, or personalisation backfires: with only two
+  // matching cards a single-tag user saw a repeat by day three, while the
+  // un-personalised rotation runs fourteen days clean.
+  if (matching.length < 4) return dailyReflections[day % dailyReflections.length]
   if (day % 3 === 2 && rest.length > 0) return rest[day % rest.length]
   return matching[day % matching.length]
 }
@@ -127,7 +129,7 @@ export function getDailyReflection(date = new Date(), prefs?: DailyPrefs): Daily
 export function chosenReason(date = new Date(), prefs?: DailyPrefs): string | null {
   if (!prefs?.tags.length) return null
   const matching = dailyReflections.filter((r) => prefs.tags.includes(r.tag))
-  if (matching.length < 2) return null
+  if (matching.length < 4) return null
   const chosen = getDailyReflection(date, prefs)
   if (!prefs.tags.includes(chosen.tag)) return null
   return prefs.reasons?.[chosen.tag] ?? null

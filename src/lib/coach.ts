@@ -18,32 +18,66 @@ function normalize(s: string): string {
   return s.toLowerCase().replace(/[’']/g, "'")
 }
 
+/** Escape a keyword for use inside a RegExp. */
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * Does `message` contain `keyword` as whole words?
+ *
+ * Plain substring containment was matching 'ex' inside "next", 'night' inside
+ * "tonight", 'past' inside "pasta" and 'hi' inside "think" — so a question
+ * about next steps came back as a lecture about heartbreak, and a substantive
+ * message got answered with a greeting. A confidently wrong answer damages
+ * trust more than admitting the miss.
+ */
+function hasWords(message: string, keyword: string): boolean {
+  return new RegExp(`(?:^|[^a-z0-9])${escapeRe(keyword)}(?:[^a-z0-9]|$)`, 'i').test(message)
+}
+
 function scoreIntent(intent: CoachIntent, message: string): number {
   const m = normalize(message)
   let score = 0
   for (const kw of intent.keywords) {
     const k = normalize(kw)
-    if (m.includes(k)) score += 1 + k.split(' ').length * 0.5
+    if (hasWords(m, k)) score += 1 + k.split(' ').length * 0.5
   }
   return score
 }
 
 /**
- * When someone shares a real, specific situation the keyword engine can't
- * match, a generic "tell me more" reads as a canned bot and kills trust.
- * Instead: give the frame that genuinely applies to almost any relationship
- * situation, then invite the detail. (Live Claude replaces this entirely.)
+ * The answer for anything the keyword engine can't place — which, offline, is
+ * most real questions.
+ *
+ * It opens in the mode's own voice (that invitation is what `fallback` was
+ * written for) and then gives the frame that genuinely applies to almost any
+ * relationship situation. Two things this fixes: the frame used to be
+ * byte-identical in all six modes, so asking the Therapist and the Wise Auntie
+ * the same thing returned the same words — obvious the moment two people
+ * compare screens; and the alternative for short questions was a bare "tell me
+ * more" with no follow-ups, which dead-ended the thread.
+ *
+ * Live Claude replaces this entirely when it answers. This is the floor.
  */
-function frameworkAnswer(ctx: CoachContext): string {
-  const name = ctx.identity.firstName?.trim()
-  return `${name ? `${name}, I` : 'I'} won’t pretend to catch every detail of that — but here’s the frame that almost never fails, whatever the situation:
+function frameworkAnswer(ctx: CoachContext, modeId: ModeId): string {
+  return `${getMode(modeId).fallback(ctx)}
+
+While you do, here’s the frame that almost never fails, whatever the situation:
 
 • **Watch behaviour, not words.** Consistency over weeks tells the truth; a good speech tells you nothing.
 • **Apply the clarity test.** Do they move toward the future, family, and definition — or keep things comfortable and vague?
 • **Check your own peace.** If you have to shrink, over-explain, or manage your anxiety constantly, that’s data too.
 
-Hold your situation against those three and it usually answers itself. Tell me the specific part that’s bothering you most — one moment, one message, one decision — and we’ll look at it together.`
+Hold your situation against those three and it usually answers itself.`
 }
+
+/**
+ * How long to wait on the live guide before falling back to the local voice.
+ * Long enough for a considered Claude reply, short enough that a stalled
+ * function never becomes an open-ended typing indicator on a shared screen.
+ */
+const LIVE_GUIDE_TIMEOUT_MS = 12_000
 
 export interface CoachReply {
   text: string
@@ -86,10 +120,16 @@ async function askLiveGuide(
   modeId: ModeId,
   history: CoachMessage[],
 ): Promise<string | null> {
+  // Never wait forever. Without this, one hung function is an unbounded typing
+  // indicator with no path to the local answer — the worst possible failure to
+  // have on a screen someone else is watching.
+  const abort = new AbortController()
+  const timer = setTimeout(() => abort.abort(), LIVE_GUIDE_TIMEOUT_MS)
   try {
     const res = await fetch('/.netlify/functions/guide', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: abort.signal,
       body: JSON.stringify({
         system: guideSystemPrompt(modeId, ctx),
         message,
@@ -101,6 +141,8 @@ async function askLiveGuide(
     return data.text?.trim() || null
   } catch {
     return null
+  } finally {
+    clearTimeout(timer)
   }
 }
 
@@ -132,13 +174,20 @@ export async function askCoach(
   const prefix = situationPrefix(message, ctx)
   if (best && bestScore > 0)
     return { text: prefix + best.respond(ctx), followUps: best.followUps ?? DEFAULT_FOLLOW_UPS }
-  // A substantial message deserves substance, not "tell me more."
-  if (message.trim().length > 70)
-    return {
-      text: prefix + frameworkAnswer(ctx),
-      followUps: ['Here’s the specific part…', 'Apply that to my situation'],
-    }
-  return { text: prefix + mode.fallback(ctx), followUps: [] }
+
+  // Every unmatched question gets the framework, whatever its length.
+  //
+  // This used to require more than 70 characters, so short real questions —
+  // "How do I know if he's serious?", and every one of the app's own suggestion
+  // chips — fell through to `mode.fallback`, a canned "tell me more" that then
+  // dead-ended with no follow-ups at all. The framework is a genuine answer and
+  // the fallback is not; there was never a reason a short question deserved the
+  // worse one. Each mode's `fallback` line now opens the framework answer, so
+  // its warmth is kept and it can no longer be the whole reply.
+  return {
+    text: prefix + frameworkAnswer(ctx, modeId),
+    followUps: ['Here’s the specific part…', 'Apply that to my situation'],
+  }
 }
 
 /**

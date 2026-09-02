@@ -217,15 +217,16 @@ export default function Plus({
                   ? 'Niyyah+ arrives with our public launch. Everyone here before then keeps every premium feature free for a full year — our thanks for building this with us.'
                   : `${TRIAL_DAYS} days of everything above. Nothing to cancel and nothing to forget: with no card on file, it can only end.`}
               </p>
-              {!trialUsed && (
-                <button
-                  onClick={onStartTrial}
-                  className="group mt-6 inline-flex items-center gap-2 rounded-full bg-forest px-6 py-3 text-[0.95rem] font-medium text-cream transition hover:bg-forest-deep"
-                >
-                  Start my {TRIAL_DAYS} days
-                  <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                </button>
-              )}
+              {/* Always offer the way forward. This used to render only when
+                  the trial had never been taken, so anyone who tried the cancel
+                  flow permanently emptied the page of its only action. */}
+              <button
+                onClick={onStartTrial}
+                className="group mt-6 inline-flex items-center gap-2 rounded-full bg-forest px-6 py-3 text-[0.95rem] font-medium text-cream transition hover:bg-forest-deep"
+              >
+                {trialUsed ? 'Turn Niyyah+ back on' : `Start my ${TRIAL_DAYS} days`}
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </button>
               {!plusActive && repliesLeft > 0 && (
                 <p className="mt-4 text-[0.82rem] text-muted">
                   You still have {repliesLeft} of your {FREE_REPLIES} guide replies this month.

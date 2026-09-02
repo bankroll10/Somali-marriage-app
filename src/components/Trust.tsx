@@ -91,7 +91,7 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
               />
             </div>
             <p className="mt-3 text-[0.85rem] text-muted">
-              Higher trust means better, more serious matches — and more visibility to people who’ve done the same.
+              These are what a serious person looks like here. When your city opens, they decide who you meet and who meets you.
             </p>
           </div>
         </section>
@@ -145,7 +145,7 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
 
           <Control
             title="Blur photos until mutual interest"
-            desc="Your photos stay private until you both choose to connect. No screenshots of you floating around to strangers."
+            desc="When photos arrive, yours stay private until you both choose to connect. Set it now and it holds from your first day."
             icon={<EyeOffGlyph />}
             recommended={isWoman}
           >
@@ -158,7 +158,7 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
 
           <Control
             title="Privacy shield"
-            desc="Stay hidden from anyone outside your criteria, hide from people you might know, and control exactly who can find you."
+            desc="Stay hidden from anyone outside your criteria, and from people you might know — the fear that keeps most of us off these apps. Recorded now, enforced the day your city opens."
             icon={<LockGlyph />}
             recommended={isWoman}
           >
@@ -193,9 +193,10 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
         <section className="mt-6 rounded-card bg-forest p-6 text-cream">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-soft">Our promise</p>
           <p className="mt-3 text-[1rem] leading-relaxed text-cream/90 text-pretty">
-            Every member is held to the same standard. Reports have real
-            consequences — players, liars, and creeps are removed, not warned.
-            What’s built in the light, with dignity, is what we protect.
+            Every member will be held to the same standard. Reports are meant to
+            have real consequences — players, liars, and creeps removed, not
+            warned. That is the promise this opens with, and what we’ll be judged
+            on. What’s built in the light, with dignity, is what we protect.
           </p>
         </section>
       </main>

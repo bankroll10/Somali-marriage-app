@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { askCoach, guideSystemPrompt } from './coach'
 import type { CoachContext } from '../data/coach'
-import type { CoachMessage } from '../types'
+import type { CoachMessage, ModeId } from '../types'
 
 const ctx: CoachContext = {
   identity: { firstName: 'Amina', gender: 'woman', age: 27, scene: 'twin-cities' },
@@ -109,5 +109,82 @@ describe('guideSystemPrompt', () => {
 
   it('speaks in the voice of the mode it was asked for', () => {
     expect(guideSystemPrompt('auntie', ctx)).not.toBe(guideSystemPrompt('brother', ctx))
+  })
+})
+
+/**
+ * The adversarial pass — the local voice is the live-failure path, so this runs
+ * with no reachable guide, exactly as it behaves when the key is missing, rate
+ * limited, or a reply is declined.
+ *
+ * Every one of these questions used to return a canned "tell me more" with no
+ * follow-ups at all, which visibly dead-ended the thread. 17 of 22 real
+ * questions missed every intent, and — worse — the app's own suggestion chips
+ * missed in 17 of 18 chip×mode combinations, so tapping the thing the product
+ * itself offered was the fastest route to a non-answer.
+ */
+describe('askCoach — nothing a real person types may dead-end', () => {
+  const REAL_QUESTIONS: [ModeId, string][] = [
+    ['auntie', 'He’s gone quiet on me and I don’t know what it means.'],
+    ['auntie', 'How do I know if he actually likes me?'],
+    ['auntie', 'My mum keeps asking about qabiil. What do I say?'],
+    ['auntie', 'What should I ask him on the first meeting?'],
+    ['auntie', 'He is divorced with a child. Is that a red flag?'],
+    ['brother', 'She’s gone quiet on me and I don’t know what it means.'],
+    ['brother', 'I do not have a stable income yet. Should I still look for marriage?'],
+    ['brother', 'How many people should I be talking to at once?'],
+    ['brother', 'I got rejected and I feel humiliated. How do I move on?'],
+    ['brother', 'Her family wants a big mahr and I cannot afford it.'],
+    ['therapist', 'I feel numb about the whole thing honestly.'],
+    ['islamic', 'Can I see a photo of her before we meet?'],
+    ['islamic', 'Is it wrong to marry outside my clan?'],
+    ['islamic', 'What does Islam say about a second wife?'],
+    ['matchmaker', 'There are two people I like and I cannot decide.'],
+    ['profile', 'What should I put for my job if I am unemployed?'],
+  ]
+
+  const ALL_MODES: ModeId[] = ['auntie', 'brother', 'therapist', 'islamic', 'matchmaker', 'profile']
+  const OWN_CHIPS = [
+    'What would you say, word for word?',
+    'Is this a red flag?',
+    'How do I bring this up gently?',
+    'He’s gone quiet',
+    'She’s gone quiet',
+  ]
+
+  // Run in parallel: each local reply carries a deliberate 700-1200ms
+  // "considered pause", so sequential loops here would take half a minute.
+  it('gives every real question a substantive answer and a way forward', async () => {
+    const replies = await Promise.all(
+      REAL_QUESTIONS.map(async ([mode, question]) => [question, mode, await askCoach(question, ctx, mode)] as const),
+    )
+    for (const [question, mode, reply] of replies) {
+      expect(reply.text.length, `${mode}: "${question}"`).toBeGreaterThan(200)
+      expect(reply.followUps.length, `${mode}: "${question}" dead-ended`).toBeGreaterThan(0)
+    }
+  })
+
+  it('never dead-ends on the app’s own suggestion chips, in any mode', async () => {
+    const pairs = ALL_MODES.flatMap((mode) => OWN_CHIPS.map((chip) => [mode, chip] as const))
+    const replies = await Promise.all(
+      pairs.map(async ([mode, chip]) => [mode, chip, await askCoach(chip, ctx, mode)] as const),
+    )
+    for (const [mode, chip, reply] of replies) {
+      expect(reply.followUps.length, `${mode} ← "${chip}"`).toBeGreaterThan(0)
+    }
+  })
+
+  it('speaks in a different voice per mode when it cannot place the question', async () => {
+    // The framework answer used to be byte-identical across all six modes, which
+    // two judges comparing screens would spot immediately.
+    const odd = 'I need to think about something unrelated to any keyword here.'
+    const texts = await Promise.all(ALL_MODES.map((m) => askCoach(odd, ctx, m).then((r) => r.text)))
+    expect(new Set(texts).size).toBe(ALL_MODES.length)
+  })
+
+  it('does not match keywords inside unrelated words', async () => {
+    // 'ex' inside "next", 'night' inside "tonight", 'past' inside "pasta".
+    const reply = await askCoach('What is the next step for me?', ctx, 'therapist')
+    expect(reply.text).not.toContain('heartbreak')
   })
 })

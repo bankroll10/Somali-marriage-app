@@ -138,9 +138,15 @@ export default function Waitlist({ identity, overall, hookId, joined, onJoined, 
               That didn’t go through. Email us at {CONTACT_EMAIL} and we’ll add you by hand.
             </p>
           )}
+          {/* This list must match postToNetlifyForm in lib/waitlist.ts exactly.
+              It previously said "nothing else leaves this device", which was not
+              true — the readiness score and the hardest-part answer were both
+              being sent. A privacy claim is the one thing that must never drift
+              from the code it describes. */}
           <p className="text-[0.78rem] text-muted text-pretty">
-            Your email, your city. Nothing else leaves this device — not your map,
-            not your answers.
+            We send your email, your city, who you’re seeking, and two things from
+            your map — the hardest part you named and your overall number. Your
+            answers themselves stay on this device.
           </p>
         </form>
       ) : (

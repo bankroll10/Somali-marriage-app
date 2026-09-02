@@ -114,7 +114,7 @@ export default function Profile({
                   <span className="font-display text-3xl font-medium text-forest">{initial}</span>
                 </div>
                 <span className="absolute -bottom-1 -right-1 rounded-full bg-cream px-2 py-0.5 text-[0.62rem] font-medium text-muted shadow">
-                  Blurred
+                  No photo yet
                 </span>
               </div>
             </div>

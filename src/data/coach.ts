@@ -71,6 +71,17 @@ function name(ctx: CoachContext): string {
   return ctx.identity.firstName?.trim() || ''
 }
 
+/**
+ * How a voice addresses the member. The first name is optional at Identity, so
+ * every greeting has to read correctly without one — several did not: both
+ * branches of `${name ? '. ' : '. '}` emitted the same string, rendering
+ * "I'm your matchmaker, . I don't match faces" and "Tell me what you're
+ * weighing, — a specific person" to anyone who skipped the field.
+ */
+function addressed(ctx: CoachContext, fallback = 'friend'): string {
+  return name(ctx) || fallback
+}
+
 // ── Wise Auntie ──────────────────────────────────────────────────────────────
 const auntie: GuidanceMode = {
   id: 'auntie',
@@ -108,7 +119,7 @@ You are not a secret. You are not a midnight habit. If he cannot text you at noo
     {
       keywords: ['family', 'wali', 'parents', 'mother', 'father', 'brother', 'scare him', 'tell my'],
       respond: () =>
-        `Good girl for thinking of this. Family is not the obstacle — family is the proof. A man worth having *expects* them.
+        `That instinct is the right one, and not everyone has it. Family is not the obstacle — family is the proof. A man worth having *expects* them.
 
 Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then watch his face. If it scares him off, walaal, he was hiding something, and you just saved yourself two wasted years. Your people protect you. Let them.`,
     },
@@ -283,7 +294,7 @@ const islamic: GuidanceMode = {
   glyph: 'crescent',
   accent: 'forest',
   greeting: (ctx) =>
-    `Bismillah. As-salaamu alaykum, ${name(ctx) || ''}${name(ctx) ? '' : 'friend'}.
+    `Bismillah. As-salaamu alaykum, ${addressed(ctx)}.
 
 Let’s anchor this in what our deen teaches — that marriage is half of faith, built on intention, modesty, and mercy. I can help you walk this path with dignity. (For formal rulings, always return to a trusted scholar.) What’s on your heart?`,
   starters: [
@@ -362,7 +373,7 @@ const matchmaker: GuidanceMode = {
   glyph: 'spark',
   accent: 'clay',
   greeting: (ctx) =>
-    `I’m your matchmaker, ${name(ctx) || ''}${name(ctx) ? '. ' : '. '}I don’t match faces — I match *futures*.
+    `I’m your matchmaker, ${addressed(ctx)}. I don’t match faces — I match *futures*.
 
 I’ve read your readiness map, and I’m looking for ${readMap(ctx)}. Ask me what to look for, who actually fits you, or what to prioritise — and I’ll keep you focused on alignment, not just chemistry.`,
   starters: [
@@ -435,7 +446,7 @@ Alignment is whether your lives actually fit: faith, family, finances, children,
     },
   ],
   fallback: (ctx) =>
-    `Tell me what you’re weighing, ${name(ctx) || ''}— a specific person, a doubt, a decision — and I’ll read it against your map and tell you where the real alignment is.`,
+    `Tell me what you’re weighing, ${addressed(ctx)} — a specific person, a doubt, a decision — and I’ll read it against your map and tell you where the real alignment is.`,
 }
 
 // ── Profile Coach ────────────────────────────────────────────────────────────
@@ -447,7 +458,7 @@ const profile: GuidanceMode = {
   glyph: 'pen',
   accent: 'gold',
   greeting: (ctx) =>
-    `Let’s make you unmistakable, ${name(ctx) || ''}${name(ctx) ? '. ' : '. '}
+    `Let’s make you unmistakable, ${addressed(ctx)}.
 
 My only rule: honest and magnetic, never fake. A good profile doesn’t exaggerate — it helps the *right* person recognise you and the wrong person keep scrolling. Paste me what you’ve got, or ask where to start.`,
   starters: [
@@ -503,7 +514,7 @@ Don’t brag — *show*. “I call my mum every day” says more than “family-
     },
   ],
   fallback: (ctx) =>
-    `Paste me what you’ve got, ${name(ctx) || ''}— a bio, a line, a doubt about a photo — and I’ll help you make it honest *and* magnetic. We’ll never fake it; we’ll just show the best true version of you.`,
+    `Paste me what you’ve got, ${addressed(ctx)} — a bio, a line, a doubt about a photo — and I’ll help you make it honest *and* magnetic. We’ll never fake it; we’ll just show the best true version of you.`,
 }
 
 export const modes: GuidanceMode[] = [

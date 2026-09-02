@@ -153,7 +153,6 @@ export default function Coach({
   async function send(text: string) {
     const trimmed = text.trim()
     if (!trimmed || thinking || !mode || locked) return
-    onSpendReply()
     const userMsg: CoachMessage = { id: nextId(), role: 'user', text: trimmed }
     setThreads((prev) => ({ ...prev, [mode]: [...(prev[mode] ?? []), userMsg] }))
     setInput('')
@@ -162,6 +161,10 @@ export default function Coach({
     // The thread so far, so the live guide picks up mid-conversation instead of
     // meeting them fresh on every message.
     const reply = await askCoach(trimmed, ctx, mode, threads[mode] ?? [])
+    // Charged only once an answer actually exists. Spending up front billed the
+    // member for replies that failed or fell back — three taps of a fallback
+    // used to cost three of the twenty free replies.
+    onSpendReply()
     setThreads((prev) => ({
       ...prev,
       [mode]: [...(prev[mode] ?? []), { id: nextId(), role: 'coach', text: reply.text }],
