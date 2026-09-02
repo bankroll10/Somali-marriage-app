@@ -15,11 +15,21 @@ import type { Context } from '@netlify/functions'
  * promise must be rewritten in the same change that switches this on.
  */
 
-// Effort is the tuning knob here. This is a latency-sensitive chat route whose
-// replies are capped at 180 words, so `medium` buys the cultural and emotional
-// nuance the voices need without the wait `high` would add. Drop to `low` if
-// replies feel slow; raise if they feel shallow.
-const EFFORT = 'medium'
+// Effort, chosen by measurement rather than instinct.
+//
+// Timed against the real system prompt on three questions a member would
+// actually ask: `medium` returned in 12.1s / 5.5s / 14.3s, `low` in
+// 7.7s / 5.0s / 4.4s. Two of the three medium calls exceeded the client's
+// fallback timeout — meaning the member would have silently received the
+// offline voice instead of this one, the worst kind of failure because
+// nothing about it looks like one.
+//
+// Quality did not pay for the wait. On the hardest culturally specific
+// question of the three, the `low` reply was the better answer: it tied its
+// advice back to what she had named as her hardest part, which the `medium`
+// reply never did. Replies here are capped at 180 words — exactly the shape
+// of route that does not repay deeper thinking. Raise it only with numbers.
+const EFFORT = 'low'
 const MODEL = 'claude-opus-5'
 
 interface Body {

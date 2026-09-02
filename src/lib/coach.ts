@@ -74,10 +74,15 @@ Hold your situation against those three and it usually answers itself.`
 
 /**
  * How long to wait on the live guide before falling back to the local voice.
- * Long enough for a considered Claude reply, short enough that a stalled
- * function never becomes an open-ended typing indicator on a shared screen.
+ *
+ * Measured, not guessed: real replies land in 4-8s, with the occasional slow
+ * one. This was 12s, which measurement showed was cutting off genuine answers
+ * — a fallback that fires on a working call is worse than no fallback, because
+ * the member gets the lesser voice and nothing looks broken. Wide enough now
+ * to let a slow success through, still bounded so a hung function can never
+ * become an open-ended typing indicator on a shared screen.
  */
-const LIVE_GUIDE_TIMEOUT_MS = 12_000
+const LIVE_GUIDE_TIMEOUT_MS = 20_000
 
 export interface CoachReply {
   text: string
