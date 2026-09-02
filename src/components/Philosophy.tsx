@@ -231,6 +231,33 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
           </div>
         </section>
 
+        {/* What we will not do.
+            Every product in this category is tempted by the same lie — invent
+            people so a young marketplace looks alive. We won't, and saying so
+            plainly turns the one thing that looks like a weakness (a city that
+            is still filling) into the clearest proof of the trust everything
+            else here rests on. It sat in muted small print under a list of
+            profiles. It belongs stated, in our own voice, without apology. */}
+        <section className="mb-12 rounded-card border border-gold/30 bg-gold/[0.07] p-7 sm:p-8">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
+            What we won’t do
+          </p>
+          <h3 className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance">
+            We will never invent a person to make this look busy.
+          </h3>
+          <p className="mt-3 text-[1rem] leading-relaxed text-ink-soft text-pretty">
+            While your city fills, some of what you see is there to show you how
+            introductions will work — and every one of those says so, on the card,
+            where you cannot miss it. You will never be quietly counted as
+            interested, never shown a face that does not belong to someone real,
+            and never told a room is full when it is filling.
+          </p>
+          <p className="mt-3 text-[1rem] leading-relaxed text-ink-soft text-pretty">
+            A marriage platform that will lie about how many people are here will
+            lie about who they are. We would rather open slowly and be believed.
+          </p>
+        </section>
+
         {/* Who this is for. A standard someone recognises themselves in — or
             declines, which is the point. Membership by conduct, never by how
             practising, how old, or how long they've been looking. */}

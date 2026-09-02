@@ -101,7 +101,7 @@ export default function Welcome({
             <LockedRing />
             <div className="min-w-0">
               <p className="font-display text-[1.15rem] font-medium leading-snug tracking-tight text-cream text-balance">
-                Your number is three minutes away.
+                Your number is two minutes away.
               </p>
               <p className="mt-1 text-[0.88rem] leading-snug text-cream/55 text-pretty">
                 No one else ever sees it — not your family, not a match, not us.
@@ -121,6 +121,31 @@ export default function Welcome({
             You are not behind, and being here is not an admission of anything.
             Most people have simply never been asked these questions.
           </p>
+
+          {/* What kind of thing this is.
+              Everything that makes Niyyah different from a dating app was, until
+              now, only visible after she had already spent two minutes: no
+              swiping lives on Discovery, wali-friendly on Trust, values-before-
+              photos on a candidate card. All of it behind the decision it was
+              supposed to inform. A difference nobody can perceive at the moment
+              of choosing does no work at all.
+              Three lines, and it stays three. The moment this becomes a feature
+              list it has stopped answering her question and started selling. */}
+          <ul
+            className="animate-fade mt-7 max-w-md space-y-2.5"
+            style={{ animationDelay: '220ms' }}
+          >
+            {[
+              'No swiping, no feed — a few considered introductions, ranked by how your lives actually fit.',
+              'You meet values first and faces later: photos stay private until you both choose.',
+              'Your family and your wali belong inside this, not outside it.',
+            ].map((line) => (
+              <li key={line} className="flex gap-3 text-[0.93rem] leading-snug text-cream/70 text-pretty">
+                <span className="mt-[0.5rem] h-1 w-1 flex-none rounded-full bg-gold-soft" />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
 
           <div
             className="animate-rise mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
@@ -161,7 +186,7 @@ export default function Welcome({
             className="animate-fade mt-4 text-xs text-cream/45"
             style={{ animationDelay: '300ms' }}
           >
-            Private to you · Your first insight in under a minute · Minneapolis opens first
+            Private to you · Minneapolis opens first · We never pretend a city is full
           </p>
           <button
             onClick={onPhilosophy}
