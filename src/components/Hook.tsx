@@ -91,7 +91,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
                   {chapters[0].title}
                 </p>
                 <p className="mt-1 text-[0.85rem] text-muted">
-                  6 short chapters · about 3 minutes · private to you
+                  {chapters.length} short chapters · about 2 minutes · private to you
                 </p>
               </div>
               <div className="mt-7">

@@ -61,17 +61,21 @@ Every notification must respect the user or it erodes the one thing we sell: tru
 
 ## 2. Onboarding & activation
 
-**Current funnel:** Welcome → identity + scene → ~23-question intake → readiness
-map (first payoff) → Home.
+**Current funnel:** Welcome → identity + scene → hook (instant insight) →
+13-question intake → readiness map (first payoff) → Home.
 
 **The aha moments:** (1) the readiness map ("this *gets* me"), (2) the Guide's
 first genuinely useful answer.
 
 **PM critique & moves:**
-- **Time-to-value is too long.** 23 questions before *any* payoff risks drop-off.
-  Fixes: tease a micro-insight after chapter 1; let users ask the Guide one
-  burning question early ("what's on your mind right now?") *before* finishing the
-  full map; treat the full intake as **progressive profiling** (finish over days).
+- **Time-to-value was too long — confirmed by the first testers.** Of the first
+  two real people to open the app, one stopped partway through the 23-question
+  intake and the other most likely did too; neither reached the map or the
+  waitlist. Done: the hook insight before the intake, and the intake cut to 13
+  questions in 3 chapters (everything the map, matching and the Guide read
+  survived). Still open: letting users ask the Guide one burning question
+  *before* finishing the map; **progressive profiling** if the signal ever says
+  people want to go deeper.
 - **Activation metric (define it, instrument it):** *completed the readiness map
   AND had ≥1 Guide exchange within 48h.* That user retains; optimize the funnel to
   this, not to signup.

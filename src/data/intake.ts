@@ -6,14 +6,24 @@ import type { Chapter } from '../types'
  * (0–1) that informs the readiness reading for its dimension.
  *
  * This is intentionally edited prose, not generated. It is the soul of the app.
+ *
+ * Length is a product decision with evidence behind it. The first version ran
+ * 23 questions over six chapters, and of the first two real people who opened
+ * it, one stopped partway through the prompts and the other most likely did
+ * too — neither reached the map. So this is the cut: every question that the
+ * map's scoring, the alignment engine (lib/matching.ts) or the Guide reads
+ * stays; every question that only added a tag or a second reading of the same
+ * dimension went. Each of the seven dimensions still has at least one scoring
+ * answer, which data/intake.test.ts guards. The removed questions are in git
+ * history if the signal ever says people want to go deeper.
  */
 export const chapters: Chapter[] = [
   {
     id: 'niyyah',
-    kicker: '01 · Niyyah',
-    title: 'Your intention',
+    kicker: '01 · Niyyah & Deen',
+    title: 'Intention & faith',
     intro:
-      'Before anyone else, this is between you and your own clarity. Marriage begins with an honest intention — not a feeling, not pressure, not a deadline.',
+      'Before anyone else, this is between you and your own clarity. Marriage begins with an honest intention — not a feeling, not pressure, not a deadline. And for us, deen is its spine: not to judge, but to find someone walking at a pace that fits beside yours.',
     questions: [
       {
         id: 'timeline',
@@ -63,43 +73,6 @@ export const chapters: Chapter[] = [
         ],
       },
       {
-        id: 'seriousness',
-        type: 'scale',
-        dimension: 'intention',
-        prompt: 'How serious are you about marriage in the next year or two?',
-        scale: {
-          min: 1,
-          max: 5,
-          minLabel: 'Still figuring it out',
-          maxLabel: 'Fully committed to it',
-        },
-      },
-      {
-        id: 'marriage-means',
-        type: 'multi',
-        dimension: 'intention',
-        prompt: 'When you picture marriage, what does it mean to you?',
-        helper: 'Choose up to three.',
-        max: 3,
-        options: [
-          { id: 'partnership', label: 'A true partnership through life', tags: ['Partnership'] },
-          { id: 'deen', label: 'Half my deen — growing closer to God together', tags: ['Faith-centered'] },
-          { id: 'family', label: 'Building a family and home', tags: ['Family-minded'] },
-          { id: 'peace', label: 'Sakinah — tranquility and a soft place to land', tags: ['Peace'] },
-          { id: 'growth', label: 'Someone who helps me become better', tags: ['Growth'] },
-          { id: 'legacy', label: 'A legacy — something that outlives us', tags: ['Legacy'] },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'deen',
-    kicker: '02 · Deen',
-    title: 'Faith & practice',
-    intro:
-      'Deen is the spine of a Muslim marriage. Not to judge anyone — but to find someone walking at a pace that fits beside yours.',
-    questions: [
-      {
         id: 'practice',
         type: 'single',
         dimension: 'faith',
@@ -124,38 +97,14 @@ export const chapters: Chapter[] = [
           maxLabel: 'The center of everything',
         },
       },
-      {
-        id: 'prayer',
-        type: 'scale',
-        dimension: 'faith',
-        prompt: 'How important is salah — daily prayer — in your life?',
-        scale: {
-          min: 1,
-          max: 5,
-          minLabel: 'Working on it',
-          maxLabel: 'Five times, anchored',
-        },
-      },
-      {
-        id: 'faith-partner',
-        type: 'single',
-        dimension: 'faith',
-        prompt: 'What do you hope for in a partner’s deen?',
-        options: [
-          { id: 'same', label: 'Someone at a similar place to me', tags: ['Aligned faith'] },
-          { id: 'stronger', label: 'Someone who can gently raise me up', tags: ['Aspiring'] },
-          { id: 'together', label: 'Someone to grow alongside, step by step', tags: ['Growing together'] },
-          { id: 'open', label: "I'm open, as long as there's respect", tags: ['Open'] },
-        ],
-      },
     ],
   },
   {
-    id: 'roots',
-    kicker: '03 · Family & Roots',
-    title: 'Family & culture',
+    id: 'life',
+    kicker: '02 · Family & Life',
+    title: 'The life you want',
     intro:
-      'For us, marriage is rarely two people alone — it is families, language, and roots meeting. Knowing how you want family involved is its own kind of readiness.',
+      'For us, marriage is rarely two people alone — it is families, roots, and a horizon meeting. Alignment is not about being identical. It is about walking toward the same horizon, with the same people in the story.',
     questions: [
       {
         id: 'family-role',
@@ -170,39 +119,6 @@ export const chapters: Chapter[] = [
         ],
       },
       {
-        id: 'culture-tie',
-        type: 'scale',
-        dimension: 'family',
-        prompt: 'How important is shared culture and language to you?',
-        helper: 'Somali heritage, diaspora experience, the languages of home.',
-        scale: {
-          min: 1,
-          max: 5,
-          minLabel: 'Not essential',
-          maxLabel: 'Deeply important',
-        },
-      },
-      {
-        id: 'family-readiness',
-        type: 'single',
-        dimension: 'family',
-        prompt: 'Have you thought about how two families would come together?',
-        options: [
-          { id: 'yes', label: 'Yes — I’ve really thought it through', weight: 1 },
-          { id: 'some', label: 'Somewhat — in broad strokes', weight: 0.7 },
-          { id: 'no', label: 'Honestly, not yet', weight: 0.4 },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'vision',
-    kicker: '04 · Life & Vision',
-    title: 'The life you want',
-    intro:
-      'Alignment is not about being identical. It is about walking toward the same horizon. Where is yours?',
-    questions: [
-      {
         id: 'children',
         type: 'single',
         dimension: 'vision',
@@ -214,42 +130,6 @@ export const chapters: Chapter[] = [
           { id: 'no', label: 'I don’t see children in my future', tags: ['Clear'], weight: 0.8 },
         ],
       },
-      {
-        id: 'location',
-        type: 'single',
-        dimension: 'vision',
-        prompt: 'Where do you imagine building your life?',
-        options: [
-          { id: 'rooted', label: 'Rooted where I am now', tags: ['Settled'] },
-          { id: 'open-move', label: 'Open to moving for the right life', tags: ['Flexible'] },
-          { id: 'home', label: 'Drawn back toward home or family', tags: ['Homeward'] },
-          { id: 'anywhere', label: 'Anywhere, as long as we’re together', tags: ['Adaptable'] },
-        ],
-      },
-      {
-        id: 'partnership-style',
-        type: 'multi',
-        dimension: 'vision',
-        prompt: 'What kind of partnership do you want to build?',
-        helper: 'Choose up to two.',
-        max: 2,
-        options: [
-          { id: 'team', label: 'Equal teammates sharing the load', tags: ['Partnership'] },
-          { id: 'traditional', label: 'Clear, traditional roles we both honor', tags: ['Traditional'] },
-          { id: 'provider', label: 'I provide; a protected, cared-for home', tags: ['Provider'] },
-          { id: 'ambitious', label: 'Two ambitions lifting each other', tags: ['Ambitious'] },
-          { id: 'gentle', label: 'A calm, gentle, unhurried home', tags: ['Gentle'] },
-        ],
-      },
-    ],
-  },
-  {
-    id: 'character',
-    kicker: '05 · Character',
-    title: 'Character & connection',
-    intro:
-      'Beauty fades; character is what you wake up next to for fifty years. What do you actually need in a person?',
-    questions: [
       {
         id: 'value-most',
         type: 'multi',
@@ -265,19 +145,6 @@ export const chapters: Chapter[] = [
           { id: 'emotional', label: 'Emotional maturity', tags: ['Maturity'] },
           { id: 'deen-char', label: 'God-consciousness in how they live', tags: ['Taqwa'] },
           { id: 'intellect', label: 'A curious, thoughtful mind', tags: ['Depth'] },
-        ],
-      },
-      {
-        id: 'conflict',
-        type: 'single',
-        dimension: 'character',
-        prompt: 'When something is wrong between you, what do you do?',
-        helper: 'How we handle conflict predicts more than how we love.',
-        options: [
-          { id: 'talk', label: 'I talk it through, even when it’s hard', tags: ['Communicative'], weight: 1 },
-          { id: 'space', label: 'I need space first, then I come back to it', tags: ['Reflective'], weight: 0.8 },
-          { id: 'avoid', label: 'I tend to avoid it and hope it passes', tags: ['Conflict-avoidant'], weight: 0.45 },
-          { id: 'heated', label: 'I get heated, then we work it out', tags: ['Passionate'], weight: 0.55 },
         ],
       },
       {
@@ -301,11 +168,24 @@ export const chapters: Chapter[] = [
   },
   {
     id: 'heart',
-    kicker: '06 · Heart',
+    kicker: '03 · Heart',
     title: 'Heart & honest mirror',
     intro:
       'The hardest and most important part — and the one no other app asks. Not who you want, but how your heart actually works, and what you are still becoming. This stays private to you.',
     questions: [
+      {
+        id: 'conflict',
+        type: 'single',
+        dimension: 'character',
+        prompt: 'When something is wrong between you, what do you do?',
+        helper: 'How we handle conflict predicts more than how we love.',
+        options: [
+          { id: 'talk', label: 'I talk it through, even when it’s hard', tags: ['Communicative'], weight: 1 },
+          { id: 'space', label: 'I need space first, then I come back to it', tags: ['Reflective'], weight: 0.8 },
+          { id: 'avoid', label: 'I tend to avoid it and hope it passes', tags: ['Conflict-avoidant'], weight: 0.45 },
+          { id: 'heated', label: 'I get heated, then we work it out', tags: ['Passionate'], weight: 0.55 },
+        ],
+      },
       {
         id: 'healing',
         type: 'single',
@@ -333,22 +213,6 @@ export const chapters: Chapter[] = [
         ],
       },
       {
-        id: 'comm-safety',
-        type: 'multi',
-        dimension: 'emotional',
-        prompt: 'What kind of communication makes you feel safe?',
-        helper: 'Choose up to three. This is how someone earns your trust.',
-        max: 3,
-        options: [
-          { id: 'consistency', label: 'Consistency — they don’t go cold', tags: ['Consistency'] },
-          { id: 'directness', label: 'Directness — say what you mean', tags: ['Directness'] },
-          { id: 'gentleness', label: 'Gentleness, especially in disagreement', tags: ['Gentleness'] },
-          { id: 'reassurance', label: 'Reassurance without me having to ask', tags: ['Reassurance'] },
-          { id: 'space', label: 'Respecting my space when I need it', tags: ['Space'] },
-          { id: 'follow-through', label: 'Follow-through — words matched by action', tags: ['Follow-through'] },
-        ],
-      },
-      {
         id: 'pattern',
         type: 'single',
         dimension: 'selfAwareness',
@@ -363,20 +227,11 @@ export const chapters: Chapter[] = [
         ],
       },
       {
-        id: 'bring',
-        type: 'text',
-        dimension: 'selfAwareness',
-        prompt: 'In your own words — what do you bring to a marriage?',
-        helper: 'A few honest sentences. No one is grading this.',
-        placeholder: 'I bring…',
-        optional: true,
-      },
-      {
         id: 'working-on',
         type: 'text',
         dimension: 'selfAwareness',
-        prompt: 'And what are you still working on in yourself?',
-        helper: 'Self-awareness is the most attractive quality there is.',
+        prompt: 'In your own words — what are you still working on in yourself?',
+        helper: 'A sentence is enough, and you can skip it. Self-awareness is the most attractive quality there is.',
         placeholder: "I'm still learning to…",
         optional: true,
       },
@@ -389,45 +244,40 @@ export const totalQuestions = allQuestions.length
 
 /**
  * A one-line reading shown when a chapter is completed — the "it's working"
- * signal that makes 20+ questions feel like progressive payoff, not a survey.
+ * signal that makes the intake feel like progressive payoff, not a survey.
  * Returns null for the final chapter (the readiness map is that payoff).
  */
 export function chapterInsight(chapterId: string, answers: Record<string, unknown>): string | null {
   switch (chapterId) {
     case 'niyyah': {
       const tl = answers['timeline']
-      if (tl === 'within-1' || tl === '1-2')
-        return 'Your intention already has shape — you know why you’re here and roughly when. That’s rarer than you think, and it will focus everything that follows.'
-      if (tl === 'exploring')
-        return 'You’re exploring seriously, not drifting — that honesty is the right foundation. Clarity tends to arrive once we name what we’re actually looking for.'
-      return 'You’re giving yourself room on the timeline. Good — a marriage chosen calmly beats one chosen against a clock.'
-    }
-    case 'deen': {
       const p = answers['practice']
-      if (p === 'devout' || p === 'consistent')
-        return 'Faith isn’t a checkbox for you — it’s the frame. We’ll look for someone walking at a pace that fits beside yours.'
-      if (p === 'returning')
-        return 'You named where you really are with your deen — returning, and honest about it. That honesty will find you someone who meets you there.'
-      return 'You were honest about where faith sits for you right now. That clarity protects you from a mismatch more than any filter could.'
+      const intention =
+        tl === 'within-1' || tl === '1-2'
+          ? 'Your intention already has shape — you know why you’re here and roughly when. That’s rarer than you think.'
+          : tl === 'exploring'
+            ? 'You’re exploring seriously, not drifting — that honesty is the right foundation.'
+            : 'You’re giving yourself room on the timeline. Good — a marriage chosen calmly beats one chosen against a clock.'
+      const faith =
+        p === 'devout' || p === 'consistent'
+          ? 'And faith isn’t a checkbox for you — it’s the frame. We’ll look for someone walking at a pace that fits beside yours.'
+          : p === 'returning'
+            ? 'And you named where you really are with your deen — returning, and honest about it. That honesty will find you someone who meets you there.'
+            : 'And you were honest about where faith sits for you right now. That clarity protects you from a mismatch more than any filter could.'
+      return `${intention} ${faith}`
     }
-    case 'roots': {
+    case 'life': {
       const f = answers['family-role']
-      if (f === 'central' || f === 'guided')
-        return 'You want your people in the story. That isn’t old-fashioned — it’s protection, and it tells us to look for someone who honours family too.'
-      return 'You lead your own decisions with family respected, not ruling. Knowing that now avoids the most common clash later.'
-    }
-    case 'vision': {
       const kids = answers['children']
-      if (kids === 'want')
-        return 'The life you want has a clear shape — family in it, direction under it. Alignment just got much easier to spot.'
-      return 'Your horizon is coming into focus. Even the open questions are named now — which is exactly how the right conversations start.'
-    }
-    case 'character': {
-      const nn = answers['dealbreakers']
-      const count = Array.isArray(nn) ? nn.length : 0
-      if (count > 0)
-        return `You named your non-negotiables — ${count} of them. Hold those like iron; they’ll guard your time and your heart from here on.`
-      return 'You know what you need in a person beyond attraction. That list will do more filtering than a thousand photos.'
+      const family =
+        f === 'central' || f === 'guided'
+          ? 'You want your people in the story. That isn’t old-fashioned — it’s protection, and it tells us to look for someone who honours family too.'
+          : 'You lead your own decisions with family respected, not ruling. Knowing that now avoids the most common clash later.'
+      const vision =
+        kids === 'want'
+          ? 'The life you want has a clear shape — family in it, direction under it.'
+          : 'Even the open questions about the life ahead are named now — which is exactly how the right conversations start.'
+      return `${family} ${vision}`
     }
     default:
       return null

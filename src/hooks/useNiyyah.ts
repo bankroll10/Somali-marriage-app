@@ -285,9 +285,12 @@ export function useNiyyah() {
   }
 
   function resume() {
-    // Count only intake questions — the onboarding hook answer lives outside the map.
-    const intakeAnswered = allQuestions.filter((q) => answers[q.id] !== undefined).length
-    setResumeIndex(Math.min(intakeAnswered, totalQuestions - 1))
+    // Land on the first question they haven't answered, in the intake's current
+    // order — not at "number answered", which drifts the moment the question
+    // set changes and would skip real questions for anyone who paused before
+    // a cut. The hook answer lives outside the intake, so it never counts.
+    const firstUnanswered = allQuestions.findIndex((q) => answers[q.id] === undefined)
+    setResumeIndex(firstUnanswered === -1 ? totalQuestions - 1 : firstUnanswered)
     setSkipFirstIntro(false)
     setScreen(identity.gender ? 'intake' : 'identity')
   }

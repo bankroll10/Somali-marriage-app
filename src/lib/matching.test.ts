@@ -33,7 +33,8 @@ const aligned: Answers = {
   'family-role': 'guided',
   children: 'want',
   'value-most': ['Kindness', 'Loyalty'],
-  'partnership-style': ['Team', 'Gentle'],
+  // No partnership-style: the intake no longer asks it, so this is exactly
+  // what the app sends. The engine treats its absence as neutral.
 }
 
 describe('alignment', () => {

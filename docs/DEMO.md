@@ -36,7 +36,7 @@ Niyyah state you care about.)
    *Say: "Value in 30 seconds — before we've asked for anything. Every answer from
    here deepens her private readiness map."*
 4. Tap **Build my readiness map**, answer 2–3 questions of Chapter 1 to show the
-   question quality, then say: *"Six chapters, about three minutes — let me show you
+   question quality, then say: *"Three chapters, about two minutes — let me show you
    an established member instead of clicking through it live."* → **switch to Tab 2.**
 
 ## Act 2 — The companion (Tab 2, ~4 min)

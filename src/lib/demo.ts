@@ -18,29 +18,19 @@ const demoAnswers: Answers = {
   'hardest-part': 'serious',
   timeline: '1-2',
   'why-now': 'ready',
-  seriousness: 5,
-  'marriage-means': ['deen', 'partnership', 'peace'],
   practice: 'consistent',
-  'faith-role': 4,
   // Strong but human — a perfect score reads fake on camera and in demos.
-  prayer: 4,
-  'faith-partner': 'together',
+  'faith-role': 4,
   'family-role': 'guided',
-  'culture-tie': 4,
-  'family-readiness': 'some',
   children: 'want',
-  location: 'rooted',
-  'partnership-style': ['team', 'gentle'],
   'value-most': ['kindness', 'deen-char', 'emotional'],
-  conflict: 'space',
   dealbreakers: ['honesty', 'faith-nn', 'respect'],
+  conflict: 'space',
   // 'healing' (not 'healed') — the honest mirror then says something real on
   // camera, which demos the app's honesty better than pure flattery.
   healing: 'healing',
   attachment: 'secure',
-  'comm-safety': ['consistency', 'gentleness', 'follow-through'],
   pattern: 'walls',
-  bring: 'I bring patience, a steady heart, and a home where deen and laughter live together.',
   'working-on': 'ask for help instead of carrying everything alone',
 }
 
@@ -78,7 +68,7 @@ export function seedDemo() {
     // is the demo's transformation beat.
     mapHistory: [
       { date: dayKey(6), overall: 74, headline: 'Ready, with clarity to gain' },
-      { date: dayKey(0), overall: 88, headline: 'Grounded and ready' },
+      { date: dayKey(0), overall: 90, headline: 'Grounded and ready' },
     ],
     // She's preparing — the stage band then shows the arc ahead of her.
     stage: 'preparing',

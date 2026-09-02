@@ -34,12 +34,14 @@ discovery that is deliberately *not* a swipe deck.
 - **Welcome** — sets the tone and frames what this is (and isn't).
 - **Identity** — *"I am a woman / man"* + optional first name. This makes the
   whole experience (especially the Guide) speak to *you*.
-- **Guided intake** — 6 chapters, one question at a time, with interstitials:
-  *Niyyah (intention) · Deen (faith) · Family & Roots · Life & Vision ·
-  Character · Heart (emotional readiness + honest mirror).* Four input types
-  (single, multi, scale, free text), including the thing Hinge never asks —
-  healing, attachment, and what communication makes you feel safe. Progress
-  saves to `localStorage`.
+- **Guided intake** — 13 questions in 3 chapters, one question at a time, with
+  a reading after each chapter: *Niyyah & Deen (intention, faith) · Family &
+  Life (family's role, children, values, non-negotiables) · Heart (conflict,
+  healing, attachment, the honest mirror).* Four input types (single, multi,
+  scale, one optional free text). It was 23 questions in 6 chapters until the
+  first real testers stopped partway through; every question that the map,
+  the matching engine or the Guide reads survived the cut. Progress saves to
+  `localStorage`.
 - **Marriage-readiness map** — an overall reading, per-dimension scores (incl.
   emotional readiness) with human notes, your core values, non-negotiables, an
   honest-mirror growth note, and *what alignment looks like for you*.

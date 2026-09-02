@@ -48,7 +48,7 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, startInd
   const [insight, setInsight] = useState<string | null>(null)
 
   // A tapped single choice is a finished answer — advancing for them removes a
-  // tap on 16 of the 23 questions. Set only by a real tap, so returning to an
+  // tap on most of the questions. Set only by a real tap, so returning to an
   // answered question never fires it and traps you moving forward.
   const [advancing, setAdvancing] = useState(false)
 
@@ -254,7 +254,7 @@ function ChapterInsight({
           {nextChapter.title}
         </p>
         <p className="mt-1 text-[0.85rem] text-muted">
-          {nextChapter.questions.length} questions · about a minute
+          {nextChapter.questions.length} questions · under a minute
         </p>
       </div>
       <div className="mt-7">
@@ -278,7 +278,7 @@ function ChapterIntro({ chapter, onContinue }: { chapter: Chapter; onContinue: (
         {chapter.intro}
       </p>
       <p className="mt-4 text-[0.82rem] font-medium text-muted">
-        {chapter.questions.length} questions · about a minute
+        {chapter.questions.length} questions · under a minute
       </p>
       <div className="mt-9">
         <Button onClick={onContinue} className="group">

@@ -87,7 +87,7 @@ export default function Welcome({
             className="animate-rise mt-6 max-w-lg text-[1.05rem] leading-relaxed text-cream/75 text-pretty"
             style={{ animationDelay: '80ms' }}
           >
-            Twenty-three questions. Six chapters. About three minutes. Then a
+            Thirteen questions. Three chapters. About two minutes. Then a
             straight answer: the ground you’re standing on, the one place you’re
             thinnest right now, and one honest thing to do about it this week.
           </p>
