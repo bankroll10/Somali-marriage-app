@@ -34,5 +34,8 @@
     "typescript": "~6.0.2",
     "vite": "^8.1.0",
     "vitest": "^4.1.11"
+  },
+  "overrides": {
+    "@stablelib/base64": "^1.0.1"
   }
 }
