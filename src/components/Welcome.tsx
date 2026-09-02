@@ -1,4 +1,5 @@
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
+import RestoreMap from './RestoreMap'
 
 interface Props {
   onBegin: () => void
@@ -188,6 +189,10 @@ export default function Welcome({
           >
             Private to you · Minneapolis opens first · We never pretend a city is full
           </p>
+          {/* Quiet on purpose: someone arriving for the first time should meet
+              the question this app exists to answer, not a login. */}
+          <RestoreMap />
+
           <button
             onClick={onPhilosophy}
             className="animate-fade mt-6 inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gold-soft underline-offset-4 transition hover:underline"

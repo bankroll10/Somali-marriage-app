@@ -195,7 +195,13 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
             <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
               Your reflection, your check-ins and every answer you gave are stored
               on this device — not on our servers, and no one at Niyyah can read
-              them.
+              them. Two things can change that, and only if you choose them.
+            </p>
+            <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+              <span className="font-medium text-ink">Keeping your map.</span> If you
+              ask us to keep it, your answers and your map are copied to our server
+              so your code can find them again on another phone. No name is
+              attached to that code, and without it nobody can reach them.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               The Guide is the one exception, and here is exactly what it sends

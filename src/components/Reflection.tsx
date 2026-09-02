@@ -11,6 +11,7 @@ import {
   whenLabel,
 } from '../data/nextStep'
 import Waitlist from './Waitlist'
+import KeepMap from './KeepMap'
 import { BackButton, Button, Logo, ArrowRight, CheckIcon } from './ui'
 
 const GENERATING_STAGES = [
@@ -489,6 +490,13 @@ export default function ReflectionView({
             <p className="text-[1.05rem] leading-relaxed text-cream/90 text-pretty">{r.alignment}</p>
           </div>
         </Section>
+
+        {/* Everything above exists only in this browser. Said here, after she has
+            read it, because that is the moment losing it would actually cost
+            something. */}
+        <section className="mb-12">
+          <KeepMap />
+        </section>
 
         {/* Next: into your space — light card; the dark hero lives at the top now. */}
         <section className="mt-14 rounded-card border border-line bg-white/60 p-8 text-center">
