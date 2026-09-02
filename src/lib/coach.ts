@@ -124,12 +124,27 @@ async function askLiveGuide(
   ctx: CoachContext,
   modeId: ModeId,
   history: CoachMessage[],
+  onChunk?: (soFar: string) => void,
 ): Promise<string | null> {
-  // Never wait forever. Without this, one hung function is an unbounded typing
-  // indicator with no path to the local answer — the worst possible failure to
-  // have on a screen someone else is watching.
+  // The deadline is on the FIRST word, not on the whole answer.
+  //
+  // A guide reply streams for as long as it needs to; that is not a stall, it
+  // is someone talking. What must never happen is unbounded silence, so the
+  // clock runs until the first byte arrives and is cleared the moment it does.
+  // Timing the whole response instead would cut off long answers precisely
+  // when they were going well.
   const abort = new AbortController()
-  const timer = setTimeout(() => abort.abort(), LIVE_GUIDE_TIMEOUT_MS)
+  let waiting: ReturnType<typeof setTimeout> | undefined = setTimeout(
+    () => abort.abort(),
+    LIVE_GUIDE_TIMEOUT_MS,
+  )
+  const stopWaiting = () => {
+    if (waiting !== undefined) {
+      clearTimeout(waiting)
+      waiting = undefined
+    }
+  }
+
   try {
     const res = await fetch('/.netlify/functions/guide', {
       method: 'POST',
@@ -141,13 +156,26 @@ async function askLiveGuide(
         history: history.map((m) => ({ role: m.role, text: m.text })),
       }),
     })
-    if (!res.ok) return null
-    const data = (await res.json()) as { text?: string }
-    return data.text?.trim() || null
+    if (!res.ok || !res.body) return null
+
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let text = ''
+    for (;;) {
+      const { value, done } = await reader.read()
+      if (done) break
+      const piece = decoder.decode(value, { stream: true })
+      if (!piece) continue
+      stopWaiting()
+      text += piece
+      onChunk?.(text)
+    }
+    text += decoder.decode()
+    return text.trim() || null
   } catch {
     return null
   } finally {
-    clearTimeout(timer)
+    stopWaiting()
   }
 }
 
@@ -156,13 +184,15 @@ export async function askCoach(
   ctx: CoachContext,
   modeId: ModeId,
   history: CoachMessage[] = [],
+  /** Called with the answer so far as it streams, so the UI can show it live. */
+  onChunk?: (soFar: string) => void,
 ): Promise<CoachReply> {
   const mode = getMode(modeId)
 
   // The live guide first, unless she has asked us to stay on the device. Its
   // own latency is the considered pause, so there is no artificial wait here.
   if (!ctx.onDeviceOnly) {
-    const live = await askLiveGuide(message, ctx, modeId, history)
+    const live = await askLiveGuide(message, ctx, modeId, history, onChunk)
     if (live) return { text: live, followUps: DEFAULT_FOLLOW_UPS }
   }
 

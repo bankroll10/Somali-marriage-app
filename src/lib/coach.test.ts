@@ -55,7 +55,8 @@ describe('askCoach — the local voice is the one that ships today', () => {
   it('uses the live answer when one comes back', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(async () => new Response(JSON.stringify({ text: 'A live answer.' }), { status: 200 })),
+      // The guide streams plain text now, so the body IS the answer.
+      vi.fn(async () => new Response('A live answer.', { status: 200 })),
     )
     const reply = await askCoach('he went quiet on me', ctx, 'auntie')
     expect(reply.text).toBe('A live answer.')
@@ -191,7 +192,7 @@ describe('askCoach — nothing a real person types may dead-end', () => {
 
 describe('the on-device switch is real, not a label', () => {
   it('never calls the network when she asks the Guide to stay on her phone', async () => {
-    const spy = vi.fn(async () => new Response(JSON.stringify({ text: 'live answer' }), { status: 200 }))
+    const spy = vi.fn(async () => new Response('live answer', { status: 200 }))
     vi.stubGlobal('fetch', spy)
     const reply = await askCoach('is he serious?', { ...ctx, onDeviceOnly: true }, 'auntie')
     expect(spy, 'a request left the device despite the switch').not.toHaveBeenCalled()
@@ -200,10 +201,59 @@ describe('the on-device switch is real, not a label', () => {
   })
 
   it('does use the live guide when she has not asked it to stay', async () => {
-    const spy = vi.fn(async () => new Response(JSON.stringify({ text: 'live answer' }), { status: 200 }))
+    const spy = vi.fn(async () => new Response('live answer', { status: 200 }))
     vi.stubGlobal('fetch', spy)
     const reply = await askCoach('is he serious?', ctx, 'auntie')
     expect(spy).toHaveBeenCalled()
     expect(reply.text).toBe('live answer')
+  })
+})
+
+describe('the answer arrives a piece at a time', () => {
+  /** A body that hands over its pieces one at a time, like the function does. */
+  function streamed(pieces: string[]): Response {
+    const encoder = new TextEncoder()
+    return new Response(
+      new ReadableStream<Uint8Array>({
+        start(controller) {
+          for (const p of pieces) controller.enqueue(encoder.encode(p))
+          controller.close()
+        },
+      }),
+      { status: 200 },
+    )
+  }
+
+  it('reports the answer so far, growing, rather than once at the end', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => streamed(['Kaalay. ', 'Sit with ', 'your auntie.'])))
+    const seen: string[] = []
+    const reply = await askCoach('is he serious?', ctx, 'auntie', [], (soFar) => seen.push(soFar))
+
+    expect(seen.length, 'the UI was only told once, so nothing streamed').toBeGreaterThan(1)
+    expect(seen[0]).toBe('Kaalay. ')
+    // Each callback carries the whole answer so far, so the bubble only grows.
+    for (let i = 1; i < seen.length; i++) {
+      expect(seen[i].startsWith(seen[i - 1])).toBe(true)
+    }
+    expect(seen[seen.length - 1]).toBe('Kaalay. Sit with your auntie.')
+    expect(reply.text).toBe('Kaalay. Sit with your auntie.')
+  })
+
+  it('does not call back at all when the guide is unreachable', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 503 })))
+    const seen: string[] = []
+    const reply = await askCoach('is he serious?', ctx, 'auntie', [], (s) => seen.push(s))
+    // Nothing streamed, so the caller knows to render the local answer itself.
+    expect(seen).toEqual([])
+    expect(reply.text.length).toBeGreaterThan(200)
+  })
+
+  it('never streams when she has asked the guide to stay on her phone', async () => {
+    const spy = vi.fn(async () => streamed(['should ', 'not ', 'happen']))
+    vi.stubGlobal('fetch', spy)
+    const seen: string[] = []
+    await askCoach('is he serious?', { ...ctx, onDeviceOnly: true }, 'auntie', [], (s) => seen.push(s))
+    expect(spy).not.toHaveBeenCalled()
+    expect(seen).toEqual([])
   })
 })

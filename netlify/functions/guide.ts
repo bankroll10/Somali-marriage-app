@@ -107,38 +107,8 @@ export default async function handler(req: Request, _context: Context) {
   // to drop.
   const history = (body.history ?? []).slice(-10)
 
-  try {
-    const client = new Anthropic()
-    const res = await client.messages.create({
-      model: MODEL,
-      max_tokens: 8192,
-      system,
-      thinking: { type: 'adaptive' },
-      output_config: { effort: EFFORT },
-      messages: [
-        ...history.map((m) => ({
-          role: (m.role === 'coach' ? 'assistant' : 'user') as 'assistant' | 'user',
-          content: m.text,
-        })),
-        { role: 'user' as const, content: message },
-      ],
-    })
-
-    // A safety decline is a real outcome, not a crash — let the app fall back
-    // to its local voice rather than showing the member an error.
-    if (res.stop_reason === 'refusal') {
-      return Response.json({ error: 'declined' }, { status: 503 })
-    }
-
-    const text = res.content
-      .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-      .map((b) => b.text)
-      .join('\n')
-      .trim()
-
-    if (!text) return Response.json({ error: 'empty' }, { status: 503 })
-    return Response.json({ text })
-  } catch (err) {
+  /** Map an SDK error onto the 503 contract the client already understands. */
+  function errorResponse(err: unknown): Response {
     if (err instanceof Anthropic.RateLimitError) {
       return Response.json({ error: 'rate_limited' }, { status: 503 })
     }
@@ -153,5 +123,86 @@ export default async function handler(req: Request, _context: Context) {
     console.error('[niyyah] guide: unexpected', err)
     return Response.json({ error: 'unexpected' }, { status: 503 })
   }
-}
 
+  const stream = new Anthropic().messages.stream({
+    model: MODEL,
+    max_tokens: 8192,
+    system,
+    thinking: { type: 'adaptive' },
+    output_config: { effort: EFFORT },
+    messages: [
+      ...history.map((m) => ({
+        role: (m.role === 'coach' ? 'assistant' : 'user') as 'assistant' | 'user',
+        content: m.text,
+      })),
+      { role: 'user' as const, content: message },
+    ],
+  })
+
+  // Pull events by hand until the first word of the answer.
+  //
+  // This exists so the error contract survives streaming. Once a streamed
+  // response has begun, its status is already 200 and a later failure can only
+  // truncate the body — so an auth error or a rate limit would reach the member
+  // as a silently short answer rather than as a fallback to the offline voice.
+  // Draining up to the first text delta keeps every pre-answer failure a clean
+  // 503, exactly as it was before, and costs nothing the member can perceive:
+  // the wait is until the first word either way.
+  const iterator = stream[Symbol.asyncIterator]()
+  let first: string | null = null
+  try {
+    for (;;) {
+      const { value, done } = await iterator.next()
+      if (done) break
+      if (value.type === 'content_block_delta' && value.delta.type === 'text_delta') {
+        first = value.delta.text
+        break
+      }
+    }
+  } catch (err) {
+    return errorResponse(err)
+  }
+
+  // No text at all: an empty completion, or a safety decline, which is a real
+  // outcome rather than a crash. Either way the app falls back to its local
+  // voice instead of showing the member an error.
+  if (first === null) return Response.json({ error: 'empty' }, { status: 503 })
+
+  const encoder = new TextEncoder()
+  const answer = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      controller.enqueue(encoder.encode(first))
+      try {
+        for (;;) {
+          const { value, done } = await iterator.next()
+          if (done) break
+          if (value.type === 'content_block_delta' && value.delta.type === 'text_delta') {
+            controller.enqueue(encoder.encode(value.delta.text))
+          }
+        }
+      } catch (err) {
+        // Mid-answer failure. The member keeps the words that arrived, which is
+        // better than replacing a partial answer with an error; nothing else
+        // can be done once the status line has gone.
+        console.error('[niyyah] guide: stream ended early', err)
+      }
+      controller.close()
+    },
+    cancel() {
+      // The member navigated away or the client timed out — stop generating.
+      void stream.abort()
+    },
+  })
+
+  return new Response(answer, {
+    headers: {
+      // Plain text, not SSE: the client only ever appends what arrives, so
+      // there is no framing to parse and nothing to go wrong in between.
+      'Content-Type': 'text/plain; charset=utf-8',
+      'Cache-Control': 'no-store',
+      // Discourage any proxy from buffering the whole answer and handing it
+      // over at once, which would quietly undo the point of this.
+      'X-Accel-Buffering': 'no',
+    },
+  })
+}

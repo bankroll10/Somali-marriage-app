@@ -195,17 +195,55 @@ export default function Coach({
     setInput('')
     setFollowUps([])
     setThinking(true)
+    // The answer is written into the thread as it arrives, under an id fixed
+    // now, so every chunk updates the same bubble rather than appending a new
+    // one. Waiting for the whole reply meant six seconds of dots and then a
+    // wall of text; this way her first sentence is on screen in about one.
+    const replyId = nextId()
+    let streamed = false
+
+    /**
+     * Write the answer-so-far into the thread under a fixed id.
+     *
+     * Whether to append or replace is decided from the state itself, never from
+     * a flag out here. React runs an updater when it chooses, not when it is
+     * called — so a "have I appended yet?" variable set immediately after the
+     * call has already flipped by the time the updater actually runs. That cost
+     * the whole first version of this: chunk one took the replace branch for a
+     * bubble that did not exist, the map matched nothing, and the answer never
+     * appeared on screen at all while streaming perfectly underneath.
+     */
+    const writeReply = (text: string) =>
+      setThreads((prev) => {
+        const thread = prev[mode] ?? []
+        const bubble: CoachMessage = { id: replyId, role: 'coach', text }
+        return {
+          ...prev,
+          [mode]: thread.some((m) => m.id === replyId)
+            ? thread.map((m) => (m.id === replyId ? bubble : m))
+            : [...thread, bubble],
+        }
+      })
+
     // The thread so far, so the live guide picks up mid-conversation instead of
     // meeting them fresh on every message.
-    const reply = await askCoach(trimmed, ctx, mode, threads[mode] ?? [])
+    const reply = await askCoach(trimmed, ctx, mode, threads[mode] ?? [], (soFar) => {
+      writeReply(soFar)
+      if (!streamed) {
+        streamed = true
+        // The words are the thinking indicator now.
+        setThinking(false)
+      }
+    })
+
     // Charged only once an answer actually exists. Spending up front billed the
     // member for replies that failed or fell back — three taps of a fallback
     // used to cost three of the twenty free replies.
     onSpendReply()
-    setThreads((prev) => ({
-      ...prev,
-      [mode]: [...(prev[mode] ?? []), { id: nextId(), role: 'coach', text: reply.text }],
-    }))
+    // Settles the final text. If nothing streamed — the offline voice, or a live
+    // call that failed before its first word — this is the bubble's first and
+    // only appearance, which the same helper handles.
+    writeReply(reply.text)
     setFollowUps(reply.followUps)
     setThinking(false)
   }
