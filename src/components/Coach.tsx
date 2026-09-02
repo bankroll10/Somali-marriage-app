@@ -56,6 +56,8 @@ interface Props {
   initialAsk?: { text: string; why: string } | null
   onAskConsumed?: () => void
   /** Niyyah+ state. Members have no counter; everyone else can see theirs. */
+  /** Her Trust-screen choice to keep the Guide on this device. */
+  onDeviceOnly?: boolean
   plusActive: boolean
   repliesLeft: number
   onSpendReply: () => void
@@ -92,12 +94,14 @@ export default function Coach({
   plusActive,
   repliesLeft,
   onSpendReply,
+  onDeviceOnly,
   onOpenPlus,
   onBack,
 }: Props) {
   const ctx: CoachContext = {
     identity,
     answers,
+    onDeviceOnly,
     social: { matchedNames, pendingNames, passedIds },
   }
   const [mode, setMode] = useState<ModeId | null>(initialMode ?? null)

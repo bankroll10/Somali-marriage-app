@@ -187,6 +187,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           initialMode={n.guideMode}
           initialAsk={n.guideAsk}
           onAskConsumed={n.clearGuideAsk}
+          onDeviceOnly={n.trust.guideOnDevice}
           plusActive={n.plusActive}
           repliesLeft={n.repliesLeft}
           onSpendReply={n.spendReply}

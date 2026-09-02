@@ -72,6 +72,16 @@ export interface TrustSettings {
   waliFriendly: boolean
   blurPhotos: boolean
   privacyShield: boolean
+  /**
+   * Keep the Guide entirely on this device.
+   *
+   * The live Guide writes better answers, but doing so sends her question and a
+   * summary of her map to Anthropic. Rather than bury that in a policy, this
+   * makes it hers to decide: on, and nothing she writes to the Guide ever
+   * leaves the phone. Off by default because the live answer is genuinely
+   * better, and because a choice she never sees is not a choice.
+   */
+  guideOnDevice: boolean
 }
 
 export const defaultTrust: TrustSettings = {
@@ -80,6 +90,7 @@ export const defaultTrust: TrustSettings = {
   waliFriendly: false,
   blurPhotos: false,
   privacyShield: false,
+  guideOnDevice: false,
 }
 
 export type QuestionType = 'single' | 'multi' | 'scale' | 'text'

@@ -154,10 +154,12 @@ export async function askCoach(
 ): Promise<CoachReply> {
   const mode = getMode(modeId)
 
-  // The live guide first. Its own latency is the considered pause, so there is
-  // no artificial wait on this path.
-  const live = await askLiveGuide(message, ctx, modeId, history)
-  if (live) return { text: live, followUps: DEFAULT_FOLLOW_UPS }
+  // The live guide first, unless she has asked us to stay on the device. Its
+  // own latency is the considered pause, so there is no artificial wait here.
+  if (!ctx.onDeviceOnly) {
+    const live = await askLiveGuide(message, ctx, modeId, history)
+    if (live) return { text: live, followUps: DEFAULT_FOLLOW_UPS }
+  }
 
   // A short, considered pause — a guide thinks before speaking.
   await new Promise((r) => setTimeout(r, 700 + Math.random() * 500))

@@ -14,6 +14,8 @@ import { alignment } from '../lib/matching'
 export interface CoachContext {
   identity: Identity
   answers: Answers
+  /** She asked for the Guide to stay on this device — never call out. */
+  onDeviceOnly?: boolean
   /** Live app state — the guide knows what's actually happening here. */
   social?: {
     matchedNames: string[]

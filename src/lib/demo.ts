@@ -53,6 +53,8 @@ export function seedDemo() {
       waliFriendly: true,
       blurPhotos: true,
       privacyShield: true,
+      // The seeded member uses the live guide — that is the experience to show.
+      guideOnDevice: false,
     },
     // History but no entry TODAY — the live check-in tap is a demo moment,
     // and the strip + continuity line have something to show.

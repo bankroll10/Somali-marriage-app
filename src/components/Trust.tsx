@@ -157,6 +157,18 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
           </Control>
 
           <Control
+            title="Keep the Guide on this device"
+            desc="Your guide answers from your phone alone. Answers are shorter and less tailored, and nothing you write to it ever leaves — not your question, not your map."
+            icon={<LockGlyph />}
+          >
+            <Toggle
+              on={trust.guideOnDevice}
+              label="Keep the Guide on this device"
+              onClick={() => set('guideOnDevice', !trust.guideOnDevice)}
+            />
+          </Control>
+
+          <Control
             title="Privacy shield"
             desc="Stay hidden from anyone outside your criteria, and from people you might know — the fear that keeps most of us off these apps. Recorded now, enforced the day your city opens."
             icon={<LockGlyph />}
@@ -181,10 +193,20 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
               Where your answers live
             </h3>
             <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
-              On this device. Your reflection, check-ins, and guide conversations
-              are stored locally — not on our servers. In this founding preview we
-              couldn’t read them if we wanted to. When accounts arrive, you choose
-              what leaves your phone.
+              Your reflection, your check-ins and every answer you gave are stored
+              on this device — not on our servers, and no one at Niyyah can read
+              them.
+            </p>
+            <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+              The Guide is the one exception, and here is exactly what it sends
+              when you ask it something: your message, and a summary of your map —
+              your first name, city, timeline, where you are in your practice, how
+              central faith is, family’s role, children, your non-negotiables, and
+              what you named as the hardest part. It goes to Claude, made by
+              Anthropic, which writes the reply. We don’t store it. If you would
+              rather none of that left your phone, turn on
+              <span className="font-medium text-ink"> Keep the Guide on this device</span>{' '}
+              above — the guide then answers offline, and nothing is sent at all.
             </p>
           </div>
         </section>

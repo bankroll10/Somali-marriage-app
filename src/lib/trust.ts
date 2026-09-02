@@ -16,6 +16,10 @@ export const TRUST_WEIGHTS: Record<keyof TrustSettings, number> = {
   waliFriendly: 15,
   blurPhotos: 15,
   privacyShield: 20,
+  // Deliberately zero. Keeping the Guide on your own device is a private
+  // choice about your own data; it says nothing to anyone else about how
+  // seriously you take this, and scoring it would imply otherwise.
+  guideOnDevice: 0,
 }
 
 /** 0–100. Every weight set gives 100 exactly. */

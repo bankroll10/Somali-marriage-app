@@ -188,3 +188,22 @@ describe('askCoach — nothing a real person types may dead-end', () => {
     expect(reply.text).not.toContain('heartbreak')
   })
 })
+
+describe('the on-device switch is real, not a label', () => {
+  it('never calls the network when she asks the Guide to stay on her phone', async () => {
+    const spy = vi.fn(async () => new Response(JSON.stringify({ text: 'live answer' }), { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    const reply = await askCoach('is he serious?', { ...ctx, onDeviceOnly: true }, 'auntie')
+    expect(spy, 'a request left the device despite the switch').not.toHaveBeenCalled()
+    expect(reply.text.length).toBeGreaterThan(0)
+    expect(reply.text).not.toContain('live answer')
+  })
+
+  it('does use the live guide when she has not asked it to stay', async () => {
+    const spy = vi.fn(async () => new Response(JSON.stringify({ text: 'live answer' }), { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    const reply = await askCoach('is he serious?', ctx, 'auntie')
+    expect(spy).toHaveBeenCalled()
+    expect(reply.text).toBe('live answer')
+  })
+})

@@ -15,8 +15,16 @@ describe('trustScore', () => {
         waliFriendly: true,
         blurPhotos: true,
         privacyShield: true,
+        guideOnDevice: true,
       }),
     ).toBe(100)
+  })
+
+  it('does not score keeping the Guide on-device', () => {
+    // It is a private choice about her own data, not a signal to anyone else.
+    // Scoring it would imply the opposite, and would also break the "every
+    // weight set gives exactly 100" contract above.
+    expect(trustScore({ ...defaultTrust, guideOnDevice: true })).toBe(0)
   })
 
   it('weights verification highest — it is the one signal you cannot fake', () => {
