@@ -178,7 +178,7 @@ interface Props {
   steps: StepRecord[]
   onTakeStep: (d: Dimension) => void
   onCompleteStep: () => void
-  /** Their saved place — asked for once, at the map reveal. */
+  /** Their saved place — asked right after the dimension bars, until they join. */
   waitlist: WaitlistState | null
   /** Their "hardest part" answer, carried onto the signup. */
   hookId?: string
@@ -317,6 +317,24 @@ export default function ReflectionView({
             ))}
           </div>
         </Section>
+
+        {/* The ask, right where the map has just said something specific about
+            her — before the long tail of sections she may never scroll to.
+            Shown on every map view, not only first reveal, so skipping it once
+            doesn't mean never seeing it again. Waitlist itself switches from
+            the form to a quiet "you're counted" confirmation once joined (same
+            pattern as Profile) — the confirmation has to render right here, on
+            submit, or she gets no feedback that anything happened. Skippable —
+            everything below works whether or not she joins. */}
+        <section className="mb-12">
+          <Waitlist
+            identity={identity}
+            overall={r.overall}
+            hookId={hookId}
+            joined={waitlist}
+            onJoined={onJoinWaitlist}
+          />
+        </section>
 
         {/* Diagnosis → practice. A map that names your thinnest ground and stops
             there leaves you as anxious as you arrived: one honest, doable thing,
@@ -471,21 +489,6 @@ export default function ReflectionView({
             <p className="text-[1.05rem] leading-relaxed text-cream/90 text-pretty">{r.alignment}</p>
           </div>
         </Section>
-
-        {/* The ask, at the only honest moment for it: they have just been given
-            something real and specific about themselves. Skippable — the button
-            below it works whether or not they save a place. */}
-        {firstReveal && (
-          <section className="mb-12">
-            <Waitlist
-              identity={identity}
-              overall={r.overall}
-              hookId={hookId}
-              joined={waitlist}
-              onJoined={onJoinWaitlist}
-            />
-          </section>
-        )}
 
         {/* Next: into your space — light card; the dark hero lives at the top now. */}
         <section className="mt-14 rounded-card border border-line bg-white/60 p-8 text-center">
