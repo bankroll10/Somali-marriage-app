@@ -218,11 +218,16 @@ export const chapters: Chapter[] = [
         dimension: 'selfAwareness',
         prompt: 'Looking back, what pattern do you want to leave behind?',
         helper: 'We all have one. Naming it is the beginning of changing it.',
+        // Naming a live pattern is honest but the work is still ahead, so these
+        // sit below "already done that work". They used to all weigh 0.9-1.0,
+        // which pinned self-awareness at 90-100 for every single user — the one
+        // sentence on the map that was identical for everybody, and a dimension
+        // that could therefore never be anyone's thinnest ground.
         options: [
-          { id: 'unavailable', label: 'Choosing people who can’t fully show up', tags: ['Pattern: availability'], weight: 0.9 },
-          { id: 'rushing', label: 'Rushing in before I really know someone', tags: ['Pattern: pace'], weight: 0.9 },
-          { id: 'walls', label: 'Keeping my walls up, staying guarded', tags: ['Pattern: guardedness'], weight: 0.9 },
-          { id: 'settling', label: 'Settling for less than I deserve', tags: ['Pattern: self-worth'], weight: 0.9 },
+          { id: 'unavailable', label: 'Choosing people who can’t fully show up', tags: ['Pattern: availability'], weight: 0.65 },
+          { id: 'rushing', label: 'Rushing in before I really know someone', tags: ['Pattern: pace'], weight: 0.65 },
+          { id: 'walls', label: 'Keeping my walls up, staying guarded', tags: ['Pattern: guardedness'], weight: 0.65 },
+          { id: 'settling', label: 'Settling for less than I deserve', tags: ['Pattern: self-worth'], weight: 0.65 },
           { id: 'none', label: 'I’ve done real work on myself already', tags: ['Self-aware'], weight: 1 },
         ],
       },

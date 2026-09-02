@@ -1,4 +1,5 @@
 import { allQuestions } from '../data/intake'
+import { getHookOption } from '../data/hook'
 import type {
   Answers,
   Dimension,
@@ -70,6 +71,13 @@ function scoreAnswer(q: Question, value: unknown): number | null {
     return opt?.weight ?? null
   }
 
+  // Writing something in your own words, unprompted, in an explicitly optional
+  // field is itself the signal this dimension is trying to measure. Skipping it
+  // says nothing either way, so it returns null rather than dragging the score.
+  if (q.type === 'text') {
+    return typeof value === 'string' && value.trim().length > 0 ? 1 : null
+  }
+
   if (q.type === 'multi' && Array.isArray(value)) {
     const weights = value
       .map((id) => optionById(q, id)?.weight)
@@ -90,55 +98,138 @@ function dimensionReading(dim: Dimension, answers: Answers): DimensionReading {
   }
   const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0.5
   const score = Math.round(avg * 100)
-  return { dimension: dim, label: DIMENSION_LABELS[dim], score, note: dimensionNote(dim, score) }
+  return { dimension: dim, label: DIMENSION_LABELS[dim], score, note: dimensionNote(dim, answers) }
 }
 
-function dimensionNote(dim: Dimension, score: number): string {
-  const high = score >= 75
-  const mid = score >= 55 && score < 75
+/**
+ * The note under each dimension bar.
+ *
+ * These used to be keyed on the score band alone — three strings per dimension,
+ * 21 in total for every person who will ever use this. That had two costs. Two
+ * women in the same band read word-for-word identical text, which is fatal for a
+ * product whose whole promise is "this is about you". And opposite answers
+ * collapsed into the same sentence: "I want children, God willing" and "I don't
+ * see children in my future" both landed high on vision and printed the same
+ * line, which reads as a machine that did not listen.
+ *
+ * So they are keyed on the answer she actually gave. The bar beside each note
+ * already carries the number; the words are for what she told us, and there is
+ * no longer any band arithmetic between her answer and the sentence she reads.
+ */
+function dimensionNote(dim: Dimension, answers: Answers): string {
+  const a = (id: string) => answers[id] as string | undefined
+
   switch (dim) {
-    case 'intention':
-      return high
-        ? 'Your intention is clear and settled. You know why you are here.'
-        : mid
-          ? 'Your intention is forming. A little more clarity will serve you well.'
-          : 'You are still discerning your why — an honest and worthy place to be.'
-    case 'faith':
-      return high
-        ? 'Faith is a steady center for you, and you know the role you want it to play.'
-        : mid
-          ? 'Your deen is a real part of the picture; you have room to define it together.'
-          : 'Faith sits lighter for you right now — name that clearly so you find someone who fits.'
-    case 'family':
-      return high
-        ? 'You have thought carefully about how family fits into this — a real strength.'
-        : mid
-          ? 'You have a sense of family’s role; a few conversations would sharpen it.'
-          : 'How two families come together is worth more of your reflection.'
-    case 'vision':
-      return high
-        ? 'You can see the life you want with real clarity.'
-        : mid
-          ? 'Your horizon is coming into focus across the things that matter.'
-          : 'Some of your future is still open — that is fine, just hold it honestly.'
-    case 'character':
-      return high
-        ? 'You know what you need in a person, and how you meet conflict — rare and valuable.'
-        : mid
-          ? 'You have a good read on what matters in a partner.'
-          : 'It is worth getting clearer on what you truly need, beyond attraction.'
-    case 'emotional':
-      return high
-        ? 'You meet love with a steady heart and know what makes you feel safe. That steadiness is a gift to whoever you choose.'
-        : mid
-          ? 'You understand your heart’s patterns; naming them is how you keep them from running the show.'
-          : 'Your heart is still tender in places. Move gently, and let the right person earn your trust slowly.'
-    case 'selfAwareness':
-      return high
-        ? 'You meet yourself honestly. That self-awareness is the foundation everything sits on.'
-        : mid
-          ? 'You are doing real reflection on yourself — keep going.'
-          : 'The most important work is inward. A little more honesty with yourself goes far.'
+    case 'intention': {
+      const why = a('why-now')
+      const soon = a('timeline') === 'within-1' || a('timeline') === '1-2'
+      if (why === 'pressure')
+        return soon
+          ? 'You named the pressure honestly — your family and community expect this, and you are moving anyway. Knowing the difference between their clock and your intention is what keeps you from choosing to end the questions.'
+          : 'You said the expectation comes from around you rather than from inside you. That is an honest place to start, and the reason to go slowly is that a marriage entered to quiet the questions is the hardest one to leave.'
+      if (why === 'ready')
+        return soon
+          ? 'You know why you are here and roughly when. Wanting to build a life with someone, and being able to say it plainly, is rarer than the people around you make it seem.'
+          : 'You feel genuinely ready, and you are giving yourself room on the timing. That combination — clear on the why, unhurried on the when — is the strongest place anyone starts from.'
+      if (why === 'lonely')
+        return 'You were honest that companionship is a real part of this. It is not a lesser reason, but it is worth watching: loneliness makes almost anyone look like an answer, so let your standards do the filtering rather than your evenings.'
+      return 'You are still working out whether you are ready, and you said so instead of performing certainty. Arriving honestly is worth more than arriving fast.'
+    }
+
+    case 'faith': {
+      const p = a('practice')
+      const central = typeof answers['faith-role'] === 'number' && (answers['faith-role'] as number) >= 4
+      if (p === 'devout')
+        return 'Your deen shapes your day, not just your identity. Look for someone whose practice is already theirs — you should not have to carry two people\u2019s iman.'
+      if (p === 'consistent')
+        return central
+          ? 'You hold the core steadily and you want faith at the center of your home. Say that early; it filters more honestly than any list of qualities.'
+          : 'You are consistent in the core and growing in the rest — the place most people actually are, and rarely admit to.'
+      if (p === 'returning')
+        return 'You said you are on the way back to your deen. That is a harder thing to write down than to feel, and the right person will meet you on that road rather than judge you for being on it.'
+      return 'You were honest that faith sits lighter in practice than in identity. That clarity protects you from the specific heartbreak of marrying someone who expected a different home than the one you want.'
+    }
+
+    case 'family': {
+      switch (a('family-role')) {
+        case 'central':
+          return 'You want your people in this from the beginning. That is not old-fashioned — it is protection, and it tells us to look for someone who expects to meet them rather than someone who flinches.'
+        case 'guided':
+          return 'You bring family in once it is serious. That is the balance most of this community is actually looking for, and it needs saying out loud early — quietly assuming it is how the first real clash starts.'
+        case 'informed':
+          return 'You keep your family informed and you lead the decision yourself. Hold that clearly: the person who respects it will respect it from day one, and the person who does not will test it slowly.'
+        default:
+          return 'You would rather keep this private until you are sure. That instinct usually comes from somewhere real — and it is worth knowing now whether it is protecting your peace or delaying a conversation you will still have to have.'
+      }
+    }
+
+    case 'vision': {
+      switch (a('children')) {
+        case 'want':
+          return 'You want children, God willing, and you said it without hedging. That single line quietly rules out more mismatches than any other answer on this map.'
+        case 'no':
+          return 'You do not see children in your future, and you said so plainly. That takes more courage to write than to think — and it belongs in the first serious conversation, not the fifth.'
+        case 'open':
+          return 'You are open to children with the right person. Watch for the version of that which is really "I will decide later" — the people this hurts are the ones who never said which they meant.'
+        default:
+          return 'You are still unsure about children. That is an honest place to be at any age, and it is the one question where "we will figure it out" has ended the most marriages.'
+      }
+    }
+
+    case 'character': {
+      // Spelled out: a bare numeral in the middle of warm prose reads like a
+      // form letter, which is the one thing this page cannot afford to sound like.
+      const WORDS = ['no', 'one', 'two', 'three'] as const
+      const count = nonNegotiables(answers).length
+      const nn = count > 0 && count < WORDS.length ? WORDS[count] : ''
+      switch (a('conflict')) {
+        case 'talk':
+          return `You talk things through even when it is hard${nn ? `, and you named ${nn} thing${count === 1 ? '' : 's'} you will not compromise on` : ''}. How someone handles the difficult hour predicts more than how they behave in the easy ones.`
+        case 'space':
+          return 'You need space before you can come back to it. That is workable and healthy — as long as the person you choose knows it is a pause and not a punishment. Say it before the first argument, not during it.'
+        case 'avoid':
+          return 'You tend to let things pass rather than raise them. Nothing on this map is more worth working on: the things that go unsaid do not leave, they accumulate — and they surface years later wearing a different name.'
+        default:
+          return 'You get heated and then you repair. The repair is the part that matters, and it is a real skill — just make sure the person across from you experiences the repair as clearly as they felt the heat.'
+      }
+    }
+
+    case 'emotional': {
+      const h = a('healing')
+      const att = a('attachment')
+      const lean =
+        att === 'anxious'
+          ? ' Your heart leans anxious, so silence will feel like danger before it is danger — reach for your salah, a walk, a friend, before you reach for his phone.'
+          : att === 'avoidant'
+            ? ' You lean toward pulling back to protect your independence. Naming it out loud — "I need a moment, I am not disappearing" — is what keeps that instinct from reading as rejection.'
+            : att === 'secure'
+              ? ' You meet closeness steadily, which is a real gift to whoever you choose.'
+              : ' Your heart moves differently depending on the person, which means the person matters more than the pattern.'
+      if (h === 'healed') return `You have done the work and you are at peace with it.${lean}`
+      if (h === 'healing') return `You are still healing and you know it — which is the part most people skip.${lean}`
+      if (h === 'fresh')
+        return `Something recent still aches, and you said so rather than performing recovery.${lean} Move gently. The right person will not need you to be finished.`
+      return `You have not looked closely at what you might still be carrying.${lean} That is worth an honest hour with yourself before it becomes someone else's to discover.`
+    }
+
+    case 'selfAwareness': {
+      const own = (answers['working-on'] as string | undefined)?.trim()
+      const named = own ? ' And you wrote down what you are still working on, unprompted — that is the single most attractive thing on this whole map.' : ''
+      switch (a('pattern')) {
+        case 'unavailable':
+          return `You see your pull toward people who cannot fully show up.${named} Let availability, not chemistry, be the first filter — it is the cheapest test there is.`
+        case 'rushing':
+          return `You know you move fast.${named} Let this process slow you down on purpose; the right person is still there at a calmer pace.`
+        case 'walls':
+          return `You keep your walls up, and you said so.${named} Real closeness will ask you to lower one a little earlier than is comfortable — with someone who has earned it.`
+        case 'settling':
+          return `You have settled before and you do not want to again.${named} Your non-negotiables below are not too much to ask. Hold them.`
+        case 'none':
+          return `You have already done real work on yourself.${named} Stay honest as new things surface — they will, and that is not a failure.`
+        default:
+          return `Knowing yourself is the ground everything else stands on.${named}`
+      }
+    }
   }
 }
 
@@ -177,28 +268,63 @@ function nonNegotiables(answers: Answers): string[] {
   return v.map((id) => optionById(q, id)?.label ?? '').filter(Boolean)
 }
 
+/**
+ * The honest mirror.
+ *
+ * This is the emotional centre of the map, so it must not restate the
+ * self-awareness note directly above it — both used to be driven by `pattern`
+ * alone and landed as the same observation twice.
+ *
+ * Instead it does the one thing a single answer cannot: it holds two of them
+ * together. What she named as the hardest part, and the pattern she wants to
+ * leave behind, are very often the same thing seen from opposite sides — and
+ * saying so is the moment a reader stops skimming.
+ */
 function growthNote(answers: Answers): string {
-  const patternQ = allQuestions.find((x) => x.id === 'pattern')
-  const patternId = answers['pattern']
+  const hook = answers['hardest-part'] as string | undefined
+  const pattern = answers['pattern'] as string | undefined
   const working = (answers['working-on'] as string | undefined)?.trim()
 
-  let base = 'You are doing the inner work, and it shows.'
-  if (typeof patternId === 'string' && patternQ) {
-    const map: Record<string, string> = {
-      unavailable:
-        'You see your pull toward people who can’t fully show up. Naming it is how you start choosing differently — let availability, not chemistry, be your first filter.',
-      rushing:
-        'You know you tend to move fast. Let this process slow you down on purpose; the right person will still be there at a calmer pace.',
-      walls:
-        'You guard yourself closely. Real intimacy will ask you to lower the wall a little earlier than feels comfortable — gently, and with someone who earns it.',
-      settling:
-        'You’ve settled before. Your non-negotiables below are not too much to ask — hold them.',
-      none: 'You’ve already done meaningful work on yourself. Stay honest as new things surface.',
-    }
-    base = map[patternId] ?? base
+  const PAIRS: Record<string, string> = {
+    'trust|walls':
+      'You said the hardest part is trusting again, and that the pattern you want to leave behind is keeping your walls up. Those are not two problems. They are one thing seen from the inside and from the outside — and the way through is not to tear the wall down, it is to let one person earn a door.',
+    'trust|unavailable':
+      'You said trusting again is the hardest part, and that you tend to choose people who cannot fully show up. Be gentle with yourself about that: someone unavailable can never actually test your trust, which makes them feel safer than they are.',
+    'serious|rushing':
+      'You want to know whether someone is serious, and you know you tend to move fast. Those work against each other — speed is what makes seriousness impossible to read. Slowness is not a delay here; it is the actual instrument.',
+    'serious|settling':
+      'You said the hardest part is knowing if someone is serious, and that you have settled before. That combination has a specific danger: when you have accepted less once, "serious enough" starts to sound like serious.',
+    'family|rushing':
+      'You named family pressure as the hardest part, and rushing as the pattern you want to leave. Those are connected — a clock you did not set is the most common reason good people choose fast. The pace can be yours even when the questions are not.',
+    'family|settling':
+      'You said the pressure from family is the hardest part, and that you have settled before. Nobody settles in a vacuum. Your non-negotiables below exist precisely so that a decision made under that weight is still your own.',
+    'ready|none':
+      'You are asking whether you are even ready, and you have already done real work on yourself. Notice the contradiction: people who have not done the work almost never ask that question.',
+    'finding|settling':
+      'You said the hardest part is finding anyone serious at all, and that you have settled before. Scarcity is what makes settling feel reasonable. A thin room is a reason to wait, not a reason to lower the bar.',
   }
+
+  const PATTERNS: Record<string, string> = {
+    unavailable:
+      'You see your pull toward people who cannot fully show up. Naming it is how you start choosing differently — let availability, not chemistry, be your first filter.',
+    rushing:
+      'You know you tend to move fast. Let this process slow you down on purpose; the right person will still be there at a calmer pace.',
+    walls:
+      'You guard yourself closely. Real intimacy will ask you to lower the wall a little earlier than feels comfortable — gently, and with someone who earns it.',
+    settling:
+      'You have settled before. Your non-negotiables below are not too much to ask — hold them.',
+    none: 'You have already done meaningful work on yourself. Stay honest as new things surface.',
+  }
+
+  let base =
+    (hook && pattern ? PAIRS[`${hook}|${pattern}`] : undefined) ??
+    (pattern ? PATTERNS[pattern] : undefined) ??
+    'You are doing the inner work, and it shows.'
+
   if (working) {
-    base += ` In your own words, you’re still learning to ${working.replace(/^I'?m still learning to\s*/i, '').replace(/\.$/, '')}. That honesty is exactly what a good marriage is built on.`
+    base += ` In your own words, you’re still learning to ${working
+      .replace(/^I'?m still learning to\s*/i, '')
+      .replace(/\.$/, '')}. That honesty is exactly what a good marriage is built on.`
   }
   return base
 }
@@ -242,7 +368,12 @@ function headlineFor(overall: number): string {
   return 'Earlier in the journey — and that’s okay'
 }
 
-function summaryFor(overall: number, top: DimensionReading, low: DimensionReading): string {
+function summaryFor(
+  overall: number,
+  top: DimensionReading,
+  low: DimensionReading,
+  answers: Answers,
+): string {
   const opener =
     overall >= 80
       ? 'You come to this with rare clarity.'
@@ -252,7 +383,19 @@ function summaryFor(overall: number, top: DimensionReading, low: DimensionReadin
           ? 'You have a real foundation, with a few things still taking shape.'
           : 'You are early in this — and arriving honestly is worth more than arriving fast.'
 
-  return `${opener} Your strongest ground is ${top.label.toLowerCase()}, and the place with the most room to grow is ${low.label.toLowerCase()} — not a flaw, just where a little more reflection will pay off most.`
+  // Name back the question she answered before any of the others.
+  //
+  // The hook — "what's the hardest part for you right now?" — is the most
+  // emotionally loaded thing this app asks, it arrives on the third screen, and
+  // until now the map never mentioned it again. `HookOption.short` was written
+  // for exactly this callback ("you said the hardest part is trusting again
+  // after being hurt") and was read nowhere in the codebase.
+  const hook = getHookOption(answers['hardest-part'] as string | undefined)
+  const named = hook
+    ? ` Before any of these questions, you told us the hardest part right now is ${hook.short} — so read the rest of this as an answer to that.`
+    : ''
+
+  return `${opener}${named} Your strongest ground is ${top.label.toLowerCase()}, and the place with the most room to grow is ${low.label.toLowerCase()} — not a flaw, just where a little more reflection will pay off most.`
 }
 
 /** Pure synthesis — deterministic, no I/O. */
@@ -286,7 +429,7 @@ export function buildReflection(answers: Answers): Reflection {
 
   return {
     headline: headlineFor(overall),
-    summary: summaryFor(overall, top, low),
+    summary: summaryFor(overall, top, low, answers),
     overall,
     dimensions,
     coreValues,
