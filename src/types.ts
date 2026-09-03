@@ -171,13 +171,16 @@ export interface StepRecord {
 }
 
 /**
- * A saved place in a city that hasn't opened yet — and the only way this app can
- * reach a person again once they close the tab.
+ * Her place in the founding cohort — and the only way this app can reach a
+ * person again once they close the tab.
  */
 export interface WaitlistState {
-  email: string
-  /** Diaspora community id — the demand-by-city signal. */
+  /** Email or phone, whichever she gave. */
+  contact: string
+  /** Diaspora community id — the city she is counted in. */
   scene?: string
+  /** The code her kept map lives under, so the founder can link the two. */
+  code?: string
   joinedAt: string
 }
 

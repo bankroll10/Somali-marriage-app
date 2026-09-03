@@ -56,7 +56,7 @@ That’s why Niyyah starts with readiness, not profiles. Your map will meet your
     insight: (name) =>
       `${name ? `${name}, y` : 'Y'}ou’re not imagining it — the usual apps mix you into a crowd that isn’t looking for what you’re looking for, then make you sift by hand. The problem isn’t you. It’s the room.
 
-Niyyah is a different room: verified, marriage-minded, built on alignment instead of looks. First we build your map, so when you meet people here, you’re matched on what actually lasts.`,
+Niyyah is a different room — one that only opens when enough serious people are in it, and matches on how lives fit instead of on looks. First we build your map, so when you meet people here, you’re matched on what actually lasts.`,
   },
   {
     id: 'ready',

@@ -53,7 +53,10 @@ export function loadProgress(): Persisted | null {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return null
-    const p = JSON.parse(raw) as Partial<Persisted> & { checkIn?: CheckIn | null }
+    const p = JSON.parse(raw) as Partial<Persisted> & {
+      checkIn?: CheckIn | null
+      waitlist?: (Partial<WaitlistState> & { email?: string }) | null
+    }
     return {
       answers: p.answers ?? {},
       identity: p.identity ?? {},
@@ -65,7 +68,10 @@ export function loadProgress(): Persisted | null {
       stage: p.stage ?? 'preparing',
       steps: p.steps ?? [],
       plus: { ...defaultPlus, ...(p.plus ?? {}) },
-      waitlist: p.waitlist ?? null,
+      // Earlier saves stored an email; the field now holds email or phone.
+      waitlist: p.waitlist
+        ? { ...p.waitlist, contact: p.waitlist.contact ?? p.waitlist.email ?? '', joinedAt: p.waitlist.joinedAt ?? '' }
+        : null,
       completed: p.completed ?? false,
       matched: p.matched ?? [],
       pendingInterest: p.pendingInterest ?? [],

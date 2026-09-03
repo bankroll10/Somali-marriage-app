@@ -55,11 +55,11 @@ afterEach(() => vi.unstubAllGlobals())
 describe('keeping a map', () => {
   it('sends what is on the device and remembers the code it gets back', async () => {
     saveProgress(state)
-    const spy = vi.fn(async () => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 }))
+    const spy = vi.fn(async (_input: string, _init?: RequestInit) => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 }))
     vi.stubGlobal('fetch', spy)
 
     expect(await keepMap()).toBe('ACDEFG')
-    const sent = JSON.parse(spy.mock.calls[0][1].body as string)
+    const sent = JSON.parse(spy.mock.calls[0][1]?.body as string)
     expect(sent.snapshot.identity.firstName).toBe('Sagal')
     // Remembered, so she is shown her code rather than asked for it again.
     expect(rememberedCode()).toBe('ACDEFG')
@@ -70,10 +70,10 @@ describe('keeping a map', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 })))
     await keepMap()
 
-    const spy = vi.fn(async () => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 }))
+    const spy = vi.fn(async (_input: string, _init?: RequestInit) => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 }))
     vi.stubGlobal('fetch', spy)
     await keepMap()
-    expect(JSON.parse(spy.mock.calls[0][1].body as string).code).toBe('ACDEFG')
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string).code).toBe('ACDEFG')
   })
 
   it('does nothing at all when there is no map yet', async () => {
@@ -105,7 +105,7 @@ describe('bringing a map back', () => {
   })
 
   it('normalises what a human types — case, spaces and dashes', async () => {
-    const spy = vi.fn(async () => new Response(JSON.stringify({ snapshot: state }), { status: 200 }))
+    const spy = vi.fn(async (_input: string, _init?: RequestInit) => new Response(JSON.stringify({ snapshot: state }), { status: 200 }))
     vi.stubGlobal('fetch', spy)
     await restoreMap(' acd-efg ')
     expect(spy.mock.calls[0][0]).toContain('code=ACDEFG')

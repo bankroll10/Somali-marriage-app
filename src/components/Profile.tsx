@@ -3,7 +3,7 @@ import type { Answers, Identity, Reflection, TrustSettings, WaitlistState } from
 import { MAX_AGE, MIN_AGE } from '../types'
 import { getScene, scenes } from '../data/scenes'
 import { shareOrCopy } from '../lib/share'
-import Waitlist from './Waitlist'
+import Cohort from './Cohort'
 import { SITE_HOST, SITE_URL } from '../lib/site'
 import { CheckIcon, ScreenHeader, ShieldGlyph, fieldClass } from './ui'
 
@@ -25,6 +25,7 @@ interface Props {
   trialDaysLeft: number
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
+  voices?: string[]
   /** Reflect again — keeps every check-in, connection, and milestone. */
   onRetake: () => void
   onBack: () => void
@@ -44,6 +45,7 @@ export default function Profile({
   trialDaysLeft,
   waitlist,
   onJoinWaitlist,
+  voices,
   onRetake,
   onBack,
 }: Props) {
@@ -96,8 +98,8 @@ export default function Profile({
 
       <main className="mx-auto max-w-2xl px-6">
         <p className="animate-fade py-6 text-[0.95rem] leading-relaxed text-muted text-pretty">
-          This is how serious, verified members will see you — depth first. No one
-          sees your photo until you both choose to connect.
+          This is how members will see you when your city opens — depth first. No
+          one sees your photo until you both choose to connect.
         </p>
 
         {/* Profile card */}
@@ -395,12 +397,14 @@ export default function Profile({
 
         {/* Findable forever, nagging never — Home stays clean. */}
         <div className="mt-5">
-          <Waitlist
+          <Cohort
             identity={identity}
             hookId={answers['hardest-part'] as string | undefined}
             overall={reflection.overall}
+            voices={voices}
             joined={waitlist}
             onJoined={onJoinWaitlist}
+            onScene={(scene) => onChangeIdentity((prev) => ({ ...prev, scene }))}
             compact
           />
         </div>

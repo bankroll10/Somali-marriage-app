@@ -42,7 +42,7 @@ export type Screen =
   | 'trust'
   | 'philosophy'
   | 'profile'
-  | 'discovery'
+  | 'sample'
   | 'connections'
   | 'conversation'
   | 'plus'
@@ -97,8 +97,8 @@ export function useNiyyah() {
   const [guideMode, setGuideMode] = useState<ModeId | null>(null)
   // A question captured elsewhere, waiting to be asked on arrival.
   const [guideAsk, setGuideAsk] = useState<{ text: string; why: string } | null>(null)
-  // Trust lives under Profile now; the discovery gate also opens it.
-  const [trustReturn, setTrustReturn] = useState<'profile' | 'discovery'>('profile')
+  // Trust lives under Profile.
+  const [trustReturn, setTrustReturn] = useState<'profile'>('profile')
 
   // ── Social state (persisted — the product remembers between visits) ────────
   // Interest that was pending when they left resolves while they were away:
@@ -407,7 +407,7 @@ export function useNiyyah() {
     setScreen('philosophy')
   }
 
-  function openTrust(from: 'profile' | 'discovery') {
+  function openTrust(from: 'profile') {
     setTrustReturn(from)
     setScreen('trust')
   }

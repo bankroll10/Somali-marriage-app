@@ -18,7 +18,11 @@
 const QUEUE_KEY = 'niyyah.waitlist.queue.v1'
 
 export interface WaitlistEntry {
-  email: string
+  /** Email or phone — whichever she chose to give. */
+  contact: string
+  /** The code her kept map lives under (see lib/keep.ts), so a person on the
+   *  form can be matched to a map in the store without a name on either. */
+  code?: string
   /** Diaspora community id (see data/scenes.ts) — this is the city signal. */
   scene?: string
   gender?: string
@@ -95,7 +99,8 @@ async function post(entry: WaitlistEntry): Promise<boolean> {
 async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<boolean> {
   const body = new URLSearchParams({ 'form-name': form })
   // Only send what we have; an empty field is noise in the submissions table.
-  if (entry.email) body.set('email', entry.email)
+  if (entry.contact) body.set('contact', entry.contact)
+  if (entry.code) body.set('code', entry.code)
   if (entry.scene) body.set('scene', entry.scene)
   if (entry.gender) body.set('gender', entry.gender)
   if (typeof entry.overall === 'number') body.set('overall', String(entry.overall))

@@ -10,7 +10,7 @@ import {
   readyToReflect,
   whenLabel,
 } from '../data/nextStep'
-import Waitlist from './Waitlist'
+import Cohort from './Cohort'
 import KeepMap from './KeepMap'
 import { BackButton, Button, Logo, ArrowRight, CheckIcon } from './ui'
 
@@ -181,6 +181,9 @@ interface Props {
   onCompleteStep: () => void
   /** Their saved place — asked right after the dimension bars, until they join. */
   waitlist: WaitlistState | null
+  /** Guide voices she has used — goes with her place in the cohort. */
+  voices?: string[]
+  onScene?: (scene: string) => void
   /** Their "hardest part" answer, carried onto the signup. */
   hookId?: string
   onJoinWaitlist: (s: WaitlistState) => void
@@ -201,6 +204,8 @@ export default function ReflectionView({
   onTakeStep,
   onCompleteStep,
   waitlist,
+  voices,
+  onScene,
   hookId,
   onJoinWaitlist,
   firstReveal = false,
@@ -322,18 +327,19 @@ export default function ReflectionView({
         {/* The ask, right where the map has just said something specific about
             her — before the long tail of sections she may never scroll to.
             Shown on every map view, not only first reveal, so skipping it once
-            doesn't mean never seeing it again. Waitlist itself switches from
-            the form to a quiet "you're counted" confirmation once joined (same
-            pattern as Profile) — the confirmation has to render right here, on
-            submit, or she gets no feedback that anything happened. Skippable —
-            everything below works whether or not she joins. */}
+            doesn't mean never seeing it again. The card switches from the form
+            to a "you're counted" confirmation on submit, right here, so she
+            sees that something happened. Skippable — everything below works
+            whether or not she joins. */}
         <section className="mb-12">
-          <Waitlist
+          <Cohort
             identity={identity}
             overall={r.overall}
             hookId={hookId}
+            voices={voices}
             joined={waitlist}
             onJoined={onJoinWaitlist}
+            onScene={onScene}
           />
         </section>
 
@@ -493,10 +499,13 @@ export default function ReflectionView({
 
         {/* Everything above exists only in this browser. Said here, after she has
             read it, because that is the moment losing it would actually cost
-            something. */}
-        <section className="mb-12">
-          <KeepMap />
-        </section>
+            something. Joining the cohort already keeps the map, so the card
+            steps aside once she's counted. */}
+        {!waitlist && (
+          <section className="mb-12">
+            <KeepMap />
+          </section>
+        )}
 
         {/* Next: into your space — light card; the dark hero lives at the top now. */}
         <section className="mt-14 rounded-card border border-line bg-white/60 p-8 text-center">
@@ -508,8 +517,8 @@ export default function ReflectionView({
           </p>
           <p className="mx-auto mt-3 max-w-md text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
             From here your map quietly powers everything — a guide for the real
-            moments, protections you control, and introductions chosen by how
-            your lives fit.
+            moments, the work you take on, and, when your city opens,
+            introductions chosen by how your lives fit.
           </p>
           <div className="mt-7">
             <Button onClick={onContinue} className="group">

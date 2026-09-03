@@ -195,7 +195,7 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
             <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
               Your reflection, your check-ins and every answer you gave are stored
               on this device — not on our servers, and no one at Niyyah can read
-              them. Two things can change that, and only if you choose them.
+              them. Three things can change that, and only if you choose them.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Keeping your map.</span> If you
@@ -204,7 +204,16 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
               attached to that code, and without it nobody can reach them.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-              The Guide is the one exception, and here is exactly what it sends
+              <span className="font-medium text-ink">Joining the founding cohort.</span>{' '}
+              If you ask to be counted, your map is kept as above, and we record
+              your city, who you’re seeking, the hardest part you named, your
+              overall number and which guide voices you’ve used — under that same
+              code, with no name on it. Your email or phone goes separately to
+              the founder, so we can write to you when someone fits; it is never
+              stored next to your answers.
+            </p>
+            <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+              The Guide is the other exception, and here is exactly what it sends
               when you ask it something: your message, and a summary of your map —
               your first name, city, timeline, where you are in your practice, how
               central faith is, family’s role, children, your non-negotiables, and

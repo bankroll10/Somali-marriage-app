@@ -9,13 +9,13 @@ import Coach from './components/Coach'
 import Trust from './components/Trust'
 import Philosophy from './components/Philosophy'
 import Profile from './components/Profile'
-import Discovery from './components/Discovery'
+import SampleIntroduction from './components/SampleIntroduction'
 import Connections from './components/Connections'
 import Conversation from './components/Conversation'
 import Plus from './components/Plus'
-import { candidatesFor, getCandidate } from './data/candidates'
+import { getCandidate } from './data/candidates'
+import type { CoachMessage } from './types'
 import { guideOpeningLine } from './data/checkin'
-import { alignment } from './lib/matching'
 import { useNiyyah } from './hooks/useNiyyah'
 
 export default function App() {
@@ -47,29 +47,13 @@ export default function App() {
 }
 
 function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
-  // Today's introduction — the single best not-yet-acted-on person, surfaced on
-  // Home as an honest curiosity hook (one considered intro, not a feed). Gated
-  // on verification, so we never dangle a name behind the trust wall.
-  const todayIntro = (() => {
-    if (!n.trust.identityVerified || !n.identity.gender) return null
-    const acted = new Set([...n.matched, ...n.pendingInterest, ...n.passed])
-    const top = candidatesFor(n.identity.gender)
-      .filter((c) => !acted.has(c.id))
-      .map((c) => ({ c, a: alignment(n.answers, c) }))
-      .sort((x, y) => {
-        const xs = x.c.scene === n.identity.scene ? 1 : 0
-        const ys = y.c.scene === n.identity.scene ? 1 : 0
-        if (xs !== ys) return ys - xs
-        return y.a.score - x.a.score
-      })[0]
-    if (!top) return null
-    return {
-      name: top.c.name,
-      age: top.c.age,
-      reason: top.a.reasons[0] ?? null,
-      headline: top.a.headline,
-    }
-  })()
+  // Guide voices she has actually used — goes with her place in the cohort, so
+  // the tally can say what people reach for, not only what they name.
+  const voices = (Object.entries(n.coachThreads) as [string, CoachMessage[] | undefined][])
+    .filter(([, thread]) => thread?.some((m) => m.role === 'user'))
+    .map(([mode]) => mode)
+  const hookId = n.answers['hardest-part'] as string | undefined
+  const setScene = (scene: string) => n.setIdentity((prev) => ({ ...prev, scene }))
 
   const welcome = (
     <Welcome
@@ -87,7 +71,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       matched={n.matched}
       conversations={n.conversations}
       onOpen={n.openConversation}
-      onDiscover={() => n.setScreen('discovery')}
+      onDiscover={() => n.setScreen('sample')}
       onBack={() => n.setScreen('home')}
     />
   )
@@ -143,7 +127,9 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onTakeStep={n.takeStep}
           onCompleteStep={n.completeStep}
           waitlist={n.waitlist}
-          hookId={n.answers['hardest-part'] as string | undefined}
+          voices={voices}
+          onScene={setScene}
+          hookId={hookId}
           onJoinWaitlist={n.setWaitlist}
           firstReveal={n.mapReveal}
           onContinue={n.enterHome}
@@ -163,9 +149,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onAsk={(text, mode) => n.askGuide(text, n.identity.gender, mode)}
           onOpenMap={() => n.setScreen('reflection')}
           onOpenProfile={() => n.setScreen('profile')}
-          onOpenDiscovery={() => n.setScreen('discovery')}
-          onOpenConnections={() => n.setScreen('connections')}
-          connectionsCount={n.matched.length}
+          onOpenSample={() => n.setScreen('sample')}
           onPhilosophy={() => n.openPhilosophy('home')}
           onRestart={n.startFresh}
           checkInMood={n.todayMood}
@@ -177,13 +161,13 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           lastReading={n.mapHistory[n.mapHistory.length - 1]?.date}
           saveOk={n.saveOk}
           firstSeen={n.firstSeen}
-          pendingNames={n.pendingInterest
-            .map((id) => getCandidate(id)?.name)
-            .filter((x): x is string => !!x)}
-          todayIntro={todayIntro}
           stage={n.stage}
           onSetStage={n.setStage}
-          hookId={n.answers['hardest-part'] as string | undefined}
+          hookId={hookId}
+          voices={voices}
+          waitlist={n.waitlist}
+          onJoinWaitlist={n.setWaitlist}
+          onScene={setScene}
         />
       )
 
@@ -241,27 +225,23 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           trialDaysLeft={n.trialDaysLeft}
           waitlist={n.waitlist}
           onJoinWaitlist={n.setWaitlist}
+          voices={voices}
           onRetake={n.retakeMap}
           onBack={() => n.setScreen('home')}
         />
       )
 
-    case 'discovery':
+    case 'sample':
       return (
-        <Discovery
+        <SampleIntroduction
           identity={n.identity}
           answers={n.answers}
-          trust={n.trust}
-          matched={n.matched}
-          pendingInterest={n.pendingInterest}
-          passed={n.passed}
-          interestNotes={n.interestNotes}
-          onExpressInterest={n.expressInterest}
-          onPass={n.passOn}
-          onSetNote={n.setInterestNote}
-          onReport={n.reportCandidate}
-          onOpenConversation={n.openConversation}
-          onVerify={() => n.openTrust('discovery')}
+          overall={n.reflection?.overall}
+          hookId={hookId}
+          voices={voices}
+          waitlist={n.waitlist}
+          onJoinWaitlist={n.setWaitlist}
+          onScene={setScene}
           onBack={() => n.setScreen('home')}
         />
       )

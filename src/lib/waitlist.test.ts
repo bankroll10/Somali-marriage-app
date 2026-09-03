@@ -2,7 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { NETLIFY_FORM_ENDPOINT, joinWaitlist, mailtoFor, waitlistConfigured } from './waitlist'
 
 const entry = {
-  email: 'hodan@example.com',
+  contact: 'hodan@example.com',
+  code: 'ACDEFG',
   scene: 'twin-cities',
   gender: 'woman',
   overall: 88,
@@ -76,7 +77,8 @@ describe('the waitlist — the only line out of this app', () => {
     )
     const sent = new URLSearchParams(init.body as string)
     expect(sent.get('form-name')).toBe('niyyah-waitlist')
-    expect(sent.get('email')).toBe(entry.email)
+    expect(sent.get('contact')).toBe(entry.contact)
+    expect(sent.get('code')).toBe(entry.code)
     // The city signal — which city has enough serious people to open first.
     expect(sent.get('scene')).toBe('twin-cities')
     expect(sent.get('overall')).toBe('88')
@@ -89,7 +91,7 @@ describe('the waitlist — the only line out of this app', () => {
     stubEnv({ VITE_WAITLIST_FORM: 'niyyah-waitlist' })
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     expect(await joinWaitlist(entry)).toBe('queued')
-    expect(localStorage.getItem('niyyah.waitlist.queue.v1')).toContain(entry.email)
+    expect(localStorage.getItem('niyyah.waitlist.queue.v1')).toContain(entry.contact)
   })
 
   it('queues on a server error too, not just a dead network', async () => {
@@ -105,14 +107,14 @@ describe('the waitlist — the only line out of this app', () => {
 
     expect(await joinWaitlist(entry)).toBe('joined')
     expect(spy.mock.calls[0][0]).toBe('https://example.test/hook')
-    expect(JSON.parse(spy.mock.calls[0][1].body as string).email).toBe(entry.email)
+    expect(JSON.parse(spy.mock.calls[0][1].body as string).contact).toBe(entry.contact)
   })
 
   it('omits empty fields rather than filing blank columns', async () => {
     stubEnv({ VITE_WAITLIST_FORM: 'niyyah-waitlist' })
     const spy = vi.fn(async (_u: string, _i: RequestInit) => new Response('', { status: 200 }))
     vi.stubGlobal('fetch', spy)
-    await joinWaitlist({ email: 'x@y.z', at: entry.at })
+    await joinWaitlist({ contact: 'x@y.z', at: entry.at })
 
     const sent = new URLSearchParams(spy.mock.calls[0][1].body as string)
     expect(sent.has('scene')).toBe(false)

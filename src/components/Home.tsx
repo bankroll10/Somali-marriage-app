@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CheckIn, Dimension, Identity, ModeId, Reflection, Stage, StepRecord, TrustSettings } from '../types'
+import type { CheckIn, Dimension, Identity, ModeId, Reflection, Stage, StepRecord, TrustSettings, WaitlistState } from '../types'
 import { getScene } from '../data/scenes'
 import { chosenReason, getDailyReflection } from '../data/daily'
 import { checkInReflection, comebackLine, getMood, journeyLine, moods, weekStrip, yesterdayLine, type MoodId } from '../data/checkin'
@@ -8,11 +8,11 @@ import { dailyPrefsFor } from '../lib/personalize'
 import StageBand from './home/StageBand'
 import TodaysReflection from './home/TodaysReflection'
 import WorkCard from './home/WorkCard'
+import Cohort from './Cohort'
 import {
   CheckIcon,
   CompassGlyph,
   GlyphTile,
-  HeartGlyph,
   LockGlyph,
   Logo,
   ArrowRight,
@@ -31,9 +31,7 @@ interface Props {
   onAsk: (text: string, mode?: ModeId) => void
   onOpenMap: () => void
   onOpenProfile: () => void
-  onOpenDiscovery: () => void
-  onOpenConnections: () => void
-  connectionsCount: number
+  onOpenSample: () => void
   onPhilosophy: () => void
   onRestart: () => void
   /** Today's mood, if already checked in. */
@@ -49,15 +47,17 @@ interface Props {
   lastReading?: string
   /** False when this browser refuses to save — the user deserves to know. */
   saveOk: boolean
-  /** First day on the path + who we're waiting to hear from. */
+  /** First day on the path. */
   firstSeen: string
-  pendingNames: string[]
   /** Where they are in the arc, and moving through it — always their call. */
   stage: Stage
   onSetStage: (s: Stage) => void
-  /** The single best not-yet-met person, for the Home introduction hook. */
-  todayIntro: { name: string; age: number; reason: string | null; headline: string } | null
   hookId?: string
+  /** The founding cohort — the number on the door, and her place in it. */
+  voices: string[]
+  waitlist: WaitlistState | null
+  onJoinWaitlist: (s: WaitlistState) => void
+  onScene: (scene: string) => void
 }
 
 export default function Home({
@@ -68,9 +68,7 @@ export default function Home({
   onAsk,
   onOpenMap,
   onOpenProfile,
-  onOpenDiscovery,
-  onOpenConnections,
-  connectionsCount,
+  onOpenSample,
   onPhilosophy,
   onRestart,
   checkInMood,
@@ -82,11 +80,13 @@ export default function Home({
   lastReading,
   saveOk,
   firstSeen,
-  pendingNames,
-  todayIntro,
   stage,
   onSetStage,
   hookId,
+  voices,
+  waitlist,
+  onJoinWaitlist,
+  onScene,
 }: Props) {
   const name = identity.firstName?.trim()
   const scene = getScene(identity.scene)
@@ -236,7 +236,7 @@ export default function Home({
               mood={checkInMood}
               history={checkIns}
               onOpenGuide={onOpenGuide}
-              onOpenDiscovery={onOpenDiscovery}
+              onOpenSample={onOpenSample}
             />
           ) : (
             <div className="rounded-card border border-line bg-white/60 p-5">
@@ -277,15 +277,6 @@ export default function Home({
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">
             Your space
           </p>
-          {pendingNames.length > 0 && (
-            <div className="mb-3.5 flex items-center gap-3 rounded-2xl border border-line bg-white/50 px-4 py-3">
-              <span className="h-2 w-2 flex-none animate-pulse rounded-full bg-gold" />
-              <p className="text-[0.88rem] leading-snug text-ink-soft text-pretty">
-                Interest sent to {pendingNames.join(' and ')} — you’ll hear when they
-                respond. No chasing.
-              </p>
-            </div>
-          )}
           <div className="grid gap-3.5">
             {/* Guide — free-form entry; the work card hands over specific topics. */}
             <button
@@ -306,65 +297,44 @@ export default function Home({
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
             </button>
 
-            {/* People in your scene — when a fresh, high-alignment person is
-                waiting, lead with them by name. One considered introduction, a
-                real reason to meet — not a feed, not a badge count. Hidden once
-                they're deciding on someone or married. */}
+            {/* The number on the door. The old card here promised "serious,
+                verified people around Minneapolis" and dangled an invented name
+                as today's introduction. This is the honest version: the real
+                count toward her city opening, and her place in it. Hidden once
+                she's deciding on someone or married. */}
             {seeking && (
-            <button
-              onClick={onOpenDiscovery}
-              className="group relative flex items-center gap-4 overflow-hidden rounded-card border border-gold/30 bg-gold/[0.08] p-5 text-left transition-all hover:-translate-y-0.5 hover:bg-gold/[0.14]"
-            >
-              <GlyphTile className="bg-gold/15 text-gold">
-                <SparkGlyph />
-              </GlyphTile>
-              <span className="flex-1">
-                {todayIntro ? (
-                  <>
-                    <span className="text-[0.66rem] font-semibold uppercase tracking-[0.18em] text-gold">
-                      Today’s introduction
-                    </span>
-                    <span className="mt-0.5 block font-display text-[1.2rem] font-medium text-ink">
-                      {todayIntro.name}, {todayIntro.age}
-                    </span>
-                    <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                      {todayIntro.reason
-                        ? `${todayIntro.reason.charAt(0).toUpperCase()}${todayIntro.reason.slice(1)}.`
-                        : `${todayIntro.headline} — see why you align.`}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="font-display text-[1.2rem] font-medium text-ink">
-                      People in your scene
-                    </span>
-                    <span className="mt-0.5 block text-[0.88rem] text-muted">
-                      Serious, verified people{scene ? ` around ${scene.label}` : ''}, ranked by
-                      alignment — not looks.
-                    </span>
-                  </>
-                )}
-              </span>
-              <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
-            </button>
+              <Cohort
+                identity={identity}
+                overall={reflection.overall}
+                hookId={hookId}
+                voices={voices}
+                joined={waitlist}
+                onJoined={onJoinWaitlist}
+                onScene={onScene}
+                compact
+              />
             )}
 
-            {/* Connections */}
-            {connectionsCount > 0 && (
+            {/* One sample introduction, labelled as such — the matching is real
+                and runs on her map; the person is not. */}
+            {seeking && (
               <button
-                onClick={onOpenConnections}
-                className="group flex items-center gap-4 rounded-card border border-forest/30 bg-forest/[0.06] p-5 text-left transition-all hover:-translate-y-0.5 hover:bg-forest/[0.1]"
+                onClick={onOpenSample}
+                className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
               >
-                <GlyphTile className="bg-forest/10 text-forest">
-                  <HeartGlyph />
+                <GlyphTile className="bg-gold/15 text-gold">
+                  <SparkGlyph />
                 </GlyphTile>
                 <span className="flex-1">
-                  <span className="font-display text-[1.2rem] font-medium text-ink">Connections</span>
-                  <span className="mt-0.5 block text-[0.88rem] text-muted">
-                    {connectionsCount} guided conversation{connectionsCount === 1 ? '' : 's'} underway.
+                  <span className="font-display text-[1.2rem] font-medium text-ink">
+                    How an introduction will look
+                  </span>
+                  <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                    A sample, read against your real map — so you can see how we
+                    choose, before anyone is chosen.
                   </span>
                 </span>
-                <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
               </button>
             )}
 
@@ -434,12 +404,12 @@ function CheckedIn({
   mood,
   history,
   onOpenGuide,
-  onOpenDiscovery,
+  onOpenSample,
 }: {
   mood: MoodId
   history: CheckIn[]
   onOpenGuide: (mode?: ModeId) => void
-  onOpenDiscovery: () => void
+  onOpenSample: () => void
 }) {
   const m = getMood(mood)
   const pattern = checkInReflection(history)
@@ -460,7 +430,7 @@ function CheckedIn({
           )}
           {m.nudge && (
             <button
-              onClick={() => (m.nudge!.target === 'guide' ? onOpenGuide() : onOpenDiscovery())}
+              onClick={() => (m.nudge!.target === 'guide' ? onOpenGuide() : onOpenSample())}
               className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-forest px-4 py-2 text-[0.85rem] font-medium text-cream transition hover:bg-forest-deep"
             >
               {m.nudge.label}

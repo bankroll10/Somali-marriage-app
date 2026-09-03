@@ -18,7 +18,7 @@ export interface Mood {
   /** Line the Guide weaves into its greeting the same day. */
   guideLine: string
   /** Optional gentle next step. */
-  nudge?: { label: string; target: 'guide' | 'discovery' }
+  nudge?: { label: string; target: 'guide' | 'sample' }
 }
 
 export const moods: Mood[] = [
@@ -35,7 +35,7 @@ export const moods: Mood[] = [
     label: 'Hopeful',
     ack: 'Hold onto that. Hope with intention is how good things begin.',
     guideLine: 'You checked in hopeful today — a good day to move with intention.',
-    nudge: { label: 'See who’s in your scene', target: 'discovery' },
+    nudge: { label: 'See how an introduction will look', target: 'sample' },
   },
   {
     id: 'heavy',

@@ -126,7 +126,7 @@ export default function Welcome({
           {/* What kind of thing this is.
               Everything that makes Niyyah different from a dating app was, until
               now, only visible after she had already spent two minutes: no
-              swiping lives on Discovery, wali-friendly on Trust, values-before-
+              swiping lives on the sample introduction, wali-friendly on Trust, values-before-
               photos on a candidate card. All of it behind the decision it was
               supposed to inform. A difference nobody can perceive at the moment
               of choosing does no work at all.
