@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import type { Answers, Identity, Reflection, TrustSettings, WaitlistState } from '../types'
+import type { AnswerValue, Answers, Identity, Reflection, TrustSettings, WaitlistState } from '../types'
 import { MAX_AGE, MIN_AGE } from '../types'
 import { getScene, scenes } from '../data/scenes'
 import { shareOrCopy } from '../lib/share'
 import Cohort from './Cohort'
+import HowYoudLive from './HowYoudLive'
 import { SITE_HOST, SITE_URL } from '../lib/site'
 import { CheckIcon, ScreenHeader, ShieldGlyph, fieldClass } from './ui'
 
@@ -27,6 +28,8 @@ interface Props {
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
   voices?: string[]
+  /** Optional answers about how she'd live, read by the alignment engine. */
+  onAnswer: (questionId: string, value: AnswerValue) => void
   /** Reflect again — keeps every check-in, connection, and milestone. */
   onRetake: () => void
   onBack: () => void
@@ -47,6 +50,7 @@ export default function Profile({
   waitlist,
   onJoinWaitlist,
   voices,
+  onAnswer,
   onRetake,
   onBack,
 }: Props) {
@@ -347,6 +351,19 @@ export default function Profile({
             )}
           </div>
         </div>
+
+        {/* How you'd live — the three grounds Somali marriages break on, kept
+            with the rest of what defines her. Optional; neutral when unanswered. */}
+        <section className="mt-5 rounded-card border border-line bg-white/60 p-5">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">How you’d live</p>
+          <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">
+            Whose house, work, and money home. Read by the alignment engine when your city opens;
+            nobody sees the answers themselves.
+          </p>
+          <div className="mt-4">
+            <HowYoudLive answers={answers} onAnswer={onAnswer} />
+          </div>
+        </section>
 
         {/* Niyyah+ — founding-member badge that opens the subscription screen. */}
         <button

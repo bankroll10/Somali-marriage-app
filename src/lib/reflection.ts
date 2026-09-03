@@ -348,6 +348,14 @@ function alignmentParagraph(answers: Answers): string {
     parts.push('a match who respects that you lead your own decisions while honoring family')
   }
 
+  // How she'd live — only when she has said. These are the Somali-specific
+  // grounds no other map names, and the ones marriages are found out on late.
+  const household = answers['household']
+  if (household === 'with-family') parts.push('someone who pictures one household with family in it, as you do')
+  else if (household === 'near-family') parts.push('someone who, like you, wants a front door of your own within reach of family')
+  else if (household === 'separate') parts.push('someone at ease with a home that is fully your own')
+  if (answers['money-home'] === 'expected') parts.push('someone who sends money home too, and will never resent that you do')
+
   // Only what she said she wants in a person. `coreValues` also carries her
   // timeline, motive and practice tags in its first three slots, so reading
   // from it printed "Above all, you're drawn to soon, intentional, grounded"

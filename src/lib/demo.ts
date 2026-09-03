@@ -31,6 +31,10 @@ const demoAnswers: Answers = {
   healing: 'healing',
   attachment: 'secure',
   pattern: 'walls',
+  // How she'd live — the three the sample introduction reads on.
+  household: 'near-family',
+  work: 'both',
+  'money-home': 'expected',
   'working-on': 'ask for help instead of carrying everything alone',
 }
 

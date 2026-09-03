@@ -1,4 +1,4 @@
-import type { Chapter } from '../types'
+import type { Chapter, Question } from '../types'
 
 /**
  * The guided intake. Tone: a wise, warm guide — not a survey, not a quiz.
@@ -240,6 +240,58 @@ export const chapters: Chapter[] = [
         placeholder: "I'm still learning to…",
         optional: true,
       },
+    ],
+  },
+]
+
+/**
+ * How you'd live — the three things Somali marriages actually break on that no
+ * app asks: whose house, whether she works, and money sent home.
+ *
+ * Deliberately NOT in a chapter. The intake is pinned at thirteen because the
+ * first testers did not finish twenty-three, and that evidence stands. These
+ * are asked where their value is visible — on the sample introduction, where
+ * answering one changes the reasons in front of her, and on Profile — the same
+ * pattern Profile already uses for age and city. Optional; the alignment engine
+ * treats an unanswered one as neutral. No `weight`, so the map does not move.
+ */
+export const livingQuestions: Question[] = [
+  {
+    id: 'household',
+    type: 'single',
+    dimension: 'family',
+    prompt: 'Where do you picture living, in the first years?',
+    helper: 'Not the city — the house.',
+    options: [
+      { id: 'with-family', label: 'With family', hint: 'One household — his or mine' },
+      { id: 'near-family', label: 'Our own place, close to family' },
+      { id: 'separate', label: 'Our own place — our own city, if it comes to it' },
+      { id: 'flexible', label: 'Genuinely flexible' },
+    ],
+  },
+  {
+    id: 'work',
+    type: 'single',
+    dimension: 'vision',
+    prompt: 'Work — after marriage, and after children?',
+    options: [
+      { id: 'both', label: 'We both keep working' },
+      { id: 'seasons', label: 'In seasons — it changes with children' },
+      { id: 'one-home', label: 'One of us at home' },
+      { id: 'unsure', label: 'I haven’t decided' },
+    ],
+  },
+  {
+    id: 'money-home',
+    type: 'single',
+    dimension: 'vision',
+    prompt: 'Money sent home to family?',
+    helper: 'Most of our households do. The question is whether it’s expected, and how much.',
+    options: [
+      { id: 'expected', label: 'Expected — every month, from both of us' },
+      { id: 'some', label: 'Some, when we can' },
+      { id: 'little', label: 'Little or none' },
+      { id: 'unsure', label: 'I haven’t thought about it' },
     ],
   },
 ]

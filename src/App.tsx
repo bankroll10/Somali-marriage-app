@@ -264,6 +264,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           waitlist={n.waitlist}
           onJoinWaitlist={n.setWaitlist}
           voices={voices}
+          onAnswer={n.answer}
           onRetake={n.retakeMap}
           onBack={() => n.setScreen('home')}
         />
@@ -314,6 +315,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           waitlist={n.waitlist}
           onJoinWaitlist={n.setWaitlist}
           onScene={setScene}
+          onAnswer={n.answer}
           onBack={() => n.setScreen('home')}
         />
       )

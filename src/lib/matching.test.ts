@@ -16,6 +16,9 @@ function candidate(over: Partial<Candidate> = {}): Candidate {
     timeline: '1-2',
     familyRole: 'guided',
     children: 'want',
+    household: 'near-family',
+    work: 'both',
+    moneyHome: 'expected',
     values: ['Kindness', 'Loyalty'],
     partnership: ['Team', 'Gentle'],
     bio: '',
@@ -103,6 +106,36 @@ describe('alignment', () => {
   it('explains a strong match rather than asserting it', () => {
     const a = alignment(aligned, candidate())
     expect(a.reasons.length).toBeGreaterThan(0)
+  })
+
+  it('leaves the score alone when she has not said how she would live', () => {
+    // Optional questions must never punish the person who skipped them.
+    const without = alignment(aligned, candidate())
+    const neutral = alignment({ ...aligned, household: 'flexible', work: 'unsure', 'money-home': 'unsure' }, candidate())
+    expect(Math.abs(without.score - neutral.score)).toBeLessThanOrEqual(1)
+  })
+
+  it('names money home when both expect it — the sentence no other app could write', () => {
+    const a = alignment({ ...aligned, 'money-home': 'expected' }, candidate({ moneyHome: 'expected' }))
+    expect(a.reasons.join(' ')).toContain('send money home')
+    // And it sits where she will read it: within the three shown.
+    expect(a.reasons.indexOf('you both expect to send money home, and neither of you will resent it')).toBeLessThan(3)
+  })
+
+  it('penalises whose-house when one wants family in the home and the other wants their own', () => {
+    const same = alignment({ ...aligned, household: 'near-family' }, candidate({ household: 'near-family' }))
+    const far = alignment({ ...aligned, household: 'with-family' }, candidate({ household: 'separate' }))
+    expect(far.score).toBeLessThan(same.score - 5)
+    expect(far.reasons.join(' ')).not.toContain('front door')
+  })
+
+  it('shows at most one living reason', () => {
+    const a = alignment(
+      { ...aligned, household: 'near-family', work: 'both', 'money-home': 'expected' },
+      candidate({ household: 'near-family', work: 'both', moneyHome: 'expected' }),
+    )
+    const living = a.reasons.filter((r) => /money home|front door|keep working|one household|fully your own|one of you at home/.test(r))
+    expect(living).toHaveLength(1)
   })
 
   it('reads the user practice scale — a devout pair beats a mismatched one', () => {

@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
-import type { Answers, Identity, WaitlistState } from '../types'
+import type { AnswerValue, Answers, Identity, WaitlistState } from '../types'
 import { candidatesFor } from '../data/candidates'
 import { getScene } from '../data/scenes'
 import { alignment } from '../lib/matching'
 import Cohort from './Cohort'
+import HowYoudLive from './HowYoudLive'
 import { LockGlyph, ScreenHeader } from './ui'
 
 interface Props {
@@ -15,6 +16,8 @@ interface Props {
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
   onScene?: (scene: string) => void
+  /** The three "how you'd live" answers are taken here, where they change the reasons in front of her. */
+  onAnswer: (questionId: string, value: AnswerValue) => void
   onBack: () => void
 }
 
@@ -40,6 +43,7 @@ export default function SampleIntroduction({
   waitlist,
   onJoinWaitlist,
   onScene,
+  onAnswer,
   onBack,
 }: Props) {
   const sample = useMemo(() => {
@@ -115,9 +119,24 @@ export default function SampleIntroduction({
             </ul>
           )}
           <p className="mt-4 text-[0.82rem] leading-relaxed text-cream/60 text-pretty">
-            Read from your answers on faith, timeline, family, children and what you
-            value most. A real member would be read the same way.
+            Read from your answers on faith, timeline, family, children, what you value
+            most — and, once you’ve said, how you’d live: whose house, work, money home.
+            A real member would be read the same way.
           </p>
+        </div>
+
+        {/* The three grounds no other app reads on. Asked here, not in the
+            intake, because here an answer changes the reasons above as she
+            taps — value she can see, in the moment she gives it. */}
+        <div className="mt-5 rounded-card border border-gold/30 bg-gold/[0.07] p-5">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">Sharpen this read</p>
+          <p className="mt-2 text-[0.92rem] leading-relaxed text-muted text-pretty">
+            Three things about how you’d live. No other app reads on these — and they are what our
+            marriages actually break on. Optional; the reasons above change as you answer.
+          </p>
+          <div className="mt-4">
+            <HowYoudLive answers={answers} onAnswer={onAnswer} />
+          </div>
         </div>
 
         <p className="mt-7 text-[1.05rem] leading-relaxed text-ink-soft text-pretty">{c.bio}</p>

@@ -40,6 +40,23 @@ const FAMILY_SCALE: Record<string, number> = {
   private: 1,
 }
 
+/**
+ * The three things Somali marriages actually break on. Three-step scales; the
+ * fourth option on each question ("flexible", "unsure") is not on the scale
+ * and reads as neutral — an honest "I don't know" must never be scored as a
+ * mismatch. An unanswered question is neutral for the same reason.
+ */
+const HOUSEHOLD_SCALE: Record<string, number> = { 'with-family': 3, 'near-family': 2, separate: 1 }
+const WORK_SCALE: Record<string, number> = { both: 3, seasons: 2, 'one-home': 1 }
+const MONEY_SCALE: Record<string, number> = { expected: 3, some: 2, little: 1 }
+
+function livingScore(user: unknown, cand: string, scale: Record<string, number>): number {
+  if (typeof user !== 'string' || !(user in scale)) return 0.55
+  if (!(cand in scale)) return 0.7
+  const d = Math.abs(scale[user] - scale[cand])
+  return d === 0 ? 1 : d === 1 ? 0.6 : 0.1
+}
+
 function closeness(a: number, b: number, maxDiff: number): number {
   return Math.max(0, 1 - Math.abs(a - b) / maxDiff)
 }
@@ -103,18 +120,25 @@ export function alignment(answers: Answers, c: Candidate): Alignment {
 
   const values = overlap(answerTags(answers, 'value-most'), c.values)
 
-  // No partnership term: the intake stopped asking 'partnership-style' when it
-  // was cut to 13 questions, so that slice scored a flat 0.55 for everyone and
-  // was pure dead weight dragging the ceiling down. Its 0.08 is redistributed
-  // proportionally across the five signals we actually collect. If a partnership
-  // question ever returns, restore the term and take the weight back from here.
+  // How you'd live. Read from the three optional questions on the sample
+  // introduction and Profile — the Somali-specific ground no other app reads on.
+  const householdScore = livingScore(answers['household'], c.household, HOUSEHOLD_SCALE)
+  const workScore = livingScore(answers['work'], c.work, WORK_SCALE)
+  const moneyScore = livingScore(answers['money-home'], c.moneyHome, MONEY_SCALE)
+
+  // Weights sum to 1. Faith still leads; the three living terms take 0.18
+  // between them — enough that a real mismatch on whose house or money home
+  // shows in the number, not so much that a neutral "haven't decided" drags it.
   const score = Math.round(
     100 *
-      (faithScore * 0.3 +
-        timelineScore * 0.15 +
-        familyScore * 0.17 +
-        childrenScore * 0.18 +
-        values.ratio * 0.2),
+      (faithScore * 0.26 +
+        childrenScore * 0.16 +
+        values.ratio * 0.16 +
+        familyScore * 0.13 +
+        timelineScore * 0.11 +
+        householdScore * 0.08 +
+        workScore * 0.05 +
+        moneyScore * 0.05),
   )
 
   // Build human reasons, most persuasive first — only three are shown, so the
@@ -125,6 +149,26 @@ export function alignment(answers: Answers, c: Candidate): Alignment {
   const reasons: string[] = []
   if (faithScore >= 0.8 && (userFaithRole >= 4 || c.faithRole >= 4))
     reasons.push('you both put deen at the center')
+  // One living reason at most, and it sits second: it is the sentence no other
+  // app could write, and the whole point of asking. Money home first — it is
+  // the most specific to us, and the one most often found out too late.
+  const living =
+    answers['money-home'] === 'expected' && c.moneyHome === 'expected'
+      ? 'you both expect to send money home, and neither of you will resent it'
+      : answers['money-home'] === 'little' && c.moneyHome === 'little'
+        ? 'neither of you expects to carry money home every month'
+        : answers['household'] === 'near-family' && c.household === 'near-family'
+          ? 'you both picture your own front door, close to family'
+          : answers['household'] === 'with-family' && c.household === 'with-family'
+            ? 'you both picture one household with family in it'
+            : answers['household'] === 'separate' && c.household === 'separate'
+              ? 'you both picture a home that is fully your own'
+              : answers['work'] === 'both' && c.work === 'both'
+                ? 'you’d both keep working, and share what’s at home'
+                : answers['work'] === 'one-home' && c.work === 'one-home'
+                  ? 'you both picture one of you at home'
+                  : null
+  if (living) reasons.push(living)
   if (values.shared.length)
     reasons.push(`you share a value of ${values.shared.slice(0, 2).join(' and ').toLowerCase()}`)
   if (childrenScore >= 0.9 && userKids === 'want') reasons.push('you both want a family')
