@@ -34,6 +34,7 @@ const state = {
   firstSeen: '2026-09-02',
   mapHistory: [],
   stage: 'preparing' as const,
+  situated: true,
   steps: [],
   plus: defaultPlus,
   waitlist: null,

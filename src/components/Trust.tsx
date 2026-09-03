@@ -9,6 +9,8 @@ interface Props {
   ledger: LedgerEntry[]
   guideOnDevice: boolean
   onGuideOnDevice: (on: boolean) => void
+  countMe: boolean
+  onCountMe: (on: boolean) => void
   onBack: () => void
 }
 
@@ -24,7 +26,7 @@ interface Props {
  * (which cannot be tapped), the one control that does what it says, and the
  * exact account of where her answers live.
  */
-export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice, onBack }: Props) {
+export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onBack }: Props) {
   const isWoman = identity.gender === 'woman'
 
   return (
@@ -76,14 +78,24 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
           </ul>
         </section>
 
-        {/* The one control that does what it says. */}
-        <Control
-          title="Keep the Guide on this device"
-          desc="Your guide answers from your phone alone. Answers are shorter and less tailored, and nothing you write to it ever leaves — not your question, not your map."
-          icon={<LockGlyph />}
-        >
-          <Toggle on={guideOnDevice} label="Keep the Guide on this device" onClick={() => onGuideOnDevice(!guideOnDevice)} />
-        </Control>
+        {/* The two controls that do what they say. Each gates the call itself. */}
+        <div className="space-y-4">
+          <Control
+            title="Keep the Guide on this device"
+            desc="Your guide answers from your phone alone. Answers are shorter and less tailored, and nothing you write to it ever leaves — not your question, not your map."
+            icon={<LockGlyph />}
+          >
+            <Toggle on={guideOnDevice} label="Keep the Guide on this device" onClick={() => onGuideOnDevice(!guideOnDevice)} />
+          </Control>
+
+          <Control
+            title="Count me"
+            desc="When you do one of the things above, we count that it happened — the step and the date, under a random code that is not your map code. No answers, no name, nothing that leads back to you. It is how we find out whether any of this actually helps anyone. Turn it off and nothing is sent."
+            icon={<LockGlyph />}
+          >
+            <Toggle on={countMe} label="Count me" onClick={() => onCountMe(!countMe)} />
+          </Control>
+        </div>
 
         {/* Where the data lives — the skeptic's first question, answered plainly.
             Every sentence here must match the code that sends something. */}
@@ -98,7 +110,7 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               on this device — not on our servers, and no one at Niyyah can read
               them. That includes a read you take on someone, and Before you say
               yes: those answers stay here too, and we never ask their name in the
-              first place. Five things can change that, and only if you choose
+              first place. Six things can change that, and only if you choose
               them.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
@@ -137,7 +149,21 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               call to confirm, and are never shown to anyone you meet.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-              The Guide is the other exception, and here is exactly what it sends
+              <span className="font-medium text-ink">Being counted in the ladder.</span>{' '}
+              While <span className="font-medium text-ink">Count me</span> is on, each
+              time you first reach one of the steps above — you said what was
+              happening, you built a map, you took a read, you went through the
+              eleven, you asked him, he answered, you had the conversation, your
+              family vouched, you were counted, you’re deciding, you’re married —
+              that step and the date reach us, along with your city if you gave
+              one. It goes under a code this phone made up for itself, which is
+              not your map code, so there is no way to put the two together. No
+              answers, no name, no message, and nothing about how long you spent
+              here or how often you opened it. Turn the control off and none of
+              it is sent.
+            </p>
+            <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+              The Guide is the last exception, and here is exactly what it sends
               when you ask it something: your message, and a summary of your map —
               your first name, city, timeline, where you are in your practice, how
               central faith is, family’s role, children, your non-negotiables, and

@@ -247,7 +247,9 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           identity={n.identity}
           ledger={n.ledgerEntries}
           guideOnDevice={n.trust.guideOnDevice}
-          onGuideOnDevice={(on) => n.setTrust({ guideOnDevice: on })}
+          onGuideOnDevice={(on) => n.setTrust((prev) => ({ ...prev, guideOnDevice: on }))}
+          countMe={n.trust.countMe}
+          onCountMe={(on) => n.setTrust((prev) => ({ ...prev, countMe: on }))}
           onBack={() => n.setScreen(n.trustReturn)}
         />
       )

@@ -86,16 +86,31 @@ export interface TrustSettings {
    * better, and because a choice she never sees is not a choice.
    */
   guideOnDevice: boolean
+  /**
+   * Count me in the ladder.
+   *
+   * On, and each time she reaches a new rung — said what was happening, built
+   * a map, took a read, had the conversation — that rung id and the date reach
+   * our side under a random code that is not her map code. Nothing else: no
+   * answers, no name, no message, and no way back to her. It is the only way
+   * to know whether this product helps anyone, which is the only way to make it
+   * help more. Off, and nothing is sent, ever — the control gates the call
+   * itself, not a preference we promise to honour.
+   */
+  countMe: boolean
 }
 
 export const defaultTrust: TrustSettings = {
   guideOnDevice: false,
+  countMe: true,
 }
 
 /** Her side of a two-sided Before you say yes: the code the pair lives under. */
 export interface CoupleState {
   code: string
   at: string
+  /** When he answered, once we have seen the joint view. */
+  answered?: string
 }
 
 /** A family member has vouched for her. Only what any screen may ever show. */

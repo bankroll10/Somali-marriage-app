@@ -10,6 +10,9 @@ import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
 import { flushWaitlistQueue } from '../lib/waitlist'
 import { getStage } from '../data/stages'
 import { ledger } from '../lib/ledger'
+import { rungsFrom } from '../lib/rungs'
+import { reportRungs } from '../lib/progress'
+import { readCouple } from '../lib/couple'
 import type { Entry } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
 import { readVouch } from '../lib/vouch'
@@ -105,6 +108,9 @@ export function useNiyyah(entry: Entry | null = null) {
   // Where they are in the whole arc. The product keeps serving them past the
   // match — success should never mean churn.
   const [stage, setStageRaw] = useState<Stage>(saved?.stage ?? 'preparing')
+  // She has said what is actually happening right now. Distinct from `stage`,
+  // which defaults to 'preparing' and so cannot tell a choice from a default.
+  const [situated, setSituated] = useState<boolean>(saved?.situated ?? false)
   // The work taken on from the map. One open at a time; finished ones are kept
   // forever — they're the only honest record of change the app can show.
   const [steps, setSteps] = useState<StepRecord[]>(saved?.steps ?? [])
@@ -191,6 +197,11 @@ export function useNiyyah(entry: Entry | null = null) {
     [completed, read, beforeYes, answers, keptCode, waitlist, vouch],
   )
   const ledgerDone = useMemo(() => ledgerEntries.filter((e) => e.done).map((e) => e.id), [ledgerEntries])
+  // The ladder — the only thing this product measures. See src/lib/rungs.ts.
+  const rungs = useMemo(
+    () => rungsFrom({ situated, completed, stage, read, beforeYes, couple, vouch, waitlist, followedThrough: false }),
+    [situated, completed, stage, read, beforeYes, couple, vouch, waitlist],
+  )
   const answeredCount = Object.keys(answers).length
   const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome
   const todayEntry = checkIns.find((c) => c.date === todayKey())
@@ -226,6 +237,29 @@ export function useNiyyah(entry: Entry | null = null) {
     void flushWaitlistQueue()
   }, [])
 
+  // Rungs reached, reported on transitions only — never on a tap, never on a
+  // screen, never on a minute spent. Gated on the control that says so: with
+  // countMe off this call site does not run, so the toggle is the mechanism
+  // rather than a promise about one.
+  useEffect(() => {
+    if (!trust.countMe) return
+    void reportRungs(rungs, identity.scene)
+  }, [rungs, trust.countMe, identity.scene])
+
+  // Has he answered the eleven she sent? Asked once per code, only until we
+  // know — he answers on his own phone, and it has to reach hers without her
+  // having to go looking.
+  useEffect(() => {
+    if (!couple || couple.answered) return
+    let live = true
+    readCouple(couple.code).then((v) => {
+      if (live && v?.status === 'joint') setCouple((prev) => (prev ? { ...prev, answered: new Date().toISOString() } : prev))
+    })
+    return () => {
+      live = false
+    }
+  }, [couple])
+
   // ── Persistence (debounced — the bio textarea saves per keystroke otherwise)
   useEffect(() => {
     const t = window.setTimeout(
@@ -239,6 +273,7 @@ export function useNiyyah(entry: Entry | null = null) {
             firstSeen,
             mapHistory,
             stage,
+            situated,
             steps,
             plus,
             waitlist,
@@ -266,6 +301,7 @@ export function useNiyyah(entry: Entry | null = null) {
     firstSeen,
     mapHistory,
     stage,
+    situated,
     steps,
     plus,
     waitlist,
@@ -323,6 +359,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setFirstSeen(todayKey())
     setMapHistory([])
     setStageRaw('preparing')
+    setSituated(false)
     setSteps([])
     setPlus(defaultPlus)
     setWaitlist(null)
@@ -352,6 +389,7 @@ export function useNiyyah(entry: Entry | null = null) {
    * offered afterward, once she has been given something.
    */
   function chooseSituation(next: Stage) {
+    setSituated(true)
     setStage(next)
     if (next === 'preparing') setScreen('hook')
     else if (next === 'talking') setScreen(read ? 'home' : 'read')

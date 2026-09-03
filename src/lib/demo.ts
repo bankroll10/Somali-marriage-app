@@ -52,7 +52,8 @@ export function seedDemo() {
     answers: demoAnswers,
     identity: demoIdentity,
     // The seeded member uses the live guide — that is the experience to show.
-    trust: { guideOnDevice: false },
+    trust: { guideOnDevice: false, countMe: true },
+    situated: true,
     // History but no entry TODAY — the live check-in tap is a demo moment,
     // and the strip + continuity line have something to show.
     checkIns: [

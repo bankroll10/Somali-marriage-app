@@ -31,6 +31,8 @@ export interface PersistedState {
   mapHistory: MapSnapshot[]
   /** Where they are in the arc — the product follows them past the match. */
   stage: Stage
+  /** She chose a situation rather than landing on the default. */
+  situated: boolean
   /** Work taken on from the map, open and completed — oldest first. */
   steps: StepRecord[]
   /** Trial state + this month's guide allowance. */
@@ -73,12 +75,18 @@ export function loadProgress(): Persisted | null {
       identity: p.identity ?? {},
       // Only the control that is real survives; five dead toggles fall away on
       // the next save rather than being carried forever.
-      trust: { guideOnDevice: (p.trust as Partial<TrustSettings> | undefined)?.guideOnDevice ?? defaultTrust.guideOnDevice },
+      trust: {
+        guideOnDevice: (p.trust as Partial<TrustSettings> | undefined)?.guideOnDevice ?? defaultTrust.guideOnDevice,
+        countMe: (p.trust as Partial<TrustSettings> | undefined)?.countMe ?? defaultTrust.countMe,
+      },
       // Legacy blobs stored a single `checkIn` — fold it into history.
       checkIns: p.checkIns ?? (p.checkIn ? [p.checkIn] : []),
       firstSeen: p.firstSeen ?? '',
       mapHistory: p.mapHistory ?? [],
       stage: p.stage ?? 'preparing',
+      // Anyone who already moved off the default, or finished a map, told us
+      // where she was — even if she did it before we recorded the choice.
+      situated: p.situated ?? ((p.stage !== undefined && p.stage !== 'preparing') || !!p.completed),
       steps: p.steps ?? [],
       plus: { ...defaultPlus, ...(p.plus ?? {}) },
       // Earlier saves stored an email; the field now holds email or phone.
