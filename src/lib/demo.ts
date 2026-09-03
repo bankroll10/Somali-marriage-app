@@ -90,6 +90,8 @@ export function seedDemo() {
     },
     // No saved place — the ask is part of the demo.
     waitlist: null,
+    // No read yet — taking one live is the demo's strongest moment.
+    read: null,
     completed: true,
     matched: [],
     pendingInterest: [],

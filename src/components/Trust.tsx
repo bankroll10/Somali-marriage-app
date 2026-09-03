@@ -195,7 +195,9 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
             <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
               Your reflection, your check-ins and every answer you gave are stored
               on this device — not on our servers, and no one at Niyyah can read
-              them. Three things can change that, and only if you choose them.
+              them. That includes any read you take on someone: those eleven
+              answers stay here, and we never ask their name in the first place.
+              Three things can change that, and only if you choose them.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Keeping your map.</span> If you
@@ -217,8 +219,10 @@ export default function Trust({ identity, trust, onChange, onBack }: Props) {
               when you ask it something: your message, and a summary of your map —
               your first name, city, timeline, where you are in your practice, how
               central faith is, family’s role, children, your non-negotiables, and
-              what you named as the hardest part. It goes to Claude, made by
-              Anthropic, which writes the reply. We don’t store it. If you would
+              what you named as the hardest part, which stage you said you’re at,
+              and — if you’ve taken a read — one line saying how it came out. Never
+              their name; we don’t have it. It goes to Claude, made by Anthropic,
+              which writes the reply. We don’t store it. If you would
               rather none of that left your phone, turn on
               <span className="font-medium text-ink"> Keep the Guide on this device</span>{' '}
               above — the guide then answers offline, and nothing is sent at all.

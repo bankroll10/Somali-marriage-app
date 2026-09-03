@@ -1,3 +1,4 @@
+import { getStage } from '../data/stages'
 import { getMode, type CoachContext, type CoachIntent } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
@@ -239,6 +240,7 @@ export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
   const a = ctx.answers
   const nn = Array.isArray(a['dealbreakers']) ? (a['dealbreakers'] as string[]).join(', ') : '—'
   const social = ctx.social
+  const stage = getStage(ctx.stage)
   return [
     `You are "${mode.label}" — ${mode.tagline}. ${mode.description}`,
     `You are one voice of Niyyah, the trusted marriage platform for the Somali diaspora: serious, culturally fluent (hooyo, wali, aunties, deen — used naturally, never performatively), warm but direct. Depth over dopamine; alignment over attraction; family honoured.`,
@@ -251,7 +253,17 @@ export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
     `- Non-negotiables: ${nn}`,
     `- Hardest part right now: ${a['hardest-part'] ?? '—'}`,
     ``,
-    `LIVE APP STATE: connected with [${social?.matchedNames.join(', ') || 'no one yet'}]; awaiting reply from [${social?.pendingNames.join(', ') || 'no one'}].`,
+    // The single most important thing about her, and until now the only one we
+    // never sent: someone mid-conversation needs a different guide than someone
+    // still preparing. Both the label and what actually matters at that stage.
+    `WHERE THEY ARE: ${stage.label.toLowerCase()}. What matters at this stage: ${stage.focus}`,
+    `Speak to that stage. Do not push someone who is deciding, or married, back toward looking.`,
+    // Only when there is something to say. "connected with [no one yet]" went out
+    // on every single request and told the model nothing.
+    ...(ctx.readNote ? [`THEIR READ ON SOMEONE (their own answers, taken in this app): ${ctx.readNote}. Use it if relevant; never invent detail about this person beyond it.`] : []),
+    ...(social?.matchedNames.length || social?.pendingNames.length
+      ? [`LIVE APP STATE: connected with [${social.matchedNames.join(', ') || 'no one'}]; awaiting reply from [${social.pendingNames.join(', ') || 'no one'}].`]
+      : []),
     ``,
     `GROUNDING RULES (non-negotiable):`,
     `- Only reference facts given above or said by the user. Never invent people, messages, events, or history.`,

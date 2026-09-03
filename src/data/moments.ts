@@ -17,6 +17,14 @@ export interface Moment {
   /** What actually gets said to the guide. */
   prompt: string
   mode: ModeId
+  /**
+   * Send this one to the read instead of the Guide.
+   *
+   * "Is he serious?" is the highest-pain question we can answer, and a chat
+   * reply is the weaker answer to it — eleven questions about his behaviour
+   * beat a paragraph of good advice about behaviour in general.
+   */
+  target?: 'read'
 }
 
 const women: Moment[] = [
@@ -39,6 +47,7 @@ const women: Moment[] = [
     label: 'Is he serious?',
     prompt: 'Someone has shown interest. How do I tell if he’s actually serious?',
     mode: 'auntie',
+    target: 'read',
   },
 ]
 
@@ -49,6 +58,12 @@ const men: Moment[] = [
     mode: 'brother',
   },
   {
+    label: 'Is she serious?',
+    prompt: 'Someone has shown interest. How do I tell if she’s actually serious?',
+    mode: 'brother',
+    target: 'read',
+  },
+  {
     label: 'Saying my intention',
     prompt: 'How do I say my intention for marriage clearly without it being awkward?',
     mode: 'brother',
@@ -57,11 +72,6 @@ const men: Moment[] = [
     label: 'Talking to her wali',
     prompt: 'What do I actually say to her father or brother when the time comes?',
     mode: 'islamic',
-  },
-  {
-    label: 'I’m overthinking',
-    prompt: 'I can’t stop overthinking this. Help me slow it down.',
-    mode: 'therapist',
   },
 ]
 

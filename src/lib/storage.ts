@@ -7,6 +7,7 @@ import type {
   Identity,
   ModeId,
   PlusState,
+  ReadRecord,
   Stage,
   StepRecord,
   TrustSettings,
@@ -34,6 +35,8 @@ export interface PersistedState {
   plus: PlusState
   /** Their saved place, once they've asked for one. */
   waitlist: WaitlistState | null
+  /** The most recent read they took on someone. */
+  read: ReadRecord | null
   completed: boolean
   // Social + guide state — the product must remember everything between visits.
   matched: string[]
@@ -72,6 +75,7 @@ export function loadProgress(): Persisted | null {
       waitlist: p.waitlist
         ? { ...p.waitlist, contact: p.waitlist.contact ?? p.waitlist.email ?? '', joinedAt: p.waitlist.joinedAt ?? '' }
         : null,
+      read: p.read ?? null,
       completed: p.completed ?? false,
       matched: p.matched ?? [],
       pendingInterest: p.pendingInterest ?? [],

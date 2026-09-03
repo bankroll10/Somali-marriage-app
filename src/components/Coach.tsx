@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
-import type { Answers, CoachMessage, Identity, ModeId } from '../types'
+import type { Answers, CoachMessage, Identity, ModeId, Stage } from '../types'
 import { getMode, modes, defaultModeFor, type CoachContext } from '../data/coach'
 import { askCoach } from '../lib/coach'
 import { FREE_REPLIES } from '../data/plus'
@@ -58,6 +58,9 @@ interface Props {
   /** Niyyah+ state. Members have no counter; everyone else can see theirs. */
   /** Her Trust-screen choice to keep the Guide on this device. */
   onDeviceOnly?: boolean
+  /** Where she is in the arc, and her last read — the Guide is told both. */
+  stage?: Stage
+  readNote?: string
   plusActive: boolean
   repliesLeft: number
   onSpendReply: () => void
@@ -95,6 +98,8 @@ export default function Coach({
   repliesLeft,
   onSpendReply,
   onDeviceOnly,
+  stage,
+  readNote,
   onOpenPlus,
   onBack,
 }: Props) {
@@ -102,6 +107,8 @@ export default function Coach({
     identity,
     answers,
     onDeviceOnly,
+    stage,
+    readNote,
     social: { matchedNames, pendingNames, passedIds },
   }
   const [mode, setMode] = useState<ModeId | null>(initialMode ?? null)

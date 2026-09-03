@@ -27,6 +27,7 @@ import type {
   Stage,
   StepRecord,
   TrustSettings,
+  ReadRecord,
   WaitlistState,
 } from '../types'
 
@@ -43,6 +44,7 @@ export type Screen =
   | 'philosophy'
   | 'profile'
   | 'sample'
+  | 'read'
   | 'connections'
   | 'conversation'
   | 'plus'
@@ -84,6 +86,8 @@ export function useNiyyah() {
   const [plus, setPlus] = useState<PlusState>(saved?.plus ?? defaultPlus)
   // The saved place — the one piece of state that leaves this device.
   const [waitlist, setWaitlist] = useState<WaitlistState | null>(saved?.waitlist ?? null)
+  // The last read she took on someone. Answers only; the reading is recomputed.
+  const [read, setRead] = useState<ReadRecord | null>(saved?.read ?? null)
   const [reflection, setReflection] = useState<Reflection | null>(() =>
     saved?.completed ? buildReflection(saved.answers) : null,
   )
@@ -195,6 +199,7 @@ export function useNiyyah() {
             steps,
             plus,
             waitlist,
+            read,
             completed,
             matched,
             pendingInterest,
@@ -218,6 +223,7 @@ export function useNiyyah() {
     steps,
     plus,
     waitlist,
+    read,
     completed,
     matched,
     pendingInterest,
@@ -271,6 +277,7 @@ export function useNiyyah() {
     setSteps([])
     setPlus(defaultPlus)
     setWaitlist(null)
+    setRead(null)
     setResumeIndex(0)
     setMatched([])
     setPendingInterest([])
@@ -305,6 +312,18 @@ export function useNiyyah() {
     setResumeIndex(0)
     setSkipFirstIntro(false)
     setScreen('intake')
+  }
+
+  /**
+   * Begin the map from the read.
+   *
+   * Deliberately NOT startFresh: she has just answered eleven questions about
+   * someone, and wiping that to reward her for going deeper would be an
+   * unusually stupid way to lose a person.
+   */
+  function beginMap() {
+    track('onboarding_started')
+    setScreen('identity')
   }
 
   /** Enter the intake from the hook; the insight path skips chapter 1's intro. */
@@ -482,6 +501,7 @@ export function useNiyyah() {
     steps,
     plus,
     waitlist,
+    read,
     reflection,
     resumeIndex,
     skipFirstIntro,
@@ -513,10 +533,12 @@ export function useNiyyah() {
     setCoachThreads,
     setStage,
     setWaitlist,
+    setRead,
     // actions
     answer,
     completeIntake,
     beginIntake,
+    beginMap,
     startFresh,
     resume,
     retakeMap,

@@ -185,6 +185,18 @@ export interface WaitlistState {
 }
 
 /**
+ * A read she took on someone.
+ *
+ * Only her answers are kept, never the conclusion — the reading is recomputed
+ * from them, so a change to how we read never leaves an old verdict frozen on
+ * her screen. There is no name in here: we deliberately never ask who he is.
+ */
+export interface ReadRecord {
+  at: string
+  answers: Record<string, string>
+}
+
+/**
  * Niyyah+ state. The trial takes no card, so there is no billing to model and
  * nothing that can lapse into a charge — it simply runs out.
  */

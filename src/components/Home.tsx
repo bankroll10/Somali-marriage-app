@@ -32,6 +32,10 @@ interface Props {
   onOpenMap: () => void
   onOpenProfile: () => void
   onOpenSample: () => void
+  /** The read on someone — the fastest route from a live problem to an answer. */
+  onOpenRead: () => void
+  /** True once she has taken one, so the card offers the result rather than the pitch. */
+  hasRead: boolean
   onPhilosophy: () => void
   onRestart: () => void
   /** Today's mood, if already checked in. */
@@ -69,6 +73,8 @@ export default function Home({
   onOpenMap,
   onOpenProfile,
   onOpenSample,
+  onOpenRead,
+  hasRead,
   onPhilosophy,
   onRestart,
   checkInMood,
@@ -201,7 +207,7 @@ export default function Home({
                 <button
                   key={m.label}
                   type="button"
-                  onClick={() => onAsk(m.prompt, m.mode)}
+                  onClick={() => (m.target === 'read' ? onOpenRead() : onAsk(m.prompt, m.mode))}
                   className="rounded-full border border-line bg-cream/70 px-3.5 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40 hover:bg-white hover:text-ink"
                 >
                   {m.label}
@@ -213,6 +219,33 @@ export default function Home({
             You don’t pick a guide — we read what you said and open the right one.
           </p>
         </section>
+
+        {/* The read.
+            Of everything in this app, this is the one thing aimed squarely at
+            the highest-pain problem we can actually solve today: she already has
+            the man, and cannot tell what he means. It sits directly under the
+            fast path because that is what it is. */}
+        {seeking && (
+          <button
+            onClick={onOpenRead}
+            className="animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5 hover:bg-forest/[0.09]"
+          >
+            <GlyphTile className="bg-forest/10 text-forest">
+              <CompassGlyph />
+            </GlyphTile>
+            <span className="flex-1">
+              <span className="font-display text-[1.2rem] font-medium text-ink">
+                {hasRead ? 'Your read on someone' : 'Talking to someone? Get a read.'}
+              </span>
+              <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                {hasRead
+                  ? 'Open it again, or take it fresh — things change, and so does what they’ve shown you.'
+                  : 'Ninety seconds on what they’ve actually done, and the one question to ask them next.'}
+              </span>
+            </span>
+            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+          </button>
+        )}
 
         <WorkCard
           reflection={reflection}

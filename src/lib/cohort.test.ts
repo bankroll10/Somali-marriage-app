@@ -28,6 +28,7 @@ const state = {
   steps: [],
   plus: defaultPlus,
   waitlist: null,
+  read: null,
   completed: true,
   matched: [],
   pendingInterest: [],

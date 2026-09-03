@@ -3,6 +3,8 @@ import RestoreMap from './RestoreMap'
 
 interface Props {
   onBegin: () => void
+  /** The other door: she already has someone, and needs tonight solved first. */
+  onRead: () => void
   hasProgress: boolean
   completed: boolean
   onResume: () => void
@@ -52,6 +54,7 @@ function LockedRing() {
 
 export default function Welcome({
   onBegin,
+  onRead,
   hasProgress,
   completed,
   onResume,
@@ -189,6 +192,37 @@ export default function Welcome({
           >
             Private to you · Minneapolis opens first · We never pretend a city is full
           </p>
+          {/* The second door.
+              The map answers "am I ready" — which ranks near the bottom of what
+              actually hurts. The woman with a live problem is already talking to
+              someone and wants to know what he means, tonight. Making her answer
+              thirteen questions about herself first is a toll gate, not an
+              onboarding, and it is where we lost Samira. This costs the hero
+              nothing and opens the product to the person in the most pain. */}
+          <div
+            className="animate-rise mt-8 w-full max-w-md rounded-card border border-cream/15 bg-cream/[0.06] p-5"
+            style={{ animationDelay: '300ms' }}
+          >
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">
+              Already talking to someone?
+            </p>
+            <p className="mt-2 font-display text-[1.2rem] font-medium leading-snug text-cream text-balance">
+              Start with a read on them instead.
+            </p>
+            <p className="mt-2 text-[0.9rem] leading-relaxed text-cream/60 text-pretty">
+              Eleven questions about what they have actually done. You get an
+              honest read and the one question worth asking them next — no
+              account, no intake first.
+            </p>
+            <button
+              onClick={onRead}
+              className="group mt-4 inline-flex items-center gap-2 rounded-full border border-cream/30 px-5 py-2.5 text-[0.9rem] font-medium text-cream transition hover:bg-cream/10"
+            >
+              Is he serious?
+              <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+            </button>
+          </div>
+
           {/* Quiet on purpose: someone arriving for the first time should meet
               the question this app exists to answer, not a login. */}
           <RestoreMap />

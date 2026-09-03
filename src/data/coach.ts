@@ -1,4 +1,4 @@
-import type { Answers, Gender, Identity, ModeId } from '../types'
+import type { Answers, Gender, Identity, ModeId, Stage } from '../types'
 import { candidatesFor } from './candidates'
 import { alignment } from '../lib/matching'
 
@@ -16,6 +16,14 @@ export interface CoachContext {
   answers: Answers
   /** She asked for the Guide to stay on this device — never call out. */
   onDeviceOnly?: boolean
+  /**
+   * Where she is in the arc. This was declared on StageDef from the beginning
+   * and never once reached the Guide, so a woman three months into talking to
+   * someone was addressed exactly like a woman who has never met anyone.
+   */
+  stage?: Stage
+  /** One line about the read she took on someone. Never his name — we don't have it. */
+  readNote?: string
   /** Live app state — the guide knows what's actually happening here. */
   social?: {
     matchedNames: string[]

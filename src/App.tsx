@@ -10,11 +10,13 @@ import Trust from './components/Trust'
 import Philosophy from './components/Philosophy'
 import Profile from './components/Profile'
 import SampleIntroduction from './components/SampleIntroduction'
+import Read from './components/Read'
 import Connections from './components/Connections'
 import Conversation from './components/Conversation'
 import Plus from './components/Plus'
 import { getCandidate } from './data/candidates'
-import type { CoachMessage } from './types'
+import type { CoachMessage, Gender } from './types'
+import { buildRead, readSummary } from './lib/read'
 import { guideOpeningLine } from './data/checkin'
 import { useNiyyah } from './hooks/useNiyyah'
 
@@ -54,10 +56,18 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     .map(([mode]) => mode)
   const hookId = n.answers['hardest-part'] as string | undefined
   const setScene = (scene: string) => n.setIdentity((prev) => ({ ...prev, scene }))
+  // One line about her last read, recomputed from her answers rather than stored,
+  // so a change to how we read never leaves an old verdict in the Guide's prompt.
+  const readNote = (() => {
+    if (!n.read) return undefined
+    const built = buildRead(n.read.answers, n.identity.gender ?? 'woman')
+    return built ? readSummary(built) : undefined
+  })()
 
   const welcome = (
     <Welcome
       onBegin={n.startFresh}
+      onRead={() => n.setScreen('read')}
       hasProgress={n.hasProgress}
       completed={n.completed}
       onResume={n.resume}
@@ -150,6 +160,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenMap={() => n.setScreen('reflection')}
           onOpenProfile={() => n.setScreen('profile')}
           onOpenSample={() => n.setScreen('sample')}
+          onOpenRead={() => n.setScreen('read')}
+          hasRead={!!n.read}
           onPhilosophy={() => n.openPhilosophy('home')}
           onRestart={n.startFresh}
           checkInMood={n.todayMood}
@@ -190,6 +202,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           initialAsk={n.guideAsk}
           onAskConsumed={n.clearGuideAsk}
           onDeviceOnly={n.trust.guideOnDevice}
+          stage={n.stage}
+          readNote={readNote}
           plusActive={n.plusActive}
           repliesLeft={n.repliesLeft}
           onSpendReply={n.spendReply}
@@ -228,6 +242,20 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           voices={voices}
           onRetake={n.retakeMap}
           onBack={() => n.setScreen('home')}
+        />
+      )
+
+    case 'read':
+      return (
+        <Read
+          identity={n.identity}
+          saved={n.read}
+          onSave={n.setRead}
+          onSetGender={(g: Gender) => n.setIdentity((prev) => ({ ...prev, gender: g }))}
+          onAskGuide={(text) => n.askGuide(text, n.identity.gender)}
+          onBuildMap={n.beginMap}
+          hasMap={n.completed}
+          onBack={() => n.setScreen(n.completed ? 'home' : 'welcome')}
         />
       )
 
