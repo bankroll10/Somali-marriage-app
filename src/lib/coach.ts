@@ -98,22 +98,6 @@ const DEFAULT_FOLLOW_UPS = [
 ]
 
 /**
- * The guide knows what's happening in the app. If the user names someone
- * they're actually connected with (or waiting on), say so — situational
- * awareness is what separates a tool from a chatbot.
- */
-function situationPrefix(message: string, ctx: CoachContext): string {
-  const m = message.toLowerCase()
-  const matched = ctx.social?.matchedNames.find((n) => m.includes(n.toLowerCase()))
-  if (matched)
-    return `About ${matched} — you two are already connected here, so this is exactly the right question to be asking. `
-  const pending = ctx.social?.pendingNames.find((n) => m.includes(n.toLowerCase()))
-  if (pending)
-    return `You’ve expressed interest in ${pending} and you’re waiting to hear back — so let’s get you steady in the meantime. `
-  return ''
-}
-
-/**
  * Ask the live guide, if one is switched on.
  *
  * Returns null for every failure — not configured, rate limited, offline, a
@@ -209,9 +193,8 @@ export async function askCoach(
       best = intent
     }
   }
-  const prefix = situationPrefix(message, ctx)
   if (best && bestScore > 0)
-    return { text: prefix + best.respond(ctx), followUps: best.followUps ?? DEFAULT_FOLLOW_UPS }
+    return { text: best.respond(ctx), followUps: best.followUps ?? DEFAULT_FOLLOW_UPS }
 
   // Every unmatched question gets the framework, whatever its length.
   //
@@ -223,14 +206,14 @@ export async function askCoach(
   // worse one. Each mode's `fallback` line now opens the framework answer, so
   // its warmth is kept and it can no longer be the whole reply.
   return {
-    text: prefix + frameworkAnswer(ctx, modeId),
+    text: frameworkAnswer(ctx, modeId),
     followUps: ['Here’s the specific part…', 'Apply that to my situation'],
   }
 }
 
 /**
- * The guide's system prompt — persona + the member's real map + live app state
- * + the grounding rules that keep the model honest. Built on the client and
+ * The guide's system prompt — persona + the member's real map + where she is
+ * in the arc + the grounding rules that keep the model honest. Built on the client and
  * sent with each request, so the voices stay defined in one place
  * (data/coach.ts) rather than drifting between the app and the server.
  */
@@ -239,7 +222,6 @@ export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
   const i = ctx.identity
   const a = ctx.answers
   const nn = Array.isArray(a['dealbreakers']) ? (a['dealbreakers'] as string[]).join(', ') : '—'
-  const social = ctx.social
   const stage = getStage(ctx.stage)
   return [
     `You are "${mode.label}" — ${mode.tagline}. ${mode.description}`,
@@ -262,9 +244,6 @@ export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
     // on every single request and told the model nothing.
     ...(ctx.readNote ? [`THEIR READ ON SOMEONE (their own answers, taken in this app): ${ctx.readNote}. Use it if relevant; never invent detail about this person beyond it.`] : []),
     ...(ctx.beforeYesNote ? [`BEFORE YOU SAY YES (which of the eleven pre-marriage conversations they have had with this person): ${ctx.beforeYesNote}. Help them open the next one; never take a position on the topic itself.`] : []),
-    ...(social?.matchedNames.length || social?.pendingNames.length
-      ? [`LIVE APP STATE: connected with [${social.matchedNames.join(', ') || 'no one'}]; awaiting reply from [${social.pendingNames.join(', ') || 'no one'}].`]
-      : []),
     ``,
     `GROUNDING RULES (non-negotiable):`,
     `- Only reference facts given above or said by the user. Never invent people, messages, events, or history.`,

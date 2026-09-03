@@ -20,6 +20,8 @@ interface Props {
   onBuildMap: () => void
   hasMap: boolean
   onOpenFamilies: () => void
+  /** The eleven — and, from there, asking them to answer their own side. */
+  onOpenBeforeYes: () => void
   onBack: () => void
 }
 
@@ -48,6 +50,7 @@ export default function Read({
   onBuildMap,
   hasMap,
   onOpenFamilies,
+  onOpenBeforeYes,
   onBack,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender)
@@ -57,6 +60,9 @@ export default function Read({
 
   const questions = readQuestions(gender ?? 'woman')
   const subject = gender === 'man' ? 'her' : 'him'
+  /** The subject pronoun. Kept apart from `subject` — "what him has done" read
+      as broken English in both directions, on the very first screen. */
+  const they = gender === 'man' ? 'she' : 'he'
 
   function begin(fresh: boolean) {
     track('read_started', { again: !fresh })
@@ -126,11 +132,11 @@ export default function Read({
             About ninety seconds
           </p>
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
-            Is {subject === 'him' ? 'he' : 'she'} serious?
+            Is {they} serious?
           </h1>
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-            Eleven questions about what {subject} has actually <em>done</em> — not
-            how you feel, and not what {subject === 'him' ? 'he' : 'she'} has
+            Eleven questions about what {they} has actually <em>done</em> — not
+            how you feel, and not what {they} has
             promised. At the end you get an honest read and the one question worth
             asking {subject} next, word for word.
           </p>
@@ -183,6 +189,7 @@ export default function Read({
           onAskGuide={onAskGuide}
           onBuildMap={onBuildMap}
           onOpenFamilies={onOpenFamilies}
+          onOpenBeforeYes={onOpenBeforeYes}
         />
       </Shell>
     )
@@ -276,6 +283,7 @@ function Result({
   onAskGuide,
   onBuildMap,
   onOpenFamilies,
+  onOpenBeforeYes,
 }: {
   result: ReadResult
   subject: string
@@ -284,11 +292,13 @@ function Result({
   onAskGuide: (text: string) => void
   onBuildMap: () => void
   onOpenFamilies: () => void
+  onOpenBeforeYes: () => void
 }) {
+  const they = subject === 'him' ? 'he' : 'she'
   return (
     <div className="py-8">
       <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
-        What {subject === 'him' ? 'he' : 'she'} has shown you
+        What {they} has shown you
       </p>
       <h1 className="animate-rise mt-3 font-display text-[1.85rem] font-medium leading-tight tracking-tight text-ink text-balance">
         {result.headline}
@@ -376,6 +386,25 @@ function Result({
             </span>
             <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
               It already knows what this read said. Ask it the thing you did not want to ask a friend.
+            </span>
+          </span>
+          <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+        </button>
+
+        {/* The natural next thing after being told what {they} has not shown:
+            the eleven, and from there the two-sided version {they} answers. */}
+        <button
+          onClick={onOpenBeforeYes}
+          className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
+        >
+          <span className="flex-1">
+            <span className="font-display text-[1.15rem] font-medium text-ink">
+              Before you say yes
+            </span>
+            <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+              Eleven conversations that decide a Somali marriage. You can send them to
+              {' '}{subject} too — {they} answers on {subject === 'him' ? 'his' : 'her'} own phone, and
+              neither of you sees the other’s answers, only where you match.
             </span>
           </span>
           <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />

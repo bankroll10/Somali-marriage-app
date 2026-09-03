@@ -95,12 +95,7 @@ export function seedDemo() {
     couple: null,
     vouch: null,
     completed: true,
-    matched: [],
-    pendingInterest: [],
-    passed: [],
-    conversations: {},
     coachThreads: {},
-    interestNotes: {},
   })
 }
 

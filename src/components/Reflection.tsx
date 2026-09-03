@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Dimension, Identity, MapSnapshot, ModeId, Reflection, StepRecord, WaitlistState } from '../types'
+import type { Dimension, Identity, MapSnapshot, ModeId, Reflection, StepRecord, WaitlistState, VouchState } from '../types'
 import { getMode } from '../data/coach'
 import { todayKey } from '../data/checkin'
 import {
@@ -11,6 +11,7 @@ import {
   whenLabel,
 } from '../data/nextStep'
 import Cohort from './Cohort'
+import VouchRow from './VouchRow'
 import KeepMap from './KeepMap'
 import { BackButton, Button, Logo, ArrowRight, CheckIcon } from './ui'
 
@@ -188,6 +189,9 @@ interface Props {
   /** Their "hardest part" answer, carried onto the signup. */
   hookId?: string
   onJoinWaitlist: (s: WaitlistState) => void
+  /** A family member's vouch, once given — see components/VouchRow.tsx. */
+  vouch: VouchState | null
+  onKept: (code: string) => void
   /** First-time reveal shows an "enter" CTA; revisits show "back". */
   firstReveal?: boolean
   onContinue: () => void
@@ -210,6 +214,8 @@ export default function ReflectionView({
   onScene,
   hookId,
   onJoinWaitlist,
+  vouch,
+  onKept,
   firstReveal = false,
   onContinue,
   onRetake,
@@ -344,6 +350,10 @@ export default function ReflectionView({
             onJoined={onJoinWaitlist}
             onScene={onScene}
           />
+          {/* The one verification we claim, offered where she has just finished
+              something and can see why it would matter. It used to live only on
+              a profile screen she may never open. */}
+          <VouchRow vouch={vouch} onKept={onKept} />
         </section>
 
         {/* Diagnosis → practice. A map that names your thinnest ground and stops

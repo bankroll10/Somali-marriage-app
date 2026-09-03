@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { allQuestions, totalQuestions } from '../data/intake'
 import { todayKey } from '../data/checkin'
-import { getCandidate } from '../data/candidates'
 import { track } from '../lib/analytics'
 import { applyDemoParams } from '../lib/demo'
 import { buildReflection, generateReflection } from '../lib/reflection'
@@ -28,7 +27,6 @@ import type {
   Dimension,
   CoachMessage,
   Gender,
-  ConvMessage,
   Identity,
   MapSnapshot,
   ModeId,
@@ -64,14 +62,9 @@ export type Screen =
   | 'families'
   | 'couple'
   | 'vouch'
-  | 'connections'
-  | 'conversation'
   | 'plus'
 
 const SAVE_DEBOUNCE_MS = 250
-/** Reciprocation lands after a human pause: base + up to JITTER extra. */
-const RECIPROCATE_BASE_MS = 6000
-const RECIPROCATE_JITTER_MS = 3000
 
 /**
  * The app's single source of truth: journey state, persistence, and actions.
@@ -150,47 +143,15 @@ export function useNiyyah(entry: Entry | null = null) {
   // Trust lives under Profile.
   const [trustReturn, setTrustReturn] = useState<'profile'>('profile')
 
-  // ── Social state (persisted — the product remembers between visits) ────────
-  // Interest that was pending when they left resolves while they were away:
-  // returning users find reciprocators have answered. Coming back is a reward.
-  const returned = useMemo(() => {
-    const stillPending: string[] = []
-    const nowMatched = [...(saved?.matched ?? [])]
-    for (const id of saved?.pendingInterest ?? []) {
-      if (getCandidate(id)?.reciprocates) {
-        if (!nowMatched.includes(id)) nowMatched.push(id)
-      } else {
-        stillPending.push(id)
-      }
-    }
-    return { matched: nowMatched, pending: stillPending }
-  }, [saved])
-
-  const [matched, setMatched] = useState<string[]>(returned.matched)
-  // Interest sent, no answer yet — reciprocation takes a human pause, and not everyone says yes.
-  const [pendingInterest, setPendingInterest] = useState<string[]>(returned.pending)
-  // People the user passed on — out of today's introductions.
-  const [passed, setPassed] = useState<string[]>(saved?.passed ?? [])
-  const [conversations, setConversations] = useState<Record<string, ConvMessage[]>>(
-    saved?.conversations ?? {},
-  )
-  const [activeMatch, setActiveMatch] = useState<string | null>(null)
   // Guide threads survive navigation AND reloads — the guide remembers.
   const [coachThreads, setCoachThreads] = useState<Partial<Record<ModeId, CoachMessage[]>>>(
     saved?.coachThreads ?? {},
-  )
-  // Optional "what stood out" per candidate — carried into the conversation.
-  const [interestNotes, setInterestNotes] = useState<Record<string, string>>(
-    saved?.interestNotes ?? {},
   )
 
   // Completion is live state, not the load-time snapshot — otherwise "Start
   // over" leaves a stale completed=true and Welcome offers a map built from
   // empty answers.
   const [everCompleted, setEverCompleted] = useState(!!saved?.completed)
-  // Bumped on reset so in-flight reciprocation timers from the previous
-  // session can't inject matches into a fresh one.
-  const sessionEpoch = useRef(0)
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const completed = !!reflection || everCompleted
@@ -310,12 +271,7 @@ export function useNiyyah(entry: Entry | null = null) {
             vouch,
             followups,
             completed,
-            matched,
-            pendingInterest,
-            passed,
-            conversations,
             coachThreads,
-            interestNotes,
           }),
         ),
       SAVE_DEBOUNCE_MS,
@@ -339,12 +295,7 @@ export function useNiyyah(entry: Entry | null = null) {
     vouch,
     followups,
     completed,
-    matched,
-    pendingInterest,
-    passed,
-    conversations,
     coachThreads,
-    interestNotes,
   ])
 
   // ── Actions ────────────────────────────────────────────────────────────────
@@ -378,7 +329,6 @@ export function useNiyyah(entry: Entry | null = null) {
   }
 
   function startFresh() {
-    sessionEpoch.current += 1
     setEverCompleted(false)
     setAnswers({})
     setIdentity({})
@@ -399,13 +349,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setFollowups([])
     setKeptCode(null)
     setResumeIndex(0)
-    setMatched([])
-    setPendingInterest([])
-    setPassed([])
-    setConversations({})
-    setActiveMatch(null)
     setCoachThreads({})
-    setInterestNotes({})
     clearProgress()
     track('onboarding_started')
     setIdentityNext('situation')
@@ -641,53 +585,6 @@ export function useNiyyah(entry: Entry | null = null) {
     })
   }
 
-  function expressInterest(id: string) {
-    track('interest_expressed', { candidate: id })
-    setPendingInterest((prev) => (prev.includes(id) ? prev : [...prev, id]))
-    // Reciprocation arrives after a human pause — and some people simply don't answer.
-    if (!getCandidate(id)?.reciprocates) return
-    const epoch = sessionEpoch.current
-    window.setTimeout(() => {
-      // A reset since this was scheduled? Then it belongs to a dead session.
-      if (epoch !== sessionEpoch.current) return
-      track('mutual_connection', { candidate: id })
-      setMatched((prev) => (prev.includes(id) ? prev : [...prev, id]))
-      setPendingInterest((prev) => prev.filter((x) => x !== id))
-    }, RECIPROCATE_BASE_MS + Math.random() * RECIPROCATE_JITTER_MS)
-  }
-
-  function passOn(id: string) {
-    setPassed((prev) => (prev.includes(id) ? prev : [...prev, id]))
-  }
-
-  function setInterestNote(id: string, note: string) {
-    setInterestNotes((prev) => ({ ...prev, [id]: note }))
-  }
-
-  /** Report & block: they disappear completely and any connection is severed. */
-  function reportCandidate(id: string) {
-    track('reported', { candidate: id })
-    setPassed((prev) => (prev.includes(id) ? prev : [...prev, id]))
-    setMatched((prev) => prev.filter((x) => x !== id))
-    setPendingInterest((prev) => prev.filter((x) => x !== id))
-    setConversations((prev) => {
-      const next = { ...prev }
-      delete next[id]
-      return next
-    })
-    setActiveMatch((prev) => (prev === id ? null : prev))
-  }
-
-  function appendConversation(id: string, msgs: ConvMessage[]) {
-    setConversations((prev) => ({ ...prev, [id]: [...(prev[id] ?? []), ...msgs] }))
-  }
-
-  function openConversation(id: string) {
-    track('conversation_opened', { candidate: id })
-    setActiveMatch(id)
-    setScreen('conversation')
-  }
-
   return {
     // state
     screen,
@@ -715,13 +612,7 @@ export function useNiyyah(entry: Entry | null = null) {
     trustReturn,
     guideMode,
     guideAsk,
-    matched,
-    pendingInterest,
-    passed,
-    conversations,
-    activeMatch,
     coachThreads,
-    interestNotes,
     // derived
     completed,
     ledgerEntries,
@@ -772,11 +663,5 @@ export function useNiyyah(entry: Entry | null = null) {
     openPhilosophy,
     openTrust,
     recordCheckIn,
-    expressInterest,
-    passOn,
-    setInterestNote,
-    reportCandidate,
-    appendConversation,
-    openConversation,
   }
 }

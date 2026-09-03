@@ -3,7 +3,6 @@ import type {
   CheckIn,
   MapSnapshot,
   CoachMessage,
-  ConvMessage,
   Identity,
   ModeId,
   PlusState,
@@ -51,14 +50,8 @@ export interface PersistedState {
   /** What the product told her to do, and how it went. */
   followups: FollowUp[]
   completed: boolean
-  // Social + guide state — the product must remember everything between visits.
-  matched: string[]
-  pendingInterest: string[]
-  passed: string[]
-  conversations: Record<string, ConvMessage[]>
+  /** Guide threads — the guide remembers between visits. */
   coachThreads: Partial<Record<ModeId, CoachMessage[]>>
-  /** Optional "what stood out" note per candidate, keyed by candidate id. */
-  interestNotes: Record<string, string>
 }
 
 interface Persisted extends PersistedState {
@@ -102,12 +95,7 @@ export function loadProgress(): Persisted | null {
       vouch: p.vouch ?? null,
       followups: p.followups ?? [],
       completed: p.completed ?? false,
-      matched: p.matched ?? [],
-      pendingInterest: p.pendingInterest ?? [],
-      passed: p.passed ?? [],
-      conversations: p.conversations ?? {},
       coachThreads: p.coachThreads ?? {},
-      interestNotes: p.interestNotes ?? {},
       updatedAt: p.updatedAt ?? 0,
     }
   } catch {

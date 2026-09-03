@@ -42,9 +42,6 @@ interface Props {
   identity: Identity
   answers: Answers
   /** Live app state — the guide knows who you're connected with. */
-  matchedNames: string[]
-  pendingNames: string[]
-  passedIds: string[]
   /** Threads live in app state so the guide remembers across navigation. */
   threads: Threads
   onThreadsChange: Dispatch<SetStateAction<Threads>>
@@ -86,9 +83,6 @@ const accentSoft: Record<string, string> = {
 export default function Coach({
   identity,
   answers,
-  matchedNames,
-  pendingNames,
-  passedIds,
   threads,
   onThreadsChange: setThreads,
   moodLine,
@@ -112,7 +106,6 @@ export default function Coach({
     stage,
     readNote,
     beforeYesNote,
-    social: { matchedNames, pendingNames, passedIds },
   }
   const [mode, setMode] = useState<ModeId | null>(initialMode ?? null)
   const [input, setInput] = useState('')

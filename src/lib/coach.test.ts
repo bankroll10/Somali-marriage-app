@@ -13,7 +13,6 @@ const ctx: CoachContext = {
     attachment: 'secure',
     'hardest-part': 'serious',
   },
-  social: { matchedNames: ['Yusuf'], pendingNames: ['Omar'], passedIds: [] },
 }
 
 afterEach(() => {
@@ -95,10 +94,13 @@ describe('guideSystemPrompt', () => {
     expect(p).toContain('honesty, respect')
   })
 
-  it('names live app state so the guide is not guessing', () => {
+  it('carries no invented people, because there are none to carry', () => {
+    // The prompt used to end with "LIVE APP STATE: connected with [...]",
+    // naming simulated matches on every request. Nobody is here yet, and the
+    // guide saying otherwise is the one thing this product cannot afford.
     const p = guideSystemPrompt('matchmaker', ctx)
-    expect(p).toContain('Yusuf')
-    expect(p).toContain('Omar')
+    expect(p).not.toMatch(/LIVE APP STATE/)
+    expect(p).not.toMatch(/connected with|awaiting reply/i)
   })
 
   it('keeps the grounding rules that make it safe to ship', () => {

@@ -30,7 +30,12 @@ export default function StageBand({ stage, onSetStage, onOpenRead, onOpenBeforeY
       : stage === 'deciding'
         ? [{ label: 'Before you say yes', go: onOpenBeforeYes }, { label: 'The words for your family', go: onOpenFamilies }]
         : stage === 'married'
-          ? [{ label: 'Talk to your guide', go: onOpenGuide }]
+          ? [
+              { label: 'Talk to your guide', go: onOpenGuide },
+              // The in-law conversations do not end at the nikah — this stage
+              // had one door, and the scripts for two families already exist.
+              { label: 'The words for your family', go: onOpenFamilies },
+            ]
           : []
 
   return (

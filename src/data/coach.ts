@@ -1,6 +1,4 @@
 import type { Answers, Gender, Identity, ModeId, Stage } from '../types'
-import { candidatesFor } from './candidates'
-import { alignment } from '../lib/matching'
 
 /**
  * The AI Guide's knowledge — now organised into distinct guidance MODES, each a
@@ -26,12 +24,6 @@ export interface CoachContext {
   readNote?: string
   /** One line about Before you say yes — which conversations they have had. */
   beforeYesNote?: string
-  /** Live app state — the guide knows what's actually happening here. */
-  social?: {
-    matchedNames: string[]
-    pendingNames: string[]
-    passedIds: string[]
-  }
 }
 
 export interface Starter {
@@ -396,28 +388,18 @@ I’ve read your readiness map, and I’m looking for ${readMap(ctx)}. Ask me wh
   ],
   intents: [
     {
-      // The matchmaker actually matchmakes: live alignment over today's real people.
+      // Asked who to talk to first, the honest answer is that nobody is here
+      // yet. This used to rank invented people by name — a matchmaker
+      // confidently recommending strangers who do not exist. Whatever that
+      // bought in a demo, it cost the one thing this product actually sells.
       keywords: ['focus on', 'who first', 'which of them', 'compare', 'best match', 'strongest', 'who should i talk', 'introductions'],
-      followUps: ['Why do we align?', 'What should I ask them first?'],
-      respond: (ctx) => {
-        const gender = ctx.identity.gender
-        const passed = ctx.social?.passedIds ?? []
-        const ranked = candidatesFor(gender)
-          .filter((c) => !passed.includes(c.id))
-          .map((c) => ({ c, a: alignment(ctx.answers, c) }))
-          .sort((x, y) => y.a.score - x.a.score)
-          .slice(0, 2)
-        if (ranked.length === 0)
-          return `You’ve met everyone in today’s introductions. That’s not failure — that’s clarity doing its work. New people arrive as your scene grows, and I’ll read them against your map the moment they do.`
-        const lines = ranked
-          .map(({ c, a }) => `• **${c.name}, ${c.age}** (${c.occupation.toLowerCase()}) — ${a.reasons.length ? a.reasons.join('; ') : a.headline.toLowerCase()}.`)
-          .join('\n')
-        const connected = ctx.social?.matchedNames ?? []
-        const tail = connected.length
-          ? `\n\nAnd you’re already connected with ${connected.join(' and ')} — depth beats breadth. Give that conversation real attention before you add more.`
-          : `\n\nStart with one. A serious conversation with the right person beats three shallow ones.`
-        return `I read today’s introductions against your map. The strongest fits in front of you right now:\n\n${lines}${tail}`
-      },
+      followUps: ['What should I ask him first?', 'How do I know if he’s serious?'],
+      respond: () =>
+        `I won’t pretend to have people for you. Your city hasn’t opened yet — when it does, you’ll see the real count on the door and I’ll read whoever is actually there against your map.
+
+Until then the work is the same work, and it isn’t waiting: if you’re already talking to someone, take a read on what he has actually done, and go through the eleven conversations before the families are involved. If you’re not, your map and the words for your family are what make the first month go well when it comes.
+
+That’s not a consolation. It’s the part most people skip.`,
     },
     {
       keywords: ['fits me', 'right for me', 'kind of person', 'my type', 'compatible', 'match me', 'suited'],

@@ -16,10 +16,7 @@ import BeforeYes from './components/BeforeYes'
 import Families from './components/Families'
 import Couple from './components/Couple'
 import Vouch from './components/Vouch'
-import Connections from './components/Connections'
-import Conversation from './components/Conversation'
 import Plus from './components/Plus'
-import { getCandidate } from './data/candidates'
 import type { CoachMessage, Gender } from './types'
 import type { Entry } from './lib/entry'
 import { buildRead, readSummary } from './lib/read'
@@ -89,15 +86,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     />
   )
 
-  const connections = (
-    <Connections
-      matched={n.matched}
-      conversations={n.conversations}
-      onOpen={n.openConversation}
-      onDiscover={() => n.setScreen('sample')}
-      onBack={() => n.setScreen('home')}
-    />
-  )
 
   switch (n.screen) {
     case 'welcome':
@@ -165,6 +153,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onScene={setScene}
           hookId={hookId}
           onJoinWaitlist={n.joinedCohort}
+          vouch={n.vouch}
+          onKept={n.setKeptCode}
           firstReveal={n.mapReveal}
           onContinue={n.enterHome}
           onRetake={n.retakeMap}
@@ -218,13 +208,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         <Coach
           identity={n.identity}
           answers={n.answers}
-          matchedNames={n.matched
-            .map((id) => getCandidate(id)?.name)
-            .filter((x): x is string => !!x)}
-          pendingNames={n.pendingInterest
-            .map((id) => getCandidate(id)?.name)
-            .filter((x): x is string => !!x)}
-          passedIds={n.passed}
           threads={n.coachThreads}
           onThreadsChange={n.setCoachThreads}
           moodLine={guideOpeningLine(n.checkIns)}
@@ -293,6 +276,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onBuildMap={n.beginMap}
           hasMap={n.completed}
           onOpenFamilies={() => n.setScreen('families')}
+          onOpenBeforeYes={() => n.setScreen('beforeYes')}
           onBack={backHome}
         />
       )
@@ -356,33 +340,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onBack={() => n.setScreen('home')}
         />
       )
-
-    case 'connections':
-      return connections
-
-    case 'conversation': {
-      const candidate = n.activeMatch ? getCandidate(n.activeMatch) : undefined
-      // Stale or missing match — render the list they came from rather than a
-      // blank screen. Setting state here instead would be a state update during
-      // render, which React rejects and which costs a blank frame either way.
-      if (!candidate || !n.activeMatch) return connections
-      const matchId = n.activeMatch
-      return (
-        <Conversation
-          candidate={candidate}
-          userName={n.identity.firstName}
-          waliEligible={candidate.trust.waliFriendly}
-          messages={n.conversations[matchId] ?? []}
-          note={n.interestNotes[matchId] || undefined}
-          onAppend={(msgs) => n.appendConversation(matchId, msgs)}
-          onReport={() => {
-            n.reportCandidate(matchId)
-            n.setScreen('connections')
-          }}
-          onBack={() => n.setScreen('connections')}
-        />
-      )
-    }
 
     case 'plus':
       return (
