@@ -158,9 +158,10 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onCompleteStep={n.completeStep}
           waitlist={n.waitlist}
           voices={voices}
+          ledger={n.ledgerDone}
           onScene={setScene}
           hookId={hookId}
-          onJoinWaitlist={n.setWaitlist}
+          onJoinWaitlist={n.joinedCohort}
           firstReveal={n.mapReveal}
           onContinue={n.enterHome}
           onRetake={n.retakeMap}
@@ -174,7 +175,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         <Home
           identity={n.identity}
           reflection={n.reflection}
-          trust={n.trust}
           onOpenGuide={(mode) => n.openGuide(mode ?? null)}
           onAsk={(text, mode) => n.askGuide(text, n.identity.gender, mode)}
           onOpenMap={n.reflection ? () => n.setScreen('reflection') : n.beginMap}
@@ -200,8 +200,9 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onSetStage={n.setStage}
           hookId={hookId}
           voices={voices}
+          ledger={n.ledgerDone}
           waitlist={n.waitlist}
-          onJoinWaitlist={n.setWaitlist}
+          onJoinWaitlist={n.joinedCohort}
           onScene={setScene}
         />
       )
@@ -240,8 +241,9 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       return (
         <Trust
           identity={n.identity}
-          trust={n.trust}
-          onChange={n.setTrust}
+          ledger={n.ledgerEntries}
+          guideOnDevice={n.trust.guideOnDevice}
+          onGuideOnDevice={(on) => n.setTrust({ guideOnDevice: on })}
           onBack={() => n.setScreen(n.trustReturn)}
         />
       )
@@ -253,7 +255,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           identity={n.identity}
           answers={n.answers}
           reflection={n.reflection}
-          trust={n.trust}
+          ledger={n.ledgerEntries}
           onChangeBio={(bio) => n.setIdentity((prev) => ({ ...prev, bio }))}
           onChangeIdentity={n.setIdentity}
           saveOk={n.saveOk}
@@ -262,7 +264,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           plusActive={n.plusActive}
           trialDaysLeft={n.trialDaysLeft}
           waitlist={n.waitlist}
-          onJoinWaitlist={n.setWaitlist}
+          onJoinWaitlist={n.joinedCohort}
           voices={voices}
           onAnswer={n.answer}
           onRetake={n.retakeMap}
@@ -312,8 +314,9 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           overall={n.reflection?.overall}
           hookId={hookId}
           voices={voices}
+          ledger={n.ledgerDone}
           waitlist={n.waitlist}
-          onJoinWaitlist={n.setWaitlist}
+          onJoinWaitlist={n.joinedCohort}
           onScene={setScene}
           onAnswer={n.answer}
           onBack={() => n.setScreen('home')}

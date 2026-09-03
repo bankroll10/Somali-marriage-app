@@ -33,6 +33,8 @@ const SCENES = new Set(['twin-cities', 'toronto', 'london', 'columbus', 'stockho
 const GENDERS = new Set(['woman', 'man'])
 const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'ready', 'none'])
 const VOICES = new Set(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker', 'profile'])
+/** Must match src/lib/ledger.ts. What a person has actually done here. */
+const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'counted', 'vouched'])
 /** Same alphabet and length as netlify/functions/keep.ts. */
 const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 
@@ -40,6 +42,8 @@ export interface CohortRecord {
   at: string
   overall?: number
   voices: string[]
+  /** Which instruments she has used — the seriousness that got her counted. */
+  ledger: string[]
 }
 
 export interface CohortCount {
@@ -71,14 +75,22 @@ async function countScene(store: Store, scene: string): Promise<CohortCount> {
  */
 async function tally(store: Store) {
   const { blobs } = await store.list()
-  const scenes: Record<string, { women: number; men: number; hooks: Record<string, number> }> = {}
-  for (const { key } of blobs) {
+  const scenes: Record<string, { women: number; men: number; hooks: Record<string, number>; ledger: Record<string, number> }> = {}
+  const members = blobs.filter(({ key }) => !key.startsWith('index/') && key.split('/').length === 4)
+  // The counts come from keys alone; the ledger lives in the value, so the
+  // founder's readout reads each record. Fine at founding scale — this is a
+  // GET the founder makes, not one the app makes.
+  const records = await Promise.all(
+    members.map(async ({ key }) => ({ key, record: (await store.get(key, { type: 'json' })) as CohortRecord | null })),
+  )
+  for (const { key, record } of records) {
     const [scene, gender, hook] = key.split('/')
-    if (!scene || !gender || !hook || scene === 'index') continue
-    const s = (scenes[scene] ??= { women: 0, men: 0, hooks: {} })
+    if (!scene || !gender || !hook) continue
+    const s = (scenes[scene] ??= { women: 0, men: 0, hooks: {}, ledger: {} })
     if (gender === 'woman') s.women += 1
     else if (gender === 'man') s.men += 1
     s.hooks[hook] = (s.hooks[hook] ?? 0) + 1
+    for (const id of record?.ledger ?? []) s.ledger[id] = (s.ledger[id] ?? 0) + 1
   }
   return { target: COHORT_TARGET, scenes }
 }
@@ -111,6 +123,7 @@ export default async function handler(req: Request) {
     hook?: string
     overall?: number
     voices?: unknown
+    ledger?: unknown
   }
   try {
     body = await req.json()
@@ -139,10 +152,14 @@ export default async function handler(req: Request) {
   const voices = Array.isArray(body.voices)
     ? body.voices.filter((v): v is string => typeof v === 'string' && VOICES.has(v))
     : []
+  const ledger = Array.isArray(body.ledger)
+    ? body.ledger.filter((v): v is string => typeof v === 'string' && LEDGER.has(v))
+    : []
   const record: CohortRecord = {
     at: new Date().toISOString(),
     ...(typeof body.overall === 'number' ? { overall: Math.round(body.overall) } : {}),
     voices,
+    ledger,
   }
   const key = `${scene}/${gender}/${hook}/${code}`
   const indexKey = `index/${code}`

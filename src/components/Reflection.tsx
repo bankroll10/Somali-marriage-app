@@ -183,6 +183,7 @@ interface Props {
   waitlist: WaitlistState | null
   /** Guide voices she has used — goes with her place in the cohort. */
   voices?: string[]
+  ledger?: string[]
   onScene?: (scene: string) => void
   /** Their "hardest part" answer, carried onto the signup. */
   hookId?: string
@@ -205,6 +206,7 @@ export default function ReflectionView({
   onCompleteStep,
   waitlist,
   voices,
+  ledger,
   onScene,
   hookId,
   onJoinWaitlist,
@@ -337,6 +339,7 @@ export default function ReflectionView({
             overall={r.overall}
             hookId={hookId}
             voices={voices}
+            ledger={ledger}
             joined={waitlist}
             onJoined={onJoinWaitlist}
             onScene={onScene}

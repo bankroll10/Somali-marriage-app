@@ -31,6 +31,8 @@ export interface JoinInput {
   hook?: string
   overall?: number
   voices?: string[]
+  /** What she has done here — see src/lib/ledger.ts. Goes with her place. */
+  ledger?: string[]
 }
 
 async function withTimeout(input: string, init: RequestInit = {}): Promise<Response | null> {

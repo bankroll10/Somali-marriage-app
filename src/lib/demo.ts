@@ -51,15 +51,8 @@ export function seedDemo() {
   saveProgress({
     answers: demoAnswers,
     identity: demoIdentity,
-    trust: {
-      identityVerified: true,
-      seriousIntention: true,
-      waliFriendly: true,
-      blurPhotos: true,
-      privacyShield: true,
-      // The seeded member uses the live guide — that is the experience to show.
-      guideOnDevice: false,
-    },
+    // The seeded member uses the live guide — that is the experience to show.
+    trust: { guideOnDevice: false },
     // History but no entry TODAY — the live check-in tap is a demo moment,
     // and the strip + continuity line have something to show.
     checkIns: [
@@ -97,6 +90,8 @@ export function seedDemo() {
     // No read yet — taking one live is the demo's strongest moment.
     read: null,
     beforeYes: null,
+    couple: null,
+    vouch: null,
     completed: true,
     matched: [],
     pendingInterest: [],

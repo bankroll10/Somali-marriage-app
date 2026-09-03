@@ -30,6 +30,8 @@ const state = {
   waitlist: null,
   read: null,
   beforeYes: null,
+  couple: null,
+  vouch: null,
   completed: true,
   matched: [],
   pendingInterest: [],
@@ -74,11 +76,11 @@ describe('joining', () => {
         return json({ code: 'ACDEFG', scene: 'twin-cities', women: 1, men: 0, target: 40 })
       }),
     )
-    const result = await joinCohort({ scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88, voices: ['auntie'] })
+    const result = await joinCohort({ scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88, voices: ['auntie'], ledger: ['map', 'kept'] })
     expect(result).toEqual({ code: 'ACDEFG', women: 1, men: 0, target: 40 })
     expect(calls[0].url).toContain('/keep')
     expect(calls[1].url).toContain('/cohort')
-    expect(calls[1].body).toMatchObject({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88, voices: ['auntie'] })
+    expect(calls[1].body).toMatchObject({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88, voices: ['auntie'], ledger: ['map', 'kept'] })
   })
 
   it('re-keeps the map and retries once when the server has lost it', async () => {

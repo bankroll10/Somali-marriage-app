@@ -16,7 +16,12 @@ function memStore(name: string) {
       blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: 'x' })),
       directories: [],
     }),
-    get: async (key: string) => m.get(key) ?? null,
+    // Honour `{ type: 'json' }` the way the real store does — the tally reads
+    // records back parsed, and a mock that hands over strings hides that.
+    get: async (key: string, opts?: { type?: string }) => {
+      const v = m.get(key) ?? null
+      return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
+    },
     getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
     set: async (key: string, value: string) => void m.set(key, value),
     setJSON: async (key: string, value: unknown) => void m.set(key, JSON.stringify(value)),
@@ -72,6 +77,19 @@ describe('the count', () => {
     expect((await count('mars')).status).toBe(400)
   })
 
+  it('keeps what she has done here, and only ids it knows', async () => {
+    await post({ code: 'ACDEFG', scene: 'london', gender: 'woman', hook: 'serious', ledger: ['map', 'read', 'nope', 7] })
+    const stored = JSON.parse((await memStore('cohort').get('london/woman/serious/ACDEFG')) as string)
+    expect(stored.ledger).toEqual(['map', 'read'])
+  })
+
+  it('tallies the ledger per city — how serious the people on the door are', async () => {
+    await post({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', ledger: ['map', 'read', 'beforeYes'] })
+    await post({ code: 'HJKMNP', scene: 'twin-cities', gender: 'man', hook: 'finding', ledger: ['map'] })
+    const body = await (await handler(new Request('http://x/.netlify/functions/cohort'))).json()
+    expect(body.scenes['twin-cities'].ledger).toEqual({ map: 2, read: 1, beforeYes: 1 })
+  })
+
   it('keeps an unknown hardest part as "none" and keeps only real voices', async () => {
     await post({ code: 'ACDEFG', scene: 'london', gender: 'woman', hook: 'x', voices: ['auntie', 'nope', 3] })
     const stored = JSON.parse((await memStore('cohort').get('london/woman/none/ACDEFG')) as string)
@@ -86,7 +104,7 @@ describe('the tally', () => {
     const res = await handler(new Request('http://x/.netlify/functions/cohort'))
     const body = await res.json()
     expect(body.target).toBe(COHORT_TARGET)
-    expect(body.scenes['twin-cities']).toEqual({ women: 1, men: 1, hooks: { serious: 2 } })
+    expect(body.scenes['twin-cities']).toEqual({ women: 1, men: 1, hooks: { serious: 2 }, ledger: {} })
     expect(body.scenes.index).toBeUndefined()
   })
 })

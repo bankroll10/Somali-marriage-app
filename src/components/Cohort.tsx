@@ -14,6 +14,8 @@ interface Props {
   hookId?: string
   /** Guide voices she has actually used, so the tally knows what people reach for. */
   voices?: string[]
+  /** What she has done here (ledger ids) — the seriousness that gets her counted. */
+  ledger?: string[]
   joined: WaitlistState | null
   onJoined: (state: WaitlistState) => void
   /** When she picks a city here, the rest of the app should know it too. */
@@ -35,7 +37,7 @@ interface Props {
  * counted, she can watch the number move, and the day someone here fits her
  * map, she hears about it — and nobody else does.
  */
-export default function Cohort({ identity, overall, hookId, voices, joined, onJoined, onScene, compact }: Props) {
+export default function Cohort({ identity, overall, hookId, voices, ledger, joined, onJoined, onScene, compact }: Props) {
   const configured = waitlistConfigured()
   const [contact, setContact] = useState('')
   const [scene, setScene] = useState(joined?.scene ?? identity.scene ?? '')
@@ -95,6 +97,7 @@ export default function Cohort({ identity, overall, hookId, voices, joined, onJo
       hook: hookId,
       overall,
       voices,
+      ledger,
     })
     if (!result) {
       setState('error')
@@ -209,7 +212,8 @@ export default function Cohort({ identity, overall, hookId, voices, joined, onJo
               it describes. */}
           <p className="text-[0.78rem] leading-relaxed text-muted text-pretty">
             We send your email or phone, your city, who you’re seeking, the hardest
-            part you named and your overall number. Your map is kept under a code
+            part you named, your overall number, and which of the things on your
+            Trust page you’ve done. Your map is kept under a code
             with no name on it, so it can be matched. Your answers stay yours.
           </p>
         </form>

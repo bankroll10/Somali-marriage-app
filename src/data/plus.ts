@@ -3,9 +3,9 @@
  *
  * Two rules decide everything on this screen:
  *
- *  1. Nothing that protects a person is ever paid. Verification, photo blur,
- *     wali-friendly mode, the privacy shield, report-and-block, and replying to
- *     someone who is serious about you are free forever. Charging a woman to
+ *  1. Nothing that protects a person is ever paid. Your privacy controls, your
+ *     family's vouch, report-and-block, and replying to someone who is serious
+ *     about you are free forever. Charging a woman to
  *     protect herself — or to answer a man who has already expressed interest —
  *     is the oldest move in this category and we don't make it.
  *
@@ -29,7 +29,7 @@ export const freeForever: string[] = [
   'Your readiness map — every reading, and the whole record of how you’ve changed',
   'Your work — the step you’re carrying and everything you’ve finished',
   'The daily check-in and today’s reflection',
-  'Verification, photo blur, wali-friendly mode, and the privacy shield',
+  'Your privacy controls — and your family’s vouch, when they give it',
   'Reporting and blocking anyone, instantly, with no questions',
   'Being introduced — and replying to anyone who is serious about you',
   'A read on someone, and Before you say yes — the conversations that decide a marriage, asked early',

@@ -39,6 +39,8 @@ const state = {
   waitlist: null,
   read: null,
   beforeYes: null,
+  couple: null,
+  vouch: null,
   completed: true,
   matched: [],
   pendingInterest: [],

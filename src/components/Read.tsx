@@ -4,6 +4,7 @@ import { readQuestions } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
+import InviteRow from './InviteRow'
 import { ArrowRight, Button, ScreenHeader } from './ui'
 
 interface Props {
@@ -410,6 +411,8 @@ function Result({
             <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
           </button>
         )}
+
+        <InviteRow source="read" gender={subject === 'him' ? 'woman' : 'man'} />
 
         <button
           onClick={onAgain}

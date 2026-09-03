@@ -8,6 +8,8 @@ import type {
   ModeId,
   PlusState,
   ReadRecord,
+  CoupleState,
+  VouchState,
   Stage,
   StepRecord,
   TrustSettings,
@@ -39,6 +41,10 @@ export interface PersistedState {
   read: ReadRecord | null
   /** Before you say yes — which of the eleven conversations they've had. */
   beforeYes: ReadRecord | null
+  /** The two-sided Before you say yes she started, if any. */
+  couple: CoupleState | null
+  /** A family member's vouch, once given. */
+  vouch: VouchState | null
   completed: boolean
   // Social + guide state — the product must remember everything between visits.
   matched: string[]
@@ -65,7 +71,9 @@ export function loadProgress(): Persisted | null {
     return {
       answers: p.answers ?? {},
       identity: p.identity ?? {},
-      trust: { ...defaultTrust, ...(p.trust ?? {}) },
+      // Only the control that is real survives; five dead toggles fall away on
+      // the next save rather than being carried forever.
+      trust: { guideOnDevice: (p.trust as Partial<TrustSettings> | undefined)?.guideOnDevice ?? defaultTrust.guideOnDevice },
       // Legacy blobs stored a single `checkIn` — fold it into history.
       checkIns: p.checkIns ?? (p.checkIn ? [p.checkIn] : []),
       firstSeen: p.firstSeen ?? '',
@@ -79,6 +87,8 @@ export function loadProgress(): Persisted | null {
         : null,
       read: p.read ?? null,
       beforeYes: p.beforeYes ?? null,
+      couple: p.couple ?? null,
+      vouch: p.vouch ?? null,
       completed: p.completed ?? false,
       matched: p.matched ?? [],
       pendingInterest: p.pendingInterest ?? [],

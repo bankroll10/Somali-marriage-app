@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CheckIn, Dimension, Identity, ModeId, Reflection, Stage, StepRecord, TrustSettings, WaitlistState } from '../types'
+import type { CheckIn, Dimension, Identity, ModeId, Reflection, Stage, StepRecord, WaitlistState } from '../types'
 import { getScene } from '../data/scenes'
 import { chosenReason, getDailyReflection } from '../data/daily'
 import { checkInReflection, comebackLine, getMood, journeyLine, moods, weekStrip, yesterdayLine, type MoodId } from '../data/checkin'
@@ -10,7 +10,6 @@ import TodaysReflection from './home/TodaysReflection'
 import WorkCard from './home/WorkCard'
 import Cohort from './Cohort'
 import {
-  CheckIcon,
   CompassGlyph,
   GlyphTile,
   LockGlyph,
@@ -26,7 +25,6 @@ interface Props {
   identity: Identity
   /** Null for a member who has a Home but no map yet — she said where she is, and skipped the intake. */
   reflection: Reflection | null
-  trust: TrustSettings
   onOpenGuide: (mode?: ModeId) => void
   /** The fast path: say what happened, land in the right voice with it asked. */
   onAsk: (text: string, mode?: ModeId) => void
@@ -64,6 +62,8 @@ interface Props {
   hookId?: string
   /** The founding cohort — the number on the door, and her place in it. */
   voices: string[]
+  /** What she has done here — travels with her place. */
+  ledger: string[]
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
   onScene: (scene: string) => void
@@ -72,7 +72,6 @@ interface Props {
 export default function Home({
   identity,
   reflection,
-  trust,
   onOpenGuide,
   onAsk,
   onOpenMap,
@@ -98,6 +97,7 @@ export default function Home({
   onSetStage,
   hookId,
   voices,
+  ledger,
   waitlist,
   onJoinWaitlist,
   onScene,
@@ -120,11 +120,6 @@ export default function Home({
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           <Logo className="text-ink" />
-          {trust.identityVerified && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-forest/10 px-3 py-1.5 text-[0.75rem] font-semibold text-forest">
-              <CheckIcon size={12} /> Verified
-            </span>
-          )}
         </div>
       </header>
 
@@ -382,6 +377,7 @@ export default function Home({
                 overall={reflection.overall}
                 hookId={hookId}
                 voices={voices}
+                ledger={ledger}
                 joined={waitlist}
                 onJoined={onJoinWaitlist}
                 onScene={onScene}

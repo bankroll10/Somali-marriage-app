@@ -5,6 +5,7 @@ import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/
 import { somali } from '../data/somali'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
+import InviteRow from './InviteRow'
 import { ArrowRight, Button, ScreenHeader } from './ui'
 
 interface Props {
@@ -316,6 +317,8 @@ function Result({
             <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
           </button>
         )}
+        <InviteRow source="beforeYes" gender={pronoun === 'him' ? 'woman' : 'man'} />
+
         <button onClick={onAgain} className="mt-1 self-start text-[0.85rem] font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline">
           Go through it again
         </button>

@@ -9,6 +9,8 @@ import { routeToMode } from '../lib/route'
 import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
 import { flushWaitlistQueue } from '../lib/waitlist'
 import { getStage } from '../data/stages'
+import { ledger } from '../lib/ledger'
+import { rememberedCode } from '../lib/keep'
 import { defaultPlus, defaultTrust } from '../types'
 import { FREE_REPLIES, TRIAL_DAYS } from '../data/plus'
 import type {
@@ -29,6 +31,8 @@ import type {
   StepRecord,
   TrustSettings,
   ReadRecord,
+  CoupleState,
+  VouchState,
   WaitlistState,
 } from '../types'
 
@@ -102,6 +106,12 @@ export function useNiyyah() {
   const [read, setRead] = useState<ReadRecord | null>(saved?.read ?? null)
   // Before you say yes — which conversations she and he have actually had.
   const [beforeYes, setBeforeYes] = useState<ReadRecord | null>(saved?.beforeYes ?? null)
+  // The two-sided Before you say yes she started, and a family member's vouch.
+  const [couple, setCouple] = useState<CoupleState | null>(saved?.couple ?? null)
+  const [vouch, setVouch] = useState<VouchState | null>(saved?.vouch ?? null)
+  // The code her map is kept under. Read once at mount and refreshed by the
+  // actions that keep it, so the ledger stays a pure function of state.
+  const [keptCode, setKeptCode] = useState<string | null>(() => rememberedCode())
   const [reflection, setReflection] = useState<Reflection | null>(() =>
     saved?.completed ? buildReflection(saved.answers) : null,
   )
@@ -165,6 +175,12 @@ export function useNiyyah() {
   // A Home exists for anyone with a map, or anyone who has said where she is.
   // `completed` keeps meaning "the intake is done"; this is the wider door.
   const hasHome = completed || stage !== 'preparing'
+  // What she has actually done here. Replaces a trust score that scored taps.
+  const ledgerEntries = useMemo(
+    () => ledger({ completed, read, beforeYes, answers, keptCode, waitlist, vouch }),
+    [completed, read, beforeYes, answers, keptCode, waitlist, vouch],
+  )
+  const ledgerDone = useMemo(() => ledgerEntries.filter((e) => e.done).map((e) => e.id), [ledgerEntries])
   const answeredCount = Object.keys(answers).length
   const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome
   const todayEntry = checkIns.find((c) => c.date === todayKey())
@@ -218,6 +234,8 @@ export function useNiyyah() {
             waitlist,
             read,
             beforeYes,
+            couple,
+            vouch,
             completed,
             matched,
             pendingInterest,
@@ -243,6 +261,8 @@ export function useNiyyah() {
     waitlist,
     read,
     beforeYes,
+    couple,
+    vouch,
     completed,
     matched,
     pendingInterest,
@@ -298,6 +318,9 @@ export function useNiyyah() {
     setWaitlist(null)
     setRead(null)
     setBeforeYes(null)
+    setCouple(null)
+    setVouch(null)
+    setKeptCode(null)
     setResumeIndex(0)
     setMatched([])
     setPendingInterest([])
@@ -473,6 +496,12 @@ export function useNiyyah() {
     setScreen('trust')
   }
 
+  /** Counted — and the map was kept on the way, so the ledger learns the code. */
+  function joinedCohort(state: WaitlistState) {
+    setWaitlist(state)
+    setKeptCode(rememberedCode())
+  }
+
   function recordCheckIn(mood: MoodId) {
     track('checkin_done', { mood })
     setCheckIns((prev) => {
@@ -545,6 +574,9 @@ export function useNiyyah() {
     waitlist,
     read,
     beforeYes,
+    couple,
+    vouch,
+    keptCode,
     reflection,
     resumeIndex,
     skipFirstIntro,
@@ -562,6 +594,8 @@ export function useNiyyah() {
     interestNotes,
     // derived
     completed,
+    ledgerEntries,
+    ledgerDone,
     hasHome,
     identityNext,
     hasProgress,
@@ -580,6 +614,10 @@ export function useNiyyah() {
     setWaitlist,
     setRead,
     setBeforeYes,
+    setCouple,
+    setVouch,
+    setKeptCode,
+    joinedCohort,
     // actions
     answer,
     completeIntake,

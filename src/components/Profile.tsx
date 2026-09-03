@@ -1,21 +1,21 @@
 import { useEffect, useRef, useState } from 'react'
-import type { AnswerValue, Answers, Identity, Reflection, TrustSettings, WaitlistState } from '../types'
+import type { AnswerValue, Answers, Identity, Reflection, WaitlistState } from '../types'
 import { MAX_AGE, MIN_AGE } from '../types'
 import { getScene, scenes } from '../data/scenes'
-import { shareOrCopy } from '../lib/share'
 import Cohort from './Cohort'
+import InviteRow from './InviteRow'
+import type { LedgerEntry } from '../lib/ledger'
 import HowYoudLive from './HowYoudLive'
-import { SITE_HOST, SITE_URL } from '../lib/site'
 import { CheckIcon, ScreenHeader, ShieldGlyph, fieldClass } from './ui'
 
-const INVITE_TEXT = `Salaam — I’ve been using Niyyah, a marriage platform actually built for us: serious, wali-friendly, no swiping. It starts with an honest readiness reflection, not photos. I think you’d get it. ${SITE_HOST}`
 
 interface Props {
   identity: Identity
   answers: Answers
   /** Null for a member with a Home but no map yet. */
   reflection: Reflection | null
-  trust: TrustSettings
+  /** What she has done here — shown as a row that opens Trust. */
+  ledger: LedgerEntry[]
   onChangeBio: (bio: string) => void
   onChangeIdentity: (updater: (prev: Identity) => Identity) => void
   /** False when the browser refuses to persist — never claim "Saved" then. */
@@ -39,7 +39,7 @@ export default function Profile({
   identity,
   answers,
   reflection,
-  trust,
+  ledger,
   onChangeBio,
   onChangeIdentity,
   saveOk,
@@ -58,7 +58,7 @@ export default function Profile({
   const scene = getScene(identity.scene)
   const initial = name.charAt(0).toUpperCase()
   const bioSuggestion = (answers['bring'] as string | undefined)?.trim()
-  const protections = Object.values(trust).filter(Boolean).length
+  const done = ledger.filter((e) => e.done)
 
   // Quiet autosave feedback — edits persist automatically; say so, briefly.
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved'>('idle')
@@ -78,18 +78,6 @@ export default function Profile({
   }, [identity.bio, identity.age, identity.scene])
 
   // Inviting someone: the native share sheet on a phone, clipboard on desktop.
-  const [invited, setInvited] = useState(false)
-  async function handleInvite() {
-    const result = await shareOrCopy(
-      { text: INVITE_TEXT, url: SITE_URL },
-      'invite_copied',
-    )
-    if (result === 'copied') {
-      setInvited(true)
-      window.setTimeout(() => setInvited(false), 2400)
-    }
-  }
-
   // Age + community are asked here — where their value on the card is visible —
   // not during onboarding. Expander shows only while something is missing.
   const [detailsOpen, setDetailsOpen] = useState(false)
@@ -226,23 +214,7 @@ export default function Profile({
               </div>
             )}
 
-            {/* Trust badges */}
-            <div className="mt-4 flex flex-wrap gap-2">
-              {trust.identityVerified ? (
-                <Badge tone="forest">✓ Verified</Badge>
-              ) : (
-                <button
-                  onClick={onOpenTrust}
-                  className="rounded-full border border-dashed border-clay/50 px-3 py-1.5 text-[0.8rem] font-medium text-clay transition hover:bg-clay/5"
-                >
-                  Verify your identity →
-                </button>
-              )}
-              {trust.seriousIntention && <Badge tone="gold">Serious about marriage</Badge>}
-              {trust.waliFriendly && <Badge tone="sand">Wali-friendly</Badge>}
-            </div>
-
-            {/* Protections — trust settings live with the profile they protect. */}
+            {/* What she has done here — the ledger, where the badges used to be. */}
             <button
               onClick={onOpenTrust}
               className="group mt-4 flex w-full items-center gap-3 rounded-2xl border border-line bg-white/50 px-4 py-3 text-left transition-all hover:border-forest/40 hover:bg-white"
@@ -251,13 +223,14 @@ export default function Profile({
                 <ShieldGlyph className="h-[18px] w-[18px]" />
               </span>
               <span className="flex-1">
-                <span className="block text-[0.95rem] font-medium text-ink">Your protections</span>
-                <span className="block text-[0.8rem] text-muted">
-                  {protections} of 5 set —{' '}
-                  {protections >= 4 ? 'you’re well protected' : 'worth finishing'}
+                <span className="block text-[0.95rem] font-medium text-ink">What you’ve done here</span>
+                <span className="block text-[0.8rem] text-muted text-pretty">
+                  {done.length === 0
+                    ? 'Nothing yet — and nothing here can be tapped into being.'
+                    : done.map((e) => e.label.toLowerCase()).join(' · ')}
                 </span>
               </span>
-              <span className="text-[0.85rem] font-medium text-forest">Manage →</span>
+              <span className="text-[0.85rem] font-medium text-forest">See →</span>
             </button>
 
             {/* Readiness (dignified — no public number) */}
@@ -391,29 +364,9 @@ export default function Profile({
 
         {/* Inviting someone lives here, not on Home. It's an occasional act, not
             a daily one — and Home belongs to the work. */}
-        <button
-          onClick={handleInvite}
-          className="mt-3.5 flex w-full items-center gap-3 rounded-card border border-line bg-white/60 px-5 py-4 text-left transition-colors hover:border-forest/40"
-        >
-          <span className="flex-1">
-            <span className="block text-[0.95rem] font-medium text-ink">
-              Invite one serious person
-            </span>
-            <span className="mt-0.5 block text-[0.8rem] text-muted">
-              A sister, a brother, that friend who’s tired of the apps. Niyyah+
-              free for their first year.
-            </span>
-          </span>
-          <span className="inline-flex flex-none items-center gap-1.5 text-[0.85rem] font-medium text-forest">
-            {invited ? (
-              <>
-                <CheckIcon size={12} /> Copied
-              </>
-            ) : (
-              'Copy invite'
-            )}
-          </span>
-        </button>
+        <div className="mt-3.5">
+          <InviteRow source="profile" gender={identity.gender} title="Invite one serious person" />
+        </div>
 
         {/* Findable forever, nagging never — Home stays clean. */}
         <div className="mt-5">
@@ -422,6 +375,7 @@ export default function Profile({
             hookId={answers['hardest-part'] as string | undefined}
             overall={reflection?.overall}
             voices={voices}
+            ledger={done.map((e) => e.id)}
             joined={waitlist}
             onJoined={onJoinWaitlist}
             onScene={(scene) => onChangeIdentity((prev) => ({ ...prev, scene }))}
@@ -445,16 +399,4 @@ export default function Profile({
   )
 }
 
-function Badge({ tone, children }: { tone: 'forest' | 'gold' | 'sand'; children: React.ReactNode }) {
-  const tones = {
-    forest: 'bg-forest text-cream',
-    gold: 'bg-gold/15 text-forest border border-gold/30',
-    sand: 'bg-sand text-ink-soft',
-  }
-  return (
-    <span className={`rounded-full px-3 py-1.5 text-[0.8rem] font-medium ${tones[tone]}`}>
-      {children}
-    </span>
-  )
-}
 

@@ -66,12 +66,16 @@ export type ModeId =
   | 'matchmaker'
   | 'profile'
 
+/**
+ * The one trust control that does what it says.
+ *
+ * This used to hold five more — an identity "verification" that recorded a
+ * pledge, a serious-intention badge, wali-friendly, blur photos, a privacy
+ * shield — and a score over them. Nothing enforced any of them; they were
+ * promises wearing switches. They are gone. What a serious person has actually
+ * done here is the ledger (src/lib/ledger.ts), and it cannot be tapped.
+ */
 export interface TrustSettings {
-  identityVerified: boolean
-  seriousIntention: boolean
-  waliFriendly: boolean
-  blurPhotos: boolean
-  privacyShield: boolean
   /**
    * Keep the Guide entirely on this device.
    *
@@ -85,12 +89,20 @@ export interface TrustSettings {
 }
 
 export const defaultTrust: TrustSettings = {
-  identityVerified: false,
-  seriousIntention: false,
-  waliFriendly: false,
-  blurPhotos: false,
-  privacyShield: false,
   guideOnDevice: false,
+}
+
+/** Her side of a two-sided Before you say yes: the code the pair lives under. */
+export interface CoupleState {
+  code: string
+  at: string
+}
+
+/** A family member has vouched for her. Only what any screen may ever show. */
+export interface VouchState {
+  relationship: string
+  firstName: string
+  at: string
 }
 
 export type QuestionType = 'single' | 'multi' | 'scale' | 'text'

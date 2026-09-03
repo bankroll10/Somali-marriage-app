@@ -13,6 +13,7 @@ interface Props {
   overall?: number
   hookId?: string
   voices?: string[]
+  ledger?: string[]
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
   onScene?: (scene: string) => void
@@ -40,6 +41,7 @@ export default function SampleIntroduction({
   overall,
   hookId,
   voices,
+  ledger,
   waitlist,
   onJoinWaitlist,
   onScene,
@@ -167,6 +169,7 @@ export default function SampleIntroduction({
             overall={overall}
             hookId={hookId}
             voices={voices}
+            ledger={ledger}
             joined={waitlist}
             onJoined={onJoinWaitlist}
             onScene={onScene}
