@@ -62,5 +62,6 @@ describe('Netlify deploy directories hold only deployable code', () => {
     // A guard that passes because the file was deleted would be worse than none.
     expect(existsSync(join(process.cwd(), 'netlify/edge-functions/gate.ts'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'netlify/functions/guide.ts'))).toBe(true)
+    expect(existsSync(join(process.cwd(), 'netlify/functions/couple.ts'))).toBe(true)
   })
 })

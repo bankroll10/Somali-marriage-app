@@ -98,7 +98,7 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               on this device — not on our servers, and no one at Niyyah can read
               them. That includes a read you take on someone, and Before you say
               yes: those answers stay here too, and we never ask their name in the
-              first place. Three things can change that, and only if you choose
+              first place. Four things can change that, and only if you choose
               them.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
@@ -116,6 +116,16 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               things above you’ve done — under that same code, with no name on it.
               Your email or phone goes separately to the founder, so we can write
               to you when someone fits; it is never stored next to your answers.
+            </p>
+            <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+              <span className="font-medium text-ink">Asking him to do the eleven too.</span>{' '}
+              If you send him the link, your eleven answers go to our server under a
+              code with no name on it, and his go there when he answers. The server
+              sends back only where you match — never your sheet to him, never his
+              to you. From your own answer you can still tell whether he thinks a
+              conversation happened; that is the point, and he can tell the same
+              about you. Your answers are frozen the moment he answers, his after
+              once, and the whole thing expires after ninety days.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               The Guide is the other exception, and here is exactly what it sends

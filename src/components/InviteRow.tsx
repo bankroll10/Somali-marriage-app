@@ -23,7 +23,7 @@ export default function InviteRow({
   source,
   gender,
   title = 'Send this to a friend who’s talking to someone',
-  body = 'A sister, a friend, someone re-reading a message at 1am. No account, no swiping — just the read.',
+  body = 'A sister, a friend, someone re-reading a message late at night. No account, no swiping — just the read.',
 }: Props) {
   const [copied, setCopied] = useState(false)
 

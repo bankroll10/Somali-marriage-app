@@ -10,6 +10,7 @@ import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
 import { flushWaitlistQueue } from '../lib/waitlist'
 import { getStage } from '../data/stages'
 import { ledger } from '../lib/ledger'
+import type { Entry } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
 import { defaultPlus, defaultTrust } from '../types'
 import { FREE_REPLIES, TRIAL_DAYS } from '../data/plus'
@@ -53,6 +54,8 @@ export type Screen =
   | 'read'
   | 'beforeYes'
   | 'families'
+  | 'couple'
+  | 'vouch'
   | 'connections'
   | 'conversation'
   | 'plus'
@@ -66,7 +69,7 @@ const RECIPROCATE_JITTER_MS = 3000
  * The app's single source of truth: journey state, persistence, and actions.
  * Screens stay dumb; App stays a router.
  */
-export function useNiyyah() {
+export function useNiyyah(entry: Entry | null = null) {
   // ?fresh / ?demo presentation switches run before saved state loads.
   const saved = useMemo(() => {
     applyDemoParams()
@@ -78,9 +81,15 @@ export function useNiyyah() {
   // Returning members land in their space. A member has a space once she has a
   // map OR has told us where she is — a woman mid-process has a Home without
   // ever answering the intake.
-  const [screen, setScreen] = useState<Screen>(
-    saved && (saved.completed || saved.stage !== 'preparing') ? 'home' : 'welcome',
-  )
+  const [screen, setScreen] = useState<Screen>(() => {
+    // Someone arriving on a link lands on the screen the link is for, whatever
+    // this device has saved — he may well be opening it on a phone with a map.
+    if (entry?.kind === 'couple') return 'couple'
+    if (entry?.kind === 'vouch') return 'vouch'
+    return saved && (saved.completed || saved.stage !== 'preparing') ? 'home' : 'welcome'
+  })
+  /** The code in the link that opened the app, for the screen it opened. */
+  const [entryCode] = useState<string | null>(entry?.code ?? null)
   // Where Identity hands off: the situation question on a fresh start; straight
   // to the hook when she is building the map from an instrument she already used.
   const [identityNext, setIdentityNext] = useState<'situation' | 'hook'>('situation')
@@ -577,6 +586,7 @@ export function useNiyyah() {
     couple,
     vouch,
     keptCode,
+    entryCode,
     reflection,
     resumeIndex,
     skipFirstIntro,

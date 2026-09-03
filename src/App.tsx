@@ -14,18 +14,20 @@ import SampleIntroduction from './components/SampleIntroduction'
 import Read from './components/Read'
 import BeforeYes from './components/BeforeYes'
 import Families from './components/Families'
+import Couple from './components/Couple'
 import Connections from './components/Connections'
 import Conversation from './components/Conversation'
 import Plus from './components/Plus'
 import { getCandidate } from './data/candidates'
 import type { CoachMessage, Gender } from './types'
+import type { Entry } from './lib/entry'
 import { buildRead, readSummary } from './lib/read'
 import { beforeYesSummary, buildBeforeYes } from './lib/beforeYes'
 import { guideOpeningLine } from './data/checkin'
 import { useNiyyah } from './hooks/useNiyyah'
 
-export default function App() {
-  const n = useNiyyah()
+export default function App({ entry = null }: { entry?: Entry | null }) {
+  const n = useNiyyah(entry)
 
   // Start every screen at its top.
   //
@@ -299,7 +301,26 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenFamilies={() => n.setScreen('families')}
           onBuildMap={n.beginMap}
           hasMap={n.completed}
+          couple={n.couple}
+          onCouple={n.setCouple}
           onBack={backHome}
+        />
+      )
+
+    case 'couple':
+      // He arrived on her link. No identity yet; the screen learns his gender
+      // from the record and his answers become his own Before you say yes.
+      if (!n.entryCode) return welcome
+      return (
+        <Couple
+          code={n.entryCode}
+          onAnswered={(states, g) => {
+            n.setBeforeYes({ at: new Date().toISOString(), answers: states })
+            n.setIdentity((prev) => ({ ...prev, gender: g }))
+          }}
+          onRead={() => n.setScreen('read')}
+          onBuildMap={n.beginMap}
+          onHome={() => n.setScreen('welcome')}
         />
       )
 

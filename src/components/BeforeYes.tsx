@@ -1,8 +1,11 @@
-import { useState } from 'react'
-import type { Answers, Gender, Identity, ReadRecord } from '../types'
+import { useEffect, useState } from 'react'
+import type { Answers, CoupleState, Gender, Identity, ReadRecord } from '../types'
 import { BEFORE_YES_COUNT, STATES, beforeYesTopics } from '../data/beforeYes'
 import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/beforeYes'
 import { somali } from '../data/somali'
+import { coupleLink, coupleReading, createCouple, readCouple, type CoupleView } from '../lib/couple'
+import { shareOrCopy } from '../lib/share'
+import { SITE_URL } from '../lib/site'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import InviteRow from './InviteRow'
@@ -19,6 +22,9 @@ interface Props {
   onOpenFamilies: () => void
   onBuildMap: () => void
   hasMap: boolean
+  /** The two-sided version: the code her pair lives under, once she has asked him. */
+  couple: CoupleState | null
+  onCouple: (state: CoupleState) => void
   onBack: () => void
 }
 
@@ -45,6 +51,8 @@ export default function BeforeYes({
   onOpenFamilies,
   onBuildMap,
   hasMap,
+  couple,
+  onCouple,
   onBack,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender)
@@ -162,7 +170,11 @@ export default function BeforeYes({
         <Result
           result={result}
           pronoun={pronoun}
+          gender={gender}
+          picked={picked}
           hasMap={hasMap}
+          couple={couple}
+          onCouple={onCouple}
           onAgain={begin}
           onAskGuide={onAskGuide}
           onOpenFamilies={onOpenFamilies}
@@ -240,7 +252,11 @@ function Shell({ children, onBack, title }: { children: React.ReactNode; onBack:
 function Result({
   result,
   pronoun,
+  gender,
+  picked,
   hasMap,
+  couple,
+  onCouple,
   onAgain,
   onAskGuide,
   onOpenFamilies,
@@ -248,7 +264,11 @@ function Result({
 }: {
   result: BeforeYesResult
   pronoun: string
+  gender: Gender
+  picked: Record<string, string>
   hasMap: boolean
+  couple: CoupleState | null
+  onCouple: (state: CoupleState) => void
   onAgain: () => void
   onAskGuide: (text: string) => void
   onOpenFamilies: () => void
@@ -275,6 +295,8 @@ function Result({
       <List title="Talked about, and agreed" items={result.byState.agree} tone="forest" />
 
       <ScriptCard script={result.open.script} title={title} source="beforeYes" />
+
+      <Together gender={gender} pronoun={pronoun} picked={picked} couple={couple} onCouple={onCouple} />
 
       <div className="mt-9 flex flex-col gap-3">
         <button
@@ -346,6 +368,123 @@ function List({ title, items, tone }: { title: string; items: TopicReading[]; to
           </li>
         ))}
       </ul>
+    </div>
+  )
+}
+
+/**
+ * The two-sided version.
+ *
+ * Her eleven go up under a code; he opens a link and answers without an
+ * account; both then see only where they match. Her side is frozen the moment
+ * he answers, his after once — so neither can flip a topic and read the other.
+ * The joint here is read from the server, never from her live local answers.
+ */
+function Together({
+  gender,
+  pronoun,
+  picked,
+  couple,
+  onCouple,
+}: {
+  gender: Gender
+  pronoun: string
+  picked: Record<string, string>
+  couple: CoupleState | null
+  onCouple: (state: CoupleState) => void
+}) {
+  const [state, setState] = useState<'idle' | 'sending' | 'error'>('idle')
+  const [view, setView] = useState<CoupleView | null>(null)
+  const [shared, setShared] = useState(false)
+  const he = pronoun === 'him' ? 'he' : 'she'
+
+  useEffect(() => {
+    if (!couple) return
+    let live = true
+    readCouple(couple.code).then((v) => {
+      if (live) setView(v)
+    })
+    return () => {
+      live = false
+    }
+  }, [couple])
+
+  async function share(code: string) {
+    const result = await shareOrCopy(
+      {
+        text: `I’ve been through the eleven conversations on Niyyah — would you do them too? You answer on your own; I never see your answers, only where we match.`,
+        url: coupleLink(code, SITE_URL),
+      },
+      'couple_shared',
+    )
+    if (result !== 'cancelled') {
+      setShared(true)
+      setTimeout(() => setShared(false), 2400)
+    }
+  }
+
+  async function ask() {
+    setState('sending')
+    const code = await createCouple(picked, gender)
+    if (!code) {
+      setState('error')
+      return
+    }
+    track('couple_created')
+    onCouple({ code, at: new Date().toISOString() })
+    setState('idle')
+    void share(code)
+  }
+
+  if (couple && view?.status === 'joint') {
+    const r = coupleReading(view.joint, gender)
+    return (
+      <div className="animate-rise mt-9 rounded-card border border-forest/25 bg-forest/[0.05] p-6">
+        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-forest">Where the two of you stand</p>
+        <p className="mt-2 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">{r.headline}</p>
+        <ul className="mt-4 flex flex-col gap-2.5">
+          {r.lines.map((l) => (
+            <li key={l.id} className="flex gap-2.5 text-[0.95rem] leading-snug text-ink-soft text-pretty">
+              <span className={`mt-[0.5rem] h-1.5 w-1.5 flex-none rounded-full ${l.kind === 'both-agree' ? 'bg-forest' : l.kind === 'one-thinks-talked' || l.kind === 'differ-somewhere' ? 'bg-clay' : 'bg-gold'}`} />
+              <span>{l.line}</span>
+            </li>
+          ))}
+        </ul>
+        {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" />}
+        <p className="mt-4 text-[0.8rem] leading-relaxed text-muted text-pretty">
+          {he === 'he' ? 'He' : 'She'} saw this same list, and nothing else. Your answers were frozen the moment {he} answered; {he === 'he' ? 'his' : 'hers'} were sent once.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="animate-rise mt-9 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
+      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+        {couple ? `Waiting for ${pronoun}` : `Ask ${pronoun} to do this too`}
+      </p>
+      <p className="mt-2 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">
+        {couple ? `${he === 'he' ? 'He' : 'She'} hasn’t answered yet.` : 'See where the two of you actually stand.'}
+      </p>
+      <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
+        {couple
+          ? `When ${he} does, you both see only where you match — and where one of you thinks a conversation happened and the other doesn’t. Send the link again if it got lost.`
+          : `Send ${pronoun} a link. ${he === 'he' ? 'He' : 'She'} answers the same eleven on ${he === 'he' ? 'his' : 'her'} own — no account, no name — and ${he} never sees your answers. Neither of you sees the other’s. You both see only where you match, and which conversation one of you thinks you’ve had that the other doesn’t.`}
+      </p>
+      <button
+        onClick={() => (couple ? share(couple.code) : ask())}
+        disabled={state === 'sending'}
+        className="group mt-4 inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-[0.9rem] font-medium text-cream transition hover:bg-forest-deep disabled:opacity-50"
+      >
+        {state === 'sending' ? 'One moment…' : shared ? 'Link ready to send' : couple ? 'Send the link again' : `Ask ${pronoun}`}
+        {state !== 'sending' && <ArrowRight className="transition-transform group-hover:translate-x-0.5" />}
+      </button>
+      {state === 'error' && (
+        <p className="mt-3 text-[0.85rem] text-clay text-pretty">That didn’t go through — nothing is lost. Try again in a moment.</p>
+      )}
+      <p className="mt-3 text-[0.78rem] leading-relaxed text-muted text-pretty">
+        Your eleven answers go to our server under a code with no name on it, and are frozen the moment {he} answers. The link lasts ninety days.
+      </p>
     </div>
   )
 }
