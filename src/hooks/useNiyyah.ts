@@ -8,6 +8,7 @@ import { buildReflection, generateReflection } from '../lib/reflection'
 import { routeToMode } from '../lib/route'
 import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
 import { flushWaitlistQueue } from '../lib/waitlist'
+import { getStage } from '../data/stages'
 import { defaultPlus, defaultTrust } from '../types'
 import { FREE_REPLIES, TRIAL_DAYS } from '../data/plus'
 import type {
@@ -34,6 +35,7 @@ import type {
 export type Screen =
   | 'welcome'
   | 'identity'
+  | 'situation'
   | 'hook'
   | 'intake'
   | 'generating'
@@ -69,7 +71,15 @@ export function useNiyyah() {
 
   // ── Journey state ──────────────────────────────────────────────────────────
   // Returning members land in their space — no landing page in between.
-  const [screen, setScreen] = useState<Screen>(saved?.completed ? 'home' : 'welcome')
+  // Returning members land in their space. A member has a space once she has a
+  // map OR has told us where she is — a woman mid-process has a Home without
+  // ever answering the intake.
+  const [screen, setScreen] = useState<Screen>(
+    saved && (saved.completed || saved.stage !== 'preparing') ? 'home' : 'welcome',
+  )
+  // Where Identity hands off: the situation question on a fresh start; straight
+  // to the hook when she is building the map from an instrument she already used.
+  const [identityNext, setIdentityNext] = useState<'situation' | 'hook'>('situation')
   const [identity, setIdentity] = useState<Identity>(saved?.identity ?? {})
   const [answers, setAnswers] = useState<Answers>(saved?.answers ?? {})
   const [trust, setTrust] = useState<TrustSettings>(saved?.trust ?? defaultTrust)
@@ -152,8 +162,11 @@ export function useNiyyah() {
 
   // ── Derived ────────────────────────────────────────────────────────────────
   const completed = !!reflection || everCompleted
+  // A Home exists for anyone with a map, or anyone who has said where she is.
+  // `completed` keeps meaning "the intake is done"; this is the wider door.
+  const hasHome = completed || stage !== 'preparing'
   const answeredCount = Object.keys(answers).length
-  const hasProgress = (answeredCount > 0 || !!identity.gender) && !completed
+  const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome
   const todayEntry = checkIns.find((c) => c.date === todayKey())
   const todayMood: MoodId | null = todayEntry?.mood ?? null
 
@@ -295,7 +308,22 @@ export function useNiyyah() {
     setInterestNotes({})
     clearProgress()
     track('onboarding_started')
+    setIdentityNext('situation')
     setScreen('identity')
+  }
+
+  /**
+   * What's happening right now — the first real question, and the one that
+   * decides where we start. Preparing goes to the hook and the map, as before.
+   * Everyone else goes straight to the thing built for their stage; the map is
+   * offered afterward, once she has been given something.
+   */
+  function chooseSituation(next: Stage) {
+    setStage(next)
+    if (next === 'preparing') setScreen('hook')
+    else if (next === 'talking') setScreen(read ? 'home' : 'read')
+    else if (next === 'deciding') setScreen(beforeYes ? 'home' : 'beforeYes')
+    else openGuide(getStage('married').mode)
   }
 
   function resume() {
@@ -330,7 +358,8 @@ export function useNiyyah() {
    */
   function beginMap() {
     track('onboarding_started')
-    setScreen('identity')
+    setIdentityNext('hook')
+    setScreen(identity.gender && identity.adult ? 'hook' : 'identity')
   }
 
   /** Enter the intake from the hook; the insight path skips chapter 1's intro. */
@@ -533,6 +562,8 @@ export function useNiyyah() {
     interestNotes,
     // derived
     completed,
+    hasHome,
+    identityNext,
     hasProgress,
     todayMood,
     saveOk,
@@ -554,6 +585,7 @@ export function useNiyyah() {
     completeIntake,
     beginIntake,
     beginMap,
+    chooseSituation,
     startFresh,
     resume,
     retakeMap,

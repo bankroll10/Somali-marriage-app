@@ -140,9 +140,9 @@ export default function Welcome({
             style={{ animationDelay: '220ms' }}
           >
             {[
-              'No swiping, no feed — a few considered introductions, ranked by how your lives actually fit.',
-              'You meet values first and faces later: photos stay private until you both choose.',
-              'Your family and your wali belong inside this, not outside it.',
+              'Built by a Somali, for the questions our aunties ask — and the ones they don’t.',
+              'We start where you are: getting ready, talking to someone, or deciding with the families.',
+              'The conversations that break marriages — where you’d live, money home, a second wife — asked early, not too late.',
             ].map((line) => (
               <li key={line} className="flex gap-3 text-[0.93rem] leading-snug text-cream/70 text-pretty">
                 <span className="mt-[0.5rem] h-1 w-1 flex-none rounded-full bg-gold-soft" />
@@ -163,7 +163,7 @@ export default function Welcome({
             ) : (
               <>
                 <Button variant="onDark" onClick={onBegin} className="group">
-                  Show me what’s in my way
+                  Start where you are
                   <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
                 </Button>
                 {hasProgress && (

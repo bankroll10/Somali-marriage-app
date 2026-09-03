@@ -1,6 +1,7 @@
 import { useLayoutEffect } from 'react'
 import Welcome from './components/Welcome'
 import IdentityStep from './components/Identity'
+import Situation from './components/Situation'
 import Hook from './components/Hook'
 import Intake from './components/Intake'
 import ReflectionView, { Generating } from './components/Reflection'
@@ -71,7 +72,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     const built = buildBeforeYes(n.beforeYes.answers, n.identity.gender ?? 'woman')
     return built ? beforeYesSummary(built) : undefined
   })()
-  const backHome = () => n.setScreen(n.completed ? 'home' : 'welcome')
+  const backHome = () => n.setScreen(n.hasHome ? 'home' : 'welcome')
 
   const welcome = (
     <Welcome
@@ -104,8 +105,18 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         <IdentityStep
           identity={n.identity}
           onChange={n.setIdentity}
-          onContinue={() => n.setScreen('hook')}
+          onContinue={() => n.setScreen(n.identityNext)}
           onBack={() => n.setScreen('welcome')}
+        />
+      )
+
+    case 'situation':
+      return (
+        <Situation
+          identity={n.identity}
+          onChoose={n.chooseSituation}
+          onScene={setScene}
+          onBack={() => n.setScreen('identity')}
         />
       )
 
@@ -116,7 +127,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           value={n.answers['hardest-part'] as string | undefined}
           onSelect={(id) => n.answer('hardest-part', id)}
           onContinue={n.beginIntake}
-          onBack={() => n.setScreen('identity')}
+          onBack={() => n.setScreen(n.identityNext === 'hook' ? 'identity' : 'situation')}
         />
       )
 
@@ -158,7 +169,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       )
 
     case 'home':
-      if (!n.reflection) return welcome
+      if (!n.hasHome) return welcome
       return (
         <Home
           identity={n.identity}
@@ -166,7 +177,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           trust={n.trust}
           onOpenGuide={(mode) => n.openGuide(mode ?? null)}
           onAsk={(text, mode) => n.askGuide(text, n.identity.gender, mode)}
-          onOpenMap={() => n.setScreen('reflection')}
+          onOpenMap={n.reflection ? () => n.setScreen('reflection') : n.beginMap}
           onOpenProfile={() => n.setScreen('profile')}
           onOpenSample={() => n.setScreen('sample')}
           onOpenRead={() => n.setScreen('read')}
@@ -236,7 +247,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       )
 
     case 'profile':
-      if (!n.reflection) return welcome
+      if (!n.hasHome) return welcome
       return (
         <Profile
           identity={n.identity}

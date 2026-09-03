@@ -24,7 +24,8 @@ import {
 
 interface Props {
   identity: Identity
-  reflection: Reflection
+  /** Null for a member who has a Home but no map yet — she said where she is, and skipped the intake. */
+  reflection: Reflection | null
   trust: TrustSettings
   onOpenGuide: (mode?: ModeId) => void
   /** The fast path: say what happened, land in the right voice with it asked. */
@@ -278,15 +279,17 @@ export default function Home({
           </button>
         )}
 
-        <WorkCard
-          reflection={reflection}
-          steps={steps}
-          onTakeStep={onTakeStep}
-          onCompleteStep={onCompleteStep}
-          onOpenMap={onOpenMap}
-          onOpenGuide={onOpenGuide}
-          lastReading={lastReading}
-        />
+        {reflection && (
+          <WorkCard
+            reflection={reflection}
+            steps={steps}
+            onTakeStep={onTakeStep}
+            onCompleteStep={onCompleteStep}
+            onOpenMap={onOpenMap}
+            onOpenGuide={onOpenGuide}
+            lastReading={lastReading}
+          />
+        )}
 
         <StageBand
           stage={stage}
@@ -373,7 +376,7 @@ export default function Home({
                 as today's introduction. This is the honest version: the real
                 count toward her city opening, and her place in it. Hidden once
                 she's deciding on someone or married. */}
-            {seeking && (
+            {seeking && reflection && (
               <Cohort
                 identity={identity}
                 overall={reflection.overall}
@@ -388,7 +391,7 @@ export default function Home({
 
             {/* One sample introduction, labelled as such — the matching is real
                 and runs on her map; the person is not. */}
-            {seeking && (
+            {seeking && reflection && (
               <button
                 onClick={onOpenSample}
                 className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
@@ -426,9 +429,11 @@ export default function Home({
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
             </button>
 
-            {/* Readiness map */}
-            <button
-              onClick={onOpenMap}
+            {/* Readiness map — hers when she has one; otherwise the offer. A member
+                who said she is married is not offered a readiness-for-marriage map. */}
+            {reflection ? (
+              <button
+                onClick={onOpenMap}
                 className="group rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
               >
                 <div className="flex items-center justify-between">
@@ -439,13 +444,27 @@ export default function Home({
                     {reflection.overall}
                   </span>
                 </div>
-                <p className="mt-3 font-display text-[1.1rem] font-medium text-ink">
-                  Readiness map
-                </p>
-              <p className="mt-1 text-[0.85rem] leading-snug text-muted text-pretty">
-                {reflection.headline}
-              </p>
-            </button>
+                <p className="mt-3 font-display text-[1.1rem] font-medium text-ink">Readiness map</p>
+                <p className="mt-1 text-[0.85rem] leading-snug text-muted text-pretty">{reflection.headline}</p>
+              </button>
+            ) : stage !== 'married' ? (
+              <button
+                onClick={onOpenMap}
+                className="group flex items-center gap-4 rounded-card border border-gold/30 bg-gold/[0.07] p-5 text-left transition-all hover:-translate-y-0.5"
+              >
+                <GlyphTile className="bg-gold/15 text-gold">
+                  <CompassGlyph />
+                </GlyphTile>
+                <span className="flex-1">
+                  <span className="font-display text-[1.2rem] font-medium text-ink">Build your map</span>
+                  <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                    Two minutes on what you actually need, and what you won’t compromise on. Your side of
+                    every conversation gets clearer.
+                  </span>
+                </span>
+                <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
+              </button>
+            ) : null}
           </div>
         </section>
 

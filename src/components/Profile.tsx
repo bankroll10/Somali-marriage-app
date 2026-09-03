@@ -12,7 +12,8 @@ const INVITE_TEXT = `Salaam — I’ve been using Niyyah, a marriage platform ac
 interface Props {
   identity: Identity
   answers: Answers
-  reflection: Reflection
+  /** Null for a member with a Home but no map yet. */
+  reflection: Reflection | null
   trust: TrustSettings
   onChangeBio: (bio: string) => void
   onChangeIdentity: (updater: (prev: Identity) => Identity) => void
@@ -256,14 +257,16 @@ export default function Profile({
             </button>
 
             {/* Readiness (dignified — no public number) */}
-            <div className="mt-5 rounded-2xl bg-sand/40 px-4 py-3">
-              <p className="text-[0.78rem] font-medium uppercase tracking-[0.16em] text-muted">
-                Marriage readiness
-              </p>
-              <p className="mt-1 font-display text-[1.1rem] font-medium text-forest">
-                {reflection.headline}
-              </p>
-            </div>
+            {reflection && (
+              <div className="mt-5 rounded-2xl bg-sand/40 px-4 py-3">
+                <p className="text-[0.78rem] font-medium uppercase tracking-[0.16em] text-muted">
+                  Marriage readiness
+                </p>
+                <p className="mt-1 font-display text-[1.1rem] font-medium text-forest">
+                  {reflection.headline}
+                </p>
+              </div>
+            )}
 
             {/* Bio */}
             <div className="mt-5">
@@ -308,7 +311,7 @@ export default function Profile({
             </div>
 
             {/* Values */}
-            {reflection.coreValues.length > 0 && (
+            {reflection && reflection.coreValues.length > 0 && (
               <div className="mt-5">
                 <p className="mb-2 text-[0.78rem] font-medium uppercase tracking-[0.16em] text-muted">
                   What you carry
@@ -327,7 +330,7 @@ export default function Profile({
             )}
 
             {/* Non-negotiables */}
-            {reflection.nonNegotiables.length > 0 && (
+            {reflection && reflection.nonNegotiables.length > 0 && (
               <div className="mt-5">
                 <p className="mb-2 text-[0.78rem] font-medium uppercase tracking-[0.16em] text-muted">
                   What matters most
@@ -400,7 +403,7 @@ export default function Profile({
           <Cohort
             identity={identity}
             hookId={answers['hardest-part'] as string | undefined}
-            overall={reflection.overall}
+            overall={reflection?.overall}
             voices={voices}
             joined={waitlist}
             onJoined={onJoinWaitlist}
@@ -411,7 +414,7 @@ export default function Profile({
 
         <div className="mt-5 text-center">
           <p className="text-[0.82rem] text-muted text-pretty">
-            Your values and readiness come from your reflection.
+            {reflection ? 'Your values and readiness come from your reflection.' : 'Build your map and your values and readiness appear here.'}
           </p>
           <button
             onClick={onRetake}

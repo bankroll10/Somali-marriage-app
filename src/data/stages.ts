@@ -19,6 +19,14 @@ export interface StageDef {
   id: Stage
   /** How the user names this stage to themselves. */
   label: string
+  /** The stage as she would say it, when asked what is happening right now. */
+  situation: string
+  /**
+   * The one line she hears on choosing it — the sentence test. Each is
+   * something no alternative in the category would think to say. {he}/{his}
+   * tokens resolve for who she is reading.
+   */
+  arrival: string
   /** The one thing that actually matters right now. Never a checklist. */
   focus: string
   /** The voice that leads at this stage. */
@@ -33,6 +41,8 @@ export const stages: StageDef[] = [
   {
     id: 'preparing',
     label: 'Preparing',
+    situation: 'I’m not talking to anyone — I want to get ready',
+    arrival: 'Then this is about you before it’s about anyone else. Two minutes, and you’ll know where you stand.',
     focus:
       'Becoming clear about what you actually need — and becoming someone worth choosing. Everything after this is easier when this part is honest.',
     mode: 'brother',
@@ -45,6 +55,8 @@ export const stages: StageDef[] = [
   {
     id: 'talking',
     label: 'Getting to know someone',
+    situation: 'I’m talking to someone, and I can’t tell what it means yet',
+    arrival: 'Then the question isn’t whether you’re ready. It’s whether {he} is.',
     focus:
       'Watch behaviour, not words — consistency, family, follow-through. And bring your people in early, while it’s still easy to walk away.',
     mode: 'auntie',
@@ -58,6 +70,8 @@ export const stages: StageDef[] = [
   {
     id: 'deciding',
     label: 'Deciding together',
+    situation: 'We’re deciding — families, mahr, where we’d live',
+    arrival: 'Then the families are about to be involved. Before they are, there are eleven conversations most of us have too late.',
     focus:
       'The unromantic conversations are the ones that protect you: money, where you’ll live, in-laws, children, and what you each do when it gets hard. Istikhara, then move.',
     mode: 'islamic',
@@ -71,6 +85,8 @@ export const stages: StageDef[] = [
   {
     id: 'married',
     label: 'Married',
+    situation: 'We’re married, alhamdulillah',
+    arrival: 'Then we’re not looking for anyone. We’re building what you already chose.',
     focus:
       'The work changes shape, it doesn’t end. Repair after arguments, protect your two-person team from everyone’s opinions, and keep choosing each other on ordinary Tuesdays.',
     mode: 'therapist',
