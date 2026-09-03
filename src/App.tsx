@@ -15,6 +15,7 @@ import Read from './components/Read'
 import BeforeYes from './components/BeforeYes'
 import Families from './components/Families'
 import Couple from './components/Couple'
+import Vouch from './components/Vouch'
 import Connections from './components/Connections'
 import Conversation from './components/Conversation'
 import Plus from './components/Plus'
@@ -203,6 +204,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           hookId={hookId}
           voices={voices}
           ledger={n.ledgerDone}
+          vouch={n.vouch}
           waitlist={n.waitlist}
           onJoinWaitlist={n.joinedCohort}
           onScene={setScene}
@@ -258,6 +260,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           answers={n.answers}
           reflection={n.reflection}
           ledger={n.ledgerEntries}
+          vouch={n.vouch}
+          onKept={n.setKeptCode}
           onChangeBio={(bio) => n.setIdentity((prev) => ({ ...prev, bio }))}
           onChangeIdentity={n.setIdentity}
           saveOk={n.saveOk}
@@ -323,6 +327,11 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onHome={() => n.setScreen('welcome')}
         />
       )
+
+    case 'vouch':
+      // A family member arrived on her link. No identity, no account: one screen.
+      if (!n.entryCode) return welcome
+      return <Vouch code={n.entryCode} onDone={() => n.setScreen('welcome')} />
 
     case 'families':
       return <Families gender={n.identity.gender} stage={n.stage} onBack={backHome} />

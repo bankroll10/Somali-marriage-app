@@ -12,6 +12,7 @@ import { getStage } from '../data/stages'
 import { ledger } from '../lib/ledger'
 import type { Entry } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
+import { readVouch } from '../lib/vouch'
 import { defaultPlus, defaultTrust } from '../types'
 import { FREE_REPLIES, TRIAL_DAYS } from '../data/plus'
 import type {
@@ -504,6 +505,20 @@ export function useNiyyah(entry: Entry | null = null) {
     setTrustReturn(from)
     setScreen('trust')
   }
+
+  // Has a family member vouched since she last opened the app? Asked once per
+  // kept code, only until we know — a vouch given on someone else's phone has
+  // to reach hers without her having to go looking for it.
+  useEffect(() => {
+    if (!keptCode || vouch) return
+    let live = true
+    readVouch(keptCode).then((v) => {
+      if (live && v) setVouch(v)
+    })
+    return () => {
+      live = false
+    }
+  }, [keptCode, vouch])
 
   /** Counted — and the map was kept on the way, so the ledger learns the code. */
   function joinedCohort(state: WaitlistState) {

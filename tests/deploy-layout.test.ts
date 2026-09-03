@@ -63,5 +63,6 @@ describe('Netlify deploy directories hold only deployable code', () => {
     expect(existsSync(join(process.cwd(), 'netlify/edge-functions/gate.ts'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'netlify/functions/guide.ts'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'netlify/functions/couple.ts'))).toBe(true)
+    expect(existsSync(join(process.cwd(), 'netlify/functions/vouch.ts'))).toBe(true)
   })
 })

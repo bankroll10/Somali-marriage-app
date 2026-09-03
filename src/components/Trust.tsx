@@ -98,7 +98,7 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               on this device — not on our servers, and no one at Niyyah can read
               them. That includes a read you take on someone, and Before you say
               yes: those answers stay here too, and we never ask their name in the
-              first place. Four things can change that, and only if you choose
+              first place. Five things can change that, and only if you choose
               them.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
@@ -126,6 +126,15 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               conversation happened; that is the point, and he can tell the same
               about you. Your answers are frozen the moment he answers, his after
               once, and the whole thing expires after ninety days.
+            </p>
+            <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+              <span className="font-medium text-ink">Asking your family to vouch.</span>{' '}
+              If you send a family member the link, your map is kept as above, and
+              what they write — who they are to you, their first name, one sentence,
+              and a phone number if they leave one — is stored under your code. Only
+              their first name and who they are to you ever come back to any screen.
+              Their sentence and their number are read by the founder alone, who may
+              call to confirm, and are never shown to anyone you meet.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               The Guide is the other exception, and here is exactly what it sends

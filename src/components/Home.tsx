@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { CheckIn, Dimension, Identity, ModeId, Reflection, Stage, StepRecord, WaitlistState } from '../types'
+import type { CheckIn, Dimension, Identity, ModeId, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
 import { getScene } from '../data/scenes'
 import { chosenReason, getDailyReflection } from '../data/daily'
 import { checkInReflection, comebackLine, getMood, journeyLine, moods, weekStrip, yesterdayLine, type MoodId } from '../data/checkin'
@@ -64,6 +64,8 @@ interface Props {
   voices: string[]
   /** What she has done here — travels with her place. */
   ledger: string[]
+  /** A family member has vouched for her — the only badge this app shows. */
+  vouch: VouchState | null
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
   onScene: (scene: string) => void
@@ -98,6 +100,7 @@ export default function Home({
   hookId,
   voices,
   ledger,
+  vouch,
   waitlist,
   onJoinWaitlist,
   onScene,
@@ -120,6 +123,11 @@ export default function Home({
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           <Logo className="text-ink" />
+          {vouch && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-forest/10 px-3 py-1.5 text-[0.75rem] font-semibold text-forest">
+              Vouched by family
+            </span>
+          )}
         </div>
       </header>
 
