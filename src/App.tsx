@@ -11,12 +11,15 @@ import Philosophy from './components/Philosophy'
 import Profile from './components/Profile'
 import SampleIntroduction from './components/SampleIntroduction'
 import Read from './components/Read'
+import BeforeYes from './components/BeforeYes'
+import Families from './components/Families'
 import Connections from './components/Connections'
 import Conversation from './components/Conversation'
 import Plus from './components/Plus'
 import { getCandidate } from './data/candidates'
 import type { CoachMessage, Gender } from './types'
 import { buildRead, readSummary } from './lib/read'
+import { beforeYesSummary, buildBeforeYes } from './lib/beforeYes'
 import { guideOpeningLine } from './data/checkin'
 import { useNiyyah } from './hooks/useNiyyah'
 
@@ -63,6 +66,12 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     const built = buildRead(n.read.answers, n.identity.gender ?? 'woman')
     return built ? readSummary(built) : undefined
   })()
+  const beforeYesNote = (() => {
+    if (!n.beforeYes) return undefined
+    const built = buildBeforeYes(n.beforeYes.answers, n.identity.gender ?? 'woman')
+    return built ? beforeYesSummary(built) : undefined
+  })()
+  const backHome = () => n.setScreen(n.completed ? 'home' : 'welcome')
 
   const welcome = (
     <Welcome
@@ -162,6 +171,9 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenSample={() => n.setScreen('sample')}
           onOpenRead={() => n.setScreen('read')}
           hasRead={!!n.read}
+          onOpenBeforeYes={() => n.setScreen('beforeYes')}
+          hasBeforeYes={!!n.beforeYes}
+          onOpenFamilies={() => n.setScreen('families')}
           onPhilosophy={() => n.openPhilosophy('home')}
           onRestart={n.startFresh}
           checkInMood={n.todayMood}
@@ -204,6 +216,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onDeviceOnly={n.trust.guideOnDevice}
           stage={n.stage}
           readNote={readNote}
+          beforeYesNote={beforeYesNote}
           plusActive={n.plusActive}
           repliesLeft={n.repliesLeft}
           onSpendReply={n.spendReply}
@@ -255,9 +268,29 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onAskGuide={(text) => n.askGuide(text, n.identity.gender)}
           onBuildMap={n.beginMap}
           hasMap={n.completed}
-          onBack={() => n.setScreen(n.completed ? 'home' : 'welcome')}
+          onOpenFamilies={() => n.setScreen('families')}
+          onBack={backHome}
         />
       )
+
+    case 'beforeYes':
+      return (
+        <BeforeYes
+          identity={n.identity}
+          answers={n.answers}
+          saved={n.beforeYes}
+          onSave={n.setBeforeYes}
+          onSetGender={(g: Gender) => n.setIdentity((prev) => ({ ...prev, gender: g }))}
+          onAskGuide={(text) => n.askGuide(text, n.identity.gender)}
+          onOpenFamilies={() => n.setScreen('families')}
+          onBuildMap={n.beginMap}
+          hasMap={n.completed}
+          onBack={backHome}
+        />
+      )
+
+    case 'families':
+      return <Families gender={n.identity.gender} stage={n.stage} onBack={backHome} />
 
     case 'sample':
       return (

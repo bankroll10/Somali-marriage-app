@@ -29,6 +29,7 @@ const state = {
   plus: defaultPlus,
   waitlist: null,
   read: null,
+  beforeYes: null,
   completed: true,
   matched: [],
   pendingInterest: [],

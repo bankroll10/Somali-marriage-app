@@ -61,6 +61,7 @@ interface Props {
   /** Where she is in the arc, and her last read — the Guide is told both. */
   stage?: Stage
   readNote?: string
+  beforeYesNote?: string
   plusActive: boolean
   repliesLeft: number
   onSpendReply: () => void
@@ -100,6 +101,7 @@ export default function Coach({
   onDeviceOnly,
   stage,
   readNote,
+  beforeYesNote,
   onOpenPlus,
   onBack,
 }: Props) {
@@ -109,6 +111,7 @@ export default function Coach({
     onDeviceOnly,
     stage,
     readNote,
+    beforeYesNote,
     social: { matchedNames, pendingNames, passedIds },
   }
   const [mode, setMode] = useState<ModeId | null>(initialMode ?? null)

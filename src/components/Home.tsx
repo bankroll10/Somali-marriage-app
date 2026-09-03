@@ -36,6 +36,10 @@ interface Props {
   onOpenRead: () => void
   /** True once she has taken one, so the card offers the result rather than the pitch. */
   hasRead: boolean
+  /** Before you say yes and the families' words — the deciding stage's instruments. */
+  onOpenBeforeYes: () => void
+  hasBeforeYes: boolean
+  onOpenFamilies: () => void
   onPhilosophy: () => void
   onRestart: () => void
   /** Today's mood, if already checked in. */
@@ -75,6 +79,9 @@ export default function Home({
   onOpenSample,
   onOpenRead,
   hasRead,
+  onOpenBeforeYes,
+  hasBeforeYes,
+  onOpenFamilies,
   onPhilosophy,
   onRestart,
   checkInMood,
@@ -247,6 +254,30 @@ export default function Home({
           </button>
         )}
 
+        {/* Deciding together: the conversations most of us have too late,
+            asked in month two, and the words for the families. */}
+        {stage === 'deciding' && (
+          <button
+            onClick={onOpenBeforeYes}
+            className="animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5 hover:bg-forest/[0.09]"
+          >
+            <GlyphTile className="bg-forest/10 text-forest">
+              <CompassGlyph />
+            </GlyphTile>
+            <span className="flex-1">
+              <span className="font-display text-[1.2rem] font-medium text-ink">
+                {hasBeforeYes ? 'Before you say yes — where you left it' : 'Before you say yes'}
+              </span>
+              <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                {hasBeforeYes
+                  ? 'The conversations you’ve had, the ones you haven’t, and the one to open next.'
+                  : 'Eleven conversations that decide a Somali marriage — where you’d live, money home, a second wife — and which one to open this week.'}
+              </span>
+            </span>
+            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+          </button>
+        )}
+
         <WorkCard
           reflection={reflection}
           steps={steps}
@@ -257,7 +288,14 @@ export default function Home({
           lastReading={lastReading}
         />
 
-        <StageBand stage={stage} onSetStage={onSetStage} />
+        <StageBand
+          stage={stage}
+          onSetStage={onSetStage}
+          onOpenRead={onOpenRead}
+          onOpenBeforeYes={onOpenBeforeYes}
+          onOpenFamilies={onOpenFamilies}
+          onOpenGuide={() => onOpenGuide()}
+        />
 
         {/* Daily check-in — the act of returning */}
         <section className="animate-rise mt-10">

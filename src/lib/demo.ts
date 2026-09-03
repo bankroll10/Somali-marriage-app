@@ -92,6 +92,7 @@ export function seedDemo() {
     waitlist: null,
     // No read yet — taking one live is the demo's strongest moment.
     read: null,
+    beforeYes: null,
     completed: true,
     matched: [],
     pendingInterest: [],

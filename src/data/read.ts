@@ -279,13 +279,21 @@ const TEMPLATE: ReadQuestion[] = [
   },
 ]
 
-/** The questions, with pronouns resolved for who she is reading. */
-export function readQuestions(memberGender: Gender = 'woman'): ReadQuestion[] {
-  // She reads the opposite gender; a man reading a woman flips the voice.
+/**
+ * Resolve every pronoun token for the person a member of this gender is
+ * reading. Shared by every instrument that talks about "him" — the Read,
+ * Before you say yes, the families' scripts — so the voice never drifts.
+ */
+export function speak(memberGender: Gender = 'woman'): (text: string) => string {
   const v = memberGender === 'man' ? VOICES.man : VOICES.woman
   // {himself} is the one reflexive we need and it is not worth a token of its own.
   const reflexive = memberGender === 'man' ? 'herself' : 'himself'
-  const fix = (t: string) => say(t.replace(/\{himself\}/g, reflexive), v)
+  return (text) => say(text.replace(/\{himself\}/g, reflexive), v)
+}
+
+/** The questions, with pronouns resolved for who she is reading. */
+export function readQuestions(memberGender: Gender = 'woman'): ReadQuestion[] {
+  const fix = speak(memberGender)
   return TEMPLATE.map((q) => ({
     ...q,
     prompt: fix(q.prompt),

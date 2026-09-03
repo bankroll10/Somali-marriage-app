@@ -3,7 +3,8 @@ import type { Gender, Identity, ReadRecord } from '../types'
 import { readQuestions } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
 import { track } from '../lib/analytics'
-import { ArrowRight, Button, CheckIcon, ScreenHeader } from './ui'
+import ScriptCard from './ScriptCard'
+import { ArrowRight, Button, ScreenHeader } from './ui'
 
 interface Props {
   identity: Identity
@@ -17,6 +18,7 @@ interface Props {
   /** Offered after the result — never before it. */
   onBuildMap: () => void
   hasMap: boolean
+  onOpenFamilies: () => void
   onBack: () => void
 }
 
@@ -44,6 +46,7 @@ export default function Read({
   onAskGuide,
   onBuildMap,
   hasMap,
+  onOpenFamilies,
   onBack,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender)
@@ -178,6 +181,7 @@ export default function Read({
           onAgain={() => begin(true)}
           onAskGuide={onAskGuide}
           onBuildMap={onBuildMap}
+          onOpenFamilies={onOpenFamilies}
         />
       </Shell>
     )
@@ -270,6 +274,7 @@ function Result({
   onAgain,
   onAskGuide,
   onBuildMap,
+  onOpenFamilies,
 }: {
   result: ReadResult
   subject: string
@@ -277,19 +282,8 @@ function Result({
   onAgain: () => void
   onAskGuide: (text: string) => void
   onBuildMap: () => void
+  onOpenFamilies: () => void
 }) {
-  const [copied, setCopied] = useState(false)
-
-  async function copyWords() {
-    try {
-      await navigator.clipboard.writeText(result.script.words)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2200)
-    } catch {
-      /* clipboard refused — the words are on screen */
-    }
-  }
-
   return (
     <div className="py-8">
       <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
@@ -352,49 +346,16 @@ function Result({
       )}
 
       {/* The point of the whole instrument. */}
-      <div className="animate-rise mt-9 overflow-hidden rounded-card bg-forest-deep text-cream">
-        <div className="p-7">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-soft">
-            The one question to ask next
-          </p>
-          {/* We have just told her this is not a question for an app. Leaving a
-              script as the last thing she reads would quietly undo that. */}
-          {result.caution && (
-            <p className="mt-3 text-[0.9rem] leading-relaxed text-gold-soft/90 text-pretty">
-              The conversation above comes first. If you do decide to ask him
-              something after it, this is the thing worth asking.
-            </p>
-          )}
-          <p className="mt-3 text-[0.95rem] leading-relaxed text-cream/70 text-pretty">
-            {result.script.why}
-          </p>
-          <blockquote className="mt-5 border-l-2 border-gold-soft pl-4">
-            <p className="font-display text-[1.22rem] font-medium leading-relaxed text-cream text-pretty">
-              “{result.script.words}”
-            </p>
-          </blockquote>
-          <button
-            onClick={copyWords}
-            className="mt-5 inline-flex items-center gap-2 rounded-full border border-cream/30 px-4 py-2 text-[0.85rem] font-medium text-cream transition hover:bg-cream/10"
-          >
-            {copied ? (
-              <>
-                <CheckIcon size={13} /> Copied
-              </>
-            ) : (
-              'Copy the words'
-            )}
-          </button>
-          <div className="mt-6 border-t border-cream/15 pt-5">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">
-              What the answer tells you
-            </p>
-            <p className="mt-2 text-[0.98rem] leading-relaxed text-cream/85 text-pretty">
-              {result.script.tells}
-            </p>
-          </div>
-        </div>
-      </div>
+      <ScriptCard
+        script={result.script}
+        title="The one question to ask next"
+        source="read"
+        preface={
+          result.caution
+            ? `The conversation above comes first. If you do decide to ask ${subject} something after it, this is the thing worth asking.`
+            : undefined
+        }
+      />
 
       {/* Where she can go from here. */}
       <div className="mt-9 flex flex-col gap-3">
@@ -414,6 +375,19 @@ function Result({
             </span>
             <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
               It already knows what this read said. Ask it the thing you did not want to ask a friend.
+            </span>
+          </span>
+          <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+        </button>
+
+        <button
+          onClick={onOpenFamilies}
+          className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
+        >
+          <span className="flex-1">
+            <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
+            <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+              Telling your wali, the first conversation with hooyo, asking {subject} to send {subject === 'him' ? 'his' : 'her'} people — word for word.
             </span>
           </span>
           <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />

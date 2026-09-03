@@ -45,6 +45,8 @@ export type Screen =
   | 'profile'
   | 'sample'
   | 'read'
+  | 'beforeYes'
+  | 'families'
   | 'connections'
   | 'conversation'
   | 'plus'
@@ -88,6 +90,8 @@ export function useNiyyah() {
   const [waitlist, setWaitlist] = useState<WaitlistState | null>(saved?.waitlist ?? null)
   // The last read she took on someone. Answers only; the reading is recomputed.
   const [read, setRead] = useState<ReadRecord | null>(saved?.read ?? null)
+  // Before you say yes — which conversations she and he have actually had.
+  const [beforeYes, setBeforeYes] = useState<ReadRecord | null>(saved?.beforeYes ?? null)
   const [reflection, setReflection] = useState<Reflection | null>(() =>
     saved?.completed ? buildReflection(saved.answers) : null,
   )
@@ -200,6 +204,7 @@ export function useNiyyah() {
             plus,
             waitlist,
             read,
+            beforeYes,
             completed,
             matched,
             pendingInterest,
@@ -224,6 +229,7 @@ export function useNiyyah() {
     plus,
     waitlist,
     read,
+    beforeYes,
     completed,
     matched,
     pendingInterest,
@@ -278,6 +284,7 @@ export function useNiyyah() {
     setPlus(defaultPlus)
     setWaitlist(null)
     setRead(null)
+    setBeforeYes(null)
     setResumeIndex(0)
     setMatched([])
     setPendingInterest([])
@@ -332,9 +339,15 @@ export function useNiyyah() {
     setScreen('intake')
   }
 
-  /** Enter the Home hub; rebuild the reflection synchronously if needed. */
+  /**
+   * Enter the Home hub; rebuild the reflection synchronously if it was lost.
+   *
+   * Only for someone who has actually completed the intake. Building a map
+   * from empty answers yields a plausible-looking number for a person who never
+   * answered anything — which is a lie with a decimal point.
+   */
   function enterHome() {
-    setReflection((prev) => prev ?? buildReflection(answers))
+    setReflection((prev) => prev ?? (everCompleted ? buildReflection(answers) : null))
     setMapReveal(false)
     setScreen('home')
   }
@@ -502,6 +515,7 @@ export function useNiyyah() {
     plus,
     waitlist,
     read,
+    beforeYes,
     reflection,
     resumeIndex,
     skipFirstIntro,
@@ -534,6 +548,7 @@ export function useNiyyah() {
     setStage,
     setWaitlist,
     setRead,
+    setBeforeYes,
     // actions
     answer,
     completeIntake,

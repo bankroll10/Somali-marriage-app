@@ -24,6 +24,8 @@ export interface CoachContext {
   stage?: Stage
   /** One line about the read she took on someone. Never his name — we don't have it. */
   readNote?: string
+  /** One line about Before you say yes — which conversations they have had. */
+  beforeYesNote?: string
   /** Live app state — the guide knows what's actually happening here. */
   social?: {
     matchedNames: string[]

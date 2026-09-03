@@ -261,6 +261,7 @@ export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
     // Only when there is something to say. "connected with [no one yet]" went out
     // on every single request and told the model nothing.
     ...(ctx.readNote ? [`THEIR READ ON SOMEONE (their own answers, taken in this app): ${ctx.readNote}. Use it if relevant; never invent detail about this person beyond it.`] : []),
+    ...(ctx.beforeYesNote ? [`BEFORE YOU SAY YES (which of the eleven pre-marriage conversations they have had with this person): ${ctx.beforeYesNote}. Help them open the next one; never take a position on the topic itself.`] : []),
     ...(social?.matchedNames.length || social?.pendingNames.length
       ? [`LIVE APP STATE: connected with [${social.matchedNames.join(', ') || 'no one'}]; awaiting reply from [${social.pendingNames.join(', ') || 'no one'}].`]
       : []),

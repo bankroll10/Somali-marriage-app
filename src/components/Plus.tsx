@@ -52,8 +52,8 @@ export default function Plus({
             </h1>
             <p className="mt-4 max-w-md text-[1.02rem] leading-relaxed text-cream/80 text-pretty">
               {plusActive
-                ? 'Every voice without a counter, and the guidance that starts after the introductions stop. Nothing will be charged when this ends — we never took a card.'
-                : 'Your map, your work, your protections and your introductions are free and always will be. Niyyah+ pays for the one thing that costs us money every time you use it, and for the part of this that begins after the match.'}
+                ? 'Every voice, without a counter. Nothing will be charged when this ends — we never took a card.'
+                : 'Your map, your work, your reads, the words for your family and your introductions are free and always will be. Niyyah+ pays for the one thing that costs us money every time you use it: the guide, without a counter.'}
             </p>
           </div>
         </section>

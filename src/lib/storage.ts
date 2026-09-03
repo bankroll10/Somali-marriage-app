@@ -37,6 +37,8 @@ export interface PersistedState {
   waitlist: WaitlistState | null
   /** The most recent read they took on someone. */
   read: ReadRecord | null
+  /** Before you say yes — which of the eleven conversations they've had. */
+  beforeYes: ReadRecord | null
   completed: boolean
   // Social + guide state — the product must remember everything between visits.
   matched: string[]
@@ -76,6 +78,7 @@ export function loadProgress(): Persisted | null {
         ? { ...p.waitlist, contact: p.waitlist.contact ?? p.waitlist.email ?? '', joinedAt: p.waitlist.joinedAt ?? '' }
         : null,
       read: p.read ?? null,
+      beforeYes: p.beforeYes ?? null,
       completed: p.completed ?? false,
       matched: p.matched ?? [],
       pendingInterest: p.pendingInterest ?? [],

@@ -6,6 +6,11 @@ import { ArrowRight } from '../ui'
 interface Props {
   stage: Stage
   onSetStage: (s: Stage) => void
+  /** The instruments for each stage — the band is where the arc becomes doors. */
+  onOpenRead?: () => void
+  onOpenBeforeYes?: () => void
+  onOpenFamilies?: () => void
+  onOpenGuide?: () => void
 }
 
 /**
@@ -13,9 +18,20 @@ interface Props {
  * follows you past the match instead of ending there. Moving stage is always
  * the member's own call, never inferred from who they've messaged.
  */
-export default function StageBand({ stage, onSetStage }: Props) {
+export default function StageBand({ stage, onSetStage, onOpenRead, onOpenBeforeYes, onOpenFamilies, onOpenGuide }: Props) {
   const [open, setOpen] = useState(false)
   const st = getStage(stage)
+
+  // What this stage has for her. The stage system used to be a paragraph and a
+  // picker; now each stage opens onto the thing built for it.
+  const doors: { label: string; go?: () => void }[] =
+    stage === 'talking'
+      ? [{ label: 'Is he serious?', go: onOpenRead }, { label: 'The words for your family', go: onOpenFamilies }]
+      : stage === 'deciding'
+        ? [{ label: 'Before you say yes', go: onOpenBeforeYes }, { label: 'The words for your family', go: onOpenFamilies }]
+        : stage === 'married'
+          ? [{ label: 'Talk to your guide', go: onOpenGuide }]
+          : []
 
   return (
     <section className="animate-rise mt-8">
@@ -41,6 +57,21 @@ export default function StageBand({ stage, onSetStage }: Props) {
           )}
         </div>
         <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">{st.focus}</p>
+        {!open && doors.some((d) => d.go) && (
+          <div className="mt-3.5 flex flex-wrap gap-2">
+            {doors
+              .filter((d) => d.go)
+              .map((d) => (
+                <button
+                  key={d.label}
+                  onClick={d.go}
+                  className="rounded-full border border-forest/30 bg-forest/[0.06] px-3.5 py-1.5 text-[0.85rem] font-medium text-forest transition-all hover:bg-forest/[0.12]"
+                >
+                  {d.label}
+                </button>
+              ))}
+          </div>
+        )}
         {open && (
           <div className="mt-4 border-t border-line pt-4">
             <p id="stage-picker-label" className="mb-2.5 text-[0.82rem] text-muted">

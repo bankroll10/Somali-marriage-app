@@ -9,8 +9,11 @@
  *     protect herself — or to answer a man who has already expressed interest —
  *     is the oldest move in this category and we don't make it.
  *
- *  2. We charge for what costs us money to run, and for the work that starts
- *     after the introductions stop. That's the guide, and the lifecycle.
+ *  2. We charge only for what costs us money to run: the live guide, without a
+ *     counter. Everything that makes this understand her situation — the read,
+ *     Before you say yes, the words for her family — is free, because charging
+ *     for the thing that proves we understand her would be charging for the
+ *     proof.
  *
  * Everything here is stated in the app's own voice, including the parts that
  * argue against buying the most expensive plan.
@@ -29,6 +32,8 @@ export const freeForever: string[] = [
   'Verification, photo blur, wali-friendly mode, and the privacy shield',
   'Reporting and blocking anyone, instantly, with no questions',
   'Being introduced — and replying to anyone who is serious about you',
+  'A read on someone, and Before you say yes — the conversations that decide a marriage, asked early',
+  'The family conversations — words for your wali, for hooyo, and for two families meeting',
   `${FREE_REPLIES} guide replies every month`,
 ]
 
@@ -43,14 +48,6 @@ export const plusIncludes: PlusFeature[] = [
   {
     title: 'Your guide, without a counter',
     body: 'All six voices, as often as you need them — the one that steadies you at 1am and the one that keeps you honest. Every reply costs us real money to run; that’s the only reason there’s a limit at all.',
-  },
-  {
-    title: 'Guidance past the match',
-    body: 'Deciding together, and married. The questions that actually decide a marriage — money, family, where you’ll live, how you argue — arrive long after the introductions stop.',
-  },
-  {
-    title: 'The family conversations',
-    body: 'Preparation and words you can borrow for the wali, for your parents, and for the meeting between two families. The part everyone dreads and nobody rehearses.',
   },
   {
     title: 'A matchmaker in your corner',
