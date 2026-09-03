@@ -11,8 +11,11 @@ import { flushWaitlistQueue } from '../lib/waitlist'
 import { getStage } from '../data/stages'
 import { ledger } from '../lib/ledger'
 import { rungsFrom } from '../lib/rungs'
+import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState } from '../lib/followup'
+import { buildRead } from '../lib/read'
+import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
-import { readCouple } from '../lib/couple'
+import { coupleReading, readCouple } from '../lib/couple'
 import type { Entry } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
 import { readVouch } from '../lib/vouch'
@@ -37,6 +40,7 @@ import type {
   TrustSettings,
   ReadRecord,
   CoupleState,
+  FollowUp,
   VouchState,
   WaitlistState,
 } from '../types'
@@ -125,6 +129,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // The two-sided Before you say yes she started, and a family member's vouch.
   const [couple, setCouple] = useState<CoupleState | null>(saved?.couple ?? null)
   const [vouch, setVouch] = useState<VouchState | null>(saved?.vouch ?? null)
+  // What the product told her to do, and whether she did it. See lib/followup.ts.
+  const [followups, setFollowups] = useState<FollowUp[]>(saved?.followups ?? [])
   // The code her map is kept under. Read once at mount and refreshed by the
   // actions that keep it, so the ledger stays a pure function of state.
   const [keptCode, setKeptCode] = useState<string | null>(() => rememberedCode())
@@ -199,8 +205,24 @@ export function useNiyyah(entry: Entry | null = null) {
   const ledgerDone = useMemo(() => ledgerEntries.filter((e) => e.done).map((e) => e.id), [ledgerEntries])
   // The ladder — the only thing this product measures. See src/lib/rungs.ts.
   const rungs = useMemo(
-    () => rungsFrom({ situated, completed, stage, read, beforeYes, couple, vouch, waitlist, followedThrough: false }),
-    [situated, completed, stage, read, beforeYes, couple, vouch, waitlist],
+    () =>
+      rungsFrom({
+        situated,
+        completed,
+        stage,
+        read,
+        beforeYes,
+        couple,
+        vouch,
+        waitlist,
+        followedThrough: followedThrough(followups),
+      }),
+    [situated, completed, stage, read, beforeYes, couple, vouch, waitlist, followups],
+  )
+  // The one open thing to ask her about, or — usually — nothing.
+  const followUpAsk = useMemo(
+    () => openFollowUp(followups, identity.gender ?? 'woman'),
+    [followups, identity.gender],
   )
   const answeredCount = Object.keys(answers).length
   const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome
@@ -253,12 +275,17 @@ export function useNiyyah(entry: Entry | null = null) {
     if (!couple || couple.answered) return
     let live = true
     readCouple(couple.code).then((v) => {
-      if (live && v?.status === 'joint') setCouple((prev) => (prev ? { ...prev, answered: new Date().toISOString() } : prev))
+      if (!live || v?.status !== 'joint') return
+      setCouple((prev) => (prev ? { ...prev, answered: new Date().toISOString() } : prev))
+      // The one the two of them should open together is the one to ask about
+      // in a few days — this is where the pair's follow-through comes from.
+      const open = coupleReading(v.joint, identity.gender ?? 'woman').open
+      if (open) setFollowups((prev) => noteFollowUp(prev, 'couple', open.id))
     })
     return () => {
       live = false
     }
-  }, [couple])
+  }, [couple, identity.gender])
 
   // ── Persistence (debounced — the bio textarea saves per keystroke otherwise)
   useEffect(() => {
@@ -281,6 +308,7 @@ export function useNiyyah(entry: Entry | null = null) {
             beforeYes,
             couple,
             vouch,
+            followups,
             completed,
             matched,
             pendingInterest,
@@ -309,6 +337,7 @@ export function useNiyyah(entry: Entry | null = null) {
     beforeYes,
     couple,
     vouch,
+    followups,
     completed,
     matched,
     pendingInterest,
@@ -367,6 +396,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setBeforeYes(null)
     setCouple(null)
     setVouch(null)
+    setFollowups([])
     setKeptCode(null)
     setResumeIndex(0)
     setMatched([])
@@ -498,6 +528,43 @@ export function useNiyyah(entry: Entry | null = null) {
       const used = prev.usage.month === month ? prev.usage.used : 0
       return { ...prev, usage: { month, used: used + 1 } }
     })
+  }
+
+  /**
+   * Save a read, and write down the question it just handed her — so that in a
+   * few days the product can ask whether she asked it, instead of forgetting.
+   */
+  function saveRead(record: ReadRecord | null) {
+    setRead(record)
+    if (!record) return
+    const r = buildRead(record.answers, identity.gender ?? 'woman')
+    if (r) setFollowups((prev) => noteFollowUp(prev, 'read', r.band === 'early' ? 'early' : r.thin))
+  }
+
+  /** The same for the eleven: the one it told her to open is the one we ask about. */
+  function saveBeforeYes(record: ReadRecord | null) {
+    setBeforeYes(record)
+    if (!record) return
+    const r = buildBeforeYes(record.answers, identity.gender ?? 'woman')
+    if (r) setFollowups((prev) => noteFollowUp(prev, 'beforeYes', r.open.id))
+  }
+
+  /**
+   * How it went.
+   *
+   * 'asked' is the only outcome that is a claim about the world, and when the
+   * question came from the eleven it is written back into her sheet — so the
+   * unasked list actually shrinks as the courtship goes on, instead of staying
+   * frozen at the day she filled it in.
+   */
+  function answerFollowUp(id: string, outcome: NonNullable<FollowUp['outcome']>, agreed?: boolean) {
+    const target = followups.find((f) => f.id === id)
+    setFollowups((prev) => resolveFollowUp(prev, id, outcome))
+    if (outcome !== 'asked' || agreed === undefined || !target) return
+    if (target.source !== 'beforeYes' && target.source !== 'couple') return
+    setBeforeYes((prev) =>
+      prev ? { at: new Date().toISOString(), answers: { ...prev.answers, [target.topic]: writeBackState(agreed) } } : prev,
+    )
   }
 
   /** Moving stage is always the user's call — never inferred from activity. */
@@ -675,8 +742,11 @@ export function useNiyyah(entry: Entry | null = null) {
     setCoachThreads,
     setStage,
     setWaitlist,
-    setRead,
-    setBeforeYes,
+    setRead: saveRead,
+    setBeforeYes: saveBeforeYes,
+    followups,
+    followUpAsk,
+    answerFollowUp,
     setCouple,
     setVouch,
     setKeptCode,

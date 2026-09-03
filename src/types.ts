@@ -218,6 +218,24 @@ export interface WaitlistState {
  * from them, so a change to how we read never leaves an old verdict frozen on
  * her screen. There is no name in here: we deliberately never ask who he is.
  */
+/**
+ * Something the product told her to do, and whether she did it.
+ *
+ * The only record here that is a claim about the world rather than about the
+ * app — see src/lib/followup.ts.
+ */
+export interface FollowUp {
+  id: string
+  source: 'read' | 'beforeYes' | 'couple'
+  /** A topic id from data/beforeYes.ts, or a read dimension. */
+  topic: string
+  /** When we told her. */
+  at: string
+  /** 'asked' means the conversation actually happened. */
+  outcome?: 'asked' | 'not-yet' | 'differently'
+  outcomeAt?: string
+}
+
 export interface ReadRecord {
   at: string
   answers: Record<string, string>

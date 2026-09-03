@@ -192,6 +192,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onRestart={n.startFresh}
           checkInMood={n.todayMood}
           checkIns={n.checkIns}
+          followUpAsk={n.followUpAsk}
+          onAnswerFollowUp={n.answerFollowUp}
           onCheckIn={n.recordCheckIn}
           steps={n.steps}
           onTakeStep={n.takeStep}

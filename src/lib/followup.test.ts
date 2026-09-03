@@ -1,0 +1,122 @@
+import { describe, expect, it } from 'vitest'
+import {
+  MIN_AGE_DAYS,
+  followedThrough,
+  noteFollowUp,
+  openFollowUp,
+  resolveFollowUp,
+  writeBackState,
+} from './followup'
+import type { FollowUp } from '../types'
+
+const DAY = 24 * 60 * 60 * 1000
+const NOW = Date.parse('2026-06-01T12:00:00.000Z')
+const ago = (days: number) => new Date(NOW - days * DAY).toISOString()
+
+const one = (over: Partial<FollowUp> = {}): FollowUp => ({
+  id: 'a',
+  source: 'beforeYes',
+  topic: 'money-home',
+  at: ago(5),
+  ...over,
+})
+
+describe('when it asks', () => {
+  it('waits until enough days have passed that the answer could have changed', () => {
+    expect(openFollowUp([one({ at: ago(MIN_AGE_DAYS - 1) })], 'woman', NOW)).toBeNull()
+    expect(openFollowUp([one({ at: ago(MIN_AGE_DAYS) })], 'woman', NOW)).not.toBeNull()
+  })
+
+  it('asks about one thing at a time, the most recent first', () => {
+    const ask = openFollowUp(
+      [one({ id: 'old', topic: 'qabiil', at: ago(30) }), one({ id: 'new', topic: 'money-home', at: ago(4) })],
+      'woman',
+      NOW,
+    )
+    expect(ask?.followUp.id).toBe('new')
+  })
+
+  it('stops asking once she has answered, whatever she answered', () => {
+    for (const outcome of ['asked', 'not-yet', 'differently'] as const) {
+      expect(openFollowUp([one({ outcome })], 'woman', NOW)).toBeNull()
+    }
+  })
+
+  it('never asks about something the eleven does not have', () => {
+    expect(openFollowUp([one({ topic: 'not-a-topic' })], 'woman', NOW)).toBeNull()
+    expect(openFollowUp([one({ source: 'read', topic: 'not-a-dimension' })], 'woman', NOW)).toBeNull()
+  })
+
+  it('has nothing to say when there is nothing open — the normal case', () => {
+    expect(openFollowUp([], 'woman', NOW)).toBeNull()
+  })
+})
+
+describe('what it says', () => {
+  const cases: FollowUp[] = [
+    one(),
+    one({ topic: 'live' }),
+    one({ topic: 'second-wife' }),
+    one({ source: 'couple', topic: 'children' }),
+    one({ source: 'read', topic: 'public' }),
+    one({ source: 'read', topic: 'family' }),
+  ]
+
+  it('never judges him, and never tells her to stay or go', () => {
+    const banned = [
+      'good man', 'bad man', 'a player', 'red flag', 'leave him', 'dump him', 'end it',
+      'walk away', 'you deserve better', 'you should marry', "don't marry", 'dealbreaker',
+      'you failed', 'you still haven', 'come back', 'streak', 'keep it up',
+    ]
+    for (const f of cases) {
+      const ask = openFollowUp([f], 'woman', NOW)!
+      const text = [ask.question, ask.label, ask.script.why, ask.script.words, ask.script.tells].join(' ').toLowerCase()
+      for (const phrase of banned) expect(text, `${f.source}:${f.topic}`).not.toContain(phrase)
+    }
+  })
+
+  it('never puts a digit in front of her', () => {
+    for (const f of cases) {
+      const ask = openFollowUp([f], 'woman', NOW)!
+      expect(`${ask.question} ${ask.label}`).not.toMatch(/\d/)
+    }
+  })
+
+  it('reads from her side, and from his', () => {
+    const hers = openFollowUp([one({ source: 'read', topic: 'public' })], 'woman', NOW)!
+    const his = openFollowUp([one({ source: 'read', topic: 'public' })], 'man', NOW)!
+    expect(hers.question).toContain('him')
+    expect(his.question).toContain('her')
+  })
+
+  it('offers the words again, and says when saying yes can update the eleven', () => {
+    expect(openFollowUp([one()], 'woman', NOW)!.writesBack).toBe(true)
+    expect(openFollowUp([one({ source: 'read', topic: 'public' })], 'woman', NOW)!.writesBack).toBe(false)
+  })
+})
+
+describe('keeping the record', () => {
+  it('does not stack a second ask for the same open thing', () => {
+    const once = noteFollowUp([], 'beforeYes', 'money-home', ago(5))
+    expect(noteFollowUp(once, 'beforeYes', 'money-home', ago(4))).toHaveLength(1)
+  })
+
+  it('asks again about a topic she has already resolved', () => {
+    const done = resolveFollowUp(noteFollowUp([], 'beforeYes', 'money-home', ago(30)), 'beforeYes:money-home:' + ago(30), 'asked')
+    expect(noteFollowUp(done, 'beforeYes', 'money-home', ago(1))).toHaveLength(2)
+  })
+
+  it('only "asked" is a conversation that actually happened', () => {
+    const base = noteFollowUp([], 'beforeYes', 'live', ago(9))
+    const id = base[0].id
+    expect(followedThrough(resolveFollowUp(base, id, 'asked'))).toBe(true)
+    expect(followedThrough(resolveFollowUp(base, id, 'not-yet'))).toBe(false)
+    expect(followedThrough(resolveFollowUp(base, id, 'differently'))).toBe(false)
+    expect(followedThrough(base)).toBe(false)
+  })
+
+  it('writes the talk back into the eleven as it actually went', () => {
+    expect(writeBackState(true)).toBe('agree')
+    expect(writeBackState(false)).toBe('differ')
+  })
+})

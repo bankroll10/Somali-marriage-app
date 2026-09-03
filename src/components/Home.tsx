@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import type { CheckIn, Dimension, Identity, ModeId, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
+import type { CheckIn, Dimension, FollowUp as FollowUpRecord, Identity, ModeId, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
+import type { FollowUpAsk } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { chosenReason, getDailyReflection } from '../data/daily'
 import { checkInReflection, comebackLine, getMood, journeyLine, moods, weekStrip, yesterdayLine, type MoodId } from '../data/checkin'
 import { momentsFor } from '../data/moments'
 import { dailyPrefsFor } from '../lib/personalize'
+import FollowUp from './home/FollowUp'
 import StageBand from './home/StageBand'
 import TodaysReflection from './home/TodaysReflection'
 import WorkCard from './home/WorkCard'
@@ -41,6 +43,9 @@ interface Props {
   onOpenFamilies: () => void
   onPhilosophy: () => void
   onRestart: () => void
+  /** The one open thing to ask her about — usually null. See lib/followup.ts. */
+  followUpAsk: FollowUpAsk | null
+  onAnswerFollowUp: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean) => void
   /** Today's mood, if already checked in. */
   checkInMood: MoodId | null
   /** Full check-in history — continuity, pattern rewards, the week strip. */
@@ -86,6 +91,8 @@ export default function Home({
   onOpenFamilies,
   onPhilosophy,
   onRestart,
+  followUpAsk,
+  onAnswerFollowUp,
   checkInMood,
   checkIns,
   onCheckIn,
@@ -302,6 +309,14 @@ export default function Home({
           onOpenFamilies={onOpenFamilies}
           onOpenGuide={() => onOpenGuide()}
         />
+
+        {/* Did the thing we told her to do actually happen? The only question
+            here about her life rather than about this app — and the reason a
+            one-off instrument becomes a companion for the length of a
+            courtship. Above the check-in: a mood is warm, but it is not progress. */}
+        {followUpAsk && (
+          <FollowUp ask={followUpAsk} onAnswer={onAnswerFollowUp} onAskGuide={(text) => onAsk(text)} />
+        )}
 
         {/* Daily check-in — the act of returning */}
         <section className="animate-rise mt-10">

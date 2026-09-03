@@ -9,6 +9,7 @@ import type {
   PlusState,
   ReadRecord,
   CoupleState,
+  FollowUp,
   VouchState,
   Stage,
   StepRecord,
@@ -47,6 +48,8 @@ export interface PersistedState {
   couple: CoupleState | null
   /** A family member's vouch, once given. */
   vouch: VouchState | null
+  /** What the product told her to do, and how it went. */
+  followups: FollowUp[]
   completed: boolean
   // Social + guide state — the product must remember everything between visits.
   matched: string[]
@@ -97,6 +100,7 @@ export function loadProgress(): Persisted | null {
       beforeYes: p.beforeYes ?? null,
       couple: p.couple ?? null,
       vouch: p.vouch ?? null,
+      followups: p.followups ?? [],
       completed: p.completed ?? false,
       matched: p.matched ?? [],
       pendingInterest: p.pendingInterest ?? [],

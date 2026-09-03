@@ -26,6 +26,7 @@ const state = {
   mapHistory: [],
   stage: 'preparing' as const,
   situated: true,
+  followups: [],
   steps: [],
   plus: defaultPlus,
   waitlist: null,
