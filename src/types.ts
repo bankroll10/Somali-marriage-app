@@ -251,27 +251,20 @@ export interface ReadRecord {
 }
 
 /**
- * Niyyah+ state. The trial takes no card, so there is no billing to model and
- * nothing that can lapse into a charge — it simply runs out.
+ * How much of the guide she has used, ever.
+ *
+ * This used to be a monthly allowance and a no-card trial: twenty replies a
+ * month, a counter in the header from ten, a wall at zero, and "no counter" as
+ * the thing Niyyah+ sold. That priced the guide per reply, which means the
+ * product earned when she spiralled. What is kept now is one number — replies
+ * spent — and the budget it is measured against comes from her progress, not
+ * from the calendar. See src/lib/budget.ts.
  */
-export interface PlusState {
-  /** Day the free trial began (YYYY-MM-DD), or null when it isn't running. */
-  trialStarted: string | null
-  /**
-   * Whether the trial has ever been taken. Separate from `trialStarted` on
-   * purpose: ending early clears the run but not the record, so cancelling
-   * can't be used to farm an endless string of free weeks.
-   */
-  trialTaken: boolean
-  /** Guide replies spent this calendar month — the free allowance. */
-  usage: { month: string; used: number }
+export interface GuideUse {
+  replies: number
 }
 
-export const defaultPlus: PlusState = {
-  trialStarted: null,
-  trialTaken: false,
-  usage: { month: '', used: 0 },
-}
+export const defaultGuideUse: GuideUse = { replies: 0 }
 
 /**
  * A dated reading, kept so the map can say what changed.

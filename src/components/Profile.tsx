@@ -26,9 +26,6 @@ interface Props {
   saveOk: boolean
   onOpenTrust: () => void
   onOpenPlus: () => void
-  /** Niyyah+ state, so this row never misdescribes what they have. */
-  plusActive: boolean
-  trialDaysLeft: number
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
   voices?: string[]
@@ -51,8 +48,6 @@ export default function Profile({
   saveOk,
   onOpenTrust,
   onOpenPlus,
-  plusActive,
-  trialDaysLeft,
   waitlist,
   onJoinWaitlist,
   voices,
@@ -347,25 +342,18 @@ export default function Profile({
           </div>
         </section>
 
-        {/* Niyyah+ — founding-member badge that opens the subscription screen. */}
+        {/* What's free and what isn't — a plain row, no badge. */}
         <button
           onClick={onOpenPlus}
-          className="group mt-5 flex w-full items-center gap-3 rounded-card border border-gold/30 bg-gold/[0.07] px-5 py-4 text-left transition-colors hover:bg-gold/[0.12]"
+          className="group mt-5 flex w-full items-center gap-3 rounded-card border border-line bg-white/60 px-5 py-4 text-left transition-colors hover:border-forest/40"
         >
           <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gold/15 text-gold">
             <CheckIcon size={15} />
           </span>
           <span className="flex-1">
-            <span className="flex items-center gap-2">
-              <span className="text-[0.95rem] font-medium text-ink">Niyyah+</span>
-              <span className="rounded-full bg-gold/20 px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-gold">
-                {plusActive ? 'Trial' : 'Founding member'}
-              </span>
-            </span>
+            <span className="text-[0.95rem] font-medium text-ink">What’s free, and what isn’t</span>
             <span className="mt-0.5 block text-[0.8rem] text-muted">
-              {plusActive
-                ? `${trialDaysLeft} ${trialDaysLeft === 1 ? 'day' : 'days'} left — no card on file, nothing to cancel.`
-                : 'What’s free forever, and what isn’t.'}
+              Almost everything, forever. Nothing here is priced by the reply or the month.
             </span>
           </span>
           <span className="text-[0.85rem] font-medium text-forest">View →</span>

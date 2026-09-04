@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 
 import type { Answers, CoachMessage, Identity, ModeId, Stage } from '../types'
 import { getMode, modes, defaultModeFor, type CoachContext } from '../data/coach'
 import { askCoach, type Closer } from '../lib/coach'
-import { FREE_REPLIES } from '../data/plus'
 import { nextId } from '../lib/id'
 import {
   ArrowRight,
@@ -50,17 +49,15 @@ interface Props {
   /** A question captured on Home, asked automatically on arrival. */
   initialAsk?: { text: string; why: string } | null
   onAskConsumed?: () => void
-  /** Niyyah+ state. Members have no counter; everyone else can see theirs. */
   /** Her Trust-screen choice to keep the Guide on this device. */
   onDeviceOnly?: boolean
   /** Where she is in the arc, and her last read — the Guide is told both. */
   stage?: Stage
   readNote?: string
   beforeYesNote?: string
-  plusActive: boolean
+  /** What is left of the guide's budget — see src/lib/budget.ts. Never shown as a counter. */
   repliesLeft: number
   onSpendReply: () => void
-  onOpenPlus: () => void
   /** She has taken the words as something she will say; Home asks in a few days. */
   onCommit: (words: string, topic: string) => void
   onBack: () => void
@@ -88,14 +85,12 @@ export default function Coach({
   initialMode,
   initialAsk,
   onAskConsumed,
-  plusActive,
   repliesLeft,
   onSpendReply,
   onDeviceOnly,
   stage,
   readNote,
   beforeYesNote,
-  onOpenPlus,
   onCommit,
   onBack,
 }: Props) {
@@ -191,10 +186,10 @@ export default function Coach({
     })
   }
 
-  // Out of allowance. The word "locked" is doing real work here: nothing that
-  // already exists is taken away — every past conversation stays readable, and
-  // the wall renders under the last answer rather than over it.
-  const locked = !plusActive && repliesLeft <= 0
+  // Budget spent. Nothing that already exists is taken away — every past
+  // conversation stays readable, and the wall renders under the last answer
+  // rather than over it. It points at what refills the budget, not at a price.
+  const locked = repliesLeft <= 0
 
   async function send(text: string) {
     const trimmed = text.trim()
@@ -332,17 +327,10 @@ export default function Coach({
             {activeMode.label}
           </p>
           <p className="text-[0.78rem] text-muted">{activeMode.tagline} · private</p>
-          {/* Shown from halfway, not from the first message. A counter that's
-              always on your screen is a pressure gauge; one that appears when it
-              starts to matter is just honesty. */}
-          {!plusActive && repliesLeft <= FREE_REPLIES / 2 && repliesLeft > 0 && (
-            <button
-              onClick={onOpenPlus}
-              className="text-[0.75rem] text-gold underline-offset-4 hover:underline"
-            >
-              {repliesLeft} {repliesLeft === 1 ? 'reply' : 'replies'} left this month
-            </button>
-          )}
+          {/* No counter here. One used to appear from halfway — "6 replies left
+              this month" — and open the subscription screen. A counter on a
+              guide is a pressure gauge, and the thing it sold was the guide
+              without one. */}
         </div>
         <button
           onClick={() => setMode(null)}
@@ -416,25 +404,26 @@ export default function Coach({
           {locked && (
             <div className="animate-rise mt-2 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
               <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
-                That’s this month’s {FREE_REPLIES} replies
+                The guide has said what it can, for now
               </p>
               <p className="mt-2.5 font-display text-[1.3rem] font-medium leading-snug tracking-tight text-ink text-balance">
-                Your guide will be here on the 1st.
+                The next replies come from the next step.
               </p>
               <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-                Every conversation above stays yours to re-read, and everything
-                else in Niyyah is untouched — your map, your work, your
-                protections, and answering anyone who’s serious about you.
+                Every conversation above stays yours to re-read. The guide’s budget
+                refills when something real moves: you take a read on him, you
+                go through the eleven, you answer “since last time” on your space,
+                you say where you are now. Each one is more replies — and each one
+                is the thing the guide would have told you to do anyway.
               </p>
               <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-                Niyyah+ lifts the counter. Seven days free, and we don’t take a
-                card to start it.
+                There is nothing to buy here. That is deliberate.
               </p>
               <button
-                onClick={onOpenPlus}
+                onClick={onBack}
                 className="group mt-4 inline-flex items-center gap-1.5 rounded-full bg-forest px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:bg-forest-deep"
               >
-                See what Niyyah+ is
+                Back to your space
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
@@ -466,7 +455,7 @@ export default function Coach({
         {locked ? (
           <div className="mx-auto max-w-xl px-5 py-4 text-center">
             <p className="text-[0.85rem] text-muted text-pretty">
-              Your replies come back on the 1st — or start seven free days, no card.
+              Take a step on your space and the guide picks up where you left it.
             </p>
           </div>
         ) : (
@@ -487,7 +476,11 @@ export default function Coach({
               }
             }}
             rows={1}
-            placeholder={`Tell your ${activeMode.label.toLowerCase()} what’s going on…`}
+            placeholder={
+              repliesLeft <= 3
+                ? 'A few replies left before the guide asks you to take a step…'
+                : `Tell your ${activeMode.label.toLowerCase()} what’s going on…`
+            }
             className={`max-h-32 min-h-[3rem] flex-1 resize-none bg-white/70 px-4 py-3 text-[1rem] leading-relaxed ${fieldClass}`}
           />
           <button

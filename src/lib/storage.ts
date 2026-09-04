@@ -2,9 +2,9 @@ import type {
   Answers,
   MapSnapshot,
   CoachMessage,
+  GuideUse,
   Identity,
   ModeId,
-  PlusState,
   ReadRecord,
   CoupleState,
   FollowUp,
@@ -14,7 +14,7 @@ import type {
   TrustSettings,
   WaitlistState,
 } from '../types'
-import { defaultPlus, defaultTrust } from '../types'
+import { defaultGuideUse, defaultTrust } from '../types'
 
 const KEY = 'niyyah.intake.v1'
 
@@ -30,8 +30,8 @@ export interface PersistedState {
   situated: boolean
   /** Work taken on from the map, open and completed — oldest first. */
   steps: StepRecord[]
-  /** Trial state + this month's guide allowance. */
-  plus: PlusState
+  /** Replies spent, ever — measured against a budget her progress grants. */
+  guide: GuideUse
   /** Their saved place, once they've asked for one. */
   waitlist: WaitlistState | null
   /** The most recent read they took on someone. */
@@ -61,6 +61,8 @@ export function loadProgress(): Persisted | null {
     // any more; they fall away on the next save.
     const p = JSON.parse(raw) as Partial<Persisted> & {
       waitlist?: (Partial<WaitlistState> & { email?: string }) | null
+      /** The old monthly allowance and trial. Only what was spent carries over. */
+      plus?: { usage?: { used?: number } } | null
     }
     return {
       answers: p.answers ?? {},
@@ -85,7 +87,7 @@ export function loadProgress(): Persisted | null {
       // where she was — even if she did it before we recorded the choice.
       situated: p.situated ?? ((p.stage !== undefined && p.stage !== 'preparing') || !!p.completed),
       steps: p.steps ?? [],
-      plus: { ...defaultPlus, ...(p.plus ?? {}) },
+      guide: p.guide ?? { replies: p.plus?.usage?.used ?? defaultGuideUse.replies },
       // Earlier saves stored an email; the field now holds email or phone.
       waitlist: p.waitlist
         ? { ...p.waitlist, contact: p.waitlist.contact ?? p.waitlist.email ?? '', joinedAt: p.waitlist.joinedAt ?? '' }

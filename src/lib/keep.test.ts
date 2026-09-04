@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { codeFromUrl, keepMap, rememberedCode, restoreLink, restoreMap } from './keep'
 import { saveProgress } from './storage'
-import { defaultPlus, defaultTrust } from '../types'
+import { defaultGuideUse, defaultTrust } from '../types'
 
 /**
  * The first thing the business owns.
@@ -35,7 +35,7 @@ const state = {
   situated: true,
   followups: [],
   steps: [],
-  plus: defaultPlus,
+  guide: defaultGuideUse,
   waitlist: null,
   read: null,
   beforeYes: null,

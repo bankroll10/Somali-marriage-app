@@ -213,10 +213,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           stage={n.stage}
           readNote={readNote}
           beforeYesNote={beforeYesNote}
-          plusActive={n.plusActive}
           repliesLeft={n.repliesLeft}
           onSpendReply={n.spendReply}
-          onOpenPlus={() => n.setScreen('plus')}
           onCommit={n.commitFromGuide}
           onBack={() => n.setScreen('home')}
         />
@@ -250,8 +248,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           saveOk={n.saveOk}
           onOpenTrust={() => n.openTrust('profile')}
           onOpenPlus={() => n.setScreen('plus')}
-          plusActive={n.plusActive}
-          trialDaysLeft={n.trialDaysLeft}
           waitlist={n.waitlist}
           onJoinWaitlist={n.joinedCohort}
           voices={voices}
@@ -338,15 +334,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
 
     case 'plus':
       return (
-        <Plus
-          plusActive={n.plusActive}
-          trialDaysLeft={n.trialDaysLeft}
-          trialUsed={n.trialUsed}
-          repliesLeft={n.repliesLeft}
-          onStartTrial={n.startTrial}
-          onEndTrial={n.endTrial}
-          onBack={() => n.setScreen('profile')}
-        />
+        <Plus onBack={() => n.setScreen('profile')} />
       )
 
     case 'philosophy': {

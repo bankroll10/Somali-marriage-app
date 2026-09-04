@@ -18,8 +18,8 @@ import { coupleReading, readCouple } from '../lib/couple'
 import type { Entry } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
 import { readVouch } from '../lib/vouch'
-import { defaultPlus, defaultTrust } from '../types'
-import { FREE_REPLIES, TRIAL_DAYS } from '../data/plus'
+import { defaultGuideUse, defaultTrust } from '../types'
+import { repliesLeft as budgetLeft } from '../lib/budget'
 import type {
   Answers,
   AnswerValue,
@@ -27,9 +27,9 @@ import type {
   CoachMessage,
   Gender,
   Identity,
+  GuideUse,
   MapSnapshot,
   ModeId,
-  PlusState,
   Reflection,
   Stage,
   StepRecord,
@@ -106,8 +106,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // The work taken on from the map. One open at a time; finished ones are kept
   // forever — they're the only honest record of change the app can show.
   const [steps, setSteps] = useState<StepRecord[]>(saved?.steps ?? [])
-  // Niyyah+ — the trial takes no card, so it can only ever run out.
-  const [plus, setPlus] = useState<PlusState>(saved?.plus ?? defaultPlus)
+  // Replies spent, ever. The budget they count against comes from her rungs.
+  const [guideUse, setGuideUse] = useState<GuideUse>(saved?.guide ?? defaultGuideUse)
   // The saved place — the one piece of state that leaves this device.
   const [waitlist, setWaitlist] = useState<WaitlistState | null>(saved?.waitlist ?? null)
   // The last read she took on someone. Answers only; the reading is recomputed.
@@ -183,25 +183,11 @@ export function useNiyyah(entry: Entry | null = null) {
   const answeredCount = Object.keys(answers).length
   const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome
 
-  // ── Niyyah+ ────────────────────────────────────────────────────────────────
-  // The allowance resets on the calendar month; a stale month reads as zero used
-  // rather than being rewritten on load, so nothing is persisted just by looking.
-  const thisMonth = todayKey().slice(0, 7)
-  const usedThisMonth = plus.usage.month === thisMonth ? plus.usage.used : 0
-  const trialDaysLeft = plus.trialStarted
-    ? Math.max(
-        0,
-        TRIAL_DAYS -
-          Math.round(
-            (new Date(`${todayKey()}T00:00:00`).getTime() -
-              new Date(`${plus.trialStarted}T00:00:00`).getTime()) /
-              86_400_000,
-          ),
-      )
-    : 0
-  const plusActive = trialDaysLeft > 0
-  const trialUsed = plus.trialTaken
-  const repliesLeft = plusActive ? Infinity : Math.max(0, FREE_REPLIES - usedThisMonth)
+  // ── The guide's budget ─────────────────────────────────────────────────────
+  // Refilled by progress, never by the calendar: every rung on the ladder and
+  // every follow-up she has answered grants replies. See src/lib/budget.ts.
+  const followUpsAnswered = followups.filter((f) => !!f.outcome).length
+  const repliesLeft = budgetLeft(rungs.length, followUpsAnswered, guideUse.replies)
 
   // False when the browser refuses to persist (private mode, full quota). The
   // UI must say so — a silent failure costs the user their whole reflection.
@@ -254,7 +240,7 @@ export function useNiyyah(entry: Entry | null = null) {
             stage,
             situated,
             steps,
-            plus,
+            guide: guideUse,
             waitlist,
             read,
             beforeYes,
@@ -276,7 +262,7 @@ export function useNiyyah(entry: Entry | null = null) {
     stage,
     situated,
     steps,
-    plus,
+    guideUse,
     waitlist,
     read,
     beforeYes,
@@ -329,7 +315,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setStageRaw('preparing')
     setSituated(false)
     setSteps([])
-    setPlus(defaultPlus)
+    setGuideUse(defaultGuideUse)
     setWaitlist(null)
     setRead(null)
     setBeforeYes(null)
@@ -437,30 +423,9 @@ export function useNiyyah(entry: Entry | null = null) {
     })
   }
 
-  /** Begin the no-card trial. Nothing to cancel; it simply ends. */
-  function startTrial() {
-    track('trial_started')
-    setPlus((prev) => ({ ...prev, trialStarted: todayKey(), trialTaken: true }))
-  }
-
-  /**
-   * End it early. Real products make this hard on purpose; here it's one tap and
-   * it takes effect immediately, because a cancel button you can't find is the
-   * thing people are actually afraid of when they subscribe.
-   */
-  function endTrial() {
-    track('trial_ended')
-    setPlus((prev) => ({ ...prev, trialStarted: null }))
-  }
-
-  /** Spend one reply from the free allowance. Members spend nothing. */
+  /** Spend one reply. Charged only once an answer exists — the caller decides when. */
   function spendReply() {
-    if (plusActive) return
-    setPlus((prev) => {
-      const month = todayKey().slice(0, 7)
-      const used = prev.usage.month === month ? prev.usage.used : 0
-      return { ...prev, usage: { month, used: used + 1 } }
-    })
+    setGuideUse((prev) => ({ replies: prev.replies + 1 }))
   }
 
   /**
@@ -594,7 +559,6 @@ export function useNiyyah(entry: Entry | null = null) {
     mapHistory,
     stage,
     steps,
-    plus,
     waitlist,
     read,
     beforeYes,
@@ -619,9 +583,6 @@ export function useNiyyah(entry: Entry | null = null) {
     identityNext,
     hasProgress,
     saveOk,
-    plusActive,
-    trialDaysLeft,
-    trialUsed,
     repliesLeft,
     // setters exposed where screens legitimately own the shape
     setScreen,
@@ -650,8 +611,6 @@ export function useNiyyah(entry: Entry | null = null) {
     retakeMap,
     takeStep,
     completeStep,
-    startTrial,
-    endTrial,
     spendReply,
     enterHome,
     openGuide,

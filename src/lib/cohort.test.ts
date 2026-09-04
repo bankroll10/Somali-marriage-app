@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cohortCount, joinCohort } from './cohort'
 import { saveProgress } from './storage'
-import { defaultPlus, defaultTrust } from '../types'
+import { defaultGuideUse, defaultTrust } from '../types'
 
 function installStorage() {
   const store = new Map<string, string>()
@@ -26,7 +26,7 @@ const state = {
   situated: true,
   followups: [],
   steps: [],
-  plus: defaultPlus,
+  guide: defaultGuideUse,
   waitlist: null,
   read: null,
   beforeYes: null,

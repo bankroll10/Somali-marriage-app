@@ -72,13 +72,9 @@ export function seedDemo() {
       { dimension: 'family', taken: dayKey(3), done: dayKey(2) },
       { dimension: 'emotional', taken: dayKey(1) },
     ],
-    // Most of the month's guide allowance spent, no trial started — the "6
-    // replies left" line and the whole free-to-paid path are one tap away.
-    plus: {
-      trialStarted: null,
-      trialTaken: false,
-      usage: { month: dayKey(0).slice(0, 7), used: 14 },
-    },
+    // Some of the guide's budget spent. Three rungs reached (arrived, situated,
+    // mapped) grant forty-five replies; she has used fourteen.
+    guide: { replies: 14 },
     // No saved place — the ask is part of the demo.
     waitlist: null,
     // No read yet — taking one live is the demo's strongest moment.
