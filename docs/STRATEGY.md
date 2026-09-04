@@ -205,6 +205,14 @@ is *married per hundred arrived*.
 **The counter-metric:** sessions per week should *fall* after a rung is
 reached. If it rises, something is holding people rather than helping them.
 
+**Distribution: arrivals by source per hundred followed-through.** Of every
+hundred people who had the conversation, how many new people did their words
+bring in — and through which door: words a friend sent, the eleven, a couple's
+link, the door, a family link. Every link this product hands out opens the
+instrument it describes, with no front door and no account, and says only what
+kind of link it was. The rule: the words travel, the product is the footnote,
+and there is no reward, counter or unlock for sending anything.
+
 **Never measured:** daily or weekly active users, time in app, replies sent,
 threads opened, check-ins, introductions viewed.
 
@@ -218,6 +226,9 @@ threads opened, check-ins, introductions viewed.
 - A counter for guide replies that the member can see, or an unlimited tier.
 - A profile before there is a room to show it in.
 - Notifications about people. The only notification is "your city opened".
+- A referral reward, an invite counter, or share-to-unlock. Sending words to a
+  friend earns the sender nothing, and no one is told how many they sent.
+- A link that carries who sent it. Links carry what kind of thing they are.
 - Any mechanic whose success is measured by its own repetition.
 
 This list is meant to outlive the current codebase. Anyone hired from these

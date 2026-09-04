@@ -157,7 +157,10 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               eleven, you asked him, he answered, you had the conversation, your
               family vouched, you were counted, you’re deciding, you’re married —
               that step and the date reach us, along with your city if you gave
-              one. It goes under a code this phone made up for itself, which is
+              one. If you opened Niyyah from a link someone sent you, it also says
+              what kind of link that was — words, the eleven, a couple’s link, the
+              door, or a family link — and never who sent it. It goes under a code
+              this phone made up for itself, which is
               not your map code, so there is no way to put the two together. No
               answers, no name, no message, and nothing about how long you spent
               here or how often you opened it. Turn the control off and none of

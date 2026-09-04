@@ -154,7 +154,39 @@ The marketplace, when it exists, obeys the same rules as the instruments:
 - **Never:** who liked you, interest limits, paid visibility, notifications
   about people.
 
-## 8. Roadmap
+## 8. How it spreads
+
+Assume advertising is expensive, founder hype is gone, and growth cannot be
+brute-forced. In this community, nothing that says "I am looking" gets
+forwarded — a profile, a match, a map. What gets said to a friend is about
+*him*, about a *conversation*, or about a *couple*. So the product's outputs,
+which are words a person can say, are the thing that travels, and the product
+is the footnote.
+
+Three loops, in order of strength:
+
+1. **"I said the words, and something happened."** The moment a follow-up
+   resolves to "we talked" is the moment worth telling someone. Home keeps the
+   card for one more beat and offers one thing: send the words she just used
+   to a friend who is talking to someone. Every script card carries the same
+   send.
+2. **The two-sided eleven.** Every use recruits a man onto his own phone with
+   no account; the joint result is something a couple talks about with other
+   couples, and his screen offers to send the eleven to a friend who is about
+   to get engaged.
+3. **The family words and the vouch.** Cross-generational: the aunties are the
+   existing matchmaking network, and the vouch puts the product on a father's
+   phone.
+
+Three links open an instrument directly — `?read`, `?eleven`, `?families` —
+with no Welcome and no account. Any link may carry `&via=` naming what kind of
+link it was (words, eleven, couple, door, family) and never who sent it; it is
+the only attribution recorded, first arrival wins, and the founder's readout
+splits every rung by it. The metric is **arrivals by source per hundred
+followed-through**. Until the founding-preview gate comes off, every shared
+link returns 401 to anyone without the password.
+
+## 9. Roadmap
 
 1. **Live Claude behind the map** — `generateReflection` is the last local
    seam; the guide's function is the pattern.
