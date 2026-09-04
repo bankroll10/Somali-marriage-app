@@ -42,22 +42,6 @@ export interface CoachMessage {
   text: string
 }
 
-export interface ConvMessage {
-  id: string
-  from: 'me' | 'them' | 'system'
-  text: string
-}
-
-/** Daily check-in moods ("How's your heart today?"). */
-export type MoodId = 'steady' | 'hopeful' | 'heavy' | 'overthinking'
-
-/** One-tap daily check-in. */
-export interface CheckIn {
-  /** Local calendar day, YYYY-MM-DD. */
-  date: string
-  mood: MoodId
-}
-
 export type ModeId =
   | 'auntie'
   | 'brother'
@@ -258,6 +242,12 @@ export interface FollowUp {
 export interface ReadRecord {
   at: string
   answers: Record<string, string>
+  /**
+   * When she last said the read still stands. A read is about behaviour over
+   * time, and a month later the behaviour may have changed; Home asks once,
+   * and "still the same" is recorded here so it is not asked again for a while.
+   */
+  checkedAt?: string
 }
 
 /**

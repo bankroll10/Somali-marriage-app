@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
   MIN_AGE_DAYS,
+  READ_STALE_DAYS,
   followedThrough,
   noteFollowUp,
   openFollowUp,
+  readIsStale,
   resolveFollowUp,
   writeBackState,
 } from './followup'
@@ -137,5 +139,19 @@ describe('keeping the record', () => {
   it('writes the talk back into the eleven as it actually went', () => {
     expect(writeBackState(true)).toBe('agree')
     expect(writeBackState(false)).toBe('differ')
+  })
+})
+
+describe('a read a month old', () => {
+  const read = { at: ago(READ_STALE_DAYS), answers: {} }
+
+  it('is asked about after a month, not before', () => {
+    expect(readIsStale({ at: ago(READ_STALE_DAYS - 1), answers: {} }, NOW)).toBe(false)
+    expect(readIsStale(read, NOW)).toBe(true)
+  })
+
+  it('goes quiet for another month once she says it still stands', () => {
+    expect(readIsStale({ ...read, checkedAt: ago(2) }, NOW)).toBe(false)
+    expect(readIsStale({ ...read, checkedAt: ago(READ_STALE_DAYS) }, NOW)).toBe(true)
   })
 })

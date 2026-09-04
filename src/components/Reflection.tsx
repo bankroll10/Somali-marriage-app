@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Dimension, GroundState, Identity, MapSnapshot, ModeId, Reflection, StepRecord, WaitlistState, VouchState } from '../types'
 import { getMode } from '../data/coach'
-import { todayKey } from '../data/checkin'
+import { todayKey } from '../lib/dates'
 import { changesBetween } from '../lib/reflection'
 import {
   doneSteps,

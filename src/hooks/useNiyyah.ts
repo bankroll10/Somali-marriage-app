@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { allQuestions, totalQuestions } from '../data/intake'
-import { todayKey } from '../data/checkin'
+import { todayKey } from '../lib/dates'
 import { track } from '../lib/analytics'
 import { applyDemoParams } from '../lib/demo'
 import { buildReflection, generateReflection, snapshotOf } from '../lib/reflection'
@@ -23,14 +23,12 @@ import { FREE_REPLIES, TRIAL_DAYS } from '../data/plus'
 import type {
   Answers,
   AnswerValue,
-  CheckIn,
   Dimension,
   CoachMessage,
   Gender,
   Identity,
   MapSnapshot,
   ModeId,
-  MoodId,
   PlusState,
   Reflection,
   Stage,
@@ -97,9 +95,6 @@ export function useNiyyah(entry: Entry | null = null) {
   const [identity, setIdentity] = useState<Identity>(saved?.identity ?? {})
   const [answers, setAnswers] = useState<Answers>(saved?.answers ?? {})
   const [trust, setTrust] = useState<TrustSettings>(saved?.trust ?? defaultTrust)
-  const [checkIns, setCheckIns] = useState<CheckIn[]>(saved?.checkIns ?? [])
-  // First day on the path — set once, kept forever (until a full reset).
-  const [firstSeen, setFirstSeen] = useState<string>(saved?.firstSeen || todayKey())
   // Every reading ever made — the map becomes a record of growth, not a verdict.
   const [mapHistory, setMapHistory] = useState<MapSnapshot[]>(saved?.mapHistory ?? [])
   // Where they are in the whole arc. The product keeps serving them past the
@@ -187,8 +182,6 @@ export function useNiyyah(entry: Entry | null = null) {
   )
   const answeredCount = Object.keys(answers).length
   const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome
-  const todayEntry = checkIns.find((c) => c.date === todayKey())
-  const todayMood: MoodId | null = todayEntry?.mood ?? null
 
   // ── Niyyah+ ────────────────────────────────────────────────────────────────
   // The allowance resets on the calendar month; a stale month reads as zero used
@@ -257,8 +250,6 @@ export function useNiyyah(entry: Entry | null = null) {
             answers,
             identity,
             trust,
-            checkIns,
-            firstSeen,
             mapHistory,
             stage,
             situated,
@@ -281,8 +272,6 @@ export function useNiyyah(entry: Entry | null = null) {
     answers,
     identity,
     trust,
-    checkIns,
-    firstSeen,
     mapHistory,
     stage,
     situated,
@@ -336,8 +325,6 @@ export function useNiyyah(entry: Entry | null = null) {
     setIdentity({})
     setTrust(defaultTrust)
     setReflection(null)
-    setCheckIns([])
-    setFirstSeen(todayKey())
     setMapHistory([])
     setStageRaw('preparing')
     setSituated(false)
@@ -590,14 +577,12 @@ export function useNiyyah(entry: Entry | null = null) {
     setKeptCode(rememberedCode())
   }
 
-  function recordCheckIn(mood: MoodId) {
-    track('checkin_done', { mood })
-    setCheckIns((prev) => {
-      const today = todayKey()
-      // Replace today's entry if re-checking; keep the last 60 days of history.
-      const rest = prev.filter((c) => c.date !== today)
-      return [...rest, { date: today, mood }].slice(-60)
-    })
+  /**
+   * A month on, she says the read still stands. Recorded so Home does not ask
+   * again for another month; nothing else changes — the read is still hers.
+   */
+  function readStillStands() {
+    setRead((prev) => (prev ? { ...prev, checkedAt: new Date().toISOString() } : prev))
   }
 
   return {
@@ -606,8 +591,6 @@ export function useNiyyah(entry: Entry | null = null) {
     identity,
     answers,
     trust,
-    checkIns,
-    firstSeen,
     mapHistory,
     stage,
     steps,
@@ -635,7 +618,6 @@ export function useNiyyah(entry: Entry | null = null) {
     hasHome,
     identityNext,
     hasProgress,
-    todayMood,
     saveOk,
     plusActive,
     trialDaysLeft,
@@ -678,6 +660,6 @@ export function useNiyyah(entry: Entry | null = null) {
     commitFromGuide,
     openPhilosophy,
     openTrust,
-    recordCheckIn,
+    readStillStands,
   }
 }

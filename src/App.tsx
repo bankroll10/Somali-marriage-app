@@ -21,7 +21,6 @@ import type { CoachMessage, Gender } from './types'
 import type { Entry } from './lib/entry'
 import { buildRead, readSummary } from './lib/read'
 import { beforeYesSummary, buildBeforeYes } from './lib/beforeYes'
-import { guideOpeningLine } from './data/checkin'
 import { useNiyyah } from './hooks/useNiyyah'
 
 export default function App({ entry = null }: { entry?: Entry | null }) {
@@ -180,16 +179,14 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenFamilies={() => n.setScreen('families')}
           onPhilosophy={() => n.openPhilosophy('home')}
           onRestart={n.startFresh}
-          checkInMood={n.todayMood}
-          checkIns={n.checkIns}
           followUpAsk={n.followUpAsk}
           onAnswerFollowUp={n.answerFollowUp}
-          onCheckIn={n.recordCheckIn}
+          read={n.read}
+          onReadStillStands={n.readStillStands}
           steps={n.steps}
           onTakeStep={n.takeStep}
           onCompleteStep={n.completeStep}
           saveOk={n.saveOk}
-          firstSeen={n.firstSeen}
           stage={n.stage}
           onSetStage={n.setStage}
           hookId={hookId}
@@ -209,7 +206,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           answers={n.answers}
           threads={n.coachThreads}
           onThreadsChange={n.setCoachThreads}
-          moodLine={guideOpeningLine(n.checkIns)}
           initialMode={n.guideMode}
           initialAsk={n.guideAsk}
           onAskConsumed={n.clearGuideAsk}

@@ -21,8 +21,6 @@ const state = {
   answers: { 'hardest-part': 'serious' },
   identity: { firstName: 'Sagal', gender: 'woman' as const, scene: 'twin-cities' },
   trust: defaultTrust,
-  checkIns: [],
-  firstSeen: '2026-09-03',
   mapHistory: [],
   stage: 'preparing' as const,
   situated: true,

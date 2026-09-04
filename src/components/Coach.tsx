@@ -45,8 +45,6 @@ interface Props {
   /** Threads live in app state so the guide remembers across navigation. */
   threads: Threads
   onThreadsChange: Dispatch<SetStateAction<Threads>>
-  /** Continuity from today's check-in — woven into the greeting. */
-  moodLine?: string
   /** Open straight into a voice — used when the map hands over a topic. */
   initialMode?: ModeId | null
   /** A question captured on Home, asked automatically on arrival. */
@@ -87,7 +85,6 @@ export default function Coach({
   answers,
   threads,
   onThreadsChange: setThreads,
-  moodLine,
   initialMode,
   initialAsk,
   onAskConsumed,
@@ -174,7 +171,7 @@ export default function Coach({
     setAskedWhy(initialAsk.why || null)
     setThreads((prev) => {
       if (prev[mode]) return prev
-      const greeting = getMode(mode).greeting(ctx) + (moodLine ? `\n\n${moodLine}` : '')
+      const greeting = getMode(mode).greeting(ctx)
       return { ...prev, [mode]: [{ id: nextId(), role: 'coach', text: greeting }] }
     })
     void send(initialAsk.text)
@@ -189,7 +186,7 @@ export default function Coach({
     setCommitted(false)
     setThreads((prev) => {
       if (prev[id]) return prev
-      const greeting = getMode(id).greeting(ctx) + (moodLine ? `\n\n${moodLine}` : '')
+      const greeting = getMode(id).greeting(ctx)
       return { ...prev, [id]: [{ id: nextId(), role: 'coach', text: greeting }] }
     })
   }

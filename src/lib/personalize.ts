@@ -1,6 +1,5 @@
-import type { CheckIn, Dimension, Reflection, Stage } from '../types'
+import type { Dimension, Reflection, Stage } from '../types'
 import type { DailyPrefs, DailyReflection } from '../data/daily'
-import { dayKey } from '../data/checkin'
 
 type Tag = DailyReflection['tag']
 
@@ -31,24 +30,22 @@ const DIMENSION_THEME: Record<Dimension, Tag> = {
 }
 
 /**
- * Which daily reflections this person should see more of, drawn from three
- * signals they gave us themselves: the hardest part they named at the door,
- * the thinnest ground on their readiness map, and how their week has actually
- * been going. No two people with different answers get the same rotation.
+ * Which reflections this person should see more of, drawn from what they gave
+ * us themselves: the hardest part they named at the door, where they are in
+ * the arc, and the thinnest ground on their map. No two people with different
+ * answers get the same rotation. (A "heavy week" from the daily check-in used
+ * to be a signal here; the check-in is gone, and with it the only reason the
+ * app had to ask how she felt every day.)
  */
 export function dailyPrefsFor(
   hookId: string | undefined,
   reflection: Reflection | null,
-  checkIns: CheckIn[],
   stage: Stage = 'preparing',
 ): DailyPrefs {
   const tags: Tag[] = []
   const reasons: Partial<Record<Tag, string>> = {}
-  const add = (tag: Tag, reason: string, first = false) => {
-    if (!tags.includes(tag)) {
-      if (first) tags.unshift(tag)
-      else tags.push(tag)
-    }
+  const add = (tag: Tag, reason: string) => {
+    if (!tags.includes(tag)) tags.push(tag)
     // First reason for a theme wins — signals are added strongest-first.
     if (!reasons[tag]) reasons[tag] = reason
   }
@@ -70,15 +67,7 @@ export function dailyPrefsFor(
     add('Family', 'you’re building a marriage inside two families')
   }
 
-  // 2. A heavy or anxious week outranks the map — meet them where today is.
-  let heavyish = 0
-  for (let i = 0; i < 7; i++) {
-    const m = checkIns.find((c) => c.date === dayKey(i))?.mood
-    if (m === 'heavy' || m === 'overthinking') heavyish++
-  }
-  if (heavyish >= 3) add('Heart', 'this week has asked a lot of you', true)
-
-  // 3. The thinnest ground on their map — where growth would help most.
+  // 2. The thinnest ground on their map — where growth would help most.
   if (reflection?.thinnest.length) {
     const lowest = reflection.dimensions.find((d) => d.dimension === reflection.thinnest[0])
     const tag = lowest ? DIMENSION_THEME[lowest.dimension] : undefined

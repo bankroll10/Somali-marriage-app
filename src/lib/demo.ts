@@ -1,5 +1,5 @@
 import { clearProgress, saveProgress } from './storage'
-import { dayKey } from '../data/checkin'
+import { dayKey } from '../lib/dates'
 import { snapshotOf } from './reflection'
 import type { Answers, Identity } from '../types'
 
@@ -9,7 +9,7 @@ import type { Answers, Identity } from '../types'
  *   ?fresh — clears saved state → the app opens on Welcome (tab 1 of a demo:
  *            show onboarding and the 30-second aha).
  *   ?demo  — seeds a complete, coherent member ("Hodan") → the app opens on
- *            Home (tab 2: show the map, guide, trust, discovery, conversation).
+ *            Home (tab 2: show the work card, the map, the guide, the door).
  *
  * Reloading a ?demo URL re-seeds, so the demo tab always resets to a known
  * state. Both params overwrite whatever is in localStorage — by design.
@@ -56,15 +56,6 @@ export function seedDemo() {
     trust: { guideOnDevice: false, countMe: true },
     situated: true,
     followups: [],
-    // History but no entry TODAY — the live check-in tap is a demo moment,
-    // and the strip + continuity line have something to show.
-    checkIns: [
-      { date: dayKey(4), mood: 'heavy' },
-      { date: dayKey(2), mood: 'hopeful' },
-      { date: dayKey(1), mood: 'steady' },
-    ],
-    // Day 7 on the path — the journey milestone shows in demos.
-    firstSeen: dayKey(6),
     // Two readings: who she was on day one, and who she is now. The map says
     // what changed in her own words — something recent still ached, and her
     // heart leaned anxious; now she is healing, and meets closeness steadily.

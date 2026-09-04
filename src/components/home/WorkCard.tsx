@@ -7,7 +7,7 @@ import {
   openStep as findOpenStep,
   whenLabel,
 } from '../../data/nextStep'
-import { todayKey } from '../../data/checkin'
+import { todayKey } from '../../lib/dates'
 import { ArrowRight, CheckIcon } from '../ui'
 
 interface Props {

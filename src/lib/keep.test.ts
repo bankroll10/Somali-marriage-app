@@ -30,8 +30,6 @@ const state = {
   answers: { timeline: '1-2' },
   identity: { firstName: 'Sagal', gender: 'woman' as const },
   trust: defaultTrust,
-  checkIns: [],
-  firstSeen: '2026-09-02',
   mapHistory: [],
   stage: 'preparing' as const,
   situated: true,

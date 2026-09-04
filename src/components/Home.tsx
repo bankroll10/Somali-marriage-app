@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import type { CheckIn, Dimension, FollowUp as FollowUpRecord, Identity, ModeId, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
+import type { Dimension, FollowUp as FollowUpRecord, Identity, ModeId, ReadRecord, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
 import type { FollowUpAsk } from '../lib/followup'
+import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { chosenReason, getDailyReflection } from '../data/daily'
-import { checkInReflection, comebackLine, getMood, journeyLine, moods, weekStrip, yesterdayLine, type MoodId } from '../data/checkin'
 import { momentsFor } from '../data/moments'
 import { dailyPrefsFor } from '../lib/personalize'
 import FollowUp from './home/FollowUp'
@@ -46,19 +46,15 @@ interface Props {
   /** The one open thing to ask her about — usually null. See lib/followup.ts. */
   followUpAsk: FollowUpAsk | null
   onAnswerFollowUp: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean) => void
-  /** Today's mood, if already checked in. */
-  checkInMood: MoodId | null
-  /** Full check-in history — continuity, pattern rewards, the week strip. */
-  checkIns: CheckIn[]
-  onCheckIn: (mood: MoodId) => void
+  /** Her last read, so Home can ask — once a month — whether it still stands. */
+  read: ReadRecord | null
+  onReadStillStands: () => void
   /** The work taken on from the map — the app's centre of gravity. */
   steps: StepRecord[]
   onTakeStep: (d: Dimension) => void
   onCompleteStep: () => void
   /** False when this browser refuses to save — the user deserves to know. */
   saveOk: boolean
-  /** First day on the path. */
-  firstSeen: string
   /** Where they are in the arc, and moving through it — always their call. */
   stage: Stage
   onSetStage: (s: Stage) => void
@@ -91,14 +87,12 @@ export default function Home({
   onRestart,
   followUpAsk,
   onAnswerFollowUp,
-  checkInMood,
-  checkIns,
-  onCheckIn,
+  read,
+  onReadStillStands,
   steps,
   onTakeStep,
   onCompleteStep,
   saveOk,
-  firstSeen,
   stage,
   onSetStage,
   hookId,
@@ -114,9 +108,11 @@ export default function Home({
   // Once someone is deciding on a person — or married — the app has no business
   // showing them introductions. Following you past the match means acting like it.
   const seeking = stage === 'preparing' || stage === 'talking'
-  // The daily reflection is weighted to this person — what they named as their
-  // hardest part, how their week has gone, and the thinnest ground on their map.
-  const prefs = dailyPrefsFor(hookId, reflection, checkIns, stage)
+  // The reflection is weighted to this person — what they named as their
+  // hardest part, where they are, and the thinnest ground on their map.
+  const prefs = dailyPrefsFor(hookId, reflection, stage)
+  // A read a month old, with no other question open: has he changed?
+  const staleRead = !followUpAsk && seeking && !!read && readIsStale(read)
   const daily = getDailyReflection(new Date(), prefs)
   const whyThisOne = chosenReason(new Date(), prefs)
 
@@ -165,11 +161,6 @@ export default function Home({
               'Welcome back to your space.'
             )}
           </p>
-          {journeyLine(firstSeen, checkIns.length) && (
-            <p className="mt-2 text-[0.9rem] font-medium text-gold">
-              {journeyLine(firstSeen, checkIns.length)}
-            </p>
-          )}
         </section>
 
         {/* Say what happened.
@@ -309,56 +300,43 @@ export default function Home({
         {/* Did the thing we told her to do actually happen? The only question
             here about her life rather than about this app — and the reason a
             one-off instrument becomes a companion for the length of a
-            courtship. Above the check-in: a mood is warm, but it is not progress. */}
+            courtship. It is the one thing on Home that asks; the daily
+            check-in that used to sit below it asked every day and measured
+            nothing. */}
         {followUpAsk && (
           <FollowUp ask={followUpAsk} onAnswer={onAnswerFollowUp} onAskGuide={(text) => onAsk(text)} />
         )}
 
-        {/* Daily check-in — the act of returning */}
-        <section className="animate-rise mt-10">
-          <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">
-            Daily check-in
-          </p>
-          {checkInMood ? (
-            <CheckedIn
-              mood={checkInMood}
-              history={checkIns}
-              onOpenGuide={onOpenGuide}
-              onOpenSample={onOpenSample}
-            />
-          ) : (
-            <div className="rounded-card border border-line bg-white/60 p-5">
-              {(() => {
-                // A return after time away is acknowledged first; otherwise the
-                // quiet yesterday-continuity line.
-                const reentry = comebackLine(checkIns) ?? yesterdayLine(checkIns)
-                return reentry ? (
-                  <p className="mb-1 text-[0.82rem] text-muted text-pretty">{reentry}</p>
-                ) : null
-              })()}
-              <p className="font-display text-[1.25rem] font-medium tracking-tight text-ink">
-                How’s your heart today?
+        {/* A read is about behaviour over time, and a month later the
+            behaviour may have moved. Asked once a month, only while she is
+            still talking to someone, and only when nothing else is open. */}
+        {staleRead && (
+          <section className="animate-rise mt-8">
+            <div className="rounded-card border border-gold/30 bg-gold/[0.07] p-5">
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">Since your read</p>
+              <p className="mt-2 font-display text-[1.15rem] font-medium leading-snug text-ink text-pretty">
+                It’s been about a month. Has anything changed in what {identity.gender === 'man' ? 'she' : 'he'} has
+                shown you?
               </p>
-              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                {moods.map((m) => (
-                  <button
-                    key={m.id}
-                    onClick={() => onCheckIn(m.id)}
-                    className="flex flex-col items-center gap-1.5 rounded-2xl border border-line bg-cream px-3 py-3.5 transition-all hover:-translate-y-0.5 hover:border-forest/40 hover:bg-white"
-                  >
-                    <span className="text-xl">{m.emoji}</span>
-                    <span className="text-[0.85rem] font-medium text-ink-soft">{m.label}</span>
-                  </button>
-                ))}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={onOpenRead}
+                  className="rounded-full border border-forest bg-forest px-4 py-2 text-[0.85rem] font-medium text-cream transition-all hover:bg-forest-deep"
+                >
+                  Take the read again
+                </button>
+                <button
+                  onClick={onReadStillStands}
+                  className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
+                >
+                  Still the same
+                </button>
               </div>
-              <p className="mt-3 text-[0.78rem] text-muted">
-                One tap. Your guide listens.
-              </p>
             </div>
-          )}
-        </section>
+          </section>
+        )}
 
-        <TodaysReflection daily={daily} prefs={prefs} whyThisOne={whyThisOne} />
+        <TodaysReflection daily={daily} whyThisOne={whyThisOne} />
 
         {/* Your space */}
         <section className="mt-10">
@@ -501,67 +479,3 @@ export default function Home({
     </div>
   )
 }
-
-function CheckedIn({
-  mood,
-  history,
-  onOpenGuide,
-  onOpenSample,
-}: {
-  mood: MoodId
-  history: CheckIn[]
-  onOpenGuide: (mode?: ModeId) => void
-  onOpenSample: () => void
-}) {
-  const m = getMood(mood)
-  const pattern = checkInReflection(history)
-  const strip = weekStrip(history)
-  return (
-    <div className="animate-rise rounded-card border border-gold/25 bg-gold/[0.07] p-5">
-      <div className="flex items-start gap-3.5">
-        <span className="text-2xl">{m.emoji}</span>
-        <div className="flex-1">
-          <p className="text-[0.8rem] font-semibold uppercase tracking-[0.14em] text-gold">
-            {m.label} · checked in
-          </p>
-          <p className="mt-1.5 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">{m.ack}</p>
-          {pattern && (
-            <p className="mt-2 text-[0.92rem] font-medium leading-relaxed text-forest text-pretty">
-              {pattern}
-            </p>
-          )}
-          {m.nudge && (
-            <button
-              onClick={() => (m.nudge!.target === 'guide' ? onOpenGuide() : onOpenSample())}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-forest px-4 py-2 text-[0.85rem] font-medium text-cream transition hover:bg-forest-deep"
-            >
-              {m.nudge.label}
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Your week — history that accumulates. Dots for missed days; no streaks, no guilt. */}
-      <div className="mt-4 border-t border-gold/20 pt-3.5">
-        <div className="flex items-center justify-between">
-          <p className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-muted">
-            Your week
-          </p>
-          <div className="flex items-center gap-2.5">
-            {strip.map((d) =>
-              d.mood ? (
-                <span key={d.key} className="text-[0.95rem] leading-none" title={d.key}>
-                  {getMood(d.mood).emoji}
-                </span>
-              ) : (
-                <span key={d.key} className="h-1.5 w-1.5 rounded-full bg-line" title={d.key} />
-              ),
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-

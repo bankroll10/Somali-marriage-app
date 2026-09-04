@@ -1,4 +1,4 @@
-import type { FollowUp, Gender } from '../types'
+import type { FollowUp, Gender, ReadRecord } from '../types'
 import { beforeYesTopics, type Topic } from '../data/beforeYes'
 import { SCRIPTS, speak, type ReadDimension, type Script } from '../data/read'
 
@@ -25,7 +25,20 @@ import { SCRIPTS, speak, type ReadDimension, type Script } from '../data/read'
 
 /** Long enough that a real conversation could have happened in between. */
 export const MIN_AGE_DAYS = 3
+/** Long enough that what he has shown her could have changed. */
+export const READ_STALE_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * A read is about behaviour over time. A month after she took it — or a month
+ * after she last said it still stands — Home asks once whether anything has
+ * changed. Never sooner: a read re-taken every week would be a mood diary
+ * about him, and this product does not keep one of those about anyone.
+ */
+export function readIsStale(read: ReadRecord, now = Date.now()): boolean {
+  const since = Math.max(Date.parse(read.at), read.checkedAt ? Date.parse(read.checkedAt) : 0)
+  return Number.isFinite(since) && now - since >= READ_STALE_DAYS * DAY_MS
+}
 
 export interface FollowUpAsk {
   followUp: FollowUp

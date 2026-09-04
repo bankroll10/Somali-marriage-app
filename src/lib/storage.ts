@@ -1,6 +1,5 @@
 import type {
   Answers,
-  CheckIn,
   MapSnapshot,
   CoachMessage,
   Identity,
@@ -23,11 +22,7 @@ export interface PersistedState {
   answers: Answers
   identity: Identity
   trust: TrustSettings
-  /** Check-in history, newest entries appended; capped in the hook. */
-  checkIns: CheckIn[]
-  /** Date key of the user's first visit — powers journey milestones. */
-  firstSeen: string
-  /** Every readiness reading ever made, oldest first — the record of growth. */
+  /** Every reading ever made, oldest first — the record of what changed. */
   mapHistory: MapSnapshot[]
   /** Where they are in the arc — the product follows them past the match. */
   stage: Stage
@@ -62,8 +57,9 @@ export function loadProgress(): Persisted | null {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return null
+    // Older saves also carried check-ins and a first-seen date. Neither is read
+    // any more; they fall away on the next save.
     const p = JSON.parse(raw) as Partial<Persisted> & {
-      checkIn?: CheckIn | null
       waitlist?: (Partial<WaitlistState> & { email?: string }) | null
     }
     return {
@@ -75,9 +71,6 @@ export function loadProgress(): Persisted | null {
         guideOnDevice: (p.trust as Partial<TrustSettings> | undefined)?.guideOnDevice ?? defaultTrust.guideOnDevice,
         countMe: (p.trust as Partial<TrustSettings> | undefined)?.countMe ?? defaultTrust.countMe,
       },
-      // Legacy blobs stored a single `checkIn` — fold it into history.
-      checkIns: p.checkIns ?? (p.checkIn ? [p.checkIn] : []),
-      firstSeen: p.firstSeen ?? '',
       // Older readings stored a number and no answers. They keep their date and
       // headline; the number is dropped, and with no answers they simply
       // produce no "what changed" lines.
