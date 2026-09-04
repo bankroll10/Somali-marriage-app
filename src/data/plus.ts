@@ -15,6 +15,20 @@
  *     budgeted by progress (src/lib/budget.ts). What is sold is bought once,
  *     for a stage or for a person, and ends on its own.
  *
+ *  3. Every price sits at a step forward, and nothing is priced by time. Run
+ *     the test on each line below: does this earn more if she stays single
+ *     longer, opens the app more often, or is having a worse night? If yes, it
+ *     does not ship. What is left has a property no subscription can have —
+ *     revenue is strictly increasing in successful exits. The company is paid
+ *     when someone moves, paid again if they decide, and paid last at the
+ *     wedding. A member who never leaves is a member who never pays.
+ *
+ * The wedding is not an accident of the model, it is the oldest part of it.
+ * Our matchmakers have always been paid at the nikah, by the families, out of
+ * the celebration — never by the month and never per introduction. Charging
+ * where the community already expects to pay is why this can be honest and
+ * solvent at the same time.
+ *
  * Everything here is stated in the app's own voice.
  */
 
@@ -53,12 +67,17 @@ export const paidLater: PaidLater[] = [
   },
   {
     title: 'A matchmaker in your corner',
-    body: 'When your city opens — a real, vetted person who reads your map and works your case. The honourable role our families have always paid for, done properly.',
+    body: 'When your city opens — a real, vetted person who reads your map and works your case, and who is paid at the nikah, the way that role has always been paid. If nothing comes of it, nothing is owed.',
+  },
+  {
+    title: 'The first year, as a gift',
+    body: 'The conversations nobody warns you about after the wedding — in-laws, money, the first real argument. Bought by somebody else, the way a wedding gift is, and given to the two of you. Never sold to a couple who have just paid for a wedding.',
   },
 ]
 
 export const promises: string[] = [
   'We never earn more because you are having a hard night. Nothing here is priced by the reply, the message, or the hour.',
+  'We are paid when you get somewhere, and never while you are stuck. If you stay single, we earn nothing from you — that is on purpose, and it is the whole design.',
   'Nothing that protects you is ever paid, at any price.',
   'What we sell is bought once and ends on its own. There is no subscription to forget.',
   'Everyone here before the public launch keeps every paid feature free for a year after it.',

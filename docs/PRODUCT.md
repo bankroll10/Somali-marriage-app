@@ -154,7 +154,52 @@ The marketplace, when it exists, obeys the same rules as the instruments:
 - **Never:** who liked you, interest limits, paid visibility, notifications
   about people.
 
-## 8. How it spreads
+## 8. The ending — the state this product is designed to reach
+
+**Success is deletion.** Not churn dressed up: the actual designed destination
+is a member who marries, is handed something worth keeping, is told plainly
+that she can delete the app, and does. Every screen before it is built to get
+her there sooner, and the ending is the only screen that exists to be the last
+one anybody sees.
+
+Worked backward, here is what had to happen and where each piece lives:
+
+| What had to happen | Where it happens | What it leaves behind |
+|---|---|---|
+| Something hurt enough to open this | Welcome, the second door ("Is he serious?") | `arrived` |
+| She said what was actually happening | Situation | `situated` |
+| She got clear about herself | The map, the work | `mapped` |
+| She saw what he had *done*, not said | The read | `read`, and a question to ask |
+| Incompatibilities surfaced before the families | The eleven; the two-sided eleven | `eleven`, `asked-him`, `he-answered` |
+| The trust barrier with her family came down | The family words; the vouch | `vouched` |
+| The conversations actually happened | The follow-up | `followed-through` — the North Star |
+| They decided | Stage: deciding | `deciding` |
+| She married, and left | **The ending** | `married`, her record, four answers, one link |
+
+**What the ending gives her, in this order and no other:** her record first
+("how you chose", built only from things she really did, headed by the count
+of conversations she had that she was not going to have); then permission to
+go, said plainly; then the one thing only she can send; then, below all of it
+and skippable, the four questions; then the optional ask, last.
+
+**What the ending gives us — the only outcome data that will ever exist:**
+- **Who she married.** Someone she was already talking to, someone her family
+  brought, someone we introduced, or someone else. This single answer decides
+  where the next year of work goes: it separates a marketplace that worked
+  from instruments that helped a relationship that already existed. Today the
+  honest expectation is that most marriages come from the second, which is
+  exactly why the read and the eleven are the centre of the product and the
+  marketplace is not.
+- **What actually decided it** — seeing what he had done, one of the eleven,
+  the families meeting, or getting clear about herself.
+- **Which instruments were real** and which were decoration.
+- **One line for the next person**, in her words.
+
+Marriages are counted only when a person says so on the way out. Saying so is
+free, unlocks nothing, and is never a condition of anything — the moment it
+costs something, it stops being said, and the metric dies.
+
+## 9. How it spreads
 
 Assume advertising is expensive, founder hype is gone, and growth cannot be
 brute-forced. In this community, nothing that says "I am looking" gets
@@ -186,8 +231,11 @@ splits every rung by it. The metric is **arrivals by source per hundred
 followed-through**. Until the founding-preview gate comes off, every shared
 link returns 401 to anyone without the password.
 
-## 9. Roadmap
+## 10. Roadmap
 
+0. **The first-year sheet** — the one instrument the married stage is still
+   missing, and the thing the wedding gift sells. The eleven's engine over a
+   second topic list.
 1. **Live Claude behind the map** — `generateReflection` is the last local
    seam; the guide's function is the pattern.
 2. **The first-year sheet** for married members — the eleven engine over a

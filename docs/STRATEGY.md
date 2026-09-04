@@ -178,6 +178,27 @@ first and are given more; men arrive through them. But a man never pays for
 reach, visibility, filters, or to see who is interested. Those are the
 mechanics of the apps this one exists to replace.
 
+**The exit is the business model, not the end of it.** Every price above sits
+at a step forward, and the last and largest one sits at the wedding — which is
+where this community has always paid the person who helped. Run the test on
+each line: does it earn more if she stays single longer, opens the app more
+often, or is having a worse night? If yes it does not ship. What survives has
+a property no subscription can have: **revenue is strictly increasing in
+successful exits.** We are paid when someone moves (deciding together), paid
+again if a human matchmaker did the work (at the nikah, nothing owed if
+nothing came of it), and paid by somebody else at the celebration (the first
+year, as a wedding gift). A member who never leaves is a member who never
+pays, and a member who marries is worth more to us than one who stays — which
+is the opposite of every competitor's incentive, and the only arrangement
+under which the advice in this product can be trusted.
+
+**The ask at the ending is optional and comes last, after everything is
+given.** A woman who has just married is handed her record, told she can
+delete the app, and only then offered the auntie's part: paying for the next
+woman's place in her city rather than her own. It must never be a condition of
+anything — the moment reporting a marriage costs money, marriages stop being
+reported, and the one outcome metric this company has dies with it.
+
 **Why the unit economics can work:** sky-high intent, high willingness-to-pay
 for an outcome, and a community where **word of mouth is everything** — so if we
 nail trust, CAC is low and growth is organic. The same tightness is the risk:
@@ -192,6 +213,12 @@ of those goes up when a person is stuck. So the only measurement here is a
 ladder of rungs, each a claim about a person's life rather than about their use
 of an app. It is defined in `src/lib/rungs.ts`, and the code is the source of
 truth over this document.
+
+**The outcome, and the only thing a marriage is allowed to produce:** a record
+for her, four optional answers for us, and one link she can send that nobody
+who is still looking could ever send. Marriages are never counted by inference
+— only by a person saying so on the way out, which is why saying so costs
+nothing and unlocks nothing.
 
 **North Star: followed-through per hundred arrived.** Of the people who opened
 this, how many had a conversation they were not going to have. It is reach
