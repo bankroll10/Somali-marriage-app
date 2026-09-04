@@ -382,7 +382,6 @@ export default function Profile({
           <Cohort
             identity={identity}
             hookId={answers['hardest-part'] as string | undefined}
-            overall={reflection?.overall}
             voices={voices}
             ledger={done.map((e) => e.id)}
             joined={waitlist}

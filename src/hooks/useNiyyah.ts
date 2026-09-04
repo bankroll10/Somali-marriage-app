@@ -3,7 +3,7 @@ import { allQuestions, totalQuestions } from '../data/intake'
 import { todayKey } from '../data/checkin'
 import { track } from '../lib/analytics'
 import { applyDemoParams } from '../lib/demo'
-import { buildReflection, generateReflection } from '../lib/reflection'
+import { buildReflection, generateReflection, snapshotOf } from '../lib/reflection'
 import { routeToMode } from '../lib/route'
 import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
 import { flushWaitlistQueue } from '../lib/waitlist'
@@ -319,12 +319,14 @@ export function useNiyyah(entry: Entry | null = null) {
     setEverCompleted(true)
     // Record this reading — one per day, so reflecting twice in an afternoon
     // refines today's entry instead of cluttering the record. Last 12 kept.
+    // The snapshot carries her answers, so the next reading can say what
+    // changed in her words rather than as a number that moved.
     setMapHistory((prev) => {
       const today = todayKey()
       const rest = prev.filter((s) => s.date !== today)
-      return [...rest, { date: today, overall: r.overall, headline: r.headline }].slice(-12)
+      return [...rest, snapshotOf(answers, today)].slice(-12)
     })
-    track('map_completed', { overall: r.overall })
+    track('map_completed')
     setScreen('reflection')
   }
 

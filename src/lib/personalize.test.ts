@@ -7,11 +7,11 @@ function reflection(lowest: Reflection['dimensions'][number]['dimension']): Refl
   return {
     headline: '',
     summary: '',
-    overall: 70,
     dimensions: [
-      { dimension: 'intention', label: 'Intention', score: 90, note: '' },
-      { dimension: lowest, label: 'Low', score: 20, note: '' },
+      { dimension: 'intention', label: 'Intention', state: 'strong', note: '' },
+      { dimension: lowest, label: 'Low', state: 'thin', note: '' },
     ],
+    thinnest: [lowest, 'intention'],
     coreValues: [],
     nonNegotiables: [],
     growthNote: '',

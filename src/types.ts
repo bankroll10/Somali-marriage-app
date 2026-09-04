@@ -173,11 +173,23 @@ export type AnswerValue = string | string[] | number
 
 export type Answers = Record<string, AnswerValue>
 
+/**
+ * Where a person stands on one ground, in a word.
+ *
+ * This used to be a number out of a hundred, and the map added seven of them
+ * up into an overall "readiness" that animated onto the screen and was posted
+ * to the server. The weights behind it were an answer key: the woman who
+ * answered most honestly — returning to her deen, still healing, anxiously
+ * attached — scored lowest, and then read that the number decided who she
+ * meets. The read already refuses to put a number on a person. This is the
+ * same rule, applied to her.
+ */
+export type GroundState = 'thin' | 'steady' | 'strong'
+
 export interface DimensionReading {
   dimension: Dimension
   label: string
-  /** 0–100 */
-  score: number
+  state: GroundState
   /** A short, human reading of where they stand. */
   note: string
 }
@@ -271,12 +283,20 @@ export const defaultPlus: PlusState = {
   usage: { month: '', used: 0 },
 }
 
-/** A dated readiness reading, kept so the map can show growth over time. */
+/**
+ * A dated reading, kept so the map can say what changed.
+ *
+ * Growth is shown as the difference between her answers then and now — "last
+ * time: still healing; this time: at peace with it" — never as a delta on a
+ * number. So the snapshot keeps the answers themselves; they are thirteen
+ * short values and they never leave the device.
+ */
 export interface MapSnapshot {
   /** Date key (YYYY-MM-DD) this reading was made. */
   date: string
-  overall: number
   headline: string
+  grounds: Partial<Record<Dimension, GroundState>>
+  answers: Answers
 }
 
 export interface Reflection {
@@ -284,9 +304,13 @@ export interface Reflection {
   headline: string
   /** A warm paragraph synthesizing where they are. */
   summary: string
-  /** 0–100 overall readiness. */
-  overall: number
   dimensions: DimensionReading[]
+  /**
+   * The grounds ordered thinnest first. Internal ordering for the work card
+   * and the daily reflection — it decides what to offer next, and is never
+   * rendered as a ranking.
+   */
+  thinnest: Dimension[]
   /** Surfaced core values (from tags). */
   coreValues: string[]
   /** Their stated non-negotiables. */

@@ -35,12 +35,7 @@ const state = {
   couple: null,
   vouch: null,
   completed: true,
-  matched: [],
-  pendingInterest: [],
-  passed: [],
-  conversations: {},
   coachThreads: {},
-  interestNotes: {},
 }
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status })
@@ -78,11 +73,13 @@ describe('joining', () => {
         return json({ code: 'ACDEFG', scene: 'twin-cities', women: 1, men: 0, target: 40 })
       }),
     )
-    const result = await joinCohort({ scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88, voices: ['auntie'], ledger: ['map', 'kept'] })
+    const result = await joinCohort({ scene: 'twin-cities', gender: 'woman', hook: 'serious', voices: ['auntie'], ledger: ['map', 'kept'] })
     expect(result).toEqual({ code: 'ACDEFG', women: 1, men: 0, target: 40 })
     expect(calls[0].url).toContain('/keep')
     expect(calls[1].url).toContain('/cohort')
-    expect(calls[1].body).toMatchObject({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88, voices: ['auntie'], ledger: ['map', 'kept'] })
+    expect(calls[1].body).toMatchObject({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', voices: ['auntie'], ledger: ['map', 'kept'] })
+    // Nothing about how her map read leaves the device.
+    expect(JSON.stringify(calls[1].body)).not.toMatch(/overall|score/)
   })
 
   it('re-keeps the map and retries once when the server has lost it', async () => {

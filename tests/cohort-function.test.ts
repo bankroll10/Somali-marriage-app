@@ -51,7 +51,7 @@ describe('the count', () => {
   })
 
   it('goes up by one real person per join, on the right side', async () => {
-    await post({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88 })
+    await post({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious' })
     const res = await post({ code: 'HJKMNP', scene: 'twin-cities', gender: 'man', hook: 'finding' })
     expect(await res.json()).toMatchObject({ code: 'HJKMNP', women: 1, men: 1 })
   })
@@ -88,6 +88,12 @@ describe('the count', () => {
     await post({ code: 'HJKMNP', scene: 'twin-cities', gender: 'man', hook: 'finding', ledger: ['map'] })
     const body = await (await handler(new Request('http://x/.netlify/functions/cohort'))).json()
     expect(body.scenes['twin-cities'].ledger).toEqual({ map: 2, read: 1, beforeYes: 1 })
+  })
+
+  it('drops a readiness number an older client still sends', async () => {
+    await post({ code: 'ACDEFG', scene: 'london', gender: 'woman', hook: 'serious', overall: 88 })
+    const stored = (await memStore('cohort').get('london/woman/serious/ACDEFG')) as string
+    expect(stored).not.toMatch(/overall/)
   })
 
   it('keeps an unknown hardest part as "none" and keeps only real voices', async () => {

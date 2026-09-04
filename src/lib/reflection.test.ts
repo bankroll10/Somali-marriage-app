@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { buildReflection } from './reflection'
+import { buildReflection, changesBetween, snapshotOf } from './reflection'
 import { allQuestions } from '../data/intake'
-import type { Answers } from '../types'
+import type { Answers, GroundState } from '../types'
+
+const STATES: GroundState[] = ['thin', 'steady', 'strong']
 
 /** The seeded demo member, kept in sync with lib/demo.ts. */
 const demoAnswers: Answers = {
@@ -21,40 +23,53 @@ const demoAnswers: Answers = {
 }
 
 describe('buildReflection', () => {
-  it('never produces NaN, even with no answers at all', () => {
-    const r = buildReflection({})
-    expect(Number.isFinite(r.overall)).toBe(true)
-    for (const d of r.dimensions) {
-      expect(Number.isFinite(d.score)).toBe(true)
-    }
-  })
-
-  it('reads an empty intake as the neutral middle, not as a failing grade', () => {
-    // Someone who answered nothing has told us nothing — the honest reading is
-    // the midpoint, and the copy must never call that "early in the journey".
-    const r = buildReflection({})
-    expect(r.overall).toBe(50)
-    expect(r.headline).toBe('Building your foundation')
-  })
-
-  it('keeps every score inside 0–100', () => {
+  it('puts no number on a person — every ground is one of three words', () => {
     for (const answers of [{}, demoAnswers]) {
       const r = buildReflection(answers)
-      expect(r.overall).toBeGreaterThanOrEqual(0)
-      expect(r.overall).toBeLessThanOrEqual(100)
+      expect('overall' in r).toBe(false)
       for (const d of r.dimensions) {
-        expect(d.score).toBeGreaterThanOrEqual(0)
-        expect(d.score).toBeLessThanOrEqual(100)
+        expect(STATES).toContain(d.state)
+        expect('score' in d).toBe(false)
       }
     }
   })
 
-  it('scores the demo member in the band the demo copy claims', () => {
-    // lib/demo.ts seeds a map history ending at "Grounded and ready" (80+).
-    // If the weights drift, the demo's transformation beat quietly breaks.
+  it('reads an empty intake as steady ground, not as a failing grade', () => {
+    // Someone who answered nothing has told us nothing — the honest reading is
+    // steady, and the copy must never call that "early in the journey".
+    const r = buildReflection({})
+    for (const d of r.dimensions) expect(d.state).toBe('steady')
+    expect(r.headline).toBe('Building your foundation')
+  })
+
+  it('orders the grounds thinnest first, once each', () => {
     const r = buildReflection(demoAnswers)
-    expect(r.overall).toBeGreaterThanOrEqual(80)
+    expect(r.thinnest).toHaveLength(7)
+    expect(new Set(r.thinnest).size).toBe(7)
+    const stateOf = (d: string) => r.dimensions.find((x) => x.dimension === d)!.state
+    // Nothing strong may sit ahead of something thin.
+    const rank = { thin: 0, steady: 1, strong: 2 }
+    for (let i = 1; i < r.thinnest.length; i++) {
+      expect(rank[stateOf(r.thinnest[i])]).toBeGreaterThanOrEqual(rank[stateOf(r.thinnest[i - 1])])
+    }
+  })
+
+  it('reads the demo member as the demo copy claims', () => {
+    // lib/demo.ts seeds a map history ending at "Grounded and ready". If the
+    // thresholds drift, the demo quietly breaks.
+    const r = buildReflection(demoAnswers)
     expect(r.headline).toBe('Grounded and ready')
+  })
+
+  it('reads the most honest answers as building, not as early', () => {
+    // The old score put the woman fresh from a situationship and returning to
+    // her deen at the bottom. Two thin grounds is a foundation being built.
+    const r = buildReflection({
+      timeline: '3-plus', 'why-now': 'pressure', practice: 'cultural', 'faith-role': 2,
+      'family-role': 'private', children: 'no', conflict: 'avoid', healing: 'fresh',
+      attachment: 'anxious', pattern: 'walls',
+    })
+    expect(r.headline).toBe('Building your foundation')
   })
 
   it('reports all seven dimensions with human notes', () => {
@@ -167,7 +182,44 @@ describe('the map is about the person who filled it in', () => {
     const done = buildReflection(hodan)
     const carrying = buildReflection(sagal)
     const sa = (r: ReturnType<typeof buildReflection>) =>
-      r.dimensions.find((d) => d.dimension === 'selfAwareness')!.score
-    expect(sa(done)).toBeGreaterThan(sa(carrying))
+      r.dimensions.find((d) => d.dimension === 'selfAwareness')!.state
+    expect(sa(done)).toBe('strong')
+    expect(sa(carrying)).not.toBe('strong')
+  })
+})
+
+describe('what changed between readings', () => {
+  const before: Answers = { ...demoAnswers, healing: 'fresh', attachment: 'anxious' }
+
+  it('says it in her words — the answer then, and the answer now', () => {
+    const c = changesBetween(snapshotOf(before, '2026-06-01'), snapshotOf(demoAnswers, '2026-06-20'))
+    const prompts = c.answers.map((a) => a.prompt.toLowerCase())
+    expect(c.answers).toHaveLength(2)
+    expect(prompts.join(' ')).toMatch(/heal|hurt|past/)
+    for (const a of c.answers) {
+      expect(a.then).not.toBe(a.now)
+      expect(a.then).not.toMatch(/^[a-z-]+$/) // labels, not ids
+    }
+  })
+
+  it('names a ground that moved, and only one that did', () => {
+    const c = changesBetween(snapshotOf(before, '2026-06-01'), snapshotOf(demoAnswers, '2026-06-20'))
+    for (const g of c.grounds) expect(g.then).not.toBe(g.now)
+  })
+
+  it('has nothing to say when nothing changed, and nothing to say without a before', () => {
+    const same = snapshotOf(demoAnswers, '2026-06-20')
+    expect(changesBetween(snapshotOf(demoAnswers, '2026-06-01'), same)).toEqual({ answers: [], grounds: [] })
+    expect(changesBetween(undefined, same)).toEqual({ answers: [], grounds: [] })
+    // A legacy snapshot that stored a number and no answers.
+    expect(changesBetween({ date: '2026-05-01', headline: 'x', grounds: {}, answers: {} }, same)).toEqual({ answers: [], grounds: [] })
+  })
+
+  it('keeps only the map’s own answers in a snapshot — never a number', () => {
+    const snap = snapshotOf({ ...demoAnswers, 'hardest-part': 'serious', household: 'near-family' }, '2026-06-20')
+    expect(snap.answers['hardest-part']).toBeUndefined()
+    expect(snap.answers['household']).toBeUndefined()
+    expect(snap.answers['healing']).toBe('healing')
+    expect(JSON.stringify(snap)).not.toMatch(/overall/)
   })
 })

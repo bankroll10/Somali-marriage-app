@@ -10,7 +10,6 @@ import { LockGlyph, ScreenHeader } from './ui'
 interface Props {
   identity: Identity
   answers: Answers
-  overall?: number
   hookId?: string
   voices?: string[]
   ledger?: string[]
@@ -38,7 +37,6 @@ interface Props {
 export default function SampleIntroduction({
   identity,
   answers,
-  overall,
   hookId,
   voices,
   ledger,
@@ -169,7 +167,6 @@ export default function SampleIntroduction({
         <div className="mt-6">
           <Cohort
             identity={identity}
-            overall={overall}
             hookId={hookId}
             voices={voices}
             ledger={ledger}

@@ -1,5 +1,6 @@
 import { clearProgress, saveProgress } from './storage'
 import { dayKey } from '../data/checkin'
+import { snapshotOf } from './reflection'
 import type { Answers, Identity } from '../types'
 
 /**
@@ -64,12 +65,12 @@ export function seedDemo() {
     ],
     // Day 7 on the path — the journey milestone shows in demos.
     firstSeen: dayKey(6),
-    // Two readings: who she was on day one, and who she is now. The map's
-    // growth line ("Ready, with clarity to gain → Grounded and ready  +14")
-    // is the demo's transformation beat.
+    // Two readings: who she was on day one, and who she is now. The map says
+    // what changed in her own words — something recent still ached, and her
+    // heart leaned anxious; now she is healing, and meets closeness steadily.
     mapHistory: [
-      { date: dayKey(6), overall: 74, headline: 'Ready, with clarity to gain' },
-      { date: dayKey(0), overall: 90, headline: 'Grounded and ready' },
+      snapshotOf({ ...demoAnswers, healing: 'fresh', attachment: 'anxious', conflict: 'avoid' }, dayKey(6)),
+      snapshotOf(demoAnswers, dayKey(0)),
     ],
     // She's preparing — the stage band then shows the arc ahead of her.
     stage: 'preparing',

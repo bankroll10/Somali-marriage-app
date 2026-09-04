@@ -78,7 +78,15 @@ export function loadProgress(): Persisted | null {
       // Legacy blobs stored a single `checkIn` — fold it into history.
       checkIns: p.checkIns ?? (p.checkIn ? [p.checkIn] : []),
       firstSeen: p.firstSeen ?? '',
-      mapHistory: p.mapHistory ?? [],
+      // Older readings stored a number and no answers. They keep their date and
+      // headline; the number is dropped, and with no answers they simply
+      // produce no "what changed" lines.
+      mapHistory: (p.mapHistory ?? []).map((m) => ({
+        date: m.date,
+        headline: m.headline,
+        grounds: m.grounds ?? {},
+        answers: m.answers ?? {},
+      })),
       stage: p.stage ?? 'preparing',
       // Anyone who already moved off the default, or finished a map, told us
       // where she was — even if she did it before we recorded the choice.

@@ -15,8 +15,9 @@ import { getStore } from '@netlify/blobs'
  * a question we have only been guessing at: what are people actually here for?
  *
  * Nothing here is a person. A join is keyed by the anonymous code her kept map
- * lives under, and carries her city, who she is seeking, her hardest part, her
- * overall number, and which guide voices she has used. The way to reach her is
+ * lives under, and carries her city, who she is seeking, her hardest part, and
+ * which guide voices she has used. Nothing about how her map read: a readiness
+ * number was an answer key, and it has no business on a server. The way to reach her is
  * deliberately NOT stored here — it goes to the founder's form, so that this
  * store can be read and tallied without ever holding contact details.
  *
@@ -40,7 +41,6 @@ const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 
 export interface CohortRecord {
   at: string
-  overall?: number
   voices: string[]
   /** Which instruments she has used — the seriousness that got her counted. */
   ledger: string[]
@@ -121,7 +121,6 @@ export default async function handler(req: Request) {
     scene?: string
     gender?: string
     hook?: string
-    overall?: number
     voices?: unknown
     ledger?: unknown
   }
@@ -155,9 +154,9 @@ export default async function handler(req: Request) {
   const ledger = Array.isArray(body.ledger)
     ? body.ledger.filter((v): v is string => typeof v === 'string' && LEDGER.has(v))
     : []
+  // An older client may still send `overall`. It is not read and not kept.
   const record: CohortRecord = {
     at: new Date().toISOString(),
-    ...(typeof body.overall === 'number' ? { overall: Math.round(body.overall) } : {}),
     voices,
     ledger,
   }

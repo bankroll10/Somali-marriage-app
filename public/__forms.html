@@ -17,14 +17,14 @@
       and a signup lost that way fails silently — no error, no row, nobody knows.
       /__forms.html is a real static file, so no rewrite applies to it.
 
-      Fields must match WaitlistEntry in src/lib/waitlist.ts, which posts here.
+      Fields must match what postToNetlifyForm in src/lib/waitlist.ts sends
+      (submissions POST to "/", where Netlify's handler listens).
     -->
     <form name="niyyah-waitlist" data-netlify="true" hidden>
       <input type="text" name="contact" />
       <input type="text" name="code" />
       <input type="text" name="scene" />
       <input type="text" name="gender" />
-      <input type="text" name="overall" />
       <input type="text" name="hardest_part" />
       <input type="text" name="at" />
     </form>

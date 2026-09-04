@@ -188,7 +188,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           steps={n.steps}
           onTakeStep={n.takeStep}
           onCompleteStep={n.completeStep}
-          lastReading={n.mapHistory[n.mapHistory.length - 1]?.date}
           saveOk={n.saveOk}
           firstSeen={n.firstSeen}
           stage={n.stage}
@@ -330,7 +329,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         <SampleIntroduction
           identity={n.identity}
           answers={n.answers}
-          overall={n.reflection?.overall}
           hookId={hookId}
           voices={voices}
           ledger={n.ledgerDone}

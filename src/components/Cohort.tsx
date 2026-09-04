@@ -9,7 +9,6 @@ import { ArrowRight, CheckIcon, Spinner, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
-  overall?: number
   /** Her answer to "what's the hardest part" — the need this counts. */
   hookId?: string
   /** Guide voices she has actually used, so the tally knows what people reach for. */
@@ -37,7 +36,7 @@ interface Props {
  * counted, she can watch the number move, and the day someone here fits her
  * map, she hears about it — and nobody else does.
  */
-export default function Cohort({ identity, overall, hookId, voices, ledger, joined, onJoined, onScene, compact }: Props) {
+export default function Cohort({ identity, hookId, voices, ledger, joined, onJoined, onScene, compact }: Props) {
   const configured = waitlistConfigured()
   const [contact, setContact] = useState('')
   const [scene, setScene] = useState(joined?.scene ?? identity.scene ?? '')
@@ -95,7 +94,6 @@ export default function Cohort({ identity, overall, hookId, voices, ledger, join
       scene,
       gender: identity.gender,
       hook: hookId,
-      overall,
       voices,
       ledger,
     })
@@ -114,7 +112,6 @@ export default function Cohort({ identity, overall, hookId, voices, ledger, join
       code: result.code,
       scene,
       gender: identity.gender,
-      overall,
       hardestPart: getHookOption(hookId)?.label,
       at,
     })
@@ -212,8 +209,8 @@ export default function Cohort({ identity, overall, hookId, voices, ledger, join
               it describes. */}
           <p className="text-[0.78rem] leading-relaxed text-muted text-pretty">
             We send your email or phone, your city, who you’re seeking, the hardest
-            part you named, your overall number, and which of the things on your
-            Trust page you’ve done. Your map is kept under a code
+            part you named, and which of the things on your Trust page you’ve
+            done. Nothing about how your map read. Your map is kept under a code
             with no name on it, so it can be matched. Your answers stay yours.
           </p>
         </form>

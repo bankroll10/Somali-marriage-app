@@ -79,10 +79,10 @@ export function dailyPrefsFor(
   if (heavyish >= 3) add('Heart', 'this week has asked a lot of you', true)
 
   // 3. The thinnest ground on their map — where growth would help most.
-  if (reflection?.dimensions.length) {
-    const lowest = [...reflection.dimensions].sort((a, b) => a.score - b.score)[0]
-    const tag = DIMENSION_THEME[lowest.dimension]
-    if (tag) {
+  if (reflection?.thinnest.length) {
+    const lowest = reflection.dimensions.find((d) => d.dimension === reflection.thinnest[0])
+    const tag = lowest ? DIMENSION_THEME[lowest.dimension] : undefined
+    if (lowest && tag) {
       add(tag, `${lowest.label.toLowerCase()} is where your map has the most room right now`)
     }
   }

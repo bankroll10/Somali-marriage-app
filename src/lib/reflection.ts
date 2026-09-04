@@ -2,8 +2,11 @@ import { allQuestions } from '../data/intake'
 import { getHookOption } from '../data/hook'
 import type {
   Answers,
+  AnswerValue,
   Dimension,
   DimensionReading,
+  GroundState,
+  MapSnapshot,
   Option,
   Question,
   Reflection,
@@ -12,8 +15,9 @@ import type {
 /**
  * The reflection engine.
  *
- * Today this synthesizes a thoughtful reading from the intake locally — no
- * network, no keys, instant. It is written so the seam to a real LLM is clean:
+ * It names where a person stands on seven grounds — in a word each, never a
+ * number — and writes every note from the answer she actually gave. Today this
+ * synthesizes the reading locally — no network, no keys, instant. It is written so the seam to a real LLM is clean:
  * `generateReflection` is already async, and `buildReflection` is the pure
  * synthesis you would hand to (or compare against) a Claude-generated version.
  *
@@ -89,16 +93,37 @@ function scoreAnswer(q: Question, value: unknown): number | null {
   return null
 }
 
-function dimensionReading(dim: Dimension, answers: Answers): DimensionReading {
-  const qs = questionsFor(dim)
+/**
+ * The one number that survives, and it never leaves this file.
+ *
+ * Each answer still carries a weight, because the map has to decide which
+ * ground to offer work on first and the daily reflection has to know where she
+ * is thinnest. That is all the weights are for now: an ordering. They are
+ * never summed into an overall, never shown, never sent.
+ */
+function strength(dim: Dimension, answers: Answers): number {
   const scores: number[] = []
-  for (const q of qs) {
+  for (const q of questionsFor(dim)) {
     const s = scoreAnswer(q, answers[q.id])
     if (s != null) scores.push(s)
   }
-  const avg = scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0.5
-  const score = Math.round(avg * 100)
-  return { dimension: dim, label: DIMENSION_LABELS[dim], score, note: dimensionNote(dim, answers) }
+  return scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0.5
+}
+
+/** Three words. An unanswered ground reads as steady — we know nothing, which is not thin. */
+function stateOf(strength: number): GroundState {
+  if (strength >= 0.75) return 'strong'
+  if (strength >= 0.5) return 'steady'
+  return 'thin'
+}
+
+function dimensionReading(dim: Dimension, answers: Answers): DimensionReading {
+  return {
+    dimension: dim,
+    label: DIMENSION_LABELS[dim],
+    state: stateOf(strength(dim, answers)),
+    note: dimensionNote(dim, answers),
+  }
 }
 
 /**
@@ -369,25 +394,48 @@ function alignmentParagraph(answers: Answers): string {
   return `Alignment for you looks like ${parts.join(', and ')}. ${valueLine}`.trim()
 }
 
-function headlineFor(overall: number): string {
-  if (overall >= 80) return 'Grounded and ready'
-  if (overall >= 65) return 'Ready, with clarity to gain'
-  if (overall >= 50) return 'Building your foundation'
-  return 'Earlier in the journey — and that’s okay'
+/**
+ * The headline comes from the pattern of grounds, not from a threshold on a
+ * sum. Someone with nothing thin and most things strong is grounded; someone
+ * with nothing thin is ready with clarity to gain; up to two thin grounds is
+ * a foundation being built; more than that is early — and that is okay.
+ */
+type Shape = 'grounded' | 'clear' | 'building' | 'early'
+
+function shapeOf(dimensions: DimensionReading[]): Shape {
+  const thin = dimensions.filter((d) => d.state === 'thin').length
+  const strong = dimensions.filter((d) => d.state === 'strong').length
+  if (thin === 0 && strong >= 4) return 'grounded'
+  if (thin === 0 && strong >= 1) return 'clear'
+  if (thin <= 2) return 'building'
+  return 'early'
+}
+
+function headlineFor(shape: Shape): string {
+  switch (shape) {
+    case 'grounded':
+      return 'Grounded and ready'
+    case 'clear':
+      return 'Ready, with clarity to gain'
+    case 'building':
+      return 'Building your foundation'
+    case 'early':
+      return 'Earlier in the journey — and that’s okay'
+  }
 }
 
 function summaryFor(
-  overall: number,
+  shape: Shape,
   top: DimensionReading,
   low: DimensionReading,
   answers: Answers,
 ): string {
   const opener =
-    overall >= 80
+    shape === 'grounded'
       ? 'You come to this with rare clarity.'
-      : overall >= 65
+      : shape === 'clear'
         ? 'You are closer to ready than most who start this.'
-        : overall >= 50
+        : shape === 'building'
           ? 'You have a real foundation, with a few things still taking shape.'
           : 'You are early in this — and arriving honestly is worth more than arriving fast.'
 
@@ -410,24 +458,13 @@ function summaryFor(
 export function buildReflection(answers: Answers): Reflection {
   const dimensions = DIMENSION_ORDER.map((d) => dimensionReading(d, answers))
 
-  // Weight the dimensions: intention, faith and self-awareness anchor readiness.
-  const weights: Record<Dimension, number> = {
-    intention: 1.2,
-    faith: 1.1,
-    family: 0.9,
-    vision: 0.9,
-    character: 1,
-    emotional: 1.15,
-    selfAwareness: 1.2,
-  }
-  const wSum = dimensions.reduce((a, d) => a + weights[d.dimension], 0)
-  const overall = Math.round(
-    dimensions.reduce((a, d) => a + d.score * weights[d.dimension], 0) / wSum,
-  )
-
-  const sorted = [...dimensions].sort((a, b) => b.score - a.score)
-  const top = sorted[0]
-  const low = sorted[sorted.length - 1]
+  // Thinnest first. Stable on ties, so two equally thin grounds keep the
+  // map's own order rather than flickering between readings.
+  const thinnest = [...DIMENSION_ORDER].sort((a, b) => strength(a, answers) - strength(b, answers))
+  const byDim = new Map(dimensions.map((d) => [d.dimension, d]))
+  const low = byDim.get(thinnest[0])!
+  const top = byDim.get(thinnest[thinnest.length - 1])!
+  const shape = shapeOf(dimensions)
 
   const coreValues = collectTags(
     answers,
@@ -436,15 +473,80 @@ export function buildReflection(answers: Answers): Reflection {
   )
 
   return {
-    headline: headlineFor(overall),
-    summary: summaryFor(overall, top, low, answers),
-    overall,
+    headline: headlineFor(shape),
+    summary: summaryFor(shape, top, low, answers),
     dimensions,
+    thinnest,
     coreValues,
     nonNegotiables: nonNegotiables(answers),
     growthNote: growthNote(answers),
     alignment: alignmentParagraph(answers),
   }
+}
+
+/** One dated reading, kept so the next one can say what changed. */
+export function snapshotOf(answers: Answers, date: string): MapSnapshot {
+  const r = buildReflection(answers)
+  const grounds: Partial<Record<Dimension, GroundState>> = {}
+  for (const d of r.dimensions) grounds[d.dimension] = d.state
+  // Only the map's own answers — the hook and how-you'd-live are asked elsewhere
+  // and are not what a reading measures.
+  const own: Answers = {}
+  for (const q of allQuestions) if (answers[q.id] !== undefined) own[q.id] = answers[q.id]
+  return { date, headline: r.headline, grounds, answers: own }
+}
+
+/** One answer, as she would read it back. */
+function answerLabel(q: Question, value: AnswerValue | undefined): string | null {
+  if (value === undefined || value === null || value === '') return null
+  if (q.type === 'scale' && typeof value === 'number' && q.scale) return `${value} of ${q.scale.max}`
+  if (q.type === 'text') return typeof value === 'string' ? `“${value.trim()}”` : null
+  if (q.type === 'multi' && Array.isArray(value)) {
+    const labels = value.map((id) => optionById(q, id)?.label).filter((l): l is string => !!l)
+    return labels.length ? labels.join(', ') : null
+  }
+  if (typeof value === 'string') return optionById(q, value)?.label ?? null
+  return null
+}
+
+export interface AnswerChange {
+  /** The question, as it was asked. */
+  prompt: string
+  then: string
+  now: string
+}
+
+export interface GroundChange {
+  label: string
+  then: GroundState
+  now: GroundState
+}
+
+/**
+ * What changed between two readings — the honest form of growth.
+ *
+ * A delta on a number told her she had moved seven points and nothing about
+ * what moved. This says it: the answer she gave then, and the one she gives
+ * now. A legacy snapshot with no answers yields nothing, rather than a guess.
+ */
+export function changesBetween(
+  then: MapSnapshot | undefined,
+  now: MapSnapshot,
+): { answers: AnswerChange[]; grounds: GroundChange[] } {
+  if (!then || !then.answers || Object.keys(then.answers).length === 0) return { answers: [], grounds: [] }
+  const answers: AnswerChange[] = []
+  for (const q of allQuestions) {
+    const a = answerLabel(q, then.answers[q.id])
+    const b = answerLabel(q, now.answers[q.id])
+    if (a && b && a !== b) answers.push({ prompt: q.prompt, then: a, now: b })
+  }
+  const grounds: GroundChange[] = []
+  for (const dim of DIMENSION_ORDER) {
+    const a = then.grounds?.[dim]
+    const b = now.grounds?.[dim]
+    if (a && b && a !== b) grounds.push({ label: DIMENSION_LABELS[dim], then: a, now: b })
+  }
+  return { answers, grounds }
 }
 
 /**

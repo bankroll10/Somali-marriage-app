@@ -55,8 +55,6 @@ interface Props {
   steps: StepRecord[]
   onTakeStep: (d: Dimension) => void
   onCompleteStep: () => void
-  /** Date of the most recent reading, so we know when a new one is worth it. */
-  lastReading?: string
   /** False when this browser refuses to save — the user deserves to know. */
   saveOk: boolean
   /** First day on the path. */
@@ -99,7 +97,6 @@ export default function Home({
   steps,
   onTakeStep,
   onCompleteStep,
-  lastReading,
   saveOk,
   firstSeen,
   stage,
@@ -297,7 +294,6 @@ export default function Home({
             onCompleteStep={onCompleteStep}
             onOpenMap={onOpenMap}
             onOpenGuide={onOpenGuide}
-            lastReading={lastReading}
           />
         )}
 
@@ -397,7 +393,6 @@ export default function Home({
             {seeking && reflection && (
               <Cohort
                 identity={identity}
-                overall={reflection.overall}
                 hookId={hookId}
                 voices={voices}
                 ledger={ledger}
@@ -455,16 +450,14 @@ export default function Home({
                 onClick={onOpenMap}
                 className="group rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
               >
-                <div className="flex items-center justify-between">
-                  <GlyphTile small className="bg-forest/10 text-forest">
-                    <CompassGlyph />
-                  </GlyphTile>
-                  <span className="font-display text-[1.5rem] font-medium text-forest tabular-nums">
-                    {reflection.overall}
-                  </span>
-                </div>
-                <p className="mt-3 font-display text-[1.1rem] font-medium text-ink">Readiness map</p>
-                <p className="mt-1 text-[0.85rem] leading-snug text-muted text-pretty">{reflection.headline}</p>
+                <GlyphTile small className="bg-forest/10 text-forest">
+                  <CompassGlyph />
+                </GlyphTile>
+                <p className="mt-3 font-display text-[1.1rem] font-medium text-ink">Your map</p>
+                <p className="mt-1 text-[0.85rem] leading-snug text-muted text-pretty">
+                  {reflection.headline}. Thinnest right now:{' '}
+                  {reflection.dimensions.find((d) => d.dimension === reflection.thinnest[0])?.label.toLowerCase()}.
+                </p>
               </button>
             ) : stage !== 'married' ? (
               <button
