@@ -16,6 +16,21 @@ import { loadProgress, type PersistedState } from './storage'
 const ENDPOINT = '/.netlify/functions/keep'
 const TIMEOUT_MS = 10_000
 
+/**
+ * What leaves the device under "Keep this map". Everything the app needs to
+ * bring her back — and not her conversations with the guide. Those are the one
+ * thing here written in her own words to someone, and the Trust screen's
+ * "Keep the Guide on this device" control promises that nothing she writes to
+ * it ever leaves the phone. Keeping a map must not quietly break that. The
+ * type is the guarantee: the field does not exist on what is sent.
+ */
+export type KeptSnapshot = Omit<PersistedState, 'coachThreads'>
+
+export function keptSnapshot(state: PersistedState): KeptSnapshot {
+  const { coachThreads: _threads, ...rest } = state
+  return rest
+}
+
 /** Where her own code is remembered, so she is shown it rather than asked for it. */
 const CODE_KEY = 'niyyah.keep.code.v1'
 
@@ -60,7 +75,7 @@ export async function keepMap(): Promise<string | null> {
   const res = await withTimeout(ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ snapshot, code: rememberedCode() ?? undefined }),
+    body: JSON.stringify({ snapshot: keptSnapshot(snapshot), code: rememberedCode() ?? undefined }),
   })
   if (!res?.ok) return null
 
@@ -83,10 +98,12 @@ export async function restoreMap(code: string): Promise<PersistedState | null> {
   if (!res?.ok) return null
 
   try {
-    const { snapshot } = (await res.json()) as { snapshot?: PersistedState }
+    const { snapshot } = (await res.json()) as { snapshot?: KeptSnapshot }
     if (!snapshot || typeof snapshot !== 'object') return null
     rememberCode(clean)
-    return snapshot
+    // A restored map starts the guide fresh — its threads were never kept,
+    // including in a snapshot kept before that was true.
+    return { ...snapshot, coachThreads: {} }
   } catch {
     return null
   }

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { codeFromUrl, keepMap, rememberedCode, restoreLink, restoreMap } from './keep'
-import { saveProgress } from './storage'
+import { loadProgress, saveProgress } from './storage'
 import { defaultGuideUse, defaultTrust } from '../types'
 
 /**
@@ -70,6 +70,26 @@ describe('keeping a map', () => {
     expect(rememberedCode()).toBe('ACDEFG')
   })
 
+  it('never sends the guide’s threads', async () => {
+    saveProgress({ ...state, coachThreads: { auntie: [{ id: '1', role: 'user', text: 'the secret thing' }] } })
+    const spy = vi.fn(async (_input: string, _init?: RequestInit) => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    await keepMap()
+    const body = spy.mock.calls[0][1]?.body as string
+    expect(JSON.parse(body).snapshot.coachThreads).toBeUndefined()
+    expect(body).not.toContain('the secret thing')
+  })
+
+  it('sends everything else the app needs to bring her back', async () => {
+    saveProgress(state)
+    const spy = vi.fn(async (_input: string, _init?: RequestInit) => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    await keepMap()
+    const sent = JSON.parse(spy.mock.calls[0][1]?.body as string).snapshot
+    const expected = Object.keys(loadProgress()!).filter((k) => k !== 'coachThreads').sort()
+    expect(Object.keys(sent).sort()).toEqual(expected)
+  })
+
   it('re-keeps under the code she already has, never issuing a second one', async () => {
     saveProgress(state)
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 })))
@@ -107,6 +127,13 @@ describe('bringing a map back', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ snapshot: state }), { status: 200 })))
     const restored = await restoreMap('acdefg')
     expect(restored?.identity.firstName).toBe('Sagal')
+  })
+
+  it('comes back with empty guide threads, even from a snapshot kept before they were left out', async () => {
+    const old = { ...state, coachThreads: { auntie: [{ id: '1', role: 'user', text: 'kept by an older version' }] } }
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ snapshot: old }), { status: 200 })))
+    const restored = await restoreMap('ACDEFG')
+    expect(restored?.coachThreads).toEqual({})
   })
 
   it('normalises what a human types — case, spaces and dashes', async () => {

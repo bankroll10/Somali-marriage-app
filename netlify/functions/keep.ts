@@ -86,6 +86,11 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'missing_snapshot' }, { status: 400 })
   }
 
+  // The client promises never to send her conversations with the guide
+  // (src/lib/keep.ts). The server refuses to hold them even if an older client
+  // still does — a promise about what is stored is kept where it is stored.
+  delete (body.snapshot as Record<string, unknown>).coachThreads
+
   // A rough ceiling. A real map is a few kilobytes; anything far past that is a
   // mistake or an attempt to use us as free storage.
   const serialised = JSON.stringify(body.snapshot)
