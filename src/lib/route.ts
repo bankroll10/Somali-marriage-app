@@ -48,11 +48,6 @@ const RULES: Rule[] = [
       /\b(who fits|what kind of person|my map|compatible|compatibility|my type|right for me|suited|match me|matches)\b/i,
   },
   {
-    mode: 'profile',
-    why: 'this sounded like it’s about how you come across',
-    patterns: /\b(my profile|my bio|my photos|my pictures|how i look|come across|first impression)\b/i,
-  },
-  {
     mode: 'gendered',
     why: 'this sounded like the two of you',
     patterns:

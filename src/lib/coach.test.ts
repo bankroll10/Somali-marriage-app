@@ -180,10 +180,9 @@ describe('askCoach — nothing a real person types may dead-end', () => {
     ['islamic', 'Is it wrong to marry outside my clan?'],
     ['islamic', 'What does Islam say about a second wife?'],
     ['matchmaker', 'There are two people I like and I cannot decide.'],
-    ['profile', 'What should I put for my job if I am unemployed?'],
   ]
 
-  const ALL_MODES: ModeId[] = ['auntie', 'brother', 'therapist', 'islamic', 'matchmaker', 'profile']
+  const ALL_MODES: ModeId[] = ['auntie', 'brother', 'therapist', 'islamic', 'matchmaker']
   // The app's own one-tap moments (data/moments.ts) and the guide's starters.
   const OWN_CHIPS = [
     'He’s gone quiet on me and I don’t know what it means.',
@@ -216,7 +215,7 @@ describe('askCoach — nothing a real person types may dead-end', () => {
   })
 
   it('speaks in a different voice per mode when it cannot place the question', async () => {
-    // The framework answer used to be byte-identical across all six modes, which
+    // The framework answer used to be byte-identical across all modes, which
     // two judges comparing screens would spot immediately.
     const odd = 'I need to think about something unrelated to any keyword here.'
     const texts = await Promise.all(ALL_MODES.map((m) => askCoach(odd, ctx, m).then((r) => r.text)))

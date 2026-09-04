@@ -1,8 +1,8 @@
 import type { Answers, Gender, Identity, ModeId, Stage } from '../types'
 
 /**
- * The AI Guide's knowledge — now organised into distinct guidance MODES, each a
- * different voice and lens. Hand-authored, culturally fluent wisdom for a Muslim
+ * The AI Guide's knowledge — five guidance MODES, each a different voice and
+ * lens. Hand-authored, culturally fluent wisdom for a Muslim
  * / Somali audience. The local engine (lib/coach.ts) selects the active mode,
  * matches the user's message to the best intent within it, and falls back to the
  * mode's own fallback. The Claude seam later swaps the body of askCoach while
@@ -437,81 +437,12 @@ Alignment is whether your lives actually fit: faith, family, finances, children,
     `Tell me what you’re weighing, ${addressed(ctx)} — a specific person, a doubt, a decision — and I’ll read it against your map and tell you where the real alignment is.`,
 }
 
-// ── Profile Coach ────────────────────────────────────────────────────────────
-const profile: GuidanceMode = {
-  id: 'profile',
-  label: 'Profile Coach',
-  tagline: 'Present your best, honest self',
-  description: 'Helps you show up as the real, best version of you — no lying.',
-  glyph: 'pen',
-  accent: 'gold',
-  greeting: (ctx) =>
-    `Let’s make you unmistakable, ${addressed(ctx)}.
-
-My only rule: honest and magnetic, never fake. A good profile doesn’t exaggerate — it helps the *right* person recognise you and the wrong person keep scrolling. Paste me what you’ve got, or ask where to start.`,
-  starters: [
-    { label: 'Help me write my bio', prompt: 'Help me write a bio for my profile.' },
-    { label: 'What should my photos show?', prompt: 'What should my photos show?' },
-    { label: 'What makes a profile stand out?', prompt: 'What actually makes a marriage profile stand out?' },
-    { label: 'What should I highlight about myself?', prompt: 'What should I highlight about myself?' },
-  ],
-  intents: [
-    {
-      keywords: ['bio', 'write', 'about me', 'description', 'caption', 'what to say', 'words'],
-      respond: () =>
-        `Let’s build it in three honest beats:
-• **Who you are** — one real line about your values and faith. “I want a home built on deen, honesty, and a lot of laughter.”
-• **What your life looks like** — something specific and true. Your work, your people, what you’re building.
-• **What you’re looking for** — name that it’s marriage, warmly. It filters beautifully.
-
-Avoid clichés (“I love travel and food”) — everyone says them. Specifics are attractive; lists are forgettable. Paste me your draft and I’ll sharpen it while keeping it sounding like *you*.`,
-    },
-    {
-      keywords: ['photo', 'photos', 'pictures', 'pics', 'image', 'selfie'],
-      respond: () =>
-        `Photos should tell the truth, kindly. The goal isn’t “most attractive” — it’s “most clearly *you*.”
-• A clear, warm, kind-eyed photo where someone can actually see your face.
-• One that shows your real life — something you genuinely do or love.
-• Natural light, no heavy filters, nothing misleading. Mystery and façade both cost you trust.
-
-For sisters who prefer privacy, that’s completely valid — we can lean on a strong written profile and the blur-until-mutual option instead. Authenticity beats glamour every time on a marriage platform.`,
-    },
-    {
-      keywords: ['stand out', 'standout', 'first impression', 'attract', 'better profile', 'improve'],
-      respond: () =>
-        `Standing out here is the opposite of standing out on a dating app. You don’t need to be the loudest — you need to be the most *real* and the most *clear*.
-
-Three things do it:
-• Specificity — true details beat impressive adjectives.
-• Intention — being openly here for marriage signals seriousness and self-respect.
-• Warmth — a profile that sounds kind and grounded draws kind, grounded people.
-
-The right person isn’t looking for perfect. They’re looking for someone they can trust. Be that on the page.`,
-    },
-    {
-      keywords: ['highlight', 'strengths', 'sell myself', 'best qualities', 'what makes me', 'showcase'],
-      respond: (ctx) => {
-        const bring = (ctx.answers['bring'] as string | undefined)?.trim()
-        const tail = bring
-          ? `\n\nYou already told me something true in your map: “${bring}” — that’s gold. Lead with the real thing you bring, in your own voice.`
-          : ''
-        return `Highlight character and direction over surface. The most attractive things on a marriage profile are: what you value, how you treat people, what you’re building, and your sense of humour.
-
-Don’t brag — *show*. “I call my mum every day” says more than “family-oriented.” “I’m the one my friends call at 2am” says more than “loyal.” Pick two or three true things and make them concrete.${tail}`
-      },
-    },
-  ],
-  fallback: (ctx) =>
-    `Paste me what you’ve got, ${addressed(ctx)} — a bio, a line, a doubt about a photo — and I’ll help you make it honest *and* magnetic. We’ll never fake it; we’ll just show the best true version of you.`,
-}
-
 export const modes: GuidanceMode[] = [
   auntie,
   brother,
   therapist,
   islamic,
   matchmaker,
-  profile,
 ]
 
 export function getMode(id: ModeId): GuidanceMode {

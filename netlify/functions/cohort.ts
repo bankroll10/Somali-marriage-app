@@ -33,7 +33,7 @@ export const COHORT_TARGET = 40
 const SCENES = new Set(['twin-cities', 'toronto', 'london', 'columbus', 'stockholm', 'other'])
 const GENDERS = new Set(['woman', 'man'])
 const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'ready', 'none'])
-const VOICES = new Set(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker', 'profile'])
+const VOICES = new Set(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker'])
 /** Must match src/lib/ledger.ts. What a person has actually done here. */
 const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'counted', 'vouched'])
 /** Same alphabet and length as netlify/functions/keep.ts. */

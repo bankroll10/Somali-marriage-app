@@ -17,6 +17,7 @@ import type {
 import { defaultGuideUse, defaultTrust } from '../types'
 
 const KEY = 'niyyah.intake.v1'
+const KNOWN_MODES = new Set<string>(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker'])
 
 export interface PersistedState {
   answers: Answers
@@ -98,7 +99,10 @@ export function loadProgress(): Persisted | null {
       vouch: p.vouch ?? null,
       followups: p.followups ?? [],
       completed: p.completed ?? false,
-      coachThreads: p.coachThreads ?? {},
+      // A thread with a voice that no longer exists (the Profile Coach) is dropped.
+      coachThreads: Object.fromEntries(
+        Object.entries(p.coachThreads ?? {}).filter(([mode]) => KNOWN_MODES.has(mode)),
+      ) as PersistedState['coachThreads'],
       updatedAt: p.updatedAt ?? 0,
     }
   } catch {

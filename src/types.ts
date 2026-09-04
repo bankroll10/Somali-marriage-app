@@ -32,8 +32,6 @@ export interface Identity {
   age?: number
   /** Diaspora community / scene id (see data/scenes.ts). */
   scene?: string
-  /** A short, self-written headline for the profile. */
-  bio?: string
 }
 
 export interface CoachMessage {
@@ -42,13 +40,19 @@ export interface CoachMessage {
   text: string
 }
 
+/**
+ * The guide's voices. There used to be a sixth, the Profile Coach — "help me
+ * write my bio", "what should my photos show", promising to make her
+ * "unmistakable" and "magnetic". It optimised self-presentation for a
+ * marketplace with nobody in it, which is the one lesson this product exists
+ * to unteach. Five voices are enough, and the router already picks one.
+ */
 export type ModeId =
   | 'auntie'
   | 'brother'
   | 'therapist'
   | 'islamic'
   | 'matchmaker'
-  | 'profile'
 
 /**
  * The one trust control that does what it says.

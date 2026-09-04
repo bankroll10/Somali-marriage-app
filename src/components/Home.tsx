@@ -413,9 +413,9 @@ export default function Home({
                 <PersonGlyph />
               </GlyphTile>
               <span className="flex-1">
-                <span className="font-display text-[1.2rem] font-medium text-ink">Your profile</span>
+                <span className="font-display text-[1.2rem] font-medium text-ink">What decides who you meet</span>
                 <span className="mt-0.5 block text-[0.88rem] text-muted">
-                  How members see you — plus your protections and privacy.
+                  What you’ve done here, what you won’t compromise on, how you’d live — and your protections.
                 </span>
               </span>
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />

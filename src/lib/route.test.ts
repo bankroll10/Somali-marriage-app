@@ -17,9 +17,6 @@ describe('routeToMode', () => {
     expect(routeToMode('hooyo asks about marriage every single week').mode).toBe('auntie')
   })
 
-  it('sends "how do I come across" to the profile coach', () => {
-    expect(routeToMode('is my bio doing me any favours').mode).toBe('profile')
-  })
 
   it('routes the everyday "he went quiet" to the gendered default voice', () => {
     expect(routeToMode('he went quiet on me for three days', 'woman').mode).toBe(

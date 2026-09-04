@@ -243,7 +243,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           ledger={n.ledgerEntries}
           vouch={n.vouch}
           onKept={n.setKeptCode}
-          onChangeBio={(bio) => n.setIdentity((prev) => ({ ...prev, bio }))}
           onChangeIdentity={n.setIdentity}
           saveOk={n.saveOk}
           onOpenTrust={() => n.openTrust('profile')}

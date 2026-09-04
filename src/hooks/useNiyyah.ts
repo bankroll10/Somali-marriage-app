@@ -227,7 +227,7 @@ export function useNiyyah(entry: Entry | null = null) {
     }
   }, [couple, identity.gender])
 
-  // ── Persistence (debounced — the bio textarea saves per keystroke otherwise)
+  // ── Persistence (debounced — the age field saves per keystroke otherwise)
   useEffect(() => {
     const t = window.setTimeout(
       () =>
