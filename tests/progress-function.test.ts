@@ -71,6 +71,18 @@ describe('reporting a rung', () => {
     expect(stores.get('progress')?.size ?? 0).toBe(0)
   })
 
+  it('keeps what kind of link brought her here, first told wins, and refuses anything else', async () => {
+    for (const via of ['words', 'eleven', 'couple', 'door', 'family']) {
+      expect((await post({ id: 'HJKMNP', rungs: ['arrived'], via })).status, via).toBe(200)
+    }
+    expect((await post({ id: ID, rungs: ['arrived'], via: 'instagram' })).status).toBe(400)
+    expect((await post({ id: ID, rungs: ['arrived'], via: 'ACDEFG' })).status).toBe(400)
+
+    await post({ id: ID, rungs: ['arrived'], via: 'door' })
+    await post({ id: ID, rungs: ['arrived', 'read'], via: 'words' })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).via).toBe('door')
+  })
+
   it('refuses a bad id, a bad scene, a missing list and an oversized body', async () => {
     expect((await post({ id: 'nope', rungs: ['arrived'] })).status).toBe(400)
     expect((await post({ id: ID, rungs: ['arrived'], scene: 'mars' })).status).toBe(400)
@@ -96,6 +108,21 @@ describe('the readout', () => {
     // No install id ever leaves, so nothing here can be traced to a device.
     const serialised = JSON.stringify(body)
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY']) expect(serialised).not.toContain(id)
+  })
+
+  it('tells word of mouth from every other arrival, by source, with no edge between people', async () => {
+    await post({ id: 'ACDEFG', rungs: ['arrived', 'read', 'followed-through'], via: 'words' })
+    await post({ id: 'HJKMNP', rungs: ['arrived'], via: 'words' })
+    await post({ id: 'QRTWXY', rungs: ['arrived', 'eleven'], via: 'couple' })
+    await post({ id: 'ACDEFH', rungs: ['arrived'] })
+
+    const body = await (await readout()).json()
+    expect(body.vias.words.arrived).toBe(2)
+    expect(body.vias.words['followed-through']).toBe(1)
+    expect(body.vias.couple.eleven).toBe(1)
+    expect(body.vias.unsaid.arrived).toBe(1)
+    // Sources, never senders.
+    expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNP|QRTWXY|from|sender/)
   })
 
   it('carries nothing a person wrote', async () => {

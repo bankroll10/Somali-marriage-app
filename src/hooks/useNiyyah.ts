@@ -15,7 +15,7 @@ import { buildRead } from '../lib/read'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
 import { coupleReading, readCouple } from '../lib/couple'
-import type { Entry } from '../lib/entry'
+import type { Entry, EntryKind } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
 import { readVouch } from '../lib/vouch'
 import { defaultGuideUse, defaultTrust } from '../types'
@@ -64,6 +64,15 @@ export type Screen =
 
 const SAVE_DEBOUNCE_MS = 250
 
+/** The word in the link, and the screen it opens. A restored map opens nothing of its own. */
+const ENTRY_SCREEN: Partial<Record<EntryKind, Screen>> = {
+  couple: 'couple',
+  vouch: 'vouch',
+  read: 'read',
+  eleven: 'beforeYes',
+  families: 'families',
+}
+
 /**
  * The app's single source of truth: journey state, persistence, and actions.
  * Screens stay dumb; App stays a router.
@@ -82,9 +91,10 @@ export function useNiyyah(entry: Entry | null = null) {
   // ever answering the intake.
   const [screen, setScreen] = useState<Screen>(() => {
     // Someone arriving on a link lands on the screen the link is for, whatever
-    // this device has saved — he may well be opening it on a phone with a map.
-    if (entry?.kind === 'couple') return 'couple'
-    if (entry?.kind === 'vouch') return 'vouch'
+    // this device has saved — he may well be opening it on a phone with a map,
+    // and a member with a Home who is sent the read should land on the read.
+    const fromLink = entry ? ENTRY_SCREEN[entry.kind] : undefined
+    if (fromLink) return fromLink
     return saved && (saved.completed || saved.stage !== 'preparing') ? 'home' : 'welcome'
   })
   /** The code in the link that opened the app, for the screen it opened. */

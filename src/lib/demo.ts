@@ -13,6 +13,10 @@ import type { Answers, Identity } from '../types'
  *
  * Reloading a ?demo URL re-seeds, so the demo tab always resets to a known
  * state. Both params overwrite whatever is in localStorage — by design.
+ *
+ * Neither combines with a link (`?read`, `?couple=`…): main.tsx strips the
+ * query before this runs whenever a link is present. No minted link carries
+ * them, so this is a note, not a bug.
  */
 
 const demoAnswers: Answers = {
