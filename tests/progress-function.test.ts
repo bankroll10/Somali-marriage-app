@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * The ladder store has two jobs: to accept nothing but rungs, and to never let
@@ -34,9 +34,11 @@ const post = (body: unknown) =>
   handler(new Request('http://x/.netlify/functions/progress', { method: 'POST', body: JSON.stringify(body) }))
 const raw = (body: string) =>
   handler(new Request('http://x/.netlify/functions/progress', { method: 'POST', body }))
-const readout = () => handler(new Request('http://x/.netlify/functions/progress'))
+const readout = (headers: Record<string, string> = {}) =>
+  handler(new Request('http://x/.netlify/functions/progress', { headers }))
 
 beforeEach(() => stores.clear())
+afterEach(() => vi.unstubAllEnvs())
 
 describe('reporting a rung', () => {
   it('accepts the ladder and records when each was first reached', async () => {
@@ -134,5 +136,42 @@ describe('the readout', () => {
   it('POST is the only way in, and only GET reads', async () => {
     const res = await handler(new Request('http://x/.netlify/functions/progress', { method: 'DELETE' }))
     expect(res.status).toBe(405)
+  })
+})
+
+describe('the founder key', () => {
+  it('stays open when no key is configured', async () => {
+    await post({ id: ID, rungs: ['arrived'] })
+    expect((await readout()).status).toBe(200)
+  })
+
+  it('refuses the readout without the key, and with the wrong one', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    const bare = await readout()
+    expect(bare.status).toBe(401)
+    expect(bare.headers.get('www-authenticate')).toMatch(/^Bearer/)
+    expect(bare.headers.get('cache-control')).toBe('no-store')
+    expect(JSON.stringify(await bare.json())).not.toContain('sesame')
+    expect((await readout({ authorization: 'Bearer open-sesam' })).status).toBe(401)
+    expect((await readout({ authorization: 'Bearer open-sesame-x' })).status).toBe(401)
+  })
+
+  it('refuses Basic and a bare token — only Bearer', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    expect((await readout({ authorization: 'open-sesame' })).status).toBe(401)
+    expect((await readout({ authorization: `Basic ${btoa('x:open-sesame')}` })).status).toBe(401)
+  })
+
+  it('admits the key', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    await post({ id: ID, rungs: ['arrived'] })
+    const res = await readout({ authorization: 'Bearer open-sesame' })
+    expect(res.status).toBe(200)
+    expect((await res.json()).rungs.arrived).toBe(1)
+  })
+
+  it('reporting a rung never needs the key', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    expect((await post({ id: ID, rungs: ['arrived'] })).status).toBe(200)
   })
 })

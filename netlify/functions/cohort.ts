@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { isFounder, notFounder } from '../shared/founder'
 
 /**
  * The number on the door.
@@ -38,6 +39,8 @@ const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'ready', 'none']
 const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'counted', 'vouched'])
 /** Same alphabet and length as netlify/functions/keep.ts. */
 const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
+/** A code, a city, a side, a hardest part and seven ledger ids is the largest thing anyone can send. */
+const MAX_BODY = 2_048
 
 export interface CohortRecord {
   at: string
@@ -100,6 +103,10 @@ export default async function handler(req: Request) {
   // ── Count ─────────────────────────────────────────────────────────────────
   if (req.method === 'GET') {
     const scene = new URL(req.url).searchParams.get('scene')
+    // The number on the door stays public — it is the honest count this
+    // product promises. The full tally, every city and hardest part, is the
+    // founder's readout.
+    if (!scene && !isFounder(req)) return notFounder()
     try {
       if (!scene) return Response.json(await tally(store))
       if (!SCENES.has(scene)) return Response.json({ error: 'bad_scene' }, { status: 400 })
@@ -122,8 +129,15 @@ export default async function handler(req: Request) {
     hook?: string
     ledger?: unknown
   }
+  let raw: string
   try {
-    body = await req.json()
+    raw = await req.text()
+  } catch {
+    return Response.json({ error: 'bad_json' }, { status: 400 })
+  }
+  if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
+  try {
+    body = JSON.parse(raw)
   } catch {
     return Response.json({ error: 'bad_json' }, { status: 400 })
   }

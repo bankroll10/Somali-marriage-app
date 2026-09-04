@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { Context } from '@netlify/functions'
+import { isFounder, notFounder } from '../shared/founder'
 
 /**
  * The live Guide.
@@ -47,6 +48,11 @@ export default async function handler(req: Request, _context: Context) {
   // there is otherwise no way to tell "the key is wrong" from "this route was
   // never reachable". Reports booleans and error names only; never the key.
   if (req.method === 'GET') {
+    // Founder-only once FOUNDER_KEY is set: every open call here spends a
+    // little Anthropic credit, and a loop over it is the cheapest way anyone
+    // could run up the bill. Unset, it is as open as it always was — set both
+    // keys in the same deploy.
+    if (!isFounder(req)) return notFounder()
     const key = process.env.ANTHROPIC_API_KEY
     const diagnostic: Record<string, unknown> = {
       route: 'reachable',

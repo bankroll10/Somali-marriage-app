@@ -58,6 +58,16 @@ describe('Netlify deploy directories hold only deployable code', () => {
     }
   })
 
+  it('netlify/functions holds exactly the handlers, and shared code stays out of it', () => {
+    // Every top-level file in the functions directory becomes a deployed
+    // function with its own URL. A helper module dropped in here by mistake
+    // would deploy as an endpoint that answers nothing — or worse, one that
+    // answers. Shared code lives in netlify/shared, which Netlify never scans.
+    const functions = readdirSync(join(process.cwd(), 'netlify/functions')).sort()
+    expect(functions).toEqual(['cohort.ts', 'couple.ts', 'guide.ts', 'keep.ts', 'progress.ts', 'vouch.ts'])
+    expect(existsSync(join(process.cwd(), 'netlify/shared/founder.ts'))).toBe(true)
+  })
+
   it('the gate is still where netlify.toml expects it', () => {
     // A guard that passes because the file was deleted would be worse than none.
     expect(existsSync(join(process.cwd(), 'netlify/edge-functions/gate.ts'))).toBe(true)

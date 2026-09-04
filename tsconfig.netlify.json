@@ -23,6 +23,8 @@
     "noFallthroughCasesInSwitch": true
   },
   /* Their tests live in tests/, deliberately outside netlify/ — Netlify treats
-     every file in the functions and edge-functions directories as deployable. */
-  "include": ["netlify/functions", "netlify/edge-functions", "tests"]
+     every file in the functions and edge-functions directories as deployable.
+     netlify/shared holds modules the functions import; the bundler inlines
+     them, and Netlify never scans that directory for handlers. */
+  "include": ["netlify/functions", "netlify/edge-functions", "netlify/shared", "tests"]
 }

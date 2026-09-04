@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { isFounder, notFounder } from '../shared/founder'
 
 /**
  * The ladder, counted.
@@ -120,6 +121,9 @@ export default async function handler(req: Request) {
   // returning, and building the route would be building the thing we promised
   // not to have.
   if (req.method === 'GET') {
+    // The readout is the founder's. Aggregate, but still the one thing here
+    // nobody else could produce — see netlify/shared/founder.ts.
+    if (!isFounder(req)) return notFounder()
     try {
       return Response.json(await tally(store))
     } catch (err) {

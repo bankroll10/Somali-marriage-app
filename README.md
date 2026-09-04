@@ -103,6 +103,7 @@ src/
   hooks/useNiyyah.ts   Single source of truth: state, actions, persistence
   components/          One file per screen; home/ holds Home's cards
 netlify/functions/     guide · keep · cohort · couple · vouch · progress (Netlify Blobs)
+netlify/shared/        founder — the bearer key on every readout; inlined, never deployed as a route
 netlify/edge-functions/gate.ts   Founding-preview password gate
 ```
 
@@ -179,6 +180,37 @@ curl -sI https://<your-site>/ | head -1     # expect: HTTP/2 401
 
 At real launch, remove three things together: the `[[headers]]` block in
 `netlify.toml`, `public/robots.txt`, and this gate.
+
+## The founder's readout
+
+Four routes return aggregates and nothing else: the ladder
+(`/.netlify/functions/progress`), the door's full tally (`/cohort` with no
+`scene`), how pairs come out on the eleven (`/couple` with no `code`), and the
+guide's health check (`/guide`). None returns a person. They are still the one
+thing here a second team could not build for itself, and the health check
+spends Anthropic credit on every call, so all four sit behind one bearer token
+read from `FOUNDER_KEY` (`netlify/shared/founder.ts`).
+
+| Field | Value |
+|---|---|
+| **Key** | `FOUNDER_KEY` |
+| **Value** | a long random string — `openssl rand -base64 32` |
+| Contains secret values | checked is fine — Node functions receive secret-scoped variables, unlike edge functions |
+
+**Unset means open**, the same convention as the gate, so local runs and tests
+behave as before. After setting it:
+
+```bash
+curl -sI https://<your-site>/.netlify/functions/progress | head -1     # expect: HTTP/2 401
+curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/progress
+curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/cohort
+curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/couple
+curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/guide
+```
+
+The per-city count (`/cohort?scene=…`) stays public: it is the number on the
+door, and the door is a promise made in public. Reporting a rung, keeping a
+map, answering the eleven and vouching never need the key.
 
 ## The AI Guide
 
