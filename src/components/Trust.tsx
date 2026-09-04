@@ -144,7 +144,8 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               <span className="font-medium text-ink">Asking your family to vouch.</span>{' '}
               If you send a family member the link, your map is kept as above, and
               what they write — who they are to you, their first name, one sentence,
-              and a phone number if they leave one — is stored under your code. Only
+              and a phone number if they leave one — is stored under your code. It
+              stays exactly as long as your map does, and goes when your map goes. Only
               their first name and who they are to you ever come back to any screen.
               Their sentence and their number are read by the founder alone, who may
               call to confirm, and are never shown to anyone you meet.

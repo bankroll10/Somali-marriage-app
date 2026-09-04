@@ -13,11 +13,18 @@ import { getStore } from '@netlify/blobs'
  * sentence they write and the number they may leave are for the founder alone
  * — read in the Blobs store, never on any endpoint. First vouch wins; a typo
  * cannot be corrected, and that is accepted over letting a vouch be rewritten.
+ *
+ * A vouch has no clock of its own. It lives exactly as long as the map it was
+ * given about: a father's word does not expire while his daughter is still
+ * here, and it goes when her map goes. It used to carry a fixed year from the
+ * day it was written while the map was refreshed on every keep — so the vouch
+ * could lapse under a live map, which is the one thing a web of trust must not
+ * do. Every vouch is a real family that trusted this with a name; the store is
+ * the graph of them, and it should only ever grow.
  */
 
 const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 const RELATIONSHIPS = new Set(['father', 'brother', 'uncle', 'mother', 'aunt', 'other'])
-const TTL_MS = 365 * 24 * 60 * 60 * 1000
 const MAX_BODY = 4_000
 
 interface VouchRecord {
@@ -26,7 +33,8 @@ interface VouchRecord {
   sentence: string
   phone?: string
   at: string
-  expiresAt: string
+  /** Written by an older version. Ignored: the map decides. */
+  expiresAt?: string
 }
 
 /** The only shape any caller ever receives. No sentence, no phone. */
@@ -47,12 +55,14 @@ export default async function handler(req: Request) {
     const code = (new URL(req.url).searchParams.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
     try {
-      const record = (await store.get(code, { type: 'json' })) as VouchRecord | null
-      if (!record) return Response.json({ vouched: false }, { status: 404 })
-      if (Date.parse(record.expiresAt) < Date.now()) {
-        await store.delete(code)
-        return Response.json({ vouched: false }, { status: 404 })
-      }
+      // Live while the map is. The vouch is not deleted when the map is absent:
+      // a map is re-kept under the same code, and the vouch must come back
+      // with it rather than be lost to one lapsed year.
+      const [map, record] = await Promise.all([
+        getStore('maps').getMetadata(code),
+        store.get(code, { type: 'json' }) as Promise<VouchRecord | null>,
+      ])
+      if (!map || !record) return Response.json({ vouched: false }, { status: 404 })
       return Response.json(publicView(record))
     } catch (err) {
       console.error('[niyyah] vouch: read failed', err)
@@ -96,18 +106,15 @@ export default async function handler(req: Request) {
   }
 
   try {
+    // First vouch wins, however old. The map behind it is live — checked above.
     const existing = (await store.get(code, { type: 'json' })) as VouchRecord | null
-    if (existing && Date.parse(existing.expiresAt) >= Date.now()) {
-      return Response.json({ error: 'vouched', ...publicView(existing) }, { status: 409 })
-    }
-    const now = Date.now()
+    if (existing) return Response.json({ error: 'vouched', ...publicView(existing) }, { status: 409 })
     const record: VouchRecord = {
       relationship,
       firstName,
       sentence,
       ...(phone ? { phone } : {}),
-      at: new Date(now).toISOString(),
-      expiresAt: new Date(now + TTL_MS).toISOString(),
+      at: new Date().toISOString(),
     }
     await store.setJSON(code, record)
     return Response.json(publicView(record))
