@@ -4,6 +4,8 @@ import { scenes, getScene } from '../data/scenes'
 import { getHookOption } from '../data/hook'
 import { COHORT_TARGET, cohortCount, joinCohort, type CohortCount } from '../lib/cohort'
 import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../lib/waitlist'
+import { instrumentLink } from '../lib/links'
+import { shareOrCopy } from '../lib/share'
 import { track } from '../lib/analytics'
 import { ArrowRight, CheckIcon, Spinner, fieldClass } from './ui'
 
@@ -58,6 +60,27 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   const place = getScene(scene)
   const city = place && place.id !== 'other' ? place.label : 'Your city'
   const seeking = identity.gender === 'man' ? 'women' : 'men'
+  const one = identity.gender === 'man' ? 'woman' : 'man'
+  const them = identity.gender === 'man' ? 'her' : 'him'
+  const [sent, setSent] = useState(false)
+
+  // The door is a collective goal, and the honest ask is the useful one: the
+  // city opens when both sides are counted, so if she knows one serious man,
+  // the most useful thing she can do for herself is send him the read. No
+  // count of who she sent it to, anywhere; the only number is the door's.
+  async function sendTheRead() {
+    const result = await shareOrCopy(
+      {
+        text: `Salaam — Niyyah is being built for us, one city at a time, and ${city} opens when forty serious women and forty serious men are counted. Start with the read: ninety seconds on what someone has actually done, and the one question to ask next. No account.`,
+        url: instrumentLink('read', 'door'),
+      },
+      'door_sent',
+    )
+    if (result === 'copied') {
+      setSent(true)
+      window.setTimeout(() => setSent(false), 2400)
+    }
+  }
 
   if (joined) {
     return (
@@ -76,6 +99,23 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             it opens your map on any phone.
           </p>
         )}
+        <div className="mt-4 border-t border-forest/15 pt-4">
+          <p className="text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
+            {city} opens at {COHORT_TARGET} each. If you know one serious {one}, send {them} this.
+          </p>
+          <button
+            onClick={sendTheRead}
+            className="mt-3 inline-flex items-center gap-2 rounded-full border border-forest/30 px-4 py-2 text-[0.85rem] font-medium text-forest transition hover:bg-forest/[0.06]"
+          >
+            {sent ? (
+              <>
+                <CheckIcon size={12} /> Copied to send
+              </>
+            ) : (
+              'Send the read'
+            )}
+          </button>
+        </div>
       </div>
     )
   }
