@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import type { FollowUp as FollowUpRecord } from '../../types'
 import type { FollowUpAsk } from '../../lib/followup'
+import { shareOrCopy } from '../../lib/share'
+import { wordsMessage } from '../../lib/words'
 import ScriptCard from '../ScriptCard'
-import { ArrowRight } from '../ui'
+import { ArrowRight, CheckIcon } from '../ui'
 
 interface Props {
   ask: FollowUpAsk
@@ -99,6 +101,62 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
             </button>
           </div>
         )}
+      </div>
+    </section>
+  )
+}
+
+/**
+ * She had it.
+ *
+ * This is the moment the whole product exists to cause, and until now the card
+ * simply disappeared when she said so. It is also the moment a person tells
+ * someone else — not "there's an app", but "I asked him exactly this". So the
+ * one thing offered here is to hand the same words to a friend who is talking
+ * to someone. Nothing is counted, nothing is rewarded, and Done is always
+ * right there.
+ */
+export function FollowedThrough({ ask, onDone }: { ask: FollowUpAsk; onDone: () => void }) {
+  const [sent, setSent] = useState(false)
+
+  async function send() {
+    const result = await shareOrCopy(wordsMessage(ask.script, ask.travel), 'words_sent')
+    if (result === 'copied') {
+      setSent(true)
+      window.setTimeout(() => setSent(false), 2200)
+    }
+  }
+
+  return (
+    <section className="animate-rise mt-8">
+      <div className="rounded-card border border-gold/30 bg-gold/[0.07] p-5">
+        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">Since last time</p>
+        <p className="mt-2 font-display text-[1.15rem] font-medium leading-snug text-ink text-pretty">
+          You had it. That is the part most people never get to.
+        </p>
+        {ask.writesBack && (
+          <p className="mt-2 text-[0.9rem] leading-snug text-muted text-pretty">It’s in your sheet now, as it actually went.</p>
+        )}
+        <p className="mt-3 text-[0.9rem] leading-snug text-ink-soft text-pretty">
+          Someone you know is talking to someone. Send them the words you just used.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <button
+            onClick={send}
+            className="inline-flex items-center gap-2 rounded-full border border-forest bg-forest px-4 py-2 text-[0.85rem] font-medium text-cream transition-all hover:bg-forest-deep"
+          >
+            {sent ? (
+              <>
+                <CheckIcon size={12} /> Copied to send
+              </>
+            ) : (
+              'Send these words'
+            )}
+          </button>
+          <button onClick={onDone} className="text-[0.85rem] font-medium text-muted underline-offset-4 hover:underline">
+            Done
+          </button>
+        </div>
       </div>
     </section>
   )

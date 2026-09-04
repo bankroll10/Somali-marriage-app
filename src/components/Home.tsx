@@ -6,7 +6,7 @@ import { getScene } from '../data/scenes'
 import { chosenReason, getDailyReflection } from '../data/daily'
 import { momentsFor } from '../data/moments'
 import { dailyPrefsFor } from '../lib/personalize'
-import FollowUp from './home/FollowUp'
+import FollowUp, { FollowedThrough } from './home/FollowUp'
 import StageBand from './home/StageBand'
 import TodaysReflection from './home/TodaysReflection'
 import WorkCard from './home/WorkCard'
@@ -114,6 +114,15 @@ export default function Home({
   const whyThisOne = chosenReason(new Date(), prefs)
 
   const [ask, setAsk] = useState('')
+  // The follow-up she just answered "we talked" to. The record is resolved at
+  // once (the ladder counts it); this keeps the card on screen for one more
+  // beat, because the moment she had the conversation is the moment worth
+  // handing the words to someone else. Cleared on navigation with the screen.
+  const [hadIt, setHadIt] = useState<FollowUpAsk | null>(null)
+  const answerFollowUp: Props['onAnswerFollowUp'] = (id, outcome, agreed) => {
+    if (outcome === 'asked' && followUpAsk) setHadIt(followUpAsk)
+    onAnswerFollowUp(id, outcome, agreed)
+  }
 
   return (
     <div className="min-h-dvh bg-cream pb-16">
@@ -344,8 +353,13 @@ export default function Home({
             courtship. It is the one thing on Home that asks; the daily
             check-in that used to sit below it asked every day and measured
             nothing. */}
-        {followUpAsk && stage !== 'married' && (
-          <FollowUp ask={followUpAsk} onAnswer={onAnswerFollowUp} onAskGuide={(text) => onAsk(text)} />
+        {hadIt && stage !== 'married' ? (
+          <FollowedThrough ask={hadIt} onDone={() => setHadIt(null)} />
+        ) : (
+          followUpAsk &&
+          stage !== 'married' && (
+            <FollowUp ask={followUpAsk} onAnswer={answerFollowUp} onAskGuide={(text) => onAsk(text)} />
+          )
         )}
 
         {/* A read is about behaviour over time, and a month later the
