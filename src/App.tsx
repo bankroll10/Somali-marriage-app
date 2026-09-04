@@ -305,7 +305,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       return <Vouch code={n.entryCode} onDone={() => n.setScreen('welcome')} />
 
     case 'families':
-      return <Families gender={n.identity.gender} stage={n.stage} onBack={backHome} />
+      return <Families gender={n.identity.gender} stage={n.stage} onTaken={n.noteFamilyScript} onBack={backHome} />
 
     case 'sample':
       return (

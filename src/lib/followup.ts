@@ -1,6 +1,7 @@
 import type { FollowUp, Gender, ReadRecord } from '../types'
 import { beforeYesTopics, type Topic } from '../data/beforeYes'
 import { SCRIPTS, speak, type ReadDimension, type Script } from '../data/read'
+import { familyScript } from '../data/families'
 import type { WordsSource } from './words'
 
 /**
@@ -98,6 +99,21 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
       },
       writesBack: false,
       travel: 'guide',
+    }
+  }
+  if (f.source === 'family') {
+    // The words for hooyo, the wali, his people. Noted when she took them,
+    // not when she opened them — browsing is not a commitment.
+    const s = familyScript(f.topic, gender)
+    if (!s) return null
+    const label = s.title.charAt(0).toLowerCase() + s.title.slice(1)
+    return {
+      followUp: f,
+      question: `Last time, you took the words for ${label}. Did you have that conversation?`,
+      label,
+      script: s.script,
+      writesBack: false,
+      travel: 'family',
     }
   }
   if (f.source === 'read') {

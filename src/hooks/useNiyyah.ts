@@ -510,6 +510,15 @@ export function useNiyyah(entry: Entry | null = null) {
   }
 
   /**
+   * She took the words for one of the family conversations — copied or sent
+   * them. Written down so that in a few days Home asks whether she had it.
+   * Opening a script is not taking it; browsing five must not queue five asks.
+   */
+  function noteFamilyScript(id: string) {
+    setFollowups((prev) => noteFollowUp(prev, 'family', id))
+  }
+
+  /**
    * She took the guide's words as something she will say. Written down like a
    * read's question or one of the eleven, so that in a few days Home asks
    * whether she said them — the guide stops being a thread and becomes a thing
@@ -627,6 +636,7 @@ export function useNiyyah(entry: Entry | null = null) {
     askGuide,
     clearGuideAsk,
     commitFromGuide,
+    noteFamilyScript,
     openPhilosophy,
     openTrust,
     readStillStands,

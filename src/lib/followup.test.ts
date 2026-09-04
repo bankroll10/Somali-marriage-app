@@ -57,6 +57,19 @@ describe('when it asks', () => {
     expect(ask.writesBack).toBe(false)
   })
 
+  it('asks about the words she took for her family, by the script she took', () => {
+    const ask = openFollowUp([one({ source: 'family', topic: 'first-with-hooyo' })], 'woman', NOW)!
+    expect(ask.question).toMatch(/hooyo/i)
+    expect(ask.script.words.length).toBeGreaterThan(20)
+    expect(ask.travel).toBe('family')
+    expect(ask.writesBack).toBe(false)
+  })
+
+  it('never asks a man about a script that is only for a woman, or anyone about one that does not exist', () => {
+    expect(openFollowUp([one({ source: 'family', topic: 'tell-wali-online' })], 'man', NOW)).toBeNull()
+    expect(openFollowUp([one({ source: 'family', topic: 'not-a-script' })], 'woman', NOW)).toBeNull()
+  })
+
   it('does not ask about a guide commitment that carries no words', () => {
     expect(openFollowUp([one({ source: 'guide', topic: 'x' })], 'woman', NOW)).toBeNull()
   })
@@ -75,6 +88,8 @@ describe('what it says', () => {
     one({ source: 'read', topic: 'public' }),
     one({ source: 'read', topic: 'family' }),
     one({ source: 'guide', topic: 'he texts late', words: 'Does anyone in your life know about me?' }),
+    one({ source: 'family', topic: 'first-with-hooyo' }),
+    one({ source: 'family', topic: 'open-mahr-and-living' }),
   ]
 
   it('never judges him, and never tells her to stay or go', () => {

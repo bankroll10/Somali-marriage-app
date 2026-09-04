@@ -226,8 +226,8 @@ export interface WaitlistState {
  */
 export interface FollowUp {
   id: string
-  source: 'read' | 'beforeYes' | 'couple' | 'guide'
-  /** A topic id from data/beforeYes.ts, a read dimension, or — from the guide — what she asked. */
+  source: 'read' | 'beforeYes' | 'couple' | 'guide' | 'family'
+  /** A topic id from data/beforeYes.ts, a read dimension, a family script id, or — from the guide — what she asked. */
   topic: string
   /**
    * The words the guide handed her, when the source is the guide. The other
