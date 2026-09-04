@@ -47,6 +47,18 @@ describe('when it asks', () => {
     expect(openFollowUp([one({ source: 'read', topic: 'not-a-dimension' })], 'woman', NOW)).toBeNull()
   })
 
+  it('asks about words the guide gave her, and shows them again', () => {
+    const words = 'Does anyone in your life know about me?'
+    const ask = openFollowUp([one({ source: 'guide', topic: 'he texts late', words })], 'woman', NOW)!
+    expect(ask.question).toContain('guide')
+    expect(ask.script.words).toBe(words)
+    expect(ask.writesBack).toBe(false)
+  })
+
+  it('does not ask about a guide commitment that carries no words', () => {
+    expect(openFollowUp([one({ source: 'guide', topic: 'x' })], 'woman', NOW)).toBeNull()
+  })
+
   it('has nothing to say when there is nothing open — the normal case', () => {
     expect(openFollowUp([], 'woman', NOW)).toBeNull()
   })
@@ -60,6 +72,7 @@ describe('what it says', () => {
     one({ source: 'couple', topic: 'children' }),
     one({ source: 'read', topic: 'public' }),
     one({ source: 'read', topic: 'family' }),
+    one({ source: 'guide', topic: 'he texts late', words: 'Does anyone in your life know about me?' }),
   ]
 
   it('never judges him, and never tells her to stay or go', () => {
@@ -113,6 +126,12 @@ describe('keeping the record', () => {
     expect(followedThrough(resolveFollowUp(base, id, 'not-yet'))).toBe(false)
     expect(followedThrough(resolveFollowUp(base, id, 'differently'))).toBe(false)
     expect(followedThrough(base)).toBe(false)
+  })
+
+  it('keeps the guide’s words on the record it writes', () => {
+    const noted = noteFollowUp([], 'guide', 'he texts late', ago(0), 'Does anyone know about me?')
+    expect(noted[0].words).toBe('Does anyone know about me?')
+    expect(noted[0].source).toBe('guide')
   })
 
   it('writes the talk back into the eleven as it actually went', () => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { askCoach, guideSystemPrompt } from './coach'
+import { askCoach, closersFor, guideSystemPrompt, scriptIn } from './coach'
 import type { CoachContext } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
@@ -80,9 +80,39 @@ describe('askCoach — the local voice is the one that ships today', () => {
     expect(body.system).toContain('Niyyah')
   })
 
-  it('never dead-ends — every reply offers somewhere to go', async () => {
+  it('always offers a way to stop — a guide ends conversations, a chat app extends them', async () => {
     const reply = await askCoach('what do I even say to him', ctx, 'auntie')
-    expect(Array.isArray(reply.followUps)).toBe(true)
+    expect(reply.closers.some((c) => c.kind === 'close')).toBe(true)
+  })
+
+  it('never offers a bait question under a reply', async () => {
+    // "Is this a red flag?" and "How do I bring this up gently?" used to sit
+    // under every single answer. They were there to keep the thread alive.
+    const reply = await askCoach('he texts at 1am', ctx, 'auntie')
+    const labels = reply.closers.map((c) => c.label.toLowerCase())
+    for (const l of labels) {
+      expect(l).not.toContain('red flag')
+      expect(l).not.toContain('bring this up')
+    }
+  })
+})
+
+describe('closers', () => {
+  const withScript = 'Here is the thing.\n\nTry: “Does anyone in your life know about me?” Then wait.\n\nGo say it.'
+
+  it('finds the words on a Try: line and nothing else', () => {
+    expect(scriptIn(withScript)).toBe('Does anyone in your life know about me?')
+    expect(scriptIn('No words here, just advice.')).toBeNull()
+  })
+
+  it('offers a commitment only when there are words to commit to', () => {
+    expect(closersFor(withScript).map((c) => c.kind)).toEqual(['commit', 'close'])
+    expect(closersFor('Just advice.').map((c) => c.kind)).toEqual(['close'])
+  })
+
+  it('carries the words on the commitment, so the follow-up can show them again', () => {
+    const commit = closersFor(withScript).find((c) => c.kind === 'commit')
+    expect(commit && commit.kind === 'commit' ? commit.words : null).toBe('Does anyone in your life know about me?')
   })
 })
 
@@ -108,6 +138,13 @@ describe('guideSystemPrompt', () => {
     expect(p).toMatch(/never invent people/i)
     expect(p).toMatch(/scholar/i)
     expect(p).toMatch(/never diagnose/i)
+  })
+
+  it('tells the model to close on an action, not to keep the thread going', () => {
+    const p = guideSystemPrompt('auntie', ctx)
+    expect(p).toMatch(/End on ONE concrete action/)
+    expect(p).toMatch(/never to keep the conversation going/i)
+    expect(p).not.toMatch(/ONE question or ONE concrete action/)
   })
 
   it('speaks in the voice of the mode it was asked for', () => {
@@ -147,12 +184,13 @@ describe('askCoach — nothing a real person types may dead-end', () => {
   ]
 
   const ALL_MODES: ModeId[] = ['auntie', 'brother', 'therapist', 'islamic', 'matchmaker', 'profile']
+  // The app's own one-tap moments (data/moments.ts) and the guide's starters.
   const OWN_CHIPS = [
-    'What would you say, word for word?',
-    'Is this a red flag?',
-    'How do I bring this up gently?',
-    'He’s gone quiet',
-    'She’s gone quiet',
+    'He’s gone quiet on me and I don’t know what it means.',
+    'My family is pushing me about marriage and I don’t know how to handle it.',
+    'I can’t stop overthinking his reply. Help me slow it down.',
+    'How do I say my intention for marriage clearly without it being awkward?',
+    'Here’s the specific part…',
   ]
 
   // Run in parallel: each local reply carries a deliberate 700-1200ms
@@ -163,17 +201,17 @@ describe('askCoach — nothing a real person types may dead-end', () => {
     )
     for (const [question, mode, reply] of replies) {
       expect(reply.text.length, `${mode}: "${question}"`).toBeGreaterThan(200)
-      expect(reply.followUps.length, `${mode}: "${question}" dead-ended`).toBeGreaterThan(0)
+      expect(reply.closers.length, `${mode}: "${question}" left her nowhere to go`).toBeGreaterThan(0)
     }
   })
 
-  it('never dead-ends on the app’s own suggestion chips, in any mode', async () => {
+  it('answers the app’s own one-tap moments substantively, in any mode', async () => {
     const pairs = ALL_MODES.flatMap((mode) => OWN_CHIPS.map((chip) => [mode, chip] as const))
     const replies = await Promise.all(
       pairs.map(async ([mode, chip]) => [mode, chip, await askCoach(chip, ctx, mode)] as const),
     )
     for (const [mode, chip, reply] of replies) {
-      expect(reply.followUps.length, `${mode} ← "${chip}"`).toBeGreaterThan(0)
+      expect(reply.text.length, `${mode} ← "${chip}"`).toBeGreaterThan(200)
     }
   })
 

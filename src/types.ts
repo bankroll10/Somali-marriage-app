@@ -226,9 +226,16 @@ export interface WaitlistState {
  */
 export interface FollowUp {
   id: string
-  source: 'read' | 'beforeYes' | 'couple'
-  /** A topic id from data/beforeYes.ts, or a read dimension. */
+  source: 'read' | 'beforeYes' | 'couple' | 'guide'
+  /** A topic id from data/beforeYes.ts, a read dimension, or — from the guide — what she asked. */
   topic: string
+  /**
+   * The words the guide handed her, when the source is the guide. The other
+   * sources look their script up by topic; the guide's words exist only in the
+   * reply she was given, so they are kept here, on the device like everything
+   * else in this record.
+   */
+  words?: string
   /** When we told her. */
   at: string
   /** 'asked' means the conversation actually happened. */

@@ -545,6 +545,19 @@ export function useNiyyah(entry: Entry | null = null) {
     setGuideAsk(null)
   }
 
+  /**
+   * She took the guide's words as something she will say. Written down like a
+   * read's question or one of the eleven, so that in a few days Home asks
+   * whether she said them — the guide stops being a thread and becomes a thing
+   * that happened. Filed under what she asked, so re-tapping the same words
+   * does not stack asks.
+   */
+  function commitFromGuide(words: string, topic: string) {
+    const key = topic.trim().slice(0, 80) || words.slice(0, 80)
+    track('guide_committed')
+    setFollowups((prev) => noteFollowUp(prev, 'guide', key, new Date().toISOString(), words))
+  }
+
   function openPhilosophy(from: 'welcome' | 'home') {
     setPhilosophyReturn(from)
     setScreen('philosophy')
@@ -660,6 +673,7 @@ export function useNiyyah(entry: Entry | null = null) {
     openGuide,
     askGuide,
     clearGuideAsk,
+    commitFromGuide,
     openPhilosophy,
     openTrust,
     recordCheckIn,

@@ -34,8 +34,6 @@ export interface Starter {
 export interface CoachIntent {
   keywords: string[]
   respond: (ctx: CoachContext) => string
-  /** Contextual next actions offered after this reply. */
-  followUps?: string[]
 }
 
 export interface GuidanceMode {
@@ -129,7 +127,6 @@ Bring them in gently, once it’s real: “For me, this leads to my family — t
     },
     {
       keywords: ['settling', 'too picky', 'standards', 'unrealistic', 'expecting too much', 'should i lower'],
-      followUps: ['How do I say no kindly?', 'What if my family disagrees?'],
       respond: (ctx) => {
         const nn = ownNonNegotiables(ctx)
         const yours = nn.length
@@ -193,7 +190,6 @@ You’re not asking to date her. You’re declaring serious, honourable intent. 
     },
     {
       keywords: ['wasting time', 'stop wasting', 'how long', 'next step', 'move toward', 'lead', 'stuck', 'nikah', 'propose'],
-      followUps: ['What do I say to name it?', 'When is it too soon?'],
       respond: (ctx) => {
         const tl = ctx.answers['timeline']
         const tlLine = tl === 'within-1'
@@ -235,7 +231,6 @@ This is a space to slow down and understand what’s happening inside you — th
   intents: [
     {
       keywords: ['overthink', 'overthinking', 'spiral', 'spiralling', 'spiraling', 'cant stop', "can't stop", 'in my head', 'reading too much', 'analysing'],
-      followUps: ['Help me separate fact from story', 'What do I do right now?'],
       respond: (ctx) =>
         `Let’s slow it down together. Overthinking is usually your nervous system trying to protect you from uncertainty — it’s not a sign something is wrong.
 
@@ -393,7 +388,6 @@ I’ve read your readiness map, and I’m looking for ${readMap(ctx)}. Ask me wh
       // confidently recommending strangers who do not exist. Whatever that
       // bought in a demo, it cost the one thing this product actually sells.
       keywords: ['focus on', 'who first', 'which of them', 'compare', 'best match', 'strongest', 'who should i talk', 'introductions'],
-      followUps: ['What should I ask him first?', 'How do I know if he’s serious?'],
       respond: () =>
         `I won’t pretend to have people for you. Your city hasn’t opened yet — when it does, you’ll see the real count on the door and I’ll read whoever is actually there against your map.
 

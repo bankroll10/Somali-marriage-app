@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import type { Answers, CoachMessage, Identity, ModeId, Stage } from '../types'
 import { getMode, modes, defaultModeFor, type CoachContext } from '../data/coach'
-import { askCoach } from '../lib/coach'
+import { askCoach, type Closer } from '../lib/coach'
 import { FREE_REPLIES } from '../data/plus'
 import { nextId } from '../lib/id'
 import {
@@ -63,6 +63,8 @@ interface Props {
   repliesLeft: number
   onSpendReply: () => void
   onOpenPlus: () => void
+  /** She has taken the words as something she will say; Home asks in a few days. */
+  onCommit: (words: string, topic: string) => void
   onBack: () => void
 }
 
@@ -97,6 +99,7 @@ export default function Coach({
   readNote,
   beforeYesNote,
   onOpenPlus,
+  onCommit,
   onBack,
 }: Props) {
   const ctx: CoachContext = {
@@ -110,8 +113,13 @@ export default function Coach({
   const [mode, setMode] = useState<ModeId | null>(initialMode ?? null)
   const [input, setInput] = useState('')
   const [thinking, setThinking] = useState(false)
-  // Next actions offered after the latest reply — the thread never dead-ends.
-  const [followUps, setFollowUps] = useState<string[]>([])
+  // What sits under the latest reply: a way to commit to the words, permission
+  // to stop, and — only when the guide is missing a fact — one question back.
+  const [closers, setClosers] = useState<Closer[]>([])
+  // The words she has just committed to, so the chips can turn into the fact.
+  const [committed, setCommitted] = useState(false)
+  // Her last message, so a commitment can be filed under what she asked.
+  const lastAsked = useRef('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const messages = mode ? threads[mode] ?? [] : []
@@ -177,7 +185,8 @@ export default function Coach({
   function openMode(id: ModeId) {
     setMode(id)
     setInput('')
-    setFollowUps([])
+    setClosers([])
+    setCommitted(false)
     setThreads((prev) => {
       if (prev[id]) return prev
       const greeting = getMode(id).greeting(ctx) + (moodLine ? `\n\n${moodLine}` : '')
@@ -196,7 +205,9 @@ export default function Coach({
     const userMsg: CoachMessage = { id: nextId(), role: 'user', text: trimmed }
     setThreads((prev) => ({ ...prev, [mode]: [...(prev[mode] ?? []), userMsg] }))
     setInput('')
-    setFollowUps([])
+    setClosers([])
+    setCommitted(false)
+    lastAsked.current = trimmed
     setThinking(true)
     // The answer is written into the thread as it arrives, under an id fixed
     // now, so every chunk updates the same bubble rather than appending a new
@@ -247,7 +258,7 @@ export default function Coach({
     // call that failed before its first word — this is the bubble's first and
     // only appearance, which the same helper handles.
     writeReply(reply.text)
-    setFollowUps(reply.followUps)
+    setClosers(reply.closers)
     setThinking(false)
   }
 
@@ -370,15 +381,34 @@ export default function Coach({
           ))}
           {thinking && <Thinking glyph={activeMode.glyph} accent={activeMode.accent} />}
 
-          {!thinking && followUps.length > 0 && (
+          {/* Under the reply: closers, not extenders. A commitment writes the
+              words down as a follow-up; "enough for tonight" is permission to
+              stop, which a chat product never gives and a guide always should. */}
+          {!thinking && committed && (
+            <p className="animate-fade pl-12 text-[0.85rem] text-forest text-pretty">
+              Written down. In a few days, your space will ask how it went. Go say it.
+            </p>
+          )}
+          {!thinking && !committed && closers.length > 0 && (
             <div className="animate-fade flex flex-wrap gap-2 pl-12">
-              {followUps.map((f) => (
+              {closers.map((c) => (
                 <button
-                  key={f}
-                  onClick={() => send(f)}
-                  className="rounded-full border border-line bg-white/60 px-3.5 py-1.5 text-[0.85rem] font-medium text-ink-soft transition hover:border-forest/40 hover:text-ink"
+                  key={c.label}
+                  onClick={() => {
+                    if (c.kind === 'ask') void send(c.text)
+                    else if (c.kind === 'close') onBack()
+                    else {
+                      onCommit(c.words, lastAsked.current)
+                      setCommitted(true)
+                    }
+                  }}
+                  className={`rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition ${
+                    c.kind === 'commit'
+                      ? 'border-forest bg-forest text-cream hover:bg-forest-deep'
+                      : 'border-line bg-white/60 text-ink-soft hover:border-forest/40 hover:text-ink'
+                  }`}
                 >
-                  {f}
+                  {c.label}
                 </button>
               ))}
             </div>

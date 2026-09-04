@@ -64,6 +64,25 @@ export function openFollowUp(followups: FollowUp[], gender: Gender = 'woman', no
 
 function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
   const say = speak(gender)
+  if (f.source === 'guide') {
+    // The guide's words live only in the reply she was given, so they travel
+    // with the record. A commitment with no words is not one; skip it.
+    const words = f.words?.trim()
+    if (!words) return null
+    return {
+      followUp: f,
+      question: say('Last time, the guide gave you words to say to {him}. Did you say them?'),
+      label: 'what the guide gave me the words for',
+      script: {
+        why: 'These are the words you said you would say.',
+        words,
+        tells: say(
+          'Whatever came back is the answer — not what you hoped, not what you feared. If it was not what you expected, bring it back to the guide and read it together.',
+        ),
+      },
+      writesBack: false,
+    }
+  }
   if (f.source === 'read') {
     if (!READ_DIMENSIONS.has(f.topic)) return null
     const script = SCRIPTS[f.topic as ReadDimension | 'early']
@@ -106,9 +125,11 @@ export function noteFollowUp(
   source: FollowUp['source'],
   topic: string,
   at = new Date().toISOString(),
+  words?: string,
 ): FollowUp[] {
   if (followups.some((f) => f.source === source && f.topic === topic && !f.outcome)) return followups
-  return [...followups, { id: `${source}:${topic}:${at}`, source, topic, at }].slice(-20)
+  const entry: FollowUp = { id: `${source}:${topic}:${at}`, source, topic, at, ...(words ? { words } : {}) }
+  return [...followups, entry].slice(-20)
 }
 
 /** Record how it went, and stop asking. */

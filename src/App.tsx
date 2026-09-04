@@ -222,6 +222,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           repliesLeft={n.repliesLeft}
           onSpendReply={n.spendReply}
           onOpenPlus={() => n.setScreen('plus')}
+          onCommit={n.commitFromGuide}
           onBack={() => n.setScreen('home')}
         />
       )
