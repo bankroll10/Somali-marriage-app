@@ -17,6 +17,7 @@ import Families from './components/Families'
 import Couple from './components/Couple'
 import Vouch from './components/Vouch'
 import Plus from './components/Plus'
+import Ending from './components/Ending'
 import type { Gender } from './types'
 import type { Entry } from './lib/entry'
 import { buildRead, readSummary } from './lib/read'
@@ -171,6 +172,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenBeforeYes={() => n.setScreen('beforeYes')}
           hasBeforeYes={!!n.beforeYes}
           onOpenFamilies={() => n.setScreen('families')}
+          onOpenEnding={() => n.setScreen('ending')}
           onPhilosophy={() => n.openPhilosophy('home')}
           onRestart={n.startFresh}
           followUpAsk={n.followUpAsk}
@@ -325,6 +327,17 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     case 'plus':
       return (
         <Plus onBack={() => n.setScreen('profile')} />
+      )
+
+    case 'ending':
+      return (
+        <Ending
+          identity={n.identity}
+          ending={n.endingRecord}
+          saved={n.ending}
+          onSave={n.setEnding}
+          onBack={backHome}
+        />
       )
 
     case 'philosophy': {

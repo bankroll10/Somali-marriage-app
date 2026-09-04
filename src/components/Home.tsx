@@ -41,6 +41,8 @@ interface Props {
   onOpenBeforeYes: () => void
   hasBeforeYes: boolean
   onOpenFamilies: () => void
+  /** How she chose — her record, reachable again after the ending. */
+  onOpenEnding: () => void
   onPhilosophy: () => void
   onRestart: () => void
   /** The one open thing to ask her about — usually null. See lib/followup.ts. */
@@ -81,6 +83,7 @@ export default function Home({
   onOpenBeforeYes,
   hasBeforeYes,
   onOpenFamilies,
+  onOpenEnding,
   onPhilosophy,
   onRestart,
   followUpAsk,
@@ -193,8 +196,14 @@ export default function Home({
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
               <button
-                onClick={onOpenFamilies}
+                onClick={onOpenEnding}
                 className="rounded-full bg-cream px-4 py-2 text-[0.88rem] font-semibold text-forest-deep transition hover:bg-white"
+              >
+                How you chose
+              </button>
+              <button
+                onClick={onOpenFamilies}
+                className="rounded-full border border-cream/30 px-4 py-2 text-[0.88rem] font-medium text-cream transition hover:bg-cream/10"
               >
                 The words for two families
               </button>

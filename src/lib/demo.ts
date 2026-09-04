@@ -85,6 +85,7 @@ export function seedDemo() {
     beforeYes: null,
     couple: null,
     vouch: null,
+    ending: null,
     completed: true,
     coachThreads: {},
   })

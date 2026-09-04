@@ -243,6 +243,24 @@ export interface FollowUp {
   outcomeAt?: string
 }
 
+/**
+ * The ending — what she told us on the way out.
+ *
+ * The success state of this product is that someone leaves because it worked,
+ * and this is the only record of that ever happening. Every field is optional:
+ * an exit that charges a toll in answers is not an exit. `who` is the single
+ * question this company cannot answer any other way — whether the marketplace
+ * caused a marriage or the instruments helped one that already existed.
+ */
+export interface EndingRecord {
+  at: string
+  who?: string
+  mattered?: string
+  used?: string[]
+  /** One line for whoever is where she was. Hers, unless she chooses to send it. */
+  advice?: string
+}
+
 export interface ReadRecord {
   at: string
   answers: Record<string, string>

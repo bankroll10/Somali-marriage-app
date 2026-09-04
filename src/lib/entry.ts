@@ -21,9 +21,9 @@ export type CodedKind = 'map' | 'couple' | 'vouch'
 export type InstrumentKind = 'read' | 'eleven' | 'families'
 export type EntryKind = CodedKind | InstrumentKind
 
-export type Via = 'words' | 'eleven' | 'couple' | 'door' | 'family'
+export type Via = 'words' | 'eleven' | 'couple' | 'door' | 'family' | 'married'
 /** Must match netlify/functions/progress.ts. */
-export const VIAS: Via[] = ['words', 'eleven', 'couple', 'door', 'family']
+export const VIAS: Via[] = ['words', 'eleven', 'couple', 'door', 'family', 'married']
 
 export interface Entry {
   kind: EntryKind

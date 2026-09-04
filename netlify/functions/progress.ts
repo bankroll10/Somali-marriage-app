@@ -44,12 +44,14 @@ const SCENES = new Set(['twin-cities', 'toronto', 'london', 'columbus', 'stockho
 
 /**
  * Must match src/lib/entry.ts. What kind of link first brought a person here —
- * words a friend sent, the eleven, a couple's link, the door, a family link.
+ * words a friend sent, the eleven, a couple's link, the door, a family link, or
+ * a link from someone this worked for. That last one is the whole thesis: a
+ * married woman can say publicly what a looking woman cannot.
  * It is the only attribution this store holds, and it never says who sent it:
  * the link does not carry that, and this set is closed so nothing else can
  * arrive under the name.
  */
-const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family'])
+const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family', 'married'])
 
 /** Same alphabet and length as netlify/functions/keep.ts — but a different code. */
 const ID = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/

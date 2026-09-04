@@ -41,6 +41,7 @@ const state = {
   beforeYes: null,
   couple: null,
   vouch: null,
+  ending: null,
   completed: true,
   matched: [],
   pendingInterest: [],

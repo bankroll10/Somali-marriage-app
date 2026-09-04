@@ -141,6 +141,27 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
   }
 }
 
+/**
+ * The conversations she confirmed she actually had, oldest first.
+ *
+ * This is the only record in the product of things that happened in her life
+ * rather than on her screen, and at the end it is the whole story: not what
+ * she read, but what she said out loud to someone who could answer back.
+ */
+export function conversationsHad(
+  followups: FollowUp[],
+  gender: Gender = 'woman',
+): { label: string; at: string }[] {
+  return followups
+    .filter((f) => f.outcome === 'asked')
+    .sort((a, b) => Date.parse(a.outcomeAt ?? a.at) - Date.parse(b.outcomeAt ?? b.at))
+    .map((f) => {
+      const ask = describe(f, gender)
+      return ask ? { label: ask.label, at: (f.outcomeAt ?? f.at).slice(0, 10) } : null
+    })
+    .filter((x): x is { label: string; at: string } => x !== null)
+}
+
 /** What "we talked" writes back into her eleven, so the sheet stays true. */
 export function writeBackState(agreed: boolean): 'agree' | 'differ' {
   return agreed ? 'agree' : 'differ'

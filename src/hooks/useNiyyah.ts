@@ -12,6 +12,7 @@ import { ledger } from '../lib/ledger'
 import { rungsFrom } from '../lib/rungs'
 import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState } from '../lib/followup'
 import { buildRead } from '../lib/read'
+import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
 import { coupleReading, readCouple } from '../lib/couple'
@@ -36,6 +37,7 @@ import type {
   TrustSettings,
   ReadRecord,
   CoupleState,
+  EndingRecord,
   FollowUp,
   VouchState,
   WaitlistState,
@@ -61,6 +63,7 @@ export type Screen =
   | 'couple'
   | 'vouch'
   | 'plus'
+  | 'ending'
 
 const SAVE_DEBOUNCE_MS = 250
 
@@ -127,6 +130,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // The two-sided Before you say yes she started, and a family member's vouch.
   const [couple, setCouple] = useState<CoupleState | null>(saved?.couple ?? null)
   const [vouch, setVouch] = useState<VouchState | null>(saved?.vouch ?? null)
+  // What she told us on the way out. The success state of this whole product.
+  const [ending, setEnding] = useState<EndingRecord | null>(saved?.ending ?? null)
   // What the product told her to do, and whether she did it. See lib/followup.ts.
   const [followups, setFollowups] = useState<FollowUp[]>(saved?.followups ?? [])
   // The code her map is kept under. Read once at mount and refreshed by the
@@ -256,6 +261,7 @@ export function useNiyyah(entry: Entry | null = null) {
             beforeYes,
             couple,
             vouch,
+            ending,
             followups,
             completed,
             coachThreads,
@@ -278,6 +284,7 @@ export function useNiyyah(entry: Entry | null = null) {
     beforeYes,
     couple,
     vouch,
+    ending,
     followups,
     completed,
     coachThreads,
@@ -331,6 +338,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setBeforeYes(null)
     setCouple(null)
     setVouch(null)
+    setEnding(null)
     setFollowups([])
     setKeptCode(null)
     setResumeIndex(0)
@@ -475,10 +483,48 @@ export function useNiyyah(entry: Entry | null = null) {
     )
   }
 
-  /** Moving stage is always the user's call — never inferred from activity. */
+  /**
+   * How she chose — her whole record, rebuilt from state rather than stored, so
+   * it can never go stale against what she actually did.
+   */
+  const endingRecord = useMemo(
+    () =>
+      buildEnding(
+        {
+          gender: identity.gender ?? 'woman',
+          answers,
+          mapHistory,
+          steps,
+          read,
+          beforeYes,
+          couple,
+          vouch,
+          followups,
+          completed,
+        },
+        todayKey(),
+      ),
+    [identity.gender, answers, mapHistory, steps, read, beforeYes, couple, vouch, followups, completed],
+  )
+
+  /**
+   * Moving stage is always the user's call — never inferred from activity.
+   *
+   * Arriving at married is the one transition that is also an ending, so it
+   * opens the ending rather than quietly reshaping Home. Only when she is
+   * moving there from somewhere else, and only once: someone who told us at
+   * the door that she is already married did not marry through any of this.
+   */
   function setStage(next: Stage) {
     track('stage_changed', { stage: next })
     setStageRaw(next)
+    if (next === 'married' && stage !== 'married' && !ending) setScreen('ending')
+  }
+
+  /** She told us how it ended. Every field optional; saving is never required. */
+  function saveEnding(record: EndingRecord) {
+    if (!ending) track('ending_recorded')
+    setEnding(record)
   }
 
   /** Open the guide — optionally straight into the voice suited to a topic. */
@@ -583,6 +629,8 @@ export function useNiyyah(entry: Entry | null = null) {
     beforeYes,
     couple,
     vouch,
+    ending,
+    endingRecord,
     keptCode,
     entryCode,
     reflection,
@@ -618,6 +666,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setCouple,
     setVouch,
     setKeptCode,
+    setEnding: saveEnding,
     joinedCohort,
     // actions
     answer,

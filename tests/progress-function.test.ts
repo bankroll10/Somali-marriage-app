@@ -72,7 +72,7 @@ describe('reporting a rung', () => {
   })
 
   it('keeps what kind of link brought her here, first told wins, and refuses anything else', async () => {
-    for (const via of ['words', 'eleven', 'couple', 'door', 'family']) {
+    for (const via of ['words', 'eleven', 'couple', 'door', 'family', 'married']) {
       expect((await post({ id: 'HJKMNP', rungs: ['arrived'], via })).status, via).toBe(200)
     }
     expect((await post({ id: ID, rungs: ['arrived'], via: 'instagram' })).status).toBe(400)
