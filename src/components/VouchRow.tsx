@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { VouchState } from '../types'
 import { keepMap, rememberedCode } from '../lib/keep'
 import { shareOrCopy } from '../lib/share'
+import { withVia } from '../lib/links'
 import { SITE_URL } from '../lib/site'
 import { vouchLink } from '../lib/vouch'
 import { relationshipLabel } from '../data/vouch'
@@ -36,7 +37,7 @@ export default function VouchRow({ vouch, onKept }: Props) {
       return
     }
     onKept(code)
-    const result = await shareOrCopy({ text: ASK, url: vouchLink(code, SITE_URL) }, 'vouch_asked')
+    const result = await shareOrCopy({ text: ASK, url: withVia(vouchLink(code, SITE_URL), 'family') }, 'vouch_asked')
     setAsking(result === 'cancelled' ? 'idle' : 'sent')
     if (result !== 'cancelled') window.setTimeout(() => setAsking('idle'), 2600)
   }
