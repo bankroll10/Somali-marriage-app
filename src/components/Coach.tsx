@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 
 import type { Answers, CoachMessage, Identity, ModeId, Stage } from '../types'
 import { getMode, modes, defaultModeFor, type CoachContext } from '../data/coach'
 import { askCoach, type Closer } from '../lib/coach'
+import { shareOrCopy } from '../lib/share'
+import { wordsMessage } from '../lib/words'
 import { nextId } from '../lib/id'
 import {
   ArrowRight,
@@ -552,9 +554,14 @@ function inline(text: string) {
   })
 }
 
-/** A suggested script — quoted words the user can copy and send. */
-function ScriptCard({ text }: { text: string }) {
+/**
+ * The guide's words — quoted, copyable, and sendable to someone who needs them.
+ * Kept light on purpose: the full dark card used everywhere else would dominate
+ * a chat bubble.
+ */
+function GuideWords({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
+  const [sent, setSent] = useState(false)
   // The card holds ONLY the words inside the quotes; commentary follows below.
   const body = text.replace(/^Try:\s*/i, '')
   const match = body.match(/^[“"]([\s\S]*?)[”"]\s*([\s\S]*)$/)
@@ -567,16 +574,30 @@ function ScriptCard({ text }: { text: string }) {
           Words you could use
         </p>
         <p className="mt-1.5 font-display text-[1.02rem] leading-relaxed text-ink">“{script}”</p>
-        <button
-          onClick={() => {
-            navigator.clipboard?.writeText(script).catch(() => {})
-            setCopied(true)
-            window.setTimeout(() => setCopied(false), 2000)
-          }}
-          className="mt-2 text-[0.8rem] font-medium text-forest underline-offset-4 hover:underline"
-        >
-          {copied ? '✓ Copied — make it yours before you send it' : 'Copy'}
-        </button>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          <button
+            onClick={() => {
+              navigator.clipboard?.writeText(script).catch(() => {})
+              setCopied(true)
+              window.setTimeout(() => setCopied(false), 2000)
+            }}
+            className="text-[0.8rem] font-medium text-forest underline-offset-4 hover:underline"
+          >
+            {copied ? '✓ Copied — make it yours before you send it' : 'Copy'}
+          </button>
+          <button
+            onClick={async () => {
+              const result = await shareOrCopy(wordsMessage({ why: '', words: script, tells: '' }, 'guide'), 'words_sent')
+              if (result === 'copied') {
+                setSent(true)
+                window.setTimeout(() => setSent(false), 2000)
+              }
+            }}
+            className="text-[0.8rem] font-medium text-forest underline-offset-4 hover:underline"
+          >
+            {sent ? '✓ Copied to send' : 'Send these words to someone'}
+          </button>
+        </div>
       </div>
       {commentary && <p className="mt-3 text-pretty">{commentary}</p>}
     </>
@@ -589,7 +610,7 @@ function RichText({ text }: { text: string }) {
   return (
     <>
       {blocks.map((block, bi) => {
-        if (/^Try:/i.test(block.trim())) return <ScriptCard key={bi} text={block.trim()} />
+        if (/^Try:/i.test(block.trim())) return <GuideWords key={bi} text={block.trim()} />
         const lines = block.split('\n')
         const leading = lines.filter((l) => !l.trim().startsWith('•'))
         const bullets = lines.filter((l) => l.trim().startsWith('•'))

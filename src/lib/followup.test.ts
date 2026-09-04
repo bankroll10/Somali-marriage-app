@@ -110,6 +110,16 @@ describe('what it says', () => {
   })
 })
 
+describe('where the words can travel', () => {
+  it('sends each source’s words back to the instrument they came from', () => {
+    const travel = (f: FollowUp) => openFollowUp([f], 'woman', NOW)!.travel
+    expect(travel(one({ source: 'read', topic: 'public' }))).toBe('read')
+    expect(travel(one({ source: 'guide', topic: 'x', words: 'Say this.' }))).toBe('guide')
+    expect(travel(one())).toBe('eleven')
+    expect(travel(one({ source: 'couple', topic: 'children' }))).toBe('couple')
+  })
+})
+
 describe('keeping the record', () => {
   it('does not stack a second ask for the same open thing', () => {
     const once = noteFollowUp([], 'beforeYes', 'money-home', ago(5))

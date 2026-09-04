@@ -193,7 +193,7 @@ export default function Couple({ code, onAnswered, onRead, onBuildMap, onHome }:
                   </li>
                 ))}
               </ul>
-              {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" />}
+              {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" travel="couple" />}
               <div className="mt-9 flex flex-col gap-3">
                 <button onClick={onRead} className="group flex items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5">
                   <span className="flex-1">

@@ -1,6 +1,7 @@
 import type { FollowUp, Gender, ReadRecord } from '../types'
 import { beforeYesTopics, type Topic } from '../data/beforeYes'
 import { SCRIPTS, speak, type ReadDimension, type Script } from '../data/read'
+import type { WordsSource } from './words'
 
 /**
  * The second half of the help.
@@ -50,6 +51,8 @@ export interface FollowUpAsk {
   script: Script
   /** True when saying "we talked" can be written back into the eleven. */
   writesBack: boolean
+  /** Where the words came from, so they can be sent on to someone who needs them. */
+  travel: WordsSource
 }
 
 function topicFor(id: string, gender: Gender): Topic | undefined {
@@ -94,6 +97,7 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
         ),
       },
       writesBack: false,
+      travel: 'guide',
     }
   }
   if (f.source === 'read') {
@@ -105,6 +109,7 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
       label: 'the question you were going to ask',
       script,
       writesBack: false,
+      travel: 'read',
     }
   }
   const topic = topicFor(f.topic, gender)
@@ -116,6 +121,7 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
     label,
     script: topic.script,
     writesBack: true,
+    travel: f.source === 'couple' ? 'couple' : 'eleven',
   }
 }
 

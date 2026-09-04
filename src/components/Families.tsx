@@ -63,7 +63,7 @@ export default function Families({ gender, stage, onBack }: Props) {
                 </button>
                 {isOpen && (
                   <div className="px-5 pb-5">
-                    <ScriptCard script={s.script} title={s.title} source={`families:${s.id}`} />
+                    <ScriptCard script={s.script} title={s.title} source={`families:${s.id}`} travel="family" />
                   </div>
                 )}
               </div>

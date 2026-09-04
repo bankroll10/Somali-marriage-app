@@ -89,7 +89,7 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
             <p className="mt-3 text-[0.9rem] leading-snug text-ink-soft text-pretty">
               Then here they are again. There’s no hurry in this — the words keep.
             </p>
-            <ScriptCard script={ask.script} title="The words, again" source="followup" />
+            <ScriptCard script={ask.script} title="The words, again" source="followup" travel={ask.travel} />
             <button
               onClick={() => onAnswer(id, 'not-yet')}
               className="group mt-5 inline-flex items-center gap-1.5 text-[0.85rem] font-medium text-forest underline-offset-4 hover:underline"

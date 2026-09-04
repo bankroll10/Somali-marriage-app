@@ -294,7 +294,7 @@ function Result({
       <List title="Where you don’t know your own answer yet" items={result.byState.unknown} tone="gold" />
       <List title="Talked about, and agreed" items={result.byState.agree} tone="forest" />
 
-      <ScriptCard script={result.open.script} title={title} source="beforeYes" />
+      <ScriptCard script={result.open.script} title={title} source="beforeYes" travel="eleven" />
 
       <Together gender={gender} pronoun={pronoun} picked={picked} couple={couple} onCouple={onCouple} />
 
@@ -450,7 +450,7 @@ function Together({
             </li>
           ))}
         </ul>
-        {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" />}
+        {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" travel="couple" />}
         <p className="mt-4 text-[0.8rem] leading-relaxed text-muted text-pretty">
           {he === 'he' ? 'He' : 'She'} saw this same list, and nothing else. Your answers were frozen the moment {he} answered; {he === 'he' ? 'his' : 'hers'} were sent once.
         </p>
