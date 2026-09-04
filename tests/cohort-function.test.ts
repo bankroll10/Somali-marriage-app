@@ -96,10 +96,10 @@ describe('the count', () => {
     expect(stored).not.toMatch(/overall/)
   })
 
-  it('keeps an unknown hardest part as "none" and keeps only real voices', async () => {
+  it('keeps an unknown hardest part as "none", and keeps nothing about how she used the app', async () => {
     await post({ code: 'ACDEFG', scene: 'london', gender: 'woman', hook: 'x', voices: ['auntie', 'nope', 3] })
     const stored = JSON.parse((await memStore('cohort').get('london/woman/none/ACDEFG')) as string)
-    expect(stored.voices).toEqual(['auntie'])
+    expect(stored.voices).toBeUndefined()
   })
 })
 

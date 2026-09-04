@@ -11,7 +11,6 @@ interface Props {
   identity: Identity
   answers: Answers
   hookId?: string
-  voices?: string[]
   ledger?: string[]
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
@@ -38,7 +37,6 @@ export default function SampleIntroduction({
   identity,
   answers,
   hookId,
-  voices,
   ledger,
   waitlist,
   onJoinWaitlist,
@@ -51,11 +49,14 @@ export default function SampleIntroduction({
     const pool = candidatesFor(identity.gender ?? 'woman')
     return pool
       .map((candidate) => ({ candidate, align: alignment(answers, candidate) }))
+      // Never show her a sample that fails one of her non-negotiables; the
+      // real thing will not, either. Then her city, then the closest fit.
+      .filter((x) => !x.align.blocked)
       .sort((a, b) => {
         const as = a.candidate.scene === identity.scene ? 1 : 0
         const bs = b.candidate.scene === identity.scene ? 1 : 0
         if (as !== bs) return bs - as
-        return b.align.score - a.align.score
+        return b.align.fit - a.align.fit
       })[0]
   }, [identity.gender, identity.scene, answers])
 
@@ -77,9 +78,10 @@ export default function SampleIntroduction({
             Chosen by alignment — not looks.
           </h1>
           <p className="mt-2 text-[0.95rem] leading-relaxed text-muted text-pretty">
-            When your city opens, this is what you’ll see: one person, and exactly
-            why we think your lives fit. {c.name} is invented to show it. Your side
-            is real — every reason below comes from your own map.
+            When your city opens, this is what you’ll see: one person at a time,
+            why we think your lives fit, where you differ, and the first thing to
+            ask. Never a percentage, never a ranking. {c.name} is invented to show
+            it. Your side is real — every line below comes from your own map.
           </p>
         </section>
 
@@ -109,9 +111,8 @@ export default function SampleIntroduction({
 
         {/* The part that is real: her map, read against someone. */}
         <div className="mt-6 rounded-card bg-forest p-6 text-cream">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold-soft">Why you’d align</p>
-          <p className="mt-2 font-display text-[1.2rem] font-medium">{align.headline}</p>
-          {align.reasons.length > 0 && (
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold-soft">Why your lives would fit</p>
+          {align.reasons.length > 0 ? (
             <ul className="mt-3 space-y-1.5">
               {align.reasons.map((r) => (
                 <li key={r} className="flex gap-2.5 text-[0.95rem] text-cream/85">
@@ -120,11 +121,25 @@ export default function SampleIntroduction({
                 </li>
               ))}
             </ul>
+          ) : (
+            <p className="mt-3 text-[0.95rem] text-cream/85 text-pretty">
+              Not much yet — the more of your map you’ve answered, the more there is to read here.
+            </p>
           )}
+          {align.differs && (
+            <div className="mt-4 border-t border-cream/15 pt-4">
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">Where you differ</p>
+              <p className="mt-1.5 text-[0.95rem] text-cream/85">{align.differs}</p>
+            </div>
+          )}
+          <div className="mt-4 border-t border-cream/15 pt-4">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">The first thing to ask</p>
+            <p className="mt-1.5 text-[0.95rem] leading-relaxed text-cream/85 text-pretty">{align.ask}</p>
+          </div>
           <p className="mt-4 text-[0.82rem] leading-relaxed text-cream/60 text-pretty">
-            Read from your answers on faith, timeline, family, children, what you value
-            most — and, once you’ve said, how you’d live: whose house, work, money home.
-            A real member would be read the same way.
+            What you said you won’t compromise on is checked first; anyone who fails it is never shown.
+            The rest is read from your answers on faith, timeline, family, children, what you value most
+            — and, once you’ve said, how you’d live. A real member would be read the same way.
           </p>
         </div>
 
@@ -157,10 +172,11 @@ export default function SampleIntroduction({
         <div className="mt-8 rounded-card border border-line bg-white/60 p-6">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">What happens next, when it’s real</p>
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
-            Here you’d say yes or no — nothing else, no swiping. If it’s mutual,
-            photos are shown to each other and a guided conversation opens, with
-            your wali welcome inside it. Nobody is on the other side of this sample,
-            so the only honest next step is the one below.
+            Here you’d say yes, or no with a reason — one person at a time, and the
+            next only after you’ve answered. A considered no is progress here, not
+            a swipe. If it’s mutual, photos are shown to each other and a guided
+            conversation opens, with your wali welcome inside it. Nobody is on the
+            other side of this sample, so the only honest next step is the one below.
           </p>
         </div>
 
@@ -168,7 +184,6 @@ export default function SampleIntroduction({
           <Cohort
             identity={identity}
             hookId={hookId}
-            voices={voices}
             ledger={ledger}
             joined={waitlist}
             onJoined={onJoinWaitlist}

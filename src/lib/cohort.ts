@@ -29,7 +29,6 @@ export interface JoinInput {
   scene: string
   gender: Gender
   hook?: string
-  voices?: string[]
   /** What she has done here — see src/lib/ledger.ts. Goes with her place. */
   ledger?: string[]
 }

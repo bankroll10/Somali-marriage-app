@@ -99,8 +99,6 @@ interface Props {
   onCompleteStep: () => void
   /** Their saved place — asked right after the dimension bars, until they join. */
   waitlist: WaitlistState | null
-  /** Guide voices she has used — goes with her place in the cohort. */
-  voices?: string[]
   ledger?: string[]
   onScene?: (scene: string) => void
   /** Their "hardest part" answer, carried onto the signup. */
@@ -126,7 +124,6 @@ export default function ReflectionView({
   onTakeStep,
   onCompleteStep,
   waitlist,
-  voices,
   ledger,
   onScene,
   hookId,
@@ -263,7 +260,6 @@ export default function ReflectionView({
           <Cohort
             identity={identity}
             hookId={hookId}
-            voices={voices}
             ledger={ledger}
             joined={waitlist}
             onJoined={onJoinWaitlist}

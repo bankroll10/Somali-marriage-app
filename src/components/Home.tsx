@@ -59,8 +59,6 @@ interface Props {
   stage: Stage
   onSetStage: (s: Stage) => void
   hookId?: string
-  /** The founding cohort — the number on the door, and her place in it. */
-  voices: string[]
   /** What she has done here — travels with her place. */
   ledger: string[]
   /** A family member has vouched for her — the only badge this app shows. */
@@ -96,7 +94,6 @@ export default function Home({
   stage,
   onSetStage,
   hookId,
-  voices,
   ledger,
   vouch,
   waitlist,
@@ -163,11 +160,54 @@ export default function Home({
           </p>
         </section>
 
+        {/* Married: the app goes quiet.
+            Success used to have no screen — a member who marked herself married
+            still got the daily check-in, the introductions, the upsell and the
+            work card from a readiness-for-marriage map. Retention past the
+            outcome is the thing the strategy claims; here it is a design rather
+            than a default. What stays is the words for two families and the
+            guide for the first year. Everything else is not offered. */}
+        {stage === 'married' && (
+          <section className="animate-rise relative mt-8 overflow-hidden rounded-card bg-forest-deep p-7 text-cream">
+            <div className="bg-geo pointer-events-none absolute inset-0 opacity-30" aria-hidden />
+            <p className="relative text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">
+              Married, alhamdulillah
+            </p>
+            <h2 className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-tight text-balance">
+              We’re done looking. What’s left is the building.
+            </h2>
+            <p className="mt-3 text-[0.95rem] leading-relaxed text-cream/75 text-pretty">
+              Nothing here will try to keep you. There is no map to raise, no one to be introduced to,
+              and nothing to pay for. Two things stay, because the in-law conversations do not end at the
+              nikah and the first year asks more than anyone says: the words for two families, and the
+              guide, in the voice built for repair.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2.5">
+              <button
+                onClick={onOpenFamilies}
+                className="rounded-full bg-cream px-4 py-2 text-[0.88rem] font-semibold text-forest-deep transition hover:bg-white"
+              >
+                The words for two families
+              </button>
+              <button
+                onClick={() => onOpenGuide('therapist')}
+                className="rounded-full border border-cream/30 px-4 py-2 text-[0.88rem] font-medium text-cream transition hover:bg-cream/10"
+              >
+                The guide, for the first year
+              </button>
+            </div>
+            <p className="mt-4 text-[0.8rem] leading-relaxed text-cream/50 text-pretty">
+              If your situation changes, say so below — only you decide where you are.
+            </p>
+          </section>
+        )}
+
         {/* Say what happened.
             This is the answer to why the icon earns a place on a home screen.
             The rest of Niyyah is the slow work of becoming ready; this is the
             1am text, the auntie at the wedding, the reply you've re-read nine
             times. One line, no guide to choose first — we route it. */}
+        {stage !== 'married' && (
         <section className="animate-rise mt-8">
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">
             Something happened?
@@ -225,6 +265,7 @@ export default function Home({
             You don’t pick a guide — we read what you said and open the right one.
           </p>
         </section>
+        )}
 
         {/* The read.
             Of everything in this app, this is the one thing aimed squarely at
@@ -277,7 +318,7 @@ export default function Home({
           </button>
         )}
 
-        {reflection && (
+        {reflection && stage !== 'married' && (
           <WorkCard
             reflection={reflection}
             steps={steps}
@@ -303,7 +344,7 @@ export default function Home({
             courtship. It is the one thing on Home that asks; the daily
             check-in that used to sit below it asked every day and measured
             nothing. */}
-        {followUpAsk && (
+        {followUpAsk && stage !== 'married' && (
           <FollowUp ask={followUpAsk} onAnswer={onAnswerFollowUp} onAskGuide={(text) => onAsk(text)} />
         )}
 
@@ -357,7 +398,7 @@ export default function Home({
                   Talk to your guide
                 </span>
                 <span className="mt-0.5 block text-[0.88rem] text-muted">
-                  Six voices for the real moments — Auntie, Big Brother, Therapist & more.
+                  Five voices for the real moments — Auntie, Big Brother, Therapist & more.
                 </span>
               </span>
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
@@ -372,7 +413,6 @@ export default function Home({
               <Cohort
                 identity={identity}
                 hookId={hookId}
-                voices={voices}
                 ledger={ledger}
                 joined={waitlist}
                 onJoined={onJoinWaitlist}
@@ -404,7 +444,8 @@ export default function Home({
               </button>
             )}
 
-            {/* Your profile */}
+            {/* What decides who you meet — not offered once she is married. */}
+            {stage !== 'married' && (
             <button
               onClick={onOpenProfile}
               className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
@@ -420,10 +461,12 @@ export default function Home({
               </span>
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
             </button>
+            )}
 
-            {/* Readiness map — hers when she has one; otherwise the offer. A member
-                who said she is married is not offered a readiness-for-marriage map. */}
-            {reflection ? (
+            {/* The map — hers when she has one; otherwise the offer. A member who
+                said she is married is not offered a readiness-for-marriage map,
+                and is not sent back to the one she has. */}
+            {reflection && stage !== 'married' ? (
               <button
                 onClick={onOpenMap}
                 className="group rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"

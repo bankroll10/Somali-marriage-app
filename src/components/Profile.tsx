@@ -26,7 +26,6 @@ interface Props {
   onOpenPlus: () => void
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
-  voices?: string[]
   /** Optional answers about how she'd live, read by the alignment engine. */
   onAnswer: (questionId: string, value: AnswerValue) => void
   /** Reflect again — keeps every record. */
@@ -61,7 +60,6 @@ export default function Profile({
   onOpenPlus,
   waitlist,
   onJoinWaitlist,
-  voices,
   onAnswer,
   onRetake,
   onBack,
@@ -277,7 +275,6 @@ export default function Profile({
           <Cohort
             identity={identity}
             hookId={answers['hardest-part'] as string | undefined}
-            voices={voices}
             ledger={done.map((e) => e.id)}
             joined={waitlist}
             onJoined={onJoinWaitlist}

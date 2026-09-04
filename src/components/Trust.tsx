@@ -123,10 +123,10 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Joining the founding cohort.</span>{' '}
               If you ask to be counted, your map is kept as above, and we record
-              your city, who you’re seeking, the hardest part you named, which
-              guide voices you’ve used, and which of the things above you’ve
-              done — under that same code, with no name on it. Nothing about how
-              your map read goes anywhere.
+              your city, who you’re seeking, the hardest part you named, and
+              which of the things above you’ve done — under that same code, with
+              no name on it. Nothing about how your map read, and nothing about
+              how you use the app, goes anywhere.
               Your email or phone goes separately to the founder, so we can write
               to you when someone fits; it is never stored next to your answers.
             </p>

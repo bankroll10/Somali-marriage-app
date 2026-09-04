@@ -11,8 +11,6 @@ interface Props {
   identity: Identity
   /** Her answer to "what's the hardest part" — the need this counts. */
   hookId?: string
-  /** Guide voices she has actually used, so the tally knows what people reach for. */
-  voices?: string[]
   /** What she has done here (ledger ids) — the seriousness that gets her counted. */
   ledger?: string[]
   joined: WaitlistState | null
@@ -33,10 +31,11 @@ interface Props {
  *
  * It is an exchange, not a favour. Her map's job is to be matched; keeping it
  * and leaving a way to reach her is how that job gets done. In return she is
- * counted, she can watch the number move, and the day someone here fits her
- * map, she hears about it — and nobody else does.
+ * counted, and the day someone here fits her map, she hears about it — and
+ * nobody else does. The count is a sentence, not two progress bars: there is
+ * nothing here to come back and watch.
  */
-export default function Cohort({ identity, hookId, voices, ledger, joined, onJoined, onScene, compact }: Props) {
+export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, compact }: Props) {
   const configured = waitlistConfigured()
   const [contact, setContact] = useState('')
   const [scene, setScene] = useState(joined?.scene ?? identity.scene ?? '')
@@ -66,13 +65,10 @@ export default function Cohort({ identity, hookId, voices, ledger, joined, onJoi
         <p className="flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-forest">
           <CheckIcon size={12} /> You’re counted
         </p>
-        <div className="mt-3">
-          <Door count={count} />
-        </div>
         <p className="mt-3 text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
-          The day someone in {city} fits your map, we write to{' '}
-          <span className="font-medium text-ink">{joined.contact}</span> — and to nobody
-          else. Until both sides are here, nobody is introduced to anyone.
+          <Door count={count} city={city} /> The day someone in {city} fits your map, we
+          write to <span className="font-medium text-ink">{joined.contact}</span> — and to
+          nobody else. There is nothing to check back on; you will hear from us.
         </p>
         {joined.code && (
           <p className="mt-2 text-[0.85rem] leading-relaxed text-muted text-pretty">
@@ -94,7 +90,6 @@ export default function Cohort({ identity, hookId, voices, ledger, joined, onJoi
       scene,
       gender: identity.gender,
       hook: hookId,
-      voices,
       ledger,
     })
     if (!result) {
@@ -133,16 +128,9 @@ export default function Cohort({ identity, hookId, voices, ledger, joined, onJoi
       </p>
       <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
         {city} opens when {COHORT_TARGET} women and {COHORT_TARGET} men have kept a map
-        and can be reached. Nobody is introduced to anyone before then. The real
-        count today:
+        and can be reached. Nobody is introduced to anyone before then.{' '}
+        {scene ? <Door count={count} city={city} /> : 'Pick your city to see where it stands.'}
       </p>
-      <div className="mt-3.5">
-        {scene ? (
-          <Door count={count} />
-        ) : (
-          <p className="text-[0.85rem] text-muted">Pick your city to see it.</p>
-        )}
-      </div>
       {!compact && (
         <p className="mt-3.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
           Keep your map, leave a way to reach you, and the day one of the {seeking} here
@@ -210,8 +198,9 @@ export default function Cohort({ identity, hookId, voices, ledger, joined, onJoi
           <p className="text-[0.78rem] leading-relaxed text-muted text-pretty">
             We send your email or phone, your city, who you’re seeking, the hardest
             part you named, and which of the things on your Trust page you’ve
-            done. Nothing about how your map read. Your map is kept under a code
-            with no name on it, so it can be matched. Your answers stay yours.
+            done. Nothing about how your map read, and nothing about how you use
+            the app. Your map is kept under a code with no name on it, so it can be
+            matched. Your answers stay yours.
           </p>
         </form>
       ) : (
@@ -243,35 +232,21 @@ export default function Cohort({ identity, hookId, voices, ledger, joined, onJoi
 }
 
 /**
- * The number on the door. Two bars, the real figures, and the target — read
- * live, never seeded. A count that cannot be read says so rather than showing
- * a zero it does not know to be true.
+ * The number on the door, as a sentence. It used to be two bars filling toward
+ * forty — a scarcity meter, the kind a person comes back to watch. The fact
+ * is the same; the form no longer asks for a return visit. A count that cannot
+ * be read says so rather than showing a zero it does not know to be true.
  */
-function Door({ count }: { count: CohortCount | null }) {
-  if (!count) {
-    return <p className="text-[0.85rem] text-muted">The count isn’t reachable right now.</p>
-  }
+function Door({ count, city }: { count: CohortCount | null; city: string }) {
+  if (!count) return <span>The count isn’t reachable right now.</span>
+  const w = count.women === 1 ? 'one woman' : `${count.women} women`
+  const m = count.men === 1 ? 'one man' : `${count.men} men`
   return (
-    <div className="space-y-2.5">
-      <Bar label="Women" value={count.women} target={count.target} />
-      <Bar label="Men" value={count.men} target={count.target} />
-    </div>
-  )
-}
-
-function Bar({ label, value, target }: { label: string; value: number; target: number }) {
-  const pct = Math.min(100, Math.round((value / target) * 100))
-  return (
-    <div>
-      <div className="flex items-baseline justify-between text-[0.85rem]">
-        <span className="font-medium text-ink-soft">{label}</span>
-        <span className="text-muted tabular-nums">
-          <span className="font-display text-[1.15rem] font-medium text-forest">{value}</span> / {target}
-        </span>
-      </div>
-      <div className="mt-1 h-2 overflow-hidden rounded-full bg-sand">
-        <div className="h-full rounded-full bg-forest transition-all duration-700" style={{ width: `${pct}%` }} />
-      </div>
-    </div>
+    <span>
+      <span className="font-medium text-ink">
+        {city} today: {w}, {m}.
+      </span>{' '}
+      It opens at {count.target} each.
+    </span>
   )
 }

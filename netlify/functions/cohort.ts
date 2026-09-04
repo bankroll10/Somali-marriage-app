@@ -16,8 +16,9 @@ import { getStore } from '@netlify/blobs'
  *
  * Nothing here is a person. A join is keyed by the anonymous code her kept map
  * lives under, and carries her city, who she is seeking, her hardest part, and
- * which guide voices she has used. Nothing about how her map read: a readiness
- * number was an answer key, and it has no business on a server. The way to reach her is
+ * what she has done here. Nothing about how her map read — a readiness number
+ * was an answer key — and nothing about how she uses the app: which guide
+ * voices she opened used to travel here, and it was usage, not need. The way to reach her is
  * deliberately NOT stored here — it goes to the founder's form, so that this
  * store can be read and tallied without ever holding contact details.
  *
@@ -33,7 +34,6 @@ export const COHORT_TARGET = 40
 const SCENES = new Set(['twin-cities', 'toronto', 'london', 'columbus', 'stockholm', 'other'])
 const GENDERS = new Set(['woman', 'man'])
 const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'ready', 'none'])
-const VOICES = new Set(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker'])
 /** Must match src/lib/ledger.ts. What a person has actually done here. */
 const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'counted', 'vouched'])
 /** Same alphabet and length as netlify/functions/keep.ts. */
@@ -41,7 +41,6 @@ const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 
 export interface CohortRecord {
   at: string
-  voices: string[]
   /** Which instruments she has used — the seriousness that got her counted. */
   ledger: string[]
 }
@@ -121,7 +120,6 @@ export default async function handler(req: Request) {
     scene?: string
     gender?: string
     hook?: string
-    voices?: unknown
     ledger?: unknown
   }
   try {
@@ -148,16 +146,12 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 
-  const voices = Array.isArray(body.voices)
-    ? body.voices.filter((v): v is string => typeof v === 'string' && VOICES.has(v))
-    : []
   const ledger = Array.isArray(body.ledger)
     ? body.ledger.filter((v): v is string => typeof v === 'string' && LEDGER.has(v))
     : []
-  // An older client may still send `overall`. It is not read and not kept.
+  // An older client may still send `overall` or `voices`. Neither is read or kept.
   const record: CohortRecord = {
     at: new Date().toISOString(),
-    voices,
     ledger,
   }
   const key = `${scene}/${gender}/${hook}/${code}`
