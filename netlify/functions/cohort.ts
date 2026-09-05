@@ -1,5 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
+// Validated against closed sets so a bad key can never be written — see netlify/shared/vocab.ts.
+import { GENDERS, HOOKS, LEDGER, SCENES } from '../shared/vocab'
 
 /**
  * The number on the door.
@@ -31,12 +33,6 @@ import { isFounder, notFounder } from '../shared/founder'
 /** A city opens when both sides have this many people who can be reached. */
 export const COHORT_TARGET = 40
 
-/** Must match src/data/scenes.ts and src/data/hook.ts — validated so a bad key can never be written. */
-const SCENES = new Set(['twin-cities', 'toronto', 'london', 'columbus', 'stockholm', 'other'])
-const GENDERS = new Set(['woman', 'man'])
-const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'ready', 'none'])
-/** Must match src/lib/ledger.ts. What a person has actually done here. */
-const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'counted', 'vouched'])
 /** Same alphabet and length as netlify/functions/keep.ts. */
 const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 /** A code, a city, a side, a hardest part and seven ledger ids is the largest thing anyone can send. */

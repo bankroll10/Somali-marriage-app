@@ -1,6 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
-import { TOPICS } from '../shared/vocab'
+import { GENDERS, TOPICS, YES_STATES as STATES } from '../shared/vocab'
 
 /**
  * The two-sided Before you say yes.
@@ -30,8 +30,6 @@ import { TOPICS } from '../shared/vocab'
  * which is symmetric by construction.
  */
 
-const STATES = new Set(['agree', 'differ', 'not-talked', 'unknown'])
-const GENDERS = new Set(['woman', 'man'])
 const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
 const CODE_LENGTH = 6
 const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
