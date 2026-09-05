@@ -89,7 +89,8 @@ describe('reporting a rung', () => {
     expect((await post({ id: 'nope', rungs: ['arrived'] })).status).toBe(400)
     expect((await post({ id: ID, rungs: ['arrived'], scene: 'mars' })).status).toBe(400)
     expect((await post({ id: ID })).status).toBe(400)
-    expect((await raw('x'.repeat(3000))).status).toBe(413)
+    expect((await raw('x'.repeat(5000))).status).toBe(413)
+    expect((await raw(JSON.stringify({ id: ID, rungs: ['arrived'], pad: 'x'.repeat(3000) }))).status).toBe(200)
     expect((await raw('{not json')).status).toBe(400)
   })
 })
@@ -130,7 +131,9 @@ describe('the readout', () => {
   it('carries nothing a person wrote', async () => {
     await post({ id: ID, rungs: ['arrived', 'eleven', 'followed-through'], scene: 'london' })
     const serialised = JSON.stringify(await (await readout()).json())
-    expect(serialised).not.toMatch(/"(agree|differ|not-talked|unknown)"/)
+    // States of the eleven appear in the tally only as the names of counts,
+    // never as a value anyone holds.
+    expect(serialised).not.toMatch(/:"(agree|differ|not-talked|unknown)"/)
   })
 
   it('POST is the only way in, and only GET reads', async () => {
@@ -173,5 +176,97 @@ describe('the founder key', () => {
   it('reporting a rung never needs the key', async () => {
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
     expect((await post({ id: ID, rungs: ['arrived'] })).status).toBe(200)
+  })
+})
+
+describe('the facts', () => {
+  const read = { band: 'mixed', thin: 'public' }
+  const eleven = { agree: 7, differ: 2, notTalked: 1, unknown: 1, open: 'money-home' }
+  const grounds = { faith: 'steady', family: 'thin' }
+
+  it('accepts facts from the closed lists and stores them', async () => {
+    const res = await post({ id: ID, rungs: ['arrived', 'read', 'eleven'], facts: { grounds, read, eleven, through: ['beforeYes:money-home', 'read:early'], ending: { who: 'brought', used: ['map'] } } })
+    expect(res.status).toBe(200)
+    const stored = JSON.parse(stores.get('progress')!.get(ID)!)
+    expect(stored.facts).toEqual({ grounds, read, eleven, through: ['beforeYes:money-home', 'read:early'], ending: { who: 'brought', used: ['map'] } })
+  })
+
+  it('refuses any fact outside the lists — and stores nothing from that report', async () => {
+    const bad: unknown[] = [
+      { grounds: { money: 'thin' } },
+      { grounds: { faith: 'great' } },
+      { read: { band: 'great', thin: 'public' } },
+      { read: { band: 'mixed', thin: 'early' } },
+      { eleven: { ...eleven, agree: 8 } },
+      { eleven: { ...eleven, open: 'pets' } },
+      { through: ['guide:should I tell my mother'] },
+      { through: ['read:money-home'] },
+      { through: ['beforeYes'] },
+      { ending: { who: 'tinder' } },
+      { ending: { advice: 'ask about money early' } },
+      { ending: { used: ['swipes'] } },
+      { sessions: 4 },
+      'mixed',
+    ]
+    for (const facts of bad) {
+      const res = await post({ id: ID, rungs: ['arrived'], facts })
+      expect(res.status, JSON.stringify(facts)).toBe(400)
+      expect((await res.json()).error).toBe('bad_facts')
+    }
+    expect(stores.get('progress')?.size ?? 0).toBe(0)
+  })
+
+  it('keeps the first grounds, read and eleven it was told, unions conversations, and lets the ending be revised', async () => {
+    await post({ id: ID, rungs: ['arrived'], facts: { grounds, read, eleven, through: ['read:public'], ending: { who: 'brought' } } })
+    await post({
+      id: ID,
+      rungs: ['arrived'],
+      facts: {
+        grounds: { faith: 'strong' },
+        read: { band: 'strong', thin: 'intent' },
+        eleven: { ...eleven, agree: 8, differ: 1 },
+        through: ['beforeYes:money-home'],
+        ending: { who: 'family', mattered: 'eleven' },
+      },
+    })
+    const f = JSON.parse(stores.get('progress')!.get(ID)!).facts
+    expect(f.grounds).toEqual(grounds)
+    expect(f.read).toEqual(read)
+    expect(f.eleven).toEqual(eleven)
+    expect(f.through).toEqual(['beforeYes:money-home', 'read:public'])
+    expect(f.ending).toEqual({ who: 'family', mattered: 'eleven' })
+  })
+
+  it('tallies facts as distributions and never as a record', async () => {
+    await post({ id: 'ACDEFG', rungs: ['arrived', 'read'], facts: { grounds, read, ending: { who: 'brought', mattered: 'shown', used: ['read', 'map'] } } })
+    await post({ id: 'HJKMNP', rungs: ['arrived', 'read'], facts: { grounds: { family: 'strong' }, read: { band: 'thin', thin: 'public' } } })
+    const body = await (await readout()).json()
+    expect(body.facts.grounds.family).toEqual({ thin: 1, strong: 1 })
+    expect(body.facts.read.band).toEqual({ mixed: 1, thin: 1 })
+    expect(body.facts.read.thin).toEqual({ public: 2 })
+    expect(body.facts.ending.who).toEqual({ brought: 1 })
+    expect(body.facts.ending.used).toEqual({ read: 1, map: 1 })
+    const serialised = JSON.stringify(body)
+    expect(serialised).not.toMatch(/ACDEFG|HJKMNP|advice|answers/)
+  })
+
+  it('crosses what she confirmed she said with whether she married', async () => {
+    await post({ id: 'ACDEFG', rungs: ['arrived', 'followed-through', 'married'], facts: { eleven, through: ['beforeYes:money-home'], read } })
+    await post({ id: 'HJKMNP', rungs: ['arrived', 'followed-through'], facts: { eleven, through: ['beforeYes:money-home', 'couple:live'], read } })
+    const body = await (await readout()).json()
+    expect(body.facts.through).toEqual({ 'beforeYes:money-home': 2, 'couple:live': 1 })
+    expect(body.facts.throughByTopic).toEqual({ 'money-home': 2, live: 1 })
+    expect(body.facts.marriedBy.through['money-home']).toEqual({ through: 2, married: 1 })
+    expect(body.facts.marriedBy.through.live).toEqual({ through: 1, married: 0 })
+    expect(body.facts.marriedBy.open['money-home']).toEqual({ eleven: 2, married: 1 })
+    expect(body.facts.marriedBy.readThin.public).toEqual({ read: 2, married: 1 })
+    expect(body.facts.eleven.differ).toEqual({ '2': 2 })
+  })
+
+  it('tallies records written before facts existed', async () => {
+    await post({ id: ID, rungs: ['arrived', 'read'] })
+    const body = await (await readout()).json()
+    expect(body.rungs.read).toBe(1)
+    expect(body.facts.read.band).toEqual({})
   })
 })

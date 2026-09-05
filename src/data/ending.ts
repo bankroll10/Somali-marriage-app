@@ -8,8 +8,10 @@ import { speak } from './read'
  * the order matters: first, they are the last honest reflection this product
  * offers — a person who has just married has never once been asked what
  * actually decided it, and the question is worth answering for her own sake.
- * Second, they are the only outcome data this company will ever have, and the
- * only way to learn which of these instruments actually moves a marriage.
+ * Second, they are the only outcome data this company will ever have — under
+ * "Count me", the three closed answers travel with her rungs (src/lib/facts.ts)
+ * — and the only way to learn which of these instruments actually moves a
+ * marriage. The free-text line below never travels.
  *
  * Every one is optional and every one can be skipped in a tap. Nothing here is
  * required to finish, nothing is required to keep her record, and nothing is

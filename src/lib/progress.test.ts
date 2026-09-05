@@ -69,3 +69,24 @@ describe('what kind of link brought her here', () => {
     expect(Object.keys(await lastBody(spy)).sort()).toEqual(['id', 'rungs', 'scene', 'via'])
   })
 })
+
+describe('the facts beside the rungs', () => {
+  it('sends facts when given them, and no field at all when there are none', async () => {
+    const spy = vi.fn(async () => new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    await reportRungs(['arrived', 'read'], 'toronto', { read: { band: 'mixed', thin: 'public' } })
+    expect((await lastBody(spy)).facts).toEqual({ read: { band: 'mixed', thin: 'public' } })
+    await reportRungs(['arrived'], 'toronto', {})
+    expect('facts' in (await lastBody(spy))).toBe(false)
+  })
+
+  it('a re-render with the same facts posts nothing; a new fact posts once', async () => {
+    const spy = vi.fn(async () => new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    await reportRungs(['arrived', 'read'], undefined, { read: { band: 'mixed', thin: 'public' } })
+    await reportRungs(['arrived', 'read'], undefined, { read: { band: 'mixed', thin: 'public' } })
+    expect(spy.mock.calls.length).toBe(1)
+    await reportRungs(['arrived', 'read'], undefined, { read: { band: 'mixed', thin: 'public' }, through: ['read:public'] })
+    expect(spy.mock.calls.length).toBe(2)
+  })
+})

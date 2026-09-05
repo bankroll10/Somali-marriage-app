@@ -15,6 +15,7 @@ import { buildRead } from '../lib/read'
 import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
+import { factsFrom } from '../lib/facts'
 import { coupleReading, readCouple } from '../lib/couple'
 import type { Entry, EntryKind } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
@@ -214,14 +215,22 @@ export function useNiyyah(entry: Entry | null = null) {
     void flushWaitlistQueue()
   }, [])
 
+  // What the rungs were made of, in words from closed lists — which grounds
+  // read thin, how the read came out, which conversation was had, who she
+  // married. See src/lib/facts.ts. Never an answer in her words.
+  const facts = useMemo(
+    () => factsFrom({ reflection, read, beforeYes, followups, ending, gender: identity.gender ?? 'woman' }),
+    [reflection, read, beforeYes, followups, ending, identity.gender],
+  )
+
   // Rungs reached, reported on transitions only — never on a tap, never on a
   // screen, never on a minute spent. Gated on the control that says so: with
   // countMe off this call site does not run, so the toggle is the mechanism
   // rather than a promise about one.
   useEffect(() => {
     if (!trust.countMe) return
-    void reportRungs(rungs, identity.scene)
-  }, [rungs, trust.countMe, identity.scene])
+    void reportRungs(rungs, identity.scene, facts)
+  }, [rungs, trust.countMe, identity.scene, facts])
 
   // Has he answered the eleven she sent? Asked once per code, only until we
   // know — he answers on his own phone, and it has to reach hers without her

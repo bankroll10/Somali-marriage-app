@@ -90,7 +90,7 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
 
           <Control
             title="Count me"
-            desc="When you do one of the things above, we count that it happened — the step and the date, under a random code that is not your map code. No answers, no name, nothing that leads back to you. It is how we find out whether any of this actually helps anyone. Turn it off and nothing is sent."
+            desc="When you do one of the things above, we count that it happened — the step, the date, and for a few steps how it came out, in a word from a list we wrote — under a random code that is not your map code. No answer in your words, no name, nothing that leads back to you. It is how we find out whether any of this actually helps anyone. Turn it off and nothing is sent."
             icon={<LockGlyph />}
           >
             <Toggle on={countMe} label="Count me" onClick={() => onCountMe(!countMe)} />
@@ -162,14 +162,24 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               eleven, you asked him, he answered, you had the conversation, your
               family vouched, you were counted, you’re deciding, you’re married —
               that step and the date reach us, along with your city if you gave
-              one. If you opened Niyyah from a link someone sent you, it also says
-              what kind of link that was — words, the eleven, a couple’s link, the
-              door, or a family link — and never who sent it. It goes under a code
-              this phone made up for itself, which is
-              not your map code, so there is no way to put the two together. No
-              answers, no name, no message, and nothing about how long you spent
-              here or how often you opened it. Turn the control off and none of
-              it is sent.
+              one. A few of those steps also say, in a word, how they came out:
+              which of your map’s seven grounds read thin, steady or strong; how
+              the read came out and which ground it found thinnest; how many of
+              the eleven you had agreed on, differed on, not had, or did not yet
+              know your own answer to, and which one it told you to open; which
+              conversation you later confirmed you had; and, at the end, the three
+              things you tap on the way out — who you married, what decided it,
+              and what here you used. Every one of those is a choice from a list
+              we wrote. Never an answer in your words, never the line you write
+              for the next person, never a word the guide said or you said to it,
+              and never a name — his, yours or your family’s. If you opened Niyyah
+              from a link someone sent you, it also says what kind of link that
+              was — words, the eleven, a couple’s link, the door, a family link,
+              or a link from someone this worked for — and never who sent it. It
+              goes under a code this phone made up for itself, which is not your
+              map code, so there is no way to put the two together. Nothing about
+              how long you spent here or how often you opened it. Turn the
+              control off and none of it is sent.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               The Guide is the last exception, and here is exactly what it sends

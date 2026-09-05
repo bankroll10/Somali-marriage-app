@@ -79,8 +79,10 @@ export interface TrustSettings {
    *
    * On, and each time she reaches a new rung — said what was happening, built
    * a map, took a read, had the conversation — that rung id and the date reach
-   * our side under a random code that is not her map code. Nothing else: no
-   * answers, no name, no message, and no way back to her. It is the only way
+   * our side under a random code that is not her map code, and for a few rungs
+   * how it came out, as ids from closed lists (src/lib/facts.ts). Nothing
+   * else: no answer in her words, no name, no message, and no way back to her.
+   * The Trust screen enumerates every field. It is the only way
    * to know whether this product helps anyone, which is the only way to make it
    * help more. Off, and nothing is sent, ever — the control gates the call
    * itself, not a preference we promise to honour.
