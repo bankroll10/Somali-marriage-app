@@ -277,12 +277,62 @@ documents should be able to reject a proposal by pointing at a line above.
    liquidity — which is the honest answer to the cold-start problem. People
    have the hard conversation before they ever get a match.
 
-## The moat
+## The moat — the Commandment of Entry, applied
 
-Not the AI (commoditising). The moat is: **trust + cultural depth + lifecycle
-breadth + community density.** A generic competitor can copy a feature; they
-can't copy being the institution this community grew up trusting, across the
-whole arc from "am I ready" to "ten years married."
+Assume a competent developer sees this app tomorrow. They can copy every
+screen. The question is what would still be missing from the copy, and how to
+make sure every legitimate new user widens that gap.
+
+**Fake complexity — things that look like a moat and are not.** Every file in
+`src/data/`: the eleven, the read's questions, the scripts, the Somali lines.
+They ship to every browser in plaintext; obfuscating them would be theatre.
+The matching weights, the eleven's `consequence` numbers, the read's dimension
+weights — hand-set constants a copier sets for themselves. The Claude system
+prompt; the model is a commodity. The five voices, the design system, the
+animations. None of it is defended, and no day is spent defending it.
+
+**True barriers — things that need users, trust, or time, and cannot be
+bought:**
+
+1. **Outcome-calibrated knowledge.** Which of the eleven predicts trouble,
+   which scripts actually get said, which thin ground precedes which ending.
+   Nobody can copy this without the people who produced it.
+2. **The vouch graph.** Every vouch is a real Somali family member who trusted
+   this with a name. A web of trust across a community, unfakeable at scale.
+3. **The married-referral graph.** People it worked for, telling people it
+   hasn't yet. In a tight community this *is* the brand.
+4. **City density.** Local-marketplace liquidity, one city at a time.
+5. **A safety record.** Zero incidents, over years, with real infrastructure
+   behind the claim — still to be built, and still a false promise on Trust
+   until it is.
+6. **Kept maps with ledgers.** A store of people who did costly things, not
+   people who typed an email.
+
+**The rule: every legitimate user strengthens at least one compounding
+asset.** The product used to record *that* things happened — rungs — and
+discard *what* happened. It now records both, as ids from closed lists, under
+"Count me":
+
+| Action | What reaches us | Asset it compounds |
+|---|---|---|
+| Arrives via a link | `arrived` + which kind of door | Referral network |
+| Builds her map | `mapped` + each ground in a word | What this community is thin on |
+| Takes a read | `read` + the band and the thinnest ground | What men here have typically not shown |
+| The eleven | `eleven` + how many in each state, and the one to open | Compatibility knowledge |
+| He answers on his phone | `he-answered` + the pair's joint per topic, in a count with no pair in it | The one dataset no single member could give |
+| Says "we talked" | `followed-through` + which conversation | Which scripts get said |
+| Family vouches | `vouched` + a vouch that lives as long as her map | The vouch graph |
+| Counted | `counted` + the ledger | Quality network, density |
+| Married, and leaves | `married` + who, what decided it, what here was real | Successful-match history |
+
+Never an answer in her words, never a name, never the line she writes for the
+next person. The install code the ladder is kept under cannot be joined to the
+code her map is kept under, by design.
+
+**The moat is not the words in `src/data/`. It is `docs/OPERATING.md`, run
+monthly against the readout** — the process that revises those words from what
+happened to real people. A copier gets the constants as they were on the day
+they copied them. This product gets the next revision.
 
 ## Risks I'm watching (no self-deception)
 

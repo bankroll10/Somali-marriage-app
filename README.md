@@ -57,7 +57,10 @@ married goes to the guide.
   one thing the product measures.
 - **The ladder and the ledger** — what she has actually done here, as facts
   that cannot be tapped into being. The ledger is what will decide who meets
-  whom. The ladder (`src/lib/rungs.ts`) is the only metric.
+  whom. The ladder (`src/lib/rungs.ts`) is the only metric, and beside each
+  rung travels what it was made of (`src/lib/facts.ts`) — in words from closed
+  lists, never an answer in hers. `docs/OPERATING.md` is the loop that turns
+  the readout into revisions.
 - **The door** — the real count of women and men in her city who have kept a
   map and can be reached, against the number the city opens at. Never seeded.
 
@@ -98,12 +101,14 @@ src/
   lib/cohort.ts        The door — count and join
   lib/vouch.ts         Client half of the family vouch
   lib/progress.ts      Report rungs, under a code that is not the map's
+  lib/facts.ts         What the rungs were made of — ids from closed lists, never a sentence
   lib/waitlist.ts      The one line out — how the founder reaches her
   lib/storage.ts       localStorage persistence
   hooks/useNiyyah.ts   Single source of truth: state, actions, persistence
   components/          One file per screen; home/ holds Home's cards
 netlify/functions/     guide · keep · cohort · couple · vouch · progress (Netlify Blobs)
-netlify/shared/        founder — the bearer key on every readout; inlined, never deployed as a route
+netlify/shared/        founder — the bearer key on every readout; vocab — every closed set the functions accept
+docs/OPERATING.md      The monthly loop: readout field → constant it revises
 netlify/edge-functions/gate.ts   Founding-preview password gate
 ```
 

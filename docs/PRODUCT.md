@@ -136,6 +136,12 @@ Defined in `src/lib/rungs.ts`; the code wins over this document.
   kill switch), vouch rate, women's share of the door.
 - **Explicitly not measured:** DAU/WAU, time in app, replies sent, check-ins,
   introductions viewed, match count.
+- **Beside each rung, what it was made of** (`src/lib/facts.ts`): the grounds
+  in a word, the read's band and thinnest ground, counts of the eleven and
+  the one to open, which conversation was confirmed, the three closed answers
+  on the way out — every one an id from a closed list, never an answer in her
+  words. The readout crosses each against whether she married. How those
+  tables move the constants is `docs/OPERATING.md`.
 
 ## 7. When a city opens
 
@@ -197,7 +203,9 @@ and skippable, the four questions; then the optional ask, last.
 
 Marriages are counted only when a person says so on the way out. Saying so is
 free, unlocks nothing, and is never a condition of anything — the moment it
-costs something, it stops being said, and the metric dies.
+costs something, it stops being said, and the metric dies. The three closed
+answers reach us under "Count me", beside her rungs; the line she writes for
+the next person never does.
 
 ## 9. How it spreads
 
@@ -225,21 +233,24 @@ Three loops, in order of strength:
 
 Three links open an instrument directly — `?read`, `?eleven`, `?families` —
 with no Welcome and no account. Any link may carry `&via=` naming what kind of
-link it was (words, eleven, couple, door, family) and never who sent it; it is
-the only attribution recorded, first arrival wins, and the founder's readout
-splits every rung by it. The metric is **arrivals by source per hundred
+link it was (words, eleven, couple, door, family, or married — a link from
+someone this worked for) and never who sent it; it is the only attribution
+recorded, first arrival wins, and the founder's readout splits every rung by
+it. The two-sided eleven also adds each answered pair to a count of how pairs
+come out per topic, with no pair in it, and a family vouch now lives exactly as
+long as the map it was given about. The metric is **arrivals by source per hundred
 followed-through**. Until the founding-preview gate comes off, every shared
 link returns 401 to anyone without the password.
 
 ## 10. Roadmap
 
-0. **The first-year sheet** — the one instrument the married stage is still
+0. **Run the loop** — `docs/OPERATING.md`, monthly, from the first hundred
+   records. The moat is the process, not the constants.
+1. **The first-year sheet** — the one instrument the married stage is still
    missing, and the thing the wedding gift sells. The eleven's engine over a
    second topic list.
-1. **Live Claude behind the map** — `generateReflection` is the last local
+2. **Live Claude behind the map** — `generateReflection` is the last local
    seam; the guide's function is the pattern.
-2. **The first-year sheet** for married members — the eleven engine over a
-   different topic list; the one instrument the married stage is missing.
 3. **Real backend** — auth, persistence, real verification, moderation and
    reporting (safety is first-class).
 4. **The city opens** — one introduction at a time, per §7, Minneapolis first.
