@@ -142,7 +142,11 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               to you. From your own answer you can still tell whether he thinks a
               conversation happened; that is the point, and he can tell the same
               about you. Your answers are frozen the moment he answers, his after
-              once, and the whole thing expires after ninety days.
+              once, and the whole thing expires after ninety days. Once he has
+              answered, your pair is also added to a count of how pairs come out on
+              each of the eleven — both agree, neither has raised it, one thinks it
+              was talked about — with no code and no side attached, so we can learn
+              which conversations couples here most often miss.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Asking your family to vouch.</span>{' '}
