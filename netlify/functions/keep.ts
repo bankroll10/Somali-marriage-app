@@ -72,9 +72,45 @@ export default async function handler(req: Request) {
     }
   }
 
+  // ── Forget ───────────────────────────────────────────────────────────────
+  // Everything kept under her code, gone: the map, the eleven she sent him,
+  // her family's vouch and the token that pointed at it, her place on the
+  // door. Possession of the code is the authority, exactly as it is for
+  // restoring — and it is safe only because the vouch link no longer carries
+  // the code. Asking twice is a quiet 404: there was nothing left to forget.
+  // What cannot be undone is not here at all: a count with no code in it.
+  if (req.method === 'DELETE') {
+    const code = normalise(new URL(req.url).searchParams.get('code') ?? '')
+    if (code.length !== CODE_LENGTH) return Response.json({ error: 'bad_code' }, { status: 400 })
+    try {
+      const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
+      if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
+      const snapshot = (kept.snapshot ?? {}) as { couple?: { code?: unknown } }
+      const coupleCode = typeof snapshot.couple?.code === 'string' ? normalise(snapshot.couple.code) : ''
+
+      const couples = getStore('couples')
+      const vouches = getStore('vouches')
+      const cohort = getStore('cohort')
+
+      if (coupleCode.length === CODE_LENGTH) await couples.delete(coupleCode)
+      const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
+      if (token) await vouches.delete(`token/${token}`)
+      await vouches.delete(`asked/${code}`)
+      await vouches.delete(code)
+      const member = (await cohort.get(`index/${code}`, { type: 'text' })) as string | null
+      if (member) await cohort.delete(member)
+      await cohort.delete(`index/${code}`)
+      await store.delete(code)
+      return Response.json({ forgotten: true })
+    } catch (err) {
+      console.error('[niyyah] keep: forget failed', err)
+      return Response.json({ error: 'unavailable' }, { status: 503 })
+    }
+  }
+
   // ── Keep ─────────────────────────────────────────────────────────────────
   if (req.method !== 'POST') {
-    return Response.json({ error: 'GET or POST only' }, { status: 405 })
+    return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
   }
 
   let body: { snapshot?: unknown; code?: string }

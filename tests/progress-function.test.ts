@@ -34,6 +34,7 @@ const post = (body: unknown) =>
   handler(new Request('http://x/.netlify/functions/progress', { method: 'POST', body: JSON.stringify(body) }))
 const raw = (body: string) =>
   handler(new Request('http://x/.netlify/functions/progress', { method: 'POST', body }))
+const forget = (id: string) => handler(new Request(`http://x/.netlify/functions/progress?id=${id}`, { method: 'DELETE' }))
 const readout = (headers: Record<string, string> = {}) =>
   handler(new Request('http://x/.netlify/functions/progress', { headers }))
 
@@ -162,9 +163,37 @@ describe('the readout', () => {
     expect(serialised).not.toMatch(/:"(agree|differ|not-talked|unknown)"/)
   })
 
-  it('POST is the only way in, and only GET reads', async () => {
-    const res = await handler(new Request('http://x/.netlify/functions/progress', { method: 'DELETE' }))
+  it('POST writes, GET reads, DELETE forgets — nothing else answers', async () => {
+    const res = await handler(new Request('http://x/.netlify/functions/progress', { method: 'PUT' }))
     expect(res.status).toBe(405)
+  })
+})
+
+describe('forgetting an install', () => {
+  it('leaves the readout, not just the store — a true un-count', async () => {
+    await post({ id: ID, rungs: ['arrived', 'read'], facts: { read: { band: 'mixed', thin: 'public' } } })
+    await post({ id: 'HJKMNP', rungs: ['arrived'] })
+    expect((await (await readout()).json()).rungs.arrived).toBe(2)
+    const res = await forget(ID)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ forgotten: true })
+    const body = await (await readout()).json()
+    expect(body.rungs.arrived).toBe(1)
+    expect(body.rungs.read).toBeUndefined()
+    expect(body.facts.read.band).toEqual({})
+  })
+
+  it('a second time is a quiet 404, and a bad id is refused', async () => {
+    await post({ id: ID, rungs: ['arrived'] })
+    await forget(ID)
+    expect((await forget(ID)).status).toBe(404)
+    expect((await forget('nope')).status).toBe(400)
+  })
+
+  it('never needs the founder key — it is hers', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    await post({ id: ID, rungs: ['arrived'] })
+    expect((await forget(ID)).status).toBe(200)
   })
 })
 

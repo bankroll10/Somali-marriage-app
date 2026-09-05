@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { Identity } from '../types'
 import type { LedgerEntry } from '../lib/ledger'
 import { BackButton, CheckIcon, LockGlyph, Logo } from './ui'
@@ -11,6 +11,8 @@ interface Props {
   onGuideOnDevice: (on: boolean) => void
   countMe: boolean
   onCountMe: (on: boolean) => void
+  /** Delete everything kept under her codes, then start this phone over. */
+  onForget: () => Promise<void>
   onBack: () => void
 }
 
@@ -26,8 +28,9 @@ interface Props {
  * (which cannot be tapped), the one control that does what it says, and the
  * exact account of where her answers live.
  */
-export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onBack }: Props) {
+export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
   const isWoman = identity.gender === 'woman'
+  const [forgetting, setForgetting] = useState<'idle' | 'sure' | 'working'>('idle')
 
   return (
     <div className="min-h-dvh bg-cream pb-20">
@@ -208,6 +211,48 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               on <span className="font-medium text-ink">Keep the Guide on this device</span>{' '}
               above — the guide then answers offline, and nothing is sent at all.
             </p>
+          </div>
+        </section>
+
+        {/* Forget me — the control that makes every sentence above enforceable. */}
+        <section className="mt-6 rounded-card border border-line bg-white/50 p-5">
+          <h3 className="font-display text-[1.08rem] font-medium text-ink">Forget me</h3>
+          <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
+            Deletes your kept map, your family’s vouch and the link they used, your
+            place on the door, the eleven you sent him, and the count of your steps
+            — then clears this phone. One thing stays: if he answered your eleven,
+            your pair was already added to a count of how pairs come out, and that
+            count carries no code, so it cannot be found again — not by us, not by
+            you. If you gave us an email or phone, tell us and a person deletes it by
+            hand. If you come back after this, you start as a stranger.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {forgetting === 'idle' && (
+              <button
+                onClick={() => setForgetting('sure')}
+                className="rounded-full border border-clay/50 px-5 py-2.5 text-[0.88rem] font-medium text-clay transition hover:bg-clay/10"
+              >
+                Forget me
+              </button>
+            )}
+            {forgetting === 'sure' && (
+              <>
+                <button
+                  onClick={async () => {
+                    setForgetting('working')
+                    await onForget()
+                  }}
+                  className="rounded-full bg-clay px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:opacity-90"
+                >
+                  Yes, delete everything
+                </button>
+                <button onClick={() => setForgetting('idle')} className="text-[0.85rem] font-medium text-muted underline-offset-4 hover:underline">
+                  Keep it
+                </button>
+                <span className="text-[0.82rem] text-muted">This cannot be undone.</span>
+              </>
+            )}
+            {forgetting === 'working' && <span className="text-[0.88rem] text-muted">Forgetting…</span>}
           </div>
         </section>
 

@@ -356,9 +356,28 @@ export default async function handler(req: Request) {
     }
   }
 
+  // ── Forgetting an install ─────────────────────────────────────────────────
+  // The record under this install code, gone. Because the readout is computed
+  // from the records on every read, this is a true un-count: she leaves the
+  // tally, not just the store. Possession of the code is the authority; the
+  // code was made on her phone and never left it except in these reports.
+  if (req.method === 'DELETE') {
+    const id = (new URL(req.url).searchParams.get('id') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (!ID.test(id)) return Response.json({ error: 'bad_id' }, { status: 400 })
+    try {
+      const existing = await store.get(id, { type: 'json' })
+      if (!existing) return Response.json({ error: 'not_found' }, { status: 404 })
+      await store.delete(id)
+      return Response.json({ forgotten: true })
+    } catch (err) {
+      console.error('[niyyah] progress: forget failed', err)
+      return Response.json({ error: 'unavailable' }, { status: 503 })
+    }
+  }
+
   // ── Reporting a rung ──────────────────────────────────────────────────────
   if (req.method !== 'POST') {
-    return Response.json({ error: 'GET or POST only' }, { status: 405 })
+    return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
   }
 
   const raw = await req.text()

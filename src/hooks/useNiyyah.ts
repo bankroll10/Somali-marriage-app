@@ -16,6 +16,7 @@ import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
 import { factsFrom } from '../lib/facts'
+import { forgetMe } from '../lib/forget'
 import { coupleReading, readCouple } from '../lib/couple'
 import type { Entry, EntryKind } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
@@ -365,6 +366,17 @@ export function useNiyyah(entry: Entry | null = null) {
     track('onboarding_started')
     setIdentityNext('situation')
     setScreen('identity')
+  }
+
+  /**
+   * Forget me. The servers first, then the phone, then a hard reload so no
+   * effect in this hook can write anything back. Whoever opens the app next
+   * on this phone is a stranger with a new code.
+   */
+  async function forgetEverything() {
+    track('forgotten')
+    await forgetMe()
+    window.location.replace('/')
   }
 
   /**
@@ -721,6 +733,7 @@ export function useNiyyah(entry: Entry | null = null) {
     beginIntake,
     beginMap,
     chooseSituation,
+    forgetEverything,
     startFresh,
     resume,
     retakeMap,

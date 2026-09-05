@@ -225,6 +225,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onGuideOnDevice={(on) => n.setTrust((prev) => ({ ...prev, guideOnDevice: on }))}
           countMe={n.trust.countMe}
           onCountMe={(on) => n.setTrust((prev) => ({ ...prev, countMe: on }))}
+          onForget={n.forgetEverything}
           onBack={() => n.setScreen(n.trustReturn)}
         />
       )
