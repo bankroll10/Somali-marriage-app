@@ -64,8 +64,66 @@ describe('Netlify deploy directories hold only deployable code', () => {
     // would deploy as an endpoint that answers nothing — or worse, one that
     // answers. Shared code lives in netlify/shared, which Netlify never scans.
     const functions = readdirSync(join(process.cwd(), 'netlify/functions')).sort()
-    expect(functions).toEqual(['cohort.ts', 'couple.ts', 'guide.ts', 'keep.ts', 'progress.ts', 'vouch.ts'])
+    expect(functions).toEqual(['cohort.ts', 'couple.ts', 'export.ts', 'guide.ts', 'keep.ts', 'progress.ts', 'vouch.ts'])
     expect(existsSync(join(process.cwd(), 'netlify/shared/founder.ts'))).toBe(true)
+  })
+
+  it('the hostname is a setting, and index.html carries none of its own', () => {
+    // The host belongs to Netlify, not to us, and it is baked into every link
+    // ever sent to another person. It has to be one variable, and the two
+    // files that resolve it have to agree — see src/lib/site.ts.
+    const site = readFileSync(join(process.cwd(), 'src/lib/site.ts'), 'utf8')
+    const config = readFileSync(join(process.cwd(), 'vite.config.ts'), 'utf8')
+    const host = site.match(/DEFAULT_SITE_HOST = '([^']+)'/)?.[1]
+    expect(host, 'src/lib/site.ts must export a DEFAULT_SITE_HOST literal').toBeTruthy()
+    expect(config).toContain(`const DEFAULT_SITE_HOST = '${host}'`)
+
+    // The build writes the host into the social-card tags; the file itself
+    // names no host, so a domain change never means editing HTML.
+    const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8')
+    expect(html).not.toContain(host!)
+    expect(html).toContain('%SITE_HOST%')
+  })
+
+  it('the browser contacts nobody but us — the fonts are ours', () => {
+    // Google Fonts was the only third-party origin the app ever touched, which
+    // meant Google saw the IP of everyone who opened a Somali marriage app.
+    // See the note at the top of src/index.css.
+    const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8')
+    const css = readFileSync(join(process.cwd(), 'src/index.css'), 'utf8')
+    // Comments may name Google — the one at the top of index.css explains why
+    // it is gone. What must not appear is a reference the browser would follow.
+    const code = (source: string) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
+    for (const source of [html, css]) {
+      expect(code(source)).not.toContain('fonts.googleapis.com')
+      expect(code(source)).not.toContain('fonts.gstatic.com')
+    }
+
+    // Every @font-face points at a file that is actually in the repository.
+    const faces = [...css.matchAll(/url\('([^']+\.woff2)'\)/g)].map((m) => m[1])
+    expect(faces.length, 'src/index.css must declare the self-hosted faces').toBeGreaterThan(0)
+    for (const rel of faces) {
+      expect(existsSync(join(process.cwd(), 'src', rel.replace(/^\.\//, ''))), `missing font: ${rel}`).toBe(true)
+    }
+    // The licence travels with the files, as the OFL requires.
+    expect(existsSync(join(process.cwd(), 'src/assets/fonts/LICENSE.md'))).toBe(true)
+  })
+
+  it('the tests run before main deploys, on a node that matches the deploy', () => {
+    // main auto-deploys on merge, so the gate has to be in the repository
+    // rather than in whoever remembered to look. See docs/CONTROL.md.
+    const workflow = join(process.cwd(), '.github/workflows/verify.yml')
+    expect(existsSync(workflow), 'the verify workflow must exist').toBe(true)
+    const yml = readFileSync(workflow, 'utf8')
+    expect(yml).toContain('npm run verify')
+    expect(yml).toMatch(/pull_request/)
+    expect(yml).toMatch(/branches: \[main\]/)
+
+    // A CI node older than the deploy node would pass here and fail there.
+    const toml = readFileSync(join(process.cwd(), 'netlify.toml'), 'utf8')
+    const deployNode = toml.match(/NODE_VERSION = "(\d+)"/)?.[1]
+    expect(deployNode, 'netlify.toml must pin NODE_VERSION').toBeTruthy()
+    expect(yml).toContain(`node-version: '${deployNode}'`)
   })
 
   it('the gate is still where netlify.toml expects it', () => {

@@ -111,6 +111,7 @@ netlify/functions/     guide · keep · cohort · couple · vouch · progress (N
 netlify/shared/        founder — the bearer key on every readout; vocab — every closed set the functions accept
 docs/OPERATING.md      The monthly loop: readout field → constant it revises
 docs/LEARNING.md       What it learns and what it refuses to — the tiers, the two lists, the honest limits
+docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures
 netlify/edge-functions/gate.ts   Founding-preview password gate
 ```

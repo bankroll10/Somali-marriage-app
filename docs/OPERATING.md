@@ -30,7 +30,14 @@ curl -s -H "$K" $S/progress | jq .     # the ladder, and the facts
 curl -s -H "$K" $S/cohort   | jq .     # the door: every city, hardest parts, ledgers
 curl -s -H "$K" $S/couple   | jq .     # how pairs come out on the eleven
 curl -s -H "$K" $S/guide    | jq .     # the guide's health — one live call, so rarely
+curl -s -H "$K" $S/export   -o "backup-$(date +%F).json"   # the backup — save it
 ```
+
+**Save the backup every time.** It is the last line of the monthly hour, and
+it is the only copy of the learning record that exists outside one vendor's
+storage. Keep the files; they are small, and a folder of them is the history.
+What is in it and what is deliberately not is documented in
+`netlify/functions/export.ts` and `docs/CONTROL.md`.
 
 What each field in `/progress` means:
 
@@ -141,6 +148,7 @@ In this order, because each question only means something after the last:
    city is ready to open.
 6. **One revision.** Pick the single row above with the clearest signal, move
    its constant, and write the line below.
+7. **Save the backup.** One curl, one file, kept somewhere that is not Netlify.
 
 ## Revisions
 

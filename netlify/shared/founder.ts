@@ -19,6 +19,23 @@
  * the bundler. `tests/deploy-layout.test.ts` keeps it from wandering in.
  */
 
+/**
+ * Said once per cold start, not per request: a guard that is off should be
+ * visible in the logs, not a wall of noise that gets filtered out.
+ */
+const warned = new Set<string>()
+
+/** Test seam: forget what has already been said, the way progress.ts does. */
+export function resetWarnings() {
+  warned.clear()
+}
+
+function warnOnce(message: string) {
+  if (warned.has(message)) return
+  warned.add(message)
+  console.warn(message)
+}
+
 /** Constant-time comparison, so the response time never leaks the key. */
 function matches(a: string, b: string): boolean {
   const encoder = new TextEncoder()
@@ -38,7 +55,12 @@ function matches(a: string, b: string): boolean {
  */
 export function isFounder(req: Request): boolean {
   const key = process.env.FOUNDER_KEY
-  if (!key) return true
+  if (!key) {
+    // Unset means open, deliberately — but silently open is how a readout ends
+    // up public for a month without anyone noticing. Say it once per cold start.
+    warnOnce('[niyyah] FOUNDER_KEY is not set — every readout is public to anyone with the URL')
+    return true
+  }
   const header = req.headers.get('authorization') ?? ''
   const space = header.indexOf(' ')
   if (space === -1) return false
