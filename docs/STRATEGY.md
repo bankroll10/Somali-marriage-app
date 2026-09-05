@@ -338,6 +338,14 @@ What the loop is allowed to learn from, and what it must refuse even when it
 easily could, is `docs/LEARNING.md`: decisions, never attention; pairings,
 conversations and questions, never a person.
 
+And a moat is only worth what you control. `docs/CONTROL.md` audits every
+supplier against the day they change their mind. Seven of the ten dependencies
+a company like this normally carries — the app stores, an auth provider, an
+analytics vendor, social SDKs, paid acquisition — do not exist here, each by an
+earlier decision. What remains is concentrated in one vendor holding the
+hostname, the data, the customer list and the deploys, and the single largest
+gap is the cheapest to close: this product does not yet own its own domain.
+
 ## Risks I'm watching (no self-deception)
 
 - **Reputation is fragile.** One safety incident or scandal in a tight community

@@ -94,6 +94,8 @@ these live in the repository, and none should.
 | `ANTHROPIC_API_KEY` | Switches on the live Guide (`netlify/functions/guide.ts`). | The Guide answers from its offline voice; no error shown. |
 | `FOUNDER_KEY` | Bearer token on every readout (`netlify/shared/founder.ts`). | **The readouts are public to anyone who guesses the URL.** |
 | `VITE_WAITLIST_FORM` | Names the Netlify form signups post to. Already set in `netlify.toml`. | The signup card falls back to a mailto. |
+| `VITE_SITE_HOST` | The domain the app calls itself, in every link it hands out and every share card. | `getniyyah.netlify.app` — a subdomain we do not own. See `docs/CONTROL.md`. |
+| `VITE_CONTACT_EMAIL` | Where a signup reaches a human when the form is down. | `salaam@niyyah.app`, which is only real if that domain is owned and receiving. |
 
 Two rules about them:
 
@@ -124,6 +126,21 @@ only the vouch screen. Old links still vouch — the server accepts both — but
 anyone who received one holds a code that restores a map. There is no way to
 recall them; the honest step is to tell anyone who was sent one before that
 date that the link also opened the map, and that a fresh one does not.
+
+## The backup
+
+`GET /.netlify/functions/export`, behind the same founder key, returns the
+learning record — every progress record, the joint tally, the door as counts —
+as one dated JSON file. It deliberately carries no map, no vouch, no pair
+sheet and no map code; `netlify/functions/export.ts` says why in full.
+
+Save it every month, as the last line of the hour in `docs/OPERATING.md`. It
+is the only copy of this data that exists outside one vendor's storage.
+
+```bash
+curl -s -H "Authorization: Bearer $FOUNDER_KEY" \
+  https://<your-site>/.netlify/functions/export -o "backup-$(date +%F).json"
+```
 
 ## At real launch
 
