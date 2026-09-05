@@ -101,12 +101,20 @@ Two rules about them:
   variable called something else — `access_vip`, say — is read by nothing and
   protects nothing, while looking on the dashboard exactly like a setting that
   works.
-- **Mark keys secret.** `ANTHROPIC_API_KEY` and `FOUNDER_KEY` should have
-  "Contains secret values" checked. Secret-scoped variables reach Node
-  functions fine. They do **not** reach edge functions, which is why
-  `PREVIEW_PASSWORD` must stay non-secret — the gate is an edge function.
-- A key that has sat un-secret should be rotated when you mark it secret, on
-  the assumption that anyone who had dashboard or log access could read it.
+- **Secret values are not available on this site's plan.** Every attempt to
+  mark a variable secret is refused with a 422, on every scope combination.
+  The site is on `nf_team_dev`, Netlify's free tier, and hiding a variable's
+  value is a paid feature. So assume **every key here is readable in plain
+  text** by anyone with access to this Netlify team, and by any tool acting
+  on its behalf. If that changes on a paid plan, note that secret variables
+  reach Node functions but **not** edge functions, so `PREVIEW_PASSWORD` has
+  to stay readable either way — the gate is an edge function.
+- **Because hiding is unavailable, rotating is the control that matters.**
+  Treat a key that has been sitting in this dashboard as known, and replace it
+  at the source when it has been exposed. For `ANTHROPIC_API_KEY` that means a
+  fresh key at `https://console.anthropic.com/settings/keys`, pasted in here,
+  and the old one deleted there. Keep the number of people on the Netlify team
+  as small as the work allows, since team access is now the whole boundary.
 
 ## At real launch
 
