@@ -18,6 +18,7 @@ import Couple from './components/Couple'
 import Vouch from './components/Vouch'
 import Plus from './components/Plus'
 import Ending from './components/Ending'
+import Ended from './components/Ended'
 import type { Gender } from './types'
 import type { Entry } from './lib/entry'
 import { buildRead, readSummary } from './lib/read'
@@ -327,6 +328,17 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     case 'plus':
       return (
         <Plus onBack={() => n.setScreen('profile')} />
+      )
+
+    case 'ended':
+      return (
+        <Ended
+          identity={n.identity}
+          from={n.endedFrom ?? 'talking'}
+          saved={n.endings[n.endings.length - 1] ?? null}
+          onSave={n.saveEnded}
+          onDone={backHome}
+        />
       )
 
     case 'ending':

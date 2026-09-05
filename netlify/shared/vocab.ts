@@ -105,6 +105,30 @@ export const THROUGH_TOPICS: Record<string, Set<string>> = {
   family: FAMILY_SCRIPT_IDS,
 }
 
+/** Must match the intake's `dealbreakers` question in src/data/intake.ts. */
+export const DEALBREAKERS = new Set(['honesty', 'faith-nn', 'respect', 'no-addiction', 'kids-nn', 'ambition-nn', 'kindness-nn'])
+
+/** Must match src/data/ended.ts — why a courtship ended, and from which stage. */
+export const ENDED_REASONS = new Set([
+  'non-negotiable',
+  'eleven',
+  'his-read',
+  'my-family',
+  'his-family',
+  'timeline',
+  'distance',
+  'he-stopped',
+  'i-stopped',
+  'other',
+])
+export const ENDED_STAGES = new Set(['talking', 'deciding'])
+/** The three reasons that name a second id, and the list each must come from. */
+export const ENDED_WHICH: Record<string, Set<string>> = {
+  'non-negotiable': DEALBREAKERS,
+  eleven: TOPICS,
+  'his-read': READ_DIMENSIONS,
+}
+
 /** Must match src/data/ending.ts — the three closed questions on the way out. */
 export const WHO = new Set(['brought', 'family', 'here', 'elsewhere'])
 export const MATTERED = new Set(['shown', 'eleven', 'families', 'myself', 'other'])

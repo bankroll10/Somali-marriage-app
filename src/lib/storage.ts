@@ -1,5 +1,6 @@
 import type {
   Answers,
+  EndedRecord,
   EndingRecord,
   MapSnapshot,
   CoachMessage,
@@ -46,6 +47,8 @@ export interface PersistedState {
   vouch: VouchState | null
   /** What she told us on the way out, once she has married. The success state. */
   ending: EndingRecord | null
+  /** Courtships that ended, oldest first, the last eight. See src/data/ended.ts. */
+  endings: EndedRecord[]
   /** What the product told her to do, and how it went. */
   followups: FollowUp[]
   completed: boolean
@@ -101,6 +104,7 @@ export function loadProgress(): Persisted | null {
       couple: p.couple ?? null,
       vouch: p.vouch ?? null,
       ending: p.ending ?? null,
+      endings: p.endings ?? [],
       followups: p.followups ?? [],
       completed: p.completed ?? false,
       // A thread with a voice that no longer exists (the Profile Coach) is dropped.

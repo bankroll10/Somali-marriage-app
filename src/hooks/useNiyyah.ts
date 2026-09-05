@@ -39,6 +39,7 @@ import type {
   ReadRecord,
   CoupleState,
   EndingRecord,
+  EndedRecord,
   FollowUp,
   VouchState,
   WaitlistState,
@@ -65,6 +66,7 @@ export type Screen =
   | 'vouch'
   | 'plus'
   | 'ending'
+  | 'ended'
 
 const SAVE_DEBOUNCE_MS = 250
 
@@ -133,6 +135,10 @@ export function useNiyyah(entry: Entry | null = null) {
   const [vouch, setVouch] = useState<VouchState | null>(saved?.vouch ?? null)
   // What she told us on the way out. The success state of this whole product.
   const [ending, setEnding] = useState<EndingRecord | null>(saved?.ending ?? null)
+  // Courtships that ended. The last one may still be waiting for its reason.
+  const [endings, setEndings] = useState<EndedRecord[]>(saved?.endings ?? [])
+  // Which stage she just left, while the ended screen is up.
+  const [endedFrom, setEndedFrom] = useState<'talking' | 'deciding' | null>(null)
   // What the product told her to do, and whether she did it. See lib/followup.ts.
   const [followups, setFollowups] = useState<FollowUp[]>(saved?.followups ?? [])
   // The code her map is kept under. Read once at mount and refreshed by the
@@ -219,8 +225,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // read thin, how the read came out, which conversation was had, who she
   // married. See src/lib/facts.ts. Never an answer in her words.
   const facts = useMemo(
-    () => factsFrom({ reflection, read, beforeYes, followups, ending, gender: identity.gender ?? 'woman' }),
-    [reflection, read, beforeYes, followups, ending, identity.gender],
+    () => factsFrom({ reflection, read, beforeYes, followups, ending, endings, gender: identity.gender ?? 'woman' }),
+    [reflection, read, beforeYes, followups, ending, endings, identity.gender],
   )
 
   // Rungs reached, reported on transitions only — never on a tap, never on a
@@ -271,6 +277,7 @@ export function useNiyyah(entry: Entry | null = null) {
             couple,
             vouch,
             ending,
+            endings,
             followups,
             completed,
             coachThreads,
@@ -294,6 +301,7 @@ export function useNiyyah(entry: Entry | null = null) {
     couple,
     vouch,
     ending,
+    endings,
     followups,
     completed,
     coachThreads,
@@ -343,6 +351,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setSteps([])
     setGuideUse(defaultGuideUse)
     setWaitlist(null)
+    setEndings([])
     setRead(null)
     setBeforeYes(null)
     setCouple(null)
@@ -366,7 +375,11 @@ export function useNiyyah(entry: Entry | null = null) {
    */
   function chooseSituation(next: Stage) {
     setSituated(true)
+    const wasIn = stage
     setStage(next)
+    // "I'm not talking to anyone" from talking or deciding is a courtship
+    // ending; setStage has opened that screen, and it wins over the hook.
+    if (next === 'preparing' && (wasIn === 'talking' || wasIn === 'deciding')) return
     if (next === 'preparing') setScreen('hook')
     else if (next === 'talking') setScreen(read ? 'home' : 'read')
     else if (next === 'deciding') setScreen(beforeYes ? 'home' : 'beforeYes')
@@ -526,8 +539,30 @@ export function useNiyyah(entry: Entry | null = null) {
    */
   function setStage(next: Stage) {
     track('stage_changed', { stage: next })
+    const from = stage
     setStageRaw(next)
-    if (next === 'married' && stage !== 'married' && !ending) setScreen('ending')
+    if (next === 'married' && from !== 'married' && !ending) setScreen('ending')
+    // Back to preparing from talking or deciding: a courtship ended. Write the
+    // fact of it now, and ask — once, skippably — why. Only the reason is a
+    // question; that it ended is already true.
+    if (next === 'preparing' && (from === 'talking' || from === 'deciding')) {
+      setEndings((prev) => [...prev, { at: new Date().toISOString(), from }].slice(-8))
+      setEndedFrom(from)
+      setScreen('ended')
+    }
+  }
+
+  /** She said why it ended, or changed her mind. Lands on the most recent ending. */
+  function saveEnded(reason?: string, which?: string) {
+    setEndings((prev) => {
+      if (prev.length === 0) return prev
+      const last = { ...prev[prev.length - 1] }
+      if (reason) last.reason = reason
+      else delete last.reason
+      if (reason && which) last.which = which
+      else delete last.which
+      return [...prev.slice(0, -1), last]
+    })
   }
 
   /** She told us how it ended. Every field optional; saving is never required. */
@@ -640,6 +675,9 @@ export function useNiyyah(entry: Entry | null = null) {
     vouch,
     ending,
     endingRecord,
+    endings,
+    endedFrom,
+    saveEnded,
     keptCode,
     entryCode,
     reflection,

@@ -263,6 +263,22 @@ export interface EndingRecord {
   advice?: string
 }
 
+/**
+ * A courtship that ended — what she told us on the way back to preparing.
+ *
+ * `from` is which stage she was in; `reason` is one of ten ids from
+ * src/data/ended.ts; `which` is a second id for the three reasons that take
+ * one. Every field but `at` and `from` is optional: saying why is never a
+ * condition of moving on. No field here could hold his name, and none is added
+ * without the Trust screen saying so in the same commit.
+ */
+export interface EndedRecord {
+  at: string
+  from: 'talking' | 'deciding'
+  reason?: string
+  which?: string
+}
+
 export interface ReadRecord {
   at: string
   answers: Record<string, string>

@@ -45,6 +45,8 @@ What each field in `/progress` means:
 | `facts.eleven.{agree,differ,notTalked,unknown}[n]` | How many people had *n* topics in that state |
 | `facts.through["source:topic"]`, `facts.throughByTopic[topic]` | Which conversations were actually confirmed as had |
 | `facts.ending.{who,mattered,used}[id]` | Who they married, what decided it, what here was real |
+| `facts.ended.reason[id]`, `.stage[id]`, `.which[reason][id]` | Why courtships end, from which stage, and which non-negotiable, topic or ground did it — the dataset nobody else has, and it needs no marketplace |
+| `facts.marriedBy.ended[reason]` | `{ended, married}`: of people who ended a courtship over this, how many later married. The first evidence the non-negotiables gate is worth its cost |
 | `facts.marriedBy.through[topic]` | `{through, married}`: of people who confirmed this conversation, how many went on to marry |
 | `facts.marriedBy.readThin[dim]` | `{read, married}`: of people whose read found this ground thinnest, how many married |
 | `facts.marriedBy.open[topic]` | `{eleven, married}`: of people told to open this topic first, how many married |
@@ -77,6 +79,7 @@ message cites the readout row and the month.
 | Scripts | `src/data/read.ts` `SCRIPTS`, `src/data/beforeYes.ts` `script`, `src/data/families.ts` | `through["source:topic"]` against how often that script was handed out (`eleven.open`, `read.thin`) | Words handed out often and said rarely get rewritten. Words never once confirmed get cut |
 | Joint `URGENCY` | `src/lib/couple.ts` | `/couple` `topics[topic][joint]` | The joint state pairs most often land in for a topic is the one that topic's line should name |
 | `alignment` scales | `src/lib/matching.ts` | only once `ending.who.here > 0` | Nothing to calibrate against until this product has introduced two people who married. Do not touch |
+| The `dealbreakers` question and its gate | `src/data/intake.ts`, `matching.ts` `gate()` | `ended.which['non-negotiable']` × `marriedBy.ended['non-negotiable']` | A non-negotiable that ends courtships and precedes marriage is load-bearing; one that ends nothing is aspirational, and the question — never her gate — is what changes |
 | The order of the four questions on the ending | `src/data/ending.ts` | `ending.*` answer rates against `rungs.married` | A question skipped by most is asked last, or dropped |
 
 Rules for the loop itself:

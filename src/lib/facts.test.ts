@@ -12,7 +12,7 @@ import type { FollowUp } from '../types'
  * a person wrote can be.
  */
 
-const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, gender: 'woman' }
+const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], gender: 'woman' }
 
 /** A complete read, every question answered with its first option. */
 const readAnswers = Object.fromEntries(readQuestions('woman').map((q) => [q.id, q.options[0].id]))
@@ -95,6 +95,44 @@ describe('what the rungs were made of', () => {
     expect(JSON.stringify(facts)).not.toContain('money early')
   })
 
+  it('carries how a courtship ended as stage and reason, never a date, never who', () => {
+    const facts = factsFrom({
+      ...none,
+      endings: [
+        { at: '2026-02-01T09:00:00Z', from: 'talking', reason: 'his-read', which: 'public' },
+        { at: '2026-04-01T09:00:00Z', from: 'deciding', reason: 'eleven', which: 'money-home' },
+        { at: '2026-05-01T09:00:00Z', from: 'talking', reason: 'he-stopped' },
+      ],
+    })
+    expect(facts.ended).toEqual([
+      { stage: 'deciding', reason: 'eleven', which: 'money-home' },
+      { stage: 'talking', reason: 'he-stopped' },
+      { stage: 'talking', reason: 'his-read', which: 'public' },
+    ])
+    expect(JSON.stringify(facts)).not.toContain('2026-')
+  })
+
+  it('leaves out an ending she gave no reason for — that it ended is hers alone', () => {
+    const facts = factsFrom({ ...none, endings: [{ at: 'x', from: 'talking' }] })
+    expect(facts.ended).toBeUndefined()
+  })
+
+  it('drops a which the reason does not take, or that is off its list', () => {
+    const facts = factsFrom({
+      ...none,
+      endings: [
+        { at: 'x', from: 'talking', reason: 'he-stopped', which: 'public' },
+        { at: 'y', from: 'talking', reason: 'his-read', which: 'early' },
+        { at: 'z', from: 'talking', reason: 'non-negotiable', which: 'faith-nn' },
+      ],
+    })
+    expect(facts.ended).toEqual([
+      { stage: 'talking', reason: 'he-stopped' },
+      { stage: 'talking', reason: 'his-read' },
+      { stage: 'talking', reason: 'non-negotiable', which: 'faith-nn' },
+    ])
+  })
+
   it('drops any id it does not recognise, so a stale record cannot poison the report', () => {
     const facts = factsFrom({
       ...none,
@@ -118,6 +156,7 @@ describe('what the rungs were made of', () => {
       beforeYes: { at: '2026-01-01', answers: elevenAnswers },
       followups: [asked('beforeYes', 'money-home'), asked('family', 'tell-wali-online')],
       ending: { at: '2026-05-01', who: 'here', mattered: 'shown', used: ['read'], advice: 'a whole sentence, with spaces.' },
+      endings: [{ at: '2026-03-01T10:00:00Z', from: 'talking', reason: 'his-read', which: 'public' }],
       gender: 'woman',
     })
     for (const leaf of leaves(facts)) expect(leaf).toMatch(/^[A-Za-z-]+(:[A-Za-z-]+)?$/)

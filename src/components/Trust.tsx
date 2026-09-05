@@ -177,8 +177,13 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               know your own answer to, and which one it told you to open; which
               conversation you later confirmed you had; and, at the end, the three
               things you tap on the way out — who you married, what decided it,
-              and what here you used. Every one of those is a choice from a list
-              we wrote. Never an answer in your words, never the line you write
+              and what here you used. If something you were in ends and you say
+              so, it also says that it ended, whether you were getting to know him
+              or deciding, and — only if you tap one — what decided it: a
+              non-negotiable and which, one of the eleven and which, what his read
+              had found thin, your family, his, timing, distance, he stopped, you
+              did, or something you’d rather not say. Every one of those is a
+              choice from a list we wrote. Never an answer in your words, never the line you write
               for the next person, never a word the guide said or you said to it,
               and never a name — his, yours or your family’s. If you opened Niyyah
               from a link someone sent you, it also says what kind of link that

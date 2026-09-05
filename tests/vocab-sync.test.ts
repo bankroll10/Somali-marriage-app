@@ -9,6 +9,7 @@ import { DIMENSION_LABEL, SCRIPTS } from '../src/data/read'
 import { STATES, beforeYesTopics } from '../src/data/beforeYes'
 import { familyScripts } from '../src/data/families'
 import { endingQuestions } from '../src/data/ending'
+import { ENDED_REASON_IDS, REASONS_WITH_WHICH, dealbreakerOptions } from '../src/data/ended'
 import { scenes } from '../src/data/scenes'
 import { hookOptions } from '../src/data/hook'
 
@@ -62,6 +63,13 @@ describe('every word the server accepts is a word the app uses', () => {
     expect(sorted(vocab.WHO)).toEqual(sorted(q.who))
     expect(sorted(vocab.MATTERED)).toEqual(sorted(q.mattered))
     expect(sorted(vocab.USED)).toEqual(sorted(q.used))
+  })
+
+  it('the reasons a courtship can end, and the non-negotiables they may name', () => {
+    expect(sorted(vocab.ENDED_REASONS)).toEqual(sorted(ENDED_REASON_IDS))
+    expect(sorted(vocab.DEALBREAKERS)).toEqual(sorted(dealbreakerOptions().map((o) => o.id)))
+    expect(sorted(Object.keys(vocab.ENDED_WHICH))).toEqual(sorted(REASONS_WITH_WHICH))
+    expect(sorted(vocab.ENDED_STAGES)).toEqual(['deciding', 'talking'])
   })
 
   it('a conversation can be confirmed under every source but the guide', () => {

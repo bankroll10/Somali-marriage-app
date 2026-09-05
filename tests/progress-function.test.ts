@@ -307,6 +307,59 @@ describe('the facts', () => {
     expect(Object.keys(body.arrivedByDay).every((k) => k.length === 10)).toBe(true)
   })
 
+  it('accepts an ended list from the closed lists, replaces it whole, and bounds it at eight', async () => {
+    const one = [{ stage: 'talking', reason: 'his-read', which: 'public' }]
+    expect((await post({ id: ID, rungs: ['arrived'], facts: { ended: one } })).status).toBe(200)
+    const two = [...one, { stage: 'deciding', reason: 'my-family' }]
+    await post({ id: ID, rungs: ['arrived'], facts: { ended: two } })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.ended).toEqual(two)
+    // Replaced whole: a reason she takes back leaves here too.
+    await post({ id: ID, rungs: ['arrived'], facts: { ended: [] } })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.ended).toEqual([])
+    const nine = Array.from({ length: 9 }, () => ({ stage: 'talking', reason: 'other' }))
+    expect((await post({ id: ID, rungs: ['arrived'], facts: { ended: nine } })).status).toBe(400)
+  })
+
+  it('refuses a which on a reason that takes none, and a which off its list', async () => {
+    const bad = [
+      [{ stage: 'talking', reason: 'he-stopped', which: 'public' }],
+      [{ stage: 'talking', reason: 'his-read', which: 'early' }],
+      [{ stage: 'talking', reason: 'non-negotiable', which: 'money-home' }],
+      [{ stage: 'talking', reason: 'eleven', which: 'faith-nn' }],
+      [{ stage: 'married', reason: 'other' }],
+      [{ stage: 'talking', reason: 'he was rude' }],
+      [{ stage: 'talking', reason: 'other', note: 'free text' }],
+    ]
+    for (const ended of bad) {
+      const res = await post({ id: ID, rungs: ['arrived'], facts: { ended } })
+      expect(res.status, JSON.stringify(ended)).toBe(400)
+    }
+    expect(stores.get('progress')?.size ?? 0).toBe(0)
+  })
+
+  it('tallies ended by reason, stage and which, and crosses reason with married', async () => {
+    // Six people ended one over a non-negotiable; five went on to marry.
+    const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'HJKMNQ']
+    for (const [i, id] of ids.entries()) {
+      await post({
+        id,
+        rungs: i < 5 ? ['arrived', 'married'] : ['arrived'],
+        facts: {
+          ended: [
+            { stage: 'talking', reason: 'non-negotiable', which: 'faith-nn' },
+            ...(i === 0 ? [{ stage: 'deciding', reason: 'his-family' }] : []),
+          ],
+        },
+      })
+    }
+    const body = await (await readout()).json()
+    expect(body.facts.ended.reason).toEqual({ 'non-negotiable': 6, 'his-family': 1 })
+    expect(body.facts.ended.stage).toEqual({ talking: 6, deciding: 1 })
+    expect(body.facts.ended.which['non-negotiable']).toEqual({ 'faith-nn': 6 })
+    expect(body.facts.marriedBy.ended['non-negotiable']).toEqual({ ended: 6, married: 5 })
+    expect(body.facts.marriedBy.ended['his-family']).toEqual({ ended: null, married: null })
+  })
+
   it('tallies records written before facts existed', async () => {
     await post({ id: ID, rungs: ['arrived', 'read'] })
     const body = await (await readout()).json()

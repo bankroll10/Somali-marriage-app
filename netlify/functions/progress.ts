@@ -4,6 +4,9 @@ import { day } from '../shared/day'
 import { floorRows } from '../shared/floor'
 import {
   DIMENSIONS,
+  ENDED_REASONS,
+  ENDED_STAGES,
+  ENDED_WHICH,
   GROUND_STATES,
   MATTERED,
   READ_BANDS,
@@ -65,7 +68,11 @@ export interface Facts {
   eleven?: { agree: number; differ: number; notTalked: number; unknown: number; open: string }
   through?: string[]
   ending?: { who?: string; mattered?: string; used?: string[] }
+  ended?: { stage: string; reason: string; which?: string }[]
 }
+
+/** Courtships a person can report as ended. Eight is a lot of courtships. */
+const MAX_ENDED = 8
 
 export interface ProgressRecord {
   /** Rung id → when it was first reached. A rung never un-reaches. */
@@ -89,7 +96,7 @@ const count = (n: unknown): n is number => typeof n === 'number' && Number.isInt
  * a value nobody chose to allow.
  */
 function parseFacts(x: unknown): Facts | null {
-  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending'])) return null
+  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended'])) return null
   const out: Facts = {}
 
   if (x.grounds !== undefined) {
@@ -148,6 +155,25 @@ function parseFacts(x: unknown): Facts | null {
     out.ending = ending
   }
 
+  if (x.ended !== undefined) {
+    if (!Array.isArray(x.ended) || x.ended.length > MAX_ENDED) return null
+    const ended: NonNullable<Facts['ended']> = []
+    for (const e of x.ended) {
+      if (!isPlain(e) || !onlyKeys(e, ['stage', 'reason', 'which'])) return null
+      if (typeof e.stage !== 'string' || !ENDED_STAGES.has(e.stage)) return null
+      if (typeof e.reason !== 'string' || !ENDED_REASONS.has(e.reason)) return null
+      const takes = ENDED_WHICH[e.reason]
+      // A which only where the reason takes one, and only from that reason's list.
+      if (e.which !== undefined) {
+        if (!takes || typeof e.which !== 'string' || !takes.has(e.which)) return null
+        ended.push({ stage: e.stage, reason: e.reason, which: e.which })
+      } else {
+        ended.push({ stage: e.stage, reason: e.reason })
+      }
+    }
+    out.ended = ended
+  }
+
   return out
 }
 
@@ -156,7 +182,10 @@ function parseFacts(x: unknown): Facts | null {
  * state they were in when first reported — the baseline, not the retake; her
  * movement stays on her device, in the map's history. Conversations only
  * accumulate. The ending she may revise: it is a set of taps on one screen,
- * and the last word on the way out is the one that counts.
+ * and the last word on the way out is the one that counts. Ended courtships
+ * are replaced whole for the same reason, and for one more: the list on her
+ * device is the record, so a reason she takes back leaves here too. A union
+ * would make retraction impossible and let a stale device resurrect it.
  */
 function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): Facts | undefined {
   if (!existing) return incoming
@@ -168,6 +197,7 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
     ...(existing.eleven ?? incoming.eleven ? { eleven: existing.eleven ?? incoming.eleven } : {}),
     ...(through.length ? { through } : {}),
     ...(incoming.ending ?? existing.ending ? { ending: incoming.ending ?? existing.ending } : {}),
+    ...(incoming.ended ?? existing.ended ? { ended: incoming.ended ?? existing.ended } : {}),
   }
   return merged
 }
@@ -226,6 +256,7 @@ async function tally(store: Store) {
         through: floorRows(facts.marriedBy.through),
         readThin: floorRows(facts.marriedBy.readThin),
         open: floorRows(facts.marriedBy.open),
+        ended: floorRows(facts.marriedBy.ended),
       },
     },
   }
@@ -254,8 +285,10 @@ function emptyFactsTally() {
     throughByTopic: {} as Counts,
     /** Who they married, what decided it, what here was real. */
     ending: { who: {} as Counts, mattered: {} as Counts, used: {} as Counts },
+    /** Why courtships end, from which stage, and which non-negotiable, topic or ground did it. */
+    ended: { reason: {} as Counts, stage: {} as Counts, which: {} as Record<string, Counts> },
     /** The cross-tabs: each fact against whether the person went on to marry. */
-    marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair },
+    marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
   }
 }
 
@@ -291,6 +324,17 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
     if (f.ending.mattered) bump(t.ending.mattered, f.ending.mattered)
     for (const u of f.ending.used ?? []) bump(t.ending.used, u)
   }
+  // Each ended courtship counts once in reason and stage; the person counts
+  // once per reason in the cross-tab, so someone who ended two over the same
+  // thing is one person who later did or did not marry.
+  const reasons = new Set<string>()
+  for (const e of f.ended ?? []) {
+    bump(t.ended.reason, e.reason)
+    bump(t.ended.stage, e.stage)
+    if (e.which) bump((t.ended.which[e.reason] ??= {}), e.which)
+    reasons.add(e.reason)
+  }
+  for (const r of reasons) pair(t.marriedBy.ended, r, 'ended')
 }
 
 export default async function handler(req: Request) {
