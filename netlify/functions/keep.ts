@@ -86,10 +86,18 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'missing_snapshot' }, { status: 400 })
   }
 
-  // The client promises never to send her conversations with the guide
-  // (src/lib/keep.ts). The server refuses to hold them even if an older client
+  // The client promises never to send three things (src/lib/keep.ts): her
+  // conversations with the guide, the follow-ups the guide handed her, and her
+  // email or phone. The server refuses to hold them even if an older client
   // still does — a promise about what is stored is kept where it is stored.
-  delete (body.snapshot as Record<string, unknown>).coachThreads
+  const snap = body.snapshot as Record<string, unknown>
+  delete snap.coachThreads
+  if (snap.waitlist && typeof snap.waitlist === 'object') delete (snap.waitlist as Record<string, unknown>).contact
+  if (Array.isArray(snap.followups)) {
+    snap.followups = snap.followups.filter(
+      (f) => !(f && typeof f === 'object' && (f as { source?: unknown }).source === 'guide'),
+    )
+  }
 
   // A rough ceiling. A real map is a few kilobytes; anything far past that is a
   // mistake or an attempt to use us as free storage.
@@ -106,13 +114,16 @@ export default async function handler(req: Request) {
   }
 
   const now = Date.now()
-  const kept: KeptMap = {
-    snapshot: body.snapshot,
-    createdAt: new Date(now).toISOString(),
-    expiresAt: new Date(now + TTL_MS).toISOString(),
-  }
-
   try {
+    // Re-keeping refreshes the year but keeps the day it was first kept. A
+    // createdAt that moved on every save was a last-seen timestamp under
+    // another name — an activity trace this store has no business holding.
+    const existing = body.code ? ((await store.get(code, { type: 'json' })) as KeptMap | null) : null
+    const kept: KeptMap = {
+      snapshot: body.snapshot,
+      createdAt: existing?.createdAt ?? new Date(now).toISOString(),
+      expiresAt: new Date(now + TTL_MS).toISOString(),
+    }
     await store.setJSON(code, kept)
     return Response.json({ code })
   } catch (err) {

@@ -116,13 +116,15 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Keeping your map.</span> If you
               ask us to keep it, what the app needs to bring you back is copied to
-              our server under your code: your answers and every reading of your
-              map, where you said you are and the work you took on, any read or
-              Before you say yes you’ve done, your couple code, your family’s vouch,
-              your place on the door, and — if you’ve married — what you told us on
-              the way out. Not your conversations with the guide: those never leave
-              this phone under your code. No name is attached to the code, and
-              without it nobody can reach it.
+              our server under your code: the first name you gave and your age, your
+              answers and every reading of your map, where you said you are and the
+              work you took on, any read or Before you say yes you’ve done, your
+              couple code, your family’s vouch, that you asked to be counted, and —
+              if you’ve married — what you told us on the way out. Three things are
+              left out on purpose: your email or phone, your conversations with the
+              guide, and anything the guide handed you to say. Those never leave this
+              phone under your code. The code itself is registered to nobody, and
+              without it nobody can reach the map.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Joining the founding cohort.</span>{' '}

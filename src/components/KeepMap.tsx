@@ -113,9 +113,9 @@ export default function KeepMap() {
         </p>
       )}
       <p className="mt-3 text-[0.78rem] leading-relaxed text-muted text-pretty">
-        Only if you want it. Your answers, your map and what you’ve done here are
-        copied to our server so the code can find them again. Not your guide
-        conversations, and no name attached.
+        Only if you want it. Your first name, your answers, your map and what you’ve
+        done here are copied to our server so the code can find them again. Not your
+        email or phone, and nothing from the guide. The code is registered to nobody.
       </p>
     </div>
   )

@@ -90,8 +90,9 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         </p>
         <p className="mt-3 text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
           <Door count={count} city={city} /> The day someone in {city} fits your map, we
-          write to <span className="font-medium text-ink">{joined.contact}</span> — and to
-          nobody else. There is nothing to check back on; you will hear from us.
+          write to{' '}
+          <span className="font-medium text-ink">{joined.contact || 'the address you gave'}</span>{' '}
+          — and to nobody else. There is nothing to check back on; you will hear from us.
         </p>
         {joined.code && (
           <p className="mt-2 text-[0.85rem] leading-relaxed text-muted text-pretty">

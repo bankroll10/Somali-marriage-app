@@ -49,6 +49,37 @@ describe('keeping a map', () => {
     expect(stored).not.toContain('never stored')
   })
 
+  it('drops the contact and the guide’s follow-ups an older client still sends', async () => {
+    await post({
+      snapshot: {
+        identity: {},
+        waitlist: { contact: 'sagal@example.com', scene: 'toronto', joinedAt: 'x' },
+        followups: [
+          { id: 'g1', source: 'guide', topic: 'what she asked', words: 'what it said' },
+          { id: 'r1', source: 'read', topic: 'public' },
+        ],
+      },
+      code: 'ACDEFG',
+    })
+    const stored = stores.get('maps')!.get('ACDEFG')!
+    expect(stored).not.toContain('sagal@example.com')
+    expect(stored).not.toContain('what she asked')
+    expect(stored).not.toContain('what it said')
+    const back = JSON.parse(stored).snapshot
+    expect(back.waitlist).toEqual({ scene: 'toronto', joinedAt: 'x' })
+    expect(back.followups).toEqual([{ id: 'r1', source: 'read', topic: 'public' }])
+  })
+
+  it('re-keeping keeps the day it was first kept', async () => {
+    await post({ snapshot: { answers: {} }, code: 'ACDEFG' })
+    const first = JSON.parse(stores.get('maps')!.get('ACDEFG')!).createdAt
+    await new Promise((r) => setTimeout(r, 5))
+    await post({ snapshot: { answers: { timeline: '1-2' } }, code: 'ACDEFG' })
+    const again = JSON.parse(stores.get('maps')!.get('ACDEFG')!)
+    expect(again.createdAt).toBe(first)
+    expect(again.snapshot.answers.timeline).toBe('1-2')
+  })
+
   it('refuses a snapshot that is not an object, and a bad code', async () => {
     expect((await post({ snapshot: 'x' })).status).toBe(400)
     expect((await post({ snapshot: {}, code: 'nope' })).status).toBe(400)
