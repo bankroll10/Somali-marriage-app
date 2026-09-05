@@ -59,6 +59,13 @@ describe('reporting a rung', () => {
     expect(after.first.mapped).toBeTruthy()
   })
 
+  it('records a rung’s date as a day, never a moment', async () => {
+    await post({ id: ID, rungs: ['arrived'] })
+    const stored = JSON.parse(stores.get('progress')!.get(ID)!)
+    expect(stored.first.arrived).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(stored.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
   it('a rung once reported can never be taken back', async () => {
     await post({ id: ID, rungs: ['arrived', 'read'] })
     await post({ id: ID, rungs: ['arrived'] })
@@ -261,6 +268,14 @@ describe('the facts', () => {
     expect(body.facts.marriedBy.open['money-home']).toEqual({ eleven: 2, married: 1 })
     expect(body.facts.marriedBy.readThin.public).toEqual({ read: 2, married: 1 })
     expect(body.facts.eleven.differ).toEqual({ '2': 2 })
+  })
+
+  it('buckets an older record’s moment into its day', async () => {
+    await memStore('progress').setJSON('QRTWXY', { first: { arrived: '2026-09-01T13:45:12.345Z' }, expiresAt: '2027-09-01T00:00:00.000Z' })
+    await post({ id: ID, rungs: ['arrived'] })
+    const body = await (await readout()).json()
+    expect(body.arrivedByDay['2026-09-01']).toBe(1)
+    expect(Object.keys(body.arrivedByDay).every((k) => k.length === 10)).toBe(true)
   })
 
   it('tallies records written before facts existed', async () => {

@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { day } from '../shared/day'
 
 /**
  * The first thing this business actually owns.
@@ -121,8 +122,8 @@ export default async function handler(req: Request) {
     const existing = body.code ? ((await store.get(code, { type: 'json' })) as KeptMap | null) : null
     const kept: KeptMap = {
       snapshot: body.snapshot,
-      createdAt: existing?.createdAt ?? new Date(now).toISOString(),
-      expiresAt: new Date(now + TTL_MS).toISOString(),
+      createdAt: existing?.createdAt ?? day(now),
+      expiresAt: day(now + TTL_MS),
     }
     await store.setJSON(code, kept)
     return Response.json({ code })

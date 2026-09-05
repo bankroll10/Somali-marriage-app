@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
+import { day } from '../shared/day'
 import {
   DIMENSIONS,
   GROUND_STATES,
@@ -188,7 +189,7 @@ async function tally(store: Store) {
   const rungs: Record<string, number> = {}
   const scenes: Record<string, Record<string, number>> = {}
   const vias: Record<string, Record<string, number>> = {}
-  const arrivedByWeek: Record<string, number> = {}
+  const arrivedByDay: Record<string, number> = {}
   const facts = emptyFactsTally()
 
   for (const record of records) {
@@ -203,14 +204,15 @@ async function tally(store: Store) {
       rungs[id] = (rungs[id] ?? 0) + 1
       perScene[id] = (perScene[id] ?? 0) + 1
       perVia[id] = (perVia[id] ?? 0) + 1
+      // Records written before dates were days still hold a moment; read the day off them.
       if (id === 'arrived') {
-        const week = at.slice(0, 10)
-        arrivedByWeek[week] = (arrivedByWeek[week] ?? 0) + 1
+        const d = at.slice(0, 10)
+        arrivedByDay[d] = (arrivedByDay[d] ?? 0) + 1
       }
     }
     if (record.facts) tallyFacts(facts, record.facts, 'married' in record.first)
   }
-  return { rungs, scenes, vias, arrivedByWeek, facts }
+  return { rungs, scenes, vias, arrivedByDay, facts }
 }
 
 type Counts = Record<string, number>
@@ -325,7 +327,8 @@ export default async function handler(req: Request) {
   if (facts === null) return Response.json({ error: 'bad_facts' }, { status: 400 })
 
   const now = Date.now()
-  const at = new Date(now).toISOString()
+  // The day, never the moment — see netlify/shared/day.ts.
+  const at = day(now)
   try {
     const existing = (await store.get(id, { type: 'json' })) as ProgressRecord | null
     // Only ever adds. A rung already reached keeps the date it was first
@@ -342,7 +345,7 @@ export default async function handler(req: Request) {
       ...(body.scene ? { scene: body.scene } : existing?.scene ? { scene: existing.scene } : {}),
       ...(via ? { via } : {}),
       ...(merged && Object.keys(merged).length ? { facts: merged } : {}),
-      expiresAt: new Date(now + TTL_MS).toISOString(),
+      expiresAt: day(now + TTL_MS),
     }
     await store.setJSON(id, record)
     return Response.json({ ok: true })

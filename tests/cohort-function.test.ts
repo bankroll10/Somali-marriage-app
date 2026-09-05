@@ -80,6 +80,12 @@ describe('the count', () => {
     expect((await count('mars')).status).toBe(400)
   })
 
+  it('records the day she joined, never the moment', async () => {
+    await post({ code: 'ACDEFG', scene: 'toronto', gender: 'woman' })
+    const key = [...stores.get('cohort')!.keys()].find((k) => k.endsWith('/ACDEFG'))!
+    expect(JSON.parse(stores.get('cohort')!.get(key)!).at).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
   it('keeps what she has done here, and only ids it knows', async () => {
     await post({ code: 'ACDEFG', scene: 'london', gender: 'woman', hook: 'serious', ledger: ['map', 'read', 'nope', 7] })
     const stored = JSON.parse((await memStore('cohort').get('london/woman/serious/ACDEFG')) as string)

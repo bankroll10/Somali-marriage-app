@@ -185,8 +185,9 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               was — words, the eleven, a couple’s link, the door, a family link,
               or a link from someone this worked for — and never who sent it. It
               goes under a code this phone made up for itself, which is not your
-              map code, so there is no way to put the two together. Nothing about
-              how long you spent here or how often you opened it. Turn the
+              map code — nothing links the two by name, and every date is a day,
+              never a time. Nothing about how long you spent here or how often
+              you opened it. Turn the
               control off and none of it is sent.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">

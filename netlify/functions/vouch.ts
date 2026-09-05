@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { day } from '../shared/day'
 
 /**
  * Family vouch — verification by the people whose names carry.
@@ -180,7 +181,7 @@ export default async function handler(req: Request) {
       firstName,
       sentence,
       ...(phone ? { phone } : {}),
-      at: new Date().toISOString(),
+      at: day(),
     }
     await store.setJSON(code, record)
     return Response.json(publicView(record))

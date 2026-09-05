@@ -38,7 +38,7 @@ What each field in `/progress` means:
 |---|---|
 | `rungs[id]` | People who ever reached this rung. `followed-through / arrived` is the North Star |
 | `scenes[city][rung]`, `vias[via][rung]` | The same, by city and by what kind of link brought them |
-| `arrivedByWeek` | The denominator over time, so a cohort can be followed |
+| `arrivedByDay` | The denominator over time, so a cohort can be followed. Every date in every store is a day, never a moment — see `netlify/shared/day.ts` |
 | `facts.grounds[dim][state]` | How many maps read thin / steady / strong on each ground |
 | `facts.read.band[band]`, `facts.read.thin[dim]` | How reads come out; which ground men here most often have not shown |
 | `facts.eleven.open[topic]` | Which of the eleven the product most often told someone to open first |

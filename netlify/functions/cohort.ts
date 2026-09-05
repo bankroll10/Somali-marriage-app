@@ -2,6 +2,7 @@ import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 // Validated against closed sets so a bad key can never be written — see netlify/shared/vocab.ts.
 import { GENDERS, HOOKS, LEDGER, SCENES } from '../shared/vocab'
+import { day } from '../shared/day'
 
 /**
  * The number on the door.
@@ -161,7 +162,7 @@ export default async function handler(req: Request) {
     : []
   // An older client may still send `overall` or `voices`. Neither is read or kept.
   const record: CohortRecord = {
-    at: new Date().toISOString(),
+    at: day(),
     ledger,
   }
   const key = `${scene}/${gender}/${hook}/${code}`

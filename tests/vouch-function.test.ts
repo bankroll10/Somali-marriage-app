@@ -77,7 +77,7 @@ describe('a family vouch', () => {
     await post(good)
     const stored = JSON.parse((await memStore('vouches').get('ACDEFG')) as string)
     expect(stored.expiresAt).toBeUndefined()
-    expect(stored.at).toBeTruthy()
+    expect(stored.at).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 
   it('lives exactly as long as the map — gone when the map goes, back when it is kept again', async () => {
