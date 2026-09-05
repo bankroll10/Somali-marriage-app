@@ -85,6 +85,30 @@ describe('Netlify deploy directories hold only deployable code', () => {
     expect(html).toContain('%SITE_HOST%')
   })
 
+  it('the browser contacts nobody but us — the fonts are ours', () => {
+    // Google Fonts was the only third-party origin the app ever touched, which
+    // meant Google saw the IP of everyone who opened a Somali marriage app.
+    // See the note at the top of src/index.css.
+    const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8')
+    const css = readFileSync(join(process.cwd(), 'src/index.css'), 'utf8')
+    // Comments may name Google — the one at the top of index.css explains why
+    // it is gone. What must not appear is a reference the browser would follow.
+    const code = (source: string) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace(/<!--[\s\S]*?-->/g, '')
+    for (const source of [html, css]) {
+      expect(code(source)).not.toContain('fonts.googleapis.com')
+      expect(code(source)).not.toContain('fonts.gstatic.com')
+    }
+
+    // Every @font-face points at a file that is actually in the repository.
+    const faces = [...css.matchAll(/url\('([^']+\.woff2)'\)/g)].map((m) => m[1])
+    expect(faces.length, 'src/index.css must declare the self-hosted faces').toBeGreaterThan(0)
+    for (const rel of faces) {
+      expect(existsSync(join(process.cwd(), 'src', rel.replace(/^\.\//, ''))), `missing font: ${rel}`).toBe(true)
+    }
+    // The licence travels with the files, as the OFL requires.
+    expect(existsSync(join(process.cwd(), 'src/assets/fonts/LICENSE.md'))).toBe(true)
+  })
+
   it('the gate is still where netlify.toml expects it', () => {
     // A guard that passes because the file was deleted would be worse than none.
     expect(existsSync(join(process.cwd(), 'netlify/edge-functions/gate.ts'))).toBe(true)
