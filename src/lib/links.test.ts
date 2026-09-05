@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { entryFromUrl } from './entry'
 import { instrumentLink, withVia } from './links'
 import { coupleLink } from './couple'
+import { restoreLink } from './keep'
 import { vouchLink } from './vouch'
-import { SITE_URL } from './site'
+import { DEFAULT_SITE_HOST, SITE_HOST, SITE_URL } from './site'
 
 describe('the links this product hands out', () => {
   it('opens an instrument, and says what carried it', () => {
@@ -28,4 +29,18 @@ describe('the links this product hands out', () => {
       expect(url).not.toMatch(/install|from=|ref=|by=/)
     }
   })
+})
+
+describe('the host is a setting, not a literal', () => {
+  it('every link a person sends is built from one place, so a domain change is one variable', () => {
+    // The default is today's host; VITE_SITE_HOST replaces it everywhere at once.
+    expect(SITE_URL).toBe(`https://${SITE_HOST}`)
+    expect(SITE_HOST).toBe(import.meta.env.VITE_SITE_HOST || DEFAULT_SITE_HOST)
+    // Every builder that mints a link for someone else reads it.
+    expect(restoreLink('ACDEFG', SITE_URL)).toBe(`${SITE_URL}/?map=ACDEFG`)
+    expect(coupleLink('ACDEFG', SITE_URL)).toBe(`${SITE_URL}/?couple=ACDEFG`)
+    expect(vouchLink('ACDEFGHJ', SITE_URL)).toBe(`${SITE_URL}/?vouch=ACDEFGHJ`)
+    expect(instrumentLink('eleven', 'words')).toContain(SITE_URL)
+  })
+
 })

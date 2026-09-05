@@ -68,6 +68,23 @@ describe('Netlify deploy directories hold only deployable code', () => {
     expect(existsSync(join(process.cwd(), 'netlify/shared/founder.ts'))).toBe(true)
   })
 
+  it('the hostname is a setting, and index.html carries none of its own', () => {
+    // The host belongs to Netlify, not to us, and it is baked into every link
+    // ever sent to another person. It has to be one variable, and the two
+    // files that resolve it have to agree — see src/lib/site.ts.
+    const site = readFileSync(join(process.cwd(), 'src/lib/site.ts'), 'utf8')
+    const config = readFileSync(join(process.cwd(), 'vite.config.ts'), 'utf8')
+    const host = site.match(/DEFAULT_SITE_HOST = '([^']+)'/)?.[1]
+    expect(host, 'src/lib/site.ts must export a DEFAULT_SITE_HOST literal').toBeTruthy()
+    expect(config).toContain(`const DEFAULT_SITE_HOST = '${host}'`)
+
+    // The build writes the host into the social-card tags; the file itself
+    // names no host, so a domain change never means editing HTML.
+    const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8')
+    expect(html).not.toContain(host!)
+    expect(html).toContain('%SITE_HOST%')
+  })
+
   it('the gate is still where netlify.toml expects it', () => {
     // A guard that passes because the file was deleted would be worse than none.
     expect(existsSync(join(process.cwd(), 'netlify/edge-functions/gate.ts'))).toBe(true)
