@@ -1,7 +1,12 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
+import { day } from '../shared/day'
+import { floorRows } from '../shared/floor'
 import {
   DIMENSIONS,
+  ENDED_REASONS,
+  ENDED_STAGES,
+  ENDED_WHICH,
   GROUND_STATES,
   MATTERED,
   READ_BANDS,
@@ -63,7 +68,11 @@ export interface Facts {
   eleven?: { agree: number; differ: number; notTalked: number; unknown: number; open: string }
   through?: string[]
   ending?: { who?: string; mattered?: string; used?: string[] }
+  ended?: { stage: string; reason: string; which?: string }[]
 }
+
+/** Courtships a person can report as ended. Eight is a lot of courtships. */
+const MAX_ENDED = 8
 
 export interface ProgressRecord {
   /** Rung id → when it was first reached. A rung never un-reaches. */
@@ -87,7 +96,7 @@ const count = (n: unknown): n is number => typeof n === 'number' && Number.isInt
  * a value nobody chose to allow.
  */
 function parseFacts(x: unknown): Facts | null {
-  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending'])) return null
+  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended'])) return null
   const out: Facts = {}
 
   if (x.grounds !== undefined) {
@@ -146,6 +155,25 @@ function parseFacts(x: unknown): Facts | null {
     out.ending = ending
   }
 
+  if (x.ended !== undefined) {
+    if (!Array.isArray(x.ended) || x.ended.length > MAX_ENDED) return null
+    const ended: NonNullable<Facts['ended']> = []
+    for (const e of x.ended) {
+      if (!isPlain(e) || !onlyKeys(e, ['stage', 'reason', 'which'])) return null
+      if (typeof e.stage !== 'string' || !ENDED_STAGES.has(e.stage)) return null
+      if (typeof e.reason !== 'string' || !ENDED_REASONS.has(e.reason)) return null
+      const takes = ENDED_WHICH[e.reason]
+      // A which only where the reason takes one, and only from that reason's list.
+      if (e.which !== undefined) {
+        if (!takes || typeof e.which !== 'string' || !takes.has(e.which)) return null
+        ended.push({ stage: e.stage, reason: e.reason, which: e.which })
+      } else {
+        ended.push({ stage: e.stage, reason: e.reason })
+      }
+    }
+    out.ended = ended
+  }
+
   return out
 }
 
@@ -154,7 +182,10 @@ function parseFacts(x: unknown): Facts | null {
  * state they were in when first reported — the baseline, not the retake; her
  * movement stays on her device, in the map's history. Conversations only
  * accumulate. The ending she may revise: it is a set of taps on one screen,
- * and the last word on the way out is the one that counts.
+ * and the last word on the way out is the one that counts. Ended courtships
+ * are replaced whole for the same reason, and for one more: the list on her
+ * device is the record, so a reason she takes back leaves here too. A union
+ * would make retraction impossible and let a stale device resurrect it.
  */
 function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): Facts | undefined {
   if (!existing) return incoming
@@ -166,6 +197,7 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
     ...(existing.eleven ?? incoming.eleven ? { eleven: existing.eleven ?? incoming.eleven } : {}),
     ...(through.length ? { through } : {}),
     ...(incoming.ending ?? existing.ending ? { ending: incoming.ending ?? existing.ending } : {}),
+    ...(incoming.ended ?? existing.ended ? { ended: incoming.ended ?? existing.ended } : {}),
   }
   return merged
 }
@@ -188,7 +220,7 @@ async function tally(store: Store) {
   const rungs: Record<string, number> = {}
   const scenes: Record<string, Record<string, number>> = {}
   const vias: Record<string, Record<string, number>> = {}
-  const arrivedByWeek: Record<string, number> = {}
+  const arrivedByDay: Record<string, number> = {}
   const facts = emptyFactsTally()
 
   for (const record of records) {
@@ -203,14 +235,31 @@ async function tally(store: Store) {
       rungs[id] = (rungs[id] ?? 0) + 1
       perScene[id] = (perScene[id] ?? 0) + 1
       perVia[id] = (perVia[id] ?? 0) + 1
+      // Records written before dates were days still hold a moment; read the day off them.
       if (id === 'arrived') {
-        const week = at.slice(0, 10)
-        arrivedByWeek[week] = (arrivedByWeek[week] ?? 0) + 1
+        const d = at.slice(0, 10)
+        arrivedByDay[d] = (arrivedByDay[d] ?? 0) + 1
       }
     }
     if (record.facts) tallyFacts(facts, record.facts, 'married' in record.first)
   }
-  return { rungs, scenes, vias, arrivedByWeek, facts }
+  // Whole-population counts as they are; every split by a quasi-identifier
+  // floored — see netlify/shared/floor.ts.
+  return {
+    rungs,
+    scenes: floorRows(scenes),
+    vias: floorRows(vias),
+    arrivedByDay,
+    facts: {
+      ...facts,
+      marriedBy: {
+        through: floorRows(facts.marriedBy.through),
+        readThin: floorRows(facts.marriedBy.readThin),
+        open: floorRows(facts.marriedBy.open),
+        ended: floorRows(facts.marriedBy.ended),
+      },
+    },
+  }
 }
 
 type Counts = Record<string, number>
@@ -236,8 +285,10 @@ function emptyFactsTally() {
     throughByTopic: {} as Counts,
     /** Who they married, what decided it, what here was real. */
     ending: { who: {} as Counts, mattered: {} as Counts, used: {} as Counts },
+    /** Why courtships end, from which stage, and which non-negotiable, topic or ground did it. */
+    ended: { reason: {} as Counts, stage: {} as Counts, which: {} as Record<string, Counts> },
     /** The cross-tabs: each fact against whether the person went on to marry. */
-    marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair },
+    marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
   }
 }
 
@@ -273,6 +324,17 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
     if (f.ending.mattered) bump(t.ending.mattered, f.ending.mattered)
     for (const u of f.ending.used ?? []) bump(t.ending.used, u)
   }
+  // Each ended courtship counts once in reason and stage; the person counts
+  // once per reason in the cross-tab, so someone who ended two over the same
+  // thing is one person who later did or did not marry.
+  const reasons = new Set<string>()
+  for (const e of f.ended ?? []) {
+    bump(t.ended.reason, e.reason)
+    bump(t.ended.stage, e.stage)
+    if (e.which) bump((t.ended.which[e.reason] ??= {}), e.which)
+    reasons.add(e.reason)
+  }
+  for (const r of reasons) pair(t.marriedBy.ended, r, 'ended')
 }
 
 export default async function handler(req: Request) {
@@ -294,9 +356,28 @@ export default async function handler(req: Request) {
     }
   }
 
+  // ── Forgetting an install ─────────────────────────────────────────────────
+  // The record under this install code, gone. Because the readout is computed
+  // from the records on every read, this is a true un-count: she leaves the
+  // tally, not just the store. Possession of the code is the authority; the
+  // code was made on her phone and never left it except in these reports.
+  if (req.method === 'DELETE') {
+    const id = (new URL(req.url).searchParams.get('id') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (!ID.test(id)) return Response.json({ error: 'bad_id' }, { status: 400 })
+    try {
+      const existing = await store.get(id, { type: 'json' })
+      if (!existing) return Response.json({ error: 'not_found' }, { status: 404 })
+      await store.delete(id)
+      return Response.json({ forgotten: true })
+    } catch (err) {
+      console.error('[niyyah] progress: forget failed', err)
+      return Response.json({ error: 'unavailable' }, { status: 503 })
+    }
+  }
+
   // ── Reporting a rung ──────────────────────────────────────────────────────
   if (req.method !== 'POST') {
-    return Response.json({ error: 'GET or POST only' }, { status: 405 })
+    return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
   }
 
   const raw = await req.text()
@@ -325,7 +406,8 @@ export default async function handler(req: Request) {
   if (facts === null) return Response.json({ error: 'bad_facts' }, { status: 400 })
 
   const now = Date.now()
-  const at = new Date(now).toISOString()
+  // The day, never the moment — see netlify/shared/day.ts.
+  const at = day(now)
   try {
     const existing = (await store.get(id, { type: 'json' })) as ProgressRecord | null
     // Only ever adds. A rung already reached keeps the date it was first
@@ -342,7 +424,7 @@ export default async function handler(req: Request) {
       ...(body.scene ? { scene: body.scene } : existing?.scene ? { scene: existing.scene } : {}),
       ...(via ? { via } : {}),
       ...(merged && Object.keys(merged).length ? { facts: merged } : {}),
-      expiresAt: new Date(now + TTL_MS).toISOString(),
+      expiresAt: day(now + TTL_MS),
     }
     await store.setJSON(id, record)
     return Response.json({ ok: true })

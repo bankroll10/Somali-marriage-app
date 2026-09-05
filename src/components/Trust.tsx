@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { Identity } from '../types'
 import type { LedgerEntry } from '../lib/ledger'
 import { BackButton, CheckIcon, LockGlyph, Logo } from './ui'
@@ -11,6 +11,8 @@ interface Props {
   onGuideOnDevice: (on: boolean) => void
   countMe: boolean
   onCountMe: (on: boolean) => void
+  /** Delete everything kept under her codes, then start this phone over. */
+  onForget: () => Promise<void>
   onBack: () => void
 }
 
@@ -26,8 +28,9 @@ interface Props {
  * (which cannot be tapped), the one control that does what it says, and the
  * exact account of where her answers live.
  */
-export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onBack }: Props) {
+export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
   const isWoman = identity.gender === 'woman'
+  const [forgetting, setForgetting] = useState<'idle' | 'sure' | 'working'>('idle')
 
   return (
     <div className="min-h-dvh bg-cream pb-20">
@@ -116,13 +119,15 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Keeping your map.</span> If you
               ask us to keep it, what the app needs to bring you back is copied to
-              our server under your code: your answers and every reading of your
-              map, where you said you are and the work you took on, any read or
-              Before you say yes you’ve done, your couple code, your family’s vouch,
-              your place on the door, and — if you’ve married — what you told us on
-              the way out. Not your conversations with the guide: those never leave
-              this phone under your code. No name is attached to the code, and
-              without it nobody can reach it.
+              our server under your code: the first name you gave and your age, your
+              answers and every reading of your map, where you said you are and the
+              work you took on, any read or Before you say yes you’ve done, your
+              couple code, your family’s vouch, that you asked to be counted, and —
+              if you’ve married — what you told us on the way out. Three things are
+              left out on purpose: your email or phone, your conversations with the
+              guide, and anything the guide handed you to say. Those never leave this
+              phone under your code. The code itself is registered to nobody, and
+              without it nobody can reach the map.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Joining the founding cohort.</span>{' '}
@@ -150,9 +155,11 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Asking your family to vouch.</span>{' '}
-              If you send a family member the link, your map is kept as above, and
-              what they write — who they are to you, their first name, one sentence,
-              and a phone number if they leave one — is stored under your code. It
+              If you send a family member the link, your map is kept as above. The
+              link carries a token made for them, not your code, so nobody holding it
+              can open your map. What they write — who they are to you, their first
+              name, one sentence, and a phone number if they leave one — is stored
+              under your code. It
               stays exactly as long as your map does, and goes when your map goes. Only
               their first name and who they are to you ever come back to any screen.
               Their sentence and their number are read by the founder alone, who may
@@ -173,16 +180,22 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               know your own answer to, and which one it told you to open; which
               conversation you later confirmed you had; and, at the end, the three
               things you tap on the way out — who you married, what decided it,
-              and what here you used. Every one of those is a choice from a list
-              we wrote. Never an answer in your words, never the line you write
+              and what here you used. If something you were in ends and you say
+              so, it also says that it ended, whether you were getting to know him
+              or deciding, and — only if you tap one — what decided it: a
+              non-negotiable and which, one of the eleven and which, what his read
+              had found thin, your family, his, timing, distance, he stopped, you
+              did, or something you’d rather not say. Every one of those is a
+              choice from a list we wrote. Never an answer in your words, never the line you write
               for the next person, never a word the guide said or you said to it,
               and never a name — his, yours or your family’s. If you opened Niyyah
               from a link someone sent you, it also says what kind of link that
               was — words, the eleven, a couple’s link, the door, a family link,
               or a link from someone this worked for — and never who sent it. It
               goes under a code this phone made up for itself, which is not your
-              map code, so there is no way to put the two together. Nothing about
-              how long you spent here or how often you opened it. Turn the
+              map code — nothing links the two by name, and every date is a day,
+              never a time. Nothing about how long you spent here or how often
+              you opened it. Turn the
               control off and none of it is sent.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
@@ -198,6 +211,48 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               on <span className="font-medium text-ink">Keep the Guide on this device</span>{' '}
               above — the guide then answers offline, and nothing is sent at all.
             </p>
+          </div>
+        </section>
+
+        {/* Forget me — the control that makes every sentence above enforceable. */}
+        <section className="mt-6 rounded-card border border-line bg-white/50 p-5">
+          <h3 className="font-display text-[1.08rem] font-medium text-ink">Forget me</h3>
+          <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
+            Deletes your kept map, your family’s vouch and the link they used, your
+            place on the door, the eleven you sent him, and the count of your steps
+            — then clears this phone. One thing stays: if he answered your eleven,
+            your pair was already added to a count of how pairs come out, and that
+            count carries no code, so it cannot be found again — not by us, not by
+            you. If you gave us an email or phone, tell us and a person deletes it by
+            hand. If you come back after this, you start as a stranger.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            {forgetting === 'idle' && (
+              <button
+                onClick={() => setForgetting('sure')}
+                className="rounded-full border border-clay/50 px-5 py-2.5 text-[0.88rem] font-medium text-clay transition hover:bg-clay/10"
+              >
+                Forget me
+              </button>
+            )}
+            {forgetting === 'sure' && (
+              <>
+                <button
+                  onClick={async () => {
+                    setForgetting('working')
+                    await onForget()
+                  }}
+                  className="rounded-full bg-clay px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:opacity-90"
+                >
+                  Yes, delete everything
+                </button>
+                <button onClick={() => setForgetting('idle')} className="text-[0.85rem] font-medium text-muted underline-offset-4 hover:underline">
+                  Keep it
+                </button>
+                <span className="text-[0.82rem] text-muted">This cannot be undone.</span>
+              </>
+            )}
+            {forgetting === 'working' && <span className="text-[0.88rem] text-muted">Forgetting…</span>}
           </div>
         </section>
 

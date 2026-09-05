@@ -334,6 +334,10 @@ monthly against the readout** — the process that revises those words from what
 happened to real people. A copier gets the constants as they were on the day
 they copied them. This product gets the next revision.
 
+What the loop is allowed to learn from, and what it must refuse even when it
+easily could, is `docs/LEARNING.md`: decisions, never attention; pairings,
+conversations and questions, never a person.
+
 ## Risks I'm watching (no self-deception)
 
 - **Reputation is fragile.** One safety incident or scandal in a tight community

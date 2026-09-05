@@ -1,8 +1,9 @@
-import type { Dimension, EndingRecord, FollowUp, Gender, GroundState, ReadRecord, Reflection } from '../types'
+import type { Dimension, EndedRecord, EndingRecord, FollowUp, Gender, GroundState, ReadRecord, Reflection } from '../types'
 import { DIMENSION_LABEL, type ReadDimension } from '../data/read'
 import { beforeYesTopics } from '../data/beforeYes'
 import { familyScripts } from '../data/families'
 import { endingQuestions } from '../data/ending'
+import { ENDED_REASON_IDS, REASONS_WITH_WHICH, dealbreakerOptions } from '../data/ended'
 import { buildRead, type ReadBand } from './read'
 import { buildBeforeYes } from './beforeYes'
 
@@ -37,6 +38,8 @@ export interface Facts {
   through?: string[]
   /** The three closed answers on the way out. Never the line she wrote. */
   ending?: { who?: string; mattered?: string; used?: string[] }
+  /** Courtships that ended: from which stage, why, and which. Never when, never who. */
+  ended?: { stage: 'talking' | 'deciding'; reason: string; which?: string }[]
 }
 
 export interface FactsInput {
@@ -45,6 +48,7 @@ export interface FactsInput {
   beforeYes: ReadRecord | null
   followups: FollowUp[]
   ending: EndingRecord | null
+  endings: EndedRecord[]
   gender: Gender
 }
 
@@ -56,6 +60,10 @@ const READ_TOPICS = new Set<string>([...Object.keys(DIMENSION_LABEL), 'early'])
 const TOPICS = new Set(beforeYesTopics('woman').map((t) => t.id))
 const FAMILY_SCRIPTS = new Set([...familyScripts('woman'), ...familyScripts('man')].map((s) => s.id))
 const THROUGH: Record<string, Set<string>> = { read: READ_TOPICS, beforeYes: TOPICS, couple: TOPICS, family: FAMILY_SCRIPTS }
+const ENDED_REASONS = new Set<string>(ENDED_REASON_IDS)
+const DEALBREAKERS = new Set(dealbreakerOptions().map((o) => o.id))
+const READ_DIMS = new Set<string>(Object.keys(DIMENSION_LABEL))
+const ENDED_WHICH: Record<string, Set<string>> = { 'non-negotiable': DEALBREAKERS, eleven: TOPICS, 'his-read': READ_DIMS }
 const ENDING = Object.fromEntries(endingQuestions('woman').map((q) => [q.id, new Set(q.options.map((o) => o.id))])) as Record<
   'who' | 'mattered' | 'used',
   Set<string>
@@ -104,6 +112,19 @@ export function factsFrom(i: FactsInput): Facts {
     if (used.length) ending.used = used
     if (Object.keys(ending).length) facts.ending = ending
   }
+
+  // Only endings she gave a reason for travel; that it ended without one is
+  // hers alone. No date — the ladder already says when things happened.
+  const ended = i.endings
+    .filter((e) => e.reason && ENDED_REASONS.has(e.reason))
+    .map((e) => {
+      const takesWhich = (REASONS_WITH_WHICH as string[]).includes(e.reason!)
+      const which = takesWhich && e.which && ENDED_WHICH[e.reason!]?.has(e.which) ? e.which : undefined
+      return { stage: e.from, reason: e.reason!, ...(which ? { which } : {}) }
+    })
+    .slice(-8)
+    .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
+  if (ended.length) facts.ended = ended
 
   return facts
 }

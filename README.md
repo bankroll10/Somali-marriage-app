@@ -60,7 +60,8 @@ married goes to the guide.
   whom. The ladder (`src/lib/rungs.ts`) is the only metric, and beside each
   rung travels what it was made of (`src/lib/facts.ts`) — in words from closed
   lists, never an answer in hers. `docs/OPERATING.md` is the loop that turns
-  the readout into revisions.
+  the readout into revisions; `docs/LEARNING.md` is what it may and may not
+  learn from.
 - **The door** — the real count of women and men in her city who have kept a
   map and can be reached, against the number the city opens at. Never seeded.
 
@@ -109,6 +110,8 @@ src/
 netlify/functions/     guide · keep · cohort · couple · vouch · progress (Netlify Blobs)
 netlify/shared/        founder — the bearer key on every readout; vocab — every closed set the functions accept
 docs/OPERATING.md      The monthly loop: readout field → constant it revises
+docs/LEARNING.md       What it learns and what it refuses to — the tiers, the two lists, the honest limits
+docs/DEPLOY.md         How main gets live, and the two failure signatures
 netlify/edge-functions/gate.ts   Founding-preview password gate
 ```
 

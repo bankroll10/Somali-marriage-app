@@ -33,6 +33,7 @@ const state = {
   couple: null,
   vouch: null,
   ending: null,
+  endings: [],
   completed: true,
   coachThreads: {},
 }

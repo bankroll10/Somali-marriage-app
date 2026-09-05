@@ -1,4 +1,5 @@
 import { loadProgress, type PersistedState } from './storage'
+import type { WaitlistState } from '../types'
 
 /**
  * Keeping a map somewhere it can survive a lost phone.
@@ -18,17 +19,31 @@ const TIMEOUT_MS = 10_000
 
 /**
  * What leaves the device under "Keep this map". Everything the app needs to
- * bring her back — and not her conversations with the guide. Those are the one
- * thing here written in her own words to someone, and the Trust screen's
- * "Keep the Guide on this device" control promises that nothing she writes to
- * it ever leaves the phone. Keeping a map must not quietly break that. The
- * type is the guarantee: the field does not exist on what is sent.
+ * bring her back — and three things it must not carry, each because the Trust
+ * screen makes a promise about it:
+ *
+ *  - Not her conversations with the guide, and not the follow-ups the guide
+ *    handed her either: a guide follow-up holds what she asked and the words
+ *    it gave her, in her own words to someone. "Keep the Guide on this device"
+ *    promises that nothing she writes to it ever leaves the phone.
+ *  - Not her email or phone. The way to reach her goes to the founder's form
+ *    on its own, and Trust says it is never stored next to her answers. Until
+ *    this type existed, every re-keep after joining the door put it there.
+ *
+ * The type is the guarantee: the fields do not exist on what is sent.
  */
-export type KeptSnapshot = Omit<PersistedState, 'coachThreads'>
+export type KeptSnapshot = Omit<PersistedState, 'coachThreads' | 'waitlist'> & {
+  waitlist: Omit<WaitlistState, 'contact'> | null
+}
 
 export function keptSnapshot(state: PersistedState): KeptSnapshot {
-  const { coachThreads: _threads, ...rest } = state
-  return rest
+  const { coachThreads: _threads, waitlist, followups, ...rest } = state
+  const { contact: _contact, ...place } = waitlist ?? { contact: '', joinedAt: '' }
+  return {
+    ...rest,
+    waitlist: waitlist ? place : null,
+    followups: followups.filter((f) => f.source !== 'guide'),
+  }
 }
 
 /** Where her own code is remembered, so she is shown it rather than asked for it. */
@@ -102,8 +117,13 @@ export async function restoreMap(code: string): Promise<PersistedState | null> {
     if (!snapshot || typeof snapshot !== 'object') return null
     rememberCode(clean)
     // A restored map starts the guide fresh — its threads were never kept,
-    // including in a snapshot kept before that was true.
-    return { ...snapshot, coachThreads: {} }
+    // including in a snapshot kept before that was true. Her contact was
+    // never kept either; the founder already has it from the form.
+    return {
+      ...snapshot,
+      coachThreads: {},
+      waitlist: snapshot.waitlist ? { ...snapshot.waitlist, contact: '' } : null,
+    }
   } catch {
     return null
   }

@@ -34,6 +34,7 @@ const post = (body: unknown) =>
   handler(new Request('http://x/.netlify/functions/progress', { method: 'POST', body: JSON.stringify(body) }))
 const raw = (body: string) =>
   handler(new Request('http://x/.netlify/functions/progress', { method: 'POST', body }))
+const forget = (id: string) => handler(new Request(`http://x/.netlify/functions/progress?id=${id}`, { method: 'DELETE' }))
 const readout = (headers: Record<string, string> = {}) =>
   handler(new Request('http://x/.netlify/functions/progress', { headers }))
 
@@ -57,6 +58,13 @@ describe('reporting a rung', () => {
     const after = JSON.parse(stores.get('progress')!.get(ID)!)
     expect(after.first.arrived).toBe(first)
     expect(after.first.mapped).toBeTruthy()
+  })
+
+  it('records a rung’s date as a day, never a moment', async () => {
+    await post({ id: ID, rungs: ['arrived'] })
+    const stored = JSON.parse(stores.get('progress')!.get(ID)!)
+    expect(stored.first.arrived).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(stored.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 
   it('a rung once reported can never be taken back', async () => {
@@ -105,25 +113,44 @@ describe('the readout', () => {
     expect(body.rungs.arrived).toBe(3)
     expect(body.rungs.situated).toBe(2)
     expect(body.rungs.read).toBe(1)
-    expect(body.scenes.toronto.situated).toBe(2)
-    expect(body.scenes.london.arrived).toBe(1)
+    // A city under five reads null in every cell — a person is not a number here.
+    expect(body.scenes.toronto.situated).toBeNull()
+    expect(body.scenes.london.arrived).toBeNull()
 
     // No install id ever leaves, so nothing here can be traced to a device.
     const serialised = JSON.stringify(body)
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY']) expect(serialised).not.toContain(id)
   })
 
+  it('floors a city of three to null, and leaves the whole-population count a number', async () => {
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY']) await post({ id, rungs: ['arrived', 'read'], scene: 'toronto' })
+    const body = await (await readout()).json()
+    expect(body.rungs.arrived).toBe(3)
+    expect(body.rungs.read).toBe(3)
+    expect(body.scenes.toronto.arrived).toBeNull()
+    expect(body.scenes.toronto.read).toBeNull()
+    expect('arrived' in body.scenes.toronto).toBe(true)
+  })
+
+  it('shows a city once five have reached a rung', async () => {
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'toronto' })
+    const body = await (await readout()).json()
+    expect(body.scenes.toronto.arrived).toBe(5)
+  })
+
   it('tells word of mouth from every other arrival, by source, with no edge between people', async () => {
-    await post({ id: 'ACDEFG', rungs: ['arrived', 'read', 'followed-through'], via: 'words' })
-    await post({ id: 'HJKMNP', rungs: ['arrived'], via: 'words' })
-    await post({ id: 'QRTWXY', rungs: ['arrived', 'eleven'], via: 'couple' })
-    await post({ id: 'ACDEFH', rungs: ['arrived'] })
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
+      await post({ id, rungs: id === 'ACDEFG' ? ['arrived', 'read', 'followed-through'] : ['arrived'], via: 'words' })
+    }
+    await post({ id: 'HJKMNQ', rungs: ['arrived', 'eleven'], via: 'couple' })
+    await post({ id: 'HJKMNR', rungs: ['arrived'] })
 
     const body = await (await readout()).json()
-    expect(body.vias.words.arrived).toBe(2)
-    expect(body.vias.words['followed-through']).toBe(1)
-    expect(body.vias.couple.eleven).toBe(1)
-    expect(body.vias.unsaid.arrived).toBe(1)
+    expect(body.vias.words.arrived).toBe(5)
+    // One person through a door reads null, like any cell under five.
+    expect(body.vias.words['followed-through']).toBeNull()
+    expect(body.vias.couple.eleven).toBeNull()
+    expect(body.vias.unsaid.arrived).toBeNull()
     // Sources, never senders.
     expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNP|QRTWXY|from|sender/)
   })
@@ -136,9 +163,37 @@ describe('the readout', () => {
     expect(serialised).not.toMatch(/:"(agree|differ|not-talked|unknown)"/)
   })
 
-  it('POST is the only way in, and only GET reads', async () => {
-    const res = await handler(new Request('http://x/.netlify/functions/progress', { method: 'DELETE' }))
+  it('POST writes, GET reads, DELETE forgets — nothing else answers', async () => {
+    const res = await handler(new Request('http://x/.netlify/functions/progress', { method: 'PUT' }))
     expect(res.status).toBe(405)
+  })
+})
+
+describe('forgetting an install', () => {
+  it('leaves the readout, not just the store — a true un-count', async () => {
+    await post({ id: ID, rungs: ['arrived', 'read'], facts: { read: { band: 'mixed', thin: 'public' } } })
+    await post({ id: 'HJKMNP', rungs: ['arrived'] })
+    expect((await (await readout()).json()).rungs.arrived).toBe(2)
+    const res = await forget(ID)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ forgotten: true })
+    const body = await (await readout()).json()
+    expect(body.rungs.arrived).toBe(1)
+    expect(body.rungs.read).toBeUndefined()
+    expect(body.facts.read.band).toEqual({})
+  })
+
+  it('a second time is a quiet 404, and a bad id is refused', async () => {
+    await post({ id: ID, rungs: ['arrived'] })
+    await forget(ID)
+    expect((await forget(ID)).status).toBe(404)
+    expect((await forget('nope')).status).toBe(400)
+  })
+
+  it('never needs the founder key — it is hers', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    await post({ id: ID, rungs: ['arrived'] })
+    expect((await forget(ID)).status).toBe(200)
   })
 })
 
@@ -251,16 +306,87 @@ describe('the facts', () => {
   })
 
   it('crosses what she confirmed she said with whether she married', async () => {
-    await post({ id: 'ACDEFG', rungs: ['arrived', 'followed-through', 'married'], facts: { eleven, through: ['beforeYes:money-home'], read } })
-    await post({ id: 'HJKMNP', rungs: ['arrived', 'followed-through'], facts: { eleven, through: ['beforeYes:money-home', 'couple:live'], read } })
+    // Six people confirmed the money conversation; five went on to marry. One
+    // also confirmed the living conversation — a lone cell, so it reads null.
+    const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'HJKMNQ']
+    for (const [i, id] of ids.entries()) {
+      await post({
+        id,
+        rungs: i < 5 ? ['arrived', 'followed-through', 'married'] : ['arrived', 'followed-through'],
+        facts: { eleven, through: i === 5 ? ['beforeYes:money-home', 'couple:live'] : ['beforeYes:money-home'], read },
+      })
+    }
     const body = await (await readout()).json()
-    expect(body.facts.through).toEqual({ 'beforeYes:money-home': 2, 'couple:live': 1 })
-    expect(body.facts.throughByTopic).toEqual({ 'money-home': 2, live: 1 })
-    expect(body.facts.marriedBy.through['money-home']).toEqual({ through: 2, married: 1 })
-    expect(body.facts.marriedBy.through.live).toEqual({ through: 1, married: 0 })
-    expect(body.facts.marriedBy.open['money-home']).toEqual({ eleven: 2, married: 1 })
-    expect(body.facts.marriedBy.readThin.public).toEqual({ read: 2, married: 1 })
-    expect(body.facts.eleven.differ).toEqual({ '2': 2 })
+    // Whole-population counts are never floored.
+    expect(body.facts.through).toEqual({ 'beforeYes:money-home': 6, 'couple:live': 1 })
+    expect(body.facts.throughByTopic).toEqual({ 'money-home': 6, live: 1 })
+    expect(body.facts.eleven.differ).toEqual({ '2': 6 })
+    // Cross-tabs are floored cell by cell.
+    expect(body.facts.marriedBy.through['money-home']).toEqual({ through: 6, married: 5 })
+    expect(body.facts.marriedBy.through.live).toEqual({ through: null, married: null })
+    expect(body.facts.marriedBy.open['money-home']).toEqual({ eleven: 6, married: 5 })
+    expect(body.facts.marriedBy.readThin.public).toEqual({ read: 6, married: 5 })
+  })
+
+  it('buckets an older record’s moment into its day', async () => {
+    await memStore('progress').setJSON('QRTWXY', { first: { arrived: '2026-09-01T13:45:12.345Z' }, expiresAt: '2027-09-01T00:00:00.000Z' })
+    await post({ id: ID, rungs: ['arrived'] })
+    const body = await (await readout()).json()
+    expect(body.arrivedByDay['2026-09-01']).toBe(1)
+    expect(Object.keys(body.arrivedByDay).every((k) => k.length === 10)).toBe(true)
+  })
+
+  it('accepts an ended list from the closed lists, replaces it whole, and bounds it at eight', async () => {
+    const one = [{ stage: 'talking', reason: 'his-read', which: 'public' }]
+    expect((await post({ id: ID, rungs: ['arrived'], facts: { ended: one } })).status).toBe(200)
+    const two = [...one, { stage: 'deciding', reason: 'my-family' }]
+    await post({ id: ID, rungs: ['arrived'], facts: { ended: two } })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.ended).toEqual(two)
+    // Replaced whole: a reason she takes back leaves here too.
+    await post({ id: ID, rungs: ['arrived'], facts: { ended: [] } })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.ended).toEqual([])
+    const nine = Array.from({ length: 9 }, () => ({ stage: 'talking', reason: 'other' }))
+    expect((await post({ id: ID, rungs: ['arrived'], facts: { ended: nine } })).status).toBe(400)
+  })
+
+  it('refuses a which on a reason that takes none, and a which off its list', async () => {
+    const bad = [
+      [{ stage: 'talking', reason: 'he-stopped', which: 'public' }],
+      [{ stage: 'talking', reason: 'his-read', which: 'early' }],
+      [{ stage: 'talking', reason: 'non-negotiable', which: 'money-home' }],
+      [{ stage: 'talking', reason: 'eleven', which: 'faith-nn' }],
+      [{ stage: 'married', reason: 'other' }],
+      [{ stage: 'talking', reason: 'he was rude' }],
+      [{ stage: 'talking', reason: 'other', note: 'free text' }],
+    ]
+    for (const ended of bad) {
+      const res = await post({ id: ID, rungs: ['arrived'], facts: { ended } })
+      expect(res.status, JSON.stringify(ended)).toBe(400)
+    }
+    expect(stores.get('progress')?.size ?? 0).toBe(0)
+  })
+
+  it('tallies ended by reason, stage and which, and crosses reason with married', async () => {
+    // Six people ended one over a non-negotiable; five went on to marry.
+    const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'HJKMNQ']
+    for (const [i, id] of ids.entries()) {
+      await post({
+        id,
+        rungs: i < 5 ? ['arrived', 'married'] : ['arrived'],
+        facts: {
+          ended: [
+            { stage: 'talking', reason: 'non-negotiable', which: 'faith-nn' },
+            ...(i === 0 ? [{ stage: 'deciding', reason: 'his-family' }] : []),
+          ],
+        },
+      })
+    }
+    const body = await (await readout()).json()
+    expect(body.facts.ended.reason).toEqual({ 'non-negotiable': 6, 'his-family': 1 })
+    expect(body.facts.ended.stage).toEqual({ talking: 6, deciding: 1 })
+    expect(body.facts.ended.which['non-negotiable']).toEqual({ 'faith-nn': 6 })
+    expect(body.facts.marriedBy.ended['non-negotiable']).toEqual({ ended: 6, married: 5 })
+    expect(body.facts.marriedBy.ended['his-family']).toEqual({ ended: null, married: null })
   })
 
   it('tallies records written before facts existed', async () => {

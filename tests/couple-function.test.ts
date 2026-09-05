@@ -163,6 +163,13 @@ describe('how pairs come out', () => {
     expect(t2.topics.live).toEqual({ 'both-agree': 2 })
   })
 
+  it('records the day he answered, never the moment', async () => {
+    const code = await pair(sides(), sides())
+    const record = JSON.parse(stores.get('couples')!.get(code)!)
+    expect(record.createdAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(record.answeredAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+  })
+
   it('carries no code and no side', async () => {
     const code = await pair(sides({ children: 'differ' }), sides({ children: 'unknown' }))
     const raw = stores.get('tallies')!.get('joint')!

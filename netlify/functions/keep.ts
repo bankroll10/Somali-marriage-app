@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { day } from '../shared/day'
 
 /**
  * The first thing this business actually owns.
@@ -71,9 +72,45 @@ export default async function handler(req: Request) {
     }
   }
 
+  // ── Forget ───────────────────────────────────────────────────────────────
+  // Everything kept under her code, gone: the map, the eleven she sent him,
+  // her family's vouch and the token that pointed at it, her place on the
+  // door. Possession of the code is the authority, exactly as it is for
+  // restoring — and it is safe only because the vouch link no longer carries
+  // the code. Asking twice is a quiet 404: there was nothing left to forget.
+  // What cannot be undone is not here at all: a count with no code in it.
+  if (req.method === 'DELETE') {
+    const code = normalise(new URL(req.url).searchParams.get('code') ?? '')
+    if (code.length !== CODE_LENGTH) return Response.json({ error: 'bad_code' }, { status: 400 })
+    try {
+      const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
+      if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
+      const snapshot = (kept.snapshot ?? {}) as { couple?: { code?: unknown } }
+      const coupleCode = typeof snapshot.couple?.code === 'string' ? normalise(snapshot.couple.code) : ''
+
+      const couples = getStore('couples')
+      const vouches = getStore('vouches')
+      const cohort = getStore('cohort')
+
+      if (coupleCode.length === CODE_LENGTH) await couples.delete(coupleCode)
+      const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
+      if (token) await vouches.delete(`token/${token}`)
+      await vouches.delete(`asked/${code}`)
+      await vouches.delete(code)
+      const member = (await cohort.get(`index/${code}`, { type: 'text' })) as string | null
+      if (member) await cohort.delete(member)
+      await cohort.delete(`index/${code}`)
+      await store.delete(code)
+      return Response.json({ forgotten: true })
+    } catch (err) {
+      console.error('[niyyah] keep: forget failed', err)
+      return Response.json({ error: 'unavailable' }, { status: 503 })
+    }
+  }
+
   // ── Keep ─────────────────────────────────────────────────────────────────
   if (req.method !== 'POST') {
-    return Response.json({ error: 'GET or POST only' }, { status: 405 })
+    return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
   }
 
   let body: { snapshot?: unknown; code?: string }
@@ -86,10 +123,18 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'missing_snapshot' }, { status: 400 })
   }
 
-  // The client promises never to send her conversations with the guide
-  // (src/lib/keep.ts). The server refuses to hold them even if an older client
+  // The client promises never to send three things (src/lib/keep.ts): her
+  // conversations with the guide, the follow-ups the guide handed her, and her
+  // email or phone. The server refuses to hold them even if an older client
   // still does — a promise about what is stored is kept where it is stored.
-  delete (body.snapshot as Record<string, unknown>).coachThreads
+  const snap = body.snapshot as Record<string, unknown>
+  delete snap.coachThreads
+  if (snap.waitlist && typeof snap.waitlist === 'object') delete (snap.waitlist as Record<string, unknown>).contact
+  if (Array.isArray(snap.followups)) {
+    snap.followups = snap.followups.filter(
+      (f) => !(f && typeof f === 'object' && (f as { source?: unknown }).source === 'guide'),
+    )
+  }
 
   // A rough ceiling. A real map is a few kilobytes; anything far past that is a
   // mistake or an attempt to use us as free storage.
@@ -106,13 +151,16 @@ export default async function handler(req: Request) {
   }
 
   const now = Date.now()
-  const kept: KeptMap = {
-    snapshot: body.snapshot,
-    createdAt: new Date(now).toISOString(),
-    expiresAt: new Date(now + TTL_MS).toISOString(),
-  }
-
   try {
+    // Re-keeping refreshes the year but keeps the day it was first kept. A
+    // createdAt that moved on every save was a last-seen timestamp under
+    // another name — an activity trace this store has no business holding.
+    const existing = body.code ? ((await store.get(code, { type: 'json' })) as KeptMap | null) : null
+    const kept: KeptMap = {
+      snapshot: body.snapshot,
+      createdAt: existing?.createdAt ?? day(now),
+      expiresAt: day(now + TTL_MS),
+    }
     await store.setJSON(code, kept)
     return Response.json({ code })
   } catch (err) {

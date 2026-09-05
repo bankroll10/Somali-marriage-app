@@ -245,13 +245,17 @@ link returns 401 to anyone without the password.
 ## 10. Roadmap
 
 0. **Run the loop** — `docs/OPERATING.md`, monthly, from the first hundred
-   records. The moat is the process, not the constants.
-1. **The first-year sheet** — the one instrument the married stage is still
+   records, within what `docs/LEARNING.md` allows. The moat is the process,
+   not the constants.
+1. **Your record** — everything this phone has sent, in Trust's words, with a
+   retract on each item. The visibility half of Forget me.
+2. **The first-year sheet** — the one instrument the married stage is still
    missing, and the thing the wedding gift sells. The eleven's engine over a
    second topic list.
-2. **Live Claude behind the map** — `generateReflection` is the last local
+3. **Live Claude behind the map** — `generateReflection` is the last local
    seam; the guide's function is the pattern.
-3. **Real backend** — auth, persistence, real verification, moderation and
+4. **Real backend** — auth, persistence, real verification, moderation and
    reporting (safety is first-class).
-4. **The city opens** — one introduction at a time, per §7, Minneapolis first.
-5. **Concierge** — the human matchmaker, priced per person.
+5. **The city opens** — one introduction at a time, per §7, Minneapolis first,
+   on the dormant introductions store `docs/LEARNING.md` designs.
+6. **Concierge** — the human matchmaker, priced per person.

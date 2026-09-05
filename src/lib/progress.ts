@@ -57,6 +57,15 @@ function newId(): string {
   return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('')
 }
 
+/** The install code if this phone has one — never made here. For forgetting. */
+export function rememberedInstallId(): string | null {
+  try {
+    return localStorage.getItem(ID_KEY)
+  } catch {
+    return null
+  }
+}
+
 /**
  * This install's anonymous code, made on first use and kept after. Returns
  * null when storage refuses — a device that cannot remember an id is one we

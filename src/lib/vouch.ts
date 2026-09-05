@@ -64,6 +64,26 @@ export async function readVouch(code: string): Promise<VouchState | null> {
   }
 }
 
-export function vouchLink(code: string, origin: string): string {
-  return `${origin}/?vouch=${encodeURIComponent(code)}`
+/**
+ * Ask for the token her link will carry. The link used to carry her map code,
+ * which also opens her map; the token opens nothing but the vouch screen.
+ */
+export async function askVouch(code: string): Promise<string | null> {
+  const res = await withTimeout(ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ side: 'ask', code }),
+  })
+  if (!res?.ok) return null
+  try {
+    const { token } = (await res.json()) as { token?: string }
+    return typeof token === 'string' && token.length === 8 ? token : null
+  } catch {
+    return null
+  }
+}
+
+/** The link a family member opens. Carries the token, never the map code. */
+export function vouchLink(token: string, origin: string): string {
+  return `${origin}/?vouch=${encodeURIComponent(token)}`
 }

@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, TOPICS, YES_STATES as STATES } from '../shared/vocab'
+import { day } from '../shared/day'
 
 /**
  * The two-sided Before you say yes.
@@ -196,8 +197,8 @@ export default async function handler(req: Request) {
       const record: CoupleRecord = {
         creator: body.gender as 'woman' | 'man',
         first: body.states,
-        createdAt: existing?.createdAt ?? new Date(now).toISOString(),
-        expiresAt: new Date(now + TTL_MS).toISOString(),
+        createdAt: existing?.createdAt ?? day(now),
+        expiresAt: day(now + TTL_MS),
       }
       await store.setJSON(code, record)
       return Response.json({ code })
@@ -217,7 +218,7 @@ export default async function handler(req: Request) {
       if (Date.parse(record.expiresAt) < now) return Response.json({ error: 'expired' }, { status: 404 })
       // Once. A second answer would let him probe hers the same way.
       if (record.second) return Response.json({ error: 'answered' }, { status: 409 })
-      const updated: CoupleRecord = { ...record, second: body.states, answeredAt: new Date(now).toISOString() }
+      const updated: CoupleRecord = { ...record, second: body.states, answeredAt: day(now) }
       await store.setJSON(code, updated)
       // The pair is saved. Now, and only now, it is counted.
       await countPair(jointOf(updated.first, body.states))

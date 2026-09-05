@@ -38,19 +38,31 @@ What each field in `/progress` means:
 |---|---|
 | `rungs[id]` | People who ever reached this rung. `followed-through / arrived` is the North Star |
 | `scenes[city][rung]`, `vias[via][rung]` | The same, by city and by what kind of link brought them |
-| `arrivedByWeek` | The denominator over time, so a cohort can be followed |
+| `arrivedByDay` | The denominator over time, so a cohort can be followed. Every date in every store is a day, never a moment — see `netlify/shared/day.ts` |
 | `facts.grounds[dim][state]` | How many maps read thin / steady / strong on each ground |
 | `facts.read.band[band]`, `facts.read.thin[dim]` | How reads come out; which ground men here most often have not shown |
 | `facts.eleven.open[topic]` | Which of the eleven the product most often told someone to open first |
 | `facts.eleven.{agree,differ,notTalked,unknown}[n]` | How many people had *n* topics in that state |
 | `facts.through["source:topic"]`, `facts.throughByTopic[topic]` | Which conversations were actually confirmed as had |
 | `facts.ending.{who,mattered,used}[id]` | Who they married, what decided it, what here was real |
+| `facts.ended.reason[id]`, `.stage[id]`, `.which[reason][id]` | Why courtships end, from which stage, and which non-negotiable, topic or ground did it — the dataset nobody else has, and it needs no marketplace |
+| `facts.marriedBy.ended[reason]` | `{ended, married}`: of people who ended a courtship over this, how many later married. The first evidence the non-negotiables gate is worth its cost |
 | `facts.marriedBy.through[topic]` | `{through, married}`: of people who confirmed this conversation, how many went on to marry |
 | `facts.marriedBy.readThin[dim]` | `{read, married}`: of people whose read found this ground thinnest, how many married |
 | `facts.marriedBy.open[topic]` | `{eleven, married}`: of people told to open this topic first, how many married |
 
 `marriedBy` is the first outcome table this product has. Every row in the
 next section is a way of reading it.
+
+**Reading `null`.** Every cell in a split by city, by door, or in a
+`marriedBy` row that is under five reads as `null` — not zero, not missing:
+somewhere from zero to four. Whole-population counts are never floored, so a
+lone `ending.who.here: 1` still shows. Two honest caveats. A `null` beside an
+unfloored total can be recovered by subtraction when every other cell in its
+row is shown, so the floor removes the easy read and no more. And the floor
+does not protect against the founder, who holds the stores; it protects
+against a leaked key. The day-precision dates and the sentence on Trust do the
+heavier lifting. See `netlify/shared/floor.ts`.
 
 ## The loop: readout → constant
 
@@ -67,6 +79,7 @@ message cites the readout row and the month.
 | Scripts | `src/data/read.ts` `SCRIPTS`, `src/data/beforeYes.ts` `script`, `src/data/families.ts` | `through["source:topic"]` against how often that script was handed out (`eleven.open`, `read.thin`) | Words handed out often and said rarely get rewritten. Words never once confirmed get cut |
 | Joint `URGENCY` | `src/lib/couple.ts` | `/couple` `topics[topic][joint]` | The joint state pairs most often land in for a topic is the one that topic's line should name |
 | `alignment` scales | `src/lib/matching.ts` | only once `ending.who.here > 0` | Nothing to calibrate against until this product has introduced two people who married. Do not touch |
+| The `dealbreakers` question and its gate | `src/data/intake.ts`, `matching.ts` `gate()` | `ended.which['non-negotiable']` × `marriedBy.ended['non-negotiable']` | A non-negotiable that ends courtships and precedes marriage is load-bearing; one that ends nothing is aspirational, and the question — never her gate — is what changes |
 | The order of the four questions on the ending | `src/data/ending.ts` | `ending.*` answer rates against `rungs.married` | A question skipped by most is asked last, or dropped |
 
 Rules for the loop itself:

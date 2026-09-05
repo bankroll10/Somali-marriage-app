@@ -42,6 +42,7 @@ const state = {
   couple: null,
   vouch: null,
   ending: null,
+  endings: [],
   completed: true,
   matched: [],
   pendingInterest: [],
@@ -78,6 +79,29 @@ describe('keeping a map', () => {
     const body = spy.mock.calls[0][1]?.body as string
     expect(JSON.parse(body).snapshot.coachThreads).toBeUndefined()
     expect(body).not.toContain('the secret thing')
+  })
+
+  it('carries no email or phone, and nothing the guide handed her', async () => {
+    saveProgress({
+      ...state,
+      waitlist: { contact: 'sagal@example.com', scene: 'toronto', code: 'ACDEFG', joinedAt: '2026-01-01' },
+      followups: [
+        { id: 'g1', source: 'guide', topic: 'should I tell hooyo about him', words: 'Tell her on a Tuesday, plainly.', at: '2026-01-01' },
+        { id: 'r1', source: 'read', topic: 'public', at: '2026-01-02' },
+      ],
+    })
+    const spy = vi.fn(async (_input: string, _init?: RequestInit) => new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    await keepMap()
+    const body = spy.mock.calls[0][1]?.body as string
+    const sent = JSON.parse(body).snapshot
+    expect(body).not.toContain('sagal@example.com')
+    expect(body).not.toContain('tell hooyo')
+    expect(body).not.toContain('on a Tuesday')
+    // Her place on the door survives without the way to reach her.
+    expect(sent.waitlist).toEqual({ scene: 'toronto', code: 'ACDEFG', joinedAt: '2026-01-01' })
+    // The read's follow-up is not the guide's, and stays.
+    expect(sent.followups.map((f: { id: string }) => f.id)).toEqual(['r1'])
   })
 
   it('sends everything else the app needs to bring her back', async () => {
@@ -127,6 +151,13 @@ describe('bringing a map back', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ snapshot: state }), { status: 200 })))
     const restored = await restoreMap('acdefg')
     expect(restored?.identity.firstName).toBe('Sagal')
+  })
+
+  it('comes back with her place on the door and no contact, whatever the snapshot held', async () => {
+    const old = { ...state, waitlist: { contact: 'kept-by-an-older-version', scene: 'toronto', joinedAt: 'x' } }
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ snapshot: old }), { status: 200 })))
+    const restored = await restoreMap('ACDEFG')
+    expect(restored?.waitlist).toEqual({ contact: '', scene: 'toronto', joinedAt: 'x' })
   })
 
   it('comes back with empty guide threads, even from a snapshot kept before they were left out', async () => {
