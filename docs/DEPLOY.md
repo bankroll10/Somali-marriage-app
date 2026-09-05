@@ -116,6 +116,15 @@ Two rules about them:
   and the old one deleted there. Keep the number of people on the Netlify team
   as small as the work allows, since team access is now the whole boundary.
 
+## Links already sent
+
+Before 2026-09-05 the family vouch link carried her map code, which also
+opens `?map=`. Links minted since carry an eight-character token that opens
+only the vouch screen. Old links still vouch — the server accepts both — but
+anyone who received one holds a code that restores a map. There is no way to
+recall them; the honest step is to tell anyone who was sent one before that
+date that the link also opened the map, and that a fresh one does not.
+
 ## At real launch
 
 Three things come off together, and forgetting one undoes the others:

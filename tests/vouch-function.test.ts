@@ -15,6 +15,7 @@ function memStore(name: string) {
       return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
     },
     getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
+    set: async (key: string, value: string) => void m.set(key, value),
     setJSON: async (key: string, value: unknown) => void m.set(key, JSON.stringify(value)),
     delete: async (key: string) => void m.delete(key),
   }
@@ -108,5 +109,48 @@ describe('a family vouch', () => {
   it('refuses an oversized body before parsing it', async () => {
     const big = new Request('http://x/.netlify/functions/vouch', { method: 'POST', body: 'x'.repeat(5000) })
     expect((await handler(big)).status).toBe(413)
+  })
+})
+
+describe('the token in the link', () => {
+  const ask = async (code = 'ACDEFG') => (await post({ side: 'ask', code })).json()
+
+  it('she asks, and gets a token that is not her code', async () => {
+    const { token } = await ask()
+    expect(token).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{8}$/)
+    expect(token).not.toBe('ACDEFG')
+    // Asking again sends the same link.
+    expect((await ask()).token).toBe(token)
+  })
+
+  it('asking needs a kept map', async () => {
+    expect((await post({ side: 'ask', code: 'HJKMNP' })).status).toBe(404)
+  })
+
+  it('a token opens no map: it is not a code, and no map lives under it', async () => {
+    const { token } = await ask()
+    expect(token.length).not.toBe(6)
+    expect(await memStore('maps').get(token)).toBeNull()
+    expect(await memStore('maps').get(`token/${token}`)).toBeNull()
+  })
+
+  it('a family member vouches with the token, and it lands under her code', async () => {
+    const { token } = await ask()
+    const res = await post({ ...good, code: token })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ vouched: true, relationship: 'brother', firstName: 'Ali' })
+    expect(JSON.parse((await memStore('vouches').get('ACDEFG')) as string).firstName).toBe('Ali')
+    // Both her screen (by code) and theirs (by token) see it.
+    expect((await get('ACDEFG')).status).toBe(200)
+    expect((await get(token)).status).toBe(200)
+  })
+
+  it('a token nobody minted is a bad code', async () => {
+    expect((await get('ACDEFGHJ')).status).toBe(400)
+    expect((await post({ ...good, code: 'ACDEFGHJ' })).status).toBe(400)
+  })
+
+  it('an older link still carrying the code still vouches', async () => {
+    expect((await post(good)).status).toBe(200)
   })
 })

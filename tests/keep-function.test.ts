@@ -80,6 +80,11 @@ describe('keeping a map', () => {
     expect(again.snapshot.answers.timeline).toBe('1-2')
   })
 
+  it('an eight-character vouch token is not a code, and opens nothing', async () => {
+    await post({ snapshot: { identity: { firstName: 'Sagal' } }, code: 'ACDEFG' })
+    expect((await get('ACDEFGHJ')).status).toBe(400)
+  })
+
   it('refuses a snapshot that is not an object, and a bad code', async () => {
     expect((await post({ snapshot: 'x' })).status).toBe(400)
     expect((await post({ snapshot: {}, code: 'nope' })).status).toBe(400)

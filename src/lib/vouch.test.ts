@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { readVouch, sendVouch, vouchLink } from './vouch'
+import { askVouch, readVouch, sendVouch, vouchLink } from './vouch'
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status })
 afterEach(() => vi.unstubAllGlobals())
@@ -28,7 +28,18 @@ describe('a vouch, from her phone and theirs', () => {
     const sent = JSON.parse((spy.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
     expect(sent).toEqual({ code: 'ACDEFG', relationship: 'father', firstName: 'Cabdi', sentence: 'She is my daughter.' })
   })
-  it('builds the link a family member opens', () => {
-    expect(vouchLink('ACDEFG', 'https://getniyyah.netlify.app')).toBe('https://getniyyah.netlify.app/?vouch=ACDEFG')
+  it('asks for a token with her code, and builds the link from the token — never the code', async () => {
+    const spy = vi.fn(async () => json({ token: 'ACDEFGHJ' }))
+    vi.stubGlobal('fetch', spy)
+    const token = await askVouch('ACDEFG')
+    expect(token).toBe('ACDEFGHJ')
+    expect(JSON.parse((spy.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)).toEqual({ side: 'ask', code: 'ACDEFG' })
+    const link = vouchLink(token!, 'https://getniyyah.netlify.app')
+    expect(link).toBe('https://getniyyah.netlify.app/?vouch=ACDEFGHJ')
+    expect(link).not.toContain('ACDEFG"')
+  })
+  it('refuses a token that is not the right shape', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => json({ token: 'ACDEFG' })))
+    expect(await askVouch('ACDEFG')).toBeNull()
   })
 })

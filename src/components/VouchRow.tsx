@@ -4,7 +4,7 @@ import { keepMap, rememberedCode } from '../lib/keep'
 import { shareOrCopy } from '../lib/share'
 import { withVia } from '../lib/links'
 import { SITE_URL } from '../lib/site'
-import { vouchLink } from '../lib/vouch'
+import { askVouch, vouchLink } from '../lib/vouch'
 import { relationshipLabel } from '../data/vouch'
 import { CheckIcon } from './ui'
 
@@ -37,7 +37,13 @@ export default function VouchRow({ vouch, onKept }: Props) {
       return
     }
     onKept(code)
-    const result = await shareOrCopy({ text: ASK, url: withVia(vouchLink(code, SITE_URL), 'family') }, 'vouch_asked')
+    // The link carries a token made for this, not her code — see src/lib/vouch.ts.
+    const token = await askVouch(code)
+    if (!token) {
+      setAsking('error')
+      return
+    }
+    const result = await shareOrCopy({ text: ASK, url: withVia(vouchLink(token, SITE_URL), 'family') }, 'vouch_asked')
     setAsking(result === 'cancelled' ? 'idle' : 'sent')
     if (result !== 'cancelled') window.setTimeout(() => setAsking('idle'), 2600)
   }
