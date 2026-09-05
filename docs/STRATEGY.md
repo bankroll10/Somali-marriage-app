@@ -1,4 +1,4 @@
-# Niyyah — Founding Strategy (v6)
+# Niyyah — Founding Strategy (v7)
 
 > The trusted marriage platform for the Somali diaspora — powered by AI, guided
 > by faith, designed for serious people.
@@ -38,9 +38,11 @@ half of herself.
 follow. If she doesn't, no feature set saves you. Most "Muslim apps" optimised
 for men and died of it (sausage-fest, low trust, she leaves, he leaves).
 
-**The follower (the monetiser): the serious diaspora man, 26–36.** Wants a
-serious woman, hates being lumped in with players, doesn't actually know how to
-lead respectfully toward marriage. He will pay more — but he is not the wedge.
+**The follower: the serious diaspora man, 26–36.** Wants a serious woman, hates
+being lumped in with players, doesn't actually know how to lead respectfully
+toward marriage. He arrives through her — she sends him the eleven, or a read
+tells her what he hasn't shown and he is asked to answer his own side. He is not
+the wedge, and he is never charged for reach.
 
 **Who it is deliberately NOT for:** the casual dater, the hookup crowd, the
 "not actually ready." Excluding them is a *feature* — it's what makes the room
@@ -93,91 +95,244 @@ the road to marriage.** Matches are downstream of that.
 
 ---
 
-## 4. Why would this become a habit?
+## 4. Why would people come back — and why we refuse the usual answer
 
-This is the question that kills dating apps, so it gets the most rigor.
+This is the question that kills dating apps, so it gets the most rigour, and the
+answer here is deliberately unlike the category's.
 
 **The dating-app paradox: success = churn.** Hinge profits from you *not* finding
-someone. Their retention is a treadmill of dopamine. We refuse that model — and
-we have a better one.
+someone. Its retention is a treadmill of dopamine: a daily reason to open, a
+number to raise, a thread to keep going, a feed that never ends. Every one of
+those mechanics goes up when a person is stuck. A marriage product that
+optimises them is optimising against its own purpose.
 
-**Our core habit is the Guide, used like a confidant.** Real life generates
-triggers constantly: *"he said this, what do I do," "he went quiet, am I
-spiralling," "how do I bring in my family," "is he serious?"* Each is a moment
-someone opens Niyyah — the way people open a journal, a therapist's text thread,
-or Co-Star. That's utility + emotional support, not a slot machine. It works
-*before* you're dating, *while* you're talking to someone, and *after* you've
-matched.
+**So we do not build a habit. We build a companion for a process that has a
+beginning and an end.** People come back when something in their life moves,
+and the product's job is to be the thing they reach for at that moment:
 
-The supporting loops:
-- **Daily reflection** — a calm, identity-affirming return ritual (think
-  "verse of the day" meets a wise auntie). Low-pressure, daily.
-- **The readiness map evolving** — progress on yourself; growth you can feel.
-- **Trust & profile completion** — investment loops (the more you put in, the
-  more it's *yours*).
-- Eventually: matches and **guided conversations**.
+- *"He went quiet."* → the Guide, routed to the right voice, ending in words.
+- *"Is he serious?"* → the read: what he has actually done, and the one question
+  to ask next.
+- *"The families are about to be involved."* → the eleven conversations, and
+  the two-sided version he answers on his own phone.
+- *"Did I actually ask him?"* → the follow-up, days later, once.
 
-**The strategic unlock: we span the whole lifecycle.** Single → talking →
-engaged → married (marriage coaching). So retention is *not* tied to being
-single. The same product that helped you choose helps you *stay chosen*. That is
-the durable habit and the real moat — and it's why "success" deepens us instead
-of churning us.
+Each of those is an instrument. Each ends in something she can go and say. And
+each one writes down what it told her to do, so that the product can ask
+whether she did it — which is the only kind of memory that is also progress.
 
-Hook loop: **trigger** (a real-life relationship moment, or the daily nudge) →
-**action** (open, ask the Guide) → **variable reward** (insight, relief, a
-match) → **investment** (more of your map, your trust, your story).
+**What we explicitly do not build:** a daily ritual, a streak (with or without
+the guilt), a score she is told to raise, a counter she can see, a feed, a
+deck, suggestion chips designed to extend a thread, or notifications about
+people. The strategy doc used to describe a "hook loop" with a "variable
+reward". It has been removed on purpose. Variable reward is the mechanism of a
+slot machine, and this is a marriage.
+
+**The lifecycle is still the moat — but it is an exit, not a retention curve.**
+Single → talking → deciding → married. The same product that helped her choose
+helps her build the first year. When she marks herself married, the app goes
+quiet: the check-in disappears, the introductions disappear, the upsell
+disappears. What stays is the words for two families and the guide for the
+first year. A member who no longer needs us is the outcome, and the door count
+that today shows how many people are waiting will one day show how many were
+married.
 
 ---
 
 ## 5. What's the business model?
 
-Premium consumer subscription, layered — never ads, never selling data (both would
-detonate the trust we're built on).
+Premium consumer product, priced by outcome — never ads, never selling data,
+and never a mechanism that earns more when a member is having a worse night.
 
-- **Niyyah+ (the core subscription).** Guide is free with limits; premium unlocks
-  unlimited guidance + all six modes, deeper matchmaking, advanced privacy,
-  who's-serious / who-liked-you, and profile coaching. **Price for the outcome,
-  not the month** — sell a *"serious about marriage"* 3-month plan. Serious people
-  pay to not waste *time*; willingness-to-pay here is far above Tinder. Target
-  ~$25–40/mo, more for the commitment plans.
-- **Asymmetric by gender, on purpose.** Women get more for free (drives the
-  liquidity everything depends on); men pay for reach and signal. A light women's
-  tier still helps — paying a little raises seriousness and trust.
-- **Concierge matchmaking (the high-margin crown jewel).** AI + a vetted human
-  matchmaker. This is *culturally native* — Somali families **already pay**
-  aunties and matchmakers real money. We productise the most trusted role in the
-  community at software margins. Hundreds of dollars, easily.
-- **Verified-trust tier.** Verification and the serious-intention badge can be
-  partly gated — trust *is* the product, and people pay for it.
-- **Vetted IRL events / community.** Halal mixers, family-friendly. Revenue +
-  liquidity + virality + trust, all at once.
+**The rule that decides every pricing question:** revenue must not scale with
+anxiety, time in app, or how long someone stays single. The moment it does, the
+company's incentive and the member's interest point in opposite directions, and
+every product decision after that is a negotiation between them.
 
-**Why the unit economics can work:** sky-high intent, high willingness-to-pay, and
-a community where **word of mouth is everything** — so if we nail trust, CAC is
-low and growth is organic. The same tightness is the risk (see below): reputation
-is both the growth engine and the kill switch.
+**What we charge for — bought once, and it ends on its own:**
+
+- **A stage.** "Deciding together": the two-sided eleven with a joint
+  conversation guide, the family scripts, and one call with a human matchmaker.
+  Bought once per courtship. It is priced for the outcome — a good decision —
+  not for the month.
+- **A person.** Concierge matchmaking (AI + a vetted human) when a city opens.
+  This is *culturally native*: Somali families **already pay** aunties and
+  matchmakers real money. We productise the most trusted role in the community
+  at software margins.
+- **Vetted IRL events** — halal, family-friendly. Revenue + liquidity + trust.
+
+**What is free, forever:** the readiness map and every reading, the work, the
+read, the eleven, the family conversations, the family vouch, reporting and
+blocking, being introduced, and replying to anyone who is serious about you.
+Nothing that protects a person is ever paid.
+
+**The Guide is free and budgeted by progress, not by the calendar.** Every real
+step a member takes — a read, a follow-up answered, a stage change, a couple
+code sent, a vouch received — grants a budget of replies. To talk to the guide
+more, you move a rung. There is no counter on screen and no "unlimited" tier to
+sell, because the moment unlimited guidance is the paid feature, the company is
+paid for the 1am spiral.
+
+**Asymmetric by gender, in what is free — never in what is sold.** Women arrive
+first and are given more; men arrive through them. But a man never pays for
+reach, visibility, filters, or to see who is interested. Those are the
+mechanics of the apps this one exists to replace.
+
+**The exit is the business model, not the end of it.** Every price above sits
+at a step forward, and the last and largest one sits at the wedding — which is
+where this community has always paid the person who helped. Run the test on
+each line: does it earn more if she stays single longer, opens the app more
+often, or is having a worse night? If yes it does not ship. What survives has
+a property no subscription can have: **revenue is strictly increasing in
+successful exits.** We are paid when someone moves (deciding together), paid
+again if a human matchmaker did the work (at the nikah, nothing owed if
+nothing came of it), and paid by somebody else at the celebration (the first
+year, as a wedding gift). A member who never leaves is a member who never
+pays, and a member who marries is worth more to us than one who stays — which
+is the opposite of every competitor's incentive, and the only arrangement
+under which the advice in this product can be trusted.
+
+**The ask at the ending is optional and comes last, after everything is
+given.** A woman who has just married is handed her record, told she can
+delete the app, and only then offered the auntie's part: paying for the next
+woman's place in her city rather than her own. It must never be a condition of
+anything — the moment reporting a marriage costs money, marriages stop being
+reported, and the one outcome metric this company has dies with it.
+
+**Why the unit economics can work:** sky-high intent, high willingness-to-pay
+for an outcome, and a community where **word of mouth is everything** — so if we
+nail trust, CAC is low and growth is organic. The same tightness is the risk:
+reputation is both the growth engine and the kill switch.
 
 ---
 
-## The wedge & go-to-market (a CEO can't skip this)
+## 6. What we measure — and what we never build
+
+Every dating app is judged on screen time, messages and swipes, and every one
+of those goes up when a person is stuck. So the only measurement here is a
+ladder of rungs, each a claim about a person's life rather than about their use
+of an app. It is defined in `src/lib/rungs.ts`, and the code is the source of
+truth over this document.
+
+**The outcome, and the only thing a marriage is allowed to produce:** a record
+for her, four optional answers for us, and one link she can send that nobody
+who is still looking could ever send. Marriages are never counted by inference
+— only by a person saying so on the way out, which is why saying so costs
+nothing and unlocks nothing.
+
+**North Star: followed-through per hundred arrived.** Of the people who opened
+this, how many had a conversation they were not going to have. It is reach
+times magnitude, and it cannot be gamed by anything that does not help a
+specific person say a specific hard thing.
+
+**Also watched, per city:** each rung reached — situated, mapped, read, eleven,
+asked him, he answered, vouched, counted, deciding, married. The lagging outcome
+is *married per hundred arrived*.
+
+**The counter-metric:** sessions per week should *fall* after a rung is
+reached. If it rises, something is holding people rather than helping them.
+
+**Distribution: arrivals by source per hundred followed-through.** Of every
+hundred people who had the conversation, how many new people did their words
+bring in — and through which door: words a friend sent, the eleven, a couple's
+link, the door, a family link. Every link this product hands out opens the
+instrument it describes, with no front door and no account, and says only what
+kind of link it was. The rule: the words travel, the product is the footnote,
+and there is no reward, counter or unlock for sending anything.
+
+**Never measured:** daily or weekly active users, time in app, replies sent,
+threads opened, check-ins, introductions viewed.
+
+**Never built, by name:**
+
+- A score on a person — hers included. Grounds are named in words.
+- A feed, a deck, or a swipe.
+- A daily ritual, a streak, a milestone counter, a comeback nudge.
+- "Who liked you", interest limits, or paid visibility.
+- Filters or "more introductions" as a paid tier.
+- A counter for guide replies that the member can see, or an unlimited tier.
+- A profile before there is a room to show it in.
+- Notifications about people. The only notification is "your city opened".
+- A referral reward, an invite counter, or share-to-unlock. Sending words to a
+  friend earns the sender nothing, and no one is told how many they sent.
+- A link that carries who sent it. Links carry what kind of thing they are.
+- Any mechanic whose success is measured by its own repetition.
+
+This list is meant to outlive the current codebase. Anyone hired from these
+documents should be able to reject a proposal by pointing at a line above.
+
+---
+
+## The wedge & go-to-market
 
 1. **One city, women-first, trust-seeded.** Launch Minneapolis. Earn credibility
    through community figures the diaspora already trusts (respected imams,
-   community orgs, the influential aunties). Waitlist + tasteful scarcity.
+   community orgs, the influential aunties). An honest count on the door, never
+   an invented crowd.
 2. **Density before expansion.** Liquidity is local for marriage; get one city
    *thick* before opening the next. A half-empty marketplace in ten cities is
    dead; a dense one in one city is alive.
-3. **Land on the single-player value first** (already built: readiness, Guide,
-   trust, the daily ritual). It delivers value at *zero* liquidity — which is the
-   honest answer to the cold-start problem. People get peace before they ever get
-   a match.
+3. **Land on the single-player value first** (already built: the read, the
+   eleven, the family words, the map, the guide). It delivers value at *zero*
+   liquidity — which is the honest answer to the cold-start problem. People
+   have the hard conversation before they ever get a match.
 
-## The moat
+## The moat — the Commandment of Entry, applied
 
-Not the AI (commoditising). The moat is: **trust + cultural depth + lifecycle
-breadth + community density.** A generic competitor can copy a feature; they
-can't copy being the institution this community grew up trusting, across the whole
-arc from "am I ready" to "ten years married."
+Assume a competent developer sees this app tomorrow. They can copy every
+screen. The question is what would still be missing from the copy, and how to
+make sure every legitimate new user widens that gap.
+
+**Fake complexity — things that look like a moat and are not.** Every file in
+`src/data/`: the eleven, the read's questions, the scripts, the Somali lines.
+They ship to every browser in plaintext; obfuscating them would be theatre.
+The matching weights, the eleven's `consequence` numbers, the read's dimension
+weights — hand-set constants a copier sets for themselves. The Claude system
+prompt; the model is a commodity. The five voices, the design system, the
+animations. None of it is defended, and no day is spent defending it.
+
+**True barriers — things that need users, trust, or time, and cannot be
+bought:**
+
+1. **Outcome-calibrated knowledge.** Which of the eleven predicts trouble,
+   which scripts actually get said, which thin ground precedes which ending.
+   Nobody can copy this without the people who produced it.
+2. **The vouch graph.** Every vouch is a real Somali family member who trusted
+   this with a name. A web of trust across a community, unfakeable at scale.
+3. **The married-referral graph.** People it worked for, telling people it
+   hasn't yet. In a tight community this *is* the brand.
+4. **City density.** Local-marketplace liquidity, one city at a time.
+5. **A safety record.** Zero incidents, over years, with real infrastructure
+   behind the claim — still to be built, and still a false promise on Trust
+   until it is.
+6. **Kept maps with ledgers.** A store of people who did costly things, not
+   people who typed an email.
+
+**The rule: every legitimate user strengthens at least one compounding
+asset.** The product used to record *that* things happened — rungs — and
+discard *what* happened. It now records both, as ids from closed lists, under
+"Count me":
+
+| Action | What reaches us | Asset it compounds |
+|---|---|---|
+| Arrives via a link | `arrived` + which kind of door | Referral network |
+| Builds her map | `mapped` + each ground in a word | What this community is thin on |
+| Takes a read | `read` + the band and the thinnest ground | What men here have typically not shown |
+| The eleven | `eleven` + how many in each state, and the one to open | Compatibility knowledge |
+| He answers on his phone | `he-answered` + the pair's joint per topic, in a count with no pair in it | The one dataset no single member could give |
+| Says "we talked" | `followed-through` + which conversation | Which scripts get said |
+| Family vouches | `vouched` + a vouch that lives as long as her map | The vouch graph |
+| Counted | `counted` + the ledger | Quality network, density |
+| Married, and leaves | `married` + who, what decided it, what here was real | Successful-match history |
+
+Never an answer in her words, never a name, never the line she writes for the
+next person. The install code the ladder is kept under cannot be joined to the
+code her map is kept under, by design.
+
+**The moat is not the words in `src/data/`. It is `docs/OPERATING.md`, run
+monthly against the readout** — the process that revises those words from what
+happened to real people. A copier gets the constants as they were on the day
+they copied them. This product gets the next revision.
 
 ## Risks I'm watching (no self-deception)
 
@@ -187,6 +342,9 @@ arc from "am I ready" to "ten years married."
   density, but real.
 - **Monetising something sacred, tastefully.** Get the tone wrong and we become
   the "corny Muslim app" we're defining ourselves against.
+- **Drift.** The dating-app mechanics are the default in this category, and they
+  came back into this product once already without anyone choosing them. The
+  list in §6 exists because of that.
 - **Gender balance.** Over-index on women's trust early, always.
 
 ## The endgame

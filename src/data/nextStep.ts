@@ -1,4 +1,4 @@
-import type { Dimension, DimensionReading, ModeId, StepRecord } from '../types'
+import type { Dimension, ModeId, StepRecord } from '../types'
 
 /**
  * The bridge from diagnosis to practice — the working half of the readiness map.
@@ -87,23 +87,21 @@ export function nextStepFor(dimension: Dimension): NextStep {
 }
 
 /**
- * Which ground to offer, in order. Thinnest first — but ground you've already
- * worked drops behind ground you haven't, so the app keeps handing you something
- * new instead of the same weak spot forever.
+ * Which ground to offer, in order. Thinnest first (the map's own ordering) —
+ * but ground you've already worked drops behind ground you haven't, so the app
+ * keeps handing you something new instead of the same weak spot forever.
  */
-export function groundOrder(dimensions: DimensionReading[], steps: StepRecord[]): Dimension[] {
+export function groundOrder(thinnest: Dimension[], steps: StepRecord[]): Dimension[] {
   const worked = new Map<Dimension, number>()
   for (const s of steps) {
     if (s.done) worked.set(s.dimension, (worked.get(s.dimension) ?? 0) + 1)
   }
-  return [...dimensions]
-    .sort((a, b) => {
-      const wa = worked.get(a.dimension) ?? 0
-      const wb = worked.get(b.dimension) ?? 0
-      if (wa !== wb) return wa - wb
-      return a.score - b.score
-    })
-    .map((d) => d.dimension)
+  return [...thinnest].sort((a, b) => {
+    const wa = worked.get(a) ?? 0
+    const wb = worked.get(b) ?? 0
+    if (wa !== wb) return wa - wb
+    return thinnest.indexOf(a) - thinnest.indexOf(b)
+  })
 }
 
 /** The open step, if one is being carried. At most one at a time — by design. */
@@ -133,18 +131,3 @@ export function whenLabel(key: string, today: string): string {
   return `${Math.round(d / 7)} weeks ago`
 }
 
-/**
- * Has enough real work happened since the last reading to be worth reflecting
- * again? Two things done and at least five days — the map should never nag, and
- * a reading taken the same week as the last one has nothing new to measure.
- */
-export function readyToReflect(
-  steps: StepRecord[],
-  lastReading: string | undefined,
-  today: string,
-): number {
-  if (!lastReading) return 0
-  const since = steps.filter((s) => s.done && s.done > lastReading).length
-  if (since < 2) return 0
-  return daysApart(today, lastReading) >= 5 ? since : 0
-}

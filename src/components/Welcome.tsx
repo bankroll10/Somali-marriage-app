@@ -13,45 +13,6 @@ interface Props {
 }
 
 
-/**
- * The result, withheld.
- *
- * Same ring the readiness map reveals at the end — drawn here with the number
- * replaced by "??" and the arc barely started. It shows the exact shape of what
- * you get without giving any of it away, which is the only honest way to build
- * curiosity: nothing here is a claim, it's the real object with the answer
- * removed.
- */
-function LockedRing() {
-  const r = 34
-  const c = 2 * Math.PI * r
-  return (
-    <div className="relative h-24 w-24 flex-none" aria-hidden>
-      <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
-        <circle cx="40" cy="40" r={r} fill="none" stroke="var(--color-cream)" strokeOpacity="0.14" strokeWidth="6" />
-        <circle
-          cx="40"
-          cy="40"
-          r={r}
-          fill="none"
-          stroke="var(--color-gold-soft)"
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={c * 0.88}
-          className="animate-ring-tease"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="font-display text-[1.6rem] font-medium leading-none text-cream/80">??</span>
-        <span className="mt-1 text-[0.55rem] uppercase tracking-[0.18em] text-cream/45">
-          readiness
-        </span>
-      </div>
-    </div>
-  )
-}
-
 export default function Welcome({
   onBegin,
   onRead,
@@ -96,21 +57,20 @@ export default function Welcome({
             thinnest right now, and one honest thing to do about it this week.
           </p>
 
-          {/* The gap, made visible. You can see the shape of your answer and not
-              the answer: the ring is drawn, the number is withheld. */}
+          {/* What is withheld is the real thing. This used to be a ring with
+              "??" in it and "Your number is two minutes away" — a quiz-funnel
+              hook that promised a score, and then the map had to deliver one.
+              The honest object was already in the paragraph above. */}
           <div
-            className="animate-rise mt-8 flex items-center gap-5"
+            className="animate-rise mt-8 max-w-md border-l-2 border-gold-soft/60 pl-4"
             style={{ animationDelay: '120ms' }}
           >
-            <LockedRing />
-            <div className="min-w-0">
-              <p className="font-display text-[1.15rem] font-medium leading-snug tracking-tight text-cream text-balance">
-                Your number is two minutes away.
-              </p>
-              <p className="mt-1 text-[0.88rem] leading-snug text-cream/55 text-pretty">
-                No one else ever sees it — not your family, not a match, not us.
-              </p>
-            </div>
+            <p className="font-display text-[1.15rem] font-medium leading-snug tracking-tight text-cream text-balance">
+              The one place you’re thinnest is two minutes away.
+            </p>
+            <p className="mt-1 text-[0.88rem] leading-snug text-cream/55 text-pretty">
+              In words, not a score. No one else ever sees it — not your family, not a match, not us.
+            </p>
           </div>
 
           {/* The objection that stops her tapping isn't "is this any good" — it's

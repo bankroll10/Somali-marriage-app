@@ -1,5 +1,6 @@
 import { clearProgress, saveProgress } from './storage'
-import { dayKey } from '../data/checkin'
+import { dayKey } from '../lib/dates'
+import { snapshotOf } from './reflection'
 import type { Answers, Identity } from '../types'
 
 /**
@@ -8,10 +9,14 @@ import type { Answers, Identity } from '../types'
  *   ?fresh — clears saved state → the app opens on Welcome (tab 1 of a demo:
  *            show onboarding and the 30-second aha).
  *   ?demo  — seeds a complete, coherent member ("Hodan") → the app opens on
- *            Home (tab 2: show the map, guide, trust, discovery, conversation).
+ *            Home (tab 2: show the work card, the map, the guide, the door).
  *
  * Reloading a ?demo URL re-seeds, so the demo tab always resets to a known
  * state. Both params overwrite whatever is in localStorage — by design.
+ *
+ * Neither combines with a link (`?read`, `?couple=`…): main.tsx strips the
+ * query before this runs whenever a link is present. No minted link carries
+ * them, so this is a note, not a bug.
  */
 
 const demoAnswers: Answers = {
@@ -44,7 +49,6 @@ const demoIdentity: Identity = {
   adult: true,
   age: 27,
   scene: 'twin-cities',
-  bio: 'Nurse, big sister, early-morning walker. I want a home built on deen, honesty, and a lot of laughter.',
 }
 
 export function seedDemo() {
@@ -55,21 +59,12 @@ export function seedDemo() {
     trust: { guideOnDevice: false, countMe: true },
     situated: true,
     followups: [],
-    // History but no entry TODAY — the live check-in tap is a demo moment,
-    // and the strip + continuity line have something to show.
-    checkIns: [
-      { date: dayKey(4), mood: 'heavy' },
-      { date: dayKey(2), mood: 'hopeful' },
-      { date: dayKey(1), mood: 'steady' },
-    ],
-    // Day 7 on the path — the journey milestone shows in demos.
-    firstSeen: dayKey(6),
-    // Two readings: who she was on day one, and who she is now. The map's
-    // growth line ("Ready, with clarity to gain → Grounded and ready  +14")
-    // is the demo's transformation beat.
+    // Two readings: who she was on day one, and who she is now. The map says
+    // what changed in her own words — something recent still ached, and her
+    // heart leaned anxious; now she is healing, and meets closeness steadily.
     mapHistory: [
-      { date: dayKey(6), overall: 74, headline: 'Ready, with clarity to gain' },
-      { date: dayKey(0), overall: 90, headline: 'Grounded and ready' },
+      snapshotOf({ ...demoAnswers, healing: 'fresh', attachment: 'anxious', conflict: 'avoid' }, dayKey(6)),
+      snapshotOf(demoAnswers, dayKey(0)),
     ],
     // She's preparing — the stage band then shows the arc ahead of her.
     stage: 'preparing',
@@ -80,13 +75,9 @@ export function seedDemo() {
       { dimension: 'family', taken: dayKey(3), done: dayKey(2) },
       { dimension: 'emotional', taken: dayKey(1) },
     ],
-    // Most of the month's guide allowance spent, no trial started — the "6
-    // replies left" line and the whole free-to-paid path are one tap away.
-    plus: {
-      trialStarted: null,
-      trialTaken: false,
-      usage: { month: dayKey(0).slice(0, 7), used: 14 },
-    },
+    // Some of the guide's budget spent. Three rungs reached (arrived, situated,
+    // mapped) grant forty-five replies; she has used fourteen.
+    guide: { replies: 14 },
     // No saved place — the ask is part of the demo.
     waitlist: null,
     // No read yet — taking one live is the demo's strongest moment.
@@ -94,6 +85,7 @@ export function seedDemo() {
     beforeYes: null,
     couple: null,
     vouch: null,
+    ending: null,
     completed: true,
     coachThreads: {},
   })

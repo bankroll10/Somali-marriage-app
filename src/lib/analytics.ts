@@ -7,8 +7,10 @@
  * real provider (PostHog/Amplitude); call sites stay.
  *
  * Key funnel: onboarding_started → hook_answered → map_completed →
- * guide_message_sent (activation) → checkin_done / interest_expressed /
- * conversation_message (retention) → invite_copied / reflection_shared (growth).
+ * guide_asked (activation) → read_completed / before_yes_completed /
+ * guide_committed (progression) → words_sent / door_sent / invite_copied /
+ * reflection_shared (the words travelling). Nothing here counts sends per
+ * person; the ladder store counts arrivals by source, and that is the metric.
  */
 const KEY = 'niyyah.events.v1'
 const MAX_EVENTS = 300

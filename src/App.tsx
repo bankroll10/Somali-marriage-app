@@ -17,11 +17,11 @@ import Families from './components/Families'
 import Couple from './components/Couple'
 import Vouch from './components/Vouch'
 import Plus from './components/Plus'
-import type { CoachMessage, Gender } from './types'
+import Ending from './components/Ending'
+import type { Gender } from './types'
 import type { Entry } from './lib/entry'
 import { buildRead, readSummary } from './lib/read'
 import { beforeYesSummary, buildBeforeYes } from './lib/beforeYes'
-import { guideOpeningLine } from './data/checkin'
 import { useNiyyah } from './hooks/useNiyyah'
 
 export default function App({ entry = null }: { entry?: Entry | null }) {
@@ -53,11 +53,6 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
 }
 
 function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
-  // Guide voices she has actually used — goes with her place in the cohort, so
-  // the tally can say what people reach for, not only what they name.
-  const voices = (Object.entries(n.coachThreads) as [string, CoachMessage[] | undefined][])
-    .filter(([, thread]) => thread?.some((m) => m.role === 'user'))
-    .map(([mode]) => mode)
   const hookId = n.answers['hardest-part'] as string | undefined
   const setScene = (scene: string) => n.setIdentity((prev) => ({ ...prev, scene }))
   // One line about her last read, recomputed from her answers rather than stored,
@@ -148,7 +143,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onTakeStep={n.takeStep}
           onCompleteStep={n.completeStep}
           waitlist={n.waitlist}
-          voices={voices}
           ledger={n.ledgerDone}
           onScene={setScene}
           hookId={hookId}
@@ -178,23 +172,20 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenBeforeYes={() => n.setScreen('beforeYes')}
           hasBeforeYes={!!n.beforeYes}
           onOpenFamilies={() => n.setScreen('families')}
+          onOpenEnding={() => n.setScreen('ending')}
           onPhilosophy={() => n.openPhilosophy('home')}
           onRestart={n.startFresh}
-          checkInMood={n.todayMood}
-          checkIns={n.checkIns}
           followUpAsk={n.followUpAsk}
           onAnswerFollowUp={n.answerFollowUp}
-          onCheckIn={n.recordCheckIn}
+          read={n.read}
+          onReadStillStands={n.readStillStands}
           steps={n.steps}
           onTakeStep={n.takeStep}
           onCompleteStep={n.completeStep}
-          lastReading={n.mapHistory[n.mapHistory.length - 1]?.date}
           saveOk={n.saveOk}
-          firstSeen={n.firstSeen}
           stage={n.stage}
           onSetStage={n.setStage}
           hookId={hookId}
-          voices={voices}
           ledger={n.ledgerDone}
           vouch={n.vouch}
           waitlist={n.waitlist}
@@ -210,7 +201,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           answers={n.answers}
           threads={n.coachThreads}
           onThreadsChange={n.setCoachThreads}
-          moodLine={guideOpeningLine(n.checkIns)}
           initialMode={n.guideMode}
           initialAsk={n.guideAsk}
           onAskConsumed={n.clearGuideAsk}
@@ -218,10 +208,9 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           stage={n.stage}
           readNote={readNote}
           beforeYesNote={beforeYesNote}
-          plusActive={n.plusActive}
           repliesLeft={n.repliesLeft}
           onSpendReply={n.spendReply}
-          onOpenPlus={() => n.setScreen('plus')}
+          onCommit={n.commitFromGuide}
           onBack={() => n.setScreen('home')}
         />
       )
@@ -249,16 +238,12 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           ledger={n.ledgerEntries}
           vouch={n.vouch}
           onKept={n.setKeptCode}
-          onChangeBio={(bio) => n.setIdentity((prev) => ({ ...prev, bio }))}
           onChangeIdentity={n.setIdentity}
           saveOk={n.saveOk}
           onOpenTrust={() => n.openTrust('profile')}
           onOpenPlus={() => n.setScreen('plus')}
-          plusActive={n.plusActive}
-          trialDaysLeft={n.trialDaysLeft}
           waitlist={n.waitlist}
           onJoinWaitlist={n.joinedCohort}
-          voices={voices}
           onAnswer={n.answer}
           onRetake={n.retakeMap}
           onBack={() => n.setScreen('home')}
@@ -322,16 +307,14 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       return <Vouch code={n.entryCode} onDone={() => n.setScreen('welcome')} />
 
     case 'families':
-      return <Families gender={n.identity.gender} stage={n.stage} onBack={backHome} />
+      return <Families gender={n.identity.gender} stage={n.stage} onTaken={n.noteFamilyScript} onBack={backHome} />
 
     case 'sample':
       return (
         <SampleIntroduction
           identity={n.identity}
           answers={n.answers}
-          overall={n.reflection?.overall}
           hookId={hookId}
-          voices={voices}
           ledger={n.ledgerDone}
           waitlist={n.waitlist}
           onJoinWaitlist={n.joinedCohort}
@@ -343,14 +326,17 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
 
     case 'plus':
       return (
-        <Plus
-          plusActive={n.plusActive}
-          trialDaysLeft={n.trialDaysLeft}
-          trialUsed={n.trialUsed}
-          repliesLeft={n.repliesLeft}
-          onStartTrial={n.startTrial}
-          onEndTrial={n.endTrial}
-          onBack={() => n.setScreen('profile')}
+        <Plus onBack={() => n.setScreen('profile')} />
+      )
+
+    case 'ending':
+      return (
+        <Ending
+          identity={n.identity}
+          ending={n.endingRecord}
+          saved={n.ending}
+          onSave={n.setEnding}
+          onBack={backHome}
         />
       )
 

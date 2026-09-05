@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import type { Gender } from '../types'
-import { inviteText, type InviteSource } from '../data/invite'
+import { inviteLink, inviteText, type InviteSource } from '../data/invite'
 import { shareOrCopy } from '../lib/share'
-import { SITE_URL } from '../lib/site'
 import { CheckIcon } from './ui'
 
 interface Props {
@@ -28,7 +27,7 @@ export default function InviteRow({
   const [copied, setCopied] = useState(false)
 
   async function invite() {
-    const result = await shareOrCopy({ text: inviteText(source, gender), url: SITE_URL }, 'invite_copied')
+    const result = await shareOrCopy({ text: inviteText(source, gender), url: inviteLink(source) }, 'invite_copied')
     if (result === 'copied') {
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2400)

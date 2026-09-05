@@ -1,11 +1,11 @@
 import type {
   Answers,
-  CheckIn,
+  EndingRecord,
   MapSnapshot,
   CoachMessage,
+  GuideUse,
   Identity,
   ModeId,
-  PlusState,
   ReadRecord,
   CoupleState,
   FollowUp,
@@ -15,19 +15,16 @@ import type {
   TrustSettings,
   WaitlistState,
 } from '../types'
-import { defaultPlus, defaultTrust } from '../types'
+import { defaultGuideUse, defaultTrust } from '../types'
 
 const KEY = 'niyyah.intake.v1'
+const KNOWN_MODES = new Set<string>(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker'])
 
 export interface PersistedState {
   answers: Answers
   identity: Identity
   trust: TrustSettings
-  /** Check-in history, newest entries appended; capped in the hook. */
-  checkIns: CheckIn[]
-  /** Date key of the user's first visit — powers journey milestones. */
-  firstSeen: string
-  /** Every readiness reading ever made, oldest first — the record of growth. */
+  /** Every reading ever made, oldest first — the record of what changed. */
   mapHistory: MapSnapshot[]
   /** Where they are in the arc — the product follows them past the match. */
   stage: Stage
@@ -35,8 +32,8 @@ export interface PersistedState {
   situated: boolean
   /** Work taken on from the map, open and completed — oldest first. */
   steps: StepRecord[]
-  /** Trial state + this month's guide allowance. */
-  plus: PlusState
+  /** Replies spent, ever — measured against a budget her progress grants. */
+  guide: GuideUse
   /** Their saved place, once they've asked for one. */
   waitlist: WaitlistState | null
   /** The most recent read they took on someone. */
@@ -47,6 +44,8 @@ export interface PersistedState {
   couple: CoupleState | null
   /** A family member's vouch, once given. */
   vouch: VouchState | null
+  /** What she told us on the way out, once she has married. The success state. */
+  ending: EndingRecord | null
   /** What the product told her to do, and how it went. */
   followups: FollowUp[]
   completed: boolean
@@ -62,9 +61,12 @@ export function loadProgress(): Persisted | null {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return null
+    // Older saves also carried check-ins and a first-seen date. Neither is read
+    // any more; they fall away on the next save.
     const p = JSON.parse(raw) as Partial<Persisted> & {
-      checkIn?: CheckIn | null
       waitlist?: (Partial<WaitlistState> & { email?: string }) | null
+      /** The old monthly allowance and trial. Only what was spent carries over. */
+      plus?: { usage?: { used?: number } } | null
     }
     return {
       answers: p.answers ?? {},
@@ -75,16 +77,21 @@ export function loadProgress(): Persisted | null {
         guideOnDevice: (p.trust as Partial<TrustSettings> | undefined)?.guideOnDevice ?? defaultTrust.guideOnDevice,
         countMe: (p.trust as Partial<TrustSettings> | undefined)?.countMe ?? defaultTrust.countMe,
       },
-      // Legacy blobs stored a single `checkIn` — fold it into history.
-      checkIns: p.checkIns ?? (p.checkIn ? [p.checkIn] : []),
-      firstSeen: p.firstSeen ?? '',
-      mapHistory: p.mapHistory ?? [],
+      // Older readings stored a number and no answers. They keep their date and
+      // headline; the number is dropped, and with no answers they simply
+      // produce no "what changed" lines.
+      mapHistory: (p.mapHistory ?? []).map((m) => ({
+        date: m.date,
+        headline: m.headline,
+        grounds: m.grounds ?? {},
+        answers: m.answers ?? {},
+      })),
       stage: p.stage ?? 'preparing',
       // Anyone who already moved off the default, or finished a map, told us
       // where she was — even if she did it before we recorded the choice.
       situated: p.situated ?? ((p.stage !== undefined && p.stage !== 'preparing') || !!p.completed),
       steps: p.steps ?? [],
-      plus: { ...defaultPlus, ...(p.plus ?? {}) },
+      guide: p.guide ?? { replies: p.plus?.usage?.used ?? defaultGuideUse.replies },
       // Earlier saves stored an email; the field now holds email or phone.
       waitlist: p.waitlist
         ? { ...p.waitlist, contact: p.waitlist.contact ?? p.waitlist.email ?? '', joinedAt: p.waitlist.joinedAt ?? '' }
@@ -93,9 +100,13 @@ export function loadProgress(): Persisted | null {
       beforeYes: p.beforeYes ?? null,
       couple: p.couple ?? null,
       vouch: p.vouch ?? null,
+      ending: p.ending ?? null,
       followups: p.followups ?? [],
       completed: p.completed ?? false,
-      coachThreads: p.coachThreads ?? {},
+      // A thread with a voice that no longer exists (the Profile Coach) is dropped.
+      coachThreads: Object.fromEntries(
+        Object.entries(p.coachThreads ?? {}).filter(([mode]) => KNOWN_MODES.has(mode)),
+      ) as PersistedState['coachThreads'],
       updatedAt: p.updatedAt ?? 0,
     }
   } catch {

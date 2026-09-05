@@ -26,8 +26,6 @@ export interface WaitlistEntry {
   /** Diaspora community id (see data/scenes.ts) — this is the city signal. */
   scene?: string
   gender?: string
-  /** Readiness score, so demand can be read against seriousness. */
-  overall?: number
   /**
    * What they named as the hardest part, in their own words rather than as an
    * id — "Trusting again after being hurt" is a finding; `trust` is a lookup.
@@ -103,7 +101,6 @@ async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<bo
   if (entry.code) body.set('code', entry.code)
   if (entry.scene) body.set('scene', entry.scene)
   if (entry.gender) body.set('gender', entry.gender)
-  if (typeof entry.overall === 'number') body.set('overall', String(entry.overall))
   if (entry.hardestPart) body.set('hardest_part', entry.hardestPart)
   body.set('at', entry.at)
   try {

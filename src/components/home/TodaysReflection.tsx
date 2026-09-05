@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { DailyPrefs, DailyReflection } from '../../data/daily'
-import { tomorrowTag } from '../../data/daily'
+import type { DailyReflection } from '../../data/daily'
 import { renderReflectionCard } from '../../lib/card'
 import { shareImage, shareOrCopy } from '../../lib/share'
 import { SITE_HOST, SITE_URL } from '../../lib/site'
@@ -8,18 +7,18 @@ import { CheckIcon, Logo } from '../ui'
 
 interface Props {
   daily: DailyReflection
-  prefs: DailyPrefs
   /** Why this card was chosen for this person — omitted when it wasn't. */
   whyThisOne?: string | null
 }
 
 /**
- * Today's reflection — the reason to return, and the one thing in Niyyah that
- * leaves the app. It goes out as an image, because a picture of a thought is
+ * Today's reflection — a thought worth carrying, and the one thing in Niyyah
+ * that leaves the app. Not a reason to return: the "Tomorrow · Patience" tease
+ * that used to sit in its footer was a comeback hook, and it is gone. It goes out as an image, because a picture of a thought is
  * something people actually post; a link to a marriage app is not. The card on
  * screen is the preview, so there's no confirmation step to sit through.
  */
-export default function TodaysReflection({ daily, prefs, whyThisOne }: Props) {
+export default function TodaysReflection({ daily, whyThisOne }: Props) {
   const [shareState, setShareState] = useState<'idle' | 'working' | 'saved'>('idle')
   const shareText = `“${daily.title}” — ${daily.body}\n\nFrom Niyyah, the marriage platform built for the Somali diaspora. ${SITE_HOST}`
   const fileName = `niyyah-${daily.tag.toLowerCase()}.png`
@@ -126,10 +125,9 @@ export default function TodaysReflection({ daily, prefs, whyThisOne }: Props) {
               'Send this to someone'
             )}
           </button>
-          {/* Footer: tomorrow's tease + a quiet wordmark, so a screenshot of
-              this card carries the brand wherever it's shared. */}
-          <div className="mt-4 flex items-center justify-between border-t border-cream/10 pt-3">
-            <p className="text-[0.78rem] text-cream/50">Tomorrow · {tomorrowTag(prefs)}</p>
+          {/* Footer: a quiet wordmark, so a screenshot of this card carries
+              the brand wherever it's shared. */}
+          <div className="mt-4 flex items-center justify-end border-t border-cream/10 pt-3">
             <Logo mono size="sm" className="text-cream/35" />
           </div>
         </div>

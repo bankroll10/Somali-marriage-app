@@ -3,20 +3,44 @@ import type { Candidate } from '../data/candidates'
 import type { Answers } from '../types'
 
 /**
- * Alignment engine — scores how well a candidate fits the seeker's readiness map.
- * This is the anti-swipe core: people are ranked by *alignment*, not looks.
+ * Alignment — how a person's map reads against someone.
+ *
+ * Two rules, in this order:
+ *
+ *   1. What she said she will not compromise on is checked first, as a gate.
+ *      The old engine never read `dealbreakers` at all: a man could come out
+ *      "Strong alignment" while failing her stated non-negotiable on faith or
+ *      children. Anything a non-negotiable can be checked against is checked;
+ *      what cannot be checked becomes the first thing to ask him.
+ *
+ *   2. Nothing that reaches a screen is a percentage. The old output was a
+ *      0–100 score with bands — "Strong alignment", "Promising", "Worth
+ *      exploring" — which is a match percentage by another name, and when real
+ *      people arrive a percentage is an invitation to rank them. What a
+ *      person is shown is reasons, one place they differ, and the question to
+ *      open with. A number survives only as `fit`, to choose which sample to
+ *      show, and is never rendered.
  *
  * ─── Claude seam ───────────────────────────────────────────────────────────
- * The numeric score stays rule-based (fast, explainable). The "why you align"
- * reasoning is exactly where Claude (the Matchmaker voice) plugs in later — a
- * warm, specific paragraph instead of the templated reasons below.
+ * The reasons below are templated. When the Matchmaker voice is wired to a
+ * real introduction, it writes them as a paragraph, from the same inputs.
  * ───────────────────────────────────────────────────────────────────────────
  */
 
 export interface Alignment {
-  score: number // 0–100
+  /**
+   * Internal only — used to order candidates, never shown. Deliberately not
+   * named `score`, so that nothing can render it by habit.
+   */
+  fit: number
+  /** Why their lives fit, most persuasive first. At most three. */
   reasons: string[]
-  headline: string
+  /** The one place the two of them differ most — said plainly, or null. */
+  differs: string | null
+  /** The first thing to ask him: a non-negotiable no answer can check, or the difference above. */
+  ask: string
+  /** Set when he fails one of her stated non-negotiables. Nothing else matters then. */
+  blocked: string | null
 }
 
 // Candidate practice ids and the intake's 'practice' option ids are the same
@@ -69,14 +93,6 @@ function overlap(a: string[] = [], b: string[] = []): { ratio: number; shared: s
 
 /**
  * Translate a multi-select answer from option ids into the shared tag vocabulary.
- *
- * The two sides of this comparison speak different languages: the intake stores
- * what the user tapped as ids ('deen-char', 'emotional'), while candidates carry
- * human labels ('Taqwa', 'Maturity'). Comparing them directly is always empty —
- * which is exactly what happened: `values.ratio` was 0 for every user against
- * every candidate, silently zeroing a fifth of the score and putting "Strong
- * alignment" mathematically out of reach.
- *
  * Each option's `tags` field already IS the candidate vocabulary, so translating
  * through it keeps one source of truth rather than a lookup table that can drift.
  */
@@ -88,70 +104,92 @@ function answerTags(answers: Answers, questionId: string): string[] {
   return value.flatMap((id) => question.options?.find((o) => o.id === id)?.tags ?? [])
 }
 
+/**
+ * Her non-negotiables, checked against what a candidate's answers can show.
+ *
+ * Two can be checked: a shared commitment to faith (his practice), and being
+ * aligned on children. The rest — honesty, respect, clean living, direction,
+ * how he treats the powerless — are real and unverifiable from any form, so
+ * they become the first thing to ask.
+ */
+const ASK_FOR: Record<string, string> = {
+  honesty: 'You said honesty is not negotiable. Ask him about the last time he told someone a hard truth — and watch whether he answers plainly or performs.',
+  respect: 'You said respect for you and your family is not negotiable. Ask him how he speaks about his own mother when she is not in the room.',
+  'no-addiction': 'You said a life free of addiction is not negotiable. Ask him directly, and early — it is a kinder question at month one than at month six.',
+  'ambition-nn': 'You said direction in life is not negotiable. Ask him what the next two years look like, and listen for whether there is a plan or a mood.',
+  'kindness-nn': 'You said how he treats people, especially the powerless, is not negotiable. Watch him with a waiter, a younger cousin, someone who cannot help him.',
+}
+
+function gate(answers: Answers, c: Candidate): { blocked: string | null; ask: string | null } {
+  const nn = Array.isArray(answers['dealbreakers']) ? (answers['dealbreakers'] as string[]) : []
+  if (nn.includes('faith-nn') && (c.practice === 'cultural' || c.practice === 'returning')) {
+    return { blocked: 'You said a shared commitment to faith is not negotiable, and his practice is not there yet. That is the whole answer, however much else fits.', ask: null }
+  }
+  if (nn.includes('kids-nn')) {
+    const hers = answers['children']
+    const clash =
+      (hers === 'want' && c.children === 'no') ||
+      (hers === 'no' && (c.children === 'want' || c.children === 'open')) ||
+      (hers === 'open' && c.children === 'no')
+    if (clash) {
+      return { blocked: 'You said being aligned on children is not negotiable, and you are not. Nothing else on this list outweighs that.', ask: null }
+    }
+  }
+  const first = nn.find((id) => id in ASK_FOR)
+  return { blocked: null, ask: first ? ASK_FOR[first] : null }
+}
+
 export function alignment(answers: Answers, c: Candidate): Alignment {
+  const { blocked, ask: gateAsk } = gate(answers, c)
+
   // Faith: blend of how central faith is + practice level.
   const userFaithRole = typeof answers['faith-role'] === 'number' ? (answers['faith-role'] as number) : 3
-  const userPractice =
-    PRACTICE_SCALE[answers['practice'] as Candidate['practice']] ?? 2.5
+  const userPractice = PRACTICE_SCALE[answers['practice'] as Candidate['practice']] ?? 2.5
   const faithScore =
     (closeness(userFaithRole, c.faithRole, 4) + closeness(userPractice, PRACTICE_SCALE[c.practice], 3)) / 2
 
-  // Timeline.
   const userTl = TIMELINE_SCALE[answers['timeline'] as string] ?? 2.5
   const timelineScore = closeness(userTl, TIMELINE_SCALE[c.timeline], 3)
 
-  // Family involvement.
   const userFam = FAMILY_SCALE[answers['family-role'] as string] ?? 2.5
   const familyScore = closeness(userFam, FAMILY_SCALE[c.familyRole], 3)
 
-  // Children.
+  // Children. Want against no is the one mismatch that ends marriages, and it
+  // used to score 0.15 one way round and 0.45 the other — a woman who wanted
+  // children read a man who did not as a mild difference. It is the same
+  // difference from either side.
   const userKids = answers['children'] as string | undefined
   let childrenScore = 0.55
   if (userKids) {
+    const pair = new Set([userKids, c.children])
     if (userKids === c.children) childrenScore = 1
-    else if (
-      (userKids === 'want' && c.children === 'open') ||
-      (userKids === 'open' && c.children === 'want')
-    )
-      childrenScore = 0.75
-    else if (userKids === 'no' && c.children !== 'no') childrenScore = 0.15
+    else if (pair.has('want') && pair.has('open')) childrenScore = 0.75
+    else if (pair.has('no') && (pair.has('want') || pair.has('open'))) childrenScore = 0.15
     else childrenScore = 0.45
   }
 
   const values = overlap(answerTags(answers, 'value-most'), c.values)
 
-  // How you'd live. Read from the three optional questions on the sample
-  // introduction and Profile — the Somali-specific ground no other app reads on.
   const householdScore = livingScore(answers['household'], c.household, HOUSEHOLD_SCALE)
   const workScore = livingScore(answers['work'], c.work, WORK_SCALE)
   const moneyScore = livingScore(answers['money-home'], c.moneyHome, MONEY_SCALE)
 
   // Weights sum to 1. Faith still leads; the three living terms take 0.18
-  // between them — enough that a real mismatch on whose house or money home
-  // shows in the number, not so much that a neutral "haven't decided" drags it.
-  const score = Math.round(
-    100 *
-      (faithScore * 0.26 +
-        childrenScore * 0.16 +
-        values.ratio * 0.16 +
-        familyScore * 0.13 +
-        timelineScore * 0.11 +
-        householdScore * 0.08 +
-        workScore * 0.05 +
-        moneyScore * 0.05),
-  )
+  // between them. A blocked candidate sorts to the bottom whatever else fits.
+  const fit = blocked
+    ? 0
+    : faithScore * 0.26 +
+      childrenScore * 0.16 +
+      values.ratio * 0.16 +
+      familyScore * 0.13 +
+      timelineScore * 0.11 +
+      householdScore * 0.08 +
+      workScore * 0.05 +
+      moneyScore * 0.05
 
-  // Build human reasons, most persuasive first — only three are shown, so the
-  // order decides what she actually reads. The shared-value line names her own
-  // taps back to her ("you share a value of taqwa and kindness"), which is more
-  // specific than any of the band-based reasons, so it sits second behind deen.
-  // It used to sit last and was cut by the slice below every single time.
+  // Reasons, most persuasive first — only three are shown.
   const reasons: string[] = []
-  if (faithScore >= 0.8 && (userFaithRole >= 4 || c.faithRole >= 4))
-    reasons.push('you both put deen at the center')
-  // One living reason at most, and it sits second: it is the sentence no other
-  // app could write, and the whole point of asking. Money home first — it is
-  // the most specific to us, and the one most often found out too late.
+  if (faithScore >= 0.8 && (userFaithRole >= 4 || c.faithRole >= 4)) reasons.push('you both put deen at the center')
   const living =
     answers['money-home'] === 'expected' && c.moneyHome === 'expected'
       ? 'you both expect to send money home, and neither of you will resent it'
@@ -169,21 +207,34 @@ export function alignment(answers: Answers, c: Candidate): Alignment {
                   ? 'you both picture one of you at home'
                   : null
   if (living) reasons.push(living)
-  if (values.shared.length)
-    reasons.push(`you share a value of ${values.shared.slice(0, 2).join(' and ').toLowerCase()}`)
+  if (values.shared.length) reasons.push(`you share a value of ${values.shared.slice(0, 2).join(' and ').toLowerCase()}`)
   if (childrenScore >= 0.9 && userKids === 'want') reasons.push('you both want a family')
-  if (timelineScore >= 0.8 && (userTl >= 3 || TIMELINE_SCALE[c.timeline] >= 3))
-    reasons.push('you’re both ready to move with intention')
+  if (timelineScore >= 0.8 && (userTl >= 3 || TIMELINE_SCALE[c.timeline] >= 3)) reasons.push('you’re both ready to move with intention')
   if (familyScore >= 0.8) reasons.push('you see family’s role the same way')
 
-  const headline =
-    score >= 85
-      ? 'Strong alignment'
-      : score >= 70
-        ? 'Promising alignment'
-        : score >= 55
-          ? 'Worth exploring'
-          : 'Some common ground'
+  // The one place they differ most. Named, never scored; the lowest of the
+  // things she actually answered.
+  const differences: { score: number; line: string }[] = []
+  if (typeof answers['faith-role'] === 'number' || typeof answers['practice'] === 'string')
+    differences.push({ score: faithScore, line: 'how central faith is, day to day' })
+  if (answers['timeline']) differences.push({ score: timelineScore, line: 'how soon you each picture marriage' })
+  if (answers['family-role']) differences.push({ score: familyScore, line: 'how involved family should be, and when' })
+  if (userKids) differences.push({ score: childrenScore, line: 'children' })
+  if (typeof answers['household'] === 'string' && answers['household'] in HOUSEHOLD_SCALE)
+    differences.push({ score: householdScore, line: 'whose house you would live in' })
+  if (typeof answers['work'] === 'string' && answers['work'] in WORK_SCALE)
+    differences.push({ score: workScore, line: 'work after marriage and children' })
+  if (typeof answers['money-home'] === 'string' && answers['money-home'] in MONEY_SCALE)
+    differences.push({ score: moneyScore, line: 'money sent home' })
+  differences.sort((a, b) => a.score - b.score)
+  const weakest = differences[0]
+  const differs = weakest && weakest.score < 0.7 ? weakest.line : null
 
-  return { score, reasons: reasons.slice(0, 3), headline }
+  const ask =
+    gateAsk ??
+    (differs
+      ? `Open with the place you differ: ${differs}. Ask how he sees it before you say how you do.`
+      : 'Ask him what he pictures an ordinary Tuesday evening looking like, five years from now. You will hear the whole life in it.')
+
+  return { fit, reasons: reasons.slice(0, 3), differs, ask, blocked }
 }

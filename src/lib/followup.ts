@@ -1,6 +1,8 @@
-import type { FollowUp, Gender } from '../types'
+import type { FollowUp, Gender, ReadRecord } from '../types'
 import { beforeYesTopics, type Topic } from '../data/beforeYes'
 import { SCRIPTS, speak, type ReadDimension, type Script } from '../data/read'
+import { familyScript } from '../data/families'
+import type { WordsSource } from './words'
 
 /**
  * The second half of the help.
@@ -25,7 +27,20 @@ import { SCRIPTS, speak, type ReadDimension, type Script } from '../data/read'
 
 /** Long enough that a real conversation could have happened in between. */
 export const MIN_AGE_DAYS = 3
+/** Long enough that what he has shown her could have changed. */
+export const READ_STALE_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
+
+/**
+ * A read is about behaviour over time. A month after she took it — or a month
+ * after she last said it still stands — Home asks once whether anything has
+ * changed. Never sooner: a read re-taken every week would be a mood diary
+ * about him, and this product does not keep one of those about anyone.
+ */
+export function readIsStale(read: ReadRecord, now = Date.now()): boolean {
+  const since = Math.max(Date.parse(read.at), read.checkedAt ? Date.parse(read.checkedAt) : 0)
+  return Number.isFinite(since) && now - since >= READ_STALE_DAYS * DAY_MS
+}
 
 export interface FollowUpAsk {
   followUp: FollowUp
@@ -37,6 +52,8 @@ export interface FollowUpAsk {
   script: Script
   /** True when saying "we talked" can be written back into the eleven. */
   writesBack: boolean
+  /** Where the words came from, so they can be sent on to someone who needs them. */
+  travel: WordsSource
 }
 
 function topicFor(id: string, gender: Gender): Topic | undefined {
@@ -64,6 +81,41 @@ export function openFollowUp(followups: FollowUp[], gender: Gender = 'woman', no
 
 function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
   const say = speak(gender)
+  if (f.source === 'guide') {
+    // The guide's words live only in the reply she was given, so they travel
+    // with the record. A commitment with no words is not one; skip it.
+    const words = f.words?.trim()
+    if (!words) return null
+    return {
+      followUp: f,
+      question: say('Last time, the guide gave you words to say to {him}. Did you say them?'),
+      label: 'what the guide gave me the words for',
+      script: {
+        why: 'These are the words you said you would say.',
+        words,
+        tells: say(
+          'Whatever came back is the answer — not what you hoped, not what you feared. If it was not what you expected, bring it back to the guide and read it together.',
+        ),
+      },
+      writesBack: false,
+      travel: 'guide',
+    }
+  }
+  if (f.source === 'family') {
+    // The words for hooyo, the wali, his people. Noted when she took them,
+    // not when she opened them — browsing is not a commitment.
+    const s = familyScript(f.topic, gender)
+    if (!s) return null
+    const label = s.title.charAt(0).toLowerCase() + s.title.slice(1)
+    return {
+      followUp: f,
+      question: `Last time, you took the words for ${label}. Did you have that conversation?`,
+      label,
+      script: s.script,
+      writesBack: false,
+      travel: 'family',
+    }
+  }
   if (f.source === 'read') {
     if (!READ_DIMENSIONS.has(f.topic)) return null
     const script = SCRIPTS[f.topic as ReadDimension | 'early']
@@ -73,6 +125,7 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
       label: 'the question you were going to ask',
       script,
       writesBack: false,
+      travel: 'read',
     }
   }
   const topic = topicFor(f.topic, gender)
@@ -84,7 +137,29 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
     label,
     script: topic.script,
     writesBack: true,
+    travel: f.source === 'couple' ? 'couple' : 'eleven',
   }
+}
+
+/**
+ * The conversations she confirmed she actually had, oldest first.
+ *
+ * This is the only record in the product of things that happened in her life
+ * rather than on her screen, and at the end it is the whole story: not what
+ * she read, but what she said out loud to someone who could answer back.
+ */
+export function conversationsHad(
+  followups: FollowUp[],
+  gender: Gender = 'woman',
+): { label: string; at: string }[] {
+  return followups
+    .filter((f) => f.outcome === 'asked')
+    .sort((a, b) => Date.parse(a.outcomeAt ?? a.at) - Date.parse(b.outcomeAt ?? b.at))
+    .map((f) => {
+      const ask = describe(f, gender)
+      return ask ? { label: ask.label, at: (f.outcomeAt ?? f.at).slice(0, 10) } : null
+    })
+    .filter((x): x is { label: string; at: string } => x !== null)
 }
 
 /** What "we talked" writes back into her eleven, so the sheet stays true. */
@@ -106,9 +181,11 @@ export function noteFollowUp(
   source: FollowUp['source'],
   topic: string,
   at = new Date().toISOString(),
+  words?: string,
 ): FollowUp[] {
   if (followups.some((f) => f.source === source && f.topic === topic && !f.outcome)) return followups
-  return [...followups, { id: `${source}:${topic}:${at}`, source, topic, at }].slice(-20)
+  const entry: FollowUp = { id: `${source}:${topic}:${at}`, source, topic, at, ...(words ? { words } : {}) }
+  return [...followups, entry].slice(-20)
 }
 
 /** Record how it went, and stop asking. */

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import type { Answers, CoachMessage, Identity, ModeId, Stage } from '../types'
 import { getMode, modes, defaultModeFor, type CoachContext } from '../data/coach'
-import { askCoach } from '../lib/coach'
-import { FREE_REPLIES } from '../data/plus'
+import { askCoach, type Closer } from '../lib/coach'
+import { shareOrCopy } from '../lib/share'
+import { wordsMessage } from '../lib/words'
 import { nextId } from '../lib/id'
 import {
   ArrowRight,
@@ -45,24 +46,22 @@ interface Props {
   /** Threads live in app state so the guide remembers across navigation. */
   threads: Threads
   onThreadsChange: Dispatch<SetStateAction<Threads>>
-  /** Continuity from today's check-in — woven into the greeting. */
-  moodLine?: string
   /** Open straight into a voice — used when the map hands over a topic. */
   initialMode?: ModeId | null
   /** A question captured on Home, asked automatically on arrival. */
   initialAsk?: { text: string; why: string } | null
   onAskConsumed?: () => void
-  /** Niyyah+ state. Members have no counter; everyone else can see theirs. */
   /** Her Trust-screen choice to keep the Guide on this device. */
   onDeviceOnly?: boolean
   /** Where she is in the arc, and her last read — the Guide is told both. */
   stage?: Stage
   readNote?: string
   beforeYesNote?: string
-  plusActive: boolean
+  /** What is left of the guide's budget — see src/lib/budget.ts. Never shown as a counter. */
   repliesLeft: number
   onSpendReply: () => void
-  onOpenPlus: () => void
+  /** She has taken the words as something she will say; Home asks in a few days. */
+  onCommit: (words: string, topic: string) => void
   onBack: () => void
 }
 
@@ -85,18 +84,16 @@ export default function Coach({
   answers,
   threads,
   onThreadsChange: setThreads,
-  moodLine,
   initialMode,
   initialAsk,
   onAskConsumed,
-  plusActive,
   repliesLeft,
   onSpendReply,
   onDeviceOnly,
   stage,
   readNote,
   beforeYesNote,
-  onOpenPlus,
+  onCommit,
   onBack,
 }: Props) {
   const ctx: CoachContext = {
@@ -110,8 +107,13 @@ export default function Coach({
   const [mode, setMode] = useState<ModeId | null>(initialMode ?? null)
   const [input, setInput] = useState('')
   const [thinking, setThinking] = useState(false)
-  // Next actions offered after the latest reply — the thread never dead-ends.
-  const [followUps, setFollowUps] = useState<string[]>([])
+  // What sits under the latest reply: a way to commit to the words, permission
+  // to stop, and — only when the guide is missing a fact — one question back.
+  const [closers, setClosers] = useState<Closer[]>([])
+  // The words she has just committed to, so the chips can turn into the fact.
+  const [committed, setCommitted] = useState(false)
+  // Her last message, so a commitment can be filed under what she asked.
+  const lastAsked = useRef('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const messages = mode ? threads[mode] ?? [] : []
@@ -166,7 +168,7 @@ export default function Coach({
     setAskedWhy(initialAsk.why || null)
     setThreads((prev) => {
       if (prev[mode]) return prev
-      const greeting = getMode(mode).greeting(ctx) + (moodLine ? `\n\n${moodLine}` : '')
+      const greeting = getMode(mode).greeting(ctx)
       return { ...prev, [mode]: [{ id: nextId(), role: 'coach', text: greeting }] }
     })
     void send(initialAsk.text)
@@ -177,18 +179,19 @@ export default function Coach({
   function openMode(id: ModeId) {
     setMode(id)
     setInput('')
-    setFollowUps([])
+    setClosers([])
+    setCommitted(false)
     setThreads((prev) => {
       if (prev[id]) return prev
-      const greeting = getMode(id).greeting(ctx) + (moodLine ? `\n\n${moodLine}` : '')
+      const greeting = getMode(id).greeting(ctx)
       return { ...prev, [id]: [{ id: nextId(), role: 'coach', text: greeting }] }
     })
   }
 
-  // Out of allowance. The word "locked" is doing real work here: nothing that
-  // already exists is taken away — every past conversation stays readable, and
-  // the wall renders under the last answer rather than over it.
-  const locked = !plusActive && repliesLeft <= 0
+  // Budget spent. Nothing that already exists is taken away — every past
+  // conversation stays readable, and the wall renders under the last answer
+  // rather than over it. It points at what refills the budget, not at a price.
+  const locked = repliesLeft <= 0
 
   async function send(text: string) {
     const trimmed = text.trim()
@@ -196,7 +199,9 @@ export default function Coach({
     const userMsg: CoachMessage = { id: nextId(), role: 'user', text: trimmed }
     setThreads((prev) => ({ ...prev, [mode]: [...(prev[mode] ?? []), userMsg] }))
     setInput('')
-    setFollowUps([])
+    setClosers([])
+    setCommitted(false)
+    lastAsked.current = trimmed
     setThinking(true)
     // The answer is written into the thread as it arrives, under an id fixed
     // now, so every chunk updates the same bubble rather than appending a new
@@ -247,7 +252,7 @@ export default function Coach({
     // call that failed before its first word — this is the bubble's first and
     // only appearance, which the same helper handles.
     writeReply(reply.text)
-    setFollowUps(reply.followUps)
+    setClosers(reply.closers)
     setThinking(false)
   }
 
@@ -324,17 +329,10 @@ export default function Coach({
             {activeMode.label}
           </p>
           <p className="text-[0.78rem] text-muted">{activeMode.tagline} · private</p>
-          {/* Shown from halfway, not from the first message. A counter that's
-              always on your screen is a pressure gauge; one that appears when it
-              starts to matter is just honesty. */}
-          {!plusActive && repliesLeft <= FREE_REPLIES / 2 && repliesLeft > 0 && (
-            <button
-              onClick={onOpenPlus}
-              className="text-[0.75rem] text-gold underline-offset-4 hover:underline"
-            >
-              {repliesLeft} {repliesLeft === 1 ? 'reply' : 'replies'} left this month
-            </button>
-          )}
+          {/* No counter here. One used to appear from halfway — "6 replies left
+              this month" — and open the subscription screen. A counter on a
+              guide is a pressure gauge, and the thing it sold was the guide
+              without one. */}
         </div>
         <button
           onClick={() => setMode(null)}
@@ -370,15 +368,34 @@ export default function Coach({
           ))}
           {thinking && <Thinking glyph={activeMode.glyph} accent={activeMode.accent} />}
 
-          {!thinking && followUps.length > 0 && (
+          {/* Under the reply: closers, not extenders. A commitment writes the
+              words down as a follow-up; "enough for tonight" is permission to
+              stop, which a chat product never gives and a guide always should. */}
+          {!thinking && committed && (
+            <p className="animate-fade pl-12 text-[0.85rem] text-forest text-pretty">
+              Written down. In a few days, your space will ask how it went. Go say it.
+            </p>
+          )}
+          {!thinking && !committed && closers.length > 0 && (
             <div className="animate-fade flex flex-wrap gap-2 pl-12">
-              {followUps.map((f) => (
+              {closers.map((c) => (
                 <button
-                  key={f}
-                  onClick={() => send(f)}
-                  className="rounded-full border border-line bg-white/60 px-3.5 py-1.5 text-[0.85rem] font-medium text-ink-soft transition hover:border-forest/40 hover:text-ink"
+                  key={c.label}
+                  onClick={() => {
+                    if (c.kind === 'ask') void send(c.text)
+                    else if (c.kind === 'close') onBack()
+                    else {
+                      onCommit(c.words, lastAsked.current)
+                      setCommitted(true)
+                    }
+                  }}
+                  className={`rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition ${
+                    c.kind === 'commit'
+                      ? 'border-forest bg-forest text-cream hover:bg-forest-deep'
+                      : 'border-line bg-white/60 text-ink-soft hover:border-forest/40 hover:text-ink'
+                  }`}
                 >
-                  {f}
+                  {c.label}
                 </button>
               ))}
             </div>
@@ -389,25 +406,26 @@ export default function Coach({
           {locked && (
             <div className="animate-rise mt-2 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
               <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
-                That’s this month’s {FREE_REPLIES} replies
+                The guide has said what it can, for now
               </p>
               <p className="mt-2.5 font-display text-[1.3rem] font-medium leading-snug tracking-tight text-ink text-balance">
-                Your guide will be here on the 1st.
+                The next replies come from the next step.
               </p>
               <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-                Every conversation above stays yours to re-read, and everything
-                else in Niyyah is untouched — your map, your work, your
-                protections, and answering anyone who’s serious about you.
+                Every conversation above stays yours to re-read. The guide’s budget
+                refills when something real moves: you take a read on him, you
+                go through the eleven, you answer “since last time” on your space,
+                you say where you are now. Each one is more replies — and each one
+                is the thing the guide would have told you to do anyway.
               </p>
               <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-                Niyyah+ lifts the counter. Seven days free, and we don’t take a
-                card to start it.
+                There is nothing to buy here. That is deliberate.
               </p>
               <button
-                onClick={onOpenPlus}
+                onClick={onBack}
                 className="group mt-4 inline-flex items-center gap-1.5 rounded-full bg-forest px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:bg-forest-deep"
               >
-                See what Niyyah+ is
+                Back to your space
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
@@ -439,7 +457,7 @@ export default function Coach({
         {locked ? (
           <div className="mx-auto max-w-xl px-5 py-4 text-center">
             <p className="text-[0.85rem] text-muted text-pretty">
-              Your replies come back on the 1st — or start seven free days, no card.
+              Take a step on your space and the guide picks up where you left it.
             </p>
           </div>
         ) : (
@@ -460,7 +478,11 @@ export default function Coach({
               }
             }}
             rows={1}
-            placeholder={`Tell your ${activeMode.label.toLowerCase()} what’s going on…`}
+            placeholder={
+              repliesLeft <= 3
+                ? 'A few replies left before the guide asks you to take a step…'
+                : `Tell your ${activeMode.label.toLowerCase()} what’s going on…`
+            }
             className={`max-h-32 min-h-[3rem] flex-1 resize-none bg-white/70 px-4 py-3 text-[1rem] leading-relaxed ${fieldClass}`}
           />
           <button
@@ -532,9 +554,14 @@ function inline(text: string) {
   })
 }
 
-/** A suggested script — quoted words the user can copy and send. */
-function ScriptCard({ text }: { text: string }) {
+/**
+ * The guide's words — quoted, copyable, and sendable to someone who needs them.
+ * Kept light on purpose: the full dark card used everywhere else would dominate
+ * a chat bubble.
+ */
+function GuideWords({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
+  const [sent, setSent] = useState(false)
   // The card holds ONLY the words inside the quotes; commentary follows below.
   const body = text.replace(/^Try:\s*/i, '')
   const match = body.match(/^[“"]([\s\S]*?)[”"]\s*([\s\S]*)$/)
@@ -547,16 +574,30 @@ function ScriptCard({ text }: { text: string }) {
           Words you could use
         </p>
         <p className="mt-1.5 font-display text-[1.02rem] leading-relaxed text-ink">“{script}”</p>
-        <button
-          onClick={() => {
-            navigator.clipboard?.writeText(script).catch(() => {})
-            setCopied(true)
-            window.setTimeout(() => setCopied(false), 2000)
-          }}
-          className="mt-2 text-[0.8rem] font-medium text-forest underline-offset-4 hover:underline"
-        >
-          {copied ? '✓ Copied — make it yours before you send it' : 'Copy'}
-        </button>
+        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
+          <button
+            onClick={() => {
+              navigator.clipboard?.writeText(script).catch(() => {})
+              setCopied(true)
+              window.setTimeout(() => setCopied(false), 2000)
+            }}
+            className="text-[0.8rem] font-medium text-forest underline-offset-4 hover:underline"
+          >
+            {copied ? '✓ Copied — make it yours before you send it' : 'Copy'}
+          </button>
+          <button
+            onClick={async () => {
+              const result = await shareOrCopy(wordsMessage({ why: '', words: script, tells: '' }, 'guide'), 'words_sent')
+              if (result === 'copied') {
+                setSent(true)
+                window.setTimeout(() => setSent(false), 2000)
+              }
+            }}
+            className="text-[0.8rem] font-medium text-forest underline-offset-4 hover:underline"
+          >
+            {sent ? '✓ Copied to send' : 'Send these words to someone'}
+          </button>
+        </div>
       </div>
       {commentary && <p className="mt-3 text-pretty">{commentary}</p>}
     </>
@@ -569,7 +610,7 @@ function RichText({ text }: { text: string }) {
   return (
     <>
       {blocks.map((block, bi) => {
-        if (/^Try:/i.test(block.trim())) return <ScriptCard key={bi} text={block.trim()} />
+        if (/^Try:/i.test(block.trim())) return <GuideWords key={bi} text={block.trim()} />
         const lines = block.split('\n')
         const leading = lines.filter((l) => !l.trim().startsWith('•'))
         const bullets = lines.filter((l) => l.trim().startsWith('•'))

@@ -5,6 +5,7 @@ import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/
 import { somali } from '../data/somali'
 import { coupleLink, coupleReading, createCouple, readCouple, type CoupleView } from '../lib/couple'
 import { shareOrCopy } from '../lib/share'
+import { withVia } from '../lib/links'
 import { SITE_URL } from '../lib/site'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
@@ -294,7 +295,7 @@ function Result({
       <List title="Where you don’t know your own answer yet" items={result.byState.unknown} tone="gold" />
       <List title="Talked about, and agreed" items={result.byState.agree} tone="forest" />
 
-      <ScriptCard script={result.open.script} title={title} source="beforeYes" />
+      <ScriptCard script={result.open.script} title={title} source="beforeYes" travel="eleven" />
 
       <Together gender={gender} pronoun={pronoun} picked={picked} couple={couple} onCouple={onCouple} />
 
@@ -339,7 +340,12 @@ function Result({
             <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
           </button>
         )}
-        <InviteRow source="beforeYes" gender={pronoun === 'him' ? 'woman' : 'man'} />
+        <InviteRow
+          source="beforeYes"
+          gender={pronoun === 'him' ? 'woman' : 'man'}
+          title={pronoun === 'him' ? 'Send the eleven to a sister who’s deciding' : 'Send the eleven to a brother who’s deciding'}
+          body="Whose house, money home, a second wife — which ones they’ve had, and the words for the one that matters. No account."
+        />
 
         <button onClick={onAgain} className="mt-1 self-start text-[0.85rem] font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline">
           Go through it again
@@ -413,7 +419,7 @@ function Together({
     const result = await shareOrCopy(
       {
         text: `I’ve been through the eleven conversations on Niyyah — would you do them too? You answer on your own; I never see your answers, only where we match.`,
-        url: coupleLink(code, SITE_URL),
+        url: withVia(coupleLink(code, SITE_URL), 'couple'),
       },
       'couple_shared',
     )
@@ -450,7 +456,7 @@ function Together({
             </li>
           ))}
         </ul>
-        {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" />}
+        {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" travel="couple" />}
         <p className="mt-4 text-[0.8rem] leading-relaxed text-muted text-pretty">
           {he === 'he' ? 'He' : 'She'} saw this same list, and nothing else. Your answers were frozen the moment {he} answered; {he === 'he' ? 'his' : 'hers'} were sent once.
         </p>

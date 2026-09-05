@@ -361,6 +361,7 @@ function Result({
         script={result.script}
         title="The one question to ask next"
         source="read"
+        travel="read"
         preface={
           result.caution
             ? `The conversation above comes first. If you do decide to ask ${subject} something after it, this is the thing worth asking.`

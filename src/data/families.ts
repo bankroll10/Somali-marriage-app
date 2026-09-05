@@ -109,3 +109,8 @@ export function familyScripts(memberGender: Gender = 'woman', stage?: Stage): Fa
     }))
     .sort((a, b) => Number(!!stage && b.stages.includes(stage)) - Number(!!stage && a.stages.includes(stage)))
 }
+
+/** One script by id, pronouns resolved — or undefined when it is not for this member. */
+export function familyScript(id: string, memberGender: Gender = 'woman'): FamilyScript | undefined {
+  return familyScripts(memberGender).find((s) => s.id === id)
+}

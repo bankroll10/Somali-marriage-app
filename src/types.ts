@@ -32,8 +32,6 @@ export interface Identity {
   age?: number
   /** Diaspora community / scene id (see data/scenes.ts). */
   scene?: string
-  /** A short, self-written headline for the profile. */
-  bio?: string
 }
 
 export interface CoachMessage {
@@ -42,29 +40,19 @@ export interface CoachMessage {
   text: string
 }
 
-export interface ConvMessage {
-  id: string
-  from: 'me' | 'them' | 'system'
-  text: string
-}
-
-/** Daily check-in moods ("How's your heart today?"). */
-export type MoodId = 'steady' | 'hopeful' | 'heavy' | 'overthinking'
-
-/** One-tap daily check-in. */
-export interface CheckIn {
-  /** Local calendar day, YYYY-MM-DD. */
-  date: string
-  mood: MoodId
-}
-
+/**
+ * The guide's voices. There used to be a sixth, the Profile Coach — "help me
+ * write my bio", "what should my photos show", promising to make her
+ * "unmistakable" and "magnetic". It optimised self-presentation for a
+ * marketplace with nobody in it, which is the one lesson this product exists
+ * to unteach. Five voices are enough, and the router already picks one.
+ */
 export type ModeId =
   | 'auntie'
   | 'brother'
   | 'therapist'
   | 'islamic'
   | 'matchmaker'
-  | 'profile'
 
 /**
  * The one trust control that does what it says.
@@ -91,8 +79,10 @@ export interface TrustSettings {
    *
    * On, and each time she reaches a new rung — said what was happening, built
    * a map, took a read, had the conversation — that rung id and the date reach
-   * our side under a random code that is not her map code. Nothing else: no
-   * answers, no name, no message, and no way back to her. It is the only way
+   * our side under a random code that is not her map code, and for a few rungs
+   * how it came out, as ids from closed lists (src/lib/facts.ts). Nothing
+   * else: no answer in her words, no name, no message, and no way back to her.
+   * The Trust screen enumerates every field. It is the only way
    * to know whether this product helps anyone, which is the only way to make it
    * help more. Off, and nothing is sent, ever — the control gates the call
    * itself, not a preference we promise to honour.
@@ -173,11 +163,23 @@ export type AnswerValue = string | string[] | number
 
 export type Answers = Record<string, AnswerValue>
 
+/**
+ * Where a person stands on one ground, in a word.
+ *
+ * This used to be a number out of a hundred, and the map added seven of them
+ * up into an overall "readiness" that animated onto the screen and was posted
+ * to the server. The weights behind it were an answer key: the woman who
+ * answered most honestly — returning to her deen, still healing, anxiously
+ * attached — scored lowest, and then read that the number decided who she
+ * meets. The read already refuses to put a number on a person. This is the
+ * same rule, applied to her.
+ */
+export type GroundState = 'thin' | 'steady' | 'strong'
+
 export interface DimensionReading {
   dimension: Dimension
   label: string
-  /** 0–100 */
-  score: number
+  state: GroundState
   /** A short, human reading of where they stand. */
   note: string
 }
@@ -226,9 +228,16 @@ export interface WaitlistState {
  */
 export interface FollowUp {
   id: string
-  source: 'read' | 'beforeYes' | 'couple'
-  /** A topic id from data/beforeYes.ts, or a read dimension. */
+  source: 'read' | 'beforeYes' | 'couple' | 'guide' | 'family'
+  /** A topic id from data/beforeYes.ts, a read dimension, a family script id, or — from the guide — what she asked. */
   topic: string
+  /**
+   * The words the guide handed her, when the source is the guide. The other
+   * sources look their script up by topic; the guide's words exist only in the
+   * reply she was given, so they are kept here, on the device like everything
+   * else in this record.
+   */
+  words?: string
   /** When we told her. */
   at: string
   /** 'asked' means the conversation actually happened. */
@@ -236,40 +245,65 @@ export interface FollowUp {
   outcomeAt?: string
 }
 
+/**
+ * The ending — what she told us on the way out.
+ *
+ * The success state of this product is that someone leaves because it worked,
+ * and this is the only record of that ever happening. Every field is optional:
+ * an exit that charges a toll in answers is not an exit. `who` is the single
+ * question this company cannot answer any other way — whether the marketplace
+ * caused a marriage or the instruments helped one that already existed.
+ */
+export interface EndingRecord {
+  at: string
+  who?: string
+  mattered?: string
+  used?: string[]
+  /** One line for whoever is where she was. Hers, unless she chooses to send it. */
+  advice?: string
+}
+
 export interface ReadRecord {
   at: string
   answers: Record<string, string>
+  /**
+   * When she last said the read still stands. A read is about behaviour over
+   * time, and a month later the behaviour may have changed; Home asks once,
+   * and "still the same" is recorded here so it is not asked again for a while.
+   */
+  checkedAt?: string
 }
 
 /**
- * Niyyah+ state. The trial takes no card, so there is no billing to model and
- * nothing that can lapse into a charge — it simply runs out.
+ * How much of the guide she has used, ever.
+ *
+ * This used to be a monthly allowance and a no-card trial: twenty replies a
+ * month, a counter in the header from ten, a wall at zero, and "no counter" as
+ * the thing Niyyah+ sold. That priced the guide per reply, which means the
+ * product earned when she spiralled. What is kept now is one number — replies
+ * spent — and the budget it is measured against comes from her progress, not
+ * from the calendar. See src/lib/budget.ts.
  */
-export interface PlusState {
-  /** Day the free trial began (YYYY-MM-DD), or null when it isn't running. */
-  trialStarted: string | null
-  /**
-   * Whether the trial has ever been taken. Separate from `trialStarted` on
-   * purpose: ending early clears the run but not the record, so cancelling
-   * can't be used to farm an endless string of free weeks.
-   */
-  trialTaken: boolean
-  /** Guide replies spent this calendar month — the free allowance. */
-  usage: { month: string; used: number }
+export interface GuideUse {
+  replies: number
 }
 
-export const defaultPlus: PlusState = {
-  trialStarted: null,
-  trialTaken: false,
-  usage: { month: '', used: 0 },
-}
+export const defaultGuideUse: GuideUse = { replies: 0 }
 
-/** A dated readiness reading, kept so the map can show growth over time. */
+/**
+ * A dated reading, kept so the map can say what changed.
+ *
+ * Growth is shown as the difference between her answers then and now — "last
+ * time: still healing; this time: at peace with it" — never as a delta on a
+ * number. So the snapshot keeps the answers themselves; they are thirteen
+ * short values and they never leave the device.
+ */
 export interface MapSnapshot {
   /** Date key (YYYY-MM-DD) this reading was made. */
   date: string
-  overall: number
   headline: string
+  grounds: Partial<Record<Dimension, GroundState>>
+  answers: Answers
 }
 
 export interface Reflection {
@@ -277,9 +311,13 @@ export interface Reflection {
   headline: string
   /** A warm paragraph synthesizing where they are. */
   summary: string
-  /** 0–100 overall readiness. */
-  overall: number
   dimensions: DimensionReading[]
+  /**
+   * The grounds ordered thinnest first. Internal ordering for the work card
+   * and the daily reflection — it decides what to offer next, and is never
+   * rendered as a ranking.
+   */
+  thinnest: Dimension[]
   /** Surfaced core values (from tags). */
   coreValues: string[]
   /** Their stated non-negotiables. */

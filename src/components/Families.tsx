@@ -9,6 +9,8 @@ import { ArrowRight, ScreenHeader } from './ui'
 interface Props {
   gender?: Gender
   stage: Stage
+  /** She took the words for one of these — copied or sent them. Home will ask, days later, whether she had it. */
+  onTaken: (id: string) => void
   onBack: () => void
 }
 
@@ -19,7 +21,7 @@ interface Props {
  * of them are offered; none is ever recommended by anything the app has read.
  * Which one she needs, and when, is hers.
  */
-export default function Families({ gender, stage, onBack }: Props) {
+export default function Families({ gender, stage, onTaken, onBack }: Props) {
   const scripts = familyScripts(gender ?? 'woman', stage)
   const [open, setOpen] = useState<string | null>(null)
   const intro = somali('families.intro')
@@ -63,7 +65,13 @@ export default function Families({ gender, stage, onBack }: Props) {
                 </button>
                 {isOpen && (
                   <div className="px-5 pb-5">
-                    <ScriptCard script={s.script} title={s.title} source={`families:${s.id}`} />
+                    <ScriptCard
+                      script={s.script}
+                      title={s.title}
+                      source={`families:${s.id}`}
+                      travel="family"
+                      onTaken={() => onTaken(s.id)}
+                    />
                   </div>
                 )}
               </div>

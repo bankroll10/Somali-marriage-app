@@ -5,7 +5,7 @@
 | Tab | URL | State |
 |---|---|---|
 | 1 — "New user" | `http://localhost:5173/?fresh` | Clean Welcome screen |
-| 2 — "Member" | `http://localhost:5173/?demo` | Hodan: onboarded, verified, full readiness map |
+| 2 — "Member" | `http://localhost:5173/?demo` | Hodan: preparing, map built, two readings, work in progress |
 
 Reloading a `?demo` tab resets it to the same known state — safe to re-run mid-demo.
 (`?fresh` and `?demo` overwrite local data; don't use them in a browser profile whose
@@ -14,156 +14,121 @@ Niyyah state you care about.)
 **The one-liner to open with:**
 > "The trusted marriage platform for the Somali diaspora — powered by AI, guided by
 > faith, designed for serious people. Dating apps answer 'who is available?' We answer
-> the questions that actually decide a marriage: am I ready, are they serious, are we
-> aligned — and we stay with people all the way to the nikah."
+> the questions that actually decide a marriage: is he serious, have we had the
+> conversations that matter, am I ready — and we stay with people to the nikah and
+> through the first year. And we are paid and measured by what happens in her life,
+> never by how long she spends on a screen."
 
 ---
 
-## Act 1 — The first 60 seconds (Tab 1, ~2 min)
+## Act 1 — The first ninety seconds (Tab 1, ~3 min)
 
-1. **Welcome.** Let the headline land: *"What's **actually** in your way?"* — then the
-   `??` ring beside it. *Say: "Our wedge user is a 24–34 diaspora woman. In a marriage
-   marketplace, women's trust IS the liquidity — everything you'll see is built for her
-   first. Note what the headline does NOT ask: whether she's ready. The fear she already
-   carries is that she's the reason none of this has worked, and we're not selling
-   against that. We point at the obstacle, not at her."*
-   Point at the quiet line under the ring: *"You are not behind, and being here is not
-   an admission of anything."* — the objection that actually stops her tapping.
-2. Tap **Show me what’s in my way** → identity (gender first, ~10 seconds; pick woman,
-   type a name, pick Minneapolis).
-3. **The hook:** "What's the hardest part for you right now?" → tap *"Knowing if
-   someone is actually serious."* The instant, personalized insight appears.
-   *Say: "Value in 30 seconds — before we've asked for anything. Every answer from
-   here deepens her private readiness map."*
-4. Tap **Build my readiness map**, answer 2–3 questions of Chapter 1 to show the
-   question quality, then say: *"Three chapters, about two minutes — let me show you
-   an established member instead of clicking through it live."* → **switch to Tab 2.**
+1. **Welcome.** Let the headline land: *"What's **actually** in your way?"* Point at
+   the second door: *"Already talking to someone? Start with a read on them instead."*
+   *Say: "Our wedge user is a 24–34 diaspora woman. In a marriage marketplace, women's
+   trust IS the liquidity. Note what this page does not promise: a number. It promises
+   the one place she's thinnest, in words."*
+2. Tap **Is he serious?** → **the read.** Eleven questions about what he has actually
+   *done* — told anyone, named marriage, moved toward family, followed through. Answer
+   them as a real situation (two months in, nobody in his life knows about her, no
+   timeline).
+3. **The result.** Five things in words — shown, partly, not yet — never a score on a
+   person. Then the dark card: **the one question to ask him next**, word for word, and
+   what the answer tells her. *Say: "Every instrument here ends in something she can go
+   and say. A verdict she can't act on is a horoscope."*
+4. Scroll: **Before you say yes** is offered, with the line that he can answer his own
+   side on his own phone and neither sees the other's sheet. *Say: "That's how the scarce
+   side of this marketplace arrives — through the side we already have."*
+5. Tap **Talk it through with your guide.** The question is already asked; the voice is
+   already chosen. Read the reply. Under it: **"I'll say this — ask me in three days"** and
+   **"That's enough for tonight."** *Say: "The guide closes. There's no 'is this a red
+   flag?' chip to keep her in the thread. When she takes the words, the app writes it
+   down — and in three days her space asks whether she said them."*
 
 ## Act 2 — The companion (Tab 2, ~4 min)
 
-5. **Home.** *"This is what she opens every day — not a feed."* The hero is
-   **Your work**: one thing, drawn from the thinnest ground on her map. Today it's
-   emotional readiness — *"Next time you want to go quiet on someone, say 'I need a
-   moment, I'm not disappearing' instead."*
-   *Say: "This is the whole product in one card. Every other app in this category is
-   a matching engine. We're the only one that tells you what to actually go do, and
-   then keeps the receipt."*
-6. **Tap "I did this."** The card turns into the acknowledgment — *"You stayed in
-   the room instead of going quiet. That's the whole skill."*
-   *Say: "No points, no streak, no score change. Doing the work changes her answers,
-   and her answers are the map. That honesty is the reason people trust it."*
-7. **Tap a check-in mood** (e.g. Steady) — warm acknowledgment appears live.
-8. **"Talk it through with Therapist"** on the work card → **the Guide**, opened
-   straight into the voice suited to that ground.
-9. **Six guides** — open **Wise Auntie**, tap *"He only texts me late at night."*
-   Read the answer aloud; it's the demo's best moment:
-   *"…a man who only appears after midnight is not courting you — he is comforting
-   himself. Good intentions keep daytime hours."*
-   *Say: "This is the retention engine. Real life generates these moments weekly —
-   this build runs on a local engine; the production guide is Claude with her
-   readiness map as context."*
-10. (Optional) Show **Switch** → Therapist / Big Brother (the men's side) / Matchmaker
-    (it reads her map back to her).
+6. **Home.** *"This is what she opens when something happens — not a feed, not a daily
+   ritual. There is no check-in, no streak, no milestone."* The ask box first: say what
+   happened, the app picks the voice.
+7. **Your work** — one thing, drawn from the thinnest ground on her map. Tap **I did
+   this.** The card turns into the acknowledgment. *Say: "No points, no score change.
+   Doing the work changes her answers, and her answers are the map."*
+8. **Your map.** Seven grounds, each a word — thin, steady, strong — with a note written
+   from the answer she actually gave. At the top: **what changed since her last reading**,
+   in her own words: *"Then: something recent still aches. Now: still healing, and I know
+   it."* *Say: "There used to be a ring counting up to 88 here, and a gold +14 badge. The
+   weights were an answer key that punished honesty. It's gone. Growth is a diff of her
+   answers, not a delta."*
+9. **The door.** One sentence: *"Minneapolis today: N women, N men. It opens at forty
+   each."* *Say: "We never show an invented crowd. And it's a sentence, not a progress
+   bar — there's nothing here to come back and watch."*
+10. **How an introduction will look.** Labelled a sample in the first line. Reasons, the
+    one place they differ, the first thing to ask. *Say: "No percentage, no band. Her
+    non-negotiables are checked first — anyone who fails one is never shown. One person
+    at a time; a considered no is progress, not a swipe."*
 
-## Act 3 — The marketplace (Tab 2, ~3 min)
+## Act 3 — Trust and the business (Tab 2, ~2 min)
 
-11. Back to Home → **Readiness map** (the ring draws in; dimensions, non-negotiables,
-    honest mirror). Scroll to **"Where to put your effort"** and **"What you've
-    done"** — three finished pieces of work, dated. *"This powers matching, and it's
-    the retention engine: the map names the ground, she does the thing, the record
-    accumulates, and when enough has changed the map asks her to reflect again. It's
-    private — depth, not a public score."*
-12. **Your profile → Protections & privacy.** *"In this community, trust is the
-    entire product: verification, blur-until-mutual, wali-friendly, privacy shield.
-    Reports remove people."* (Trust is managed from the profile.)
-13. **Profile → Niyyah+** — the business model, if asked. Scroll it in order:
-    what's free forever, then what Plus adds, then the price (58% down the page).
-    *Say: "Nothing that protects her is ever paid — verification, blocking, and
-    replying to someone serious are free at any price. We charge for the guide,
-    which costs us money per reply, and for the lifecycle after the match. The
-    plan we recommend is six months, not the year, and the page says out loud
-    that if this works you won't need a year. The trial takes no card."*
-    (The wall itself is in the guide: send 20 replies and it appears *under* the
-    conversation, never over it.)
-14. **People in your scene.** *"A few introductions a day, ranked by how lives fit —
-    no feed, no swiping, photos private until mutual."* Open **Yusuf** — show *Why
-    you align* and the prompts.
-15. **Express serious interest** → "Interest sent" (calm, no chasing). Reciprocation
-    lands after ~6–9 seconds — keep talking over it (*"and if it's mutual, they're
-    introduced…"*) until the mutual card appears → **Start the conversation.** Show:
-    photo revealed, his opener, **"Niyyah suggests asking"** value prompts, and tap
-    **Involve family** — the wali joins, the connection becomes family-aware. *"No
-    other product in the world has this button."* (Note: Omar/Hani deliberately never
-    respond — realism; express interest in Yusuf.)
+11. **What decides who you meet** (from Home). *Say: "This used to be a profile with a
+    'No photo yet' badge. What actually decides who meets whom is here: what she's done,
+    what she won't compromise on, how she'd live, and whether her family vouched."*
+12. **What you've done here** → Trust. The ledger, which cannot be tapped; the two
+    controls that gate real calls; and the exact account of what leaves the device.
+13. **What's free, and what isn't.** Read the rule aloud: *"We never earn more because
+    you're having a hard night."* *Say: "The guide is free and its budget refills by
+    progress — fifteen replies for every step on the ladder and every follow-up answered.
+    There's no counter and nothing to buy. What we'll sell is bought once: a stage, or a
+    person."*
+14. **Stage band → "We're married, alhamdulillah."** Home goes quiet: the ask box, the
+    work, the map, the introductions and the upsell disappear. What stays is the words
+    for two families and the guide for the first year. *Say: "Success has a screen.
+    Retention past the outcome is a design, not a default."* (Switch the stage back
+    before the next run.)
 
 ## Close (~1 min)
 
-> "Everything you saw is the single-player and first-social loop, working end to end.
-> The build plan from here: Claude behind the guide, real verification and backend,
-> then city-by-city launch — Minneapolis first, the largest Somali community in North
-> America. The moat isn't the AI — it's trust, cultural depth, and the full lifecycle
-> from 'am I ready' to married coaching."
+> "Everything you saw runs end to end, with no invented people. The one number this
+> company watches is followed-through per hundred arrived — how many people had a
+> conversation they weren't going to have. Sessions per week should fall after every
+> rung. The build from here: Claude behind the map, the first-year sheet for married
+> members, real verification and backend, then Minneapolis opens — one introduction at
+> a time."
 
-**If asked "what's real?"** — honest answer: all product surfaces are real and working;
-the guide runs on a hand-authored local engine (Claude integration is a marked seam),
-candidates are curated mock profiles, verification is simulated. Strategy docs:
+**If asked "what's real?"** — honest answer: every instrument is real and working; the
+guide runs on Claude when the key is set and on a local voice otherwise; the sample
+introduction is invented and says so; the family vouch, the two-sided eleven and the
+door are live functions; nothing is verified beyond the vouch. Strategy docs:
 `docs/STRATEGY.md`, `docs/PRODUCT.md`.
 
 **Do not demo:** restarting onboarding on Tab 2 (wipes the seed — just reload `?demo`),
-or typing free-form gibberish at the guide repeatedly (the local fallback is graceful
-but generic; starters show it best).
+or typing free-form gibberish at the guide with no key set (the local voice is graceful
+but generic; the read and the one-tap moments show it best).
 
 ---
 
 ## Launch-video shot list (phone frame, 375×812)
 
-Record in a mobile viewport (or a real phone with the app added to the home screen —
-the manifest + apple-mobile-web-app meta make it run full-screen, chrome-free). Each
-shot is a clean, screenshot-worthy screen; hold ~2–3s.
-
 | # | Screen | How to get there | The line on screen / voiceover |
 |---|---|---|---|
-| 1 | **Welcome** | `/?fresh` | "What’s *actually* in your way?" + the ?? ring — the result, withheld. |
-| 2 | **The hook insight** | tap through identity → pick "Knowing if someone is actually serious" | A personal answer in 30 seconds — value before signup. |
-| 3 | **A question** | Build my readiness map → Q1 | Depth-first, one calm question at a time. |
-| 4 | **Generating** | finish intake | Staged: "Reading what you shared… Drawing your map…" |
-| 5 | **Readiness map** | (auto) | The score ring draws in; dimensions, non-negotiables, honest mirror. |
-| 6 | **Home** (`/?demo`) | reload as member | "Salaam, Hodan." → **Your work**: one thing from her map, and "I did this". |
-| 7 | **The guide** | Talk to your guide → Wise Auntie → "late at night" | The answer + a **"Words you could use"** copyable script. |
-| 8 | **People in your scene** | Home → discovery | "Today's introduction," alignment not looks, photos blurred. |
-| 9 | **Guided conversation** | Yusuf → interest → mutual → start | Photo revealed, opener, **Involve family**. |
-| 10 | **Trust & safety** | Profile → Manage protections | Verified · serious-intention · wali-friendly · blur · privacy shield. |
-| 11 | **Niyyah+** | Profile → Niyyah+ | Free-forever list first, price at 58% down the page, "most people" = six months. |
+| 1 | **Welcome** | `/?fresh` | "What's *actually* in your way?" — and "Already talking to someone?" |
+| 2 | **The read, result** | Is he serious? → answer eleven | Five things in words, and the one question to ask him. |
+| 3 | **The script card** | (same screen) | "Copy the words." |
+| 4 | **The guide closing** | Talk it through → reply | "I'll say this — ask me in three days." |
+| 5 | **Home, "Since last time"** | `/?demo` after a follow-up ripens | "Have you asked it?" — We talked / Not yet / It went differently. |
+| 6 | **Your work** | Home | One thing from her map, and "I did this." |
+| 7 | **The map** | Home → Your map | Seven grounds in words; what changed since last time, in hers. |
+| 8 | **The door** | Home → founding cohort | "Minneapolis today: 3 women, 1 man. It opens at forty each." |
+| 9 | **Married** | Stage band → married | "We're done looking. What's left is the building." |
 
-**Best three stills for the App Store screenshots:** #1 (Welcome), #5 (Readiness
-map), #7 (the guide with the script card) — they tell the whole story in three frames.
-
-**The one-screenshot seller is #5.** The map's dark hero card is self-contained:
-wordmark in the header, "Hodan · your marriage-readiness map," the gold ring
-counting to 88, the verdict in serif, and the promise line — "Readiness first,
-profiles later — that's how Niyyah chooses who you meet. No one sees this map
-but you." What it does, why it matters, who it's for, in one frame.
-
----
+**Best three stills:** #2 (the read), #4 (the guide closing), #9 (married). They tell the
+whole story: what he's shown, what she'll say, and where it ends.
 
 ## The 20-second TikTok cut
 
-Five beats, phone frame, no dead frames. The hook is the **map drawing itself** —
-lead with the payoff, then explain. Record at 375×812; every beat starts at the
-top of its screen (no mid-scroll cuts).
-
 | Beat | ~sec | Screen | On camera | Voiceover beat |
 |---|---|---|---|---|
-| 1 | 0–3 | Readiness map (reload it) | Ring counts 0→88, seven bars fill in a wave | "This app told me if I'm actually ready to get married" |
-| 2 | 3–7 | Home → **Your work** card | Tap "I did this" → the card turns into the acknowledgment | "…then it gives you ONE thing to actually go do about it" |
-| 3 | 7–11 | Welcome → hook question | "What's the hardest part for you right now?" | "It starts by asking what you're really struggling with" |
-| 4 | 11–16 | Wise Auntie + script card | Reply + "Words you could use" | "There's a wise auntie who gives you the exact words to say" |
-| 5 | 16–20 | Discovery card, blurred avatar | Lock badge, "why you align", no photos | "And no one sees your photos until you're both serious. Bismillah." |
-
-Cut notes:
-- Beat 1 is the thumbnail/loop frame — the map animates on every visit, so just
-  re-open it from Home to re-trigger the draw.
-- Express-interest reciprocation lands after 6–9s by design; never wait for it
-  on camera — cut away and come back if the mutual moment is needed.
-- The demo member scores **88** with a 78–100 spread and a real growth edge —
-  don't "fix" her answers back to perfect; a flawless profile reads fake on video.
+| 1 | 0–4 | The read, result | Five words appear: shown, partly, not yet | "This app told me what he's actually done — not what he says" |
+| 2 | 4–8 | The script card | "Copy the words" | "…and gave me the exact question to ask him" |
+| 3 | 8–12 | The guide closing | "I'll say this — ask me in three days" | "It doesn't keep me talking. It asks if I said it" |
+| 4 | 12–16 | Home, "Since last time" | We talked / Not yet | "Three days later: did you?" |
+| 5 | 16–20 | Married card | "We're done looking." | "And when it works, it lets you go. Bismillah." |

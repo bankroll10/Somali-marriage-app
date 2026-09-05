@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { allQuestions, totalQuestions } from '../data/intake'
-import { todayKey } from '../data/checkin'
+import { todayKey } from '../lib/dates'
 import { track } from '../lib/analytics'
 import { applyDemoParams } from '../lib/demo'
-import { buildReflection, generateReflection } from '../lib/reflection'
+import { buildReflection, generateReflection, snapshotOf } from '../lib/reflection'
 import { routeToMode } from '../lib/route'
 import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
 import { flushWaitlistQueue } from '../lib/waitlist'
@@ -12,32 +12,33 @@ import { ledger } from '../lib/ledger'
 import { rungsFrom } from '../lib/rungs'
 import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState } from '../lib/followup'
 import { buildRead } from '../lib/read'
+import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
+import { factsFrom } from '../lib/facts'
 import { coupleReading, readCouple } from '../lib/couple'
-import type { Entry } from '../lib/entry'
+import type { Entry, EntryKind } from '../lib/entry'
 import { rememberedCode } from '../lib/keep'
 import { readVouch } from '../lib/vouch'
-import { defaultPlus, defaultTrust } from '../types'
-import { FREE_REPLIES, TRIAL_DAYS } from '../data/plus'
+import { defaultGuideUse, defaultTrust } from '../types'
+import { repliesLeft as budgetLeft } from '../lib/budget'
 import type {
   Answers,
   AnswerValue,
-  CheckIn,
   Dimension,
   CoachMessage,
   Gender,
   Identity,
+  GuideUse,
   MapSnapshot,
   ModeId,
-  MoodId,
-  PlusState,
   Reflection,
   Stage,
   StepRecord,
   TrustSettings,
   ReadRecord,
   CoupleState,
+  EndingRecord,
   FollowUp,
   VouchState,
   WaitlistState,
@@ -63,8 +64,18 @@ export type Screen =
   | 'couple'
   | 'vouch'
   | 'plus'
+  | 'ending'
 
 const SAVE_DEBOUNCE_MS = 250
+
+/** The word in the link, and the screen it opens. A restored map opens nothing of its own. */
+const ENTRY_SCREEN: Partial<Record<EntryKind, Screen>> = {
+  couple: 'couple',
+  vouch: 'vouch',
+  read: 'read',
+  eleven: 'beforeYes',
+  families: 'families',
+}
 
 /**
  * The app's single source of truth: journey state, persistence, and actions.
@@ -84,9 +95,10 @@ export function useNiyyah(entry: Entry | null = null) {
   // ever answering the intake.
   const [screen, setScreen] = useState<Screen>(() => {
     // Someone arriving on a link lands on the screen the link is for, whatever
-    // this device has saved — he may well be opening it on a phone with a map.
-    if (entry?.kind === 'couple') return 'couple'
-    if (entry?.kind === 'vouch') return 'vouch'
+    // this device has saved — he may well be opening it on a phone with a map,
+    // and a member with a Home who is sent the read should land on the read.
+    const fromLink = entry ? ENTRY_SCREEN[entry.kind] : undefined
+    if (fromLink) return fromLink
     return saved && (saved.completed || saved.stage !== 'preparing') ? 'home' : 'welcome'
   })
   /** The code in the link that opened the app, for the screen it opened. */
@@ -97,9 +109,6 @@ export function useNiyyah(entry: Entry | null = null) {
   const [identity, setIdentity] = useState<Identity>(saved?.identity ?? {})
   const [answers, setAnswers] = useState<Answers>(saved?.answers ?? {})
   const [trust, setTrust] = useState<TrustSettings>(saved?.trust ?? defaultTrust)
-  const [checkIns, setCheckIns] = useState<CheckIn[]>(saved?.checkIns ?? [])
-  // First day on the path — set once, kept forever (until a full reset).
-  const [firstSeen, setFirstSeen] = useState<string>(saved?.firstSeen || todayKey())
   // Every reading ever made — the map becomes a record of growth, not a verdict.
   const [mapHistory, setMapHistory] = useState<MapSnapshot[]>(saved?.mapHistory ?? [])
   // Where they are in the whole arc. The product keeps serving them past the
@@ -111,8 +120,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // The work taken on from the map. One open at a time; finished ones are kept
   // forever — they're the only honest record of change the app can show.
   const [steps, setSteps] = useState<StepRecord[]>(saved?.steps ?? [])
-  // Niyyah+ — the trial takes no card, so it can only ever run out.
-  const [plus, setPlus] = useState<PlusState>(saved?.plus ?? defaultPlus)
+  // Replies spent, ever. The budget they count against comes from her rungs.
+  const [guideUse, setGuideUse] = useState<GuideUse>(saved?.guide ?? defaultGuideUse)
   // The saved place — the one piece of state that leaves this device.
   const [waitlist, setWaitlist] = useState<WaitlistState | null>(saved?.waitlist ?? null)
   // The last read she took on someone. Answers only; the reading is recomputed.
@@ -122,6 +131,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // The two-sided Before you say yes she started, and a family member's vouch.
   const [couple, setCouple] = useState<CoupleState | null>(saved?.couple ?? null)
   const [vouch, setVouch] = useState<VouchState | null>(saved?.vouch ?? null)
+  // What she told us on the way out. The success state of this whole product.
+  const [ending, setEnding] = useState<EndingRecord | null>(saved?.ending ?? null)
   // What the product told her to do, and whether she did it. See lib/followup.ts.
   const [followups, setFollowups] = useState<FollowUp[]>(saved?.followups ?? [])
   // The code her map is kept under. Read once at mount and refreshed by the
@@ -187,28 +198,12 @@ export function useNiyyah(entry: Entry | null = null) {
   )
   const answeredCount = Object.keys(answers).length
   const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome
-  const todayEntry = checkIns.find((c) => c.date === todayKey())
-  const todayMood: MoodId | null = todayEntry?.mood ?? null
 
-  // ── Niyyah+ ────────────────────────────────────────────────────────────────
-  // The allowance resets on the calendar month; a stale month reads as zero used
-  // rather than being rewritten on load, so nothing is persisted just by looking.
-  const thisMonth = todayKey().slice(0, 7)
-  const usedThisMonth = plus.usage.month === thisMonth ? plus.usage.used : 0
-  const trialDaysLeft = plus.trialStarted
-    ? Math.max(
-        0,
-        TRIAL_DAYS -
-          Math.round(
-            (new Date(`${todayKey()}T00:00:00`).getTime() -
-              new Date(`${plus.trialStarted}T00:00:00`).getTime()) /
-              86_400_000,
-          ),
-      )
-    : 0
-  const plusActive = trialDaysLeft > 0
-  const trialUsed = plus.trialTaken
-  const repliesLeft = plusActive ? Infinity : Math.max(0, FREE_REPLIES - usedThisMonth)
+  // ── The guide's budget ─────────────────────────────────────────────────────
+  // Refilled by progress, never by the calendar: every rung on the ladder and
+  // every follow-up she has answered grants replies. See src/lib/budget.ts.
+  const followUpsAnswered = followups.filter((f) => !!f.outcome).length
+  const repliesLeft = budgetLeft(rungs.length, followUpsAnswered, guideUse.replies)
 
   // False when the browser refuses to persist (private mode, full quota). The
   // UI must say so — a silent failure costs the user their whole reflection.
@@ -220,14 +215,22 @@ export function useNiyyah(entry: Entry | null = null) {
     void flushWaitlistQueue()
   }, [])
 
+  // What the rungs were made of, in words from closed lists — which grounds
+  // read thin, how the read came out, which conversation was had, who she
+  // married. See src/lib/facts.ts. Never an answer in her words.
+  const facts = useMemo(
+    () => factsFrom({ reflection, read, beforeYes, followups, ending, gender: identity.gender ?? 'woman' }),
+    [reflection, read, beforeYes, followups, ending, identity.gender],
+  )
+
   // Rungs reached, reported on transitions only — never on a tap, never on a
   // screen, never on a minute spent. Gated on the control that says so: with
   // countMe off this call site does not run, so the toggle is the mechanism
   // rather than a promise about one.
   useEffect(() => {
     if (!trust.countMe) return
-    void reportRungs(rungs, identity.scene)
-  }, [rungs, trust.countMe, identity.scene])
+    void reportRungs(rungs, identity.scene, facts)
+  }, [rungs, trust.countMe, identity.scene, facts])
 
   // Has he answered the eleven she sent? Asked once per code, only until we
   // know — he answers on his own phone, and it has to reach hers without her
@@ -248,7 +251,7 @@ export function useNiyyah(entry: Entry | null = null) {
     }
   }, [couple, identity.gender])
 
-  // ── Persistence (debounced — the bio textarea saves per keystroke otherwise)
+  // ── Persistence (debounced — the age field saves per keystroke otherwise)
   useEffect(() => {
     const t = window.setTimeout(
       () =>
@@ -257,18 +260,17 @@ export function useNiyyah(entry: Entry | null = null) {
             answers,
             identity,
             trust,
-            checkIns,
-            firstSeen,
             mapHistory,
             stage,
             situated,
             steps,
-            plus,
+            guide: guideUse,
             waitlist,
             read,
             beforeYes,
             couple,
             vouch,
+            ending,
             followups,
             completed,
             coachThreads,
@@ -281,18 +283,17 @@ export function useNiyyah(entry: Entry | null = null) {
     answers,
     identity,
     trust,
-    checkIns,
-    firstSeen,
     mapHistory,
     stage,
     situated,
     steps,
-    plus,
+    guideUse,
     waitlist,
     read,
     beforeYes,
     couple,
     vouch,
+    ending,
     followups,
     completed,
     coachThreads,
@@ -319,12 +320,14 @@ export function useNiyyah(entry: Entry | null = null) {
     setEverCompleted(true)
     // Record this reading — one per day, so reflecting twice in an afternoon
     // refines today's entry instead of cluttering the record. Last 12 kept.
+    // The snapshot carries her answers, so the next reading can say what
+    // changed in her words rather than as a number that moved.
     setMapHistory((prev) => {
       const today = todayKey()
       const rest = prev.filter((s) => s.date !== today)
-      return [...rest, { date: today, overall: r.overall, headline: r.headline }].slice(-12)
+      return [...rest, snapshotOf(answers, today)].slice(-12)
     })
-    track('map_completed', { overall: r.overall })
+    track('map_completed')
     setScreen('reflection')
   }
 
@@ -334,18 +337,17 @@ export function useNiyyah(entry: Entry | null = null) {
     setIdentity({})
     setTrust(defaultTrust)
     setReflection(null)
-    setCheckIns([])
-    setFirstSeen(todayKey())
     setMapHistory([])
     setStageRaw('preparing')
     setSituated(false)
     setSteps([])
-    setPlus(defaultPlus)
+    setGuideUse(defaultGuideUse)
     setWaitlist(null)
     setRead(null)
     setBeforeYes(null)
     setCouple(null)
     setVouch(null)
+    setEnding(null)
     setFollowups([])
     setKeptCode(null)
     setResumeIndex(0)
@@ -448,30 +450,9 @@ export function useNiyyah(entry: Entry | null = null) {
     })
   }
 
-  /** Begin the no-card trial. Nothing to cancel; it simply ends. */
-  function startTrial() {
-    track('trial_started')
-    setPlus((prev) => ({ ...prev, trialStarted: todayKey(), trialTaken: true }))
-  }
-
-  /**
-   * End it early. Real products make this hard on purpose; here it's one tap and
-   * it takes effect immediately, because a cancel button you can't find is the
-   * thing people are actually afraid of when they subscribe.
-   */
-  function endTrial() {
-    track('trial_ended')
-    setPlus((prev) => ({ ...prev, trialStarted: null }))
-  }
-
-  /** Spend one reply from the free allowance. Members spend nothing. */
+  /** Spend one reply. Charged only once an answer exists — the caller decides when. */
   function spendReply() {
-    if (plusActive) return
-    setPlus((prev) => {
-      const month = todayKey().slice(0, 7)
-      const used = prev.usage.month === month ? prev.usage.used : 0
-      return { ...prev, usage: { month, used: used + 1 } }
-    })
+    setGuideUse((prev) => ({ replies: prev.replies + 1 }))
   }
 
   /**
@@ -511,10 +492,48 @@ export function useNiyyah(entry: Entry | null = null) {
     )
   }
 
-  /** Moving stage is always the user's call — never inferred from activity. */
+  /**
+   * How she chose — her whole record, rebuilt from state rather than stored, so
+   * it can never go stale against what she actually did.
+   */
+  const endingRecord = useMemo(
+    () =>
+      buildEnding(
+        {
+          gender: identity.gender ?? 'woman',
+          answers,
+          mapHistory,
+          steps,
+          read,
+          beforeYes,
+          couple,
+          vouch,
+          followups,
+          completed,
+        },
+        todayKey(),
+      ),
+    [identity.gender, answers, mapHistory, steps, read, beforeYes, couple, vouch, followups, completed],
+  )
+
+  /**
+   * Moving stage is always the user's call — never inferred from activity.
+   *
+   * Arriving at married is the one transition that is also an ending, so it
+   * opens the ending rather than quietly reshaping Home. Only when she is
+   * moving there from somewhere else, and only once: someone who told us at
+   * the door that she is already married did not marry through any of this.
+   */
   function setStage(next: Stage) {
     track('stage_changed', { stage: next })
     setStageRaw(next)
+    if (next === 'married' && stage !== 'married' && !ending) setScreen('ending')
+  }
+
+  /** She told us how it ended. Every field optional; saving is never required. */
+  function saveEnding(record: EndingRecord) {
+    if (!ending) track('ending_recorded')
+    setEnding(record)
   }
 
   /** Open the guide — optionally straight into the voice suited to a topic. */
@@ -543,6 +562,28 @@ export function useNiyyah(entry: Entry | null = null) {
   /** Cleared once the guide has actually sent it. */
   function clearGuideAsk() {
     setGuideAsk(null)
+  }
+
+  /**
+   * She took the words for one of the family conversations — copied or sent
+   * them. Written down so that in a few days Home asks whether she had it.
+   * Opening a script is not taking it; browsing five must not queue five asks.
+   */
+  function noteFamilyScript(id: string) {
+    setFollowups((prev) => noteFollowUp(prev, 'family', id))
+  }
+
+  /**
+   * She took the guide's words as something she will say. Written down like a
+   * read's question or one of the eleven, so that in a few days Home asks
+   * whether she said them — the guide stops being a thread and becomes a thing
+   * that happened. Filed under what she asked, so re-tapping the same words
+   * does not stack asks.
+   */
+  function commitFromGuide(words: string, topic: string) {
+    const key = topic.trim().slice(0, 80) || words.slice(0, 80)
+    track('guide_committed')
+    setFollowups((prev) => noteFollowUp(prev, 'guide', key, new Date().toISOString(), words))
   }
 
   function openPhilosophy(from: 'welcome' | 'home') {
@@ -575,14 +616,12 @@ export function useNiyyah(entry: Entry | null = null) {
     setKeptCode(rememberedCode())
   }
 
-  function recordCheckIn(mood: MoodId) {
-    track('checkin_done', { mood })
-    setCheckIns((prev) => {
-      const today = todayKey()
-      // Replace today's entry if re-checking; keep the last 60 days of history.
-      const rest = prev.filter((c) => c.date !== today)
-      return [...rest, { date: today, mood }].slice(-60)
-    })
+  /**
+   * A month on, she says the read still stands. Recorded so Home does not ask
+   * again for another month; nothing else changes — the read is still hers.
+   */
+  function readStillStands() {
+    setRead((prev) => (prev ? { ...prev, checkedAt: new Date().toISOString() } : prev))
   }
 
   return {
@@ -591,17 +630,16 @@ export function useNiyyah(entry: Entry | null = null) {
     identity,
     answers,
     trust,
-    checkIns,
-    firstSeen,
     mapHistory,
     stage,
     steps,
-    plus,
     waitlist,
     read,
     beforeYes,
     couple,
     vouch,
+    ending,
+    endingRecord,
     keptCode,
     entryCode,
     reflection,
@@ -620,11 +658,7 @@ export function useNiyyah(entry: Entry | null = null) {
     hasHome,
     identityNext,
     hasProgress,
-    todayMood,
     saveOk,
-    plusActive,
-    trialDaysLeft,
-    trialUsed,
     repliesLeft,
     // setters exposed where screens legitimately own the shape
     setScreen,
@@ -641,6 +675,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setCouple,
     setVouch,
     setKeptCode,
+    setEnding: saveEnding,
     joinedCohort,
     // actions
     answer,
@@ -653,15 +688,15 @@ export function useNiyyah(entry: Entry | null = null) {
     retakeMap,
     takeStep,
     completeStep,
-    startTrial,
-    endTrial,
     spendReply,
     enterHome,
     openGuide,
     askGuide,
     clearGuideAsk,
+    commitFromGuide,
+    noteFamilyScript,
     openPhilosophy,
     openTrust,
-    recordCheckIn,
+    readStillStands,
   }
 }

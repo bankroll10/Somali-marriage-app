@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cohortCount, joinCohort } from './cohort'
 import { saveProgress } from './storage'
-import { defaultPlus, defaultTrust } from '../types'
+import { defaultGuideUse, defaultTrust } from '../types'
 
 function installStorage() {
   const store = new Map<string, string>()
@@ -21,26 +21,20 @@ const state = {
   answers: { 'hardest-part': 'serious' },
   identity: { firstName: 'Sagal', gender: 'woman' as const, scene: 'twin-cities' },
   trust: defaultTrust,
-  checkIns: [],
-  firstSeen: '2026-09-03',
   mapHistory: [],
   stage: 'preparing' as const,
   situated: true,
   followups: [],
   steps: [],
-  plus: defaultPlus,
+  guide: defaultGuideUse,
   waitlist: null,
   read: null,
   beforeYes: null,
   couple: null,
   vouch: null,
+  ending: null,
   completed: true,
-  matched: [],
-  pendingInterest: [],
-  passed: [],
-  conversations: {},
   coachThreads: {},
-  interestNotes: {},
 }
 
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status })
@@ -78,11 +72,13 @@ describe('joining', () => {
         return json({ code: 'ACDEFG', scene: 'twin-cities', women: 1, men: 0, target: 40 })
       }),
     )
-    const result = await joinCohort({ scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88, voices: ['auntie'], ledger: ['map', 'kept'] })
+    const result = await joinCohort({ scene: 'twin-cities', gender: 'woman', hook: 'serious', ledger: ['map', 'kept'] })
     expect(result).toEqual({ code: 'ACDEFG', women: 1, men: 0, target: 40 })
     expect(calls[0].url).toContain('/keep')
     expect(calls[1].url).toContain('/cohort')
-    expect(calls[1].body).toMatchObject({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', overall: 88, voices: ['auntie'], ledger: ['map', 'kept'] })
+    expect(calls[1].body).toMatchObject({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', ledger: ['map', 'kept'] })
+    // Nothing about how her map read, and nothing about how she used the app.
+    expect(JSON.stringify(calls[1].body)).not.toMatch(/overall|score|voices/)
   })
 
   it('re-keeps the map and retries once when the server has lost it', async () => {

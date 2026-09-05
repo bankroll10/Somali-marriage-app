@@ -1,4 +1,7 @@
 import { getStore } from '@netlify/blobs'
+import { isFounder, notFounder } from '../shared/founder'
+// Validated against closed sets so a bad key can never be written — see netlify/shared/vocab.ts.
+import { GENDERS, HOOKS, LEDGER, SCENES } from '../shared/vocab'
 
 /**
  * The number on the door.
@@ -15,8 +18,10 @@ import { getStore } from '@netlify/blobs'
  * a question we have only been guessing at: what are people actually here for?
  *
  * Nothing here is a person. A join is keyed by the anonymous code her kept map
- * lives under, and carries her city, who she is seeking, her hardest part, her
- * overall number, and which guide voices she has used. The way to reach her is
+ * lives under, and carries her city, who she is seeking, her hardest part, and
+ * what she has done here. Nothing about how her map read — a readiness number
+ * was an answer key — and nothing about how she uses the app: which guide
+ * voices she opened used to travel here, and it was usage, not need. The way to reach her is
  * deliberately NOT stored here — it goes to the founder's form, so that this
  * store can be read and tallied without ever holding contact details.
  *
@@ -28,20 +33,13 @@ import { getStore } from '@netlify/blobs'
 /** A city opens when both sides have this many people who can be reached. */
 export const COHORT_TARGET = 40
 
-/** Must match src/data/scenes.ts and src/data/hook.ts — validated so a bad key can never be written. */
-const SCENES = new Set(['twin-cities', 'toronto', 'london', 'columbus', 'stockholm', 'other'])
-const GENDERS = new Set(['woman', 'man'])
-const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'ready', 'none'])
-const VOICES = new Set(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker', 'profile'])
-/** Must match src/lib/ledger.ts. What a person has actually done here. */
-const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'counted', 'vouched'])
 /** Same alphabet and length as netlify/functions/keep.ts. */
 const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
+/** A code, a city, a side, a hardest part and seven ledger ids is the largest thing anyone can send. */
+const MAX_BODY = 2_048
 
 export interface CohortRecord {
   at: string
-  overall?: number
-  voices: string[]
   /** Which instruments she has used — the seriousness that got her counted. */
   ledger: string[]
 }
@@ -101,6 +99,10 @@ export default async function handler(req: Request) {
   // ── Count ─────────────────────────────────────────────────────────────────
   if (req.method === 'GET') {
     const scene = new URL(req.url).searchParams.get('scene')
+    // The number on the door stays public — it is the honest count this
+    // product promises. The full tally, every city and hardest part, is the
+    // founder's readout.
+    if (!scene && !isFounder(req)) return notFounder()
     try {
       if (!scene) return Response.json(await tally(store))
       if (!SCENES.has(scene)) return Response.json({ error: 'bad_scene' }, { status: 400 })
@@ -121,12 +123,17 @@ export default async function handler(req: Request) {
     scene?: string
     gender?: string
     hook?: string
-    overall?: number
-    voices?: unknown
     ledger?: unknown
   }
+  let raw: string
   try {
-    body = await req.json()
+    raw = await req.text()
+  } catch {
+    return Response.json({ error: 'bad_json' }, { status: 400 })
+  }
+  if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
+  try {
+    body = JSON.parse(raw)
   } catch {
     return Response.json({ error: 'bad_json' }, { status: 400 })
   }
@@ -149,16 +156,12 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 
-  const voices = Array.isArray(body.voices)
-    ? body.voices.filter((v): v is string => typeof v === 'string' && VOICES.has(v))
-    : []
   const ledger = Array.isArray(body.ledger)
     ? body.ledger.filter((v): v is string => typeof v === 'string' && LEDGER.has(v))
     : []
+  // An older client may still send `overall` or `voices`. Neither is read or kept.
   const record: CohortRecord = {
     at: new Date().toISOString(),
-    ...(typeof body.overall === 'number' ? { overall: Math.round(body.overall) } : {}),
-    voices,
     ledger,
   }
   const key = `${scene}/${gender}/${hook}/${code}`

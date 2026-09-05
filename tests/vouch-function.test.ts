@@ -72,6 +72,39 @@ describe('a family vouch', () => {
     expect(stored.phone).toBe(good.phone)
   })
 
+  it('has no expiry of its own', async () => {
+    await post(good)
+    const stored = JSON.parse((await memStore('vouches').get('ACDEFG')) as string)
+    expect(stored.expiresAt).toBeUndefined()
+    expect(stored.at).toBeTruthy()
+  })
+
+  it('lives exactly as long as the map — gone when the map goes, back when it is kept again', async () => {
+    await post(good)
+    expect((await get('ACDEFG')).status).toBe(200)
+    await memStore('maps').delete('ACDEFG')
+    expect((await get('ACDEFG')).status).toBe(404)
+    // The vouch itself was not thrown away with the map.
+    expect(await memStore('vouches').get('ACDEFG')).toBeTruthy()
+    await memStore('maps').setJSON('ACDEFG', { snapshot: {} })
+    expect((await get('ACDEFG')).status).toBe(200)
+  })
+
+  it('an old record whose expiresAt has passed is still live while the map is', async () => {
+    await memStore('vouches').setJSON('ACDEFG', {
+      relationship: 'father',
+      firstName: 'Cabdi',
+      sentence: 'She is my daughter.',
+      at: '2024-01-01T00:00:00.000Z',
+      expiresAt: '2025-01-01T00:00:00.000Z',
+    })
+    const res = await get('ACDEFG')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ vouched: true, relationship: 'father', firstName: 'Cabdi' })
+    // And a second vouch is refused however old the first is.
+    expect((await post(good)).status).toBe(409)
+  })
+
   it('refuses an oversized body before parsing it', async () => {
     const big = new Request('http://x/.netlify/functions/vouch', { method: 'POST', body: 'x'.repeat(5000) })
     expect((await handler(big)).status).toBe(413)

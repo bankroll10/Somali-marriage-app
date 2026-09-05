@@ -85,17 +85,52 @@ Hold your situation against those three and it usually answers itself.`
  */
 const LIVE_GUIDE_TIMEOUT_MS = 20_000
 
+/**
+ * What sits under a reply.
+ *
+ * These used to be three questions — "Is this a red flag?", "How do I bring
+ * this up gently?" — chosen so that "the conversation never dead-ends". That is
+ * the design goal of a chat product, and the wrong one here: a guide that is
+ * good at its job ends conversations, because the member goes and says the
+ * thing. So what sits under a reply now closes it. `commit` writes the words
+ * down as a follow-up Home will ask about in a few days; `close` is permission
+ * to stop; `ask` appears only when the guide genuinely lacks a fact.
+ */
+export type Closer =
+  | { kind: 'commit'; words: string; label: string }
+  | { kind: 'close'; label: string }
+  | { kind: 'ask'; text: string; label: string }
+
 export interface CoachReply {
   text: string
-  /** Contextual next actions — the conversation never dead-ends. */
-  followUps: string[]
+  closers: Closer[]
 }
 
-const DEFAULT_FOLLOW_UPS = [
-  'What would you say, word for word?',
-  'Is this a red flag?',
-  'How do I bring this up gently?',
-]
+const CLOSE: Closer = { kind: 'close', label: 'That’s enough for tonight' }
+
+/**
+ * The words inside a reply's "Try:" line, if it has one — the same shape the
+ * chat renders as a script card. Nothing else in the answer counts as words
+ * to say, so nothing else can become a commitment.
+ */
+export function scriptIn(text: string): string | null {
+  const block = text.split(/\n\n+/).find((b) => /^Try:/i.test(b.trim()))
+  if (!block) return null
+  const body = block.trim().replace(/^Try:\s*/i, '')
+  const match = body.match(/^[“"]([\s\S]*?)[”"]/)
+  const words = (match ? match[1] : body).trim()
+  return words.length > 0 ? words : null
+}
+
+/** Closers for a reply: a commitment when there are words to commit to, and permission to stop. */
+export function closersFor(text: string, extra: Closer[] = []): Closer[] {
+  const words = scriptIn(text)
+  return [
+    ...(words ? [{ kind: 'commit' as const, words, label: 'I’ll say this — ask me in three days' }] : []),
+    ...extra,
+    CLOSE,
+  ]
+}
 
 /**
  * Ask the live guide, if one is switched on.
@@ -178,7 +213,7 @@ export async function askCoach(
   // own latency is the considered pause, so there is no artificial wait here.
   if (!ctx.onDeviceOnly) {
     const live = await askLiveGuide(message, ctx, modeId, history, onChunk)
-    if (live) return { text: live, followUps: DEFAULT_FOLLOW_UPS }
+    if (live) return { text: live, closers: closersFor(live) }
   }
 
   // A short, considered pause — a guide thinks before speaking.
@@ -193,8 +228,10 @@ export async function askCoach(
       best = intent
     }
   }
-  if (best && bestScore > 0)
-    return { text: best.respond(ctx), followUps: best.followUps ?? DEFAULT_FOLLOW_UPS }
+  if (best && bestScore > 0) {
+    const text = best.respond(ctx)
+    return { text, closers: closersFor(text) }
+  }
 
   // Every unmatched question gets the framework, whatever its length.
   //
@@ -205,9 +242,12 @@ export async function askCoach(
   // the fallback is not; there was never a reason a short question deserved the
   // worse one. Each mode's `fallback` line now opens the framework answer, so
   // its warmth is kept and it can no longer be the whole reply.
+  // The one place an ask is honest: the guide could not place the question,
+  // so it genuinely needs the specific part before it can hand over words.
+  const text = frameworkAnswer(ctx, modeId)
   return {
-    text: frameworkAnswer(ctx, modeId),
-    followUps: ['Here’s the specific part…', 'Apply that to my situation'],
+    text,
+    closers: closersFor(text, [{ kind: 'ask', text: 'Here’s the specific part…', label: 'Here’s the specific part…' }]),
   }
 }
 
@@ -250,6 +290,11 @@ export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
     `- If you don't know, say so plainly and ask for the specific detail.`,
     `- Religious rulings: give general Islamic principles only; explicitly defer fiqh rulings to a trusted scholar.`,
     `- Never diagnose; you are a wise companion, not a clinician. For crisis or abuse, advise real-world help immediately.`,
-    `- Format: under 180 words, short paragraphs, bullets sparingly, quote suggested scripts on a "Try:" line. End with ONE question or ONE concrete action — never both, never neither.`,
+    `- Format: under 180 words, short paragraphs, bullets sparingly, quote suggested scripts on a "Try:" line.`,
+    // The old rule allowed "one question OR one action". A question is the
+    // better business outcome — the thread continues — and an action is the
+    // better life outcome, and the model was told either was fine. Now it is
+    // told to close, and to ask only when it is genuinely missing a fact.
+    `- End on ONE concrete action, stated plainly — usually the act of saying the words you gave. Ask a question only when you genuinely lack a fact you need to answer; never to keep the conversation going. Once you have given words, close: the next step is theirs to take, not another message to you.`,
   ].join('\n')
 }

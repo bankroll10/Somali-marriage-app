@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react'
-import type { Dimension, Identity, MapSnapshot, ModeId, Reflection, StepRecord, WaitlistState, VouchState } from '../types'
+import type { Dimension, GroundState, Identity, MapSnapshot, ModeId, Reflection, StepRecord, WaitlistState, VouchState } from '../types'
 import { getMode } from '../data/coach'
-import { todayKey } from '../data/checkin'
+import { todayKey } from '../lib/dates'
+import { changesBetween } from '../lib/reflection'
 import {
   doneSteps,
   groundOrder,
   nextStepFor,
   openStep as findOpenStep,
-  readyToReflect,
   whenLabel,
 } from '../data/nextStep'
 import Cohort from './Cohort'
@@ -57,118 +57,35 @@ export function Generating() {
   )
 }
 
-const reducedMotion = () =>
-  window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
-function ScoreRing({ value, onDark = false }: { value: number; onDark?: boolean }) {
-  const r = 52
-  const c = 2 * Math.PI * r
-  // Start empty, then sweep to the real value — the map should feel *drawn*.
-  const [shown, setShown] = useState(0)
-  // The number counts up in step with the sweep, so the reveal reads as one motion.
-  const [num, setNum] = useState(0)
-  useEffect(() => {
-    if (reducedMotion()) {
-      setShown(value)
-      setNum(value)
-      return
-    }
-    const t = window.setTimeout(() => setShown(value), 150)
-    const start = performance.now() + 150
-    let raf = 0
-    const tick = (now: number) => {
-      const p = Math.min(Math.max((now - start) / 1100, 0), 1)
-      const eased = 1 - Math.pow(1 - p, 3)
-      setNum(Math.round(eased * value))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => {
-      window.clearTimeout(t)
-      cancelAnimationFrame(raf)
-    }
-  }, [value])
-  const offset = c - (shown / 100) * c
-  return (
-    <div className="relative h-32 w-32 flex-none">
-      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
-        <circle
-          cx="60"
-          cy="60"
-          r={r}
-          fill="none"
-          stroke={onDark ? 'var(--color-cream)' : 'var(--color-sand)'}
-          strokeOpacity={onDark ? 0.16 : 1}
-          strokeWidth="9"
-        />
-        <circle
-          cx="60"
-          cy="60"
-          r={r}
-          fill="none"
-          stroke={onDark ? 'var(--color-gold-soft)' : 'var(--color-gold)'}
-          strokeWidth="9"
-          strokeLinecap="round"
-          strokeDasharray={c}
-          strokeDashoffset={offset}
-          style={{ transition: 'stroke-dashoffset 1.1s cubic-bezier(0.22,1,0.36,1)' }}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span
-          className={`font-display text-3xl font-medium tabular-nums ${onDark ? 'text-cream' : 'text-forest'}`}
-        >
-          {num}
-        </span>
-        <span
-          className={`text-[0.65rem] uppercase tracking-[0.18em] ${onDark ? 'text-cream/60' : 'text-muted'}`}
-        >
-          readiness
-        </span>
-      </div>
-    </div>
-  )
-}
-
-/** Dimension bar that fills from zero, staggered — the map draws itself. */
-function DimensionBar({ score, delay }: { score: number; delay: number }) {
-  const [width, setWidth] = useState(reducedMotion() ? score : 0)
-  useEffect(() => {
-    const t = window.setTimeout(() => setWidth(score), 150)
-    return () => window.clearTimeout(t)
-  }, [score])
-  return (
-    <div className="mt-2 h-2 overflow-hidden rounded-full bg-sand">
-      <div
-        className="h-full rounded-full bg-forest"
-        style={{
-          width: `${width}%`,
-          transition: `width 0.9s cubic-bezier(0.22,1,0.36,1) ${delay}ms`,
-        }}
-      />
-    </div>
-  )
-}
-
 /**
- * How far they've come since the first reading. Returns null until there are at
- * least two — growth needs a before.
+ * Where she stands on a ground, in a word.
+ *
+ * This is where a bar used to fill from zero to a number. The read shows the
+ * same three states for him and refuses a number on a person; the map now
+ * refuses one on her.
  */
-function growth(history: MapSnapshot[]) {
-  if (history.length < 2) return null
-  const first = history[0]
-  const latest = history[history.length - 1]
+const STATE_LABEL: Record<GroundState, string> = { thin: 'Thin', steady: 'Steady', strong: 'Strong' }
+const STATE_CLASS: Record<GroundState, string> = {
+  thin: 'border-clay/40 bg-clay/[0.08] text-clay',
+  steady: 'border-line bg-sand/60 text-ink-soft',
+  strong: 'border-forest/30 bg-forest/[0.08] text-forest',
+}
+
+function StateTag({ state }: { state: GroundState }) {
+  return (
+    <span className={`rounded-full border px-2.5 py-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] ${STATE_CLASS[state]}`}>
+      {STATE_LABEL[state]}
+    </span>
+  )
+}
+
+/** "3 days ago" for the previous reading — the only date arithmetic the map needs. */
+function agoLabel(fromDate: string, toDate: string): string {
   const days = Math.max(
     0,
-    Math.round(
-      (new Date(`${latest.date}T00:00:00`).getTime() -
-        new Date(`${first.date}T00:00:00`).getTime()) /
-        86_400_000,
-    ),
+    Math.round((new Date(`${toDate}T00:00:00`).getTime() - new Date(`${fromDate}T00:00:00`).getTime()) / 86_400_000),
   )
-  const delta = latest.overall - first.overall
-  const when = days === 0 ? 'earlier today' : days === 1 ? 'yesterday' : `${days} days ago`
-  return { first, latest, delta, when, changed: first.headline !== latest.headline }
+  return days === 0 ? 'earlier today' : days === 1 ? 'yesterday' : `${days} days ago`
 }
 
 interface Props {
@@ -182,8 +99,6 @@ interface Props {
   onCompleteStep: () => void
   /** Their saved place — asked right after the dimension bars, until they join. */
   waitlist: WaitlistState | null
-  /** Guide voices she has used — goes with her place in the cohort. */
-  voices?: string[]
   ledger?: string[]
   onScene?: (scene: string) => void
   /** Their "hardest part" answer, carried onto the signup. */
@@ -209,7 +124,6 @@ export default function ReflectionView({
   onTakeStep,
   onCompleteStep,
   waitlist,
-  voices,
   ledger,
   onScene,
   hookId,
@@ -222,17 +136,23 @@ export default function ReflectionView({
   onOpenGuide,
 }: Props) {
   const name = identity.firstName?.trim()
-  const g = growth(history)
   const today = todayKey()
+  // What changed since the previous reading — answers, in her own words, and
+  // any ground that moved. Nothing to show until there is a before.
+  const latest = history[history.length - 1]
+  const previous = history.length >= 2 ? history[history.length - 2] : undefined
+  const changes = latest ? changesBetween(previous, latest) : { answers: [], grounds: [] }
+  const hasChanges = changes.answers.length > 0 || changes.grounds.length > 0
+  const thinLabel = r.dimensions.find((d) => d.dimension === r.thinnest[0])?.label.toLowerCase() ?? ''
+  const strongLabels = r.dimensions.filter((d) => d.state === 'strong').map((d) => d.label.toLowerCase())
   // The ground to work next: thinnest first, but skipping what's already been
   // worked — so the map keeps handing over something new.
   const carried = findOpenStep(steps)
-  const ground = carried?.dimension ?? groundOrder(r.dimensions, steps)[0]
+  const ground = carried?.dimension ?? groundOrder(r.thinnest, steps)[0]
   const groundLabel = r.dimensions.find((d) => d.dimension === ground)?.label ?? ''
   const step = nextStepFor(ground)
   const finished = doneSteps(steps)
   const finishedToday = steps.find((s) => s.done === today) ?? null
-  const sinceReading = readyToReflect(steps, history[history.length - 1]?.date, today)
   return (
     <div className="min-h-dvh bg-cream pb-24">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
@@ -247,65 +167,63 @@ export default function ReflectionView({
       </header>
 
       <main className="mx-auto max-w-2xl px-6">
-        {/* Hero reading — the one screenshot that sells the product: brand,
-            person, verdict, and the promise that ties readiness to matching. */}
+        {/* The reading. There used to be a ring here counting up to a number,
+            and a gold "+7" badge on the next visit. Both are gone: a score on
+            readiness was an answer key that penalised honesty, and a delta was
+            a reason to re-answer. What is here is the verdict in words and,
+            on a return, exactly what changed. */}
         <section className="animate-rise relative mt-8 overflow-hidden rounded-card bg-forest-deep p-7 text-cream sm:p-9">
           <div className="bg-geo pointer-events-none absolute inset-0 opacity-30" aria-hidden />
-          <div className="relative flex flex-col items-start gap-7 sm:flex-row sm:items-center">
-            <ScoreRing value={r.overall} onDark />
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold-soft">
-                {name ? `${name} · your marriage-readiness map` : 'Your marriage-readiness map'}
-              </p>
-              <h1 className="mt-2 font-display text-[2.1rem] font-medium leading-tight tracking-tight text-balance sm:text-[2.5rem]">
-                {r.headline}
-              </h1>
-              {/* The first time, a number attached to the words "marriage
-                  readiness" can read as a verdict on her as a person — which is
-                  exactly the fear that made her open this. Say what it isn't,
-                  before she has time to decide for herself. Afterwards the line
-                  goes back to explaining what the map is for. */}
-              <p className="mt-3 max-w-md text-[0.92rem] leading-relaxed text-cream/70 text-pretty">
-                {firstReveal
-                  ? 'A starting point, not a verdict — and not a measure of you as a person. It moves as you do, and no one sees it but you.'
-                  : 'Readiness first, profiles later — that’s how Niyyah chooses who you meet. No one sees this map but you.'}
-              </p>
-            </div>
+          <div className="relative">
+            <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold-soft">
+              {name ? `${name} · your map` : 'Your map'}
+            </p>
+            <h1 className="mt-2 font-display text-[2.1rem] font-medium leading-tight tracking-tight text-balance sm:text-[2.5rem]">
+              {r.headline}
+            </h1>
+            <p className="mt-3 max-w-lg text-[1rem] leading-relaxed text-cream/85 text-pretty">
+              {strongLabels.length > 0
+                ? `Strong on ${strongLabels.slice(0, 3).join(', ')}. Thinnest on ${thinLabel}.`
+                : `Steady across most of it. Thinnest on ${thinLabel}.`}
+            </p>
+            <p className="mt-3 max-w-md text-[0.92rem] leading-relaxed text-cream/60 text-pretty">
+              {firstReveal
+                ? 'A starting point, not a verdict — and not a measure of you as a person. No one sees this but you.'
+                : 'What decides who you meet is what you’ve done here and what you won’t compromise on — never this reading. No one sees it but you.'}
+            </p>
           </div>
 
-          {/* How far they've come. Only appears once there's a real before —
-              the number moves, but the identity shift is the point. */}
-          {g && (
+          {/* What changed since last time. Only when there is a before, and
+              only what actually moved — her words then and now. */}
+          {previous && latest && (
             <div className="relative mt-7 border-t border-cream/15 pt-5">
               <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">
-                Since your first reflection · {g.when}
+                Since your last reading · {agoLabel(previous.date, latest.date)}
               </p>
-              <div className="mt-2.5 flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <p className="font-display text-[1.15rem] font-medium leading-snug text-cream/90 text-pretty">
-                  {g.changed ? (
-                    <>
-                      <span className="text-cream/50">{g.first.headline}</span>
-                      <span className="mx-2 text-cream/40">→</span>
-                      {g.latest.headline}
-                    </>
-                  ) : (
-                    <>Still {g.latest.headline.toLowerCase()} — and steadier for it.</>
-                  )}
+              {!hasChanges ? (
+                <p className="mt-2.5 text-[1rem] leading-snug text-cream/85 text-pretty">
+                  You answered the same way. That is not nothing — it means the ground has held.
                 </p>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[0.75rem] font-semibold tabular-nums ${
-                    g.delta > 0
-                      ? 'bg-gold-soft/20 text-gold-soft'
-                      : 'bg-cream/10 text-cream/60'
-                  }`}
-                >
-                  {g.delta > 0 ? `+${g.delta}` : g.delta < 0 ? g.delta : 'steady'}
-                </span>
-              </div>
-              {g.delta < 0 && (
-                <p className="mt-2 text-[0.85rem] leading-relaxed text-cream/60 text-pretty">
-                  A lower reading isn’t a step back — it usually means you answered
-                  more honestly. That’s worth more than a high score.
+              ) : (
+                <ul className="mt-3 space-y-3">
+                  {changes.grounds.map((c) => (
+                    <li key={c.label} className="text-[0.95rem] leading-snug text-cream/85 text-pretty">
+                      <span className="font-medium text-cream">{c.label}</span> was {STATE_LABEL[c.then].toLowerCase()}. It reads{' '}
+                      {STATE_LABEL[c.now].toLowerCase()} now.
+                    </li>
+                  ))}
+                  {changes.answers.slice(0, 4).map((c) => (
+                    <li key={c.prompt} className="text-[0.92rem] leading-snug text-cream/80 text-pretty">
+                      <span className="block text-[0.72rem] uppercase tracking-[0.12em] text-cream/50">{c.prompt}</span>
+                      <span className="text-cream/60">Then: {c.then}.</span> <span className="text-cream">Now: {c.now}.</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {previous.headline !== latest.headline && (
+                <p className="mt-3 text-[0.85rem] leading-relaxed text-cream/60 text-pretty">
+                  Last time this read “{previous.headline}”. A different reading is not a step up or down — it is
+                  a different set of answers, and honesty counts for more than either.
                 </p>
               )}
             </div>
@@ -316,16 +234,15 @@ export default function ReflectionView({
           {r.summary}
         </p>
 
-        {/* Dimensions */}
+        {/* The seven grounds. A word each — never a bar, never a number. */}
         <Section title="Across the things that matter">
           <div className="space-y-5">
             {r.dimensions.map((d, i) => (
               <div key={d.dimension} className="animate-rise" style={{ animationDelay: `${i * 60}ms` }}>
-                <div className="flex items-baseline justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <span className="font-display text-[1.05rem] font-medium text-ink">{d.label}</span>
-                  <span className="text-sm tabular-nums text-muted">{d.score}</span>
+                  <StateTag state={d.state} />
                 </div>
-                <DimensionBar score={d.score} delay={i * 90} />
                 <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">{d.note}</p>
               </div>
             ))}
@@ -342,9 +259,7 @@ export default function ReflectionView({
         <section className="mb-12">
           <Cohort
             identity={identity}
-            overall={r.overall}
             hookId={hookId}
-            voices={voices}
             ledger={ledger}
             joined={waitlist}
             onJoined={onJoinWaitlist}
@@ -405,8 +320,8 @@ export default function ReflectionView({
             )}
 
             <p className="mt-4 border-t border-gold/20 pt-3.5 text-[0.8rem] leading-relaxed text-muted text-pretty">
-              Doing this doesn’t move your number — nothing here is scored. It
-              changes your answers, and your answers are the map.
+              Nothing here is scored. Doing this changes your answers, and your
+              answers are the map.
             </p>
           </div>
         </Section>
@@ -440,25 +355,6 @@ export default function ReflectionView({
               <p className="mt-3 text-[0.82rem] text-muted">
                 And {finished.length - 6} more before these.
               </p>
-            )}
-            {sinceReading > 0 && (
-              <div className="mt-5 rounded-card bg-forest p-6 text-cream">
-                <p className="font-display text-[1.25rem] font-medium leading-snug tracking-tight text-balance">
-                  {sinceReading} things done since this reading.
-                </p>
-                <p className="mt-2 text-[0.92rem] leading-relaxed text-cream/75 text-pretty">
-                  You’ve changed something real since you last answered. Answer
-                  again and the map will say so — or it won’t, which is worth
-                  knowing too.
-                </p>
-                <button
-                  onClick={onRetake}
-                  className="group mt-4 inline-flex items-center gap-1.5 rounded-full bg-cream px-5 py-2.5 text-[0.88rem] font-semibold text-forest-deep transition hover:bg-white"
-                >
-                  Reflect again
-                  <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                </button>
-              </div>
             )}
           </Section>
         )}
@@ -531,7 +427,8 @@ export default function ReflectionView({
           <p className="mx-auto mt-3 max-w-md text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
             From here your map quietly powers everything — a guide for the real
             moments, the work you take on, and, when your city opens,
-            introductions chosen by how your lives fit.
+            introductions chosen by how your lives fit and what you won’t
+            compromise on.
           </p>
           <div className="mt-7">
             <Button onClick={onContinue} className="group">
@@ -539,13 +436,15 @@ export default function ReflectionView({
               <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
             </Button>
           </div>
-          {/* Offered on revisits only — never straight after a fresh reading. */}
+          {/* Offered on revisits only, and never nudged: a retake is hers to
+              want when something in her life has changed, not something the
+              app asks for after a count of finished steps. */}
           {!firstReveal && (
             <button
               onClick={onRetake}
               className="mt-5 text-[0.85rem] font-medium text-forest underline-offset-4 transition hover:underline"
             >
-              Hearts change — reflect again
+              Something changed — answer again
             </button>
           )}
         </section>

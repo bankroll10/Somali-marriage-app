@@ -5,10 +5,9 @@ import {
   groundOrder,
   nextStepFor,
   openStep as findOpenStep,
-  readyToReflect,
   whenLabel,
 } from '../../data/nextStep'
-import { todayKey } from '../../data/checkin'
+import { todayKey } from '../../lib/dates'
 import { ArrowRight, CheckIcon } from '../ui'
 
 interface Props {
@@ -18,8 +17,6 @@ interface Props {
   onCompleteStep: () => void
   onOpenMap: () => void
   onOpenGuide: (mode?: Parameters<typeof getMode>[0]) => void
-  /** Date of the most recent reading, so we know when a new one is worth it. */
-  lastReading?: string
 }
 
 /**
@@ -36,10 +33,9 @@ export default function WorkCard({
   onCompleteStep,
   onOpenMap,
   onOpenGuide,
-  lastReading,
 }: Props) {
   const today = todayKey()
-  const order = groundOrder(reflection.dimensions, steps)
+  const order = groundOrder(reflection.thinnest, steps)
   const carried = findOpenStep(steps)
   // Skipping ("not this one") only moves the offer, so it needs no memory.
   const [skips, setSkips] = useState(0)
@@ -47,7 +43,6 @@ export default function WorkCard({
   const work = nextStepFor(ground)
   const groundLabel = reflection.dimensions.find((d) => d.dimension === ground)?.label ?? ''
   const finishedToday = steps.find((s) => s.done === today) ?? null
-  const sinceReading = readyToReflect(steps, lastReading, today)
 
   function swapGround() {
     if (!carried) {
@@ -114,22 +109,17 @@ export default function WorkCard({
 
           {/* Footer links get real vertical padding — they're the smallest
               targets on the screen and this is a thumb-first product. */}
+          {/* No "see if the map has moved" here. That line sent her back to
+              re-answer the intake after two finished steps, to watch a number
+              change — a loop, not a practice. The map is reached when she
+              wants it. */}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 border-t border-cream/10 pt-1.5">
-            {sinceReading > 0 ? (
-              <button
-                onClick={onOpenMap}
-                className="py-2.5 text-left text-[0.8rem] leading-snug text-gold-soft underline-offset-4 hover:underline text-pretty"
-              >
-                {sinceReading} things done since your last reading — see if the map has moved.
-              </button>
-            ) : (
-              <button
-                onClick={onOpenMap}
-                className="py-2.5 text-[0.8rem] text-cream/50 underline-offset-4 transition hover:text-cream/80 hover:underline"
-              >
-                {steps.some((s) => s.done) ? 'See everything you’ve done' : 'Where this comes from'}
-              </button>
-            )}
+            <button
+              onClick={onOpenMap}
+              className="py-2.5 text-[0.8rem] text-cream/50 underline-offset-4 transition hover:text-cream/80 hover:underline"
+            >
+              {steps.some((s) => s.done) ? 'See everything you’ve done' : 'Where this comes from'}
+            </button>
             {!finishedToday && (
               <button
                 onClick={swapGround}

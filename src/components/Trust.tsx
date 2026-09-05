@@ -90,7 +90,7 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
 
           <Control
             title="Count me"
-            desc="When you do one of the things above, we count that it happened — the step and the date, under a random code that is not your map code. No answers, no name, nothing that leads back to you. It is how we find out whether any of this actually helps anyone. Turn it off and nothing is sent."
+            desc="When you do one of the things above, we count that it happened — the step, the date, and for a few steps how it came out, in a word from a list we wrote — under a random code that is not your map code. No answer in your words, no name, nothing that leads back to you. It is how we find out whether any of this actually helps anyone. Turn it off and nothing is sent."
             icon={<LockGlyph />}
           >
             <Toggle on={countMe} label="Count me" onClick={() => onCountMe(!countMe)} />
@@ -115,17 +115,22 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Keeping your map.</span> If you
-              ask us to keep it, everything on this device — your answers, your
-              map, and any read or Before you say yes you’ve done — is copied to our
-              server so your code can find it again on another phone. No name is
-              attached to that code, and without it nobody can reach it.
+              ask us to keep it, what the app needs to bring you back is copied to
+              our server under your code: your answers and every reading of your
+              map, where you said you are and the work you took on, any read or
+              Before you say yes you’ve done, your couple code, your family’s vouch,
+              your place on the door, and — if you’ve married — what you told us on
+              the way out. Not your conversations with the guide: those never leave
+              this phone under your code. No name is attached to the code, and
+              without it nobody can reach it.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Joining the founding cohort.</span>{' '}
               If you ask to be counted, your map is kept as above, and we record
-              your city, who you’re seeking, the hardest part you named, your
-              overall number, which guide voices you’ve used, and which of the
-              things above you’ve done — under that same code, with no name on it.
+              your city, who you’re seeking, the hardest part you named, and
+              which of the things above you’ve done — under that same code, with
+              no name on it. Nothing about how your map read, and nothing about
+              how you use the app, goes anywhere.
               Your email or phone goes separately to the founder, so we can write
               to you when someone fits; it is never stored next to your answers.
             </p>
@@ -137,13 +142,18 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               to you. From your own answer you can still tell whether he thinks a
               conversation happened; that is the point, and he can tell the same
               about you. Your answers are frozen the moment he answers, his after
-              once, and the whole thing expires after ninety days.
+              once, and the whole thing expires after ninety days. Once he has
+              answered, your pair is also added to a count of how pairs come out on
+              each of the eleven — both agree, neither has raised it, one thinks it
+              was talked about — with no code and no side attached, so we can learn
+              which conversations couples here most often miss.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Asking your family to vouch.</span>{' '}
               If you send a family member the link, your map is kept as above, and
               what they write — who they are to you, their first name, one sentence,
-              and a phone number if they leave one — is stored under your code. Only
+              and a phone number if they leave one — is stored under your code. It
+              stays exactly as long as your map does, and goes when your map goes. Only
               their first name and who they are to you ever come back to any screen.
               Their sentence and their number are read by the founder alone, who may
               call to confirm, and are never shown to anyone you meet.
@@ -156,11 +166,24 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               eleven, you asked him, he answered, you had the conversation, your
               family vouched, you were counted, you’re deciding, you’re married —
               that step and the date reach us, along with your city if you gave
-              one. It goes under a code this phone made up for itself, which is
-              not your map code, so there is no way to put the two together. No
-              answers, no name, no message, and nothing about how long you spent
-              here or how often you opened it. Turn the control off and none of
-              it is sent.
+              one. A few of those steps also say, in a word, how they came out:
+              which of your map’s seven grounds read thin, steady or strong; how
+              the read came out and which ground it found thinnest; how many of
+              the eleven you had agreed on, differed on, not had, or did not yet
+              know your own answer to, and which one it told you to open; which
+              conversation you later confirmed you had; and, at the end, the three
+              things you tap on the way out — who you married, what decided it,
+              and what here you used. Every one of those is a choice from a list
+              we wrote. Never an answer in your words, never the line you write
+              for the next person, never a word the guide said or you said to it,
+              and never a name — his, yours or your family’s. If you opened Niyyah
+              from a link someone sent you, it also says what kind of link that
+              was — words, the eleven, a couple’s link, the door, a family link,
+              or a link from someone this worked for — and never who sent it. It
+              goes under a code this phone made up for itself, which is not your
+              map code, so there is no way to put the two together. Nothing about
+              how long you spent here or how often you opened it. Turn the
+              control off and none of it is sent.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               The Guide is the last exception, and here is exactly what it sends

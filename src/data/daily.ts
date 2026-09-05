@@ -1,7 +1,7 @@
 /**
- * Daily reflections — a small, culturally-specific drop of wisdom that changes
- * each day. This is the quiet reason to return: not a notification badge or a
- * dopamine hit, but a thought that feels like it knows your reality.
+ * Reflections — a small, culturally-specific drop of wisdom that changes each
+ * day. Not a reason to return: a thought worth carrying when she happens to
+ * open this, and the one thing here worth sending to someone.
  *
  * Hand-authored. The Claude seam could later personalize the daily reflection to
  * a user's readiness map, but the rotation below is the baseline.
@@ -133,14 +133,4 @@ export function chosenReason(date = new Date(), prefs?: DailyPrefs): string | nu
   const chosen = getDailyReflection(date, prefs)
   if (!prefs.tags.includes(chosen.tag)) return null
   return prefs.reasons?.[chosen.tag] ?? null
-}
-
-/**
- * Tomorrow's theme, teased today — honest anticipation, like a devotional's
- * next reading. The tag only; the words wait for tomorrow.
- */
-export function tomorrowTag(prefs?: DailyPrefs): string {
-  const t = new Date()
-  t.setDate(t.getDate() + 1)
-  return getDailyReflection(t, prefs).tag
 }

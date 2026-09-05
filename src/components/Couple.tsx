@@ -4,6 +4,7 @@ import { STATES, beforeYesTopics } from '../data/beforeYes'
 import { answerCouple, coupleReading, readCouple, type CoupleView } from '../lib/couple'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
+import InviteRow from './InviteRow'
 import { ArrowRight, Button, Logo } from './ui'
 
 interface Props {
@@ -193,7 +194,7 @@ export default function Couple({ code, onAnswered, onRead, onBuildMap, onHome }:
                   </li>
                 ))}
               </ul>
-              {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" />}
+              {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" travel="couple" />}
               <div className="mt-9 flex flex-col gap-3">
                 <button onClick={onRead} className="group flex items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5">
                   <span className="flex-1">
@@ -209,6 +210,13 @@ export default function Couple({ code, onAnswered, onRead, onBuildMap, onHome }:
                   </span>
                   <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
                 </button>
+                {/* Couples tell couples. He has just done the thing; the friend
+                    who is about to get engaged is the person he would tell. */}
+                <InviteRow
+                  source="couple"
+                  title="Send the eleven to a friend who’s about to get engaged"
+                  body="Two minutes, the conversations most of us have too late. They answer on their own phone. No account."
+                />
               </div>
               <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
                 Your answers were sent once, under this code, with no name. {sender} sees only this same list.
