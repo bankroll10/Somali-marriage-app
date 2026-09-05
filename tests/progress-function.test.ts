@@ -112,25 +112,44 @@ describe('the readout', () => {
     expect(body.rungs.arrived).toBe(3)
     expect(body.rungs.situated).toBe(2)
     expect(body.rungs.read).toBe(1)
-    expect(body.scenes.toronto.situated).toBe(2)
-    expect(body.scenes.london.arrived).toBe(1)
+    // A city under five reads null in every cell — a person is not a number here.
+    expect(body.scenes.toronto.situated).toBeNull()
+    expect(body.scenes.london.arrived).toBeNull()
 
     // No install id ever leaves, so nothing here can be traced to a device.
     const serialised = JSON.stringify(body)
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY']) expect(serialised).not.toContain(id)
   })
 
+  it('floors a city of three to null, and leaves the whole-population count a number', async () => {
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY']) await post({ id, rungs: ['arrived', 'read'], scene: 'toronto' })
+    const body = await (await readout()).json()
+    expect(body.rungs.arrived).toBe(3)
+    expect(body.rungs.read).toBe(3)
+    expect(body.scenes.toronto.arrived).toBeNull()
+    expect(body.scenes.toronto.read).toBeNull()
+    expect('arrived' in body.scenes.toronto).toBe(true)
+  })
+
+  it('shows a city once five have reached a rung', async () => {
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'toronto' })
+    const body = await (await readout()).json()
+    expect(body.scenes.toronto.arrived).toBe(5)
+  })
+
   it('tells word of mouth from every other arrival, by source, with no edge between people', async () => {
-    await post({ id: 'ACDEFG', rungs: ['arrived', 'read', 'followed-through'], via: 'words' })
-    await post({ id: 'HJKMNP', rungs: ['arrived'], via: 'words' })
-    await post({ id: 'QRTWXY', rungs: ['arrived', 'eleven'], via: 'couple' })
-    await post({ id: 'ACDEFH', rungs: ['arrived'] })
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
+      await post({ id, rungs: id === 'ACDEFG' ? ['arrived', 'read', 'followed-through'] : ['arrived'], via: 'words' })
+    }
+    await post({ id: 'HJKMNQ', rungs: ['arrived', 'eleven'], via: 'couple' })
+    await post({ id: 'HJKMNR', rungs: ['arrived'] })
 
     const body = await (await readout()).json()
-    expect(body.vias.words.arrived).toBe(2)
-    expect(body.vias.words['followed-through']).toBe(1)
-    expect(body.vias.couple.eleven).toBe(1)
-    expect(body.vias.unsaid.arrived).toBe(1)
+    expect(body.vias.words.arrived).toBe(5)
+    // One person through a door reads null, like any cell under five.
+    expect(body.vias.words['followed-through']).toBeNull()
+    expect(body.vias.couple.eleven).toBeNull()
+    expect(body.vias.unsaid.arrived).toBeNull()
     // Sources, never senders.
     expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNP|QRTWXY|from|sender/)
   })
@@ -258,16 +277,26 @@ describe('the facts', () => {
   })
 
   it('crosses what she confirmed she said with whether she married', async () => {
-    await post({ id: 'ACDEFG', rungs: ['arrived', 'followed-through', 'married'], facts: { eleven, through: ['beforeYes:money-home'], read } })
-    await post({ id: 'HJKMNP', rungs: ['arrived', 'followed-through'], facts: { eleven, through: ['beforeYes:money-home', 'couple:live'], read } })
+    // Six people confirmed the money conversation; five went on to marry. One
+    // also confirmed the living conversation — a lone cell, so it reads null.
+    const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'HJKMNQ']
+    for (const [i, id] of ids.entries()) {
+      await post({
+        id,
+        rungs: i < 5 ? ['arrived', 'followed-through', 'married'] : ['arrived', 'followed-through'],
+        facts: { eleven, through: i === 5 ? ['beforeYes:money-home', 'couple:live'] : ['beforeYes:money-home'], read },
+      })
+    }
     const body = await (await readout()).json()
-    expect(body.facts.through).toEqual({ 'beforeYes:money-home': 2, 'couple:live': 1 })
-    expect(body.facts.throughByTopic).toEqual({ 'money-home': 2, live: 1 })
-    expect(body.facts.marriedBy.through['money-home']).toEqual({ through: 2, married: 1 })
-    expect(body.facts.marriedBy.through.live).toEqual({ through: 1, married: 0 })
-    expect(body.facts.marriedBy.open['money-home']).toEqual({ eleven: 2, married: 1 })
-    expect(body.facts.marriedBy.readThin.public).toEqual({ read: 2, married: 1 })
-    expect(body.facts.eleven.differ).toEqual({ '2': 2 })
+    // Whole-population counts are never floored.
+    expect(body.facts.through).toEqual({ 'beforeYes:money-home': 6, 'couple:live': 1 })
+    expect(body.facts.throughByTopic).toEqual({ 'money-home': 6, live: 1 })
+    expect(body.facts.eleven.differ).toEqual({ '2': 6 })
+    // Cross-tabs are floored cell by cell.
+    expect(body.facts.marriedBy.through['money-home']).toEqual({ through: 6, married: 5 })
+    expect(body.facts.marriedBy.through.live).toEqual({ through: null, married: null })
+    expect(body.facts.marriedBy.open['money-home']).toEqual({ eleven: 6, married: 5 })
+    expect(body.facts.marriedBy.readThin.public).toEqual({ read: 6, married: 5 })
   })
 
   it('buckets an older record’s moment into its day', async () => {

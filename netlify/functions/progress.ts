@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 import { day } from '../shared/day'
+import { floorRows } from '../shared/floor'
 import {
   DIMENSIONS,
   GROUND_STATES,
@@ -212,7 +213,22 @@ async function tally(store: Store) {
     }
     if (record.facts) tallyFacts(facts, record.facts, 'married' in record.first)
   }
-  return { rungs, scenes, vias, arrivedByDay, facts }
+  // Whole-population counts as they are; every split by a quasi-identifier
+  // floored — see netlify/shared/floor.ts.
+  return {
+    rungs,
+    scenes: floorRows(scenes),
+    vias: floorRows(vias),
+    arrivedByDay,
+    facts: {
+      ...facts,
+      marriedBy: {
+        through: floorRows(facts.marriedBy.through),
+        readThin: floorRows(facts.marriedBy.readThin),
+        open: floorRows(facts.marriedBy.open),
+      },
+    },
+  }
 }
 
 type Counts = Record<string, number>

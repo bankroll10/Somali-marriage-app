@@ -96,7 +96,18 @@ describe('the count', () => {
     await post({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious', ledger: ['map', 'read', 'beforeYes'] })
     await post({ code: 'HJKMNP', scene: 'twin-cities', gender: 'man', hook: 'finding', ledger: ['map'] })
     const body = await (await handler(new Request('http://x/.netlify/functions/cohort'))).json()
-    expect(body.scenes['twin-cities'].ledger).toEqual({ map: 2, read: 1, beforeYes: 1 })
+    // Two people is under the floor, so each ledger cell reads null — present, never a number.
+    expect(body.scenes['twin-cities'].ledger).toEqual({ map: null, read: null, beforeYes: null })
+  })
+
+  it('shows a city’s ledger once five have done a thing', async () => {
+    const codes = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']
+    for (const code of codes) {
+      memStore('maps').setJSON(code, { snapshot: {} })
+      await post({ code, scene: 'twin-cities', gender: 'woman', ledger: ['map'] })
+    }
+    const body = await (await handler(new Request('http://x/.netlify/functions/cohort'))).json()
+    expect(body.scenes['twin-cities'].ledger.map).toBe(5)
   })
 
   it('drops a readiness number an older client still sends', async () => {
@@ -113,13 +124,24 @@ describe('the count', () => {
 })
 
 describe('the tally', () => {
+  it('leaves the door count a number and floors what a small city named as hardest', async () => {
+    await post({ code: 'ACDEFG', scene: 'toronto', gender: 'woman', hook: 'family', ledger: ['map'] })
+    await post({ code: 'HJKMNP', scene: 'toronto', gender: 'man', hook: 'family' })
+    const body = await (await handler(new Request('http://x/.netlify/functions/cohort'))).json()
+    expect(body.scenes.toronto.women).toBe(1)
+    expect(body.scenes.toronto.men).toBe(1)
+    expect(body.scenes.toronto.hooks.family).toBeNull()
+    expect(body.scenes.toronto.ledger.map).toBeNull()
+  })
+
   it('reads every scene, both sides and the hardest parts from keys alone', async () => {
     await post({ code: 'ACDEFG', scene: 'twin-cities', gender: 'woman', hook: 'serious' })
     await post({ code: 'HJKMNP', scene: 'twin-cities', gender: 'man', hook: 'serious' })
     const res = await handler(new Request('http://x/.netlify/functions/cohort'))
     const body = await res.json()
     expect(body.target).toBe(COHORT_TARGET)
-    expect(body.scenes['twin-cities']).toEqual({ women: 1, men: 1, hooks: { serious: 2 }, ledger: {} })
+    // The door count is a number; two people naming a hardest part is under the floor.
+    expect(body.scenes['twin-cities']).toEqual({ women: 1, men: 1, hooks: { serious: null }, ledger: {} })
     expect(body.scenes.index).toBeUndefined()
   })
 })

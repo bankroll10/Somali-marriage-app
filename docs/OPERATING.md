@@ -52,6 +52,16 @@ What each field in `/progress` means:
 `marriedBy` is the first outcome table this product has. Every row in the
 next section is a way of reading it.
 
+**Reading `null`.** Every cell in a split by city, by door, or in a
+`marriedBy` row that is under five reads as `null` — not zero, not missing:
+somewhere from zero to four. Whole-population counts are never floored, so a
+lone `ending.who.here: 1` still shows. Two honest caveats. A `null` beside an
+unfloored total can be recovered by subtraction when every other cell in its
+row is shown, so the floor removes the easy read and no more. And the floor
+does not protect against the founder, who holds the stores; it protects
+against a leaked key. The day-precision dates and the sentence on Trust do the
+heavier lifting. See `netlify/shared/floor.ts`.
+
 ## The loop: readout → constant
 
 Each row is one question the founder asks the readout, the constant it may

@@ -3,6 +3,7 @@ import { isFounder, notFounder } from '../shared/founder'
 // Validated against closed sets so a bad key can never be written — see netlify/shared/vocab.ts.
 import { GENDERS, HOOKS, LEDGER, SCENES } from '../shared/vocab'
 import { day } from '../shared/day'
+import { floor } from '../shared/floor'
 
 /**
  * The number on the door.
@@ -91,7 +92,15 @@ async function tally(store: Store) {
     s.hooks[hook] = (s.hooks[hook] ?? 0) + 1
     for (const id of record?.ledger ?? []) s.ledger[id] = (s.ledger[id] ?? 0) + 1
   }
-  return { target: COHORT_TARGET, scenes }
+  // The door's women/men count is public by design and stays a number. What a
+  // city named as hardest, and what its people have done, are floored — see
+  // netlify/shared/floor.ts.
+  return {
+    target: COHORT_TARGET,
+    scenes: Object.fromEntries(
+      Object.entries(scenes).map(([scene, s]) => [scene, { ...s, hooks: floor(s.hooks), ledger: floor(s.ledger) }]),
+    ),
+  }
 }
 
 export default async function handler(req: Request) {
