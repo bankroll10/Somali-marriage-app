@@ -109,6 +109,23 @@ describe('Netlify deploy directories hold only deployable code', () => {
     expect(existsSync(join(process.cwd(), 'src/assets/fonts/LICENSE.md'))).toBe(true)
   })
 
+  it('the tests run before main deploys, on a node that matches the deploy', () => {
+    // main auto-deploys on merge, so the gate has to be in the repository
+    // rather than in whoever remembered to look. See docs/CONTROL.md.
+    const workflow = join(process.cwd(), '.github/workflows/verify.yml')
+    expect(existsSync(workflow), 'the verify workflow must exist').toBe(true)
+    const yml = readFileSync(workflow, 'utf8')
+    expect(yml).toContain('npm run verify')
+    expect(yml).toMatch(/pull_request/)
+    expect(yml).toMatch(/branches: \[main\]/)
+
+    // A CI node older than the deploy node would pass here and fail there.
+    const toml = readFileSync(join(process.cwd(), 'netlify.toml'), 'utf8')
+    const deployNode = toml.match(/NODE_VERSION = "(\d+)"/)?.[1]
+    expect(deployNode, 'netlify.toml must pin NODE_VERSION').toBeTruthy()
+    expect(yml).toContain(`node-version: '${deployNode}'`)
+  })
+
   it('the gate is still where netlify.toml expects it', () => {
     // A guard that passes because the file was deleted would be worse than none.
     expect(existsSync(join(process.cwd(), 'netlify/edge-functions/gate.ts'))).toBe(true)

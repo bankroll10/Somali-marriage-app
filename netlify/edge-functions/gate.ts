@@ -47,10 +47,20 @@ function unauthorized(): Response {
   )
 }
 
+let warnedNoPassword = false
+
 export default async function gate(request: Request): Promise<Response | undefined> {
   const password = Netlify.env.get('PREVIEW_PASSWORD')
   // No password configured — the site is open, by design. See the note above.
-  if (!password) return undefined
+  // Said once per cold start so that "the gate is off" is visible in the deploy
+  // log rather than something you discover by loading the site in a private tab.
+  if (!password) {
+    if (!warnedNoPassword) {
+      warnedNoPassword = true
+      console.warn('[niyyah] PREVIEW_PASSWORD is not set — the founding preview is open to anyone with the link')
+    }
+    return undefined
+  }
 
   const header = request.headers.get('authorization')
   if (!header) return unauthorized()

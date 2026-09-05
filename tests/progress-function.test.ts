@@ -198,9 +198,20 @@ describe('forgetting an install', () => {
 })
 
 describe('the founder key', () => {
-  it('stays open when no key is configured', async () => {
+  it('stays open when no key is configured, and says so out loud', async () => {
+    const { resetWarnings } = await import('../netlify/shared/founder')
+    resetWarnings()
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     await post({ id: ID, rungs: ['arrived'] })
     expect((await readout()).status).toBe(200)
+    // Unset means open by design; silently open is how a readout stays public
+    // for a month. The warning is the difference.
+    expect(warn.mock.calls.flat().join(' ')).toContain('FOUNDER_KEY is not set')
+    // Once per cold start, not once per request: a guard that is off should be
+    // visible in the log, not a wall of noise that gets filtered out.
+    await readout()
+    expect(warn.mock.calls.length).toBe(1)
+    warn.mockRestore()
   })
 
   it('refuses the readout without the key, and with the wrong one', async () => {
