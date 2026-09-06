@@ -10,6 +10,7 @@ import { SITE_URL } from '../lib/site'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import InviteRow from './InviteRow'
+import ReportConcern from './ReportConcern'
 import { ArrowRight, Button, ScreenHeader } from './ui'
 
 interface Props {
@@ -460,6 +461,7 @@ function Together({
         <p className="mt-4 text-[0.8rem] leading-relaxed text-muted text-pretty">
           {he === 'he' ? 'He' : 'She'} saw this same list, and nothing else. Your answers were frozen the moment {he} answered; {he === 'he' ? 'his' : 'hers'} were sent once.
         </p>
+        <ReportConcern code={couple.code} side={gender} />
       </div>
     )
   }

@@ -260,10 +260,13 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
         <section className="mt-6 rounded-card bg-forest p-6 text-cream">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-soft">Our promise</p>
           <p className="mt-3 text-[1rem] leading-relaxed text-cream/90 text-pretty">
-            Every member will be held to the same standard. Reports are meant to
-            have real consequences — players, liars, and creeps removed, not
-            warned. That is the promise this opens with, and what we’ll be judged
-            on. What’s built in the light, with dignity, is what we protect.
+            Every member will be held to the same standard. Wherever we know who
+            you’ve been in touch with — right now, that means after the eleven —
+            you can report a concern about them, in your own words if you need
+            to. It reaches a person, not a queue, and it is meant to have real
+            consequences: players, liars, and creeps removed, not warned. That
+            is the promise this opens with, and what we’ll be judged on. What’s
+            built in the light, with dignity, is what we protect.
           </p>
         </section>
       </main>

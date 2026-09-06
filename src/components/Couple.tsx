@@ -5,6 +5,7 @@ import { answerCouple, coupleReading, readCouple, type CoupleView } from '../lib
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import InviteRow from './InviteRow'
+import ReportConcern from './ReportConcern'
 import { ArrowRight, Button, Logo } from './ui'
 
 interface Props {
@@ -221,6 +222,7 @@ export default function Couple({ code, onAnswered, onRead, onBuildMap, onHome }:
               <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
                 Your answers were sent once, under this code, with no name. {sender} sees only this same list.
               </p>
+              <ReportConcern code={code} side={answerFor} />
             </div>
           )
         })()}

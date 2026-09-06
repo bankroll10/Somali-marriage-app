@@ -133,3 +133,10 @@ export const ENDED_WHICH: Record<string, Set<string>> = {
 export const WHO = new Set(['brought', 'family', 'here', 'elsewhere'])
 export const MATTERED = new Set(['shown', 'eleven', 'families', 'myself', 'other'])
 export const USED = new Set(['read', 'eleven', 'couple', 'families', 'vouch', 'guide', 'map'])
+
+/**
+ * Must match src/data/safety.ts. Why a member is reporting a concern about
+ * whoever is on the other side of a couple code — the one closed list this
+ * report is built from. See netlify/functions/safety.ts.
+ */
+export const SAFETY_REASONS = new Set(['harassment', 'threats', 'sexual', 'already-married', 'impersonation', 'other'])

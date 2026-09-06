@@ -19,6 +19,19 @@ dashboard; a dashboard becomes a metric; a metric becomes the thing the
 product optimises for. The ladder is the only metric. Everything below is
 calibration.
 
+One readout does not wait for the month: `GET /safety` (`netlify/functions/safety.ts`)
+holds a real, named concern about a real person, and nobody is notified when
+one arrives — see `docs/TIME.md`. **Check it weekly**, on its own, whatever
+week it falls in relative to the monthly hour below.
+
+```bash
+curl -s -H "$K" $S/safety | jq .   # weekly — a report is a person waiting, not a metric
+```
+
+Resolving one is `DELETE $S/safety?code=<code>&side=<woman|man>` with the
+founder key — it expunges the report, per `docs/LEARNING.md`. There is
+nothing to keep once it has been acted on.
+
 ## The readouts
 
 All four are aggregate and return no person. All four sit behind
