@@ -70,7 +70,7 @@ described on the Trust screen in the same commit, gated by "Count me":
 - **That a courtship ended, from which stage, and — only if she taps one — one of ten reasons and which**
 - Who she married, what decided it, which instruments were real
 - What kind of link brought her here, never who sent it
-- Her city, who she is seeking, the hardest part she named, what she has done here
+- Her city and country, how far she said she would go for the right person, who she is seeking, the hardest part she named, what she has done here
 - How pairs come out on each of the eleven, with no pair in it
 
 **Deliberately not collected**, and why — so the next engineer does not "just

@@ -143,9 +143,12 @@ Defined in `src/lib/rungs.ts`; the code wins over this document.
   words. The readout crosses each against whether she married. How those
   tables move the constants is `docs/OPERATING.md`.
 
-## 7. When a city opens
+## 7. When a pool opens
 
-The marketplace, when it exists, obeys the same rules as the instruments:
+A pool is a city, or a country for the people who said they would travel
+within it — the smallest geography in which both sides clear the door's
+target, given each member's stated reach (`docs/SCALE.md`). The marketplace,
+when it exists, obeys the same rules as the instruments:
 
 - **One introduction at a time.** The next arrives only after a yes or a no
   *with a reason*. A considered no is progress and is recorded; it is not a
@@ -256,6 +259,7 @@ link returns 401 to anyone without the password.
    seam; the guide's function is the pattern.
 4. **Real backend** — auth, persistence, real verification, moderation and
    reporting (safety is first-class).
-5. **The city opens** — one introduction at a time, per §7, Minneapolis first,
-   on the dormant introductions store `docs/LEARNING.md` designs.
+5. **The first pool opens** — one introduction at a time, per §7, Minneapolis
+   first, on the dormant introductions store `docs/LEARNING.md` designs and
+   the sequencing `docs/SCALE.md` sets out.
 6. **Concierge** — the human matchmaker, priced per person.
