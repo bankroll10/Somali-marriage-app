@@ -96,6 +96,7 @@ these live in the repository, and none should.
 | `VITE_WAITLIST_FORM` | Names the Netlify form signups post to. Already set in `netlify.toml`. | The signup card falls back to a mailto. |
 | `VITE_SITE_HOST` | The domain the app calls itself, in every link it hands out and every share card. | `getniyyah.netlify.app` — a subdomain we do not own. See `docs/CONTROL.md`. |
 | `VITE_CONTACT_EMAIL` | Where a signup reaches a human when the form is down. | `salaam@niyyah.app`, which is only real if that domain is owned and receiving. |
+| `GUIDE_HOURLY_CAP` | The circuit breaker on the live Guide (`netlify/shared/limit.ts`) — the most calls it will answer in one hour, from anyone, combined. | `300`, chosen well above any real hour this product has seen. See `docs/TIME.md`. |
 
 Two rules about them:
 
@@ -142,6 +143,16 @@ curl -s -H "Authorization: Bearer $FOUNDER_KEY" \
   https://<your-site>/.netlify/functions/export -o "backup-$(date +%F).json"
 ```
 
+## The safety queue
+
+`GET /.netlify/functions/safety`, behind the founder key, lists every open
+report against a real, named person a member has raised a concern about —
+see `netlify/functions/safety.ts` and `docs/LEARNING.md` for what this is and
+is not. Unlike the monthly readouts, this one does not wait for the month:
+`docs/OPERATING.md` calls for checking it weekly. Resolving a report is
+`DELETE /.netlify/functions/safety?code=<code>&side=<woman|man>`, which
+deletes it — a report is a live concern to act on, not a record to keep.
+
 ## At real launch
 
 Three things come off together, and forgetting one undoes the others:
@@ -150,6 +161,9 @@ Three things come off together, and forgetting one undoes the others:
 2. `public/robots.txt`.
 3. `netlify/edge-functions/gate.ts`, and the `PREVIEW_PASSWORD` variable.
 
-Before that day, the Trust screen and `src/data/plus.ts` both promise
-reporting and blocking that do not exist yet. That promise has to become true
-or come off the screen.
+Before that day: `netlify/functions/safety.ts` gives reporting a real channel
+(see above), but this product has no accounts, so "removed" still means a
+founder's phone call, not a button. Trust's promise of real consequences is
+true as far as a report reaching a person goes; keep it worded that way, not
+as a claim of automatic enforcement this product cannot yet make. See
+`docs/TIME.md`.
