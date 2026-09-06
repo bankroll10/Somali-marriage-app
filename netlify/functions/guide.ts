@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { Context } from '@netlify/functions'
 import { isFounder, notFounder } from '../shared/founder'
+import { underHourlyLimit } from '../shared/limit'
 
 /**
  * The live Guide.
@@ -32,6 +33,14 @@ import { isFounder, notFounder } from '../shared/founder'
 // of route that does not repay deeper thinking. Raise it only with numbers.
 const EFFORT = 'low'
 const MODEL = 'claude-opus-5'
+
+/**
+ * A circuit breaker, not a usage policy — see shared/limit.ts. Chosen well
+ * above any real hour this product has seen, so it never touches a genuine
+ * member; it exists only so an unattended month cannot end in a bill nobody
+ * saw coming. Override with GUIDE_HOURLY_CAP if that assumption ever changes.
+ */
+const DEFAULT_HOURLY_CAP = 300
 
 interface Body {
   system?: string
@@ -93,6 +102,14 @@ export default async function handler(req: Request, _context: Context) {
   if (!process.env.ANTHROPIC_API_KEY) {
     // Not an error — the guide simply isn't switched on yet.
     return Response.json({ error: 'guide_not_configured' }, { status: 503 })
+  }
+
+  const cap = Number(process.env.GUIDE_HOURLY_CAP) || DEFAULT_HOURLY_CAP
+  if (!(await underHourlyLimit('guide', cap))) {
+    // The same 503 shape as every other guide failure — the client already
+    // falls back to its offline voice on this, with nothing that looks broken.
+    console.error('[niyyah] guide: hourly cap reached')
+    return Response.json({ error: 'rate_limited' }, { status: 503 })
   }
 
   let body: Body

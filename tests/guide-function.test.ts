@@ -8,19 +8,57 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
  */
 
 const create = vi.fn(async () => ({ stop_reason: 'end_turn' }))
+/** Yields nothing: enough to exercise the pre-answer path without a real network call. */
+const stream = vi.fn(() => ({
+  async *[Symbol.asyncIterator]() {},
+  abort: () => {},
+}))
 vi.mock('@anthropic-ai/sdk', () => ({
   default: class {
-    messages = { create }
+    messages = { create, stream }
   },
+}))
+
+/** A minimal etag-aware store, enough for the hourly cap in shared/limit.ts. */
+const limits = new Map<string, string>()
+const limitEtags = new Map<string, number>()
+vi.mock('@netlify/blobs', () => ({
+  getStore: () => ({
+    getWithMetadata: async (key: string) => {
+      const v = limits.get(key)
+      if (v === undefined) return null
+      return { data: JSON.parse(v), etag: `${key}#${limitEtags.get(key) ?? 0}` }
+    },
+    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
+      const current = limitEtags.get(key) ?? 0
+      const etag = `${key}#${current}`
+      if (opts?.onlyIfNew && limits.has(key)) return { modified: false }
+      if (opts?.onlyIfMatch && opts.onlyIfMatch !== etag) return { modified: false }
+      limits.set(key, JSON.stringify(value))
+      limitEtags.set(key, current + 1)
+      return { modified: true }
+    },
+  }),
 }))
 
 const { default: handler } = await import('../netlify/functions/guide')
 const health = (headers: Record<string, string> = {}) =>
   handler(new Request('http://x/.netlify/functions/guide', { headers }), {} as never)
+const ask = () =>
+  handler(
+    new Request('http://x/.netlify/functions/guide', {
+      method: 'POST',
+      body: JSON.stringify({ system: 'you are a guide', message: 'hi' }),
+    }),
+    {} as never,
+  )
 
 afterEach(() => {
   vi.unstubAllEnvs()
   create.mockClear()
+  stream.mockClear()
+  limits.clear()
+  limitEtags.clear()
 })
 
 describe('the health check', () => {
@@ -47,5 +85,30 @@ describe('the health check', () => {
     expect(body.keyPresent).toBe(false)
     expect(body.call).toBeUndefined()
     expect(create).not.toHaveBeenCalled()
+  })
+})
+
+describe('the hourly cap', () => {
+  // A circuit breaker against an unattended month of runaway calls, not a
+  // per-member limit — see netlify/shared/limit.ts. Testing it at cap 1 proves
+  // the shape without needing a real hour to pass.
+  it('lets a call through, then refuses without ever reaching the model', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    vi.stubEnv('GUIDE_HOURLY_CAP', '1')
+
+    const first = await ask()
+    expect(stream).toHaveBeenCalledTimes(1)
+    expect(first.status).toBe(503)
+
+    const second = await ask()
+    expect(stream).toHaveBeenCalledTimes(1)
+    expect(second.status).toBe(503)
+    expect((await second.json()).error).toBe('rate_limited')
+  })
+
+  it('is generous enough that it never touches a real call, by default', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    for (let i = 0; i < 50; i++) await ask()
+    expect(stream).toHaveBeenCalledTimes(50)
   })
 })
