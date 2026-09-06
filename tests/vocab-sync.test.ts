@@ -12,6 +12,7 @@ import { endingQuestions } from '../src/data/ending'
 import { ENDED_REASON_IDS, REASONS_WITH_WHICH, dealbreakerOptions } from '../src/data/ended'
 import { scenes } from '../src/data/scenes'
 import { hookOptions } from '../src/data/hook'
+import { SAFETY_REASONS } from '../src/data/safety'
 
 /**
  * The server accepts only words from closed lists, and each list has a twin in
@@ -74,5 +75,9 @@ describe('every word the server accepts is a word the app uses', () => {
 
   it('a conversation can be confirmed under every source but the guide', () => {
     expect(sorted(Object.keys(vocab.THROUGH_TOPICS))).toEqual(['beforeYes', 'couple', 'family', 'read'])
+  })
+
+  it('the reasons a safety report can give', () => {
+    expect(sorted(vocab.SAFETY_REASONS)).toEqual(sorted(SAFETY_REASONS.map((r) => r.id)))
   })
 })

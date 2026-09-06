@@ -33,7 +33,8 @@ import { day } from '../shared/day'
 
 const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
 const CODE_LENGTH = 6
-const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
+/** The shape of a couple code. Exported so safety.ts can validate against the same pattern. */
+export const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 const TTL_MS = 90 * 24 * 60 * 60 * 1000
 const MAX_BODY = 8_000
 /** The one key in the tallies store this function writes. */
