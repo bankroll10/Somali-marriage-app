@@ -19,7 +19,7 @@ import Vouch from './components/Vouch'
 import Plus from './components/Plus'
 import Ending from './components/Ending'
 import Ended from './components/Ended'
-import type { Gender } from './types'
+import type { Gender, Reach } from './types'
 import type { Entry } from './lib/entry'
 import { buildRead, readSummary } from './lib/read'
 import { beforeYesSummary, buildBeforeYes } from './lib/beforeYes'
@@ -56,6 +56,8 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
 function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
   const hookId = n.answers['hardest-part'] as string | undefined
   const setScene = (scene: string) => n.setIdentity((prev) => ({ ...prev, scene }))
+  const setCountry = (country: string) => n.setIdentity((prev) => ({ ...prev, country }))
+  const setReach = (reach: Reach) => n.setIdentity((prev) => ({ ...prev, reach }))
   // One line about her last read, recomputed from her answers rather than stored,
   // so a change to how we read never leaves an old verdict in the Guide's prompt.
   const readNote = (() => {
@@ -103,6 +105,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           identity={n.identity}
           onChoose={n.chooseSituation}
           onScene={setScene}
+          onChangeIdentity={n.setIdentity}
           onBack={() => n.setScreen('identity')}
         />
       )
@@ -146,6 +149,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           waitlist={n.waitlist}
           ledger={n.ledgerDone}
           onScene={setScene}
+          onCountry={setCountry}
+          onReach={setReach}
           hookId={hookId}
           onJoinWaitlist={n.joinedCohort}
           vouch={n.vouch}
@@ -192,6 +197,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           waitlist={n.waitlist}
           onJoinWaitlist={n.joinedCohort}
           onScene={setScene}
+          onCountry={setCountry}
+          onReach={setReach}
         />
       )
 
@@ -321,6 +328,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           waitlist={n.waitlist}
           onJoinWaitlist={n.joinedCohort}
           onScene={setScene}
+          onCountry={setCountry}
+          onReach={setReach}
           onAnswer={n.answer}
           onBack={() => n.setScreen('home')}
         />

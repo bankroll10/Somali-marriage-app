@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Dimension, GroundState, Identity, MapSnapshot, ModeId, Reflection, StepRecord, WaitlistState, VouchState } from '../types'
+import type { Dimension, GroundState, Identity, MapSnapshot, ModeId, Reach, Reflection, StepRecord, WaitlistState, VouchState } from '../types'
 import { getMode } from '../data/coach'
 import { todayKey } from '../lib/dates'
 import { changesBetween } from '../lib/reflection'
@@ -101,6 +101,8 @@ interface Props {
   waitlist: WaitlistState | null
   ledger?: string[]
   onScene?: (scene: string) => void
+  onCountry?: (country: string) => void
+  onReach?: (reach: Reach) => void
   /** Their "hardest part" answer, carried onto the signup. */
   hookId?: string
   onJoinWaitlist: (s: WaitlistState) => void
@@ -126,6 +128,8 @@ export default function ReflectionView({
   waitlist,
   ledger,
   onScene,
+  onCountry,
+  onReach,
   hookId,
   onJoinWaitlist,
   vouch,
@@ -264,6 +268,8 @@ export default function ReflectionView({
             joined={waitlist}
             onJoined={onJoinWaitlist}
             onScene={onScene}
+            onCountry={onCountry}
+            onReach={onReach}
           />
           {/* The one verification we claim, offered where she has just finished
               something and can see why it would matter. It used to live only on

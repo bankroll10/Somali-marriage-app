@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { AnswerValue, Answers, Identity, Reflection, WaitlistState, VouchState } from '../types'
 import { MAX_AGE, MIN_AGE } from '../types'
-import { getScene, scenes } from '../data/scenes'
+import { countryFor, getScene, scenes } from '../data/scenes'
+import { countries, getCountry } from '../data/countries'
+import { reachOptions } from '../data/reach'
 import Cohort from './Cohort'
 import InviteRow from './InviteRow'
 import VouchRow from './VouchRow'
@@ -66,7 +68,12 @@ export default function Profile({
 }: Props) {
   const name = identity.firstName?.trim()
   const scene = getScene(identity.scene)
+  const country = getCountry(countryFor(identity))
   const done = ledger.filter((e) => e.done)
+  const chip = (on: boolean) =>
+    `rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition-all ${
+      on ? 'border-forest bg-forest text-cream' : 'border-line bg-white/50 text-ink-soft hover:border-forest/40 hover:bg-white'
+    }`
 
   // Age and community are the two facts an introduction cannot do without.
   // Asked here, plainly, and only while one is missing.
@@ -175,6 +182,8 @@ export default function Profile({
             {identity.age ? `${identity.age}` : 'Age not given'}
             {' · '}
             {scene ? scene.label : 'Community not given'}
+            {scene?.id === 'other' && country ? ` (${country.label})` : ''}
+            {identity.reach ? ` · ${reachOptions(country?.within).find((r) => r.id === identity.reach)?.label}` : ''}
           </p>
           {detailsMissing && !detailsOpen && (
             <button
@@ -235,11 +244,7 @@ export default function Profile({
                       type="button"
                       onClick={() => onChangeIdentity((prev) => ({ ...prev, scene: selected ? undefined : s.id }))}
                       aria-pressed={selected}
-                      className={`rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition-all ${
-                        selected
-                          ? 'border-forest bg-forest text-cream'
-                          : 'border-line bg-white/50 text-ink-soft hover:border-forest/40 hover:bg-white'
-                      }`}
+                      className={chip(selected)}
                     >
                       {s.label}
                     </button>
@@ -248,6 +253,60 @@ export default function Profile({
               </div>
             </div>
           )}
+
+          {/* Somewhere else is not a city: she names the country she is in,
+              and that is the pool she is counted in. */}
+          {identity.scene === 'other' && (
+            <div className="mt-4">
+              <p id="profile-country-label" className="mb-2 block text-sm font-medium text-ink-soft">
+                Somewhere else in…
+              </p>
+              <div role="group" aria-labelledby="profile-country-label" className="flex flex-wrap gap-2">
+                {countries.map((c) => {
+                  const selected = identity.country === c.id
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => onChangeIdentity((prev) => ({ ...prev, country: c.id }))}
+                      aria-pressed={selected}
+                      className={chip(selected)}
+                    >
+                      {c.label}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* How far she would go for the right person. A preference, like the
+              non-negotiables: asked, never inferred. See src/data/reach.ts. */}
+          <div className="mt-4">
+            <p id="profile-reach-label" className="mb-2 block text-sm font-medium text-ink-soft">
+              How far would you go for the right person?
+            </p>
+            <div role="group" aria-labelledby="profile-reach-label" className="flex flex-wrap gap-2">
+              {reachOptions(country?.within).map((r) => {
+                const selected = identity.reach === r.id
+                return (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => onChangeIdentity((prev) => ({ ...prev, reach: r.id }))}
+                    aria-pressed={selected}
+                    className={chip(selected)}
+                  >
+                    {r.label}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-2 text-[0.8rem] leading-relaxed text-muted text-pretty">
+              Left blank, it means your city. It decides which count on the door you are in — never who is
+              shown to you, and never anything anyone is told about you.
+            </p>
+          </div>
         </section>
 
         {/* What's free and what isn't — a plain row, no badge. */}
@@ -279,6 +338,8 @@ export default function Profile({
             joined={waitlist}
             onJoined={onJoinWaitlist}
             onScene={(scene) => onChangeIdentity((prev) => ({ ...prev, scene }))}
+            onCountry={(country) => onChangeIdentity((prev) => ({ ...prev, country }))}
+            onReach={(reach) => onChangeIdentity((prev) => ({ ...prev, reach }))}
             compact
           />
         </div>

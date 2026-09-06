@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Dimension, FollowUp as FollowUpRecord, Identity, ModeId, ReadRecord, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
+import type { Dimension, FollowUp as FollowUpRecord, Identity, ModeId, Reach, ReadRecord, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
 import type { FollowUpAsk } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
@@ -68,6 +68,8 @@ interface Props {
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
   onScene: (scene: string) => void
+  onCountry: (country: string) => void
+  onReach: (reach: Reach) => void
 }
 
 export default function Home({
@@ -102,6 +104,8 @@ export default function Home({
   waitlist,
   onJoinWaitlist,
   onScene,
+  onCountry,
+  onReach,
 }: Props) {
   const name = identity.firstName?.trim()
   const scene = getScene(identity.scene)
@@ -440,6 +444,8 @@ export default function Home({
                 joined={waitlist}
                 onJoined={onJoinWaitlist}
                 onScene={onScene}
+                onCountry={onCountry}
+                onReach={onReach}
                 compact
               />
             )}

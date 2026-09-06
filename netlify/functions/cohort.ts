@@ -1,7 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 // Validated against closed sets so a bad key can never be written — see netlify/shared/vocab.ts.
-import { GENDERS, HOOKS, LEDGER, SCENES } from '../shared/vocab'
+import { COUNTRIES, GENDERS, HOOKS, LEDGER, REACH, SCENES, SCENE_COUNTRY } from '../shared/vocab'
 import { day } from '../shared/day'
 import { floor } from '../shared/floor'
 
@@ -10,35 +10,53 @@ import { floor } from '../shared/floor'
  *
  * A marriage platform with no members is a promise, and the honest thing to do
  * with a promise is to count toward it in public. This is that count: how many
- * women and how many men in a city have kept a map and can be reached, against
- * the number the city opens at. It goes up when a real person acts, and it is
- * never seeded, rounded up, or invented — the day it lies is the day the trust
- * claim under it stops being true.
+ * women and how many men have kept a map and can be reached, against the number
+ * a pool opens at. It goes up when a real person acts, and it is never seeded,
+ * rounded up, or invented — the day it lies is the day the trust claim under it
+ * stops being true.
+ *
+ * The unit is the pool, not the city. A city is where a person can meet someone
+ * this week; a country is where she would move for the right person — and for
+ * most of the diaspora, who live in a hundred small pockets rather than five
+ * big ones, the country is the only geography in which a real number of serious
+ * people exists. So every count here is two numbers: the city (`here`) and the
+ * people in her country who said they would travel (`across`). Reach is mutual
+ * by construction — a person is in `across` only if she herself would travel —
+ * so the pool a woman in Bristol sees is the pool a man in Leeds sees.
+ * `other` is not a city: two people in it may be continents apart, so it has no
+ * `here`, and someone there who would not travel is counted but in no pool
+ * that can open. That is the honest repair of what `other` used to be: one
+ * worldwide bucket counted toward the same forty as Minneapolis.
  *
  * It is also the first measurement of need this product has ever had. Every
  * join records what the person named as the hardest part, so the tally answers
  * a question we have only been guessing at: what are people actually here for?
  *
  * Nothing here is a person. A join is keyed by the anonymous code her kept map
- * lives under, and carries her city, who she is seeking, her hardest part, and
- * what she has done here. Nothing about how her map read — a readiness number
- * was an answer key — and nothing about how she uses the app: which guide
- * voices she opened used to travel here, and it was usage, not need. The way to reach her is
- * deliberately NOT stored here — it goes to the founder's form, so that this
- * store can be read and tallied without ever holding contact details.
+ * lives under, and carries her country and city, who she is seeking, how far
+ * she would go, her hardest part, and what she has done here. Nothing about
+ * how her map read — a readiness number was an answer key — and nothing about
+ * how she uses the app. The way to reach her is deliberately NOT stored here —
+ * it goes to the founder's form, so that this store can be read and tallied
+ * without ever holding contact details. The country is coarser than the city,
+ * so docs/LEARNING.md's refusal of anything finer stands untouched.
  *
- * Key layout: `<scene>/<gender>/<hook>/<code>`. Listing by prefix is the only
- * query Blobs offers, and with this layout every count the product needs is a
- * prefix and a length — no reads, no PII, nothing to leak.
+ * Key layout: `<country>/<scene>/<gender>/<reach>/<hook>/<code>`. Listing by
+ * prefix is the only query Blobs offers, and with this layout every count the
+ * door needs is one list under a country and a walk over its keys — no reads,
+ * no PII, nothing to leak. Fine to some thousands of members per country; the
+ * running counter that replaces it, and its trigger, are in docs/SCALE.md.
  */
 
-/** A city opens when both sides have this many people who can be reached. */
+/** A pool opens when both sides have this many people who can be reached. */
 export const COHORT_TARGET = 40
 
 /** Same alphabet and length as netlify/functions/keep.ts. */
 const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
-/** A code, a city, a side, a hardest part and seven ledger ids is the largest thing anyone can send. */
+/** A code, a city, a country, a side, a reach, a hardest part and seven ledger ids is the largest thing anyone can send. */
 const MAX_BODY = 2_048
+/** A member key has exactly this many segments. Anything else is the index, or a key from before countries existed. */
+const SEGMENTS = 6
 
 export interface CohortRecord {
   at: string
@@ -46,59 +64,107 @@ export interface CohortRecord {
   ledger: string[]
 }
 
-export interface CohortCount {
-  scene: string
+export interface SideCount {
   women: number
   men: number
+}
+
+export interface PoolCount {
+  scene: string
+  country: string
   target: number
+  /** The city, both sides. Null for `other`, which is not a place anyone can meet. */
+  here: SideCount | null
+  /** Everyone in the country who said they would travel for the right person. */
+  across: SideCount
 }
 
 type Store = ReturnType<typeof getStore>
 
-async function countPrefix(store: Store, prefix: string): Promise<number> {
-  const { blobs } = await store.list({ prefix })
-  return blobs.length
-}
-
-async function countScene(store: Store, scene: string): Promise<CohortCount> {
-  const [women, men] = await Promise.all([
-    countPrefix(store, `${scene}/woman/`),
-    countPrefix(store, `${scene}/man/`),
-  ])
-  return { scene, women, men, target: COHORT_TARGET }
+function sideOf(gender: string): keyof SideCount | null {
+  return gender === 'woman' ? 'women' : gender === 'man' ? 'men' : null
 }
 
 /**
- * The founder's readout: every scene, both sides, and what people named as the
- * hardest part — all from keys alone. This is the evidence the Need audit
- * asked for, and it costs nothing to keep.
+ * A named city knows its country; somewhere-else has to be told one. Null when
+ * the person cannot be placed — and an unplaced person cannot be counted.
+ */
+function countryOf(scene: string, told: unknown): string | null {
+  if (scene !== 'other') return SCENE_COUNTRY[scene] ?? null
+  return typeof told === 'string' && COUNTRIES.has(told) ? told : null
+}
+
+/** The two numbers on the door, from keys alone, in one walk over the country. */
+async function countPool(store: Store, country: string, scene: string): Promise<PoolCount> {
+  const { blobs } = await store.list({ prefix: `${country}/` })
+  const here: SideCount | null = scene === 'other' ? null : { women: 0, men: 0 }
+  const across: SideCount = { women: 0, men: 0 }
+  for (const { key } of blobs) {
+    const parts = key.split('/')
+    if (parts.length !== SEGMENTS) continue
+    const [, s, gender, reach] = parts
+    const side = sideOf(gender)
+    if (!side) continue
+    if (here && s === scene) here[side] += 1
+    if (reach !== 'city') across[side] += 1
+  }
+  return { scene, country, target: COHORT_TARGET, here, across }
+}
+
+interface SceneTally {
+  women: number
+  men: number
+  hooks: Record<string, number>
+  ledger: Record<string, number>
+  reach: Record<string, number>
+}
+
+/**
+ * The founder's readout: every country, every city in it, both sides, how far
+ * its people would go, and what they named as the hardest part — all from keys
+ * alone, plus one read per member for the ledger.
  */
 async function tally(store: Store) {
   const { blobs } = await store.list()
-  const scenes: Record<string, { women: number; men: number; hooks: Record<string, number>; ledger: Record<string, number> }> = {}
-  const members = blobs.filter(({ key }) => !key.startsWith('index/') && key.split('/').length === 4)
+  const countries: Record<string, { across: SideCount; scenes: Record<string, SceneTally> }> = {}
+  const members = blobs.filter(({ key }) => key.split('/').length === SEGMENTS)
   // The counts come from keys alone; the ledger lives in the value, so the
   // founder's readout reads each record. Fine at founding scale — this is a
-  // GET the founder makes, not one the app makes.
+  // GET the founder makes, not one the app makes. See docs/SCALE.md.
   const records = await Promise.all(
     members.map(async ({ key }) => ({ key, record: (await store.get(key, { type: 'json' })) as CohortRecord | null })),
   )
   for (const { key, record } of records) {
-    const [scene, gender, hook] = key.split('/')
-    if (!scene || !gender || !hook) continue
-    const s = (scenes[scene] ??= { women: 0, men: 0, hooks: {}, ledger: {} })
-    if (gender === 'woman') s.women += 1
-    else if (gender === 'man') s.men += 1
+    const [country, scene, gender, reach, hook] = key.split('/')
+    const side = sideOf(gender)
+    if (!country || !scene || !side || !reach || !hook) continue
+    const c = (countries[country] ??= { across: { women: 0, men: 0 }, scenes: {} })
+    const s = (c.scenes[scene] ??= { women: 0, men: 0, hooks: {}, ledger: {}, reach: {} })
+    s[side] += 1
+    if (reach !== 'city') c.across[side] += 1
     s.hooks[hook] = (s.hooks[hook] ?? 0) + 1
+    s.reach[reach] = (s.reach[reach] ?? 0) + 1
     for (const id of record?.ledger ?? []) s.ledger[id] = (s.ledger[id] ?? 0) + 1
   }
-  // The door's women/men count is public by design and stays a number. What a
-  // city named as hardest, and what its people have done, are floored — see
+  // The door's own numbers — a city's sides, a country's travellers — are
+  // public by design and stay numbers. What a city named as hardest, how far
+  // its people would go, and what they have done are floored — see
   // netlify/shared/floor.ts.
   return {
     target: COHORT_TARGET,
-    scenes: Object.fromEntries(
-      Object.entries(scenes).map(([scene, s]) => [scene, { ...s, hooks: floor(s.hooks), ledger: floor(s.ledger) }]),
+    countries: Object.fromEntries(
+      Object.entries(countries).map(([country, c]) => [
+        country,
+        {
+          across: c.across,
+          scenes: Object.fromEntries(
+            Object.entries(c.scenes).map(([scene, s]) => [
+              scene,
+              { women: s.women, men: s.men, hooks: floor(s.hooks), ledger: floor(s.ledger), reach: floor(s.reach) },
+            ]),
+          ),
+        },
+      ]),
     ),
   }
 }
@@ -108,15 +174,18 @@ export default async function handler(req: Request) {
 
   // ── Count ─────────────────────────────────────────────────────────────────
   if (req.method === 'GET') {
-    const scene = new URL(req.url).searchParams.get('scene')
+    const params = new URL(req.url).searchParams
+    const scene = params.get('scene')
     // The number on the door stays public — it is the honest count this
-    // product promises. The full tally, every city and hardest part, is the
-    // founder's readout.
+    // product promises. The full tally, every country and hardest part, is
+    // the founder's readout.
     if (!scene && !isFounder(req)) return notFounder()
     try {
       if (!scene) return Response.json(await tally(store))
       if (!SCENES.has(scene)) return Response.json({ error: 'bad_scene' }, { status: 400 })
-      return Response.json(await countScene(store, scene))
+      const country = countryOf(scene, params.get('country'))
+      if (!country) return Response.json({ error: 'bad_country' }, { status: 400 })
+      return Response.json(await countPool(store, country, scene))
     } catch (err) {
       console.error('[niyyah] cohort: count failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -131,6 +200,8 @@ export default async function handler(req: Request) {
   let body: {
     code?: string
     scene?: string
+    country?: unknown
+    reach?: unknown
     gender?: string
     hook?: string
     ledger?: unknown
@@ -155,6 +226,13 @@ export default async function handler(req: Request) {
   if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
   if (!SCENES.has(scene)) return Response.json({ error: 'bad_scene' }, { status: 400 })
   if (!GENDERS.has(gender)) return Response.json({ error: 'bad_gender' }, { status: 400 })
+  // A city implies its country and a value the client sends beside it is
+  // ignored; somewhere-else must say which country, or it cannot be counted.
+  const country = countryOf(scene, body.country)
+  if (!country) return Response.json({ error: 'bad_country' }, { status: 400 })
+  // Silence means her city. The product never assumes anyone would move.
+  const reach = body.reach === undefined ? 'city' : body.reach
+  if (typeof reach !== 'string' || !REACH.has(reach)) return Response.json({ error: 'bad_reach' }, { status: 400 })
 
   // The count is of kept maps, not of taps. A code nobody has kept a map under
   // is not a person we could ever introduce, so it is not counted.
@@ -174,17 +252,18 @@ export default async function handler(req: Request) {
     at: day(),
     ledger,
   }
-  const key = `${scene}/${gender}/${hook}/${code}`
+  const key = `${country}/${scene}/${gender}/${reach}/${hook}/${code}`
   const indexKey = `index/${code}`
 
   try {
-    // One person, one entry. Joining again after moving city or changing an
-    // answer replaces the old entry rather than counting her twice.
+    // One person, one entry. Joining again after moving city, changing how far
+    // she would go, or changing an answer replaces the old entry rather than
+    // counting her twice.
     const previous = (await store.get(indexKey, { type: 'text' })) as string | null
     if (previous && previous !== key) await store.delete(previous)
     await store.setJSON(key, record)
     await store.set(indexKey, key)
-    return Response.json({ code, ...(await countScene(store, scene)) })
+    return Response.json({ code, ...(await countPool(store, country, scene)) })
   } catch (err) {
     console.error('[niyyah] cohort: join failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
