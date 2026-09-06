@@ -24,6 +24,11 @@ const limits = new Map<string, string>()
 const limitEtags = new Map<string, number>()
 vi.mock('@netlify/blobs', () => ({
   getStore: () => ({
+    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
+      blobs: [...limits.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key })),
+      directories: [],
+    }),
+    delete: async (key: string) => void limits.delete(key),
     getWithMetadata: async (key: string) => {
       const v = limits.get(key)
       if (v === undefined) return null
@@ -110,5 +115,18 @@ describe('the hourly cap', () => {
     vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
     for (let i = 0; i < 50; i++) await ask()
     expect(stream).toHaveBeenCalledTimes(50)
+  })
+
+  it('the first call of a new hour sweeps the hours before it, so the store never grows', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    limits.set('guide-2020-01-01T00', '5')
+    limits.set('guide-2020-01-01T01', '2')
+    await ask()
+    await ask()
+    const keys = [...limits.keys()]
+    expect(keys).toHaveLength(1)
+    expect(keys[0]).toMatch(/^guide-\d{4}-\d{2}-\d{2}T\d{2}$/)
+    expect(keys[0]).not.toMatch(/^guide-2020/)
+    expect(JSON.parse(limits.get(keys[0])!)).toBe(2)
   })
 })

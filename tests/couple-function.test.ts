@@ -26,6 +26,10 @@ function memStore(name: string) {
     if (name === 'tallies' && talliesDown) throw new Error('tallies unavailable')
   }
   return {
+    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
+      blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: etag(key) })),
+      directories: [],
+    }),
     get: async (key: string, opts?: { type?: string }) => {
       down()
       const v = m.get(key) ?? null

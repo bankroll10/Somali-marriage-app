@@ -2,6 +2,7 @@ import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 import { day } from '../shared/day'
 import { floorRows } from '../shared/floor'
+import { overHourlyCap, rateLimited } from '../shared/limit'
 import {
   DIMENSIONS,
   ENDED_REASONS,
@@ -60,6 +61,12 @@ const TTL_MS = 365 * 24 * 60 * 60 * 1000
 
 /** Twelve rungs, a scene, a via and every fact at once is the largest thing anyone can send. */
 const MAX_BODY = 4_096
+/**
+ * Reports in one hour, from everyone. The readout is rebuilt from every record
+ * on each read, so a loop of made-up install codes is the cheapest way to make
+ * it time out. A circuit breaker, not a member limit — see netlify/shared/limit.ts.
+ */
+const DEFAULT_HOURLY_CAP = 1000
 
 /** Mirrors src/lib/facts.ts, with the ids as plain strings. Every value is validated against vocab.ts. */
 export interface Facts {
@@ -404,6 +411,9 @@ export default async function handler(req: Request) {
   }
   const facts = body.facts === undefined ? undefined : parseFacts(body.facts)
   if (facts === null) return Response.json({ error: 'bad_facts' }, { status: 400 })
+
+  // Bounded, like every public write — after validation, before any read.
+  if (await overHourlyCap('progress', DEFAULT_HOURLY_CAP)) return rateLimited()
 
   const now = Date.now()
   // The day, never the moment — see netlify/shared/day.ts.

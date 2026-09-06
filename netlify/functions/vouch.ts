@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { day } from '../shared/day'
+import { overHourlyCap, rateLimited } from '../shared/limit'
 
 /**
  * Family vouch — verification by the people whose names carry.
@@ -39,6 +40,8 @@ const TOKEN = /^[ACDEFGHJKMNPQRTWXY34789]{8}$/
 const TOKEN_LENGTH = 8
 const RELATIONSHIPS = new Set(['father', 'brother', 'uncle', 'mother', 'aunt', 'other'])
 const MAX_BODY = 4_000
+/** Links minted and vouches given in one hour, from everyone. A circuit breaker — see netlify/shared/limit.ts. */
+const DEFAULT_HOURLY_CAP = 100
 
 interface VouchRecord {
   relationship: string
@@ -130,6 +133,8 @@ export default async function handler(req: Request) {
   if (body.side === 'ask') {
     const code = normalise(body.code)
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    // Bounded, like every public write — after validation, before any read.
+    if (await overHourlyCap('vouch', DEFAULT_HOURLY_CAP)) return rateLimited()
     try {
       if (!(await getStore('maps').getMetadata(code))) return Response.json({ error: 'no_map' }, { status: 404 })
       // One token per map, reused: asking twice sends the same link, and
@@ -162,6 +167,9 @@ export default async function handler(req: Request) {
   if (!RELATIONSHIPS.has(relationship)) return Response.json({ error: 'bad_relationship' }, { status: 400 })
   if (!firstName) return Response.json({ error: 'missing_name' }, { status: 400 })
   if (!sentence) return Response.json({ error: 'missing_sentence' }, { status: 400 })
+
+  // Bounded, like every public write — after validation, before any read.
+  if (await overHourlyCap('vouch', DEFAULT_HOURLY_CAP)) return rateLimited()
 
   // A vouch attaches to a kept map. A code nobody has kept a map under is not a
   // person, and is not vouched for.

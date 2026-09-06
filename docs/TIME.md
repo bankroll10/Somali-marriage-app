@@ -124,9 +124,12 @@ spend on it yet is different from missing it.
   size, but none caps how often the same anonymous caller can hit them. At
   today's volume — a handful of real people — this is not a live risk, and
   `shared/limit.ts` from this pass is written generically enough to drop into
-  any of the three in an afternoon. **Trigger: the first time a founder
-  notices cohort or vouch counts moving faster than real signups plausibly
-  explain.**
+  any of the three in an afternoon. *Trigger, as written here: the first time
+  a founder notices cohort or vouch counts moving faster than real signups
+  plausibly explain.* **Built in the Scale pass instead** (`docs/SCALE.md`),
+  on every public write including `keep` and `progress`, for a reason this
+  audit did not have: the door became the unit that opens a marketplace, and
+  a door whose writes are unbounded can be walked toward forty by a script.
 - **No alert when a safety report is filed, or when the guide's hourly cap is
   hit.** Both are readable only by opening `/safety` or `/guide` by hand —
   exactly the founder-must-remember-to-check pattern this whole audit is

@@ -4,6 +4,7 @@ import { isFounder, notFounder } from '../shared/founder'
 import { COUNTRIES, GENDERS, HOOKS, LEDGER, REACH, SCENES, SCENE_COUNTRY } from '../shared/vocab'
 import { day } from '../shared/day'
 import { floor } from '../shared/floor'
+import { overHourlyCap, rateLimited } from '../shared/limit'
 
 /**
  * The number on the door.
@@ -57,6 +58,8 @@ const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 const MAX_BODY = 2_048
 /** A member key has exactly this many segments. Anything else is the index, or a key from before countries existed. */
 const SEGMENTS = 6
+/** Joins in one hour, from everyone. A circuit breaker, not a member limit — see netlify/shared/limit.ts. */
+const DEFAULT_HOURLY_CAP = 200
 
 export interface CohortRecord {
   at: string
@@ -233,6 +236,10 @@ export default async function handler(req: Request) {
   // Silence means her city. The product never assumes anyone would move.
   const reach = body.reach === undefined ? 'city' : body.reach
   if (typeof reach !== 'string' || !REACH.has(reach)) return Response.json({ error: 'bad_reach' }, { status: 400 })
+
+  // Bounded, like every public write. After validation, so a bad body spends
+  // nothing; before any read, so the cap is the cheapest thing here.
+  if (await overHourlyCap('cohort', DEFAULT_HOURLY_CAP)) return rateLimited()
 
   // The count is of kept maps, not of taps. A code nobody has kept a map under
   // is not a person we could ever introduce, so it is not counted.

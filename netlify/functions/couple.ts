@@ -2,6 +2,7 @@ import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, TOPICS, YES_STATES as STATES } from '../shared/vocab'
 import { day } from '../shared/day'
+import { overHourlyCap, rateLimited } from '../shared/limit'
 
 /**
  * The two-sided Before you say yes.
@@ -41,6 +42,12 @@ const MAX_BODY = 8_000
 const TALLY_KEY = 'joint'
 /** Conditional writes lose a race now and then; three tries is plenty at any scale we will see. */
 const TALLY_ATTEMPTS = 3
+/**
+ * Elevens started in one hour, from everyone. Only the first side is capped:
+ * his answer is bounded by the links that exist, and refusing it would waste
+ * the one thing she asked him to do. A circuit breaker — see netlify/shared/limit.ts.
+ */
+const DEFAULT_HOURLY_CAP = 200
 
 export type YesState = 'agree' | 'differ' | 'not-talked' | 'unknown'
 export type Joint = 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
@@ -190,6 +197,8 @@ export default async function handler(req: Request) {
     if (!GENDERS.has(body.gender ?? '')) return Response.json({ error: 'bad_gender' }, { status: 400 })
     const code = body.code ? body.code.toUpperCase().replace(/[^A-Z0-9]/g, '') : newCode()
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    // Bounded, like every public write — after validation, before any read.
+    if (await overHourlyCap('couple', DEFAULT_HOURLY_CAP)) return rateLimited()
     try {
       const existing = (await store.get(code, { type: 'json' })) as CoupleRecord | null
       // Once the other side has answered, hers is frozen — re-posting would let

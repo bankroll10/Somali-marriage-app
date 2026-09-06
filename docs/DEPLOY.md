@@ -97,6 +97,20 @@ these live in the repository, and none should.
 | `VITE_SITE_HOST` | The domain the app calls itself, in every link it hands out and every share card. | `getniyyah.netlify.app` — a subdomain we do not own. See `docs/CONTROL.md`. |
 | `VITE_CONTACT_EMAIL` | Where a signup reaches a human when the form is down. | `salaam@niyyah.app`, which is only real if that domain is owned and receiving. |
 | `GUIDE_HOURLY_CAP` | The circuit breaker on the live Guide (`netlify/shared/limit.ts`) — the most calls it will answer in one hour, from anyone, combined. | `300`, chosen well above any real hour this product has seen. See `docs/TIME.md`. |
+| `COHORT_HOURLY_CAP` | Joins the door will count in one hour, from everyone. | `200`. See `docs/SCALE.md`. |
+| `KEEP_HOURLY_CAP` | Maps kept in one hour — the cheapest way to spend a free plan's storage, bounded. | `300` |
+| `VOUCH_HOURLY_CAP` | Vouch links minted and vouches given in one hour. | `100` |
+| `COUPLE_HOURLY_CAP` | Elevens *started* in one hour. His answer is never capped. | `200` |
+| `SAFETY_HOURLY_CAP` | Reports filed in one hour — a flood is the one way to bury a real one. | `30` |
+| `PROGRESS_HOURLY_CAP` | Rung reports in one hour — a loop of made-up install codes is the cheapest way to make the readout time out. | `1000` |
+
+Every `*_HOURLY_CAP` is a circuit breaker, not a member limit: one counter per
+route per hour, with no identity attached, refused with the same quiet 503 a
+client already treats as "try later". Past the cap a real member sees exactly
+what she sees when storage is unreachable, which is to say nothing that looks
+like a wall. The defaults sit well above any real hour this product has seen.
+**The one time to raise them is the week a pool opens**, when a city's worth of
+people may arrive in an afternoon — set the variable, no deploy needed.
 
 Two rules about them:
 

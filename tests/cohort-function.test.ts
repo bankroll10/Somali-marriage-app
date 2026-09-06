@@ -24,8 +24,20 @@ function memStore(name: string) {
       return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
     },
     getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
+    getWithMetadata: async (key: string, opts?: { type?: string }) => {
+      const v = m.get(key) ?? null
+      if (v === null) return null
+      return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
+    },
     set: async (key: string, value: string) => void m.set(key, value),
-    setJSON: async (key: string, value: unknown) => void m.set(key, JSON.stringify(value)),
+    // Conditional writes behave like the real store's, so the hourly cap in
+    // shared/limit.ts counts here the way it does in production.
+    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
+      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
+      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
+      m.set(key, JSON.stringify(value))
+      return { modified: true }
+    },
     delete: async (key: string) => void m.delete(key),
   }
 }
