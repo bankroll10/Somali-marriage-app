@@ -120,8 +120,8 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               <span className="font-medium text-ink">Keeping your map.</span> If you
               ask us to keep it, what the app needs to bring you back is copied to
               our server under your code: the first name you gave and your age, your
-              answers and every reading of your map, where you said you are and the
-              work you took on, any read or Before you say yes you’ve done, your
+              answers and every reading of your map, where you said you are and how
+              far you’d go, the work you took on, any read or Before you say yes you’ve done, your
               couple code, your family’s vouch, that you asked to be counted, and —
               if you’ve married — what you told us on the way out. Three things are
               left out on purpose: your email or phone, your conversations with the
@@ -132,12 +132,15 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Joining the founding cohort.</span>{' '}
               If you ask to be counted, your map is kept as above, and we record
-              your city, who you’re seeking, the hardest part you named, and
-              which of the things above you’ve done — under that same code, with
-              no name on it. Nothing about how your map read, and nothing about
-              how you use the app, goes anywhere.
-              Your email or phone goes separately to the founder, so we can write
-              to you when someone fits; it is never stored next to your answers.
+              your city and country, how far you said you’d go for the right
+              person, who you’re seeking, the hardest part you named, and which
+              of the things above you’ve done — under that same code, with no
+              name on it. Nothing about how your map read, and nothing about how
+              you use the app, goes anywhere. Your email or phone goes
+              separately to the founder, with the same city, country and how far
+              you’d go, so we can write to you when someone fits — or when the
+              people you’d travel for are counted; it is never stored next to
+              your answers.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Asking him to do the eleven too.</span>{' '}

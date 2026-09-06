@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { day } from '../shared/day'
+import { overHourlyCap, rateLimited } from '../shared/limit'
 
 /**
  * The first thing this business actually owns.
@@ -31,6 +32,12 @@ const CODE_LENGTH = 6
 
 /** Keys expire after a year of not being touched — see `expiresAt` below. */
 const TTL_MS = 365 * 24 * 60 * 60 * 1000
+/**
+ * Maps kept in one hour, from everyone. A loop against this route is the
+ * cheapest way to spend a free plan's storage; this is what bounds it. A
+ * circuit breaker, not a member limit — see netlify/shared/limit.ts.
+ */
+const DEFAULT_HOURLY_CAP = 300
 
 export interface KeptMap {
   /** Everything the app needs to restore her, as written by lib/storage.ts. */
@@ -149,6 +156,9 @@ export default async function handler(req: Request) {
   if (code.length !== CODE_LENGTH) {
     return Response.json({ error: 'bad_code' }, { status: 400 })
   }
+
+  // Bounded, like every public write — after validation, before any read.
+  if (await overHourlyCap('keep', DEFAULT_HOURLY_CAP)) return rateLimited()
 
   const now = Date.now()
   try {

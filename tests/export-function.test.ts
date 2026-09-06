@@ -44,9 +44,9 @@ function seed() {
   })
   memStore('progress').setJSON('HJKMNP', { first: { arrived: '2026-09-02' }, expiresAt: '2027-09-02' })
   memStore('tallies').setJSON('joint', { pairs: 2, topics: { 'money-home': { 'both-agree': 2 } } })
-  memStore('cohort').set('index/QRTWXY', 'toronto/woman/family/QRTWXY')
-  memStore('cohort').setJSON('toronto/woman/family/QRTWXY', { at: '2026-09-01', ledger: ['map', 'read'] })
-  memStore('cohort').setJSON('toronto/man/serious/ACDEFH', { at: '2026-09-02', ledger: ['map'] })
+  memStore('cohort').set('index/QRTWXY', 'ca/toronto/woman/country/family/QRTWXY')
+  memStore('cohort').setJSON('ca/toronto/woman/country/family/QRTWXY', { at: '2026-09-01', ledger: ['map', 'read'] })
+  memStore('cohort').setJSON('ca/toronto/man/city/serious/ACDEFH', { at: '2026-09-02', ledger: ['map'] })
   // The three stores the backup must never touch.
   memStore('maps').setJSON('QRTWXY', { snapshot: { identity: { firstName: 'Sagal', age: 27 }, answers: { healing: 'fresh' } } })
   memStore('vouches').setJSON('QRTWXY', {
@@ -68,18 +68,24 @@ afterEach(() => vi.unstubAllEnvs())
 describe('the backup', () => {
   it('hands back every progress record whole — the part nobody could recreate', async () => {
     const body = await (await get()).json()
-    expect(body.version).toBe(1)
+    expect(body.version).toBe(2)
     expect(Object.keys(body.progress).sort()).toEqual(['ACDEFG', 'HJKMNP'])
     expect(body.progress.ACDEFG.facts.ended).toEqual([{ stage: 'talking', reason: 'his-read', which: 'public' }])
     expect(body.progress.ACDEFG.first.married).toBe('2026-09-30')
     expect(body.joint).toEqual({ pairs: 2, topics: { 'money-home': { 'both-agree': 2 } } })
   })
 
-  it('counts the door without carrying a single map code', async () => {
+  it('counts the door, country by city, without carrying a single map code', async () => {
     const body = await (await get()).json()
-    expect(body.door.toronto).toEqual({ women: 1, men: 1, hooks: { family: 1, serious: 1 }, ledger: { map: 2, read: 1 } })
+    expect(body.door.ca.toronto).toEqual({
+      women: 1,
+      men: 1,
+      hooks: { family: 1, serious: 1 },
+      ledger: { map: 2, read: 1 },
+      reach: { country: 1, city: 1 },
+    })
     // The counts are true, not floored: a backup that quietly rounds is not a backup.
-    expect(body.door.toronto.women).toBe(1)
+    expect(body.door.ca.toronto.women).toBe(1)
     expect(JSON.stringify(body.door)).not.toContain('QRTWXY')
     expect(JSON.stringify(body.door)).not.toContain('ACDEFH')
   })

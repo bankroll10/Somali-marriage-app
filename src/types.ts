@@ -20,6 +20,12 @@ export const MIN_AGE = 18
 /** Upper bound on the profile age field — a two-digit sanity guard, not a limit on who belongs. */
 export const MAX_AGE = 99
 
+/**
+ * How far she would go for the right person. A stated preference, never
+ * inferred; absent means her city. See src/data/reach.ts.
+ */
+export type Reach = 'city' | 'country' | 'anywhere'
+
 export interface Identity {
   firstName?: string
   gender?: Gender
@@ -32,6 +38,13 @@ export interface Identity {
   age?: number
   /** Diaspora community / scene id (see data/scenes.ts). */
   scene?: string
+  /**
+   * Country id (see data/countries.ts). Only asked, and only meaningful, when
+   * the scene is `other` — a named city already knows its country.
+   */
+  country?: string
+  /** How far she would go for the right person. */
+  reach?: Reach
 }
 
 export interface CoachMessage {

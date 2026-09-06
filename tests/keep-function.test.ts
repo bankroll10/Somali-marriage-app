@@ -11,16 +11,32 @@ function memStore(name: string) {
   const m = stores.get(name) ?? new Map<string, string>()
   stores.set(name, m)
   return {
+    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
+      blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: 'x' })),
+      directories: [],
+    }),
     get: async (key: string, opts?: { type?: string }) => {
       const v = m.get(key) ?? null
       return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
     },
     getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
-    setJSON: async (key: string, value: unknown) => void m.set(key, JSON.stringify(value)),
+    getWithMetadata: async (key: string, opts?: { type?: string }) => {
+      const v = m.get(key) ?? null
+      if (v === null) return null
+      return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
+    },
+    // Conditional writes behave like the real store's, so the hourly cap in
+    // shared/limit.ts counts here the way it does in production.
+    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
+      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
+      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
+      m.set(key, JSON.stringify(value))
+      return { modified: true }
+    },
     delete: async (key: string) => void m.delete(key),
   }
 }
-vi.mock('@netlify/blobs', () => ({ getStore: (name: string) => memStore(name) }))
+vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
 
 const { default: handler } = await import('../netlify/functions/keep')
 
@@ -94,11 +110,11 @@ describe('keeping a map', () => {
     stores.get('vouches')!.set('ACDEFG', JSON.stringify({ relationship: 'father', firstName: 'Cabdi', sentence: 's', at: 'd' }))
     stores.get('vouches')!.set('asked/ACDEFG', 'ACDEFGHJ')
     stores.get('vouches')!.set('token/ACDEFGHJ', 'ACDEFG')
-    stores.get('cohort')!.set('index/ACDEFG', 'toronto/woman/serious/ACDEFG')
-    stores.get('cohort')!.set('toronto/woman/serious/ACDEFG', JSON.stringify({ at: 'd', ledger: [] }))
+    stores.get('cohort')!.set('index/ACDEFG', 'ca/toronto/woman/city/serious/ACDEFG')
+    stores.get('cohort')!.set('ca/toronto/woman/city/serious/ACDEFG', JSON.stringify({ at: 'd', ledger: [] }))
     // Someone else's things, which must survive.
     stores.get('couples')!.set('QRTWXY', JSON.stringify({ creator: 'man', first: {} }))
-    stores.get('cohort')!.set('toronto/man/serious/QRTWXY', JSON.stringify({ at: 'd', ledger: [] }))
+    stores.get('cohort')!.set('ca/toronto/man/city/serious/QRTWXY', JSON.stringify({ at: 'd', ledger: [] }))
 
     const res = await forget('ACDEFG')
     expect(res.status).toBe(200)
@@ -106,7 +122,7 @@ describe('keeping a map', () => {
     expect(stores.get('maps')!.has('ACDEFG')).toBe(false)
     expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
     expect([...stores.get('vouches')!.keys()]).toEqual([])
-    expect([...stores.get('cohort')!.keys()]).toEqual(['toronto/man/serious/QRTWXY'])
+    expect([...stores.get('cohort')!.keys()]).toEqual(['ca/toronto/man/city/serious/QRTWXY'])
     expect(stores.get('couples')!.has('QRTWXY')).toBe(true)
     // Nothing left to forget.
     expect((await forget('ACDEFG')).status).toBe(404)

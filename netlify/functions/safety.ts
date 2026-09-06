@@ -2,6 +2,7 @@ import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, SAFETY_REASONS } from '../shared/vocab'
 import { day } from '../shared/day'
+import { overHourlyCap, rateLimited } from '../shared/limit'
 import { CODE } from './couple'
 
 /**
@@ -29,6 +30,12 @@ import { CODE } from './couple'
 
 const MAX_BODY = 2_000
 const MAX_DETAILS = 500
+/**
+ * Reports in one hour, from everyone. The queue is read by a person, so a
+ * flood of them is the one way to bury a real one. A circuit breaker — see
+ * netlify/shared/limit.ts.
+ */
+const DEFAULT_HOURLY_CAP = 30
 
 interface Report {
   code: string
@@ -85,6 +92,9 @@ export default async function handler(req: Request) {
     if (!GENDERS.has(body.side ?? '')) return Response.json({ error: 'bad_side' }, { status: 400 })
     if (!SAFETY_REASONS.has(body.reason ?? '')) return Response.json({ error: 'bad_reason' }, { status: 400 })
     const details = typeof body.details === 'string' ? body.details.trim().slice(0, MAX_DETAILS) : undefined
+
+    // Bounded, like every public write — after validation, before any read.
+    if (await overHourlyCap('safety', DEFAULT_HOURLY_CAP)) return rateLimited()
 
     // Real only if it names a pair that exists. This never reads the pair's
     // answers — a metadata check, so the two-sided eleven's own guarantee

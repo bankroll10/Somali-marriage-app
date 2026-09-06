@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import type { Identity, WaitlistState } from '../types'
-import { scenes, getScene } from '../data/scenes'
+import type { Identity, Reach, WaitlistState } from '../types'
+import { countryFor, getScene, scenes } from '../data/scenes'
+import { countries, getCountry } from '../data/countries'
 import { getHookOption } from '../data/hook'
-import { COHORT_TARGET, cohortCount, joinCohort, type CohortCount } from '../lib/cohort'
+import { COHORT_TARGET, cohortCount, joinCohort, type CohortCount, type SideCount } from '../lib/cohort'
 import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../lib/waitlist'
 import { instrumentLink } from '../lib/links'
 import { shareOrCopy } from '../lib/share'
@@ -19,6 +20,10 @@ interface Props {
   onJoined: (state: WaitlistState) => void
   /** When she picks a city here, the rest of the app should know it too. */
   onScene?: (scene: string) => void
+  /** When she is somewhere else and names the country, likewise. */
+  onCountry?: (country: string) => void
+  /** When she says she would travel, likewise. */
+  onReach?: (reach: Reach) => void
   /** Quieter variant for Home and Profile; the full card is for the map. */
   compact?: boolean
 }
@@ -28,8 +33,16 @@ interface Props {
  *
  * The one thing this app cannot give her yet is the thing she came for: a real
  * person. Every other marriage app hides that behind a full-looking feed. This
- * does the opposite — it puts the real number on the door, says what the city
+ * does the opposite — it puts the real number on the door, says what the pool
  * opens at, and asks her to be one of the people who makes it open.
+ *
+ * The number is two numbers. Her city, because that is where she can meet
+ * someone this week; and the people in her country who said they would travel
+ * for the right person, because for most of the diaspora — a hundred small
+ * pockets, not five big ones — that is the only count that will ever reach
+ * forty. A woman in a city of nine used to see nine. Now she sees the nine, and
+ * the thirty-one across the country who would come to her, and one tap puts her
+ * among them.
  *
  * It is an exchange, not a favour. Her map's job is to be matched; keeping it
  * and leaving a way to reach her is how that job gets done. In return she is
@@ -37,41 +50,53 @@ interface Props {
  * nobody else does. The count is a sentence, not two progress bars: there is
  * nothing here to come back and watch.
  */
-export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, compact }: Props) {
+export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, onCountry, onReach, compact }: Props) {
   const configured = waitlistConfigured()
   const [contact, setContact] = useState('')
   const [scene, setScene] = useState(joined?.scene ?? identity.scene ?? '')
+  // The country she names when she is somewhere else and nothing upstream
+  // holds it yet. A named city already knows its country.
+  const [namedCountry, setNamedCountry] = useState('')
+  // Said she would travel here, before anything upstream has heard it.
+  const [travelled, setTravelled] = useState(false)
   const [count, setCount] = useState<CohortCount | null>(null)
   const [state, setState] = useState<'idle' | 'sending' | 'error'>('idle')
+
+  const country = countryFor({ scene, country: identity.country }) ?? (scene === 'other' ? namedCountry : '')
+  const reach: Reach = identity.reach ?? (travelled ? 'country' : 'city')
 
   // The real number, read fresh every time the card is shown. Never cached
   // into a guess: if it cannot be read, the card says so.
   useEffect(() => {
-    if (!scene) return
+    if (!scene || !country) return
     let live = true
-    cohortCount(scene).then((c) => {
+    cohortCount(scene, country).then((c) => {
       if (live) setCount(c)
     })
     return () => {
       live = false
     }
-  }, [scene])
+  }, [scene, country])
 
   const place = getScene(scene)
-  const city = place && place.id !== 'other' ? place.label : 'Your city'
+  const other = scene === 'other'
+  const within = getCountry(country)?.within ?? 'your country'
+  const city = place && !other ? place.label : 'Your city'
+  // The pool she is counted in, named: her city, or — somewhere else — her country.
+  const pool = other ? within : city
   const seeking = identity.gender === 'man' ? 'women' : 'men'
   const one = identity.gender === 'man' ? 'woman' : 'man'
   const them = identity.gender === 'man' ? 'her' : 'him'
   const [sent, setSent] = useState(false)
 
   // The door is a collective goal, and the honest ask is the useful one: the
-  // city opens when both sides are counted, so if she knows one serious man,
+  // pool opens when both sides are counted, so if she knows one serious man,
   // the most useful thing she can do for herself is send him the read. No
   // count of who she sent it to, anywhere; the only number is the door's.
   async function sendTheRead() {
     const result = await shareOrCopy(
       {
-        text: `Salaam — Niyyah is being built for us, one city at a time, and ${city} opens when forty serious women and forty serious men are counted. Start with the read: ninety seconds on what someone has actually done, and the one question to ask next. No account.`,
+        text: `Salaam — Niyyah is being built for us, one city at a time, and ${pool} opens when forty serious women and forty serious men are counted. Start with the read: ninety seconds on what someone has actually done, and the one question to ask next. No account.`,
         url: instrumentLink('read', 'door'),
       },
       'door_sent',
@@ -82,6 +107,27 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
     }
   }
 
+  // One tap: she would travel within her country. If she is already counted,
+  // her entry is replaced so the door moves now rather than on her next join.
+  async function travel() {
+    setTravelled(true)
+    onReach?.('country')
+    if (joined && identity.gender && country) {
+      const result = await joinCohort({ scene, gender: identity.gender, hook: hookId, ledger, country, reach: 'country' })
+      if (result) setCount(result)
+    }
+  }
+
+  const travelAsk =
+    country && reach === 'city' ? (
+      <button
+        onClick={travel}
+        className="mt-3 inline-flex items-center gap-2 rounded-full border border-gold/40 px-4 py-2 text-[0.85rem] font-medium text-forest transition hover:bg-gold/[0.08]"
+      >
+        I’d travel within {within}
+      </button>
+    ) : null
+
   if (joined) {
     return (
       <div className={`rounded-card border border-forest/25 bg-forest/[0.06] ${compact ? 'px-5 py-4' : 'p-6'}`}>
@@ -89,11 +135,12 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           <CheckIcon size={12} /> You’re counted
         </p>
         <p className="mt-3 text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
-          <Door count={count} city={city} /> The day someone in {city} fits your map, we
+          <Door count={count} city={city} within={within} other={other} /> The day someone in {pool} fits your map, we
           write to{' '}
           <span className="font-medium text-ink">{joined.contact || 'the address you gave'}</span>{' '}
           — and to nobody else. There is nothing to check back on; you will hear from us.
         </p>
+        {travelAsk}
         {joined.code && (
           <p className="mt-2 text-[0.85rem] leading-relaxed text-muted text-pretty">
             Your map is kept under <span className="select-all font-medium tracking-[0.15em] text-ink">{joined.code}</span> —
@@ -102,7 +149,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         )}
         <div className="mt-4 border-t border-forest/15 pt-4">
           <p className="text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
-            {city} opens at {COHORT_TARGET} each. If you know one serious {one}, send {them} this.
+            {pool} opens at {COHORT_TARGET} each. If you know one serious {one}, send {them} this.
           </p>
           <button
             onClick={sendTheRead}
@@ -123,13 +170,15 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!contact.trim() || !scene || !identity.gender || state === 'sending') return
+    if (!contact.trim() || !scene || !country || !identity.gender || state === 'sending') return
     setState('sending')
 
     // First the count — it needs a kept map, and it is the part that can fail.
     const result = await joinCohort({
       scene,
       gender: identity.gender,
+      country,
+      reach,
       hook: hookId,
       ledger,
     })
@@ -147,6 +196,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
       contact: trimmed,
       code: result.code,
       scene,
+      country,
+      reach,
       gender: identity.gender,
       hardestPart: getHookOption(hookId)?.label,
       at,
@@ -155,12 +206,12 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
     onJoined({ contact: trimmed, scene, code: result.code, joinedAt: at })
   }
 
-  const disabled = !contact.trim() || !scene || !identity.gender || state === 'sending'
+  const disabled = !contact.trim() || !scene || !country || !identity.gender || state === 'sending'
 
   return (
     <div className={`rounded-card border border-gold/30 bg-gold/[0.07] ${compact ? 'px-5 py-5' : 'p-6'}`}>
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
-        Founding cohort{place ? ` · ${place.label}` : ''}
+        Founding cohort{place ? ` · ${other && country ? getCountry(country)?.label : place.label}` : ''}
       </p>
       <p
         className={`mt-2.5 font-display font-medium leading-snug tracking-tight text-ink text-balance ${compact ? 'text-[1.2rem]' : 'text-[1.45rem]'}`}
@@ -168,10 +219,17 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         Your map’s job is to be matched.
       </p>
       <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-        {city} opens when {COHORT_TARGET} women and {COHORT_TARGET} men have kept a map
+        {pool} opens when {COHORT_TARGET} women and {COHORT_TARGET} men have kept a map
         and can be reached. Nobody is introduced to anyone before then.{' '}
-        {scene ? <Door count={count} city={city} /> : 'Pick your city to see where it stands.'}
+        {scene && country ? (
+          <Door count={count} city={city} within={within} other={other} />
+        ) : scene ? (
+          'Say which country you’re in to see where it stands.'
+        ) : (
+          'Pick your city to see where it stands.'
+        )}
       </p>
+      {travelAsk}
       {!compact && (
         <p className="mt-3.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
           Keep your map, leave a way to reach you, and the day one of the {seeking} here
@@ -196,6 +254,25 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
               {scenes.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.label}
+                </option>
+              ))}
+            </select>
+          )}
+          {other && !identity.country && (
+            <select
+              value={namedCountry}
+              onChange={(e) => {
+                setNamedCountry(e.target.value)
+                setCount(null)
+                if (e.target.value) onCountry?.(e.target.value)
+              }}
+              aria-label="Your country"
+              className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+            >
+              <option value="">Somewhere else in…</option>
+              {countries.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
                 </option>
               ))}
             </select>
@@ -237,11 +314,12 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
               privacy claim is the one thing that must never drift from the code
               it describes. */}
           <p className="text-[0.78rem] leading-relaxed text-muted text-pretty">
-            We send your email or phone, your city, who you’re seeking, the hardest
-            part you named, and which of the things on your Trust page you’ve
-            done. Nothing about how your map read, and nothing about how you use
-            the app. Your map is kept under a code with no name on it, so it can be
-            matched. Your answers stay yours.
+            We send your email or phone, your city and country, how far you said
+            you’d go, who you’re seeking, the hardest part you named, and which
+            of the things on your Trust page you’ve done. Nothing about how your
+            map read, and nothing about how you use the app. Your map is kept
+            under a code with no name on it, so it can be matched. Your answers
+            stay yours.
           </p>
         </form>
       ) : (
@@ -261,7 +339,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         <div className="mt-5 border-t border-gold/20 pt-4">
           <p className="text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
             “I’m building this by hand, one city at a time, and I’d rather show you
-            an honest zero than a feed full of people who aren’t real. {city} opens
+            an honest zero than a feed full of people who aren’t real. {pool} opens
             the day both sides are here. Until then, your map and your guide are
             yours — and the count above is the plan.”
           </p>
@@ -272,22 +350,35 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   )
 }
 
+function people(n: SideCount): string {
+  const w = n.women === 1 ? 'one woman' : `${n.women} women`
+  const m = n.men === 1 ? 'one man' : `${n.men} men`
+  return `${w} and ${m}`
+}
+
 /**
- * The number on the door, as a sentence. It used to be two bars filling toward
- * forty — a scarcity meter, the kind a person comes back to watch. The fact
- * is the same; the form no longer asks for a return visit. A count that cannot
- * be read says so rather than showing a zero it does not know to be true.
+ * The number on the door, as two sentences. It used to be two bars filling
+ * toward forty — a scarcity meter, the kind a person comes back to watch. The
+ * fact is the same; the form no longer asks for a return visit. A count that
+ * cannot be read says so rather than showing a zero it does not know to be
+ * true. The second sentence is the one that makes the door honest for a woman
+ * in a city of nine: the people in her country who would travel to her.
  */
-function Door({ count, city }: { count: CohortCount | null; city: string }) {
+function Door({ count, city, within, other }: { count: CohortCount | null; city: string; within: string; other: boolean }) {
   if (!count) return <span>The count isn’t reachable right now.</span>
-  const w = count.women === 1 ? 'one woman' : `${count.women} women`
-  const m = count.men === 1 ? 'one man' : `${count.men} men`
   return (
     <span>
-      <span className="font-medium text-ink">
-        {city} today: {w}, {m}.
-      </span>{' '}
-      It opens at {count.target} each.
+      {count.here ? (
+        <>
+          <span className="font-medium text-ink">
+            {city} today: {people(count.here).replace(' and ', ', ')}.
+          </span>{' '}
+          It opens at {count.target} each.
+        </>
+      ) : (
+        <>{other ? `Somewhere else in ${within} isn’t a city we count yet.` : ''}</>
+      )}{' '}
+      Across {within}, {people(count.across)} would travel for the right person.
     </span>
   )
 }

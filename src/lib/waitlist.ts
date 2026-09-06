@@ -25,6 +25,14 @@ export interface WaitlistEntry {
   code?: string
   /** Diaspora community id (see data/scenes.ts) — this is the city signal. */
   scene?: string
+  /**
+   * Country id (see data/countries.ts), and how far she would go for the right
+   * person (see data/reach.ts). Together with the city these are what let the
+   * founder write to exactly the people whose pool has opened — and this form
+   * is the only place their contact lives, so they have to travel with it.
+   */
+  country?: string
+  reach?: string
   gender?: string
   /**
    * What they named as the hardest part, in their own words rather than as an
@@ -100,6 +108,8 @@ async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<bo
   if (entry.contact) body.set('contact', entry.contact)
   if (entry.code) body.set('code', entry.code)
   if (entry.scene) body.set('scene', entry.scene)
+  if (entry.country) body.set('country', entry.country)
+  if (entry.reach) body.set('reach', entry.reach)
   if (entry.gender) body.set('gender', entry.gender)
   if (entry.hardestPart) body.set('hardest_part', entry.hardestPart)
   body.set('at', entry.at)

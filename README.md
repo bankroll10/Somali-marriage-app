@@ -62,8 +62,10 @@ married goes to the guide.
   lists, never an answer in hers. `docs/OPERATING.md` is the loop that turns
   the readout into revisions; `docs/LEARNING.md` is what it may and may not
   learn from.
-- **The door** — the real count of women and men in her city who have kept a
-  map and can be reached, against the number the city opens at. Never seeded.
+- **The door** — the real count of women and men who have kept a map and can
+  be reached, against the number a pool opens at: her city, and the people in
+  her country who said they would travel for the right person. Never seeded.
+  `docs/SCALE.md` is why the pool, not the city, is the unit.
 
 ## What is deliberately not here
 
@@ -85,7 +87,9 @@ src/
   data/stages.ts       Preparing → talking → deciding → married
   data/nextStep.ts     One honest thing per ground — the work card
   data/hook.ts         "What's the hardest part?" and its instant insight
-  data/scenes.ts       Diaspora cities
+  data/scenes.ts       Diaspora cities, each in a country
+  data/countries.ts    The countries the diaspora lives in — the pool above the city
+  data/reach.ts        How far she would go for the right person
   data/somali.ts       Every Somali line, gated until the founder approves it
   data/plus.ts         What is free forever, and what is bought once
   lib/reflection.ts    Map engine — grounds in words, notes from her answers
@@ -107,10 +111,11 @@ src/
   lib/storage.ts       localStorage persistence
   hooks/useNiyyah.ts   Single source of truth: state, actions, persistence
   components/          One file per screen; home/ holds Home's cards
-netlify/functions/     guide · keep · cohort · couple · vouch · progress (Netlify Blobs)
-netlify/shared/        founder — the bearer key on every readout; vocab — every closed set the functions accept
+netlify/functions/     guide · keep · cohort · couple · vouch · progress · safety · export (Netlify Blobs)
+netlify/shared/        founder — the bearer key on every readout; vocab — every closed set the functions accept; limit — the hourly cap on every public write
 docs/OPERATING.md      The monthly loop: readout field → constant it revises
 docs/LEARNING.md       What it learns and what it refuses to — the tiers, the two lists, the honest limits
+docs/SCALE.md          What breaks at each order of magnitude, the pool as the unit, and what to build now versus at its trigger
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures
 netlify/edge-functions/gate.ts   Founding-preview password gate
@@ -159,9 +164,12 @@ tab. `src/lib/waitlist.ts` supports three transports, in order:
 3. **Neither** — the card falls back to a mailto rather than pretending someone
    joined a list that does not exist.
 
-`scene` is the city signal: it tells you which city has enough serious people
-to open first. A failed POST is queued in localStorage and retried on the
-member's next visit, so one bad connection never costs a real person.
+`scene` is the city signal, and `country` and `reach` beside it say which pool
+she is counted in — her city, or her country if she would travel within it.
+Together they tell you which pool has enough serious people to open first,
+and they are what let the founder write to exactly those people when it does.
+A failed POST is queued in localStorage and retried on the member's next
+visit, so one bad connection never costs a real person.
 
 ## The founding-preview gate
 
@@ -217,9 +225,11 @@ curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/fun
 curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/guide
 ```
 
-The per-city count (`/cohort?scene=…`) stays public: it is the number on the
-door, and the door is a promise made in public. Reporting a rung, keeping a
-map, answering the eleven and vouching never need the key.
+The door's own count (`/cohort?scene=…`, plus `&country=` for somewhere-else)
+stays public: it is the number on the door, and the door is a promise made in
+public. Reporting a rung, keeping a map, answering the eleven and vouching
+never need the key — each is bounded by an hourly cap instead
+(`netlify/shared/limit.ts`; the variables are in `docs/DEPLOY.md`).
 
 ## The AI Guide
 

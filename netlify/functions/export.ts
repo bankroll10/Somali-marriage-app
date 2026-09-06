@@ -1,6 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
-import { SCENES } from '../shared/vocab'
+import { COUNTRIES, SCENES } from '../shared/vocab'
 import type { ProgressRecord } from './progress'
 
 /**
@@ -22,7 +22,8 @@ import type { ProgressRecord } from './progress'
  *    married. This is the asset. It carries closed-vocabulary ids and days,
  *    under install codes that unlock nothing.
  *  - **The joint tally.** How pairs come out on the eleven. Aggregate already.
- *  - **The door, as counts.** Cities, sides, hardest parts, ledgers.
+ *  - **The door, as counts.** Countries, cities, sides, how far people would
+ *    go, hardest parts, ledgers.
  *
  * What it deliberately refuses to return, and this is the more important half:
  *
@@ -46,17 +47,30 @@ import type { ProgressRecord } from './progress'
 
 type Store = ReturnType<typeof getStore>
 
+/** One city on the door, as counts. */
+export interface DoorScene {
+  women: number
+  men: number
+  hooks: Record<string, number>
+  ledger: Record<string, number>
+  /** How far its people said they would go: city, country, anywhere. */
+  reach: Record<string, number>
+}
+
 export interface Backup {
   /** When this copy was taken. */
   at: string
-  /** What shape the records are in, so a future reader knows how to read them. */
-  version: 1
+  /**
+   * What shape the records are in, so a future reader knows how to read them.
+   * Version 2: the door is nested country → city and each city carries `reach`.
+   */
+  version: 2
   /** Install code → the whole record. The learning asset. */
   progress: Record<string, ProgressRecord>
   /** How pairs come out on each of the eleven. Null when no pair has answered. */
   joint: unknown
-  /** The door, as counts per city. No codes. */
-  door: Record<string, { women: number; men: number; hooks: Record<string, number>; ledger: Record<string, number> }>
+  /** The door, as counts: country → city → counts. No codes. */
+  door: Record<string, Record<string, DoorScene>>
   /** What is deliberately not here, named in the file itself so a reader is never misled. */
   omitted: string[]
 }
@@ -89,17 +103,21 @@ async function allProgress(store: Store): Promise<Record<string, ProgressRecord>
 async function door(store: Store): Promise<Backup['door']> {
   const { blobs } = await store.list()
   const out: Backup['door'] = {}
-  const members = blobs.filter(({ key }) => !key.startsWith('index/') && key.split('/').length === 4)
+  // Six segments is a member; the index is one, and a key from before
+  // countries existed is four. See netlify/functions/cohort.ts.
+  const members = blobs.filter(({ key }) => key.split('/').length === 6)
   const records = await Promise.all(
     members.map(async ({ key }) => ({ key, record: (await store.get(key, { type: 'json' })) as { ledger?: string[] } | null })),
   )
   for (const { key, record } of records) {
-    const [scene, gender, hook] = key.split('/')
-    if (!scene || !SCENES.has(scene)) continue
-    const s = (out[scene] ??= { women: 0, men: 0, hooks: {}, ledger: {} })
+    const [country, scene, gender, reach, hook] = key.split('/')
+    if (!country || !COUNTRIES.has(country) || !scene || !SCENES.has(scene)) continue
+    const c = (out[country] ??= {})
+    const s = (c[scene] ??= { women: 0, men: 0, hooks: {}, ledger: {}, reach: {} })
     if (gender === 'woman') s.women += 1
     else if (gender === 'man') s.men += 1
     s.hooks[hook] = (s.hooks[hook] ?? 0) + 1
+    s.reach[reach] = (s.reach[reach] ?? 0) + 1
     for (const id of record?.ledger ?? []) s.ledger[id] = (s.ledger[id] ?? 0) + 1
   }
   return out
@@ -117,7 +135,7 @@ export default async function handler(req: Request) {
     ])
     const backup: Backup = {
       at: new Date().toISOString(),
-      version: 1,
+      version: 2,
       progress,
       joint: joint ?? null,
       door: cohortCounts,

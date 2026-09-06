@@ -5,6 +5,8 @@ const entry = {
   contact: 'hodan@example.com',
   code: 'ACDEFG',
   scene: 'twin-cities',
+  country: 'us',
+  reach: 'country',
   gender: 'woman',
   hardestPart: 'Trusting again after being hurt',
   at: '2026-08-28T12:00:00.000Z',
@@ -78,8 +80,13 @@ describe('the waitlist — the only line out of this app', () => {
     expect(sent.get('form-name')).toBe('niyyah-waitlist')
     expect(sent.get('contact')).toBe(entry.contact)
     expect(sent.get('code')).toBe(entry.code)
-    // The city signal — which city has enough serious people to open first.
+    // The city signal — which city has enough serious people to open first —
+    // and, beside it, the country and how far she would go: the only way the
+    // founder can write to exactly the people whose pool has opened, since
+    // this form is the only place their contact lives.
     expect(sent.get('scene')).toBe('twin-cities')
+    expect(sent.get('country')).toBe('us')
+    expect(sent.get('reach')).toBe('country')
     // How her map read is hers. It used to travel here as a number.
     expect(sent.has('overall')).toBe(false)
     // Why they came — the most useful thing a signup can carry, and sent as the
@@ -118,6 +125,8 @@ describe('the waitlist — the only line out of this app', () => {
 
     const sent = new URLSearchParams(spy.mock.calls[0][1].body as string)
     expect(sent.has('scene')).toBe(false)
+    expect(sent.has('country')).toBe(false)
+    expect(sent.has('reach')).toBe(false)
     expect(sent.has('gender')).toBe(false)
   })
 

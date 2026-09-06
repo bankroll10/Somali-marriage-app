@@ -30,6 +30,28 @@ export const RUNGS = new Set([
 /** Must match src/data/scenes.ts. */
 export const SCENES = new Set(['twin-cities', 'toronto', 'london', 'columbus', 'stockholm', 'other'])
 
+/**
+ * Must match src/data/countries.ts. The country sits above the city in the
+ * door's count — the pool a person would move within for the right person —
+ * and never below it; docs/LEARNING.md refuses anything finer than the city.
+ */
+export const COUNTRIES = new Set(['us', 'ca', 'uk', 'se', 'no', 'dk', 'nl', 'fi', 'de', 'au', 'ke', 'ae', 'so', 'other'])
+
+/**
+ * Must match `country` on each named city in src/data/scenes.ts. A city
+ * implies its country; only `other` has to be told one.
+ */
+export const SCENE_COUNTRY: Record<string, string> = {
+  'twin-cities': 'us',
+  toronto: 'ca',
+  london: 'uk',
+  columbus: 'us',
+  stockholm: 'se',
+}
+
+/** Must match src/data/reach.ts — how far she would go for the right person. */
+export const REACH = new Set(['city', 'country', 'anywhere'])
+
 /** Must match src/data/hook.ts, plus 'none' for a hardest part never named. */
 export const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'ready', 'none'])
 

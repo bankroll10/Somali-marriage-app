@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { Context } from '@netlify/functions'
 import { isFounder, notFounder } from '../shared/founder'
-import { underHourlyLimit } from '../shared/limit'
+import { overHourlyCap, rateLimited } from '../shared/limit'
 
 /**
  * The live Guide.
@@ -104,12 +104,11 @@ export default async function handler(req: Request, _context: Context) {
     return Response.json({ error: 'guide_not_configured' }, { status: 503 })
   }
 
-  const cap = Number(process.env.GUIDE_HOURLY_CAP) || DEFAULT_HOURLY_CAP
-  if (!(await underHourlyLimit('guide', cap))) {
+  if (await overHourlyCap('guide', DEFAULT_HOURLY_CAP)) {
     // The same 503 shape as every other guide failure — the client already
     // falls back to its offline voice on this, with nothing that looks broken.
     console.error('[niyyah] guide: hourly cap reached')
-    return Response.json({ error: 'rate_limited' }, { status: 503 })
+    return rateLimited()
   }
 
   let body: Body

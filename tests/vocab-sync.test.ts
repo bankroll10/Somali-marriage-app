@@ -11,6 +11,8 @@ import { familyScripts } from '../src/data/families'
 import { endingQuestions } from '../src/data/ending'
 import { ENDED_REASON_IDS, REASONS_WITH_WHICH, dealbreakerOptions } from '../src/data/ended'
 import { scenes } from '../src/data/scenes'
+import { COUNTRY_IDS } from '../src/data/countries'
+import { REACH_IDS } from '../src/data/reach'
 import { hookOptions } from '../src/data/hook'
 import { SAFETY_REASONS } from '../src/data/safety'
 
@@ -28,6 +30,18 @@ describe('every word the server accepts is a word the app uses', () => {
   it('vias', () => expect(sorted(vocab.VIAS)).toEqual(sorted(VIAS)))
   it('ledger', () => expect(sorted(vocab.LEDGER)).toEqual(sorted(LEDGER_IDS)))
   it('scenes', () => expect(sorted(vocab.SCENES)).toEqual(sorted(scenes.map((s) => s.id))))
+
+  it('the countries, how far a person would go, and which country each named city is in', () => {
+    expect(sorted(vocab.COUNTRIES)).toEqual(sorted(COUNTRY_IDS))
+    expect(sorted(vocab.REACH)).toEqual(sorted(REACH_IDS))
+    const named = Object.fromEntries(scenes.filter((s) => s.country).map((s) => [s.id, s.country]))
+    expect(vocab.SCENE_COUNTRY).toEqual(named)
+    // Every city's country is a country the server accepts; only `other` has none.
+    for (const s of scenes) {
+      if (s.id === 'other') expect(s.country).toBeUndefined()
+      else expect(vocab.COUNTRIES.has(s.country!)).toBe(true)
+    }
+  })
   it('hardest parts, plus none', () => expect(sorted(vocab.HOOKS)).toEqual(sorted([...hookOptions.map((h) => h.id), 'none'])))
 
   it('the map’s seven grounds and their three states', () => {

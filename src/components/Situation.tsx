@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { Identity, Stage } from '../types'
 import { stages } from '../data/stages'
-import { scenes } from '../data/scenes'
+import { countryFor, scenes } from '../data/scenes'
+import { countries, getCountry } from '../data/countries'
+import { reachOptions } from '../data/reach'
 import { speak } from '../data/read'
 import { somali } from '../data/somali'
 import { ArrowRight, BackButton, Button } from './ui'
@@ -10,8 +12,15 @@ interface Props {
   identity: Identity
   onChoose: (stage: Stage) => void
   onScene: (scene: string) => void
+  /** Her country when she is somewhere else, and how far she would go. */
+  onChangeIdentity: (updater: (prev: Identity) => Identity) => void
   onBack: () => void
 }
+
+const chip = (on: boolean) =>
+  `rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition-all ${
+    on ? 'border-forest bg-forest text-cream' : 'border-line bg-white/50 text-ink-soft hover:border-forest/40 hover:bg-white'
+  }`
 
 /**
  * What's happening right now?
@@ -25,11 +34,12 @@ interface Props {
  * The line she reads after choosing is the sentence test: something no
  * alternative in the category would think to say.
  */
-export default function Situation({ identity, onChoose, onScene, onBack }: Props) {
+export default function Situation({ identity, onChoose, onScene, onChangeIdentity, onBack }: Props) {
   const [chosen, setChosen] = useState<Stage | null>(null)
   const say = speak(identity.gender ?? 'woman')
   const st = stages.find((s) => s.id === chosen)
   const somaliLine = chosen ? somali(`situation.${chosen}`) : null
+  const within = getCountry(countryFor(identity))?.within
 
   return (
     <div className="relative min-h-dvh bg-cream">
@@ -84,15 +94,7 @@ export default function Situation({ identity, onChoose, onScene, onBack }: Props
                   {scenes.map((sc) => {
                     const on = identity.scene === sc.id
                     return (
-                      <button
-                        key={sc.id}
-                        type="button"
-                        onClick={() => onScene(sc.id)}
-                        aria-pressed={on}
-                        className={`rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition-all ${
-                          on ? 'border-forest bg-forest text-cream' : 'border-line bg-white/50 text-ink-soft hover:border-forest/40 hover:bg-white'
-                        }`}
-                      >
+                      <button key={sc.id} type="button" onClick={() => onScene(sc.id)} aria-pressed={on} className={chip(on)}>
                         {sc.label}
                       </button>
                     )
@@ -102,6 +104,58 @@ export default function Situation({ identity, onChoose, onScene, onBack }: Props
                   <p className="mt-2.5 text-[0.85rem] text-muted">
                     {scenes.find((sc) => sc.id === identity.scene)?.note}
                   </p>
+                )}
+
+                {/* Somewhere else is not a city, so it has no country of its
+                    own. One more tap, and she is counted with her country. */}
+                {identity.scene === 'other' && (
+                  <div className="mt-5">
+                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+                      Somewhere else in… <span className="normal-case tracking-normal">(optional)</span>
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {countries.map((c) => {
+                        const on = identity.country === c.id
+                        return (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => onChangeIdentity((prev) => ({ ...prev, country: c.id }))}
+                            aria-pressed={on}
+                            className={chip(on)}
+                          >
+                            {c.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* How far she would go. Asked, never inferred; left blank it
+                    means her city. See src/data/reach.ts. */}
+                {identity.scene && (
+                  <div className="mt-5">
+                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+                      How far would you go for the right person? <span className="normal-case tracking-normal">(optional)</span>
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {reachOptions(within).map((r) => {
+                        const on = identity.reach === r.id
+                        return (
+                          <button
+                            key={r.id}
+                            type="button"
+                            onClick={() => onChangeIdentity((prev) => ({ ...prev, reach: r.id }))}
+                            aria-pressed={on}
+                            className={chip(on)}
+                          >
+                            {r.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
                 )}
               </div>
 

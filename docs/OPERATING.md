@@ -40,7 +40,7 @@ All four are aggregate and return no person. All four sit behind
 ```bash
 K="Authorization: Bearer $FOUNDER_KEY"; S=https://<your-site>/.netlify/functions
 curl -s -H "$K" $S/progress | jq .     # the ladder, and the facts
-curl -s -H "$K" $S/cohort   | jq .     # the door: every city, hardest parts, ledgers
+curl -s -H "$K" $S/cohort   | jq .     # the door: every country and city, how far people would go, hardest parts, ledgers
 curl -s -H "$K" $S/couple   | jq .     # how pairs come out on the eleven
 curl -s -H "$K" $S/guide    | jq .     # the guide's health — one live call, so rarely
 curl -s -H "$K" $S/export   -o "backup-$(date +%F).json"   # the backup — save it
@@ -126,12 +126,18 @@ Do not migrate stored records.
 
 ## Housekeeping (rarely)
 
-Two kinds of blob outlive their purpose and have no sweep:
+Three kinds of blob outlive their purpose and have no sweep:
 
 - **Vouches for maps that lapsed.** A vouch lives while its map does, and a
   map lapses a year after its last keep. The vouch blob stays, harmless and
   unreadable through any route. Once a year: list `maps`, list `vouches`,
   delete vouches whose code has no map.
+- **Door entries for maps that lapsed.** A join requires a kept map, but
+  nothing re-checks, so the door drifts from the truth over a year. The same
+  once-a-year pass: list `cohort`, and delete any `index/<code>` and the
+  member key it points at when `<code>` has no map. And once, by hand, the
+  handful of four-segment keys written before countries existed
+  (`docs/SCALE.md`) — every read ignores them, but they are clutter.
 - **Maps kept before the guide's threads were left out.** Each re-keep
   overwrites the blob, so these age out on their own. If you want them gone
   sooner, list `maps` and re-write any blob whose snapshot has a

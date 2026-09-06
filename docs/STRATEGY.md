@@ -252,7 +252,9 @@ threads opened, check-ins, introductions viewed.
 - Filters or "more introductions" as a paid tier.
 - A counter for guide replies that the member can see, or an unlimited tier.
 - A profile before there is a room to show it in.
-- Notifications about people. The only notification is "your city opened".
+- Notifications about people. The only notification is "the pool you're
+  counted in opened" — your city, or your country for the people who would
+  travel (`docs/SCALE.md`).
 - A referral reward, an invite counter, or share-to-unlock. Sending words to a
   friend earns the sender nothing, and no one is told how many they sent.
 - A link that carries who sent it. Links carry what kind of thing they are.
@@ -271,7 +273,10 @@ documents should be able to reject a proposal by pointing at a line above.
    an invented crowd.
 2. **Density before expansion.** Liquidity is local for marriage; get one city
    *thick* before opening the next. A half-empty marketplace in ten cities is
-   dead; a dense one in one city is alive.
+   dead; a dense one in one city is alive. The unit is the *pool*: a city, or
+   a country for the people who said they would travel within it — so a
+   diaspora of a hundred small pockets is not a hundred dead marketplaces
+   (`docs/SCALE.md`).
 3. **Land on the single-player value first** (already built: the read, the
    eleven, the family words, the map, the guide). It delivers value at *zero*
    liquidity — which is the honest answer to the cold-start problem. People
