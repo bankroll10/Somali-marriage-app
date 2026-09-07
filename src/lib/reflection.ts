@@ -16,20 +16,25 @@ import type {
  * The reflection engine.
  *
  * It names where a person stands on seven grounds — in a word each, never a
- * number — and writes every note from the answer she actually gave. Today this
- * synthesizes the reading locally — no network, no keys, instant. It is written so the seam to a real LLM is clean:
- * `generateReflection` is already async, and `buildReflection` is the pure
- * synthesis you would hand to (or compare against) a Claude-generated version.
+ * number — and writes every note from the answer she actually gave. It
+ * synthesizes the reading locally — no network, no keys, instant.
  *
- * ─── Claude seam ───────────────────────────────────────────────────────────
- * When we wire the API, `generateReflection` becomes:
+ * ─── The seam that was here, and why it is closed ──────────────────────────
+ * This file used to carry a plan to put a model behind `generateReflection` —
+ * the roadmap called it "the last local seam", as though local were a stage to
+ * grow out of. docs/DURABLE.md declines it, and the reasoning is worth keeping
+ * where the temptation lives:
  *
- *   const res = await fetch('/api/reflection', { method: 'POST', body: JSON.stringify({ answers }) })
- *   return await res.json()  // a Reflection produced by claude-opus-4-8
+ * The map is the durable asset. It is the thing that gets matched, it is built
+ * from her answers and a question set that is ours, and it works with the
+ * network off. Putting a supplier behind it would trade something permanent
+ * for something rented, and would mean that the day a vendor changes its mind
+ * a member cannot get a map at all.
  *
- * The server prompt would frame Claude as a warm, culturally-fluent guide for
- * a Somali/Muslim audience, returning the same `Reflection` shape. The local
- * version below is the fallback and the baseline.
+ * The rule, asserted in tests/durable.test.ts: a model may add a layer on top
+ * of something this product already does completely without it, and may never
+ * be the thing that produces it. If a model ever writes prose *alongside* this
+ * reading, `buildReflection` still has to produce the whole map first.
  * ───────────────────────────────────────────────────────────────────────────
  */
 
@@ -550,8 +555,8 @@ export function changesBetween(
 }
 
 /**
- * Async entry point used by the UI. Local synthesis today; swap the body for a
- * Claude-backed call (see seam note at the top) without touching the UI.
+ * Async entry point used by the UI. Local synthesis — and it stays local; see
+ * the seam note at the top of this file and docs/DURABLE.md.
  */
 export async function generateReflection(answers: Answers): Promise<Reflection> {
   // Small intentional pause — this moment should feel considered, not instant.

@@ -8,9 +8,14 @@ interface SharePayload {
 export type ShareResult = 'shared' | 'copied' | 'cancelled'
 
 /**
- * Share the Gen-Z way: the native OS share sheet on mobile (Instagram, iMessage,
- * TikTok, WhatsApp…), falling back to the clipboard on desktop. A silent
- * clipboard copy is a dead-end on a phone — this makes "Share" actually share.
+ * The platform's own share sheet on mobile, falling back to the clipboard on
+ * desktop. A silent clipboard copy is a dead-end on a phone — this makes
+ * "Share" actually share.
+ *
+ * Deliberately named by mechanism rather than by destination: `navigator.share`
+ * hands the words to whatever the person already has, so this outlives every
+ * app that happens to be on their phone this year and depends on none of them.
+ * No SDK, no pixel, no vendor — see docs/CONTROL.md and docs/DURABLE.md.
  *
  * Returns 'shared' when the sheet handled it, 'cancelled' if the user dismissed
  * it (we do nothing — no surprise copy), or 'copied' on the desktop fallback.

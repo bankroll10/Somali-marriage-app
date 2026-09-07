@@ -153,19 +153,20 @@ questions it classes as ASSUMED:
 | **Learning value** | Does this answer something in `docs/GAPS.md`'s ranked table, or just add a feature? |
 | **Business importance** | Where does it sit in `docs/EXPERIMENTS.md`'s ranking — top-of-funnel and wedge-critical outranks everything else |
 | **Runnable now** | Blocked by a promise (A5's free-for-a-year), by scale (SCALE.md's triggers), or buildable today? |
+| **Durable** | Would this still matter if the AI hype, the app fashions and the platforms all disappeared? A feature that needs a supplier to exist is scored on what is left without one — `docs/DURABLE.md` |
 
 Applied to the current roadmap (`docs/PRODUCT.md` §10):
 
-| Item | Learning value | Business importance | Runnable now |
-|---|---|---|---|
-| 0 Run the loop | — | Foundational; nothing else means anything without it | Yes, always |
-| 1 Your record | Low | Medium — a trust promise, not a funnel step | Yes |
-| 2 First-year sheet | Medium | Low until married pairs exist | Blocked, in practice |
-| 3 Live Claude behind the map | Low | Low — a seam, not a bottleneck | Yes |
-| 4 Real backend | — | High, eventually | Blocked by scale (`docs/SCALE.md`) |
-| 5 First pool opens | High | Highest — the whole marketplace | Blocked on `ending.who.here > 0` |
-| 6 Concierge | High | High | Blocked on 5 |
-| 7 The door, for men — `docs/MACHINE.md` M0–M2 | High — tests `docs/GAPS.md` gap #1 directly | Highest — the only thing that can unblock 5 and 6 | Yes |
+| Item | Learning value | Business importance | Runnable now | Durable |
+|---|---|---|---|---|
+| 0 Run the loop | — | Foundational; nothing else means anything without it | Yes, always | Yes — the process is the moat |
+| 1 The door, for men — `docs/MACHINE.md` | High — tests `docs/GAPS.md` gap #1 directly | Highest — the only thing that can unblock 2 and 3 | Yes | Yes — it is a room, not a feature |
+| 2 First pool opens | High | Highest — the whole marketplace | Blocked on `ending.who.here > 0` | Yes — the enduring need itself |
+| 3 Concierge | High | High | Blocked on 2 | Yes — the oldest form of this business |
+| 4 First-year sheet | Medium | Low until married pairs exist | Blocked, in practice | Yes — the marriage after the wedding |
+| 5 Your record | Low | Medium — a trust promise, not a funnel step | Yes | Yes — a promise with no supplier behind it |
+| 6 Real backend | — | High, eventually | Blocked by scale (`docs/SCALE.md`) | Infrastructure — buys durability, not value |
+| — Live Claude behind the map | Low | Low — a seam, not a bottleneck | Yes | **No — declined.** It would make the map depend on a supplier (`docs/DURABLE.md`) |
 
 Item 0 is not really an item — it is the precondition for the table meaning
 anything, which is the whole argument for this file existing.
@@ -185,6 +186,7 @@ one place to see them together.
 | The wedge channel (alumni/professional group links, Minneapolis) | Fewer than twenty women or five men counted after eight weeks of the playbook — change channel first, city second | `docs/WEDGE.md` |
 | Onboarding length (the thirteen-question map, the read, the eleven) | Completion under the thresholds in A1 — shorten, cut to one chapter, or fix the two-sided flow, by instrument | `docs/EXPERIMENTS.md` A1 |
 | Support as one founder inbox | More than a handful of emails in a week | `docs/TIME.md` |
+| Any dependence on a live model | It becomes load-bearing — an instrument that cannot run without a key. Not a threshold but a rule, asserted in `tests/durable.test.ts` | `docs/DURABLE.md` |
 | The `door` link and the second ask on the door | After four weeks: under five men arrived → the channel pivots (WEDGE); five or more and under one in four `mapped` → cut the men's map first (A1); women's `counted` per hundred `arrived` falls → back to one ask | `docs/MACHINE.md`, logged as A6 |
 
 A feature with no decision rule is not yet a feature this process can
@@ -211,3 +213,4 @@ shipping the feature, not a follow-up task.
 _Dated, one line each: what changed about how work happens here, and why._
 
 - 2026-09-07 — The roadmap table gains its first row from a whole-machine read rather than a feature list: `docs/MACHINE.md` maps the thirteen stages, names the weakest link, and the plan for it takes the top slot.
+- 2026-09-07 — A fourth axis, **Durable**, after `docs/DURABLE.md`: an item that needs a supplier to exist is scored on what is left without one. The roadmap was reordered by it, and "live Claude behind the map" was declined outright rather than deferred.

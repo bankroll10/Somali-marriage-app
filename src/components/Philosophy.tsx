@@ -30,7 +30,7 @@ const bridges = [
     body: 'Feeling matters. But you choose on the fit, not the spark.',
   },
   {
-    left: 'AI',
+    left: 'Smart guidance',
     right: 'Faith',
     body: 'Guidance that’s genuinely smart and God-conscious — never one at the cost of the other.',
   },
@@ -133,9 +133,9 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
               <span className="italic text-gold-soft">Somali diaspora.</span>
             </h1>
             <p className="animate-rise mt-5 text-[1.05rem] leading-relaxed text-cream/75 text-pretty">
-              Powered by AI · guided by faith · designed for serious people. A place
-              not for swiping, but for choosing well — with your faith, your family,
-              and your standards intact.
+              Built on the questions that decide a marriage · guided by faith ·
+              designed for serious people. A place not for swiping, but for choosing
+              well — with your faith, your family, and your standards intact.
             </p>
           </div>
         </div>
