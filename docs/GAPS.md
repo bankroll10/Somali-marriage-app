@@ -53,7 +53,10 @@ and stays there until behaviour or a member says otherwise.
 1. **Men do not follow women.** If the door stays at five women to one man,
    there is no marketplace and every instrument is a hobby. *Test:* the
    door's men against women, weekly; `vias.door` (men arriving through "send
-   him the read"); WEDGE.md's pivot rule at eight weeks.
+   him the read"); WEDGE.md's pivot rule at eight weeks. `docs/MACHINE.md`
+   finds this gap has two causes the readout cannot tell apart — men never
+   arrive, or men arrive and bounce at the read — and, after its M0, the
+   ladder's `sides.man` funnel is the test that separates them.
 2. **Words do not travel.** If nothing about marriage gets forwarded at all,
    the distribution model has no engine and paid acquisition — which the
    strategy forbids — becomes the only path. *Test:* `vias.words`, `eleven`
