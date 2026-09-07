@@ -93,7 +93,8 @@ In order of credibility, and the only order in which a claim may be promoted:
    code as the rungs. Never free text, never about a person. Built in this
    pass: `src/data/hesitation.ts`, carried as `facts.hesitated`.
 3. **Ten conversations, behaviour-anchored.** With the first ten counted
-   members. Questions about what they *did*, never what they *would*:
+   members. Recorded in `docs/FEEDBACK.md`, tagged back to the row here they
+   bear on. Questions about what they *did*, never what they *would*:
 
    - The last time you wanted to meet someone seriously — what did you
      actually do? Who knew?
