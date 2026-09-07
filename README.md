@@ -119,8 +119,11 @@ docs/SCALE.md          What breaks at each order of magnitude, the pool as the u
 docs/WEDGE.md          The first forty: the initial wedge, why, how to find it, the density it needs, the expansion path, the risks — evidence kept apart from hypothesis
 docs/GAPS.md           Every belief the product rests on, classed known / likely / assumed / unknown, ranked by the danger of being wrong, with the readout that tests it
 docs/EXPERIMENTS.md    Five design bets as formal experiments — hypothesis, metric, smallest credible test, and a decision rule fixed before the numbers arrive
+docs/PROCESS.md        The operating loop this whole thing runs on — weekly pulse vs monthly hour, the hypothesis template, feedback, roadmap priority, and every kill criterion in one table
+docs/FEEDBACK.md       What real people have said, one conversation at a time — never a name
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures
+.github/pull_request_template.md   The release-review checklist, in front of every PR
 netlify/edge-functions/gate.ts   Founding-preview password gate
 ```
 

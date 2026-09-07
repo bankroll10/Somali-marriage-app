@@ -181,3 +181,10 @@ _Dated, one line each: the experiment, what the readout showed, and which
 decision rule fired. A rule that fires is executed, not debated._
 
 - _(none yet — no instrument has been begun by anyone but the founder)_
+
+## Talking to users about these
+
+Two of the five — A2's ask-vs-shame split and A5's willingness to pay —
+cannot be settled by any readout. `docs/GAPS.md`'s ten behaviour-anchored
+questions are the method; `docs/FEEDBACK.md` is where the answers go, each
+one tagged back to the experiment id above it bears on.

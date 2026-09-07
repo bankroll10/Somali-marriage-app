@@ -3,7 +3,10 @@
 > Every constant in `src/data/` ships in the bundle. A competent team could
 > copy all of them by Friday. What they could not copy is the process that
 > revises those constants from what actually happened to real people — and a
-> process only exists if it is written down and run. This is it.
+> process only exists if it is written down and run. This is it. It is one
+> piece of the larger loop in `docs/PROCESS.md` — this file owns *measuring*
+> and *revising*; that one owns identifying a problem, forming a hypothesis,
+> talking to users, and picking what comes next.
 
 ## Why this file exists
 
@@ -31,6 +34,18 @@ curl -s -H "$K" $S/safety | jq .   # weekly — a report is a person waiting, no
 Resolving one is `DELETE $S/safety?code=<code>&side=<woman|man>` with the
 founder key — it expunges the report, per `docs/LEARNING.md`. There is
 nothing to keep once it has been acted on.
+
+**The rest of the weekly pulse** rides alongside the safety check, five
+minutes, and does two things only: acts on an open report (above), and
+notices a cliff — a number that was moving and stopped. Nothing here is
+revised at the pulse; that stays monthly, below, for the same reason a
+readout stays monthly at all — read a number often enough and it becomes the
+thing being optimised for rather than the thing being watched.
+
+```bash
+curl -s -H "$K" $S/progress | jq '.rungs, .facts.began'   # arrived, and who finished what they began
+curl -s -H "$K" $S/cohort   | jq '.countries'              # the door: women and men, every open pool
+```
 
 ## The readouts
 
@@ -184,6 +199,10 @@ In this order, because each question only means something after the last:
    the readout field that tests it. Move at most one claim one class, on a
    hundred records, and write the line in its log. The door's `hesitated`
    row is the first place to look: it is the only no this product hears.
+10. **Check every decision rule already on the books.** `docs/PROCESS.md`'s
+    kill-list table names every threshold this product has already committed
+    to, gathered from `docs/EXPERIMENTS.md` and `docs/WEDGE.md`. A rule that
+    fires is executed at the hour it fires, not debated.
 
 ## Revisions
 

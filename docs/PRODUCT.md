@@ -249,6 +249,9 @@ link returns 401 to anyone without the password.
 
 ## 10. Roadmap
 
+Ordered by `docs/PROCESS.md`'s prioritisation — learning value, business
+importance, whether it can run at all today — not by convenience to build.
+
 0. **Run the loop** — `docs/OPERATING.md`, monthly, from the first hundred
    records, within what `docs/LEARNING.md` allows. The moat is the process,
    not the constants.
