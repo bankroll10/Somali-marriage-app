@@ -35,6 +35,7 @@ const state = {
   ending: null,
   endings: [],
   hesitated: null,
+  began: [],
   completed: true,
   coachThreads: {},
 }

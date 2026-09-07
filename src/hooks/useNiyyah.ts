@@ -46,6 +46,7 @@ import type {
   VouchState,
   WaitlistState,
 } from '../types'
+import type { Instrument } from '../data/instruments'
 
 export type Screen =
   | 'welcome'
@@ -144,6 +145,10 @@ export function useNiyyah(entry: Entry | null = null) {
   // She reached the door and did not walk through it, and said why. The one no
   // this product records — about the door, never about her. See src/data/hesitation.ts.
   const [hesitated, setHesitated] = useState<HesitationRecord | null>(saved?.hesitated ?? null)
+  // Which questionnaires she has begun. The denominator a completion rate needs,
+  // since finishing one is already a rung. A set, never a count — see
+  // src/data/instruments.ts and docs/EXPERIMENTS.md.
+  const [began, setBegan] = useState<string[]>(saved?.began ?? [])
   // What the product told her to do, and whether she did it. See lib/followup.ts.
   const [followups, setFollowups] = useState<FollowUp[]>(saved?.followups ?? [])
   // The code her map is kept under. Read once at mount and refreshed by the
@@ -230,8 +235,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // read thin, how the read came out, which conversation was had, who she
   // married. See src/lib/facts.ts. Never an answer in her words.
   const facts = useMemo(
-    () => factsFrom({ reflection, read, beforeYes, followups, ending, endings, hesitated, gender: identity.gender ?? 'woman' }),
-    [reflection, read, beforeYes, followups, ending, endings, hesitated, identity.gender],
+    () => factsFrom({ reflection, read, beforeYes, followups, ending, endings, hesitated, began, gender: identity.gender ?? 'woman' }),
+    [reflection, read, beforeYes, followups, ending, endings, hesitated, began, identity.gender],
   )
 
   // Rungs reached, reported on transitions only — never on a tap, never on a
@@ -284,6 +289,7 @@ export function useNiyyah(entry: Entry | null = null) {
             ending,
             endings,
             hesitated,
+            began,
             followups,
             completed,
             coachThreads,
@@ -309,6 +315,7 @@ export function useNiyyah(entry: Entry | null = null) {
     ending,
     endings,
     hesitated,
+    began,
     followups,
     completed,
     coachThreads,
@@ -365,6 +372,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setVouch(null)
     setEnding(null)
     setHesitated(null)
+    setBegan([])
     setFollowups([])
     setKeptCode(null)
     setResumeIndex(0)
@@ -600,6 +608,16 @@ export function useNiyyah(entry: Entry | null = null) {
     setHesitated({ at: new Date().toISOString(), reason })
   }
 
+  /**
+   * She began one of the four questionnaires. Recorded once, ever: the set is
+   * the denominator for "do people finish what they open", and because it is a
+   * set rather than a counter it can never answer "how often did she open it".
+   * Adding an id already present changes nothing, so no report is triggered.
+   */
+  function noteBegan(instrument: Instrument) {
+    setBegan((prev) => (prev.includes(instrument) ? prev : [...prev, instrument]))
+  }
+
   /** Open the guide — optionally straight into the voice suited to a topic. */
   function openGuide(mode: ModeId | null = null) {
     setGuideMode(mode)
@@ -745,6 +763,8 @@ export function useNiyyah(entry: Entry | null = null) {
     setEnding: saveEnding,
     hesitated,
     saveHesitation,
+    began,
+    noteBegan,
     joinedCohort,
     // actions
     answer,

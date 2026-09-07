@@ -1,5 +1,6 @@
 import type {
   Answers,
+  BegunInstruments,
   EndedRecord,
   EndingRecord,
   HesitationRecord,
@@ -52,6 +53,8 @@ export interface PersistedState {
   endings: EndedRecord[]
   /** She reached the door and did not walk through it, and said why. See src/data/hesitation.ts. */
   hesitated: HesitationRecord | null
+  /** Which questionnaires she began. See src/data/instruments.ts. */
+  began: BegunInstruments
   /** What the product told her to do, and how it went. */
   followups: FollowUp[]
   completed: boolean
@@ -109,6 +112,7 @@ export function loadProgress(): Persisted | null {
       ending: p.ending ?? null,
       endings: p.endings ?? [],
       hesitated: p.hesitated ?? null,
+      began: Array.isArray(p.began) ? p.began.filter((id): id is string => typeof id === 'string') : [],
       followups: p.followups ?? [],
       completed: p.completed ?? false,
       // A thread with a voice that no longer exists (the Profile Coach) is dropped.

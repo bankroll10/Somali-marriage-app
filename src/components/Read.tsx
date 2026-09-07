@@ -14,6 +14,8 @@ interface Props {
   onSave: (record: ReadRecord) => void
   /** Learned here when she arrives without onboarding. */
   onSetGender: (g: Gender) => void
+  /** The read was begun — the denominator for whether it gets finished. */
+  onBegan: () => void
   /** Talk the result through in the voice best suited to it. */
   onAskGuide: (text: string) => void
   /** Offered after the result — never before it. */
@@ -45,6 +47,7 @@ export default function Read({
   identity,
   saved,
   onSave,
+  onBegan,
   onSetGender,
   onAskGuide,
   onBuildMap,
@@ -66,6 +69,7 @@ export default function Read({
 
   function begin(fresh: boolean) {
     track('read_started', { again: !fresh })
+    onBegan()
     setAnswers(fresh ? {} : (saved?.answers ?? {}))
     setIndex(0)
     setPhase('asking')

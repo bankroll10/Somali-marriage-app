@@ -154,6 +154,13 @@ export const ENDED_WHICH: Record<string, Set<string>> = {
 }
 
 /**
+ * Must match src/data/instruments.ts — which questionnaires a person began.
+ * The denominator for a completion rate, since finishing is already a rung.
+ * One bit each, merged as a union: not a count, not a time, not a session.
+ */
+export const INSTRUMENTS = new Set(['map', 'read', 'eleven', 'couple'])
+
+/**
  * Must match src/data/hesitation.ts — why someone reached the door and did
  * not walk through it. One word about the door, never about her.
  */

@@ -19,12 +19,14 @@ interface Props {
   onAnswer: (questionId: string, value: AnswerValue) => void
   onComplete: () => void
   onExit: () => void
+  /** The map was begun. The intake's only start signal — see src/data/instruments.ts. */
+  onBegan: () => void
   startIndex?: number
   /** Skip the first chapter's intro (the hook insight already previewed it). */
   skipFirstIntro?: boolean
 }
 
-export default function Intake({ answers, onAnswer, onComplete, onExit, startIndex = 0, skipFirstIntro = false }: Props) {
+export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan, startIndex = 0, skipFirstIntro = false }: Props) {
   const flat = useMemo<FlatQuestion[]>(
     () =>
       chapters.flatMap((chapter, chapterIndex) =>
@@ -51,6 +53,14 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, startInd
   // tap on most of the questions. Set only by a real tap, so returning to an
   // answered question never fires it and traps you moving forward.
   const [advancing, setAdvancing] = useState(false)
+
+  // Reaching this screen is the map being begun — the only start signal the
+  // thirteen questions have ever had. Recorded once; `noteBegan` is idempotent,
+  // so a resume changes nothing.
+  useEffect(() => {
+    onBegan()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const current = flat[index]
   const value = answers[current.q.id]

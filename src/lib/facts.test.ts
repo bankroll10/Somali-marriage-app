@@ -12,7 +12,7 @@ import type { FollowUp } from '../types'
  * a person wrote can be.
  */
 
-const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], hesitated: null, gender: 'woman' }
+const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], hesitated: null, began: [], gender: 'woman' }
 
 /** A complete read, every question answered with its first option. */
 const readAnswers = Object.fromEntries(readQuestions('woman').map((q) => [q.id, q.options[0].id]))
@@ -139,6 +139,16 @@ describe('what the rungs were made of', () => {
     expect(JSON.stringify(facts)).not.toContain('2026-')
   })
 
+  it('carries which questionnaires she began — the denominator, deduped and sorted', () => {
+    const facts = factsFrom({ ...none, began: ['read', 'map', 'read'] })
+    expect(facts).toEqual({ began: ['map', 'read'] })
+  })
+
+  it('drops an instrument it does not know, so a stale id cannot poison the report', () => {
+    expect(factsFrom({ ...none, began: ['sessions', 'read'] })).toEqual({ began: ['read'] })
+    expect(factsFrom({ ...none, began: ['nope'] })).toEqual({})
+  })
+
   it('drops a reason for stopping that is not on the list', () => {
     expect(factsFrom({ ...none, hesitated: { at: 'x', reason: 'because I felt like it' } })).toEqual({})
   })
@@ -168,6 +178,7 @@ describe('what the rungs were made of', () => {
       ending: { at: '2026-05-01', who: 'here', mattered: 'shown', used: ['read'], advice: 'a whole sentence, with spaces.' },
       endings: [{ at: '2026-03-01T10:00:00Z', from: 'talking', reason: 'his-read', which: 'public' }],
       hesitated: { at: '2026-03-02T10:00:00Z', reason: 'seen' },
+      began: ['map', 'read', 'eleven'],
       gender: 'woman',
     })
     for (const leaf of leaves(facts)) expect(leaf).toMatch(/^[A-Za-z-]+(:[A-Za-z-]+)?$/)

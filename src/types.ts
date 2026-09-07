@@ -119,6 +119,13 @@ export interface HesitationRecord {
   reason: string
 }
 
+/**
+ * Which questionnaires this person has begun — ids from src/data/instruments.ts.
+ * A set, never a count: added once, never removed, so it can say whether an
+ * instrument gets finished and can never say how often it was opened.
+ */
+export type BegunInstruments = string[]
+
 /** Her side of a two-sided Before you say yes: the code the pair lives under. */
 export interface CoupleState {
   code: string
