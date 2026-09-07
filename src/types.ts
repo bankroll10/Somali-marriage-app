@@ -108,6 +108,17 @@ export const defaultTrust: TrustSettings = {
   countMe: true,
 }
 
+/**
+ * She reached the door and did not walk through it, and said why — one word
+ * from src/data/hesitation.ts. About the door, never about her. Overwritten
+ * if she changes her mind; kept if she later joins, so the readout can say
+ * of the people who hesitated for this reason how many were counted after all.
+ */
+export interface HesitationRecord {
+  at: string
+  reason: string
+}
+
 /** Her side of a two-sided Before you say yes: the code the pair lives under. */
 export interface CoupleState {
   code: string

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Dimension, GroundState, Identity, MapSnapshot, ModeId, Reach, Reflection, StepRecord, WaitlistState, VouchState } from '../types'
+import type { Hesitation } from '../data/hesitation'
 import { getMode } from '../data/coach'
 import { todayKey } from '../lib/dates'
 import { changesBetween } from '../lib/reflection'
@@ -103,6 +104,7 @@ interface Props {
   onScene?: (scene: string) => void
   onCountry?: (country: string) => void
   onReach?: (reach: Reach) => void
+  onHesitate?: (reason: Hesitation) => void
   /** Their "hardest part" answer, carried onto the signup. */
   hookId?: string
   onJoinWaitlist: (s: WaitlistState) => void
@@ -130,6 +132,7 @@ export default function ReflectionView({
   onScene,
   onCountry,
   onReach,
+  onHesitate,
   hookId,
   onJoinWaitlist,
   vouch,
@@ -270,6 +273,7 @@ export default function ReflectionView({
             onScene={onScene}
             onCountry={onCountry}
             onReach={onReach}
+            onHesitate={onHesitate}
           />
           {/* The one verification we claim, offered where she has just finished
               something and can see why it would matter. It used to live only on

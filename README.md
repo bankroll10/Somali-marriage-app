@@ -117,6 +117,7 @@ docs/OPERATING.md      The monthly loop: readout field → constant it revises
 docs/LEARNING.md       What it learns and what it refuses to — the tiers, the two lists, the honest limits
 docs/SCALE.md          What breaks at each order of magnitude, the pool as the unit, and what to build now versus at its trigger
 docs/WEDGE.md          The first forty: the initial wedge, why, how to find it, the density it needs, the expansion path, the risks — evidence kept apart from hypothesis
+docs/GAPS.md           Every belief the product rests on, classed known / likely / assumed / unknown, ranked by the danger of being wrong, with the readout that tests it
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures
 netlify/edge-functions/gate.ts   Founding-preview password gate

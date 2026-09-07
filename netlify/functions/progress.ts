@@ -9,6 +9,7 @@ import {
   ENDED_STAGES,
   ENDED_WHICH,
   GROUND_STATES,
+  HESITATIONS,
   MATTERED,
   READ_BANDS,
   READ_DIMENSIONS,
@@ -76,6 +77,8 @@ export interface Facts {
   through?: string[]
   ending?: { who?: string; mattered?: string; used?: string[] }
   ended?: { stage: string; reason: string; which?: string }[]
+  /** Why she stopped at the door, in one word about the door. */
+  hesitated?: string
 }
 
 /** Courtships a person can report as ended. Eight is a lot of courtships. */
@@ -103,7 +106,7 @@ const count = (n: unknown): n is number => typeof n === 'number' && Number.isInt
  * a value nobody chose to allow.
  */
 function parseFacts(x: unknown): Facts | null {
-  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended'])) return null
+  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'hesitated'])) return null
   const out: Facts = {}
 
   if (x.grounds !== undefined) {
@@ -181,6 +184,11 @@ function parseFacts(x: unknown): Facts | null {
     out.ended = ended
   }
 
+  if (x.hesitated !== undefined) {
+    if (typeof x.hesitated !== 'string' || !HESITATIONS.has(x.hesitated)) return null
+    out.hesitated = x.hesitated
+  }
+
   return out
 }
 
@@ -192,7 +200,10 @@ function parseFacts(x: unknown): Facts | null {
  * and the last word on the way out is the one that counts. Ended courtships
  * are replaced whole for the same reason, and for one more: the list on her
  * device is the record, so a reason she takes back leaves here too. A union
- * would make retraction impossible and let a stale device resurrect it.
+ * would make retraction impossible and let a stale device resurrect it. Why
+ * she stopped at the door is overwritten too: she may change her mind, and if
+ * she later walks through, the reason stays beside the `counted` rung so the
+ * readout can say who came back.
  */
 function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): Facts | undefined {
   if (!existing) return incoming
@@ -205,6 +216,7 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
     ...(through.length ? { through } : {}),
     ...(incoming.ending ?? existing.ending ? { ending: incoming.ending ?? existing.ending } : {}),
     ...(incoming.ended ?? existing.ended ? { ended: incoming.ended ?? existing.ended } : {}),
+    ...(incoming.hesitated ?? existing.hesitated ? { hesitated: incoming.hesitated ?? existing.hesitated } : {}),
   }
   return merged
 }
@@ -248,7 +260,7 @@ async function tally(store: Store) {
         arrivedByDay[d] = (arrivedByDay[d] ?? 0) + 1
       }
     }
-    if (record.facts) tallyFacts(facts, record.facts, 'married' in record.first)
+    if (record.facts) tallyFacts(facts, record.facts, 'married' in record.first, 'counted' in record.first)
   }
   // Whole-population counts as they are; every split by a quasi-identifier
   // floored — see netlify/shared/floor.ts.
@@ -264,6 +276,9 @@ async function tally(store: Store) {
         readThin: floorRows(facts.marriedBy.readThin),
         open: floorRows(facts.marriedBy.open),
         ended: floorRows(facts.marriedBy.ended),
+      },
+      countedBy: {
+        hesitated: floorRows(facts.countedBy.hesitated),
       },
     },
   }
@@ -294,17 +309,27 @@ function emptyFactsTally() {
     ending: { who: {} as Counts, mattered: {} as Counts, used: {} as Counts },
     /** Why courtships end, from which stage, and which non-negotiable, topic or ground did it. */
     ended: { reason: {} as Counts, stage: {} as Counts, which: {} as Record<string, Counts> },
+    /** Why people stopped at the door — the one no this product records. */
+    hesitated: {} as Counts,
     /** The cross-tabs: each fact against whether the person went on to marry. */
     marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
+    /** Of the people who stopped at the door for a reason, how many were later counted after all. */
+    countedBy: { hesitated: {} as Pair },
   }
 }
 
-function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean) {
+function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean, counted: boolean) {
   const bump = (c: Counts, k: string) => void (c[k] = (c[k] ?? 0) + 1)
   const pair = (p: Pair, k: string, seen: string) => {
     const row = (p[k] ??= { [seen]: 0, married: 0 })
     row[seen] += 1
     if (married) row.married += 1
+  }
+  if (f.hesitated) {
+    bump(t.hesitated, f.hesitated)
+    const row = (t.countedBy.hesitated[f.hesitated] ??= { hesitated: 0, counted: 0 })
+    row.hesitated += 1
+    if (counted) row.counted += 1
   }
   for (const [dim, state] of Object.entries(f.grounds ?? {})) bump((t.grounds[dim] ??= {}), state)
   if (f.read) {

@@ -15,6 +15,7 @@ import { COUNTRY_IDS } from '../src/data/countries'
 import { REACH_IDS } from '../src/data/reach'
 import { hookOptions } from '../src/data/hook'
 import { SAFETY_REASONS } from '../src/data/safety'
+import { HESITATION_IDS } from '../src/data/hesitation'
 
 /**
  * The server accepts only words from closed lists, and each list has a twin in
@@ -93,5 +94,9 @@ describe('every word the server accepts is a word the app uses', () => {
 
   it('the reasons a safety report can give', () => {
     expect(sorted(vocab.SAFETY_REASONS)).toEqual(sorted(SAFETY_REASONS.map((r) => r.id)))
+  })
+
+  it('the reasons someone can give for stopping at the door', () => {
+    expect(sorted(vocab.HESITATIONS)).toEqual(sorted(HESITATION_IDS))
   })
 })

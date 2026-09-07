@@ -1,9 +1,10 @@
-import type { Dimension, EndedRecord, EndingRecord, FollowUp, Gender, GroundState, ReadRecord, Reflection } from '../types'
+import type { Dimension, EndedRecord, EndingRecord, FollowUp, Gender, GroundState, HesitationRecord, ReadRecord, Reflection } from '../types'
 import { DIMENSION_LABEL, type ReadDimension } from '../data/read'
 import { beforeYesTopics } from '../data/beforeYes'
 import { familyScripts } from '../data/families'
 import { endingQuestions } from '../data/ending'
 import { ENDED_REASON_IDS, REASONS_WITH_WHICH, dealbreakerOptions } from '../data/ended'
+import { HESITATION_IDS } from '../data/hesitation'
 import { buildRead, type ReadBand } from './read'
 import { buildBeforeYes } from './beforeYes'
 
@@ -40,6 +41,8 @@ export interface Facts {
   ending?: { who?: string; mattered?: string; used?: string[] }
   /** Courtships that ended: from which stage, why, and which. Never when, never who. */
   ended?: { stage: 'talking' | 'deciding'; reason: string; which?: string }[]
+  /** She reached the door and did not walk through it: why, in one word about the door. */
+  hesitated?: string
 }
 
 export interface FactsInput {
@@ -49,6 +52,7 @@ export interface FactsInput {
   followups: FollowUp[]
   ending: EndingRecord | null
   endings: EndedRecord[]
+  hesitated: HesitationRecord | null
   gender: Gender
 }
 
@@ -64,6 +68,7 @@ const ENDED_REASONS = new Set<string>(ENDED_REASON_IDS)
 const DEALBREAKERS = new Set(dealbreakerOptions().map((o) => o.id))
 const READ_DIMS = new Set<string>(Object.keys(DIMENSION_LABEL))
 const ENDED_WHICH: Record<string, Set<string>> = { 'non-negotiable': DEALBREAKERS, eleven: TOPICS, 'his-read': READ_DIMS }
+const HESITATIONS = new Set<string>(HESITATION_IDS)
 const ENDING = Object.fromEntries(endingQuestions('woman').map((q) => [q.id, new Set(q.options.map((o) => o.id))])) as Record<
   'who' | 'mattered' | 'used',
   Set<string>
@@ -125,6 +130,10 @@ export function factsFrom(i: FactsInput): Facts {
     .slice(-8)
     .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
   if (ended.length) facts.ended = ended
+
+  // Why the door was hard to walk through — the one no this product records.
+  // A word about the door, never about her; a stale id is dropped like any other.
+  if (i.hesitated && HESITATIONS.has(i.hesitated.reason)) facts.hesitated = i.hesitated.reason
 
   return facts
 }

@@ -188,7 +188,11 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               or deciding, and — only if you tap one — what decided it: a
               non-negotiable and which, one of the eleven and which, what his read
               had found thin, your family, his, timing, distance, he stopped, you
-              did, or something you’d rather not say. Every one of those is a
+              did, or something you’d rather not say. If you reach the door and
+              tap “not now”, and say why, that one word too — you’d rather not
+              leave an email or phone, someone might see you here, your family
+              doesn’t know, you want to see who’s here first, you’re not sure
+              you’re ready, or something else. Every one of those is a
               choice from a list we wrote. Never an answer in your words, never the line you write
               for the next person, never a word the guide said or you said to it,
               and never a name — his, yours or your family’s. If you opened Niyyah

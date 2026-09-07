@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { AnswerValue, Answers, Identity, Reach, WaitlistState } from '../types'
+import type { Hesitation } from '../data/hesitation'
 import { candidatesFor } from '../data/candidates'
 import { getScene } from '../data/scenes'
 import { alignment } from '../lib/matching'
@@ -17,6 +18,7 @@ interface Props {
   onScene?: (scene: string) => void
   onCountry?: (country: string) => void
   onReach?: (reach: Reach) => void
+  onHesitate?: (reason: Hesitation) => void
   /** The three "how you'd live" answers are taken here, where they change the reasons in front of her. */
   onAnswer: (questionId: string, value: AnswerValue) => void
   onBack: () => void
@@ -45,6 +47,7 @@ export default function SampleIntroduction({
   onScene,
   onCountry,
   onReach,
+  onHesitate,
   onAnswer,
   onBack,
 }: Props) {
@@ -194,6 +197,7 @@ export default function SampleIntroduction({
             onScene={onScene}
             onCountry={onCountry}
             onReach={onReach}
+            onHesitate={onHesitate}
             compact
           />
         </div>

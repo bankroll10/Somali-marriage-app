@@ -87,6 +87,7 @@ export function seedDemo() {
     vouch: null,
     ending: null,
     endings: [],
+    hesitated: null,
     completed: true,
     coachThreads: {},
   })
