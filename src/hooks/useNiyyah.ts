@@ -245,8 +245,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // rather than a promise about one.
   useEffect(() => {
     if (!trust.countMe) return
-    void reportRungs(rungs, identity.scene, facts)
-  }, [rungs, trust.countMe, identity.scene, facts])
+    void reportRungs(rungs, identity.scene, facts, identity.gender)
+  }, [rungs, trust.countMe, identity.scene, facts, identity.gender])
 
   // Has he answered the eleven she sent? Asked once per code, only until we
   // know — he answers on his own phone, and it has to reach hers without her

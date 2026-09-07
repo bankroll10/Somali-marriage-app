@@ -68,6 +68,17 @@ describe('what kind of link brought her here', () => {
     await reportRungs(['arrived', 'read'], 'twin-cities')
     expect(Object.keys(await lastBody(spy)).sort()).toEqual(['id', 'rungs', 'scene', 'via'])
   })
+
+  it('sends which side of the door she is on when it is known, and no field when it is not', async () => {
+    const spy = vi.fn(async () => new Response('{"ok":true}', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    await reportRungs(['arrived'], undefined, undefined, 'man')
+    expect((await lastBody(spy)).gender).toBe('man')
+    // A correction at Identity is a new signature, so it posts once more.
+    await reportRungs(['arrived'], undefined, undefined, 'woman')
+    expect(spy).toHaveBeenCalledTimes(2)
+    expect((await lastBody(spy)).gender).toBe('woman')
+  })
 })
 
 describe('the facts beside the rungs', () => {

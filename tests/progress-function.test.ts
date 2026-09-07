@@ -105,6 +105,21 @@ describe('reporting a rung', () => {
     expect(JSON.parse(stores.get('progress')!.get(ID)!).via).toBe('door')
   })
 
+  it('keeps which side of the door she is on, last told wins, and refuses anything else', async () => {
+    expect((await post({ id: ID, rungs: ['arrived'], gender: 'man' })).status).toBe(200)
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).gender).toBe('man')
+    // Chosen at Identity and correctable there, so a later word replaces it.
+    await post({ id: ID, rungs: ['arrived'], gender: 'woman' })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).gender).toBe('woman')
+    // And a report that says nothing keeps what was said.
+    await post({ id: ID, rungs: ['arrived', 'situated'] })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).gender).toBe('woman')
+
+    expect((await post({ id: 'HJKMNP', rungs: ['arrived'], gender: 'other' })).status).toBe(400)
+    expect((await post({ id: 'HJKMNP', rungs: ['arrived'], gender: 'M' })).status).toBe(400)
+    expect(stores.get('progress')!.has('HJKMNP')).toBe(false)
+  })
+
   it('keeps why she stopped at the door as one word from the list, last word wins, and refuses anything else', async () => {
     expect((await post({ id: ID, rungs: ['arrived', 'mapped'], facts: { hesitated: 'contact' } })).status).toBe(200)
     expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.hesitated).toBe('contact')
@@ -154,6 +169,20 @@ describe('the readout', () => {
     expect(body.scenes.toronto.arrived).toBeNull()
     expect(body.scenes.toronto.read).toBeNull()
     expect('arrived' in body.scenes.toronto).toBe(true)
+  })
+
+  it('splits the ladder by side, floored — so the men’s funnel can be read once five men have arrived', async () => {
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], gender: 'man' })
+    await post({ id: 'ACDEFK', rungs: ['arrived', 'mapped'], gender: 'man' })
+    await post({ id: 'ACDEFM', rungs: ['arrived'], gender: 'woman' })
+    await post({ id: 'ACDEFN', rungs: ['arrived'] })
+    const body = await (await readout()).json()
+    expect(body.rungs.arrived).toBe(8)
+    expect(body.sides.man.arrived).toBe(6)
+    // One man mapped is a person, not a number.
+    expect(body.sides.man.mapped).toBeNull()
+    expect(body.sides.woman.arrived).toBeNull()
+    expect(body.sides.unsaid.arrived).toBeNull()
   })
 
   it('shows a city once five have reached a rung', async () => {
