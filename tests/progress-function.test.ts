@@ -94,7 +94,7 @@ describe('reporting a rung', () => {
   })
 
   it('keeps what kind of link brought her here, first told wins, and refuses anything else', async () => {
-    for (const via of ['words', 'eleven', 'couple', 'door', 'family', 'married']) {
+    for (const via of ['words', 'eleven', 'couple', 'door', 'family', 'married', 'group']) {
       expect((await post({ id: 'HJKMNP', rungs: ['arrived'], via })).status, via).toBe(200)
     }
     expect((await post({ id: ID, rungs: ['arrived'], via: 'instagram' })).status).toBe(400)
@@ -165,6 +165,22 @@ describe('the readout', () => {
     expect(body.vias.unsaid.arrived).toBeNull()
     // Sources, never senders.
     expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNP|QRTWXY|from|sender/)
+  })
+
+  it('a link shared into a community group is its own door, and says nothing about which group', async () => {
+    // The first forty are found through alumni and professional group chats
+    // (docs/WEDGE.md). Their arrivals get a row of their own so the founder can
+    // read that channel against one-to-one sends — and the row is a kind of
+    // room, never a room: no group name, no id, nothing but `group`.
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
+      await post({ id, rungs: id === 'ACDEFG' ? ['arrived', 'read'] : ['arrived'], via: 'group' })
+    }
+    const body = await (await readout()).json()
+    expect(body.vias.group.arrived).toBe(5)
+    expect(body.vias.group.read).toBeNull()
+    expect(JSON.stringify(body)).not.toMatch(/whatsapp|alumni|snabpi|chat/i)
+    // Anything more specific than the kind of room is refused.
+    expect((await post({ id: 'HJKMNQ', rungs: ['arrived'], via: 'group:ssa-umn' })).status).toBe(400)
   })
 
   it('carries nothing a person wrote', async () => {

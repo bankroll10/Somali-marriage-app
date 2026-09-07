@@ -270,7 +270,10 @@ documents should be able to reject a proposal by pointing at a line above.
 1. **One city, women-first, trust-seeded.** Launch Minneapolis. Earn credibility
    through community figures the diaspora already trusts (respected imams,
    community orgs, the influential aunties). An honest count on the door, never
-   an invented crowd.
+   an invented crowd. The first forty are found through the alumni and
+   young-professional networks where serious women and serious men already
+   stand in the same room — a channel wedge, not a brand wedge; the brand stays
+   as it is (`docs/WEDGE.md`).
 2. **Density before expansion.** Liquidity is local for marriage; get one city
    *thick* before opening the next. A half-empty marketplace in ten cities is
    dead; a dense one in one city is alive. The unit is the *pool*: a city, or

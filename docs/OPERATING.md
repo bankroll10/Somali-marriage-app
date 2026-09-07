@@ -156,15 +156,19 @@ In this order, because each question only means something after the last:
    month against last, by city. If this is flat, nothing below matters yet.
 2. **Which door brings people who follow through?** `vias[via]` — the ratio
    of `followed-through` to `arrived` per via. The best door is the share the
-   product should offer first.
+   product should offer first. `group` is a link shared into a community's
+   chat — the channel the first forty are found through (`docs/WEDGE.md`) —
+   and its ratio against `words` is the first test of that wedge.
 3. **Which conversations get had, and which only get handed out?**
    `eleven.open` against `throughByTopic`. The gap is the next script to
    rewrite.
 4. **What do couples miss?** `/couple` `topics` — the topics where
    `one-thinks-talked` and `both-not-talked` lead.
-5. **Who did they marry?** `ending.who`. Until `here` is more than zero, the
-   instruments are the product and the marketplace is not. When it is, the
-   city is ready to open.
+5. **Who did they marry?** `ending.who`. The first pool opens on forty and
+   forty, by the founder's hand. Until `here` is more than zero in a pool that
+   has opened, that pool has not yet done what a marketplace is for — and no
+   second pool opens until one has. That is "density before expansion" with a
+   number on it (`docs/WEDGE.md`, `docs/SCALE.md`).
 6. **One revision.** Pick the single row above with the clearest signal, move
    its constant, and write the line below.
 7. **Save the backup.** One curl, one file, kept somewhere that is not Netlify.

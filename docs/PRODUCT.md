@@ -236,8 +236,10 @@ Three loops, in order of strength:
 
 Three links open an instrument directly — `?read`, `?eleven`, `?families` —
 with no Welcome and no account. Any link may carry `&via=` naming what kind of
-link it was (words, eleven, couple, door, family, or married — a link from
-someone this worked for) and never who sent it; it is the only attribution
+link it was (words, eleven, couple, door, family, married — a link from
+someone this worked for — or group, a link shared into a community's chat
+rather than sent to one person; the kind of room, never the room) and never
+who sent it; it is the only attribution
 recorded, first arrival wins, and the founder's readout splits every rung by
 it. The two-sided eleven also adds each answered pair to a count of how pairs
 come out per topic, with no pair in it, and a family vouch now lives exactly as

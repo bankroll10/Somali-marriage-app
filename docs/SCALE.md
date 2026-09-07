@@ -71,13 +71,16 @@ another name, and `docs/STRATEGY.md` is density-first.
 
 **The two gates, resolved.** The docs held two definitions of "open" that
 could disagree: 40 per side (`cohort.ts`) and `ending.who.here > 0`
-(`docs/OPERATING.md`, step 5). They are different gates. *`ending.who.here >
-0` is the gate on the first pool ever* — it proves the instruments before the
-marketplace. *40/40 of reachable members is the count gate on every pool.*
-The founder flips the first by hand; every later pool flips on count, once
-the flag exists (below). "Density before expansion" survives fragmentation
-this way: you do not open Bristol; you open the UK, for the people who would
-travel.
+(`docs/OPERATING.md`, step 5). They are different gates, on different pools.
+*40/40 of reachable members, and the founder's judgement, opens the first
+pool.* *`ending.who.here > 0` in a pool that has opened is the gate on opening
+the next one* — a pool has to produce a marriage before a second is opened,
+which is "density before expansion" with a number on it (`docs/WEDGE.md`).
+An earlier draft of this paragraph put the marriage gate on the first pool,
+which is circular: nobody can marry someone met here before anything has
+opened. Later pools flip on count once the flag exists (below). Fragmentation
+is survived the same way: you do not open Bristol; you open the UK, for the
+people who would travel.
 
 ## Five stages, twelve categories
 
@@ -168,7 +171,7 @@ the founder could not segment the first "your pool opened" mail even by hand.
 | Item | Trigger |
 |---|---|
 | Running pool counters, updated on join with `couple.ts`'s etag pattern, and a founder `recount` that rebuilds them from keys | any country past ~2,000 cohort keys, or a door render over a second |
-| An `open` flag per pool; the first flipped by hand after `ending.who.here > 0`, later pools flipped on count; the founder may close one | the first pool clears 40/40 |
+| An `open` flag per pool; the first flipped by hand on forty-and-forty; a second only once an open pool shows `ending.who.here > 0`; later ones on count; the founder may close one | the first pool clears 40/40 |
 | `introduce.ts` per `docs/LEARNING.md` (Tier 4, keyed by map codes, codes stripped from the tally), the waited-longest queue, and a matchmaker key beside the founder key | the first pool is opened |
 | "Your pool opened", by hand: export the form, filter by country / city / reach, one mail through a vendor. Then automated | the first pool opens; then more than one pool a month |
 | A pre-aggregated `/progress` readout, written on report and decremented on forget, with today's recompute kept as the monthly repair | `/progress` past ~2,000 records, or its first 503 |
