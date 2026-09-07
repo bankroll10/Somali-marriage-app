@@ -52,11 +52,13 @@
   relatives finish — friction on his side. Different failures, different fixes.
 - **METRIC.** `vouched` per hundred `kept`, and the missing half: vouches given
   per vouch *asked*.
-- **SMALLEST CREDIBLE TEST.** **The data already exists and nothing reads it.**
+- **SMALLEST CREDIBLE TEST.** **The data already existed and nothing read it.**
   `netlify/functions/vouch.ts` writes an `asked/<code>` key on every ask; that
-  key is read only for idempotence and for deletion on forget. Counting those
+  key was read only for idempotence and for deletion on forget. Counting those
   keys in the founder's readout is a counting change with no new collection at
-  all. This is the next experiment to instrument.
+  all. **Built in this pass** — `GET /vouch` with no code is the tally:
+  `{maps, asked, given, byRelationship}`, and the decision rule below reads in
+  one call. It ranked first in `docs/BETS.md` as B1.
 - **TIME TO LEARN.** The first ten kept maps.
 - **DECISION RULE.** Asks under one in four kept maps → the ask is the problem;
   rewrite it or move where it appears. Asks healthy but vouches under half →
@@ -129,7 +131,7 @@ By learning value × business importance × whether it can run at all today.
 | # | Experiment | Learning value | Business importance | Runnable now | Build |
 |---|---|---|---|---|---|
 | **1** | **A1 instrument completion** | **High** — answers a question no store can answer today | **High** — top of every funnel; the wedge depends on the couple side | **Yes** | **One field** |
-| 2 | A2 vouch asked-vs-given | High | High — the only verification claimed | Yes | Counting only |
+| 2 | A2 vouch asked-vs-given | High | High — the only verification claimed | Yes | **Built** — the readout |
 | 3 | A4 family scripts confirmed | Medium | Medium-high | Yes, slowly | None |
 | 4 | A3 the guide's worth | Medium-high | Medium — the only live cost | Needs endings | None |
 | 5 | A5 willingness to pay | High | High — the whole model | No | Blocked by a promise |

@@ -68,7 +68,9 @@ and stays there until behaviour or a member says otherwise.
 4. **The instruments are not wanted without a marketplace.** *Test:* `read`,
    `eleven`, `followed-through` per hundred `arrived`; `ending.used`.
 5. **Family is a barrier, not a feature.** *Test:* `vouched` per hundred
-   `kept`; the hook's `family` share; `hesitated.family`.
+   `kept`; the hook's `family` share; `hesitated.family`. And, since
+   `docs/BETS.md` B1, the half that separates shame at asking from friction on
+   his side: `/vouch`'s `asked` against `given`.
 6. **The eleven are not what breaks marriages.** *Test:* `ended.reason` and
    `which`; the couple tally's `both-not-talked` per topic; `marriedBy.through`.
 7. **Nobody pays at the nikah.** Fatal to revenue, not to the marketplace,

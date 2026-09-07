@@ -1,5 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { day } from '../shared/day'
+import { floor } from '../shared/floor'
+import { isFounder, notFounder } from '../shared/founder'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 
 /**
@@ -23,6 +25,13 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
  * the code only here, and opens nothing else anywhere. Links minted before
  * this existed carry the code and still vouch; they never opened more than
  * they already had.
+ *
+ * The store is also the only place this product records an ask that was never
+ * answered: `asked/<code>` is written when she asks, the vouch under `<code>`
+ * when a relative answers. Both were written from the first day and neither
+ * was ever counted — docs/EXPERIMENTS.md A2, docs/BETS.md B1. The readout at
+ * the bottom of the GET branch counts them, and nothing else changed to make
+ * that possible: no new field, no new screen, no new promise.
  *
  * A vouch has no clock of its own. It lives exactly as long as the map it was
  * given about: a father's word does not expire while his daughter is still
@@ -85,13 +94,65 @@ async function resolve(store: Store, raw: unknown): Promise<string | null> {
   return code && CODE.test(code) ? code : null
 }
 
+/**
+ * The founder's readout: four numbers, and no person in any of them.
+ *
+ * `asked` against `given` is the whole of docs/EXPERIMENTS.md A2 — of the women
+ * who asked a relative to vouch, how many relatives answered — and `maps` is
+ * the denominator its decision rule needs, so the rule reads in one call. The
+ * sentence a family member wrote and the number they left are read here to be
+ * counted and never leave: what returns is counts, and the relationship split
+ * is floored (netlify/shared/floor.ts), because who in her family vouched is a
+ * quasi-identifier like a city. The three totals are whole-population counts
+ * and are not floored, per the same file's rule.
+ *
+ * O(n) in vouches and one list of maps, exactly like the ladder's readout in
+ * netlify/functions/progress.ts — and it inherits that readout's trigger in
+ * docs/SCALE.md: at the order of magnitude where listing a store stops being
+ * free, both are replaced by a counter, together.
+ */
+async function tally(store: Store) {
+  const { blobs } = await store.list()
+  let asked = 0
+  const codes: string[] = []
+  for (const { key } of blobs) {
+    if (key.startsWith('asked/')) asked++
+    else if (CODE.test(key)) codes.push(key)
+  }
+  const records = (
+    await Promise.all(codes.map((key) => store.get(key, { type: 'json' }) as Promise<VouchRecord | null>))
+  ).filter((r): r is VouchRecord => !!r)
+
+  // Every relationship is a key, including the ones at zero: a missing key is
+  // itself a count of zero-to-four with the sign changed.
+  const byRelationship: Record<string, number> = {}
+  for (const rel of RELATIONSHIPS) byRelationship[rel] = 0
+  for (const r of records) byRelationship[RELATIONSHIPS.has(r.relationship) ? r.relationship : 'other'] += 1
+
+  const { blobs: maps } = await getStore('maps').list()
+  return { maps: maps.length, asked, given: records.length, byRelationship: floor(byRelationship) }
+}
+
 export default async function handler(req: Request) {
   const store = getStore('vouches')
 
   if (req.method === 'GET') {
+    const raw = new URL(req.url).searchParams.get('code')
+    // No code at all is the founder asking about all of them — the same shape
+    // as the door's tally in netlify/functions/cohort.ts. A code that is
+    // present and malformed is still a bad code, so nothing existing moves.
+    if (raw === null) {
+      if (!isFounder(req)) return notFounder()
+      try {
+        return Response.json(await tally(store))
+      } catch (err) {
+        console.error('[niyyah] vouch: tally failed', err)
+        return Response.json({ error: 'unavailable' }, { status: 503 })
+      }
+    }
     let code: string | null
     try {
-      code = await resolve(store, new URL(req.url).searchParams.get('code'))
+      code = await resolve(store, raw)
     } catch (err) {
       console.error('[niyyah] vouch: token lookup failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
