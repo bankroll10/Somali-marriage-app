@@ -18,6 +18,7 @@ import { saveProgress } from './lib/storage.ts'
  *   /?vouch=CODE   — a family member is arriving to vouch for her.
  *   /?read · /?eleven · /?families
  *                  — someone sent them the words; they land on the instrument.
+ *   /?door         — someone who is looking, not talking; they land on the number.
  *   &via=…         — what kind of link it was, remembered once for the ladder.
  *
  * Failure is a no-op by design: a wrong code, a dead function, or no network

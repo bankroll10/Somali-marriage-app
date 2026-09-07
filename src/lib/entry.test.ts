@@ -13,6 +13,7 @@ describe('links into Niyyah', () => {
     expect(entryFromUrl('?read=1')).toEqual({ kind: 'read' })
     expect(entryFromUrl('?eleven')).toEqual({ kind: 'eleven' })
     expect(entryFromUrl('?families')).toEqual({ kind: 'families' })
+    expect(entryFromUrl('?door')).toEqual({ kind: 'door' })
   })
 
   it('ignores everything else', () => {
@@ -26,6 +27,7 @@ describe('links into Niyyah', () => {
   it('takes the first kind present when a link is mangled into two, coded kinds first', () => {
     expect(entryFromUrl('?map=ACDEFG&couple=HJKMNP')?.kind).toBe('map')
     expect(entryFromUrl('?map=ACDEFG&read')?.kind).toBe('map')
+    expect(entryFromUrl('?map=ACDEFG&door')?.kind).toBe('map')
   })
 
   describe('what kind of link it was', () => {
@@ -33,6 +35,7 @@ describe('links into Niyyah', () => {
       expect(entryFromUrl('?eleven&via=eleven')).toEqual({ kind: 'eleven', via: 'eleven' })
       expect(entryFromUrl('?couple=HJKMNP&via=couple')).toEqual({ kind: 'couple', code: 'HJKMNP', via: 'couple' })
       expect(entryFromUrl('?read&via=door')).toEqual({ kind: 'read', via: 'door' })
+      expect(entryFromUrl('?door&via=group')).toEqual({ kind: 'door', via: 'group' })
     })
 
     it('drops a via it does not know', () => {

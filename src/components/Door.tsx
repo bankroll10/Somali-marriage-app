@@ -1,0 +1,195 @@
+import { useEffect, useState } from 'react'
+import type { Identity } from '../types'
+import { countryFor, getScene, scenes } from '../data/scenes'
+import { countries, getCountry } from '../data/countries'
+import { hesitationOptions, type Hesitation } from '../data/hesitation'
+import { COHORT_TARGET, cohortCount, type CohortCount } from '../lib/cohort'
+import { DoorCount } from './Cohort'
+import { ArrowRight, ScreenHeader, fieldClass } from './ui'
+
+interface Props {
+  identity: Identity
+  /** A member with a map is sent to Home, where the door card already is. */
+  hasMap: boolean
+  onScene: (scene: string) => void
+  onCountry: (country: string) => void
+  /** Count me in: the map first, since being counted takes one. */
+  onCount: () => void
+  /** Not now, and why — one word about the door. */
+  onHesitate: (reason: Hesitation) => void
+  onBack: () => void
+}
+
+/**
+ * The door, as a link: `/?door`.
+ *
+ * Every other link into Niyyah lands on an instrument — the read, the eleven,
+ * the family words — and every one of them presumes the person is already
+ * talking to someone. The man who was sent here because he is *looking* had
+ * nowhere to land: "who are you reading?" is a question he cannot answer.
+ * docs/MACHINE.md found that this, not any feature, was the weakest link in
+ * the machine — the door opens at forty men, and no link started a man
+ * towards it.
+ *
+ * So this screen shows him the number, honestly — his city today, and the
+ * people across his country who would travel — and one way in: the map. It
+ * asks nothing of him that the door card on Home does not ask of her, and it
+ * records nothing of its own. An open is not a rung. If he walks on, the
+ * ladder says `arrived` on a `door` via and nothing more; if he taps "not
+ * now" and says why, one word from a list we wrote.
+ */
+export default function Door({ identity, hasMap, onScene, onCountry, onCount, onHesitate, onBack }: Props) {
+  const [scene, setScene] = useState(identity.scene ?? '')
+  const [namedCountry, setNamedCountry] = useState(identity.country ?? '')
+  const [count, setCount] = useState<CohortCount | null>(null)
+  const [hesitating, setHesitating] = useState<'closed' | 'open' | 'said'>('closed')
+
+  const country = countryFor({ scene, country: identity.country }) ?? (scene === 'other' ? namedCountry : '')
+
+  // The real number, read fresh. Never cached into a guess.
+  useEffect(() => {
+    if (!scene || !country) return
+    let live = true
+    cohortCount(scene, country).then((c) => {
+      if (live) setCount(c)
+    })
+    return () => {
+      live = false
+    }
+  }, [scene, country])
+
+  const place = getScene(scene)
+  const other = scene === 'other'
+  const within = getCountry(country)?.within ?? 'your country'
+  const city = place && !other ? place.label : 'Your city'
+  const pool = other ? within : city
+
+  return (
+    <div className="min-h-dvh bg-cream pb-16">
+      <ScreenHeader onBack={onBack}>
+        <p className="font-display text-[1.05rem] font-medium text-ink">The door</p>
+      </ScreenHeader>
+      <main className="mx-auto max-w-xl px-6">
+        <div className="py-10">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+            Founding cohort{place ? ` · ${other && country ? getCountry(country)?.label : place.label}` : ''}
+          </p>
+          <h1 className="animate-rise mt-2.5 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
+            Nobody is introduced to anyone until both sides are here.
+          </h1>
+          <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
+            {scene && country ? pool : 'Each city'} opens when {COHORT_TARGET} women and {COHORT_TARGET} men have
+            kept a map and can be reached.{' '}
+            {scene && country ? (
+              <DoorCount count={count} city={city} within={within} other={other} />
+            ) : scene ? (
+              'Say which country you’re in to see where it stands.'
+            ) : (
+              'Pick your city to see where it stands.'
+            )}
+          </p>
+
+          <div className="mt-6 space-y-2.5">
+            {!identity.scene && (
+              <select
+                value={scene}
+                onChange={(e) => {
+                  setScene(e.target.value)
+                  setCount(null)
+                  if (e.target.value) onScene(e.target.value)
+                }}
+                aria-label="Your community"
+                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+              >
+                <option value="">Where are you?</option>
+                {scenes.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+            )}
+            {other && !identity.country && (
+              <select
+                value={namedCountry}
+                onChange={(e) => {
+                  setNamedCountry(e.target.value)
+                  setCount(null)
+                  if (e.target.value) onCountry(e.target.value)
+                }}
+                aria-label="Your country"
+                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+              >
+                <option value="">Somewhere else in…</option>
+                {countries.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <button
+            onClick={onCount}
+            className="group mt-5 inline-flex w-full items-center justify-center gap-2 rounded-full bg-forest px-5 py-3 text-[0.92rem] font-medium text-cream transition hover:bg-forest-deep"
+          >
+            Count me in
+            <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+          </button>
+          <p className="mt-3 text-[0.85rem] leading-relaxed text-muted text-pretty">
+            {hasMap
+              ? 'Your map is already here — being counted is one step from your space.'
+              : 'Being counted takes a map — thirteen questions about you, kept under a code with no name on it — and a way to reach you. No photos, no account. The day someone here fits your map, you hear from us, and nobody else does.'}
+          </p>
+
+          {/* The one no this product records — the same word, from the same
+              list, as the door card on Home. docs/GAPS.md. */}
+          {hesitating === 'closed' && (
+            <button
+              type="button"
+              onClick={() => setHesitating('open')}
+              className="mt-4 text-[0.82rem] font-medium text-muted underline-offset-4 hover:underline"
+            >
+              Not now
+            </button>
+          )}
+          {hesitating === 'open' && (
+            <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
+              <p className="text-[0.9rem] font-medium text-ink">That’s fine. Would you tell us why, in a word?</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {hesitationOptions.map((h) => (
+                  <button
+                    key={h.id}
+                    type="button"
+                    onClick={() => {
+                      onHesitate(h.id)
+                      setHesitating('said')
+                    }}
+                    className="rounded-full border border-line bg-white/50 px-3.5 py-1.5 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40 hover:bg-white"
+                  >
+                    {h.label}
+                  </button>
+                ))}
+              </div>
+              <p className="mt-3 text-[0.78rem] leading-relaxed text-muted text-pretty">
+                One word reaches us — why the door was hard to walk through — under a random code this phone
+                made up for itself. Nothing else, and nothing about you.
+              </p>
+              <button
+                type="button"
+                onClick={() => setHesitating('closed')}
+                className="mt-2 text-[0.8rem] font-medium text-muted underline-offset-4 hover:underline"
+              >
+                Skip
+              </button>
+            </div>
+          )}
+          {hesitating === 'said' && (
+            <p className="mt-4 text-[0.85rem] text-muted text-pretty">Noted. The door stays open.</p>
+          )}
+        </div>
+      </main>
+    </div>
+  )
+}

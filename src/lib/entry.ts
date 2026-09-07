@@ -7,7 +7,10 @@
  * `?eleven`, `?families`. They exist because the thing that travels between
  * people here is the words — a friend sends a friend the exact question that
  * worked — and the person who receives them should land on the instrument,
- * not on a front door. None of them needs an account.
+ * not on a front door. None of them needs an account. The last, `?door`, is
+ * for the person who is looking rather than talking — every instrument
+ * presumes someone on the other side, and a man sent here because he is
+ * single had nowhere to land (docs/MACHINE.md). It opens on the number.
  *
  * Any link may also carry `?via=`: what kind of thing carried it — words, the
  * eleven, a couple's link, the door, a family link, a link from someone this
@@ -21,7 +24,7 @@
  * a router and the query string can be cleaned before React reads storage.
  */
 export type CodedKind = 'map' | 'couple' | 'vouch'
-export type InstrumentKind = 'read' | 'eleven' | 'families'
+export type InstrumentKind = 'read' | 'eleven' | 'families' | 'door'
 export type EntryKind = CodedKind | InstrumentKind
 
 export type Via = 'words' | 'eleven' | 'couple' | 'door' | 'family' | 'married' | 'group'
@@ -38,7 +41,7 @@ export interface Entry {
 
 /** Coded kinds first, so a link mangled into two still restores the map. */
 const CODED: CodedKind[] = ['map', 'couple', 'vouch']
-const INSTRUMENTS: InstrumentKind[] = ['read', 'eleven', 'families']
+const INSTRUMENTS: InstrumentKind[] = ['read', 'eleven', 'families', 'door']
 
 /** Normalise what a human or a messaging app did to a code. */
 export function normaliseCode(raw: string): string {

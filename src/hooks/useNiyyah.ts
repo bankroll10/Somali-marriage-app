@@ -65,6 +65,7 @@ export type Screen =
   | 'read'
   | 'beforeYes'
   | 'families'
+  | 'door'
   | 'couple'
   | 'vouch'
   | 'plus'
@@ -80,6 +81,7 @@ const ENTRY_SCREEN: Partial<Record<EntryKind, Screen>> = {
   read: 'read',
   eleven: 'beforeYes',
   families: 'families',
+  door: 'door',
 }
 
 /**

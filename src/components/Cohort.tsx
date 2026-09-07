@@ -140,7 +140,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           <CheckIcon size={12} /> You’re counted
         </p>
         <p className="mt-3 text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
-          <Door count={count} city={city} within={within} other={other} /> The day someone in {pool} fits your map, we
+          <DoorCount count={count} city={city} within={within} other={other} /> The day someone in {pool} fits your map, we
           write to{' '}
           <span className="font-medium text-ink">{joined.contact || 'the address you gave'}</span>{' '}
           — and to nobody else. There is nothing to check back on; you will hear from us.
@@ -227,7 +227,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         {pool} opens when {COHORT_TARGET} women and {COHORT_TARGET} men have kept a map
         and can be reached. Nobody is introduced to anyone before then.{' '}
         {scene && country ? (
-          <Door count={count} city={city} within={within} other={other} />
+          <DoorCount count={count} city={city} within={within} other={other} />
         ) : scene ? (
           'Say which country you’re in to see where it stands.'
         ) : (
@@ -415,8 +415,9 @@ function people(n: SideCount): string {
  * cannot be read says so rather than showing a zero it does not know to be
  * true. The second sentence is the one that makes the door honest for a woman
  * in a city of nine: the people in her country who would travel to her.
+ * Shared with the `/?door` screen, so the number reads the same everywhere.
  */
-function Door({ count, city, within, other }: { count: CohortCount | null; city: string; within: string; other: boolean }) {
+export function DoorCount({ count, city, within, other }: { count: CohortCount | null; city: string; within: string; other: boolean }) {
   if (!count) return <span>The count isn’t reachable right now.</span>
   return (
     <span>
