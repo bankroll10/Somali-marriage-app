@@ -250,21 +250,33 @@ link returns 401 to anyone without the password.
 ## 10. Roadmap
 
 Ordered by `docs/PROCESS.md`'s prioritisation — learning value, business
-importance, whether it can run at all today — not by convenience to build.
+importance, whether it can run at all today — and, since `docs/DURABLE.md`,
+by how close each item sits to the need that does not move: a compatible
+partner and a marriage that lasts. Not by convenience to build.
 
 0. **Run the loop** — `docs/OPERATING.md`, monthly, from the first hundred
    records, within what `docs/LEARNING.md` allows. The moat is the process,
    not the constants.
-1. **Your record** — everything this phone has sent, in Trust's words, with a
-   retract on each item. The visibility half of Forget me.
-2. **The first-year sheet** — the one instrument the married stage is still
-   missing, and the thing the wedding gift sells. The eleven's engine over a
-   second topic list.
-3. **Live Claude behind the map** — `generateReflection` is the last local
-   seam; the guide's function is the pattern.
-4. **Real backend** — auth, persistence, real verification, moderation and
-   reporting (safety is first-class).
-5. **The first pool opens** — one introduction at a time, per §7, Minneapolis
+1. **The door, for men** — `docs/MACHINE.md`'s weakest link, M0–M2 built and
+   M3 walked; the four-week decision rule (A6) is what says whether the
+   channel or the map is the constraint.
+2. **The first pool opens** — one introduction at a time, per §7, Minneapolis
    first, on the dormant introductions store `docs/LEARNING.md` designs and
-   the sequencing `docs/SCALE.md` sets out.
-6. **Concierge** — the human matchmaker, priced per person.
+   the sequencing `docs/SCALE.md` sets out. The enduring need, made real.
+3. **Concierge** — the human matchmaker, priced per person. The oldest durable
+   form of this business, and the one families already pay for.
+4. **The first-year sheet** — the one instrument the married stage is still
+   missing, and the thing the wedding gift sells. The eleven's engine over a
+   second topic list. Nobody serves the marriage after the wedding.
+5. **Your record** — everything this phone has sent, in Trust's words, with a
+   retract on each item. The visibility half of Forget me.
+6. **Real backend** — auth, persistence, real verification, moderation and
+   reporting (safety is first-class). Buys durability rather than value, and
+   is blocked by scale.
+
+**Declined: live Claude behind the map.** It sat at 3 on this list for a long
+time, described as closing "the last local seam" — as though local were a
+stage to grow out of. It is the opposite: the map is what gets matched, it is
+built from her answers and a question set that is ours, and it works with the
+network off. `docs/DURABLE.md` has the rule, and `tests/durable.test.ts`
+asserts it.
