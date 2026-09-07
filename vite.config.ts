@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 /** Must match DEFAULT_SITE_HOST in src/lib/site.ts. */
-const DEFAULT_SITE_HOST = 'getniyyah.netlify.app'
+const DEFAULT_SITE_HOST = 'joinniyyah.com'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {

@@ -152,6 +152,31 @@ describe('the product survives its suppliers', () => {
     expect(reflection.nonNegotiables).toHaveLength(3)
   })
 
+  it('every link carries an address we own', () => {
+    // Links do not come back to be corrected. Whatever address they carry is
+    // the address they carry for ever, so it has to be one that DNS can move —
+    // never a subdomain a supplier can reclaim, rename, or take with them.
+    // docs/CONTROL.md ranks this first of every dependency; docs/OWNED.md is
+    // why it is the difference between renting and owning.
+    const site = readFileSync(join(process.cwd(), 'src/lib/site.ts'), 'utf8')
+    const host = site.match(/DEFAULT_SITE_HOST = '([^']+)'/)?.[1]
+    expect(host, 'src/lib/site.ts must export a DEFAULT_SITE_HOST literal').toBeTruthy()
+
+    const LANDLORDS = /\.(netlify\.app|vercel\.app|github\.io|pages\.dev|herokuapp\.com|web\.app|firebaseapp\.com|onrender\.com)$/
+    expect(
+      LANDLORDS.test(host!),
+      `the default address is ${host}, which belongs to a platform rather than ` +
+        'to us. Every link ever sent would die with that account and there is ' +
+        'no DNS to repoint. Use a domain we own — see docs/OWNED.md',
+    ).toBe(false)
+
+    // And the address a member writes to should live on the same owned domain,
+    // not on a free consumer mail account.
+    const email = site.match(/VITE_CONTACT_EMAIL \|\| '([^']+)'/)?.[1]
+    expect(email, 'src/lib/site.ts must default CONTACT_EMAIL').toBeTruthy()
+    expect(email!.split('@')[1], 'the contact address belongs on the domain we own').toBe(host)
+  })
+
   it('sharing is the platform’s own sheet, not a vendor’s SDK', () => {
     // Distribution that depends on one platform's reach is rented. The share
     // sheet is a browser API: it works with whatever apps the person has, and

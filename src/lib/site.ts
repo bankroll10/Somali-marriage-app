@@ -1,27 +1,36 @@
 /**
  * Where Niyyah actually lives.
  *
- * Every share, invite and generated card used to hardcode `niyyah.app`, which
- * is not where the app is served from — so someone who tapped "copy invite" and
- * pasted it sent their friend to a link that does not lead to the app they were
- * just shown. One constant, so the domain is a single edit apart rather than six.
+ * This host is burned into every link ever sent to another person — the vouch
+ * link a father opened, the couple link a man answered, every restore link —
+ * and into the footer of every share image. Links do not come back to be
+ * corrected: whatever address they carry is the address they carry for ever.
+ * So it is a control decision, not a tidiness one, and `docs/CONTROL.md` ranks
+ * it first of every dependency this product has.
  *
- * It is now a setting rather than a literal, and that is a control decision
- * rather than a tidiness one. The host below belongs to Netlify, not to us.
- * It is burned into every link ever sent to another person — the vouch link a
- * father opened, the couple link a man answered, every restore link — and into
- * the footer of every share image. The day that account ends, those links end
- * with it, and there is no DNS to repoint because we do not own `netlify.app`.
- * Owning a domain is the single highest-value thing in `docs/CONTROL.md`, and
- * this makes the switch one variable instead of a hunt through six files.
+ * **The domain is ours.** `joinniyyah.com` is registered to the founder, and
+ * that is the whole point: DNS can be repointed at any host on earth, so no
+ * supplier can take the address with them when they go. It used to default to
+ * `getniyyah.netlify.app` — a subdomain of a company under no obligation to
+ * us, and the one thing in `docs/CONTROL.md` that money rather than code had
+ * to fix. It was fixed; this is the code catching up. See `docs/OWNED.md`.
  *
- * The fallbacks are today's values, so nothing changes until the variables are
- * set. `VITE_SITE_HOST` is also read by `vite.config.ts`, which writes it into
- * the social-card tags in index.html — the two defaults must match.
+ * The default is now the owned address rather than the rented one, which
+ * matters for exactly the case a variable cannot cover: a build where
+ * `VITE_SITE_HOST` is missing — a fresh site, a preview, a teammate's laptop —
+ * used to mint links pointing at the landlord. Now the worst case points home.
+ *
+ * Never release the `getniyyah.netlify.app` subdomain: Netlify keeps serving
+ * it and redirecting here, and that is what keeps links already sitting in
+ * people's messages alive.
+ *
+ * `VITE_SITE_HOST` is also read by `vite.config.ts`, which writes it into the
+ * social-card tags in index.html — the two defaults must match, and
+ * `tests/deploy-layout.test.ts` holds them together.
  */
 
 /** Must match the default in vite.config.ts. */
-export const DEFAULT_SITE_HOST = 'getniyyah.netlify.app'
+export const DEFAULT_SITE_HOST = 'joinniyyah.com'
 
 export const SITE_HOST = import.meta.env.VITE_SITE_HOST || DEFAULT_SITE_HOST
 export const SITE_URL = `https://${SITE_HOST}`
@@ -29,9 +38,15 @@ export const SITE_URL = `https://${SITE_HOST}`
 /**
  * Where a signup reaches a human when the form isn't configured.
  *
- * This is a real address only if the domain behind it is owned and receiving.
  * It is the last fallback in `src/lib/waitlist.ts`, so if it bounces, a person
- * who tried to join is lost silently — set `VITE_CONTACT_EMAIL` to something
- * that answers before launch.
+ * who tried to join is lost silently.
+ *
+ * The default is on the domain we own, which is the half that can be fixed in
+ * code. The other half is mail: until a mailbox actually answers at
+ * `joinniyyah.com`, production must keep `VITE_CONTACT_EMAIL` pointed at an
+ * address a person reads. That is the one open step in `docs/CONTROL.md`'s
+ * cutover, and `docs/OWNED.md` carries why it matters — a business whose
+ * public address belongs to a free consumer mail account is renting the last
+ * thing a member uses to reach it.
  */
-export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'salaam@niyyah.app'
+export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'salaam@joinniyyah.com'
