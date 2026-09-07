@@ -3,6 +3,7 @@ import type { Identity, Reach, WaitlistState } from '../types'
 import { countryFor, getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
 import { getHookOption } from '../data/hook'
+import { hesitationOptions, type Hesitation } from '../data/hesitation'
 import { COHORT_TARGET, cohortCount, joinCohort, type CohortCount, type SideCount } from '../lib/cohort'
 import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../lib/waitlist'
 import { instrumentLink } from '../lib/links'
@@ -24,6 +25,8 @@ interface Props {
   onCountry?: (country: string) => void
   /** When she says she would travel, likewise. */
   onReach?: (reach: Reach) => void
+  /** She is not walking through the door yet, and said why — one word about the door. */
+  onHesitate?: (reason: Hesitation) => void
   /** Quieter variant for Home and Profile; the full card is for the map. */
   compact?: boolean
 }
@@ -50,9 +53,11 @@ interface Props {
  * nobody else does. The count is a sentence, not two progress bars: there is
  * nothing here to come back and watch.
  */
-export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, onCountry, onReach, compact }: Props) {
+export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, onCountry, onReach, onHesitate, compact }: Props) {
   const configured = waitlistConfigured()
   const [contact, setContact] = useState('')
+  // "Not now" — the one no this product records, as one word about the door.
+  const [hesitating, setHesitating] = useState<'closed' | 'open' | 'said'>('closed')
   const [scene, setScene] = useState(joined?.scene ?? identity.scene ?? '')
   // The country she names when she is somewhere else and nothing upstream
   // holds it yet. A named city already knows its country.
@@ -333,6 +338,53 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           </a>
           <p className="mt-3 text-[0.78rem] text-muted text-pretty">{CONTACT_EMAIL} — we read every one.</p>
         </div>
+      )}
+
+      {/* The one no this product records. Every other screen learns from a yes;
+          the door is where people stop, and until now it learned nothing from
+          that. One word, about the door, from a list we wrote — docs/GAPS.md. */}
+      {onHesitate && hesitating === 'closed' && (
+        <button
+          type="button"
+          onClick={() => setHesitating('open')}
+          className="mt-3 text-[0.82rem] font-medium text-muted underline-offset-4 hover:underline"
+        >
+          Not now
+        </button>
+      )}
+      {onHesitate && hesitating === 'open' && (
+        <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
+          <p className="text-[0.9rem] font-medium text-ink">That’s fine. Would you tell us why, in a word?</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {hesitationOptions.map((h) => (
+              <button
+                key={h.id}
+                type="button"
+                onClick={() => {
+                  onHesitate(h.id)
+                  setHesitating('said')
+                }}
+                className="rounded-full border border-line bg-white/50 px-3.5 py-1.5 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40 hover:bg-white"
+              >
+                {h.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-3 text-[0.78rem] leading-relaxed text-muted text-pretty">
+            One word reaches us — why the door was hard to walk through — under the same random code as
+            your steps. Nothing else, and nothing about you.
+          </p>
+          <button
+            type="button"
+            onClick={() => setHesitating('closed')}
+            className="mt-2 text-[0.8rem] font-medium text-muted underline-offset-4 hover:underline"
+          >
+            Skip
+          </button>
+        </div>
+      )}
+      {hesitating === 'said' && (
+        <p className="mt-3 text-[0.85rem] text-muted text-pretty">Noted. The door stays open.</p>
       )}
 
       {!compact && (

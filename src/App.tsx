@@ -151,6 +151,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onScene={setScene}
           onCountry={setCountry}
           onReach={setReach}
+          onHesitate={n.saveHesitation}
           hookId={hookId}
           onJoinWaitlist={n.joinedCohort}
           vouch={n.vouch}
@@ -199,6 +200,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onScene={setScene}
           onCountry={setCountry}
           onReach={setReach}
+          onHesitate={n.saveHesitation}
         />
       )
 
@@ -253,6 +255,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenPlus={() => n.setScreen('plus')}
           waitlist={n.waitlist}
           onJoinWaitlist={n.joinedCohort}
+          onHesitate={n.saveHesitation}
           onAnswer={n.answer}
           onRetake={n.retakeMap}
           onBack={() => n.setScreen('home')}
@@ -330,6 +333,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onScene={setScene}
           onCountry={setCountry}
           onReach={setReach}
+          onHesitate={n.saveHesitation}
           onAnswer={n.answer}
           onBack={() => n.setScreen('home')}
         />

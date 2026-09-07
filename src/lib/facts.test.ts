@@ -12,7 +12,7 @@ import type { FollowUp } from '../types'
  * a person wrote can be.
  */
 
-const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], gender: 'woman' }
+const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], hesitated: null, gender: 'woman' }
 
 /** A complete read, every question answered with its first option. */
 const readAnswers = Object.fromEntries(readQuestions('woman').map((q) => [q.id, q.options[0].id]))
@@ -133,6 +133,16 @@ describe('what the rungs were made of', () => {
     ])
   })
 
+  it('carries why she stopped at the door as one word — never when, never anything about her', () => {
+    const facts = factsFrom({ ...none, hesitated: { at: '2026-06-01T10:00:00Z', reason: 'contact' } })
+    expect(facts).toEqual({ hesitated: 'contact' })
+    expect(JSON.stringify(facts)).not.toContain('2026-')
+  })
+
+  it('drops a reason for stopping that is not on the list', () => {
+    expect(factsFrom({ ...none, hesitated: { at: 'x', reason: 'because I felt like it' } })).toEqual({})
+  })
+
   it('drops any id it does not recognise, so a stale record cannot poison the report', () => {
     const facts = factsFrom({
       ...none,
@@ -157,6 +167,7 @@ describe('what the rungs were made of', () => {
       followups: [asked('beforeYes', 'money-home'), asked('family', 'tell-wali-online')],
       ending: { at: '2026-05-01', who: 'here', mattered: 'shown', used: ['read'], advice: 'a whole sentence, with spaces.' },
       endings: [{ at: '2026-03-01T10:00:00Z', from: 'talking', reason: 'his-read', which: 'public' }],
+      hesitated: { at: '2026-03-02T10:00:00Z', reason: 'seen' },
       gender: 'woman',
     })
     for (const leaf of leaves(facts)) expect(leaf).toMatch(/^[A-Za-z-]+(:[A-Za-z-]+)?$/)

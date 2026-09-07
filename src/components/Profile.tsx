@@ -4,6 +4,7 @@ import { MAX_AGE, MIN_AGE } from '../types'
 import { countryFor, getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
 import { reachOptions } from '../data/reach'
+import type { Hesitation } from '../data/hesitation'
 import Cohort from './Cohort'
 import InviteRow from './InviteRow'
 import VouchRow from './VouchRow'
@@ -28,6 +29,8 @@ interface Props {
   onOpenPlus: () => void
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
+  /** She is not walking through the door yet, and said why — one word about the door. */
+  onHesitate: (reason: Hesitation) => void
   /** Optional answers about how she'd live, read by the alignment engine. */
   onAnswer: (questionId: string, value: AnswerValue) => void
   /** Reflect again — keeps every record. */
@@ -62,6 +65,7 @@ export default function Profile({
   onOpenPlus,
   waitlist,
   onJoinWaitlist,
+  onHesitate,
   onAnswer,
   onRetake,
   onBack,
@@ -340,6 +344,7 @@ export default function Profile({
             onScene={(scene) => onChangeIdentity((prev) => ({ ...prev, scene }))}
             onCountry={(country) => onChangeIdentity((prev) => ({ ...prev, country }))}
             onReach={(reach) => onChangeIdentity((prev) => ({ ...prev, reach }))}
+            onHesitate={onHesitate}
             compact
           />
         </div>

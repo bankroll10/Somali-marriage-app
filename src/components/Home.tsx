@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Dimension, FollowUp as FollowUpRecord, Identity, ModeId, Reach, ReadRecord, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
+import type { Hesitation } from '../data/hesitation'
 import type { FollowUpAsk } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
@@ -70,6 +71,7 @@ interface Props {
   onScene: (scene: string) => void
   onCountry: (country: string) => void
   onReach: (reach: Reach) => void
+  onHesitate: (reason: Hesitation) => void
 }
 
 export default function Home({
@@ -106,6 +108,7 @@ export default function Home({
   onScene,
   onCountry,
   onReach,
+  onHesitate,
 }: Props) {
   const name = identity.firstName?.trim()
   const scene = getScene(identity.scene)
@@ -446,6 +449,7 @@ export default function Home({
                 onScene={onScene}
                 onCountry={onCountry}
                 onReach={onReach}
+                onHesitate={onHesitate}
                 compact
               />
             )}

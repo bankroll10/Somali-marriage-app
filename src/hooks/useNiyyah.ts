@@ -42,6 +42,7 @@ import type {
   EndingRecord,
   EndedRecord,
   FollowUp,
+  HesitationRecord,
   VouchState,
   WaitlistState,
 } from '../types'
@@ -140,6 +141,9 @@ export function useNiyyah(entry: Entry | null = null) {
   const [endings, setEndings] = useState<EndedRecord[]>(saved?.endings ?? [])
   // Which stage she just left, while the ended screen is up.
   const [endedFrom, setEndedFrom] = useState<'talking' | 'deciding' | null>(null)
+  // She reached the door and did not walk through it, and said why. The one no
+  // this product records — about the door, never about her. See src/data/hesitation.ts.
+  const [hesitated, setHesitated] = useState<HesitationRecord | null>(saved?.hesitated ?? null)
   // What the product told her to do, and whether she did it. See lib/followup.ts.
   const [followups, setFollowups] = useState<FollowUp[]>(saved?.followups ?? [])
   // The code her map is kept under. Read once at mount and refreshed by the
@@ -226,8 +230,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // read thin, how the read came out, which conversation was had, who she
   // married. See src/lib/facts.ts. Never an answer in her words.
   const facts = useMemo(
-    () => factsFrom({ reflection, read, beforeYes, followups, ending, endings, gender: identity.gender ?? 'woman' }),
-    [reflection, read, beforeYes, followups, ending, endings, identity.gender],
+    () => factsFrom({ reflection, read, beforeYes, followups, ending, endings, hesitated, gender: identity.gender ?? 'woman' }),
+    [reflection, read, beforeYes, followups, ending, endings, hesitated, identity.gender],
   )
 
   // Rungs reached, reported on transitions only — never on a tap, never on a
@@ -279,6 +283,7 @@ export function useNiyyah(entry: Entry | null = null) {
             vouch,
             ending,
             endings,
+            hesitated,
             followups,
             completed,
             coachThreads,
@@ -303,6 +308,7 @@ export function useNiyyah(entry: Entry | null = null) {
     vouch,
     ending,
     endings,
+    hesitated,
     followups,
     completed,
     coachThreads,
@@ -358,6 +364,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setCouple(null)
     setVouch(null)
     setEnding(null)
+    setHesitated(null)
     setFollowups([])
     setKeptCode(null)
     setResumeIndex(0)
@@ -583,6 +590,16 @@ export function useNiyyah(entry: Entry | null = null) {
     setEnding(record)
   }
 
+  /**
+   * She reached the door and said why she is not walking through it yet. One
+   * word, about the door. Overwrites — she may change her mind — and stays if
+   * she later joins, so the readout can say who came back.
+   */
+  function saveHesitation(reason: string) {
+    track('door_hesitated', { reason })
+    setHesitated({ at: new Date().toISOString(), reason })
+  }
+
   /** Open the guide — optionally straight into the voice suited to a topic. */
   function openGuide(mode: ModeId | null = null) {
     setGuideMode(mode)
@@ -726,6 +743,8 @@ export function useNiyyah(entry: Entry | null = null) {
     setVouch,
     setKeptCode,
     setEnding: saveEnding,
+    hesitated,
+    saveHesitation,
     joinedCohort,
     // actions
     answer,

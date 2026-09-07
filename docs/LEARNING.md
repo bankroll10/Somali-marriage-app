@@ -68,6 +68,7 @@ described on the Trust screen in the same commit, gated by "Count me":
 - Which conversation she confirmed she had, by source and topic
 - Which stage she is in and the day it changed
 - **That a courtship ended, from which stage, and — only if she taps one — one of ten reasons and which**
+- **If she reaches the door and taps "not now" — only if she says why — one of six words about the door**, never about her (`src/data/hesitation.ts`, `docs/GAPS.md`)
 - Who she married, what decided it, which instruments were real
 - What kind of link brought her here, never who sent it
 - Her city and country, how far she said she would go for the right person, who she is seeking, the hardest part she named, what she has done here

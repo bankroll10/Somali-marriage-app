@@ -70,6 +70,8 @@ What each field in `/progress` means:
 | `facts.marriedBy.through[topic]` | `{through, married}`: of people who confirmed this conversation, how many went on to marry |
 | `facts.marriedBy.readThin[dim]` | `{read, married}`: of people whose read found this ground thinnest, how many married |
 | `facts.marriedBy.open[topic]` | `{eleven, married}`: of people told to open this topic first, how many married |
+| `facts.hesitated[reason]` | Why people reached the door and did not walk through — the one no this product records, one word from `src/data/hesitation.ts`. Its `other` share is the test of the list |
+| `facts.countedBy.hesitated[reason]` | `{hesitated, counted}`: of people who stopped for this reason, how many were counted after all. Floored |
 
 `marriedBy` is the first outcome table this product has. Every row in the
 next section is a way of reading it.
@@ -172,6 +174,11 @@ In this order, because each question only means something after the last:
 6. **One revision.** Pick the single row above with the clearest signal, move
    its constant, and write the line below.
 7. **Save the backup.** One curl, one file, kept somewhere that is not Netlify.
+8. **Reread `docs/GAPS.md` against what you just read.** Every belief the
+   product rests on is classed there — known, likely, assumed, unknown — with
+   the readout field that tests it. Move at most one claim one class, on a
+   hundred records, and write the line in its log. The door's `hesitated`
+   row is the first place to look: it is the only no this product hears.
 
 ## Revisions
 

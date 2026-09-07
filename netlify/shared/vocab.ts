@@ -153,6 +153,12 @@ export const ENDED_WHICH: Record<string, Set<string>> = {
   'his-read': READ_DIMENSIONS,
 }
 
+/**
+ * Must match src/data/hesitation.ts — why someone reached the door and did
+ * not walk through it. One word about the door, never about her.
+ */
+export const HESITATIONS = new Set(['contact', 'seen', 'family', 'empty', 'ready', 'other'])
+
 /** Must match src/data/ending.ts — the three closed questions on the way out. */
 export const WHO = new Set(['brought', 'family', 'here', 'elsewhere'])
 export const MATTERED = new Set(['shown', 'eleven', 'families', 'myself', 'other'])

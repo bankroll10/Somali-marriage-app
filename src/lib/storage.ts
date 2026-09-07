@@ -2,6 +2,7 @@ import type {
   Answers,
   EndedRecord,
   EndingRecord,
+  HesitationRecord,
   MapSnapshot,
   CoachMessage,
   GuideUse,
@@ -49,6 +50,8 @@ export interface PersistedState {
   ending: EndingRecord | null
   /** Courtships that ended, oldest first, the last eight. See src/data/ended.ts. */
   endings: EndedRecord[]
+  /** She reached the door and did not walk through it, and said why. See src/data/hesitation.ts. */
+  hesitated: HesitationRecord | null
   /** What the product told her to do, and how it went. */
   followups: FollowUp[]
   completed: boolean
@@ -105,6 +108,7 @@ export function loadProgress(): Persisted | null {
       vouch: p.vouch ?? null,
       ending: p.ending ?? null,
       endings: p.endings ?? [],
+      hesitated: p.hesitated ?? null,
       followups: p.followups ?? [],
       completed: p.completed ?? false,
       // A thread with a voice that no longer exists (the Profile Coach) is dropped.
