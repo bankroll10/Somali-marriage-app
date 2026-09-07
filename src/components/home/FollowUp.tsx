@@ -51,7 +51,7 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
             <button
               onClick={() => {
                 onAnswer(id, 'differently')
-                onAskGuide(`I was going to talk to him about ${ask.label}, and it went differently.`)
+                onAskGuide(`I was going to talk to them about ${ask.label}, and it went differently.`)
               }}
               className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
             >

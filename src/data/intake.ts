@@ -263,7 +263,7 @@ export const livingQuestions: Question[] = [
     prompt: 'Where do you picture living, in the first years?',
     helper: 'Not the city — the house.',
     options: [
-      { id: 'with-family', label: 'With family', hint: 'One household — his or mine' },
+      { id: 'with-family', label: 'With family', hint: 'One household — theirs or mine' },
       { id: 'near-family', label: 'Our own place, close to family' },
       { id: 'separate', label: 'Our own place — our own city, if it comes to it' },
       { id: 'flexible', label: 'Genuinely flexible' },
