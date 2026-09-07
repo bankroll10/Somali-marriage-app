@@ -137,6 +137,11 @@ By learning value × business importance × whether it can run at all today.
 Experiment 1 is the only one that is simultaneously high-value, wedge-critical,
 and impossible to answer today. It is the one that got built.
 
+**A6 · The door, for men** lives in `docs/MACHINE.md`, where the whole-machine
+read that produced it is. Its decision rule — four weeks of `?door&via=group`,
+read against `sides.man` — is written there and mirrored in `docs/PROCESS.md`'s
+kill table; its result is logged below like the others.
+
 ## What was missing, and what `began` fixes
 
 Every instrument here is all-or-nothing: `buildRead` and `buildBeforeYes`

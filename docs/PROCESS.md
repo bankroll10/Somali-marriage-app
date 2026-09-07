@@ -165,6 +165,7 @@ Applied to the current roadmap (`docs/PRODUCT.md` §10):
 | 4 Real backend | — | High, eventually | Blocked by scale (`docs/SCALE.md`) |
 | 5 First pool opens | High | Highest — the whole marketplace | Blocked on `ending.who.here > 0` |
 | 6 Concierge | High | High | Blocked on 5 |
+| 7 The door, for men — `docs/MACHINE.md` M0–M2 | High — tests `docs/GAPS.md` gap #1 directly | Highest — the only thing that can unblock 5 and 6 | Yes |
 
 Item 0 is not really an item — it is the precondition for the table meaning
 anything, which is the whole argument for this file existing.
@@ -184,6 +185,7 @@ one place to see them together.
 | The wedge channel (alumni/professional group links, Minneapolis) | Fewer than twenty women or five men counted after eight weeks of the playbook — change channel first, city second | `docs/WEDGE.md` |
 | Onboarding length (the thirteen-question map, the read, the eleven) | Completion under the thresholds in A1 — shorten, cut to one chapter, or fix the two-sided flow, by instrument | `docs/EXPERIMENTS.md` A1 |
 | Support as one founder inbox | More than a handful of emails in a week | `docs/TIME.md` |
+| The `door` link and the second ask on the door | After four weeks: under five men arrived → the channel pivots (WEDGE); five or more and under one in four `mapped` → cut the men's map first (A1); women's `counted` per hundred `arrived` falls → back to one ask | `docs/MACHINE.md`, logged as A6 |
 
 A feature with no decision rule is not yet a feature this process can
 govern — it is an opinion running in production. Writing the rule is part of
@@ -208,4 +210,4 @@ shipping the feature, not a follow-up task.
 
 _Dated, one line each: what changed about how work happens here, and why._
 
-- _(none yet)_
+- 2026-09-07 — The roadmap table gains its first row from a whole-machine read rather than a feature list: `docs/MACHINE.md` maps the thirteen stages, names the weakest link, and the plan for it takes the top slot.
