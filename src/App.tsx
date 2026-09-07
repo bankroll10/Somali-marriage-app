@@ -12,6 +12,7 @@ import Philosophy from './components/Philosophy'
 import Profile from './components/Profile'
 import SampleIntroduction from './components/SampleIntroduction'
 import Read from './components/Read'
+import Door from './components/Door'
 import BeforeYes from './components/BeforeYes'
 import Families from './components/Families'
 import Couple from './components/Couple'
@@ -260,6 +261,19 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onAnswer={n.answer}
           onRetake={n.retakeMap}
           onBack={() => n.setScreen('home')}
+        />
+      )
+
+    case 'door':
+      return (
+        <Door
+          identity={n.identity}
+          hasMap={n.completed}
+          onScene={setScene}
+          onCountry={setCountry}
+          onCount={n.completed ? n.enterHome : n.beginMap}
+          onHesitate={n.saveHesitation}
+          onBack={backHome}
         />
       )
 

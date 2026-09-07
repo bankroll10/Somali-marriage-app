@@ -355,6 +355,7 @@ export default function Home({
         )}
 
         <StageBand
+          gender={identity.gender}
           stage={stage}
           onSetStage={onSetStage}
           onOpenRead={onOpenRead}

@@ -114,12 +114,17 @@ seeded count.
 2. **Lead with the instruments, not the marketplace.** The link is
    `joinniyyah.com/?read&via=group` — the read, opened directly, no Welcome,
    no account. The `group` via is the kind of room, never which room. A week
-   later, the eleven the same way: `/?eleven&via=group`.
+   later, the eleven the same way: `/?eleven&via=group`. And in the same
+   post, the door: `joinniyyah.com/?door&via=group` — the honest number, for
+   the man who is looking rather than talking. The read presumes someone on
+   the other side; a single man sent only the read had nowhere to land, and
+   that was the machine's weakest link (`docs/MACHINE.md`).
 3. **The door is the public artifact.** Post its honest count into the same
    groups weekly: "Minneapolis today: 12 women, 3 men." The number is public
    by design and a zero is allowed to be a zero.
 4. **Women first, then one man each.** Every counted woman is asked the
-   door's existing question — if you know one serious man, send him the read.
+   door's question — if you know one serious man who is looking, send him the
+   door; if he is already seeing someone, send him the read.
 5. **One room, once.** A "before you say yes" evening co-hosted with an alumni
    or SNABPI chapter, where the eleven is the room's exercise and men are
    present because it is their network too. Not a launch party; a

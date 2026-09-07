@@ -224,7 +224,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       const att = a('attachment')
       const lean =
         att === 'anxious'
-          ? ' Your heart leans anxious, so silence will feel like danger before it is danger — reach for your salah, a walk, a friend, before you reach for his phone.'
+          ? ' Your heart leans anxious, so silence will feel like danger before it is danger — reach for your salah, a walk, a friend, before you reach for the phone.'
           : att === 'avoidant'
             ? ' You lean toward pulling back to protect your independence. Naming it out loud — "I need a moment, I am not disappearing" — is what keeps that instinct from reading as rejection.'
             : att === 'secure'

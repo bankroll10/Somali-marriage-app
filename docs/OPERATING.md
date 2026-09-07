@@ -43,7 +43,7 @@ readout stays monthly at all — read a number often enough and it becomes the
 thing being optimised for rather than the thing being watched.
 
 ```bash
-curl -s -H "$K" $S/progress | jq '.rungs, .facts.began'   # arrived, and who finished what they began
+curl -s -H "$K" $S/progress | jq '.rungs, .sides, .facts.began'   # arrived, by side, and who finished what they began
 curl -s -H "$K" $S/cohort   | jq '.countries'              # the door: women and men, every open pool
 ```
 
@@ -73,6 +73,7 @@ What each field in `/progress` means:
 |---|---|
 | `rungs[id]` | People who ever reached this rung. `followed-through / arrived` is the North Star |
 | `scenes[city][rung]`, `vias[via][rung]` | The same, by city and by what kind of link brought them |
+| `sides[woman\|man][rung]` | The same, by side. `sides.man.counted / sides.man.arrived` is the men's funnel — the question `docs/MACHINE.md` found the ladder could not answer. Floored, so `sides.man` reads `null` until five men have arrived |
 | `arrivedByDay` | The denominator over time, so a cohort can be followed. Every date in every store is a day, never a moment — see `netlify/shared/day.ts` |
 | `facts.grounds[dim][state]` | How many maps read thin / steady / strong on each ground |
 | `facts.read.band[band]`, `facts.read.thin[dim]` | How reads come out; which ground men here most often have not shown |

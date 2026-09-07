@@ -176,7 +176,9 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               eleven, you asked him, he answered, you had the conversation, your
               family vouched, you were counted, you’re deciding, you’re married —
               that step and the date reach us, along with your city if you gave
-              one. A few of those steps also say, in a word, how they came out:
+              one, and whether you said you are a woman or a man — so we can
+              tell whether men are reaching the door at all. A few of those
+              steps also say, in a word, how they came out:
               which of your map’s seven grounds read thin, steady or strong; how
               the read came out and which ground it found thinnest; how many of
               the eleven you had agreed on, differed on, not had, or did not yet

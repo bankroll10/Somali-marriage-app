@@ -9,6 +9,7 @@ import {
   ENDED_STAGES,
   ENDED_WHICH,
   GROUND_STATES,
+  GENDERS,
   HESITATIONS,
   INSTRUMENTS,
   MATTERED,
@@ -93,6 +94,12 @@ export interface ProgressRecord {
   scene?: string
   /** What kind of link brought this person here. First told wins; never a person. */
   via?: string
+  /**
+   * Which side of the door this person is on — `woman` or `man`, as chosen at
+   * Identity, last told wins like `scene`. The one split the men's funnel
+   * needs (docs/MACHINE.md); floored like every other quasi-identifier.
+   */
+  gender?: string
   /** How a few of the rungs came out. See `mergeFacts` for what may change. */
   facts?: Facts
   expiresAt: string
@@ -238,7 +245,9 @@ type Store = ReturnType<typeof getStore>
 
 /**
  * The founder's readout. Per rung, how many people reached it; the same split
- * by city and by what kind of link brought them; and arrivals by week, so
+ * by city, by what kind of link brought them, and by side — so the men's
+ * funnel can be read apart from the women's, which is the one question
+ * docs/MACHINE.md found the ladder could not answer; and arrivals by week, so
  * `followed-through` per hundred `arrived` is computable over a cohort rather
  * than over all time — and so word of mouth can be told from every other
  * arrival, by source, without an edge between two people anywhere.
@@ -252,6 +261,7 @@ async function tally(store: Store) {
   const rungs: Record<string, number> = {}
   const scenes: Record<string, Record<string, number>> = {}
   const vias: Record<string, Record<string, number>> = {}
+  const sides: Record<string, Record<string, number>> = {}
   const arrivedByDay: Record<string, number> = {}
   const facts = emptyFactsTally()
 
@@ -260,13 +270,16 @@ async function tally(store: Store) {
     if (Date.parse(record.expiresAt) < now) continue
     const scene = record.scene && SCENES.has(record.scene) ? record.scene : 'unsaid'
     const via = record.via && VIAS.has(record.via) ? record.via : 'unsaid'
+    const side = record.gender && GENDERS.has(record.gender) ? record.gender : 'unsaid'
     const perScene = (scenes[scene] ??= {})
     const perVia = (vias[via] ??= {})
+    const perSide = (sides[side] ??= {})
     for (const [id, at] of Object.entries(record.first)) {
       if (!RUNGS.has(id)) continue
       rungs[id] = (rungs[id] ?? 0) + 1
       perScene[id] = (perScene[id] ?? 0) + 1
       perVia[id] = (perVia[id] ?? 0) + 1
+      perSide[id] = (perSide[id] ?? 0) + 1
       // Records written before dates were days still hold a moment; read the day off them.
       if (id === 'arrived') {
         const d = at.slice(0, 10)
@@ -276,11 +289,15 @@ async function tally(store: Store) {
     if (record.facts) tallyFacts(facts, record.facts, 'married' in record.first, 'counted' in record.first)
   }
   // Whole-population counts as they are; every split by a quasi-identifier
-  // floored — see netlify/shared/floor.ts.
+  // floored — see netlify/shared/floor.ts. `sides.man` therefore reads null
+  // until five men have arrived, which is also the first moment a conclusion
+  // about men is worth drawing; the door's own count stays the unfloored
+  // number for `counted`.
   return {
     rungs,
     scenes: floorRows(scenes),
     vias: floorRows(vias),
+    sides: floorRows(sides),
     arrivedByDay,
     facts: {
       ...facts,
@@ -435,7 +452,7 @@ export default async function handler(req: Request) {
   const raw = await req.text()
   if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
 
-  let body: { id?: string; rungs?: unknown; scene?: string; via?: string; facts?: unknown }
+  let body: { id?: string; rungs?: unknown; scene?: string; via?: string; gender?: string; facts?: unknown }
   try {
     body = JSON.parse(raw)
   } catch {
@@ -453,6 +470,9 @@ export default async function handler(req: Request) {
   }
   if (body.via !== undefined && !VIAS.has(body.via)) {
     return Response.json({ error: 'bad_via' }, { status: 400 })
+  }
+  if (body.gender !== undefined && !GENDERS.has(body.gender)) {
+    return Response.json({ error: 'bad_gender' }, { status: 400 })
   }
   const facts = body.facts === undefined ? undefined : parseFacts(body.facts)
   if (facts === null) return Response.json({ error: 'bad_facts' }, { status: 400 })
@@ -478,6 +498,7 @@ export default async function handler(req: Request) {
       first,
       ...(body.scene ? { scene: body.scene } : existing?.scene ? { scene: existing.scene } : {}),
       ...(via ? { via } : {}),
+      ...(body.gender ? { gender: body.gender } : existing?.gender ? { gender: existing.gender } : {}),
       ...(merged && Object.keys(merged).length ? { facts: merged } : {}),
       expiresAt: day(now + TTL_MS),
     }

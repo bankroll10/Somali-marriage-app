@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { Stage } from '../../types'
+import type { Gender, Stage } from '../../types'
 import { getStage, stages } from '../../data/stages'
 import { ArrowRight } from '../ui'
 
@@ -11,6 +11,8 @@ interface Props {
   onOpenBeforeYes?: () => void
   onOpenFamilies?: () => void
   onOpenGuide?: () => void
+  /** Which side the member is on — the read's door names the other. */
+  gender?: Gender
 }
 
 /**
@@ -18,7 +20,7 @@ interface Props {
  * follows you past the match instead of ending there. Moving stage is always
  * the member's own call, never inferred from who they've messaged.
  */
-export default function StageBand({ stage, onSetStage, onOpenRead, onOpenBeforeYes, onOpenFamilies, onOpenGuide }: Props) {
+export default function StageBand({ stage, onSetStage, onOpenRead, onOpenBeforeYes, onOpenFamilies, onOpenGuide, gender }: Props) {
   const [open, setOpen] = useState(false)
   const st = getStage(stage)
 
@@ -26,7 +28,7 @@ export default function StageBand({ stage, onSetStage, onOpenRead, onOpenBeforeY
   // picker; now each stage opens onto the thing built for it.
   const doors: { label: string; go?: () => void }[] =
     stage === 'talking'
-      ? [{ label: 'Is he serious?', go: onOpenRead }, { label: 'The words for your family', go: onOpenFamilies }]
+      ? [{ label: gender === 'man' ? 'Is she serious?' : 'Is he serious?', go: onOpenRead }, { label: 'The words for your family', go: onOpenFamilies }]
       : stage === 'deciding'
         ? [{ label: 'Before you say yes', go: onOpenBeforeYes }, { label: 'The words for your family', go: onOpenFamilies }]
         : stage === 'married'

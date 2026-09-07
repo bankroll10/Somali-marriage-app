@@ -15,6 +15,7 @@
 import type { RungId } from './rungs'
 import { VIAS, type Via } from './entry'
 import type { Facts } from './facts'
+import type { Gender } from '../types'
 
 const ENDPOINT = '/.netlify/functions/progress'
 const TIMEOUT_MS = 8_000
@@ -90,13 +91,14 @@ let lastSent = ''
  * Report the rungs reached. Fire-and-forget: the promise resolves either way
  * and the caller has nothing to do with the result.
  */
-export async function reportRungs(rungs: RungId[], scene?: string, facts?: Facts): Promise<void> {
+export async function reportRungs(rungs: RungId[], scene?: string, facts?: Facts, gender?: Gender): Promise<void> {
   const id = installId()
   if (!id || rungs.length === 0) return
   const some = facts && Object.keys(facts).length > 0 ? facts : undefined
   // The facts are part of the signature: a re-render with the same facts posts
   // nothing, and a new fact — a read taken, a conversation confirmed — posts once.
-  const signature = `${scene ?? ''}:${rungs.join(',')}:${some ? JSON.stringify(some) : ''}`
+  // So is which side she is on, so a correction at Identity posts once too.
+  const signature = `${scene ?? ''}:${gender ?? ''}:${rungs.join(',')}:${some ? JSON.stringify(some) : ''}`
   if (signature === lastSent) return
   lastSent = signature
 
@@ -114,6 +116,7 @@ export async function reportRungs(rungs: RungId[], scene?: string, facts?: Facts
         rungs,
         ...(scene ? { scene } : {}),
         ...(via ? { via } : {}),
+        ...(gender ? { gender } : {}),
         ...(some ? { facts: some } : {}),
       }),
       signal: abort.signal,

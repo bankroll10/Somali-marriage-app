@@ -425,4 +425,4 @@ executed rather than debated.
 _Dated, one line each: a transition whose metric, friction or failure changed,
 or a new weakest link — and the readout that showed it._
 
-- _(none yet — the machine has not run)_
+- 2026-09-07 — M0–M2 built: `sides` on the ladder, the `/?door` link, two asks on the door, the playbook posts both links. The decision rule is now runnable; A6's four weeks start when the first group post goes out.

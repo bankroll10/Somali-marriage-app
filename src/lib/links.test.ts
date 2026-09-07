@@ -10,6 +10,7 @@ describe('the links this product hands out', () => {
   it('opens an instrument, and says what carried it', () => {
     expect(instrumentLink('read', 'words')).toBe(`${SITE_URL}/?read&via=words`)
     expect(instrumentLink('eleven', 'couple', 'https://x.test')).toBe('https://x.test/?eleven&via=couple')
+    expect(instrumentLink('door', 'door')).toBe(`${SITE_URL}/?door&via=door`)
   })
 
   it('round-trips through the parser', () => {
