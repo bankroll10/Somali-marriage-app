@@ -92,23 +92,34 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   const seeking = identity.gender === 'man' ? 'women' : 'men'
   const one = identity.gender === 'man' ? 'woman' : 'man'
   const them = identity.gender === 'man' ? 'her' : 'him'
-  const [sent, setSent] = useState(false)
+  const theyre = identity.gender === 'man' ? 'she’s' : 'he’s'
+  const [sent, setSent] = useState<'door' | 'read' | null>(null)
 
   // The door is a collective goal, and the honest ask is the useful one: the
   // pool opens when both sides are counted, so if she knows one serious man,
-  // the most useful thing she can do for herself is send him the read. No
-  // count of who she sent it to, anywhere; the only number is the door's.
-  async function sendTheRead() {
+  // the most useful thing she can do for herself is send him here. Two asks,
+  // because there are two men: the one who is looking gets the door — the
+  // number, and the map as the way in — and the one who is already talking to
+  // someone gets the read. Sending a single man the read was the weakest link
+  // in the whole machine (docs/MACHINE.md): he landed on "who are you
+  // reading?" and left. No count of who she sent it to, anywhere; the only
+  // number is the door's.
+  async function send(kind: 'door' | 'read') {
     const result = await shareOrCopy(
-      {
-        text: `Salaam — Niyyah is being built for us, one city at a time, and ${pool} opens when forty serious women and forty serious men are counted. Start with the read: ninety seconds on what someone has actually done, and the one question to ask next. No account.`,
-        url: instrumentLink('read', 'door'),
-      },
+      kind === 'door'
+        ? {
+            text: `Salaam — Niyyah is being built for us, one city at a time. ${pool} opens when forty serious women and forty serious men have kept a map and can be reached — here’s where it stands. No photos, no account: a map, and a way to reach you.`,
+            url: instrumentLink('door', 'door'),
+          }
+        : {
+            text: `Salaam — Niyyah is being built for us, one city at a time, and ${pool} opens when forty serious women and forty serious men are counted. Start with the read: ninety seconds on what someone has actually done, and the one question to ask next. No account.`,
+            url: instrumentLink('read', 'door'),
+          },
       'door_sent',
     )
     if (result === 'copied') {
-      setSent(true)
-      window.setTimeout(() => setSent(false), 2400)
+      setSent(kind)
+      window.setTimeout(() => setSent(null), 2400)
     }
   }
 
@@ -154,20 +165,35 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         )}
         <div className="mt-4 border-t border-forest/15 pt-4">
           <p className="text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
-            {pool} opens at {COHORT_TARGET} each. If you know one serious {one}, send {them} this.
+            {pool} opens at {COHORT_TARGET} each. If you know one serious {one} who is looking, send {them} the
+            door. If {theyre} already talking to someone, send the read.
           </p>
-          <button
-            onClick={sendTheRead}
-            className="mt-3 inline-flex items-center gap-2 rounded-full border border-forest/30 px-4 py-2 text-[0.85rem] font-medium text-forest transition hover:bg-forest/[0.06]"
-          >
-            {sent ? (
-              <>
-                <CheckIcon size={12} /> Copied to send
-              </>
-            ) : (
-              'Send the read'
-            )}
-          </button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              onClick={() => send('door')}
+              className="inline-flex items-center gap-2 rounded-full border border-forest/30 px-4 py-2 text-[0.85rem] font-medium text-forest transition hover:bg-forest/[0.06]"
+            >
+              {sent === 'door' ? (
+                <>
+                  <CheckIcon size={12} /> Copied to send
+                </>
+              ) : (
+                'Send the door'
+              )}
+            </button>
+            <button
+              onClick={() => send('read')}
+              className="inline-flex items-center gap-2 rounded-full border border-forest/30 px-4 py-2 text-[0.85rem] font-medium text-forest transition hover:bg-forest/[0.06]"
+            >
+              {sent === 'read' ? (
+                <>
+                  <CheckIcon size={12} /> Copied to send
+                </>
+              ) : (
+                'Send the read'
+              )}
+            </button>
+          </div>
         </div>
       </div>
     )
