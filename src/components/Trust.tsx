@@ -194,7 +194,8 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               and never a name — his, yours or your family’s. If you opened Niyyah
               from a link someone sent you, it also says what kind of link that
               was — words, the eleven, a couple’s link, the door, a family link,
-              or a link from someone this worked for — and never who sent it. It
+              a link shared into a community’s group, or a link from someone this
+              worked for — and never who sent it, and never which group. It
               goes under a code this phone made up for itself, which is not your
               map code — nothing links the two by name, and every date is a day,
               never a time. Nothing about how long you spent here or how often

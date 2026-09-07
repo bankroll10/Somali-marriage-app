@@ -62,9 +62,11 @@ export const GENDERS = new Set(['woman', 'man'])
 
 /**
  * Must match src/lib/entry.ts. What kind of link first brought a person here —
- * never who sent it; the link does not carry that.
+ * never who sent it; the link does not carry that. `group` is a link shared
+ * into a community's chat rather than sent to one person: the kind of room,
+ * never the room (docs/WEDGE.md).
  */
-export const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family', 'married'])
+export const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family', 'married', 'group'])
 
 /** Must match `Dimension` in src/types.ts — the map's seven grounds. */
 export const DIMENSIONS = new Set(['intention', 'faith', 'family', 'vision', 'character', 'emotional', 'selfAwareness'])
