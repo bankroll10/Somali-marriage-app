@@ -69,6 +69,7 @@ described on the Trust screen in the same commit, gated by "Count me":
 - Which stage she is in and the day it changed
 - **That a courtship ended, from which stage, and — only if she taps one — one of ten reasons and which**
 - **If she reaches the door and taps "not now" — only if she says why — one of six words about the door**, never about her (`src/data/hesitation.ts`, `docs/GAPS.md`)
+- **Which of the four questionnaires she began** — the map, a read, the eleven, or the eleven someone sent her. One bit each, for ever, so that a completion rate can exist at all (`src/data/instruments.ts`, `docs/EXPERIMENTS.md`)
 - Who she married, what decided it, which instruments were real
 - What kind of link brought her here, never who sent it
 - Her city and country, how far she said she would go for the right person, who she is seeking, the hardest part she named, what she has done here
@@ -92,6 +93,7 @@ add it":
 - **Precise time.** Every stored date is a day — `netlify/shared/day.ts`
 - **Her contact next to her answers.** The way to reach her goes to the founder's form alone
 - **Decision latency, A/B assignment, push tokens, profile completeness, matches per member** — the year-two temptations, refused in advance
+- **How often, how far, or how long.** `began` says *that* a questionnaire was started, once, for ever — never how many times it was opened, how far through she got, or how long she stayed. It is a set with a union merge precisely so a counter cannot be derived from it, and it must never be widened into one (`docs/EXPERIMENTS.md`)
 
 The test for any future field: *does this describe a person, or a pairing, a
 conversation, or a question?* Only the last three are collected.

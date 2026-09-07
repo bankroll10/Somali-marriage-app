@@ -70,6 +70,7 @@ What each field in `/progress` means:
 | `facts.marriedBy.through[topic]` | `{through, married}`: of people who confirmed this conversation, how many went on to marry |
 | `facts.marriedBy.readThin[dim]` | `{read, married}`: of people whose read found this ground thinnest, how many married |
 | `facts.marriedBy.open[topic]` | `{eleven, married}`: of people told to open this topic first, how many married |
+| `facts.began[instrument]` | Who began each questionnaire — the map, a read, the eleven, his side of it. Against `rungs`, which counts who finished, this is the completion rate: `rungs.read / facts.began.read`. Both are whole-population counts, so both stay numbers. See `docs/EXPERIMENTS.md` |
 | `facts.hesitated[reason]` | Why people reached the door and did not walk through — the one no this product records, one word from `src/data/hesitation.ts`. Its `other` share is the test of the list |
 | `facts.countedBy.hesitated[reason]` | `{hesitated, counted}`: of people who stopped for this reason, how many were counted after all. Floored |
 
@@ -174,7 +175,11 @@ In this order, because each question only means something after the last:
 6. **One revision.** Pick the single row above with the clearest signal, move
    its constant, and write the line below.
 7. **Save the backup.** One curl, one file, kept somewhere that is not Netlify.
-8. **Reread `docs/GAPS.md` against what you just read.** Every belief the
+8. **Do people finish what they open?** `rungs.read / facts.began.read`, and
+   the same for the map, the eleven and the couple side. `docs/EXPERIMENTS.md`
+   holds the decision rule for each, fixed in advance — if one fires, act on it
+   rather than reasoning about it.
+9. **Reread `docs/GAPS.md` against what you just read.** Every belief the
    product rests on is classed there — known, likely, assumed, unknown — with
    the readout field that tests it. Move at most one claim one class, on a
    hundred records, and write the line in its log. The door's `hesitated`

@@ -46,7 +46,7 @@ and stays there until behaviour or a member says otherwise.
 | **Competing alternatives** | Hinge exposes her; Muzz and Salams are low-trust; aunties are limited and judging | ASSUMED — no instrument | hook `finding`; conversations |
 | **Willingness to pay** | Families already pay matchmakers, at the nikah | LIKELY (culturally attested) | — |
 | | They will pay this product, at a price not yet set | UNKNOWN | the first pool's checkout for "Deciding together" |
-| **Reasons people hesitate** | Exposure; "does opening this mean something failed"; the toll gate of thirteen questions | ASSUMED — until this pass, no instrument | `hesitated` by reason; `countedBy.hesitated` |
+| **Reasons people hesitate** | Exposure; "does opening this mean something failed"; the toll gate of thirteen questions | ASSUMED — until this pass, no instrument | `hesitated` by reason; `countedBy.hesitated`; and, for the toll gate itself, `rungs / facts.began` (`docs/EXPERIMENTS.md`) |
 
 ## The gaps, ranked by how dangerous it is if we are wrong
 

@@ -127,6 +127,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           answers={n.answers}
           onAnswer={n.answer}
           onComplete={n.completeIntake}
+          onBegan={() => n.noteBegan('map')}
           onExit={() => n.setScreen('identity')}
           startIndex={n.resumeIndex}
           skipFirstIntro={n.skipFirstIntro}
@@ -268,6 +269,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           identity={n.identity}
           saved={n.read}
           onSave={n.setRead}
+          onBegan={() => n.noteBegan('read')}
           onSetGender={(g: Gender) => n.setIdentity((prev) => ({ ...prev, gender: g }))}
           onAskGuide={(text) => n.askGuide(text, n.identity.gender)}
           onBuildMap={n.beginMap}
@@ -285,6 +287,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           answers={n.answers}
           saved={n.beforeYes}
           onSave={n.setBeforeYes}
+          onBegan={() => n.noteBegan('eleven')}
           onSetGender={(g: Gender) => n.setIdentity((prev) => ({ ...prev, gender: g }))}
           onAskGuide={(text) => n.askGuide(text, n.identity.gender)}
           onOpenFamilies={() => n.setScreen('families')}
@@ -307,6 +310,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
             n.setBeforeYes({ at: new Date().toISOString(), answers: states })
             n.setIdentity((prev) => ({ ...prev, gender: g }))
           }}
+          onBegan={() => n.noteBegan('couple')}
           onRead={() => n.setScreen('read')}
           onBuildMap={n.beginMap}
           onHome={() => n.setScreen('welcome')}

@@ -195,6 +195,35 @@ describe('the readout', () => {
     expect((await post({ id: 'HJKMNQ', rungs: ['arrived'], via: 'group:ssa-umn' })).status).toBe(400)
   })
 
+  it('keeps which questionnaires were begun as a union, and refuses anything not one of the four', async () => {
+    await post({ id: ID, rungs: ['arrived'], facts: { began: ['read'] } })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.began).toEqual(['read'])
+    // A beginning cannot be un-begun: later reports add, never replace.
+    await post({ id: ID, rungs: ['arrived', 'read'], facts: { began: ['map'] } })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.began).toEqual(['map', 'read'])
+    // Duplicates collapse, so the set can never become a count of openings.
+    await post({ id: ID, rungs: ['arrived', 'read'], facts: { began: ['read', 'read', 'read'] } })
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.began).toEqual(['map', 'read'])
+
+    expect((await post({ id: 'HJKMNP', rungs: ['arrived'], facts: { began: ['sessions'] } })).status).toBe(400)
+    expect((await post({ id: 'HJKMNP', rungs: ['arrived'], facts: { began: 'read' } })).status).toBe(400)
+    expect(stores.get('progress')!.has('HJKMNP')).toBe(false)
+  })
+
+  it('counts who began each questionnaire, so a completion rate exists against the rungs', async () => {
+    // Six began a read; two of them finished it.
+    const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'ACDEFK']
+    for (const id of ids) await post({ id, rungs: ['arrived'], facts: { began: ['read'] } })
+    await post({ id: 'ACDEFG', rungs: ['arrived', 'read'], facts: { began: ['read'] } })
+    await post({ id: 'HJKMNP', rungs: ['arrived', 'read'], facts: { began: ['read'] } })
+
+    const body = await (await readout()).json()
+    // Both halves are whole-population counts, so both stay numbers at founding
+    // scale — 2 of 6 finished the read.
+    expect(body.facts.began.read).toBe(6)
+    expect(body.rungs.read).toBe(2)
+  })
+
   it('counts why people stopped at the door, and of those how many walked through after all — floored', async () => {
     // Six stopped over contact; two of them were later counted. One stopped over family.
     const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'ACDEFK']

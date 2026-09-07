@@ -19,6 +19,8 @@ interface Props {
   answers: Answers
   saved: ReadRecord | null
   onSave: (record: ReadRecord) => void
+  /** The eleven were begun — the denominator for whether they get finished. */
+  onBegan: () => void
   onSetGender: (g: Gender) => void
   onAskGuide: (text: string) => void
   onOpenFamilies: () => void
@@ -48,6 +50,7 @@ export default function BeforeYes({
   answers,
   saved,
   onSave,
+  onBegan,
   onSetGender,
   onAskGuide,
   onOpenFamilies,
@@ -67,6 +70,7 @@ export default function BeforeYes({
 
   function begin() {
     track('before_yes_started')
+    onBegan()
     setPicked({})
     setIndex(0)
     setPhase('asking')

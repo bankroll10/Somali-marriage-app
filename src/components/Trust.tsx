@@ -193,7 +193,12 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               leave an email or phone, someone might see you here, your family
               doesn’t know, you want to see who’s here first, you’re not sure
               you’re ready, or something else. Every one of those is a
-              choice from a list we wrote. Never an answer in your words, never the line you write
+              choice from a list we wrote. It also says which of the four —
+              the map, a read, the eleven, or the eleven someone sent you —
+              you <span className="font-medium text-ink">began</span>, so we can
+              tell whether they are too long to finish. That is one word each,
+              once: never how far you got, never how long you spent, never how
+              many times you came back. Never an answer in your words, never the line you write
               for the next person, never a word the guide said or you said to it,
               and never a name — his, yours or your family’s. If you opened Niyyah
               from a link someone sent you, it also says what kind of link that

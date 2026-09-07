@@ -10,6 +10,7 @@ import {
   ENDED_WHICH,
   GROUND_STATES,
   HESITATIONS,
+  INSTRUMENTS,
   MATTERED,
   READ_BANDS,
   READ_DIMENSIONS,
@@ -79,6 +80,8 @@ export interface Facts {
   ended?: { stage: string; reason: string; which?: string }[]
   /** Why she stopped at the door, in one word about the door. */
   hesitated?: string
+  /** Which questionnaires she began — the denominator for a completion rate. */
+  began?: string[]
 }
 
 /** Courtships a person can report as ended. Eight is a lot of courtships. */
@@ -106,7 +109,7 @@ const count = (n: unknown): n is number => typeof n === 'number' && Number.isInt
  * a value nobody chose to allow.
  */
 function parseFacts(x: unknown): Facts | null {
-  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'hesitated'])) return null
+  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'hesitated', 'began'])) return null
   const out: Facts = {}
 
   if (x.grounds !== undefined) {
@@ -189,6 +192,12 @@ function parseFacts(x: unknown): Facts | null {
     out.hesitated = x.hesitated
   }
 
+  if (x.began !== undefined) {
+    if (!Array.isArray(x.began) || x.began.length > INSTRUMENTS.size) return null
+    if (!x.began.every((id) => typeof id === 'string' && INSTRUMENTS.has(id))) return null
+    out.began = [...new Set(x.began as string[])].sort()
+  }
+
   return out
 }
 
@@ -209,6 +218,9 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
   if (!existing) return incoming
   if (!incoming) return existing
   const through = [...new Set([...(existing.through ?? []), ...(incoming.through ?? [])])].sort()
+  // A beginning cannot be un-begun, so this is a union like `through` — and
+  // because it is a set, it can never become a count of how often she opened one.
+  const began = [...new Set([...(existing.began ?? []), ...(incoming.began ?? [])])].sort()
   const merged: Facts = {
     ...(existing.grounds ?? incoming.grounds ? { grounds: existing.grounds ?? incoming.grounds } : {}),
     ...(existing.read ?? incoming.read ? { read: existing.read ?? incoming.read } : {}),
@@ -217,6 +229,7 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
     ...(incoming.ending ?? existing.ending ? { ending: incoming.ending ?? existing.ending } : {}),
     ...(incoming.ended ?? existing.ended ? { ended: incoming.ended ?? existing.ended } : {}),
     ...(incoming.hesitated ?? existing.hesitated ? { hesitated: incoming.hesitated ?? existing.hesitated } : {}),
+    ...(began.length ? { began } : {}),
   }
   return merged
 }
@@ -311,6 +324,12 @@ function emptyFactsTally() {
     ended: { reason: {} as Counts, stage: {} as Counts, which: {} as Record<string, Counts> },
     /** Why people stopped at the door — the one no this product records. */
     hesitated: {} as Counts,
+    /**
+     * Who began each questionnaire. Against `rungs` — which counts who finished
+     * one — this is the completion rate, and both are whole-population counts
+     * that stay numbers at founding scale. See docs/EXPERIMENTS.md.
+     */
+    began: {} as Counts,
     /** The cross-tabs: each fact against whether the person went on to marry. */
     marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
     /** Of the people who stopped at the door for a reason, how many were later counted after all. */
@@ -325,6 +344,7 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
     row[seen] += 1
     if (married) row.married += 1
   }
+  for (const id of f.began ?? []) bump(t.began, id)
   if (f.hesitated) {
     bump(t.hesitated, f.hesitated)
     const row = (t.countedBy.hesitated[f.hesitated] ??= { hesitated: 0, counted: 0 })

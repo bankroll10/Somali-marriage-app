@@ -12,6 +12,11 @@ interface Props {
   code: string
   /** His eleven, kept on his own device as his own Before you say yes. */
   onAnswered: (states: Record<string, string>, gender: Gender) => void
+  /**
+   * He began her eleven. The one instrument whose abandonment was invisible on
+   * both devices — see src/data/instruments.ts and docs/EXPERIMENTS.md.
+   */
+  onBegan: () => void
   onRead: () => void
   onBuildMap: () => void
   onHome: () => void
@@ -31,7 +36,7 @@ type Phase = 'loading' | 'dead' | 'answered-already' | 'intro' | 'asking' | 'joi
  * things that make him a member: a read on her, and his own map. That is how
  * the scarce side of this marketplace arrives — through the side we already have.
  */
-export default function Couple({ code, onAnswered, onRead, onBuildMap, onHome }: Props) {
+export default function Couple({ code, onAnswered, onBegan, onRead, onBuildMap, onHome }: Props) {
   const [phase, setPhase] = useState<Phase>('loading')
   const [answerFor, setAnswerFor] = useState<Gender>('man')
   const [picked, setPicked] = useState<Record<string, string>>({})
@@ -129,7 +134,7 @@ export default function Couple({ code, onAnswered, onRead, onBuildMap, onHome }:
               ))}
             </ul>
             <div className="mt-8">
-              <Button onClick={() => { track('couple_started'); setPhase('asking') }} className="group">
+              <Button onClick={() => { track('couple_started'); onBegan(); setPhase('asking') }} className="group">
                 Start
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </Button>
