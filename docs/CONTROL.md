@@ -92,12 +92,14 @@ every context. The cutover, with what remains:
    serving it and redirecting, and that is the only thing that keeps links
    already sitting in people's messages alive. Still true, for ever.
 5. **Set up mail on the domain. This is the one step still open.**
-   `VITE_CONTACT_EMAIL` is a personal Gmail address today. It reaches a human,
-   which is what matters most — but it is the public address of a marriage
-   business, printed on the Trust page and offered as the fallback when a
-   signup fails, and it belongs to a third party rather than to Niyyah. The
-   code's default is now `salaam@joinniyyah.com`; until a mailbox answers
-   there, production must keep the variable set.
+   `VITE_CONTACT_EMAIL` is a Gmail address today, and it reaches a human,
+   which is the part that matters most. What is still rented is the domain it
+   sits on: the public address of this business — printed on the Trust page,
+   offered as the fallback when a signup fails — lives on Google's name rather
+   than on ours, so it cannot be repointed or handed on. The code's default is
+   now `salaam@joinniyyah.com`; until a mailbox answers there, production must
+   keep the variable set. Forwarding the new address to the inbox that already
+   works is the whole migration.
 
 **Then own the customer list.** The transport is already portable: set
 `VITE_WAITLIST_URL` and signups post to any endpoint. Until something is

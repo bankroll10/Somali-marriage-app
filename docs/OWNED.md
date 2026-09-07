@@ -78,11 +78,14 @@ owned domain, `tests/durable.test.ts` refuses a platform subdomain from here
 on, and `getniyyah.netlify.app` is kept for ever as a redirect so that links
 already in people's messages stay alive.
 
-**Still open:** mail. `VITE_CONTACT_EMAIL` is a personal Gmail address. It
-reaches a human, which is what matters most — but it is the public address of
-a marriage business, printed on Trust and offered whenever a signup fails, and
-it belongs to a third party. A mailbox on `joinniyyah.com` closes the last
-rented thing a member touches.
+**Still open:** mail. `VITE_CONTACT_EMAIL` is a Gmail address — a working
+inbox someone actually reads, which is the part that matters most. What is
+still rented is the domain it sits on: the public address of a marriage
+business, printed on Trust and offered whenever a signup fails, lives on
+Google's name rather than on ours. Nothing about it can be repointed, and it
+cannot be handed to anyone else later. A mailbox on `joinniyyah.com` closes
+the last rented thing a member touches, and forwarding it to the inbox that
+already works means nothing changes for whoever is reading it.
 
 ### 2 · The customer list
 

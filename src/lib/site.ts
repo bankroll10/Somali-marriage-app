@@ -45,8 +45,7 @@ export const SITE_URL = `https://${SITE_HOST}`
  * code. The other half is mail: until a mailbox actually answers at
  * `joinniyyah.com`, production must keep `VITE_CONTACT_EMAIL` pointed at an
  * address a person reads. That is the one open step in `docs/CONTROL.md`'s
- * cutover, and `docs/OWNED.md` carries why it matters — a business whose
- * public address belongs to a free consumer mail account is renting the last
- * thing a member uses to reach it.
+ * cutover, and `docs/OWNED.md` carries why it matters — an address on a mail
+ * provider's domain is the last rented thing a member uses to reach us.
  */
 export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'salaam@joinniyyah.com'
