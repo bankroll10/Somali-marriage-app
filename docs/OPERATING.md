@@ -57,6 +57,7 @@ K="Authorization: Bearer $FOUNDER_KEY"; S=https://<your-site>/.netlify/functions
 curl -s -H "$K" $S/progress | jq .     # the ladder, and the facts
 curl -s -H "$K" $S/cohort   | jq .     # the door: every country and city, how far people would go, hardest parts, ledgers
 curl -s -H "$K" $S/couple   | jq .     # how pairs come out on the eleven
+curl -s -H "$K" $S/vouch    | jq .     # the vouch: asks made, vouches given, and who in the family gave them
 curl -s -H "$K" $S/guide    | jq .     # the guide's health — one live call, so rarely
 curl -s -H "$K" $S/export   -o "backup-$(date +%F).json"   # the backup — save it
 ```
@@ -66,6 +67,17 @@ it is the only copy of the learning record that exists outside one vendor's
 storage. Keep the files; they are small, and a folder of them is the history.
 What is in it and what is deliberately not is documented in
 `netlify/functions/export.ts` and `docs/CONTROL.md`.
+
+What `/vouch` means — four numbers, and `docs/EXPERIMENTS.md` A2 reads in one
+call. `asked` counts the women who asked a relative; `given` counts the
+relatives who answered. Two failures look identical without both:
+
+| Field | Reads as |
+|---|---|
+| `maps` | Kept maps. The denominator: `asked / maps` is the ask rate, and A2's rule fires under one in four |
+| `asked` | Maps whose owner asked a family member to vouch. Asking twice is one ask — the token is reused |
+| `given` | Vouches actually given. `given / asked` under a half means the relative's screen is the problem, not the ask |
+| `byRelationship[rel]` | Who in the family vouched — father, brother, uncle, mother, aunt, other. Floored, like every split by a quasi-identifier |
 
 What each field in `/progress` means:
 

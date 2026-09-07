@@ -49,7 +49,7 @@ loop in `docs/OPERATING.md`.
 | **1 · The device** | localStorage | Her answers and sheets, guide threads and the follow-ups it handed her, the advice line, the way to reach her, any name | Her | Nothing, unless she keeps her map |
 | **2 · The install code** | `progress` | Rungs, dated to the day; facts — grounds, read, eleven counts, conversations confirmed, ending, ended. Closed ids only | Founder, as distributions never records | **Not by key.** Not by name. See *honest limits* below |
 | **3 · No code at all** | `tallies` | How pairs come out on the eleven | Founder | Nothing — there is no id |
-| **4 · Human-read** | `vouches` sentence and phone; the waitlist form; *(designed)* the introductions record | What a human matchmaker needs — who vouched, how to reach her, who was introduced to whom | Founder, by hand | The map code, because you cannot introduce two people without knowing who they are. **Never fed to learning**, which reads only a stripped tally |
+| **4 · Human-read** | `vouches` sentence and phone; the waitlist form; *(designed)* the introductions record | What a human matchmaker needs — who vouched, how to reach her, who was introduced to whom | Founder, by hand — and, for the vouch store alone, a founder-gated tally that counts asks and vouches and returns no sentence, phone, name or code (`docs/BETS.md` B1) | The map code, because you cannot introduce two people without knowing who they are. **Never fed to learning**, which reads only a stripped tally |
 
 The kept map sits in Tier 1 by her choice: she keeps it, under a code
 registered to nobody, and it holds what brings her back — and not her contact,

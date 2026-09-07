@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
  * The vouch is verification by family. What matters structurally: it attaches
@@ -47,6 +47,8 @@ beforeEach(() => {
   stores.clear()
   memStore('maps').setJSON('ACDEFG', { snapshot: {} })
 })
+
+afterEach(() => vi.unstubAllEnvs())
 
 describe('a family vouch', () => {
   it('attaches to a kept map and comes back as relationship and first name only', async () => {
@@ -168,5 +170,75 @@ describe('the token in the link', () => {
 
   it('an older link still carrying the code still vouches', async () => {
     expect((await post(good)).status).toBe(200)
+  })
+})
+
+/**
+ * The readout is the missing half of the vouch: `asked/<code>` has been written
+ * since the first day and nothing ever counted it. docs/EXPERIMENTS.md A2,
+ * docs/BETS.md B1. What matters structurally is that it counts, that it is the
+ * founder's, and that nothing a family member wrote can leave through it.
+ */
+describe('the founder’s readout', () => {
+  const tally = (headers: Record<string, string> = {}) =>
+    handler(new Request('http://x/.netlify/functions/vouch', { headers }))
+  const ask = (code: string) => post({ side: 'ask', code })
+
+  it('counts the asks, the vouches given, and the kept maps behind them', async () => {
+    const empty = await (await tally()).json()
+    expect(empty).toMatchObject({ maps: 1, asked: 0, given: 0 })
+
+    await ask('ACDEFG')
+    expect((await (await tally()).json()).asked).toBe(1)
+    // Asking twice is one ask: the token is reused, so the key is too.
+    await ask('ACDEFG')
+    expect((await (await tally()).json()).asked).toBe(1)
+
+    await post(good)
+    const body = await (await tally()).json()
+    expect(body).toMatchObject({ maps: 1, asked: 1, given: 1 })
+  })
+
+  it('counts an ask nobody answered — the whole point of counting it', async () => {
+    memStore('maps').setJSON('HJKMNP', { snapshot: {} })
+    await ask('ACDEFG')
+    await ask('HJKMNP')
+    await post(good)
+    const body = await (await tally()).json()
+    expect(body.asked).toBe(2)
+    expect(body.given).toBe(1)
+  })
+
+  it('floors who in the family vouched, and never omits a relationship', async () => {
+    const codes = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']
+    for (const code of codes) {
+      memStore('maps').setJSON(code, { snapshot: {} })
+      await post({ ...good, code, relationship: 'brother' })
+    }
+    const body = await (await tally()).json()
+    expect(body.given).toBe(5)
+    expect(body.byRelationship.brother).toBe(5)
+    // A relationship nobody used is a key at null, not a missing key.
+    expect(body.byRelationship.father).toBeNull()
+    expect('father' in body.byRelationship).toBe(true)
+  })
+
+  it('carries nothing a family member wrote — no sentence, no phone, no name, no code', async () => {
+    await ask('ACDEFG')
+    await post(good)
+    const serialised = JSON.stringify(await (await tally()).json())
+    for (const secret of [good.sentence, good.phone, good.firstName, 'ACDEFG']) {
+      expect(serialised).not.toContain(secret)
+    }
+  })
+
+  it('is the founder’s when a key is set, and a bad code is still a bad code', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    expect((await tally()).status).toBe(401)
+    expect((await tally({ authorization: 'Bearer wrong' })).status).toBe(401)
+    expect((await tally({ authorization: 'Bearer open-sesame' })).status).toBe(200)
+    // Asking about one code needs no key — it is hers, and her family's.
+    expect((await get('XX')).status).toBe(400)
+    expect((await get('ACDEFG')).status).toBe(404)
   })
 })
