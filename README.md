@@ -124,6 +124,7 @@ docs/FEEDBACK.md       What real people have said, one conversation at a time �
 docs/MACHINE.md        The thirteen stages as this product builds them, every transition's metric and failure, the weakest link, and the plan for it
 docs/BETS.md           Twenty asymmetric bets, scored on upside, cost, reversibility, confidence and learning — and the one that got built
 docs/DURABLE.md        What survives if the AI hype, the app fashions and the platforms all disappear — durable value, temporary novelty, trend-dependent, and the rule that keeps a supplier out of the core
+docs/NORTHSTAR.md      The problem, the purpose and the North Star in one sentence each — and every screen held against them: core, weak, distraction, missed
 docs/OWNED.md          What we rent and what we produce, and the three moves from renter to owner — the address, the customer list, the constants' lineage
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures

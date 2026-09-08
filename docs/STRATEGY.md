@@ -1,7 +1,10 @@
 # Niyyah — Founding Strategy (v7)
 
-> The trusted marriage platform for the Somali diaspora — powered by AI, guided
-> by faith, designed for serious people.
+> The trusted marriage platform for the Somali diaspora — built on the questions
+> that decide a marriage, guided by faith, designed for serious people.
+>
+> The problem, the purpose and the North Star, in one place: `docs/NORTHSTAR.md`.
+> Everything below is the long form of that page.
 
 ## The one consumer truth everything hangs on
 

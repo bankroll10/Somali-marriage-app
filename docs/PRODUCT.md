@@ -4,6 +4,9 @@
 > something about marriage actually *moves* — and to make sure the product is
 > paid, measured and designed so that its interest and the member's never point
 > in different directions.
+>
+> The one-sentence version of everything here — the problem, the purpose, the
+> North Star, and every screen held against them — is `docs/NORTHSTAR.md`.
 
 ## 0. The hard question: "Why would anyone open this?"
 

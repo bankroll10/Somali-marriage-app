@@ -12,8 +12,9 @@ Reloading a `?demo` tab resets it to the same known state — safe to re-run mid
 Niyyah state you care about.)
 
 **The one-liner to open with:**
-> "The trusted marriage platform for the Somali diaspora — powered by AI, guided by
-> faith, designed for serious people. Dating apps answer 'who is available?' We answer
+> "The trusted marriage platform for the Somali diaspora — built on the questions that
+> decide a marriage, guided by faith, designed for serious people. Dating apps answer
+> 'who is available?' We answer
 > the questions that actually decide a marriage: is he serious, have we had the
 > conversations that matter, am I ready — and we stay with people to the nikah and
 > through the first year. And we are paid and measured by what happens in her life,

@@ -70,13 +70,18 @@ export default function Welcome({
 
               What is withheld is the real thing. This used to be a ring with
               "??" in it and "Your number is two minutes away" — a quiz-funnel
-              hook that promised a score, and then the map had to deliver one. */}
+              hook that promised a score, and then the map had to deliver one.
+              Then it promised "the one place you're thinnest", which is the
+              map's object alone; a woman routed to the read never reaches it.
+              Every instrument here ends in the same kind of thing — the one
+              question to ask him, the one conversation to open, the one honest
+              thing to do — so that is what is promised. */}
           <div
             className="animate-rise mt-8 max-w-md border-l-2 border-gold-soft/60 pl-4"
             style={{ animationDelay: '120ms' }}
           >
             <p className="font-display text-[1.15rem] font-medium leading-snug tracking-tight text-cream text-balance">
-              The one place you’re thinnest is two minutes away.
+              The one thing to say next is two minutes away.
             </p>
             <p className="mt-1 text-[0.88rem] leading-snug text-cream/55 text-pretty">
               In words, not a score. No one else ever sees it — not your family, not a match, not us.
