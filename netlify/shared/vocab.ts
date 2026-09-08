@@ -16,6 +16,7 @@ export const RUNGS = new Set([
   'arrived',
   'situated',
   'mapped',
+  'kept',
   'read',
   'eleven',
   'asked-him',

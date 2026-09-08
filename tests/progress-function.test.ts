@@ -211,6 +211,26 @@ describe('the readout', () => {
     expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNQ|QRTWXA/)
   })
 
+  it('counts the map kept apart from the map built, so gap #3 is computable', async () => {
+    // docs/GAPS.md #3 — "people will not put a map on a server or leave a way
+    // to be reached" — is two different failures. Five built a map and stopped;
+    // five kept it and did not join the door; five went all the way. Before the
+    // `kept` rung the first two were the same number (docs/ROADMAP.md).
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
+      await post({ id, rungs: ['arrived', 'mapped'] })
+    }
+    for (const id of ['HJKMNQ', 'HJKMNR', 'HJKMNT', 'HJKMNW', 'HJKMNX']) {
+      await post({ id, rungs: ['arrived', 'mapped', 'kept'] })
+    }
+    for (const id of ['QRTWXA', 'QRTWXC', 'QRTWXD', 'QRTWXE', 'QRTWXF']) {
+      await post({ id, rungs: ['arrived', 'mapped', 'kept', 'counted'] })
+    }
+    const body = await (await readout()).json()
+    expect(body.rungs.mapped).toBe(15)
+    expect(body.rungs.kept).toBe(10)
+    expect(body.rungs.counted).toBe(5)
+  })
+
   it('shows a city once five have reached a rung', async () => {
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'toronto' })
     const body = await (await readout()).json()

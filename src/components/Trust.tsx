@@ -174,7 +174,7 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               <span className="font-medium text-ink">Being counted in the ladder.</span>{' '}
               While <span className="font-medium text-ink">Count me</span> is on, each
               time you first reach one of the steps above — you said what was
-              happening, you built a map, you took a read, you went through the
+              happening, you built a map, you kept it, you took a read, you went through the
               eleven, you asked him, he answered, you had the conversation, your
               family vouched, you were counted, you’re deciding, you’re married —
               that step and the date reach us, along with your city if you gave

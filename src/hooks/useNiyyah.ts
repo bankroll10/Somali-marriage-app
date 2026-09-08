@@ -199,6 +199,7 @@ export function useNiyyah(entry: Entry | null = null) {
       rungsFrom({
         situated,
         completed,
+        kept: !!keptCode,
         stage,
         read,
         beforeYes,
@@ -207,7 +208,7 @@ export function useNiyyah(entry: Entry | null = null) {
         waitlist,
         followedThrough: followedThrough(followups),
       }),
-    [situated, completed, stage, read, beforeYes, couple, vouch, waitlist, followups],
+    [situated, completed, keptCode, stage, read, beforeYes, couple, vouch, waitlist, followups],
   )
   // The one open thing to ask her about, or — usually — nothing.
   const followUpAsk = useMemo(

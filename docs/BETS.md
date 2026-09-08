@@ -200,3 +200,4 @@ argued about instead of read.
 _Dated, one line each: the bet, what shipped, and what the numbers said._
 
 - 2026-09-07 — B1 built: the vouch readout. No numbers yet; nobody has asked.
+- 2026-09-08 — B5 built: `kept` is a rung. `docs/ROADMAP.md`'s Fastlane audit promoted it on the one ground that outranks its rank here — a funnel cannot be recovered from traffic that has already passed through, so an instrument the first cohort needs must exist before the first cohort does. No numbers yet; nobody has kept a map but the founder.

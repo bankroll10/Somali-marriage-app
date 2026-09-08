@@ -67,6 +67,7 @@ described on the Trust screen in the same commit, gated by "Count me":
 - Counts of the eleven and the one to open
 - Which conversation she confirmed she had, by source and topic
 - Which stage she is in and the day it changed
+- **That she kept her map on the server** — one rung, the day she did it, and nothing about the map itself. It is the only rung about trusting us rather than about her courtship, and it exists so that *built a map and stopped* can be told from *kept it and did not walk through the door* (`docs/GAPS.md` gap 3, `docs/ROADMAP.md`)
 - **That a courtship ended, from which stage, and — only if she taps one — one of ten reasons and which**
 - **If she reaches the door and taps "not now" — only if she says why — one of six words about the door**, never about her (`src/data/hesitation.ts`, `docs/GAPS.md`)
 - **Which of the four questionnaires she began** — the map, a read, the eleven, or the eleven someone sent her. One bit each, for ever, so that a completion rate can exist at all (`src/data/instruments.ts`, `docs/EXPERIMENTS.md`)
