@@ -73,14 +73,16 @@ describe('reporting a concern', () => {
     expect(res.status).toBe(200)
     expect((await res.json()).received).toBe(true)
 
-    const stored = JSON.parse(stores.get('reports')!.get(`${CODE}-woman`)!)
+    const stored = JSON.parse([...stores.get('reports')!.values()][0])
     expect(stored.reason).toBe('threats')
     expect(stored.details.length).toBe(500)
     expect(stored.at).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+    expect(stored.id).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{6}$/)
 
     const bare = await post({ code: CODE, side: 'man', reason: 'other' })
     expect(bare.status).toBe(200)
-    expect(JSON.parse(stores.get('reports')!.get(`${CODE}-man`)!).details).toBeUndefined()
+    const hisKey = [...stores.get('reports')!.keys()].find((k) => k.includes('-man-'))!
+    expect(JSON.parse(stores.get('reports')!.get(hisKey)!).details).toBeUndefined()
   })
 
   it('refuses an oversized body before parsing it', async () => {
@@ -90,44 +92,117 @@ describe('reporting a concern', () => {
 })
 
 describe('the founder\'s queue', () => {
-  it('is closed until a key is set, then open only with it, and sorted oldest first', async () => {
+  /** Every open report in the store, as the founder would receive them. */
+  const openReports = () =>
+    [...stores.get('reports')!.entries()]
+      .filter(([k]) => !k.startsWith('resolved/'))
+      .map(([, v]) => JSON.parse(v))
+
+  it('refuses outright until a key is set — this queue fails closed', async () => {
+    // Every other readout here fails open, so a missing variable never locks
+    // the founder out of her own numbers. That trade is wrong for free text
+    // naming a specific person: one misconfigured deploy publishes it, and
+    // unlike a tally it cannot be un-published. docs/HARD.md.
+    await post({ code: CODE, side: 'woman', reason: 'harassment' })
+    expect((await get()).status).toBe(401)
+
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    expect((await get()).status).toBe(401)
+    expect((await get({ authorization: 'Bearer nope' })).status).toBe(401)
+    expect((await get({ authorization: 'Bearer open-sesame' })).status).toBe(200)
+  })
+
+  it('hands back the open ones oldest first, a person may be waiting', async () => {
     await post({ code: CODE, side: 'woman', reason: 'harassment' })
     seedCouple('HJKMNP')
     await post({ code: 'HJKMNP', side: 'man', reason: 'sexual' })
 
     // Give the two reports distinct days so the sort is meaningful.
     const reports = stores.get('reports')!
-    const first = JSON.parse(reports.get(`${CODE}-woman`)!)
-    first.at = '2026-01-01'
-    reports.set(`${CODE}-woman`, JSON.stringify(first))
-    const second = JSON.parse(reports.get('HJKMNP-man')!)
-    second.at = '2026-06-01'
-    reports.set('HJKMNP-man', JSON.stringify(second))
-
-    expect((await get()).status).toBe(200)
+    for (const [key, value] of reports.entries()) {
+      const r = JSON.parse(value)
+      r.at = r.code === CODE ? '2026-01-01' : '2026-06-01'
+      reports.set(key, JSON.stringify(r))
+    }
 
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
-    expect((await get()).status).toBe(401)
-    expect((await get({ authorization: 'Bearer nope' })).status).toBe(401)
-
-    const res = await get({ authorization: 'Bearer open-sesame' })
-    const body = await res.json()
+    const body = await (await get({ authorization: 'Bearer open-sesame' })).json()
     expect(body.reports.map((r: { code: string }) => r.code)).toEqual([CODE, 'HJKMNP'])
+  })
+
+  /**
+   * The report used to be written to `${code}-${side}` with a plain setJSON,
+   * and nothing here can validate that the caller is the side they claim — the
+   * couple code is shared with the other person by design. So the reported man
+   * held the exact key needed to POST as her and overwrite her report with a
+   * blank one.
+   */
+  it('cannot be overwritten by the person it is about', async () => {
+    await post({ code: CODE, side: 'woman', reason: 'threats', details: 'He said he would come to my work.' })
+
+    // Him, holding the same code, posting as her.
+    await post({ code: CODE, side: 'woman', reason: 'other', details: 'nothing happened' })
+
+    const open = openReports()
+    expect(open).toHaveLength(2)
+    // Hers survives, word for word.
+    expect(open.some((r) => r.details === 'He said he would come to my work.')).toBe(true)
+  })
+
+  it('keeps every report when the same person reports twice — the escalation is the point', async () => {
+    await post({ code: CODE, side: 'woman', reason: 'harassment' })
+    await post({ code: CODE, side: 'woman', reason: 'threats' })
+    expect(openReports().map((r) => r.reason).sort()).toEqual(['harassment', 'threats'])
   })
 })
 
 describe('resolving a report', () => {
-  it('expunges it, and needs the founder key once one is set', async () => {
+  const resolve = (report: { code: string; side: string; id: string }, outcome: string) =>
+    del(`code=${report.code}&side=${report.side}&id=${report.id}&outcome=${outcome}`, {
+      authorization: 'Bearer open-sesame',
+    })
+
+  it('expunges her words and keeps the lesson — the reason, the day, what was done', async () => {
+    await post({ code: CODE, side: 'woman', reason: 'threats', details: 'He said he would come to my work.' })
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    const report = JSON.parse([...stores.get('reports')!.values()][0])
+
+    expect((await del(`code=${CODE}&side=woman&id=${report.id}&outcome=no-action`)).status).toBe(401)
+    expect((await resolve(report, 'never-introduce')).status).toBe(200)
+
+    const keys = [...stores.get('reports')!.keys()]
+    expect(keys).toEqual([`resolved/${report.id}`])
+    const stub = JSON.parse(stores.get('reports')!.get(keys[0])!)
+    expect(stub).toEqual({ reason: 'threats', at: report.at, resolvedAt: expect.any(String), outcome: 'never-introduce' })
+    // Nothing of hers, and nothing that points at anyone.
+    const serialised = JSON.stringify(stub)
+    for (const gone of ['He said he would come to my work.', CODE, 'woman']) {
+      expect(serialised).not.toContain(gone)
+    }
+  })
+
+  it('counts the resolved ones by kind of harm and by what was done', async () => {
+    // The taxonomy docs/GAPS.md names as its own test, which deleting made
+    // permanently uncomputable.
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    for (const reason of ['threats', 'threats', 'harassment']) {
+      await post({ code: CODE, side: 'woman', reason })
+      const open = [...stores.get('reports')!.entries()].find(([k]) => !k.startsWith('resolved/'))!
+      await resolve(JSON.parse(open[1]), 'spoke-to-them')
+    }
+    const body = await (await get({ authorization: 'Bearer open-sesame' })).json()
+    expect(body.reports).toEqual([])
+    expect(body.resolved.byReason).toEqual({ threats: 2, harassment: 1 })
+    expect(body.resolved.byOutcome).toEqual({ 'spoke-to-them': 3 })
+  })
+
+  it('needs an outcome from the list, and a report that is really there', async () => {
     await post({ code: CODE, side: 'woman', reason: 'harassment' })
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    const report = JSON.parse([...stores.get('reports')!.values()][0])
 
-    expect((await del(`code=${CODE}&side=woman`)).status).toBe(401)
-    const res = await del(`code=${CODE}&side=woman`, { authorization: 'Bearer open-sesame' })
-    expect(res.status).toBe(200)
-    expect(stores.get('reports')!.has(`${CODE}-woman`)).toBe(false)
-
-    // Resolving something already gone is not an error.
-    const again = await del(`code=${CODE}&side=woman`, { authorization: 'Bearer open-sesame' })
-    expect(again.status).toBe(200)
+    expect((await resolve(report, 'made-it-up')).status).toBe(400)
+    expect((await resolve({ ...report, id: 'HJKMNP' }, 'no-action')).status).toBe(404)
+    expect((await resolve(report, 'no-action')).status).toBe(200)
   })
 })

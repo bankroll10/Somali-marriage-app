@@ -177,3 +177,5 @@ export const USED = new Set(['read', 'eleven', 'couple', 'families', 'vouch', 'g
  * report is built from. See netlify/functions/safety.ts.
  */
 export const SAFETY_REASONS = new Set(['harassment', 'threats', 'sexual', 'already-married', 'impersonation', 'other'])
+/** Must match src/data/safety.ts SAFETY_OUTCOMES. What the founder did about a report. */
+export const SAFETY_OUTCOMES = new Set(['spoke-to-them', 'told-the-family', 'never-introduce', 'not-enough', 'no-action'])

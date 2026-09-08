@@ -118,6 +118,9 @@ describe('keeping a map', () => {
     stores.get('couples')!.set('QRTWXY', JSON.stringify({ creator: 'man', first: {} }))
     stores.get('cohort')!.set('ca/toronto/man/city/serious/QRTWXY', JSON.stringify({ at: 'd', ledger: [] }))
     stores.get('contacts')!.set('QRTWXY', JSON.stringify({ contact: 'other@example.com', scene: 'toronto', country: 'ca', at: 'd' }))
+    memStore('reports')
+    stores.get('reports')!.set('HJKMNP-woman-ACDEFG', JSON.stringify({ id: 'ACDEFG', code: 'HJKMNP', side: 'woman', reason: 'threats', details: 'her words', at: 'd' }))
+    stores.get('reports')!.set('resolved/QRTWXY', JSON.stringify({ reason: 'harassment', at: 'd', resolvedAt: 'd', outcome: 'no-action' }))
 
     const res = await forget('ACDEFG')
     expect(res.status).toBe(200)
@@ -130,6 +133,11 @@ describe('keeping a map', () => {
     // to delete it by hand. See docs/OWNED.md.
     expect(stores.get('contacts')!.has('ACDEFG')).toBe(false)
     expect(stores.get('contacts')!.has('QRTWXY')).toBe(true)
+    // Her words about what happened go with the rest of it — the one store the
+    // cascade used to miss (docs/HARD.md). A resolved stub carries no code and
+    // nothing of hers, so it stays.
+    expect(stores.get('reports')!.has('HJKMNP-woman-ACDEFG')).toBe(false)
+    expect(stores.get('reports')!.has('resolved/QRTWXY')).toBe(true)
     expect(stores.get('couples')!.has('QRTWXY')).toBe(true)
     // Nothing left to forget.
     expect((await forget('ACDEFG')).status).toBe(404)

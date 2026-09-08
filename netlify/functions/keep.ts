@@ -107,6 +107,7 @@ export default async function handler(req: Request) {
       const vouches = getStore('vouches')
       const cohort = getStore('cohort')
       const contacts = getStore('contacts')
+      const reports = getStore('reports')
 
       if (coupleCode.length === CODE_LENGTH) await couples.delete(coupleCode)
       const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
@@ -119,6 +120,16 @@ export default async function handler(req: Request) {
       // The way to reach her, which used to be deleted by hand — see
       // netlify/functions/cohort.ts and docs/OWNED.md.
       await contacts.delete(code)
+      // Any report she filed. Trust promises deletion of everything, and this
+      // store holds the one free text in the product — her own words about
+      // what happened. It was the only store the cascade missed
+      // (docs/HARD.md). The couple record it points at is deleted just above,
+      // so a report left here would point at nothing anyway. Resolved stubs
+      // carry no code and nothing of hers, and stay.
+      if (coupleCode.length === CODE_LENGTH) {
+        const { blobs } = await reports.list({ prefix: `${coupleCode}-` })
+        for (const { key } of blobs) await reports.delete(key)
+      }
       await store.delete(code)
       return Response.json({ forgotten: true })
     } catch (err) {

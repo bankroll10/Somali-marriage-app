@@ -14,7 +14,7 @@ import { scenes } from '../src/data/scenes'
 import { COUNTRY_IDS } from '../src/data/countries'
 import { REACH_IDS } from '../src/data/reach'
 import { hookOptions } from '../src/data/hook'
-import { SAFETY_REASONS } from '../src/data/safety'
+import { SAFETY_OUTCOMES, SAFETY_REASONS } from '../src/data/safety'
 import { HESITATION_IDS } from '../src/data/hesitation'
 import { INSTRUMENT_IDS } from '../src/data/instruments'
 
@@ -95,6 +95,7 @@ describe('every word the server accepts is a word the app uses', () => {
 
   it('the reasons a safety report can give', () => {
     expect(sorted(vocab.SAFETY_REASONS)).toEqual(sorted(SAFETY_REASONS.map((r) => r.id)))
+    expect(sorted(vocab.SAFETY_OUTCOMES)).toEqual(sorted(SAFETY_OUTCOMES.map((r) => r.id)))
   })
 
   it('the reasons someone can give for stopping at the door', () => {

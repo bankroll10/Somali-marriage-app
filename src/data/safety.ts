@@ -18,3 +18,28 @@ export const SAFETY_REASONS: SafetyReason[] = [
   { id: 'impersonation', label: 'Isn’t who they said they were' },
   { id: 'other', label: 'Something else' },
 ]
+
+/**
+ * What the founder did about a report — the five things that can honestly
+ * happen today, written down so that "it is acted on" has a record behind it
+ * rather than a promise in front of it.
+ *
+ * This product has no accounts, so there is no ban button that means anything
+ * (`docs/TIME.md`). The real levers are social: a conversation, a word to the
+ * family who vouched, and a refusal to introduce someone once a pool opens.
+ * `never-introduce` is the one that will need the introductions record to
+ * enforce — `docs/HARD.md` names that as the trigger.
+ *
+ * Never shown to a member. This is the founder's own vocabulary, and it exists
+ * so that resolving a report leaves something behind: see netlify/functions/
+ * safety.ts, where a resolved report becomes a stub with no code and no side.
+ *
+ * Must match netlify/shared/vocab.ts SAFETY_OUTCOMES.
+ */
+export const SAFETY_OUTCOMES: SafetyReason[] = [
+  { id: 'spoke-to-them', label: 'Spoke to them' },
+  { id: 'told-the-family', label: 'Told the family who vouched' },
+  { id: 'never-introduce', label: 'Never to be introduced to anyone' },
+  { id: 'not-enough', label: 'Not enough to act on yet — watching' },
+  { id: 'no-action', label: 'No action needed' },
+]

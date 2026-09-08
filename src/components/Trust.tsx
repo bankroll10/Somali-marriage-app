@@ -278,13 +278,19 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
         <section className="mt-6 rounded-card bg-forest p-6 text-cream">
           <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-soft">Our promise</p>
           <p className="mt-3 text-[1rem] leading-relaxed text-cream/90 text-pretty">
-            Every member will be held to the same standard. Wherever we know who
+            Every member is held to the same standard. Wherever we know who
             you’ve been in touch with — right now, that means after the eleven —
             you can report a concern about them, in your own words if you need
-            to. It reaches a person, not a queue, and it is meant to have real
-            consequences: players, liars, and creeps removed, not warned. That
-            is the promise this opens with, and what we’ll be judged on. What’s
-            built in the light, with dignity, is what we protect.
+            to. Here is exactly what that does, because you should be able to
+            hold us to it: it reaches the founder, who reads these every week
+            and no later. She can speak to them, tell the family who vouched
+            for them, or mark that they are never to be introduced to anyone —
+            and what she did is written down. There are no accounts here, so
+            nobody can be thrown off a list that doesn’t exist; a man who
+            answered your eleven left no account behind either. That is the
+            honest limit, and it is why the vouch and the introduction are
+            where the weight sits. What’s built in the light, with dignity, is
+            what we protect.
           </p>
         </section>
       </main>

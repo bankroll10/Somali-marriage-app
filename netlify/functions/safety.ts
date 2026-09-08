@@ -1,9 +1,9 @@
 import { getStore } from '@netlify/blobs'
-import { isFounder, notFounder } from '../shared/founder'
-import { GENDERS, SAFETY_REASONS } from '../shared/vocab'
+import { notFounder, requireFounder } from '../shared/founder'
+import { GENDERS, SAFETY_OUTCOMES, SAFETY_REASONS } from '../shared/vocab'
 import { day } from '../shared/day'
 import { overHourlyCap, rateLimited } from '../shared/limit'
-import { CODE } from '../shared/code'
+import { CODE, newCode, normalise } from '../shared/code'
 
 /**
  * The one report a member can make about a real, named person.
@@ -24,8 +24,32 @@ import { CODE } from '../shared/code'
  *    goes nowhere but here.
  *  - Tier 4 per docs/LEARNING.md: founder-read only. Never listed beside a
  *    tally, never a signal to `progress.ts` or `couple.ts`, never joined to
- *    the map or the install id. Resolving one deletes it — a report is a live
- *    concern to act on, not a record to keep once it has been.
+ *    the map or the install id.
+ *
+ * ─── Two things this got wrong, fixed — docs/HARD.md ───────────────────────
+ *
+ * **Reports are append-only now.** Each one used to be written to
+ * `` `${code}-${side}` `` with a plain `setJSON`, and nothing here validates
+ * that the caller *is* the side they claim — it cannot, because the couple
+ * code is shared with the other person by design; she texts him the link. So
+ * the reported man held the exact key needed to POST as her and overwrite her
+ * report with a blank one. The everyday version needed no malice at all: she
+ * reports him twice and the first report is destroyed, escalation and all.
+ * Every report now has its own id and its own key. He can still add noise —
+ * he holds the code — but noise sits beside the real report where the founder
+ * sees both, instead of replacing it.
+ *
+ * **Resolving keeps the lesson.** It used to delete, so "resolved" and "never
+ * happened" were the same byte: nothing proved a report had been acted on, and
+ * no pattern across reports was ever visible — which made the harm taxonomy
+ * `docs/GAPS.md` names as its own test permanently uncomputable. Resolving now
+ * takes an outcome from a closed list, deletes the record, and leaves an
+ * anonymous stub: the reason, the day, what was done. **No code, no side, no
+ * details.** Her words are expunged exactly as LEARNING promises; the fact
+ * that a report of this kind happened, and what came of it, survives.
+ *
+ * And unlike every other readout, this one **fails closed** with no founder
+ * key set. See `requireFounder` in netlify/shared/founder.ts.
  */
 
 const MAX_BODY = 2_000
@@ -38,6 +62,8 @@ const MAX_DETAILS = 500
 const DEFAULT_HOURLY_CAP = 30
 
 interface Report {
+  /** This report's own id — the last segment of its key. */
+  id: string
   code: string
   /** Whose report this is — the side raising the concern, not the one it is about. */
   side: 'woman' | 'man'
@@ -46,8 +72,17 @@ interface Report {
   at: string
 }
 
-function keyFor(code: string, side: string): string {
-  return `${code}-${side}`
+/** One key per report, so nothing can overwrite anything. */
+function keyFor(code: string, side: string, id: string): string {
+  return `${code}-${side}-${id}`
+}
+
+/** What is left after the founder has acted: a fact, joined to nobody. */
+interface Resolved {
+  reason: string
+  at: string
+  resolvedAt: string
+  outcome: string
 }
 
 export default async function handler(req: Request) {
@@ -56,16 +91,28 @@ export default async function handler(req: Request) {
   if (req.method === 'GET') {
     // The founder's queue. Oldest open first — the shape a person clearing a
     // backlog actually needs, not a dashboard to check daily.
-    if (!isFounder(req)) return notFounder()
+    if (!requireFounder(req)) return notFounder()
     try {
       const { blobs } = await store.list()
       const reports: Report[] = []
+      const byReason: Record<string, number> = {}
+      const byOutcome: Record<string, number> = {}
       for (const { key } of blobs) {
+        if (key.startsWith('resolved/')) {
+          const stub = (await store.get(key, { type: 'json' })) as Resolved | null
+          if (!stub) continue
+          byReason[stub.reason] = (byReason[stub.reason] ?? 0) + 1
+          byOutcome[stub.outcome] = (byOutcome[stub.outcome] ?? 0) + 1
+          continue
+        }
         const record = (await store.get(key, { type: 'json' })) as Report | null
         if (record) reports.push(record)
       }
       reports.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0))
-      return Response.json({ reports })
+      // Open reports in full, oldest first — a person may be waiting. Resolved
+      // ones only as counts, because what is left of them is a fact about a
+      // kind of harm and not about anybody.
+      return Response.json({ reports, resolved: { byReason, byOutcome } })
     } catch (err) {
       console.error('[niyyah] safety: list failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -108,9 +155,10 @@ export default async function handler(req: Request) {
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
 
-    const record: Report = { code, side: body.side as 'woman' | 'man', reason: body.reason!, ...(details ? { details } : {}), at: day() }
+    const id = newCode()
+    const record: Report = { id, code, side: body.side as 'woman' | 'man', reason: body.reason!, ...(details ? { details } : {}), at: day() }
     try {
-      await store.setJSON(keyFor(code, body.side!), record)
+      await store.setJSON(keyFor(code, body.side!, id), record)
     } catch (err) {
       console.error('[niyyah] safety: write failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -119,15 +167,25 @@ export default async function handler(req: Request) {
   }
 
   if (req.method === 'DELETE') {
-    // Resolving a report expunges it, per docs/LEARNING.md — nothing here is
-    // kept once the founder has acted on it.
-    if (!isFounder(req)) return notFounder()
+    // Resolving a report expunges her words, per docs/LEARNING.md, and keeps
+    // what is left: the kind of harm, the day, and what was done about it —
+    // joined to nobody. Deleting outright made "resolved" and "never happened"
+    // the same byte. See docs/HARD.md.
+    if (!requireFounder(req)) return notFounder()
     const params = new URL(req.url).searchParams
-    const code = (params.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const code = normalise(params.get('code'))
     const side = params.get('side') ?? ''
-    if (!CODE.test(code) || !GENDERS.has(side)) return Response.json({ error: 'bad_request' }, { status: 400 })
+    const id = normalise(params.get('id'))
+    const outcome = params.get('outcome') ?? ''
+    if (!CODE.test(code) || !GENDERS.has(side) || !CODE.test(id) || !SAFETY_OUTCOMES.has(outcome)) {
+      return Response.json({ error: 'bad_request' }, { status: 400 })
+    }
     try {
-      await store.delete(keyFor(code, side))
+      const open = (await store.get(keyFor(code, side, id), { type: 'json' })) as Report | null
+      if (!open) return Response.json({ error: 'not_found' }, { status: 404 })
+      const stub: Resolved = { reason: open.reason, at: open.at, resolvedAt: day(), outcome }
+      await store.setJSON(`resolved/${id}`, stub)
+      await store.delete(keyFor(code, side, id))
     } catch (err) {
       console.error('[niyyah] safety: delete failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
