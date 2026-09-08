@@ -164,7 +164,7 @@ every product decision after that is a negotiation between them.
   at software margins.
 - **Vetted IRL events** — halal, family-friendly. Revenue + liquidity + trust.
 
-**What is free, forever:** the readiness map and every reading, the work, the
+**What is free, forever:** the map and every reading, the work, the
 read, the eleven, the family conversations, the family vouch, reporting and
 blocking, being introduced, and replying to anyone who is serious about you.
 Nothing that protects a person is ever paid.

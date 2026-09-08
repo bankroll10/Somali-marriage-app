@@ -374,7 +374,7 @@ const matchmaker: GuidanceMode = {
   greeting: (ctx) =>
     `I’m your matchmaker, ${addressed(ctx)}. I don’t match faces — I match *futures*.
 
-I’ve read your readiness map, and I’m looking for ${readMap(ctx)}. Ask me what to look for, who actually fits you, or what to prioritise — and I’ll keep you focused on alignment, not just chemistry.`,
+I’ll be straight with you: there is nobody for me to introduce you to yet, and I won’t pretend otherwise. What I can do now is read your map with you — it says you need ${readMap(ctx)} — and get you clear on what has to be true of the person before you meet anyone, so that when you do, you find out early rather than late.`,
   starters: [
     { label: 'What kind of person actually fits me?', prompt: 'Based on my map, what kind of person actually fits me?' },
     { label: 'What should I look for first?', prompt: 'What should I prioritise and look for first in someone?' },

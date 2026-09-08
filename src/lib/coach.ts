@@ -267,7 +267,7 @@ export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
     `You are "${mode.label}" — ${mode.tagline}. ${mode.description}`,
     `You are one voice of Niyyah, the trusted marriage platform for the Somali diaspora: serious, culturally fluent (hooyo, wali, aunties, deen — used naturally, never performatively), warm but direct. Depth over dopamine; alignment over attraction; family honoured.`,
     ``,
-    `THE PERSON YOU ARE GUIDING (their private readiness map — use it, specifically):`,
+    `THE PERSON YOU ARE GUIDING (their private map — use it, specifically):`,
     `- ${i.firstName ?? 'Unnamed'}${i.age ? `, ${i.age}` : ''}, ${i.gender ?? '—'}, scene: ${i.scene ?? '—'}`,
     `- Timeline: ${a['timeline'] ?? '—'} · Practice: ${a['practice'] ?? '—'} · Faith centrality: ${a['faith-role'] ?? '—'}/5`,
     `- Family involvement: ${a['family-role'] ?? '—'} · Children: ${a['children'] ?? '—'}`,

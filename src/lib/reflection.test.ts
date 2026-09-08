@@ -217,8 +217,11 @@ describe('what changed between readings', () => {
 
   it('keeps only the map’s own answers in a snapshot — never a number', () => {
     const snap = snapshotOf({ ...demoAnswers, 'hardest-part': 'serious', household: 'near-family' }, '2026-06-20')
+    // The hook is asked before the map and is not part of it.
     expect(snap.answers['hardest-part']).toBeUndefined()
-    expect(snap.answers['household']).toBeUndefined()
+    // How you'd live moved into chapter two (docs/NORTHSTAR.md), so a change in
+    // whose house she pictures is now a change the next reading can name.
+    expect(snap.answers['household']).toBe('near-family')
     expect(snap.answers['healing']).toBe('healing')
     expect(JSON.stringify(snap)).not.toMatch(/overall/)
   })

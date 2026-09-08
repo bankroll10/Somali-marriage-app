@@ -47,7 +47,7 @@ export const STATES: (ReadOption & { id: YesState })[] = [
  * the question so she is not asked to have an opinion she has already given.
  */
 export interface YourSide {
-  question: 'children' | 'family-role' | 'practice'
+  question: 'children' | 'family-role' | 'practice' | 'household' | 'work' | 'money-home'
   lines: Record<string, string>
 }
 
@@ -79,6 +79,15 @@ const TOPICS: Topic[] = [
       tells:
         'Listen for whether {he} has pictured it at all. “Wherever you want” sounds generous and is usually an answer {he} has not thought about. A specific answer you don’t like is worth more than a vague one you do.',
     },
+    yourSide: {
+      question: 'household',
+      lines: {
+        'with-family': 'You told your map you picture living with family — one household.',
+        'near-family': 'You told your map you picture your own place, close to family.',
+        separate: 'You told your map you picture your own place — your own city, if it comes to it.',
+        flexible: 'You told your map you are genuinely flexible on where you’d live.',
+      },
+    },
   },
   {
     id: 'his-family-in-home',
@@ -107,6 +116,15 @@ const TOPICS: Topic[] = [
       tells:
         'Ask the second half — who does what at home — and watch whether {he} has an answer or a joke. The joke is the answer.',
     },
+    yourSide: {
+      question: 'work',
+      lines: {
+        both: 'You told your map you both keep working.',
+        seasons: 'You told your map it changes with children — in seasons.',
+        'one-home': 'You told your map you picture one of you at home.',
+        unsure: 'You told your map you haven’t decided about work.',
+      },
+    },
   },
   {
     id: 'money-home',
@@ -120,6 +138,15 @@ const TOPICS: Topic[] = [
         'Can we talk about money plainly, the way our parents never did with us? What do you send home each month, and to whom? I’ll tell you mine. And once we’re married — do we decide that together, or is each of ours separate?',
       tells:
         'You are not looking for a number. You are looking for whether {he} will say it out loud, and whether “together” comes easily or makes {him} defensive. Someone who can name {his} obligations can be planned around. Someone who won’t, can’t.',
+    },
+    yourSide: {
+      question: 'money-home',
+      lines: {
+        expected: 'You told your map money home is expected — every month, from both of you.',
+        some: 'You told your map some, when you can.',
+        little: 'You told your map little or none.',
+        unsure: 'You told your map you haven’t thought about money home yet.',
+      },
     },
   },
   {

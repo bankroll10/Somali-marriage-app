@@ -169,7 +169,7 @@ export default function ReflectionView({
           ) : (
             <BackButton onClick={onContinue} label="Back to your space" />
           )}
-          <span className="text-xs uppercase tracking-[0.2em] text-muted">Readiness map</span>
+          <span className="text-xs uppercase tracking-[0.2em] text-muted">Your map</span>
         </div>
       </header>
 

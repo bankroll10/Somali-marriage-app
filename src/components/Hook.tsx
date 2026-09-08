@@ -96,7 +96,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
               </div>
               <div className="mt-7">
                 <Button onClick={() => onContinue(true)} className="group">
-                  Build my readiness map
+                  Build my map
                   <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
                 </Button>
               </div>

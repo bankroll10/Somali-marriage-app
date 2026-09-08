@@ -4,12 +4,9 @@ import type { Hesitation } from '../data/hesitation'
 import type { FollowUpAsk } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
-import { chosenReason, getDailyReflection } from '../data/daily'
 import { momentsFor } from '../data/moments'
-import { dailyPrefsFor } from '../lib/personalize'
 import FollowUp, { FollowedThrough } from './home/FollowUp'
 import StageBand from './home/StageBand'
-import TodaysReflection from './home/TodaysReflection'
 import WorkCard from './home/WorkCard'
 import Cohort from './Cohort'
 import {
@@ -117,11 +114,8 @@ export default function Home({
   const seeking = stage === 'preparing' || stage === 'talking'
   // The reflection is weighted to this person — what they named as their
   // hardest part, where they are, and the thinnest ground on their map.
-  const prefs = dailyPrefsFor(hookId, reflection, stage)
   // A read a month old, with no other question open: has he changed?
   const staleRead = !followUpAsk && seeking && !!read && readIsStale(read)
-  const daily = getDailyReflection(new Date(), prefs)
-  const whyThisOne = chosenReason(new Date(), prefs)
 
   const [ask, setAsk] = useState('')
   // The follow-up she just answered "we talked" to. The record is resolved at
@@ -407,8 +401,6 @@ export default function Home({
             </div>
           </section>
         )}
-
-        <TodaysReflection daily={daily} whyThisOne={whyThisOne} />
 
         {/* Your space */}
         <section className="mt-10">

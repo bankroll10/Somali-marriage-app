@@ -29,7 +29,7 @@ The unusual thing about this audit is how much is already on the owned side.
 It is worth naming, because a producer asset that nobody writes down gets
 traded away by the next person who finds it inconvenient.
 
-- **The question sets.** Thirteen intake questions, eleven topics, the read's
+- **The question sets.** Sixteen intake questions, eleven topics, the read's
   eleven, seven grounds, seven non-negotiables, five hardest parts, six
   hesitations, ten reasons a courtship ends, the ending's three taps. Every one
   written by the founder, living in `src/data/`, and pinned as closed

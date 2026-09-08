@@ -16,7 +16,68 @@ import type { Chapter, Question } from '../types'
  * dimension went. Each of the seven dimensions still has at least one scoring
  * answer, which data/intake.test.ts guards. The removed questions are in git
  * history if the signal ever says people want to go deeper.
+ *
+ * Sixteen, since docs/NORTHSTAR.md: the three "how you'd live" questions moved
+ * into chapter two. That evidence said twenty-three was too many; it says
+ * nothing about sixteen, and A1 (docs/EXPERIMENTS.md) now measures completion,
+ * so the cap is policed by a number rather than a memory.
  */
+/**
+ * How you'd live — the three things Somali marriages actually break on that no
+ * app asks: whose house, whether she works, and money sent home.
+ *
+ * These used to sit outside the chapters, asked on Profile and on the sample
+ * introduction — "a screen she may never open," as the code put it — while five
+ * of the thirteen questions in the map reached no match and no conversation.
+ * docs/NORTHSTAR.md found that inverted against the one thing this product is
+ * for: finding out early. So they are in chapter two now, where the intake
+ * already says "the life you want," and they still appear on Profile and the
+ * sample as `livingQuestions`, answered once and shared. No `weight`, so the
+ * seven grounds do not move; the alignment engine treats an unanswered one as
+ * neutral. The cap is A1's to police (docs/EXPERIMENTS.md): sixteen, one of
+ * them optional, against evidence that twenty-three was too many.
+ */
+const household: Question = {
+  id: 'household',
+  type: 'single',
+  dimension: 'family',
+  prompt: 'Where do you picture living, in the first years?',
+  helper: 'Not the city — the house.',
+  options: [
+    { id: 'with-family', label: 'With family', hint: 'One household — theirs or mine' },
+    { id: 'near-family', label: 'Our own place, close to family' },
+    { id: 'separate', label: 'Our own place — our own city, if it comes to it' },
+    { id: 'flexible', label: 'Genuinely flexible' },
+  ],
+}
+
+const work: Question = {
+  id: 'work',
+  type: 'single',
+  dimension: 'vision',
+  prompt: 'Work — after marriage, and after children?',
+  options: [
+    { id: 'both', label: 'We both keep working' },
+    { id: 'seasons', label: 'In seasons — it changes with children' },
+    { id: 'one-home', label: 'One of us at home' },
+    { id: 'unsure', label: 'I haven’t decided' },
+  ],
+}
+
+const moneyHome: Question = {
+  id: 'money-home',
+  type: 'single',
+  dimension: 'vision',
+  prompt: 'Money sent home to family?',
+  helper: 'Most of our households do. The question is whether it’s expected, and how much.',
+  options: [
+    { id: 'expected', label: 'Expected — every month, from both of us' },
+    { id: 'some', label: 'Some, when we can' },
+    { id: 'little', label: 'Little or none' },
+    { id: 'unsure', label: 'I haven’t thought about it' },
+  ],
+}
+
 export const chapters: Chapter[] = [
   {
     id: 'niyyah',
@@ -118,6 +179,7 @@ export const chapters: Chapter[] = [
           { id: 'private', label: 'Mostly private until I’m sure', tags: ['Self-directed'], weight: 0.6 },
         ],
       },
+      household,
       {
         id: 'children',
         type: 'single',
@@ -130,6 +192,8 @@ export const chapters: Chapter[] = [
           { id: 'no', label: 'I don’t see children in my future', tags: ['Clear'], weight: 0.8 },
         ],
       },
+      work,
+      moneyHome,
       {
         id: 'value-most',
         type: 'multi',
@@ -244,57 +308,7 @@ export const chapters: Chapter[] = [
   },
 ]
 
-/**
- * How you'd live — the three things Somali marriages actually break on that no
- * app asks: whose house, whether she works, and money sent home.
- *
- * Deliberately NOT in a chapter. The intake is pinned at thirteen because the
- * first testers did not finish twenty-three, and that evidence stands. These
- * are asked where their value is visible — on the sample introduction, where
- * answering one changes the reasons in front of her, and on Profile — the same
- * pattern Profile already uses for age and city. Optional; the alignment engine
- * treats an unanswered one as neutral. No `weight`, so the map does not move.
- */
-export const livingQuestions: Question[] = [
-  {
-    id: 'household',
-    type: 'single',
-    dimension: 'family',
-    prompt: 'Where do you picture living, in the first years?',
-    helper: 'Not the city — the house.',
-    options: [
-      { id: 'with-family', label: 'With family', hint: 'One household — theirs or mine' },
-      { id: 'near-family', label: 'Our own place, close to family' },
-      { id: 'separate', label: 'Our own place — our own city, if it comes to it' },
-      { id: 'flexible', label: 'Genuinely flexible' },
-    ],
-  },
-  {
-    id: 'work',
-    type: 'single',
-    dimension: 'vision',
-    prompt: 'Work — after marriage, and after children?',
-    options: [
-      { id: 'both', label: 'We both keep working' },
-      { id: 'seasons', label: 'In seasons — it changes with children' },
-      { id: 'one-home', label: 'One of us at home' },
-      { id: 'unsure', label: 'I haven’t decided' },
-    ],
-  },
-  {
-    id: 'money-home',
-    type: 'single',
-    dimension: 'vision',
-    prompt: 'Money sent home to family?',
-    helper: 'Most of our households do. The question is whether it’s expected, and how much.',
-    options: [
-      { id: 'expected', label: 'Expected — every month, from both of us' },
-      { id: 'some', label: 'Some, when we can' },
-      { id: 'little', label: 'Little or none' },
-      { id: 'unsure', label: 'I haven’t thought about it' },
-    ],
-  },
-]
+export const livingQuestions: Question[] = [household, work, moneyHome]
 
 export const allQuestions = chapters.flatMap((c) => c.questions)
 export const totalQuestions = allQuestions.length
@@ -302,7 +316,7 @@ export const totalQuestions = allQuestions.length
 /**
  * A one-line reading shown when a chapter is completed — the "it's working"
  * signal that makes the intake feel like progressive payoff, not a survey.
- * Returns null for the final chapter (the readiness map is that payoff).
+ * Returns null for the final chapter (the map is that payoff).
  */
 export function chapterInsight(chapterId: string, answers: Record<string, unknown>): string | null {
   switch (chapterId) {

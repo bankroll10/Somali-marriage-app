@@ -88,7 +88,7 @@ const lexicon = [
   },
   {
     term: 'Your space',
-    body: 'Where you land each day: what happened, what you are working on, and a thought worth carrying. Not a feed.',
+    body: 'Where you land when something happens: what happened, what you are working on, and where you are. Not a feed, and not a reason to come back.',
   },
 ]
 
@@ -211,7 +211,7 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
           </h3>
           <p className="mt-3 text-[1rem] leading-relaxed text-cream/80 text-pretty">
             Most people don’t need more options — they need wisdom while navigating
-            them. Everything here, from your readiness map to your guide, teaches
+            them. Everything here, from your map to your guide, teaches
             the same four things.
           </p>
           <div className="mt-6 space-y-4">
