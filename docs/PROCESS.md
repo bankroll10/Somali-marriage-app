@@ -160,22 +160,26 @@ questions it classes as ASSUMED:
 | **Business importance** | Where does it sit in `docs/EXPERIMENTS.md`'s ranking — top-of-funnel and wedge-critical outranks everything else |
 | **Runnable now** | Blocked by a promise (A5's free-for-a-year), by scale (SCALE.md's triggers), or buildable today? |
 | **Durable** | Would this still matter if the AI hype, the app fashions and the platforms all disappeared? A feature that needs a supplier to exist is scored on what is left without one — `docs/DURABLE.md` |
+| **Recorded, or lost** | Since `docs/ROADMAP.md`: with no member votes yet, a feature may jump the queue only if it **records a vote that would otherwise be lost for ever** — a funnel cannot be recovered from traffic that has already passed through. It is the one exception to "wait for a number", and it is why the `kept` rung shipped ahead of every cheaper bet in `docs/BETS.md` |
 
 Applied to the current roadmap (`docs/PRODUCT.md` §10):
 
-| Item | Learning value | Business importance | Runnable now | Durable |
-|---|---|---|---|---|
-| 0 Run the loop | — | Foundational; nothing else means anything without it | Yes, always | Yes — the process is the moat |
-| 1 The door, for men — `docs/MACHINE.md` | High — tests `docs/GAPS.md` gap #1 directly | Highest — the only thing that can unblock 2 and 3 | Yes | Yes — it is a room, not a feature |
-| 2 First pool opens | High | Highest — the whole marketplace | Blocked on `ending.who.here > 0` | Yes — the enduring need itself |
-| 3 Concierge | High | High | Blocked on 2 | Yes — the oldest form of this business |
-| 4 First-year sheet | Medium | Low until married pairs exist | Blocked, in practice | Yes — the marriage after the wedding |
-| 5 Your record | Low | Medium — a trust promise, not a funnel step | Yes | Yes — a promise with no supplier behind it |
-| 6 Real backend | — | High, eventually | Blocked by scale (`docs/SCALE.md`) | Infrastructure — buys durability, not value |
-| — Live Claude behind the map | Low | Low — a seam, not a bottleneck | Yes | **No — declined.** It would make the map depend on a supplier (`docs/DURABLE.md`) |
+| Item | Learning value | Business importance | Runnable now | Durable | Recorded, or lost |
+|---|---|---|---|---|---|
+| 0 Post the link | **Highest — it is the only source of every number below** | Foundational; nothing else means anything without it | **Yes, and it is not a build** | Yes — ten people asked by name | — |
+| 1 Before strangers arrive | High | High — it decides whether the first cohort teaches anything | Yes | Yes | **Lost if late.** The whole reason it outranks 2 |
+| 2 Read what comes back | High | Highest — six written rules, none run | On the first arrivals | Yes — the process is the moat | — |
+| 3 First pool opens | High | Highest — the whole marketplace | Blocked on 40/40 and judgement | Yes — the enduring need itself | The introductions record: same commit, never after (`docs/HARD.md`) |
+| 4 Concierge, by hand | High | High | Blocked on 3 | Yes — the oldest form of this business | — |
+| 5 First-year sheet | Medium | Low until married pairs exist | Blocked, in practice | Yes — the marriage after the wedding | — |
+| 6 Your record | Low | Medium — a trust promise, not a funnel step | Yes, and deliberately not first | Yes — a promise with no supplier behind it | — |
+| 7 Real backend | — | High, eventually | Blocked by scale (`docs/SCALE.md`) | Infrastructure — buys durability, not value | — |
+| — Live Claude behind the map | Low | Low — a seam, not a bottleneck | Yes | **No — declined.** It would make the map depend on a supplier (`docs/DURABLE.md`) | — |
 
 Item 0 is not really an item — it is the precondition for the table meaning
-anything, which is the whole argument for this file existing.
+anything, which is the whole argument for this file existing. It sat outside
+the roadmap entirely until `docs/ROADMAP.md` put it at the top: seven build
+items were queued behind an act no document treated as work.
 
 ## Feature kill criteria
 

@@ -94,7 +94,14 @@ sound modern is not.
 ## The reprioritised roadmap
 
 Sorted by closeness to the enduring need, then by what unblocks the rest.
-`docs/PRODUCT.md` §10 and `docs/PROCESS.md`'s table now carry this order.
+
+> **Superseded, and kept as the record of why this pass moved things.**
+> `docs/ROADMAP.md`'s Fastlane audit reordered the list again and found the
+> defect this table could not: every item below waits on posting the first
+> link, which was in no version of the roadmap. The live order is in
+> `docs/PRODUCT.md` §10. Durability was the right axis and was not the only
+> one — an item can be perfectly durable and still be queued behind an act
+> nobody has scheduled.
 
 | Now | Was | Why it moved |
 |---|---|---|
