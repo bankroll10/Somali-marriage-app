@@ -39,3 +39,6 @@ dist-ssr
 
 # Local dev tooling config — references sibling projects + a machine-specific path
 /.claude
+
+# Local Netlify folder
+.netlify

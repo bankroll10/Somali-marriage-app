@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Identity } from '../types'
+import type { Gender, Identity } from '../types'
 import { countryFor, getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
 import { hesitationOptions, type Hesitation } from '../data/hesitation'
@@ -13,6 +13,21 @@ interface Props {
   hasMap: boolean
   onScene: (scene: string) => void
   onCountry: (country: string) => void
+  /**
+   * Which side of the door he is on.
+   *
+   * The door exists for the men's funnel (docs/MACHINE.md M1), and that
+   * funnel is read as `sidesByVia.man.group.arrived` — the number A6 and
+   * docs/REDTEAM.md's two-week kill test both turn on. But `arrived` fires
+   * the moment the page loads, and until this question existed the door
+   * asked for a city and never a side, so a man who read the number and left
+   * was recorded `unsaid`. The cell therefore counted men who went on to
+   * start a map, not men who arrived — collapsing the exact two things A6
+   * was built to tell apart: the channel not working, and the map turning
+   * men away. One tap, asked once, and Identity is pre-filled so it is not
+   * asked twice. docs/ROADMAP.md.
+   */
+  onGender: (gender: Gender) => void
   /** Count me in: the map first, since being counted takes one. */
   onCount: () => void
   /** Not now, and why — one word about the door. */
@@ -38,7 +53,16 @@ interface Props {
  * ladder says `arrived` on a `door` via and nothing more; if he taps "not
  * now" and says why, one word from a list we wrote.
  */
-export default function Door({ identity, hasMap, onScene, onCountry, onCount, onHesitate, onBack }: Props) {
+export default function Door({
+  identity,
+  hasMap,
+  onScene,
+  onCountry,
+  onGender,
+  onCount,
+  onHesitate,
+  onBack,
+}: Props) {
   const [scene, setScene] = useState(identity.scene ?? '')
   const [namedCountry, setNamedCountry] = useState(identity.country ?? '')
   const [count, setCount] = useState<CohortCount | null>(null)
@@ -90,6 +114,28 @@ export default function Door({ identity, hasMap, onScene, onCountry, onCount, on
           </p>
 
           <div className="mt-6 space-y-2.5">
+            {!identity.gender && (
+              <div>
+                <p className="mb-2 text-[0.85rem] text-muted">You are…</p>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {(
+                    [
+                      { id: 'woman', label: 'A woman' },
+                      { id: 'man', label: 'A man' },
+                    ] as { id: Gender; label: string }[]
+                  ).map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => onGender(o.id)}
+                      className="rounded-card border border-line bg-white/60 px-4 py-3 text-[0.95rem] font-medium text-ink transition hover:border-forest/40 hover:bg-white"
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {!identity.scene && (
               <select
                 value={scene}

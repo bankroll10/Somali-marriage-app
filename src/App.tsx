@@ -271,6 +271,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           hasMap={n.completed}
           onScene={setScene}
           onCountry={setCountry}
+          onGender={(gender) => n.setIdentity((prev) => ({ ...prev, gender }))}
           onCount={n.completed ? n.enterHome : n.beginMap}
           onHesitate={n.saveHesitation}
           onBack={backHome}
