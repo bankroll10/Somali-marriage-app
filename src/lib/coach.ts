@@ -54,7 +54,7 @@ function scoreIntent(intent: CoachIntent, message: string): number {
  * It opens in the mode's own voice (that invitation is what `fallback` was
  * written for) and then gives the frame that genuinely applies to almost any
  * relationship situation. Two things this fixes: the frame used to be
- * byte-identical in all six modes, so asking the Therapist and the Wise Auntie
+ * byte-identical in all five modes, so asking the Therapist and the Wise Auntie
  * the same thing returned the same words — obvious the moment two people
  * compare screens; and the alternative for short questions was a bare "tell me
  * more" with no follow-ups, which dead-ended the thread.

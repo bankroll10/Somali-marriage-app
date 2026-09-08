@@ -270,7 +270,7 @@ export default function Coach({
             Choose your guide
           </p>
           <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
-            Six guides. One you.
+            Five guides. One you.
           </h1>
           <p className="animate-rise mt-3 max-w-md text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
             Different moments need different wisdom. Pick the voice you need right

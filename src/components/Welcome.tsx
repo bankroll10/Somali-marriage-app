@@ -52,15 +52,25 @@ export default function Welcome({
             className="animate-rise mt-6 max-w-lg text-[1.05rem] leading-relaxed text-cream/75 text-pretty"
             style={{ animationDelay: '80ms' }}
           >
-            Before you meet anyone: thirteen questions, about two minutes. Then a
-            straight answer — the ground you’re standing on, the one place you’re
-            thinnest right now, and one honest thing to do about it this week.
+            Say what’s happening — getting ready, talking to someone, deciding
+            with the families — and we start there. A read on what he has actually
+            done. The eleven conversations most of us have too late. Or two
+            minutes on where you stand, and one honest thing to do about it.
           </p>
 
-          {/* What is withheld is the real thing. This used to be a ring with
+          {/* The lead used to promise the map — "thirteen questions, about two
+              minutes… the one place you're thinnest" — while the flow behind the
+              button routes by stage and only the person not talking to anyone
+              ever reaches the map first. The comments below this file already
+              said the map "ranks near the bottom of what actually hurts"; the
+              first sentence on the page was still selling it. Now the promise
+              matches the routing, and the read — the one thing aimed at the
+              highest-pain problem we can solve today — is in the first breath
+              rather than a card at the bottom. docs/NORTHSTAR.md.
+
+              What is withheld is the real thing. This used to be a ring with
               "??" in it and "Your number is two minutes away" — a quiz-funnel
-              hook that promised a score, and then the map had to deliver one.
-              The honest object was already in the paragraph above. */}
+              hook that promised a score, and then the map had to deliver one. */}
           <div
             className="animate-rise mt-8 max-w-md border-l-2 border-gold-soft/60 pl-4"
             style={{ animationDelay: '120ms' }}
