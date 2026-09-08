@@ -114,6 +114,12 @@ whether anyone reads the rest:
    entry in `docs/EXPERIMENTS.md` with a decision rule already written.
 8. One commit per logical slice, so the history reads as the loop it came
    from rather than a single undifferentiated diff.
+9. From the day a price exists, every release: the incentive audit. Every
+   sentence on every screen that mentions a paid stage, read against
+   `docs/STRATEGY.md`'s rule — does it earn more if she stays single longer,
+   opens the app more, or is having a worse night? `docs/REDTEAM.md`'s third
+   threat is that the tilt arrives a sentence at a time and no readout shows
+   it.
 
 ## Talk to users: `docs/FEEDBACK.md`
 
@@ -189,6 +195,7 @@ one place to see them together.
 | The safety queue as one weekly `curl` | A second reader is needed, or a report waits more than a week | `docs/HARD.md`, `docs/TIME.md` |
 | Any dependence on a live model | It becomes load-bearing — an instrument that cannot run without a key. Not a threshold but a rule, asserted in `tests/durable.test.ts` | `docs/DURABLE.md` |
 | The `door` link and the second ask on the door | After four weeks: under five men arrived through the group link (`sidesByVia.man.group.arrived`) → the channel pivots (WEDGE); five or more and under one in four `mapped` → cut the men's map first (A1); women's `counted` per hundred `arrived` falls → back to one ask | `docs/MACHINE.md`, logged as A6 |
+| The company itself — the red team's three | Each carries a kill number and a date: ten connectors asked this week, the `group` cell at two weeks, the pivot at eight; the three-bin conversations this month; the matchmaker-payment question this month. When any one resolves either way, `docs/REDTEAM.md` is re-run before the next roadmap pick, not after | `docs/REDTEAM.md` |
 
 A feature with no decision rule is not yet a feature this process can
 govern — it is an opinion running in production. Writing the rule is part of

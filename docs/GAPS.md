@@ -50,6 +50,10 @@ and stays there until behaviour or a member says otherwise.
 
 ## The gaps, ranked by how dangerous it is if we are wrong
 
+> Ranked here by danger to the *product*. `docs/REDTEAM.md` ranks the same
+> beliefs by danger to the *company* and comes out differently — distribution,
+> then market size with specificity, then payment — and says why. Read both.
+
 1. **Men do not follow women.** If the door stays at five women to one man,
    there is no marketplace and every instrument is a hobby. *Test:* the
    door's men against women, weekly; `vias.door` (men arriving through "send
