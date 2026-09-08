@@ -3,7 +3,7 @@ import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, SAFETY_REASONS } from '../shared/vocab'
 import { day } from '../shared/day'
 import { overHourlyCap, rateLimited } from '../shared/limit'
-import { CODE } from './couple'
+import { CODE } from '../shared/code'
 
 /**
  * The one report a member can make about a real, named person.
