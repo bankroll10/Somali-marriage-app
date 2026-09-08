@@ -264,7 +264,11 @@ type Store = ReturnType<typeof getStore>
  * docs/MACHINE.md found the ladder could not answer; and arrivals by week, so
  * `followed-through` per hundred `arrived` is computable over a cohort rather
  * than over all time — and so word of mouth can be told from every other
- * arrival, by source, without an edge between two people anywhere.
+ * arrival, by source, without an edge between two people anywhere. Side and
+ * via are crossed once, in `sidesByVia`, because a man who arrived through a
+ * woman's eleven is already talking to someone and is not supply, and neither
+ * split alone can tell him from a man the network channel produced
+ * (docs/REDTEAM.md).
  */
 async function tally(store: Store) {
   const { blobs } = await store.list()
@@ -278,6 +282,17 @@ async function tally(store: Store) {
   const scenes: Record<string, Record<string, number>> = {}
   const vias: Record<string, Record<string, number>> = {}
   const sides: Record<string, Record<string, number>> = {}
+  /**
+   * Side × via. A man who arrives through a woman's eleven — `couple`, or the
+   * eleven's own words — is already talking to someone, often someone counted
+   * here; he is not supply for anyone else. `group` is the men the network
+   * channel produced; `door` is the men a member sent, some looking and some
+   * already talking. `sides` says how many men, `vias` says how many came
+   * through a group, and neither can say whether they are the same men. This
+   * can. Floored per cell like every other split by a quasi-identifier, and
+   * never crossed with the facts.
+   */
+  const sidesByVia: Record<string, Record<string, Record<string, number>>> = {}
   const arrivedByDay: Record<string, number> = {}
   const facts = emptyFactsTally()
 
@@ -297,12 +312,14 @@ async function tally(store: Store) {
     const perScene = (scenes[scene] ??= {})
     const perVia = (vias[via] ??= {})
     const perSide = (sides[side] ??= {})
+    const perSideVia = ((sidesByVia[side] ??= {})[via] ??= {})
     for (const [id, at] of Object.entries(record.first)) {
       if (!RUNGS.has(id)) continue
       rungs[id] = (rungs[id] ?? 0) + 1
       perScene[id] = (perScene[id] ?? 0) + 1
       perVia[id] = (perVia[id] ?? 0) + 1
       perSide[id] = (perSide[id] ?? 0) + 1
+      perSideVia[id] = (perSideVia[id] ?? 0) + 1
       // Records written before dates were days still hold a moment; read the day off them.
       if (id === 'arrived') {
         const d = at.slice(0, 10)
@@ -333,6 +350,7 @@ async function tally(store: Store) {
     scenes: floorRows(scenes),
     vias: floorRows(vias),
     sides: floorRows(sides),
+    sidesByVia: Object.fromEntries(Object.entries(sidesByVia).map(([s, rows]) => [s, floorRows(rows)])),
     arrivedByDay,
     facts: {
       ...facts,

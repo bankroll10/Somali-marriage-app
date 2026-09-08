@@ -143,8 +143,10 @@ and impossible to answer today. It is the one that got built.
 
 **A6 · The door, for men** lives in `docs/MACHINE.md`, where the whole-machine
 read that produced it is. Its decision rule — four weeks of `?door&via=group`,
-read against `sides.man` — is written there and mirrored in `docs/PROCESS.md`'s
-kill table; its result is logged below like the others.
+read against `sidesByVia.man.group`, the men that link produced rather than
+men who arrived through someone's eleven — is written there and mirrored in `docs/PROCESS.md`'s kill
+table; its result is logged below like the others. `docs/REDTEAM.md` is why the
+cell, not the side, is the number.
 
 ## What was missing, and what `began` fixes
 

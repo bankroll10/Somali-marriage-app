@@ -185,6 +185,32 @@ describe('the readout', () => {
     expect(body.sides.unsaid.arrived).toBeNull()
   })
 
+  it('crosses side with the kind of link, floored — so men a group produced can be told from men already talking to someone', async () => {
+    // A man who arrives through her eleven is already talking to someone; he is
+    // not supply for anyone else. `sides` alone says seven men, `vias` alone
+    // says six through a group, and neither can say whether they are the same
+    // men (docs/REDTEAM.md).
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'ACDEFK']) {
+      await post({ id, rungs: ['arrived'], gender: 'man', via: 'group' })
+    }
+    for (const id of ['HJKMNQ', 'HJKMNR', 'HJKMNT', 'HJKMNW', 'HJKMNX']) {
+      await post({ id, rungs: ['arrived'], gender: 'woman', via: 'door' })
+    }
+    await post({ id: 'QRTWXA', rungs: ['arrived', 'eleven'], gender: 'man', via: 'couple' })
+    const body = await (await readout()).json()
+    expect(body.sidesByVia.man.group.arrived).toBe(6)
+    expect(body.sidesByVia.woman.door.arrived).toBe(5)
+    // One man through her link is a person, not a number.
+    expect(body.sidesByVia.man.couple.arrived).toBeNull()
+    expect(body.sidesByVia.man.couple.eleven).toBeNull()
+    // The splits that already existed are unchanged by the cross.
+    expect(body.sides.man.arrived).toBe(7)
+    expect(body.vias.group.arrived).toBe(6)
+    // A side nobody named does not get a row of its own here.
+    expect('unsaid' in body.sidesByVia).toBe(false)
+    expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNQ|QRTWXA/)
+  })
+
   it('shows a city once five have reached a rung', async () => {
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'toronto' })
     const body = await (await readout()).json()

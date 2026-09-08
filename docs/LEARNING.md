@@ -73,7 +73,7 @@ described on the Trust screen in the same commit, gated by "Count me":
 - Who she married, what decided it, which instruments were real
 - What kind of link brought her here, never who sent it
 - Her city and country, how far she said she would go for the right person, who she is seeking, the hardest part she named, what she has done here
-- **Which side of the door she is on — woman or man — beside the rungs**, so the men's funnel can be read apart from the women's. The one split `docs/MACHINE.md` found the ladder could not make; floored like every other split by a quasi-identifier, and never crossed with the facts
+- **Which side of the door she is on — woman or man — beside the rungs**, so the men's funnel can be read apart from the women's. The one split `docs/MACHINE.md` found the ladder could not make; floored like every other split by a quasi-identifier, crossed once with the kind of link that brought her — so the men who arrived through someone's eleven, already talking, can be told from the men the network channel produced (`docs/REDTEAM.md`) — and never crossed with the facts
 - How pairs come out on each of the eleven, with no pair in it
 
 **Deliberately not collected**, and why — so the next engineer does not "just

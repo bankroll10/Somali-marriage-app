@@ -58,7 +58,7 @@ readout stays monthly at all — read a number often enough and it becomes the
 thing being optimised for rather than the thing being watched.
 
 ```bash
-curl -s -H "$K" $S/progress | jq '.rungs, .sides, .facts.began'   # arrived, by side, and who finished what they began
+curl -s -H "$K" $S/progress | jq '.rungs, .sides, .sidesByVia.man, .facts.began'   # arrived, by side, the men by what brought them, and who finished what they began
 curl -s -H "$K" $S/cohort   | jq '.countries'              # the door: women and men, every open pool
 ```
 
@@ -110,6 +110,7 @@ What each field in `/progress` means:
 | `rungs[id]` | People who ever reached this rung. `followed-through / arrived` is the North Star |
 | `scenes[city][rung]`, `vias[via][rung]` | The same, by city and by what kind of link brought them |
 | `sides[woman\|man][rung]` | The same, by side. `sides.man.counted / sides.man.arrived` is the men's funnel — the question `docs/MACHINE.md` found the ladder could not answer. Floored, so `sides.man` reads `null` until five men have arrived |
+| `sidesByVia[side][via][rung]` | Side crossed with the kind of link, once. A man who arrived through a woman's eleven — `couple`, or `eleven` — is already talking to someone and is not supply for anyone else; `door` is the men a member sent, some looking and some not. `sidesByVia.man.group` is the men the network channel actually produced — the one cell that counts only men nobody here was already talking to (`docs/REDTEAM.md`). Floored per cell |
 | `arrivedByDay` | The denominator over time, so a cohort can be followed. Every date in every store is a day, never a moment — see `netlify/shared/day.ts` |
 | `facts.grounds[dim][state]` | How many maps read thin / steady / strong on each ground |
 | `facts.read.band[band]`, `facts.read.thin[dim]` | How reads come out; which ground men here most often have not shown |
@@ -213,7 +214,10 @@ In this order, because each question only means something after the last:
    of `followed-through` to `arrived` per via. The best door is the share the
    product should offer first. `group` is a link shared into a community's
    chat — the channel the first forty are found through (`docs/WEDGE.md`) —
-   and its ratio against `words` is the first test of that wedge.
+   and its ratio against `words` is the first test of that wedge. Read
+   `sidesByVia.man.group` beside it: the men that channel produced, as
+   against the men who arrived through someone's eleven, who were never
+   anyone else's to meet.
 3. **Which conversations get had, and which only get handed out?**
    `eleven.open` against `throughByTopic`. The gap is the next script to
    rewrite.

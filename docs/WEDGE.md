@@ -141,7 +141,10 @@ The funnel between "opened a link" and "counted" is unknown and must be
 measured rather than assumed. The hypothesis to beat: through the one-to-one
 loops alone, men arrive at about one per three counted women, so forty men
 would need a hundred and twenty women. The network channel is the bet that
-changes that ratio, and the men's count on the door is the whole test of it.
+changes that ratio, and the men's count on the door is the whole test of it —
+read as `sidesByVia.man.group` in the ladder's readout, not as men on the
+door, because a man who arrived through a woman's eleven is already talking
+to her and was never supply for anyone else (`docs/REDTEAM.md`).
 
 Until any per-city cell passes five people, the founder will see exactly two
 numbers for the Twin Cities — women and men. They are the two that matter.
@@ -184,8 +187,11 @@ nobody can marry someone met here before anything has opened.
   plainly to the first forty that they may know each other.
 - **Every funnel number is a guess.** So a pivot rule, decided now rather
   than under pressure: after eight weeks of the playbook, fewer than twenty
-  women or fewer than five men counted in the metro means change the channel
-  first (mosque young-adult circles), the city second (Columbus).
+  women counted in the metro, or fewer than five men who arrived through a
+  group link (`sidesByVia.man.group.arrived` — a man who came through
+  someone's eleven is already talking to her and does not count,
+  `docs/REDTEAM.md`), means change the channel first (mosque young-adult
+  circles), the city second (Columbus).
 
 ## Deferred, with triggers
 
