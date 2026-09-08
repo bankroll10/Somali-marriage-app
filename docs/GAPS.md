@@ -56,7 +56,10 @@ and stays there until behaviour or a member says otherwise.
    him the read"); WEDGE.md's pivot rule at eight weeks. `docs/MACHINE.md`
    finds this gap has two causes the readout cannot tell apart — men never
    arrive, or men arrive and bounce at the read — and, after its M0, the
-   ladder's `sides.man` funnel is the test that separates them.
+   ladder's `sides.man` funnel is the test that separates them. And since
+   `docs/REDTEAM.md`, the cross neither split could make alone:
+   `sidesByVia.man.group`. A man who arrived through her eleven is already
+   talking to her; the door counted him as supply, and he never was.
 2. **Words do not travel.** If nothing about marriage gets forwarded at all,
    the distribution model has no engine and paid acquisition — which the
    strategy forbids — becomes the only path. *Test:* `vias.words`, `eleven`

@@ -382,10 +382,13 @@ written to her by design, and the door link bypasses it.
 
 ### Measure, and the decision rule
 
-The weekly pulse reads `sides.man` beside the door. After four weeks of
-posting `?door&via=group`:
+The weekly pulse reads `sides.man` and `sidesByVia.man.group` beside the door.
+After four weeks of posting `?door&via=group`:
 
-- `sides.man.arrived` under five → **the channel, not the product.**
+- `sidesByVia.man.group.arrived` under five → **the channel, not the product.**
+  The cell, not the side: a man who arrived through a woman's eleven is
+  already talking to her and says nothing about the channel
+  (`docs/REDTEAM.md`).
   `docs/WEDGE.md`'s pivot rule fires: change the channel first, the city
   second.
 - Five or more arrived and fewer than one in four reach `mapped` → **the map
@@ -426,3 +429,4 @@ _Dated, one line each: a transition whose metric, friction or failure changed,
 or a new weakest link — and the readout that showed it._
 
 - 2026-09-07 — M0–M2 built: `sides` on the ladder, the `/?door` link, two asks on the door, the playbook posts both links. The decision rule is now runnable; A6's four weeks start when the first group post goes out.
+- 2026-09-08 — `sidesByVia` on the readout. A6 reads the `group` cell, not the side: `sides.man` counted a man who arrived through a woman's eleven as if the channel had produced him (`docs/REDTEAM.md`).
