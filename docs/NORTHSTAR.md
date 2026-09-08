@@ -62,16 +62,16 @@ help someone find out earlier?* — and *does it end in something they can say?*
 | **Situation** | **Core** | Routes by stage. Its `talking` line is the North Star in one sentence: *"Then the question isn't whether you're ready. It's whether he is."* |
 | **Home** — ask box, moment chips, read card, stage band | **Core** | "Something happened?" The read card is "the one thing aimed squarely at the highest-pain problem we can actually solve today" |
 | **Welcome** | **Was weak — strengthened** | See below |
-| **Hook** | Aligned | Five hardest parts; the insight is the thirty-second reward. Its CTA still says "readiness" (see weak alignments) |
+| **Hook** | Aligned | Five hardest parts; the insight is the thirty-second reward. Its CTA now says "Build my map" |
 | **Identity** | Aligned | Gender, name, 18+. Nothing between here and the first insight |
-| **Intake** | **Weak — composition inverted** | See below |
-| **Reflection** (the map) | Aligned, one caveat | Grounds in words, never a number; the work card turns diagnosis into one thing to do. Eyebrow still reads "Readiness map" |
-| **Profile** | Aligned | Rebuilt from a marketplace profile into "what decides who you meet." Holds the three marriage-breaker questions that belong upstream |
-| **Coach** (the guide) | Aligned, one caveat | Closes, remembers outcomes, budgeted by progress. Auntie and Brother are moment-driven; the Matchmaker voice presumes a room that does not exist |
+| **Intake** | **Was weak — strengthened** | The three marriage-breakers moved into chapter two; sixteen questions. See below |
+| **Reflection** (the map) | Aligned | Grounds in words, never a number; the work card turns diagnosis into one thing to do. Eyebrow now reads "Your map" |
+| **Profile** | Aligned | Rebuilt from a marketplace profile into "what decides who you meet." Still the place to change the three how-you'd-live answers, which are now first asked in the map |
+| **Coach** (the guide) | Aligned | Closes, remembers outcomes, budgeted by progress. Auntie and Brother are moment-driven; the Matchmaker now says plainly there is nobody to introduce yet |
 | **Plus** | Aligned | No tiers, no prices, no buy button. A promise page: "We never earn more because you're having a hard night" |
 | **Philosophy** | Tolerated | A stance page reached only by "Why we're different." The lexicon earns its place |
-| **SampleIntroduction** | Tolerated, flagged | One invented person, said to be invented four times. Its real job is smuggling in the three marriage-breaker questions ("Sharpen this read") |
-| **TodaysReflection** (`home/`) | **Distraction** | See below |
+| **SampleIntroduction** | Tolerated | One invented person, said to be invented four times. "Sharpen this read" now edits answers she first gave in the map |
+| **TodaysReflection** (`home/`) | **Removed** | See below |
 | **KeepMap / RestoreMap** | Infrastructure | Aligned by being invisible |
 
 ## Weak alignment, and what was done
@@ -102,7 +102,7 @@ first breath. Headline, bullets and the second door are unchanged. It is the
 single highest-leverage alignment fix in the product, because it is the
 sentence every person reads before deciding whether to tap.
 
-### The intake's composition is inverted — **recommended, with a decision rule**
+### The intake's composition was inverted — **decided: the three moved in**
 
 Thirteen questions, cut from twenty-three on the evidence of two testers who
 did not finish. The *cap* is right. The *composition* is not: five of the
@@ -115,29 +115,38 @@ Profile and the sample screen, which the code describes as *"a screen she may
 never open."* The map asks about her attachment style and defers whose house
 they would live in.
 
-**The rule:** wait for A1 (`docs/EXPERIMENTS.md`). At twenty arrivals, if
-intake completion is 50% or better, swap — `household`, `work`, `money-home`
-into chapter two; `pattern` and `working-on` into an optional fourth chapter.
-If completion is under 50%, A1 already says cut to one chapter, and that
-chapter is the one with the marriage-breakers in it.
+**The call.** The three moved into chapter two, where the intake already says
+"the life you want." Thirteen became sixteen, one optional. The evidence behind
+the cap was two testers who did not finish twenty-three; it says nothing about
+sixteen, and A1 (`docs/EXPERIMENTS.md`) now measures completion, so the cap is
+policed by a number rather than a memory. Chapter three stays whole — the
+seven grounds are the map, and gutting two of them to make room would have
+traded one misalignment for another. If A1 fires (completion under 50% at
+twenty arrivals), the one chapter kept is the one with the marriage-breakers
+in it.
 
-### "Readiness" survives as the map's name
+### "Readiness" survived as the map's name — **renamed**
 
 `docs/PRODUCT.md` §3 rebuilt the map away from a readiness score. The word
 survives in five UI sites — the Hook's CTA ("Build my readiness map"),
 Reflection's eyebrow, Philosophy, the Matchmaker's greeting, and the `ready`
 hook insight. The word frames the map as "am I ready" — the question the code
-ranks near the bottom. *Do it with the next copy pass that touches Reflection:
-one commit, one grep, "your map."*
+ranks near the bottom. **Done:** "your map" in every place a member reads it.
+The emotional ground keeps "Emotional readiness" — there the word names a real
+thing she is being read on, not the frame around the whole instrument.
 
-### The Matchmaker voice presumes a marketplace
+### The Matchmaker voice presumed a marketplace — **re-aimed**
 
 *"I've read your readiness map, and I'm looking for…"* — for whom? Nobody is
 here. Its starters are generic ("What kind of person actually fits me?") where
 Auntie's and Brother's are moment-driven ("He only texts me late at night";
 "What do I say to her wali?"). The code already admits it *"used to rank
-invented people by name."* One of five voices; A3 governs the guide as a whole.
-*Fold into A3's decision at the first ending.*
+invented people by name."* **Done:** it now opens by saying there is nobody to
+introduce yet and that it will not pretend otherwise — and that what it can do
+is get her clear on what has to be true of the person before she meets anyone,
+so that she finds out early rather than late. Removing the voice was
+considered and declined: "what should I look for first" is a real question a
+preparing person has, and A3 governs the guide as a whole.
 
 ### Two things that were simply wrong — **fixed in this pass**
 
@@ -148,16 +157,18 @@ invented people by name."* One of five voices; A3 governs the guide as a whole.
 
 ## Distractions
 
-- **TodaysReflection.** A daily rotating content card on Home with a
-  share-as-image whose text reads *"From Niyyah, the marriage platform built
-  for the Somali diaspora."* It does no North Star work — it does not help
-  anyone find out earlier and it ends in nothing they can say. `docs/STRATEGY.md`
-  §6 names "a daily ritual" as never built; its own comment removed the
-  "Tomorrow · Patience" tease as "a comeback hook." What remains is a vitamin
-  on a painkiller's home screen. `docs/PRODUCT.md` §0 keeps it deliberately as
-  "a reflection worth reading," so this is the founder's call. *Rule: hide it
-  for a month; if `followed-through` per hundred `arrived` does not move, it
-  was decoration.*
+- **TodaysReflection — removed.** A daily rotating content card on Home with a
+  share-as-image whose text read *"From Niyyah, the marriage platform built
+  for the Somali diaspora."* It did no North Star work — it helped nobody find
+  out anything earlier and it ended in nothing they could say. `docs/STRATEGY.md`
+  §6 names "a daily ritual" as never built; its own comment had already removed
+  the "Tomorrow · Patience" tease as "a comeback hook." What remained was a
+  vitamin on a painkiller's home screen, and a share whose message was the
+  product rather than a conversation — the inverse of `docs/PRODUCT.md` §9's
+  rule that the words travel and the product is the footnote. `docs/PRODUCT.md`
+  §0 had kept it as "a reflection worth reading"; that line moved with it.
+  Gone with `src/data/daily.ts` and `src/lib/personalize.ts`, which nothing
+  else used.
 - **`alignment()` has one production caller** — the sample screen. Two hundred
   lines of matching engine whose only consumer is a demo of an invented person.
   Not wrong: it is the designed-not-built marketplace, waiting for a room.
@@ -168,23 +179,37 @@ invented people by name."* One of five voices; A3 governs the guide as a whole.
 
 ## Missed opportunities
 
-- **The eleven, alone, for the preparing person.** *"I don't know my own answer
-  yet"* is already a valid state and the `OWN_ANSWER_FIRST` script already
-  exists: *"You can't ask for an answer you don't have yourself."* A woman not
-  talking to anyone could learn her own answers on money home and a second
-  wife before there is anyone to ask — finding out at the earliest possible
-  moment there is. Today `preparing` is routed to the map alone. *Rule: offer
-  both; if `rungs.eleven` among preparing arrivals passes `rungs.mapped` within
-  eight weeks, the eleven becomes the first door for everyone.*
-- **The three marriage-breakers belong in the map, not behind a demo.** Today
-  they are answered on a screen about a fake person, as a "sharpen this read"
-  aside. Covered by the intake rule above.
+- **The eleven, alone, for the preparing person — declined, and delivered
+  another way.** The idea: *"I don't know my own answer yet"* is already a
+  state, so a woman not talking to anyone could learn her own answers on
+  money home and a second wife before there is anyone to ask. Declined as a
+  separate instrument: every question in the eleven is framed *"have the two of
+  you talked about this?"*, which a person with no "two" cannot answer, and a
+  second framing of the same eleven would be a new instrument, not a routing
+  change. What it was *for* is delivered by the intake decision above — she
+  now gives her own answers on the three highest-consequence topics inside
+  the map she is already routed to — and by one more wiring: the eleven now
+  shows *"You told your map…"* beside "Where you'd live", "Whether you'd work"
+  and "Money sent home", so six of the eleven carry her side instead of three.
+  When she does the eleven with him, her own answer is already on the screen.
+- **The three marriage-breakers belonged in the map, not behind a demo.** Done,
+  above.
 
 ## What this pass changed
 
 - `src/components/Welcome.tsx` — the lead promises the routing, not the map; the
   pull-quote beneath it ("the one place you're thinnest is two minutes away")
   becomes the one thing every instrument ends in — the thing to say next.
+- `src/data/intake.ts` — `household`, `work`, `money-home` move into chapter
+  two; thirteen becomes sixteen. `src/data/beforeYes.ts` — those three topics
+  now show her side from the map. `src/lib/reflection.ts` — a snapshot carries
+  them, so the next reading can say whose house changed.
+- `src/components/Home.tsx` — TodaysReflection removed, with `src/data/daily.ts`
+  and `src/lib/personalize.ts`; `Philosophy.tsx`'s lexicon entry for "Your
+  space" no longer promises "a thought worth carrying."
+- "Readiness map" → "your map": `Reflection.tsx`, `Hook.tsx`, `Philosophy.tsx`,
+  `data/hook.ts`, `lib/coach.ts`, `docs/STRATEGY.md`, `README.md`.
+- `src/data/coach.ts` — the Matchmaker's greeting.
 - `src/components/Coach.tsx`, `src/lib/coach.ts` — five, not six.
 - `src/data/vouch.ts`, `src/components/Vouch.tsx` — neutral relationship labels.
 - `docs/STRATEGY.md` — the epigraph, and a pointer here; `docs/PRODUCT.md` — a
@@ -199,3 +224,7 @@ decision that changed it._
 - 2026-09-08 — First pass. Welcome's lead moved from weak to aligned; two bugs
   fixed; the intake, the Matchmaker voice, TodaysReflection and the eleven for
   the preparing person recorded as decisions with rules, not as changes.
+- 2026-09-08 — The four calls made, same day. Intake: weak → strengthened (the
+  three moved in; sixteen). TodaysReflection: distraction → removed. "Readiness"
+  renamed; the Matchmaker re-aimed. The solo eleven declined and its purpose
+  delivered through the map and six "your side" lines.
