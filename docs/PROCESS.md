@@ -214,3 +214,4 @@ _Dated, one line each: what changed about how work happens here, and why._
 
 - 2026-09-07 — The roadmap table gains its first row from a whole-machine read rather than a feature list: `docs/MACHINE.md` maps the thirteen stages, names the weakest link, and the plan for it takes the top slot.
 - 2026-09-07 — A fourth axis, **Durable**, after `docs/DURABLE.md`: an item that needs a supplier to exist is scored on what is left without one. The roadmap was reordered by it, and "live Claude behind the map" was declined outright rather than deferred.
+- 2026-09-08 — `docs/NORTHSTAR.md`: the problem, purpose and North Star stated once, and every screen given a verdict against them. The release review's first question is now the North Star's two: *does this help someone find out earlier, and does it end in something they can say?*

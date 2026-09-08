@@ -43,7 +43,7 @@ export default function Vouch({ code, onDone }: Props) {
     }
   }, [code])
 
-  const options = relationshipOptions('woman')
+  const options = relationshipOptions()
   const ready = !!relationship && firstName.trim().length > 0 && sentence.trim().length > 0
 
   async function submit(e: React.FormEvent) {

@@ -4,6 +4,9 @@
 > something about marriage actually *moves* — and to make sure the product is
 > paid, measured and designed so that its interest and the member's never point
 > in different directions.
+>
+> The one-sentence version of everything here — the problem, the purpose, the
+> North Star, and every screen held against them — is `docs/NORTHSTAR.md`.
 
 ## 0. The hard question: "Why would anyone open this?"
 
@@ -30,8 +33,9 @@ both and nothing else:
 | **Since last time** | The follow-up card on Home | "We talked" / "not yet" / "it went differently" — and the record moves |
 
 Everything else on Home is quiet: the work card (one thing from the map), the
-stage band (where she is, changed only by her), a reflection worth reading, and
-the doors to the instruments for her stage.
+stage band (where she is, changed only by her), and the doors to the
+instruments for her stage. A daily reflection card used to sit here too; it did
+no North Star work and it went (`docs/NORTHSTAR.md`).
 
 ## 1. The instruments, and what each one is for
 
@@ -52,7 +56,7 @@ Nothing above is a feed, a score, or a ritual. Each ends in an act in the world.
 ## 2. Onboarding & activation
 
 **Current funnel:** Welcome → identity → *what's happening right now* → the
-instrument for that stage. Preparing goes to the hook and the thirteen-question
+instrument for that stage. Preparing goes to the hook and the sixteen-question
 map. Talking goes straight to the read. Deciding goes to the eleven. Married
 goes to the guide.
 

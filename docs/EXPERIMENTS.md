@@ -32,7 +32,9 @@
   months, once the first group link is posted.
 - **DECISION RULE.** Read completion under 60% → shorten the read before doing
   anything else with it. Intake completion under 50% → cut the map to one
-  chapter and re-measure. Couple completion under 50% → the eleven is too long
+  chapter and re-measure — and since `docs/NORTHSTAR.md` moved the three
+  "how you'd live" questions in (thirteen became sixteen), the one chapter
+  kept is the one with them in it: this rule is what polices that change. Couple completion under 50% → the eleven is too long
   for a man arriving cold, and the two-sided flow is what to fix, not the
   channel. Above those, length is not the constraint and must not be optimised
   further; the counter-metric is `followed-through` per hundred `arrived`,

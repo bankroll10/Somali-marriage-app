@@ -47,7 +47,7 @@ You can honour your family and still move at your own pace. Niyyah is built for 
     insight: (name) =>
       `${name ? `${name}, t` : 'T'}hat carefulness you carry isn’t a flaw — it’s what honest love looks like after it’s been let down. The goal isn’t to tear the wall down overnight. It’s to let the right person earn their way through it, slowly.
 
-That’s why Niyyah starts with readiness, not profiles. Your map will meet your heart where it actually is — and your guide will be there for the wobbly moments.`,
+That’s why Niyyah starts with where you actually are, not with a profile. Your map will meet your heart where it actually is — and your guide will be there for the wobbly moments.`,
   },
   {
     id: 'finding',
@@ -65,7 +65,7 @@ Niyyah is a different room — one that only opens when enough serious people ar
     insight: (name) =>
       `${name ? `${name}, a` : 'A'}sking that question honestly already puts you ahead of most people who are out there swiping. Readiness isn’t a feeling you wait for — it’s a handful of things you can actually look at: your intention, your heart’s patterns, what you need, what you won’t compromise.
 
-That’s literally what we do next. Your readiness map will show you where you stand — clearly, kindly, and just for you.`,
+That’s literally what we do next. Your map will show you where you stand — clearly, kindly, and just for you.`,
   },
 ]
 

@@ -494,8 +494,10 @@ export function snapshotOf(answers: Answers, date: string): MapSnapshot {
   const r = buildReflection(answers)
   const grounds: Partial<Record<Dimension, GroundState>> = {}
   for (const d of r.dimensions) grounds[d.dimension] = d.state
-  // Only the map's own answers — the hook and how-you'd-live are asked elsewhere
-  // and are not what a reading measures.
+  // Only the map's own answers — the hook is asked before the map and is not
+  // part of it. How you'd live used to be excluded here too; it is in chapter
+  // two now (docs/NORTHSTAR.md), so whose house she pictures is something the
+  // next reading can say has changed.
   const own: Answers = {}
   for (const q of allQuestions) if (answers[q.id] !== undefined) own[q.id] = answers[q.id]
   return { date, headline: r.headline, grounds, answers: own }

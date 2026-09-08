@@ -29,6 +29,9 @@ const READ_ELSEWHERE = [
   'value-most', // matching, core values
   'dealbreakers', // non-negotiables, Guide
   'attachment', // Guide (therapist voice)
+  'household', // matching; Before you say yes shows her side
+  'work', // matching; Before you say yes shows her side
+  'money-home', // matching; Before you say yes shows her side
   'pattern', // the honest mirror
   'working-on', // the honest mirror, in their own words
 ]
@@ -40,9 +43,11 @@ function canScore(q: (typeof allQuestions)[number]): boolean {
 
 describe('the intake — short enough to finish, complete enough to read', () => {
   it('stays short — the first testers did not finish 23', () => {
-    // Raising this is a product decision that needs new evidence, not a
-    // question that felt too good to leave out.
-    expect(totalQuestions).toBeLessThanOrEqual(13)
+    // Thirteen, then sixteen when the three "how you'd live" questions moved
+    // in from Profile (docs/NORTHSTAR.md). Raising it again is a product
+    // decision that needs A1's completion rate, not a question that felt too
+    // good to leave out.
+    expect(totalQuestions).toBeLessThanOrEqual(16)
     expect(chapters.length).toBeLessThanOrEqual(3)
   })
 

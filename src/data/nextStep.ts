@@ -1,7 +1,7 @@
 import type { Dimension, ModeId, StepRecord } from '../types'
 
 /**
- * The bridge from diagnosis to practice — the working half of the readiness map.
+ * The bridge from diagnosis to practice — the working half of the map.
  *
  * A map that names your thinnest ground and stops there leaves a person exactly
  * as anxious as they arrived. So every dimension has ONE honest, doable thing —

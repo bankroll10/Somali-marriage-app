@@ -21,7 +21,7 @@ happens in a person's life, never by how long they spend on a screen.
 
 **The journey starts where she is.** Welcome → *who you are* → **"What's
 happening right now?"** → the instrument for that stage. Someone preparing gets
-the hook question and the thirteen-question map. Someone already talking to a
+the hook question and the sixteen-question map. Someone already talking to a
 man goes straight to the read. Someone deciding goes to the eleven. Someone
 married goes to the guide.
 
@@ -42,7 +42,7 @@ married goes to the guide.
 - **The words for your family** — telling your wali you met him online, the
   first conversation with hooyo, asking him to send his people, opening mahr,
   ending it kindly.
-- **The readiness map** — thirteen questions in three chapters. Seven grounds,
+- **The map** — sixteen questions in three chapters. Seven grounds,
   each named in a word — *thin*, *steady*, *strong* — with a note written from
   her actual answers, her non-negotiables, the honest mirror, and **one thing
   to do this week** from her thinnest ground. There is no number: a score on
@@ -78,7 +78,7 @@ check-in, streak, milestone or comeback nudge. No visible reply counter and no
 
 ```
 src/
-  data/intake.ts       The map's schema — thirteen questions, three chapters, plus how-you'd-live
+  data/intake.ts       The map's schema — sixteen questions in three chapters, the three how-you'd-live
   data/read.ts         The read — eleven behavioural questions, scripts, pronoun voices
   data/beforeYes.ts    The eleven conversations, each with its script
   data/families.ts     The words for your family
@@ -124,6 +124,7 @@ docs/FEEDBACK.md       What real people have said, one conversation at a time �
 docs/MACHINE.md        The thirteen stages as this product builds them, every transition's metric and failure, the weakest link, and the plan for it
 docs/BETS.md           Twenty asymmetric bets, scored on upside, cost, reversibility, confidence and learning — and the one that got built
 docs/DURABLE.md        What survives if the AI hype, the app fashions and the platforms all disappear — durable value, temporary novelty, trend-dependent, and the rule that keeps a supplier out of the core
+docs/NORTHSTAR.md      The problem, the purpose and the North Star in one sentence each — and every screen held against them: core, weak, distraction, missed
 docs/OWNED.md          What we rent and what we produce, and the three moves from renter to owner — the address, the customer list, the constants' lineage
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures
