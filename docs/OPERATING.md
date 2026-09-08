@@ -60,7 +60,16 @@ curl -s -H "$K" $S/couple   | jq .     # how pairs come out on the eleven
 curl -s -H "$K" $S/vouch    | jq .     # the vouch: asks made, vouches given, and who in the family gave them
 curl -s -H "$K" $S/guide    | jq .     # the guide's health — one live call, so rarely
 curl -s -H "$K" $S/export   -o "backup-$(date +%F).json"   # the backup — save it
+netlify blobs:list contacts --json > "reach-$(date +%F).json"   # the customer list — save it too
 ```
+
+**Save both files every time.** The backup is the only copy of the learning
+record that exists outside one vendor's storage, and `reach-<date>.json` is the
+only copy of how to reach the people waiting for a pool. The second one comes
+from the store rather than an endpoint on purpose: nothing this product serves
+will ever return a member's contact (`docs/OWNED.md`), so the founder's own
+credentials are the only key to it. Use `netlify blobs:get contacts <code>` to
+read one.
 
 **Save the backup every time.** It is the last line of the monthly hour, and
 it is the only copy of the learning record that exists outside one vendor's

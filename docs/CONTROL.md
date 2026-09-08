@@ -30,9 +30,9 @@ which the company can end.
 
 | # | Dependency | If pricing doubles | If access disappears | If policy changes | Can we migrate? | Own the customer? | Own the asset? |
 |---|---|---|---|---|---|---|---|
-| **1** | **The hostname** | Free, so no | **Every link ever sent dies and cannot be redirected** — the vouch link a father opened, the couple link a man answered, every restore link, the footer of every share card | A subdomain is theirs to reclaim or rename | Forward only. New links carry a new name; the ones already in people's messages cannot be saved | — | **No. The address is Netlify's** |
-| **2** | **Blobs — six stores** | Free-tier limits, not prices; exceeding them degrades quietly | **Every kept map, vouch, pair sheet, door entry and the whole learning record, gone** | A free account can be suspended on an acceptable-use reading of a marriage app with member content | The surface is get, set, delete, list and one conditional write. A few hundred lines — but there is nothing to migrate if the data is already gone | — | The data yes. **A copy: now yes** |
-| **3** | **Forms — the only customer list** | n/a | **The only way to reach any member, gone.** No code reads it back; recovery is a dashboard CSV | Retention is theirs | The transport is already portable — `VITE_WAITLIST_URL` posts to any endpoint. The existing rows are not | **No. Netlify holds it** | No |
+| **1** | **The hostname** | Free, so no | Links keep working: DNS repoints at any host on earth | Nothing to reclaim — the registration is ours | Yes. The address moves with us, which is the whole point of owning one | — | **Yes — `joinniyyah.com` is ours.** Was Netlify's; see below |
+| **2** | **Blobs — nine stores** | Free-tier limits, not prices; exceeding them degrades quietly | **Every kept map, vouch, pair sheet, door entry and the whole learning record, gone** | A free account can be suspended on an acceptable-use reading of a marriage app with member content | The surface is get, set, delete, list and one conditional write. A few hundred lines — but there is nothing to migrate if the data is already gone | — | The data yes. **A copy: now yes** |
+| **3** | **Forms — a second copy of the customer list** | n/a | Nothing that is not also in the `contacts` store, which is ours and is exported monthly | Retention is theirs | The transport is already portable — `VITE_WAITLIST_URL` posts to any endpoint | **Yes — since `docs/OWNED.md` move 2** | **Yes. A copy leaves every month** |
 | **4** | **Build and deploy** | n/a | The site cannot be rebuilt; the last deploy keeps serving | Build minutes can change | Yes — it is `npm run build`, a static `dist`, and handlers written against the web-standard `Request` | — | Yes, in git |
 | **5** | **The three secrets** | n/a | Both guards fail open, and now say so | **The free plan refuses to mark them secret**, so every key is plaintext to anyone on the team | Trivial | — | No |
 | **6** | **Google Fonts** | Free | Typography falls back; the share card's measurements change | Google saw the IP of every visitor | — | — | **Removed. The fonts are ours** |
@@ -76,32 +76,42 @@ with the code if the host ever changes.
 
 ## What only money can fix
 
-**Buy a domain. It is the highest-value item in this audit and it costs about
-a dollar a month.** Everything else here is a repair; this is the one thing
-that cannot be done in code.
+**Buy a domain.** This was the highest-value item in the audit and the one
+thing that could not be done in code. **It is done.** `joinniyyah.com` is
+registered, it is the site's primary URL, and `VITE_SITE_HOST` carries it in
+every context. The cutover, with what remains:
 
-Until then, every link this product has ever put in somebody's hands points at
-an address owned by a company that has no obligation to us. The code is now
-ready for the switch. The cutover, once a domain exists:
+1. ~~Buy it. Add it in Netlify under Domain management.~~ **Done.**
+2. ~~Point the DNS as Netlify instructs, and let the certificate issue.~~ **Done.**
+3. ~~Set `VITE_SITE_HOST` to the new host.~~ **Done** — and, since
+   `docs/OWNED.md`, the *default* in `src/lib/site.ts` and `vite.config.ts` is
+   the owned domain too, so a build that loses the variable still points home
+   rather than at the landlord. `tests/durable.test.ts` refuses a platform
+   subdomain as the default from here on.
+4. **Never release the `getniyyah.netlify.app` subdomain.** Netlify keeps
+   serving it and redirecting, and that is the only thing that keeps links
+   already sitting in people's messages alive. Still true, for ever.
+5. **Set up mail on the domain. This is the one step still open.**
+   `VITE_CONTACT_EMAIL` is a Gmail address today, and it reaches a human,
+   which is the part that matters most. What is still rented is the domain it
+   sits on: the public address of this business — printed on the Trust page,
+   offered as the fallback when a signup fails — lives on Google's name rather
+   than on ours, so it cannot be repointed or handed on. The code's default is
+   now `salaam@joinniyyah.com`; until a mailbox answers there, production must
+   keep the variable set. Forwarding the new address to the inbox that already
+   works is the whole migration.
 
-1. Buy it. Add it in Netlify under Domain management.
-2. Point the DNS as Netlify instructs, and let the certificate issue.
-3. Set `VITE_SITE_HOST` to the new host, and `VITE_CONTACT_EMAIL` to an
-   address on it that a person actually reads. Redeploy.
-4. **Never release the `getniyyah.netlify.app` subdomain.** Netlify will keep
-   serving it and redirecting to the new host, and that is the only thing that
-   keeps links already sitting in people's messages alive.
-5. Set up mail on the domain, so the contact address stops being a promise.
+**Then own the customer list. Done** — `docs/OWNED.md` move 2. Every join now
+writes the way to reach that person to a `contacts` store of our own, keyed by
+her code, and `docs/OPERATING.md`'s monthly hour exports it to a file beside
+the backup. Netlify Forms keeps running as a second copy, and its transport
+was already portable. What changed is that the list is no longer only theirs:
+if that account ended tomorrow, the people waiting for a pool could still be
+told it opened.
 
-Note the address in the code today, `salaam@niyyah.app`, is on a domain nobody
-here owns. It is the last fallback in `src/lib/waitlist.ts`, which means a
-person who tried to join when the form was down would be sent to an inbox that
-does not exist.
-
-**Then own the customer list.** The transport is already portable: set
-`VITE_WAITLIST_URL` and signups post to any endpoint. Until something is
-listening there, the only list is Netlify's — export it from the dashboard
-whenever it matters, and remember it is the one asset here with no copy.
+No endpoint returns a contact — not the door's tally, not the backup, which
+refuses member contact for the same reason. It is read in the store, with the
+founder's own credentials, exactly like the vouch sentence and phone.
 
 ## Considered and declined
 
