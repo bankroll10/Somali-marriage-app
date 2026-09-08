@@ -19,7 +19,7 @@ position, and a position can be moved.
 | **App stores** | **Not a dependency** | A web app. No 30% cut, no review queue, no morning when a marriage app for Muslims is pulled by someone who never spoke to this community |
 | **Advertising platforms** | **Not a dependency, by rule** | `docs/STRATEGY.md` forbids paid acquisition. A channel whose price is set by someone else and rises every year is the definition of renting demand |
 | **APIs** | **One, and it is the model** | There is no other outbound call. No maps API, no enrichment, no verification vendor, no analytics SDK |
-| **Third-party infrastructure** | **Rented — the real exposure** | Netlify holds the build, the functions, the Blobs (seven stores) and the form. `docs/CONTROL.md` ranks it; the backup (`netlify/functions/export.ts`) is the copy that makes the data ours |
+| **Third-party infrastructure** | **Rented — the real exposure** | Netlify holds the build, the functions, the Blobs (nine stores) and the form. `docs/CONTROL.md` ranks it; the backup (`netlify/functions/export.ts`) is the copy that makes the data ours |
 | **The address** | **Owned — as of this pass, in code too** | `joinniyyah.com` is registered to the founder. DNS repoints anywhere; a `netlify.app` subdomain cannot. Every link ever sent carries it |
 | **Generic matchmaking conventions** | **Rejected, and that is the product** | No photos, no swiping, no feed, no messaging, no desirability score, no engagement metric. Each refusal is in `docs/LEARNING.md` with its reason. What replaced them — the eleven, the seven grounds, the read, the vouch, the ledger, the honest door — is entirely ours |
 
@@ -87,7 +87,7 @@ cannot be handed to anyone else later. A mailbox on `joinniyyah.com` closes
 the last rented thing a member touches, and forwarding it to the inbox that
 already works means nothing changes for whoever is reading it.
 
-### 2 · The customer list
+### 2 · The customer list — **done in this pass**
 
 **Rented, and it is the only row in `docs/CONTROL.md` that answers "Own the
 customer?" with *no*.** Every member's email or phone lives in Netlify Forms
@@ -98,11 +98,12 @@ acceptable-use review reads badly — every person who ever trusted us with a
 way to reach them becomes unreachable, and the pool they were waiting for can
 never be told it opened.
 
-This is the highest-value move still available, and the one that must be made
-*early*: a list is only ever owned from the first member forward. There is no
-retroactive version.
+This was the highest-value move still available, and the one that had to be
+made *early*: a list is only ever owned from the first member forward. There
+is no retroactive version. **Built before the first member, which was the
+whole point.**
 
-**The foundation, designed here, to build next.**
+**What shipped, and why in this shape.**
 
 - A `contacts` store, keyed by the map code, holding the way to reach a person
   and nothing else — structurally identical to the `vouches` store, which
@@ -122,8 +123,19 @@ retroactive version.
   they always do. The sentence is easy because it is true: *we keep our own
   copy of how to reach you, so that a company we rent from cannot lose it.*
 - The transport stays portable regardless: `VITE_WAITLIST_URL` already posts a
-  signup to any endpoint. What is missing is not a road, it is a house at the
-  end of it.
+  signup to any endpoint, and Netlify Forms keeps running as a second copy.
+
+One thing was designed differently from the sketch above, and it matters. The
+sketch said the store should have "its own founder-gated route." It has **no
+route at all.** An endpoint that returns every member's email and phone is a
+honeypot behind a key that the free plan cannot even mark as secret, and
+`netlify/functions/export.ts` already refuses member contact for exactly that
+reason. The precedent to follow was `netlify/functions/vouch.ts`, which has
+held a family member's phone number since the day it was written and says of
+it: *read in the Blobs store, never on any endpoint.* So the founder reads it
+with her own credentials, and `docs/OPERATING.md`'s monthly hour writes it to
+a file beside the backup — which is what actually gets it off the platform,
+and therefore what actually makes it hers.
 
 ### 3 · The compatibility framework's lineage
 
@@ -191,3 +203,7 @@ _Dated, one line each: what moved from rented to owned, and what it cost._
   build missing the variable minted links pointing at it. Default moved, rule
   asserted in `tests/durable.test.ts`, `docs/CONTROL.md`'s cutover marked done
   except for mail.
+- 2026-09-08 — The customer list. A `contacts` store, written on every join,
+  read by no endpoint, exported monthly, deleted by forget-me. `docs/CONTROL.md`
+  row 3 answers "own the customer?" with yes for the first time. Built with
+  zero members, which is the only time it could have been built completely.

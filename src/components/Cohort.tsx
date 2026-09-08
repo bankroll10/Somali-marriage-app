@@ -212,6 +212,9 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
       reach,
       hook: hookId,
       ledger,
+      // Kept in a store of its own so the list of people waiting for a pool is
+      // ours, not a form provider's — see docs/OWNED.md.
+      contact: contact.trim(),
     })
     if (!result) {
       setState('error')
@@ -349,8 +352,10 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             you’d go, who you’re seeking, the hardest part you named, and which
             of the things on your Trust page you’ve done. Nothing about how your
             map read, and nothing about how you use the app. Your map is kept
-            under a code with no name on it, so it can be matched. Your answers
-            stay yours.
+            under a code with no name on it, so it can be matched. Your email or
+            phone is kept apart from all of it, with only your city beside it,
+            so we can tell you when your city opens — and it goes when you tap
+            forget. Your answers stay yours.
           </p>
         </form>
       ) : (

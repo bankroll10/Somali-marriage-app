@@ -112,9 +112,12 @@ describe('keeping a map', () => {
     stores.get('vouches')!.set('token/ACDEFGHJ', 'ACDEFG')
     stores.get('cohort')!.set('index/ACDEFG', 'ca/toronto/woman/city/serious/ACDEFG')
     stores.get('cohort')!.set('ca/toronto/woman/city/serious/ACDEFG', JSON.stringify({ at: 'd', ledger: [] }))
+    memStore('contacts')
+    stores.get('contacts')!.set('ACDEFG', JSON.stringify({ contact: 'sagal@example.com', scene: 'toronto', country: 'ca', at: 'd' }))
     // Someone else's things, which must survive.
     stores.get('couples')!.set('QRTWXY', JSON.stringify({ creator: 'man', first: {} }))
     stores.get('cohort')!.set('ca/toronto/man/city/serious/QRTWXY', JSON.stringify({ at: 'd', ledger: [] }))
+    stores.get('contacts')!.set('QRTWXY', JSON.stringify({ contact: 'other@example.com', scene: 'toronto', country: 'ca', at: 'd' }))
 
     const res = await forget('ACDEFG')
     expect(res.status).toBe(200)
@@ -123,6 +126,10 @@ describe('keeping a map', () => {
     expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
     expect([...stores.get('vouches')!.keys()]).toEqual([])
     expect([...stores.get('cohort')!.keys()]).toEqual(['ca/toronto/man/city/serious/QRTWXY'])
+    // The way to reach her goes with everything else — it used to need a person
+    // to delete it by hand. See docs/OWNED.md.
+    expect(stores.get('contacts')!.has('ACDEFG')).toBe(false)
+    expect(stores.get('contacts')!.has('QRTWXY')).toBe(true)
     expect(stores.get('couples')!.has('QRTWXY')).toBe(true)
     // Nothing left to forget.
     expect((await forget('ACDEFG')).status).toBe(404)

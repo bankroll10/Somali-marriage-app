@@ -136,11 +136,13 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               person, who you’re seeking, the hardest part you named, and which
               of the things above you’ve done — under that same code, with no
               name on it. Nothing about how your map read, and nothing about how
-              you use the app, goes anywhere. Your email or phone goes
-              separately to the founder, with the same city, country and how far
-              you’d go, so we can write to you when someone fits — or when the
-              people you’d travel for are counted; it is never stored next to
-              your answers.
+              you use the app, goes anywhere. Your email or phone is kept apart
+              from all of that, in a place of its own, with your city and
+              country beside it and nothing else — so we can write to you when
+              someone fits, or when the people you’d travel for are counted. It
+              is never stored next to your answers, and it is ours to hold
+              rather than a form company’s, which is what lets us delete it the
+              moment you ask.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Asking him to do the eleven too.</span>{' '}
@@ -238,8 +240,9 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             — then clears this phone. One thing stays: if he answered your eleven,
             your pair was already added to a count of how pairs come out, and that
             count carries no code, so it cannot be found again — not by us, not by
-            you. If you gave us an email or phone, tell us and a person deletes it by
-            hand. If you come back after this, you start as a stranger.
+            you. Your email or phone goes with the rest of it — it used to need a
+            person to delete it by hand, and now it does not. If you come back
+            after this, you start as a stranger.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             {forgetting === 'idle' && (

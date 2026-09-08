@@ -37,10 +37,32 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
  * lives under, and carries her country and city, who she is seeking, how far
  * she would go, her hardest part, and what she has done here. Nothing about
  * how her map read — a readiness number was an answer key — and nothing about
- * how she uses the app. The way to reach her is deliberately NOT stored here —
- * it goes to the founder's form, so that this store can be read and tallied
- * without ever holding contact details. The country is coarser than the city,
- * so docs/LEARNING.md's refusal of anything finer stands untouched.
+ * how she uses the app. The way to reach her is deliberately NOT in this
+ * store, so that it can be listed and tallied without ever holding contact
+ * details. The country is coarser than the city, so docs/LEARNING.md's refusal
+ * of anything finer stands untouched.
+ *
+ * ─── The `contacts` store ──────────────────────────────────────────────────
+ * The way to reach her is written here to a *separate* store, keyed by the
+ * same code, holding her contact and the city and country it belongs to and
+ * nothing else — strictly less than the founder's form already receives.
+ *
+ * Why it exists (docs/OWNED.md, move 2): until now the only copy of how to
+ * reach any member lived in Netlify Forms, which meant the answer to "own the
+ * customer?" was no. If that account ended, every person who ever trusted us
+ * with a way to reach them became unreachable and the pool they were waiting
+ * for could never be told it opened. A list is only ever owned from member one
+ * — there is no retroactive version — so this is written from the first join.
+ *
+ * **No endpoint ever returns it.** Not this function, not the founder's tally,
+ * not the backup in export.ts, which refuses member contact for exactly this
+ * reason. It is read the way the vouch sentence and phone are read: in the
+ * Blobs store, by the founder, with her own credentials — and exported to a
+ * file in the monthly hour, which is what makes it hers rather than a
+ * supplier's. tests/cohort-function.test.ts holds that line.
+ *
+ * It is deleted by forget-me, in the same breath as the map and the vouch, so
+ * "a person deletes it by hand" stopped being the promise on the Trust page.
  *
  * Key layout: `<country>/<scene>/<gender>/<reach>/<hook>/<code>`. Listing by
  * prefix is the only query Blobs offers, and with this layout every count the
@@ -54,8 +76,10 @@ export const COHORT_TARGET = 40
 
 /** Same alphabet and length as netlify/functions/keep.ts. */
 const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
-/** A code, a city, a country, a side, a reach, a hardest part and seven ledger ids is the largest thing anyone can send. */
-const MAX_BODY = 2_048
+/** A code, a city, a country, a side, a reach, a hardest part, seven ledger ids and a way to reach her is the largest thing anyone can send. */
+const MAX_BODY = 2_560
+/** An email or a phone number. Long enough for any real address, short enough that nothing else fits. */
+const MAX_CONTACT = 200
 /** A member key has exactly this many segments. Anything else is the index, or a key from before countries existed. */
 const SEGMENTS = 6
 /** Joins in one hour, from everyone. A circuit breaker, not a member limit — see netlify/shared/limit.ts. */
@@ -208,6 +232,7 @@ export default async function handler(req: Request) {
     gender?: string
     hook?: string
     ledger?: unknown
+    contact?: unknown
   }
   let raw: string
   try {
@@ -251,6 +276,11 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 
+  // Her own words, and the only free text this store's neighbour holds — so
+  // it is bounded and never parsed, only kept. Absent is fine: someone can be
+  // counted from a screen that never asked, and the join must not fail for it.
+  const contact = typeof body.contact === 'string' ? body.contact.trim().slice(0, MAX_CONTACT) : ''
+
   const ledger = Array.isArray(body.ledger)
     ? body.ledger.filter((v): v is string => typeof v === 'string' && LEDGER.has(v))
     : []
@@ -270,6 +300,18 @@ export default async function handler(req: Request) {
     if (previous && previous !== key) await store.delete(previous)
     await store.setJSON(key, record)
     await store.set(indexKey, key)
+
+    // The way to reach her, to its own store. After the count, and in its own
+    // try: being counted is what she asked for, and it must not fail because
+    // the list did. Joining again with a new address replaces the old one.
+    if (contact) {
+      try {
+        await getStore('contacts').setJSON(code, { contact, scene, country, at: day() })
+      } catch (err) {
+        console.error('[niyyah] cohort: contact write failed', err)
+      }
+    }
+
     return Response.json({ code, ...(await countPool(store, country, scene)) })
   } catch (err) {
     console.error('[niyyah] cohort: join failed', err)

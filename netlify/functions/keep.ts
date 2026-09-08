@@ -82,7 +82,7 @@ export default async function handler(req: Request) {
   // ── Forget ───────────────────────────────────────────────────────────────
   // Everything kept under her code, gone: the map, the eleven she sent him,
   // her family's vouch and the token that pointed at it, her place on the
-  // door. Possession of the code is the authority, exactly as it is for
+  // door, and the way to reach her. Possession of the code is the authority, exactly as it is for
   // restoring — and it is safe only because the vouch link no longer carries
   // the code. Asking twice is a quiet 404: there was nothing left to forget.
   // What cannot be undone is not here at all: a count with no code in it.
@@ -98,6 +98,7 @@ export default async function handler(req: Request) {
       const couples = getStore('couples')
       const vouches = getStore('vouches')
       const cohort = getStore('cohort')
+      const contacts = getStore('contacts')
 
       if (coupleCode.length === CODE_LENGTH) await couples.delete(coupleCode)
       const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
@@ -107,6 +108,9 @@ export default async function handler(req: Request) {
       const member = (await cohort.get(`index/${code}`, { type: 'text' })) as string | null
       if (member) await cohort.delete(member)
       await cohort.delete(`index/${code}`)
+      // The way to reach her, which used to be deleted by hand — see
+      // netlify/functions/cohort.ts and docs/OWNED.md.
+      await contacts.delete(code)
       await store.delete(code)
       return Response.json({ forgotten: true })
     } catch (err) {

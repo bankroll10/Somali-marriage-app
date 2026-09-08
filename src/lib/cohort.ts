@@ -47,6 +47,13 @@ export interface JoinInput {
   hook?: string
   /** What she has done here — see src/lib/ledger.ts. Goes with her place. */
   ledger?: string[]
+  /**
+   * How to reach her. Kept in its own store, never beside her answers and
+   * never returned by any endpoint — see netlify/functions/cohort.ts. Sent so
+   * that the list of people waiting for a pool is ours rather than a form
+   * provider's (docs/OWNED.md).
+   */
+  contact?: string
 }
 
 async function withTimeout(input: string, init: RequestInit = {}): Promise<Response | null> {

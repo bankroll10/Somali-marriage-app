@@ -49,7 +49,7 @@ loop in `docs/OPERATING.md`.
 | **1 · The device** | localStorage | Her answers and sheets, guide threads and the follow-ups it handed her, the advice line, the way to reach her, any name | Her | Nothing, unless she keeps her map |
 | **2 · The install code** | `progress` | Rungs, dated to the day; facts — grounds, read, eleven counts, conversations confirmed, ending, ended. Closed ids only | Founder, as distributions never records | **Not by key.** Not by name. See *honest limits* below |
 | **3 · No code at all** | `tallies` | How pairs come out on the eleven | Founder | Nothing — there is no id |
-| **4 · Human-read** | `vouches` sentence and phone; the waitlist form; *(designed)* the introductions record | What a human matchmaker needs — who vouched, how to reach her, who was introduced to whom | Founder, by hand — and, for the vouch store alone, a founder-gated tally that counts asks and vouches and returns no sentence, phone, name or code (`docs/BETS.md` B1) | The map code, because you cannot introduce two people without knowing who they are. **Never fed to learning**, which reads only a stripped tally |
+| **4 · Human-read** | `vouches` sentence and phone; **`contacts` — the way to reach her, with her city**; the waitlist form; *(designed)* the introductions record | What a human matchmaker needs — who vouched, how to reach her, who was introduced to whom | Founder, in the store, with her own credentials. **No endpoint returns any of it** — not the tallies, not the backup. The one exception is a founder-gated count of vouch *asks and gives*, which returns no sentence, phone, name or code (`docs/BETS.md` B1) | The map code, because you cannot introduce two people without knowing who they are. **Never fed to learning**, which reads only a stripped tally |
 
 The kept map sits in Tier 1 by her choice: she keeps it, under a code
 registered to nobody, and it holds what brings her back — and not her contact,
@@ -92,7 +92,7 @@ add it":
 - **Inferred traits.** No personality from text, no sentiment, no embedding of a person
 - **Anything from the guide.** Threads and the follow-ups it hands her are Tier 1
 - **Precise time.** Every stored date is a day — `netlify/shared/day.ts`
-- **Her contact next to her answers.** The way to reach her goes to the founder's form alone
+- **Her contact next to her answers.** The way to reach her lives in the `contacts` store, keyed by her code, with her city and country beside it and nothing else — never in the store that gets listed and tallied, never returned by any route, and deleted by forget-me rather than by hand. It is kept at all so that the list of people waiting for a pool belongs to Niyyah rather than to a form provider (`docs/OWNED.md`)
 - **Decision latency, A/B assignment, push tokens, profile completeness, matches per member** — the year-two temptations, refused in advance
 - **How often, how far, or how long.** `began` says *that* a questionnaire was started, once, for ever — never how many times it was opened, how far through she got, or how long she stayed. It is a set with a union merge precisely so a counter cannot be derived from it, and it must never be widened into one (`docs/EXPERIMENTS.md`)
 

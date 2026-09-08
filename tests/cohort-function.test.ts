@@ -268,3 +268,65 @@ describe('the body', () => {
     expect((await raw('{not json')).status).toBe(400)
   })
 })
+
+/**
+ * The way to reach her — docs/OWNED.md move 2.
+ *
+ * Until this existed, the only copy of any member's contact lived in Netlify
+ * Forms, which is what made "own the customer?" a no in docs/CONTROL.md. What
+ * matters structurally is that it is written to a store of its own, that it
+ * never comes back through any route, and that being counted still works when
+ * nobody gave one.
+ */
+describe('the way to reach her', () => {
+  const contacts = () => stores.get('contacts') ?? new Map<string, string>()
+  const join = (extra: Record<string, unknown> = {}) =>
+    post({ code: 'ACDEFG', scene: 'toronto', gender: 'woman', hook: 'serious', ...extra })
+
+  it('is kept in its own store, under her code, with her city and nothing else', async () => {
+    expect((await join({ contact: '  sagal@example.com  ' })).status).toBe(200)
+    const record = JSON.parse(contacts().get('ACDEFG')!)
+    expect(record.contact).toBe('sagal@example.com')
+    expect(record.scene).toBe('toronto')
+    expect(record.country).toBe('ca')
+    // No side, no hardest part, no ledger — the tally store already has those,
+    // and they have no business sitting beside a way to reach someone.
+    expect(Object.keys(record).sort()).toEqual(['at', 'contact', 'country', 'scene'])
+  })
+
+  it('never touches the store that gets listed and tallied', async () => {
+    await join({ contact: 'sagal@example.com' })
+    expect(JSON.stringify([...stores.get('cohort')!.entries()])).not.toContain('sagal@example.com')
+  })
+
+  it('counts her anyway when she gives none — a screen may not have asked', async () => {
+    expect((await join()).status).toBe(200)
+    expect(contacts().size).toBe(0)
+    expect(keys()).toEqual(['ca/toronto/woman/city/serious/ACDEFG'])
+  })
+
+  it('replaces the old address when she joins again, rather than keeping both', async () => {
+    await join({ contact: 'old@example.com' })
+    await join({ contact: 'new@example.com' })
+    expect(contacts().size).toBe(1)
+    expect(JSON.parse(contacts().get('ACDEFG')!).contact).toBe('new@example.com')
+  })
+
+  it('is bounded, and never parsed', async () => {
+    await join({ contact: 'x'.repeat(500) })
+    expect(JSON.parse(contacts().get('ACDEFG')!).contact.length).toBe(200)
+    // Not a string is simply no contact, not a bad request.
+    await post({ code: 'HJKMNP', scene: 'toronto', gender: 'man', contact: { evil: true } })
+    expect(contacts().has('HJKMNP')).toBe(false)
+  })
+
+  it('comes back through no route at all — not the count, not the founder’s tally', async () => {
+    await join({ contact: 'sagal@example.com' })
+    const public_ = JSON.stringify(await (await count('toronto', 'ca')).json())
+    const founder = JSON.stringify(await (await tallyReq()).json())
+    for (const body of [public_, founder]) {
+      expect(body).not.toContain('sagal@example.com')
+      expect(body).not.toContain('contact')
+    }
+  })
+})

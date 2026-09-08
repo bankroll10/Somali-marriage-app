@@ -31,8 +31,8 @@ which the company can end.
 | # | Dependency | If pricing doubles | If access disappears | If policy changes | Can we migrate? | Own the customer? | Own the asset? |
 |---|---|---|---|---|---|---|---|
 | **1** | **The hostname** | Free, so no | Links keep working: DNS repoints at any host on earth | Nothing to reclaim — the registration is ours | Yes. The address moves with us, which is the whole point of owning one | — | **Yes — `joinniyyah.com` is ours.** Was Netlify's; see below |
-| **2** | **Blobs — six stores** | Free-tier limits, not prices; exceeding them degrades quietly | **Every kept map, vouch, pair sheet, door entry and the whole learning record, gone** | A free account can be suspended on an acceptable-use reading of a marriage app with member content | The surface is get, set, delete, list and one conditional write. A few hundred lines — but there is nothing to migrate if the data is already gone | — | The data yes. **A copy: now yes** |
-| **3** | **Forms — the only customer list** | n/a | **The only way to reach any member, gone.** No code reads it back; recovery is a dashboard CSV | Retention is theirs | The transport is already portable — `VITE_WAITLIST_URL` posts to any endpoint. The existing rows are not | **No. Netlify holds it** | No |
+| **2** | **Blobs — nine stores** | Free-tier limits, not prices; exceeding them degrades quietly | **Every kept map, vouch, pair sheet, door entry and the whole learning record, gone** | A free account can be suspended on an acceptable-use reading of a marriage app with member content | The surface is get, set, delete, list and one conditional write. A few hundred lines — but there is nothing to migrate if the data is already gone | — | The data yes. **A copy: now yes** |
+| **3** | **Forms — a second copy of the customer list** | n/a | Nothing that is not also in the `contacts` store, which is ours and is exported monthly | Retention is theirs | The transport is already portable — `VITE_WAITLIST_URL` posts to any endpoint | **Yes — since `docs/OWNED.md` move 2** | **Yes. A copy leaves every month** |
 | **4** | **Build and deploy** | n/a | The site cannot be rebuilt; the last deploy keeps serving | Build minutes can change | Yes — it is `npm run build`, a static `dist`, and handlers written against the web-standard `Request` | — | Yes, in git |
 | **5** | **The three secrets** | n/a | Both guards fail open, and now say so | **The free plan refuses to mark them secret**, so every key is plaintext to anyone on the team | Trivial | — | No |
 | **6** | **Google Fonts** | Free | Typography falls back; the share card's measurements change | Google saw the IP of every visitor | — | — | **Removed. The fonts are ours** |
@@ -101,12 +101,17 @@ every context. The cutover, with what remains:
    keep the variable set. Forwarding the new address to the inbox that already
    works is the whole migration.
 
-**Then own the customer list.** The transport is already portable: set
-`VITE_WAITLIST_URL` and signups post to any endpoint. Until something is
-listening there, the only list is Netlify's — export it from the dashboard
-whenever it matters, and remember it is the one asset here with no copy. This
-is the second of `docs/OWNED.md`'s three moves, and the foundation is designed
-there.
+**Then own the customer list. Done** — `docs/OWNED.md` move 2. Every join now
+writes the way to reach that person to a `contacts` store of our own, keyed by
+her code, and `docs/OPERATING.md`'s monthly hour exports it to a file beside
+the backup. Netlify Forms keeps running as a second copy, and its transport
+was already portable. What changed is that the list is no longer only theirs:
+if that account ended tomorrow, the people waiting for a pool could still be
+told it opened.
+
+No endpoint returns a contact — not the door's tally, not the backup, which
+refuses member contact for the same reason. It is read in the store, with the
+founder's own credentials, exactly like the vouch sentence and phone.
 
 ## Considered and declined
 
