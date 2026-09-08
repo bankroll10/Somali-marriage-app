@@ -34,6 +34,23 @@ const MAX_BODY = 128_000
  * circuit breaker, not a member limit — see netlify/shared/limit.ts.
  */
 const DEFAULT_HOURLY_CAP = 300
+/**
+ * Restores and forgets in one hour, from everyone.
+ *
+ * These are reads, and until now nothing bounded them — every cap in this
+ * product was on a write. That was backwards. A six-character code is the
+ * *sole* authenticator for a kept map and it carries about 27 bits, so an
+ * unmetered GET is an enumeration surface: at a hundred requests a second
+ * against fifty thousand members, a stranger's whole map roughly every thirty
+ * seconds. And DELETE is worse than a read — possession of the code is the
+ * authority, so an unmetered DELETE is a destruction primitive that cascades
+ * across five stores and takes the *other* person's couple record with it.
+ *
+ * Higher than the write cap because a real member restores more often than she
+ * keeps, and because being unable to open your own map is a bad hour. It is a
+ * circuit breaker on a script, not a limit on a person.
+ */
+const DEFAULT_READ_CAP = 600
 
 export interface KeptMap {
   /** Everything the app needs to restore her, as written by lib/storage.ts. */
@@ -52,6 +69,8 @@ export default async function handler(req: Request) {
     if (code.length !== CODE_LENGTH) {
       return Response.json({ error: 'bad_code' }, { status: 400 })
     }
+    // Bounded, after validation: a wrong-shaped code spends nothing.
+    if (await overHourlyCap('restore', DEFAULT_READ_CAP)) return rateLimited()
     try {
       const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
       if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
@@ -76,6 +95,8 @@ export default async function handler(req: Request) {
   if (req.method === 'DELETE') {
     const code = normalise(new URL(req.url).searchParams.get('code') ?? '')
     if (code.length !== CODE_LENGTH) return Response.json({ error: 'bad_code' }, { status: 400 })
+    // Bounded like the restore above, and for a sharper reason: this deletes.
+    if (await overHourlyCap('forget', DEFAULT_READ_CAP)) return rateLimited()
     try {
       const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
       if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })

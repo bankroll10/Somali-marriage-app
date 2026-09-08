@@ -84,6 +84,8 @@ const MAX_CONTACT = 200
 const SEGMENTS = 6
 /** Joins in one hour, from everyone. A circuit breaker, not a member limit — see netlify/shared/limit.ts. */
 const DEFAULT_HOURLY_CAP = 200
+/** Door counts read in one hour, from everyone — the read cap, per keep.ts. */
+const DEFAULT_READ_CAP = 600
 
 export interface CohortRecord {
   at: string
@@ -212,6 +214,10 @@ export default async function handler(req: Request) {
       if (!SCENES.has(scene)) return Response.json({ error: 'bad_scene' }, { status: 400 })
       const country = countryOf(scene, params.get('country'))
       if (!country) return Response.json({ error: 'bad_country' }, { status: 400 })
+      // The one public route that walks a whole prefix of the store on every
+      // call. Every other O(n) read here is behind the founder key; this one
+      // is open by design, because the count is the promise. So it is bounded.
+      if (await overHourlyCap('door', DEFAULT_READ_CAP)) return rateLimited()
       return Response.json(await countPool(store, country, scene))
     } catch (err) {
       console.error('[niyyah] cohort: count failed', err)

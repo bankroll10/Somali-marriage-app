@@ -39,6 +39,8 @@ const MAX_BODY = 8_000
 const TALLY_KEY = 'joint'
 /** Conditional writes lose a race now and then; three tries is plenty at any scale we will see. */
 const TALLY_ATTEMPTS = 3
+/** Joints read back in one hour, from everyone — the read cap, per keep.ts. */
+const DEFAULT_READ_CAP = 600
 /**
  * Elevens started in one hour, from everyone. Only the first side is capped:
  * his answer is bounded by the links that exist, and refusing it would waste
@@ -151,6 +153,10 @@ export default async function handler(req: Request) {
     }
     const code = normalise(params.get('code'))
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    // Bounded: a couple code is six characters and reading one back returns
+    // the joint. See the read cap in netlify/functions/keep.ts for why reads
+    // needed one at all.
+    if (await overHourlyCap('couple-read', DEFAULT_READ_CAP)) return rateLimited()
     try {
       const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
       if (!record) return Response.json({ error: 'not_found' }, { status: 404 })
