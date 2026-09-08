@@ -100,7 +100,11 @@ once it has been.
 Two things are unavoidably still founder labor, and both are named here on
 purpose rather than quietly automated away:
 
-- **Acting on a report is a human decision.** This product has no accounts,
+- **Acting on a report is a human decision** — still true, and now recorded.
+  Since `docs/HARD.md`, resolving one names an outcome from a closed list and
+  leaves a stub behind, so "it is acted on" has evidence rather than a promise
+  in front of it. What the founder can honestly do is unchanged: this product
+  has no accounts,
   so there is no "ban" button that means anything — the only real levers are
   social ones: a call to the vouching family, a word to whoever runs the
   city once a matchmaker exists, a refusal to introduce someone again. That
