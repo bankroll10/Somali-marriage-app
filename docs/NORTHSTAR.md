@@ -70,7 +70,7 @@ help someone find out earlier?* — and *does it end in something they can say?*
 | **Coach** (the guide) | Aligned | Closes, remembers outcomes, budgeted by progress. Auntie and Brother are moment-driven; the Matchmaker now says plainly there is nobody to introduce yet |
 | **Plus** | Aligned | No tiers, no prices, no buy button. A promise page: "We never earn more because you're having a hard night" |
 | **Philosophy** | Tolerated | A stance page reached only by "Why we're different." The lexicon earns its place |
-| **SampleIntroduction** | Tolerated | One invented person, said to be invented four times. "Sharpen this read" now edits answers she first gave in the map |
+| **SampleIntroduction** | Tolerated — **moved off Home** | One invented person, said to be invented four times. "Sharpen this read" now edits answers she first gave in the map. `docs/ROADMAP.md`'s Fastlane audit took its Home card: it satisfies no need the visitor arrived with, records nothing, and offered an invented person from the home screen of a product whose difference is refusing to fake a room. It lives on Profile, beside the things it demonstrates |
 | **TodaysReflection** (`home/`) | **Removed** | See below |
 | **KeepMap / RestoreMap** | Infrastructure | Aligned by being invisible |
 
