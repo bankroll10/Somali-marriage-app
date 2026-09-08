@@ -175,3 +175,43 @@ describe('every public write is bounded', () => {
     }
   })
 })
+
+/**
+ * Reads and deletes are bounded too.
+ *
+ * Every cap in this product used to be on a write, which was backwards: a
+ * six-character code is the sole authenticator for a kept map, so an unmetered
+ * GET is an enumeration surface over a 27-bit secret, and an unmetered DELETE
+ * is a destruction primitive that cascades across five stores. See the read cap
+ * in netlify/functions/keep.ts.
+ */
+describe('the read and delete paths are bounded', () => {
+  it('restoring a map spends the restore bucket, not the keep bucket', async () => {
+    vi.stubEnv('RESTORE_HOURLY_CAP', '1')
+    const { default: keep } = await import('../netlify/functions/keep')
+    const url = 'http://x/.netlify/functions/keep?code=ACDEFG'
+    expect((await keep(new Request(url))).status).toBe(200)
+    expect((await keep(new Request(url))).status).toBe(503)
+    // Keeping is a different bucket and is untouched by the flood above.
+    const kept = await keep(
+      new Request('http://x/.netlify/functions/keep', { method: 'POST', body: JSON.stringify({ snapshot: { a: 1 } }) }),
+    )
+    expect(kept.status).toBe(200)
+  })
+
+  it('forgetting spends its own bucket — the one that deletes', async () => {
+    vi.stubEnv('FORGET_HOURLY_CAP', '1')
+    const { default: keep } = await import('../netlify/functions/keep')
+    const url = 'http://x/.netlify/functions/keep?code=ACDEFG'
+    expect((await keep(new Request(url, { method: 'DELETE' }))).status).toBe(200)
+    expect((await keep(new Request(url, { method: 'DELETE' }))).status).toBe(503)
+  })
+
+  it('the public door count is bounded — it walks a whole prefix on every call', async () => {
+    vi.stubEnv('DOOR_HOURLY_CAP', '1')
+    const { default: cohort } = await import('../netlify/functions/cohort')
+    const url = 'http://x/.netlify/functions/cohort?scene=toronto'
+    expect((await cohort(new Request(url))).status).toBe(200)
+    expect((await cohort(new Request(url))).status).toBe(503)
+  })
+})

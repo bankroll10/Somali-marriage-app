@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { CODE_LENGTH, mint, normalise } from '../shared/code'
 import { day } from '../shared/day'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 
@@ -23,21 +24,33 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
  * about privacy is to hold as little as possible.
  */
 
-/**
- * Unambiguous over the phone and in a text message: no O/0, no I/1/l, no U/V.
- * She may well be reading this to a friend or typing it on a cracked screen.
- */
-const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
-const CODE_LENGTH = 6
-
 /** Keys expire after a year of not being touched — see `expiresAt` below. */
 const TTL_MS = 365 * 24 * 60 * 60 * 1000
+/** A whole map, generously. Checked against the raw body, before it is parsed. */
+const MAX_BODY = 128_000
 /**
  * Maps kept in one hour, from everyone. A loop against this route is the
  * cheapest way to spend a free plan's storage; this is what bounds it. A
  * circuit breaker, not a member limit — see netlify/shared/limit.ts.
  */
 const DEFAULT_HOURLY_CAP = 300
+/**
+ * Restores and forgets in one hour, from everyone.
+ *
+ * These are reads, and until now nothing bounded them — every cap in this
+ * product was on a write. That was backwards. A six-character code is the
+ * *sole* authenticator for a kept map and it carries about 27 bits, so an
+ * unmetered GET is an enumeration surface: at a hundred requests a second
+ * against fifty thousand members, a stranger's whole map roughly every thirty
+ * seconds. And DELETE is worse than a read — possession of the code is the
+ * authority, so an unmetered DELETE is a destruction primitive that cascades
+ * across five stores and takes the *other* person's couple record with it.
+ *
+ * Higher than the write cap because a real member restores more often than she
+ * keeps, and because being unable to open your own map is a bad hour. It is a
+ * circuit breaker on a script, not a limit on a person.
+ */
+const DEFAULT_READ_CAP = 600
 
 export interface KeptMap {
   /** Everything the app needs to restore her, as written by lib/storage.ts. */
@@ -46,16 +59,7 @@ export interface KeptMap {
   expiresAt: string
 }
 
-function newCode(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(CODE_LENGTH))
-  return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('')
-}
-
 /** Normalise what a human typed: case, spaces, and the dash people add. */
-function normalise(raw: string): string {
-  return raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
-}
-
 export default async function handler(req: Request) {
   const store = getStore('maps')
 
@@ -65,6 +69,8 @@ export default async function handler(req: Request) {
     if (code.length !== CODE_LENGTH) {
       return Response.json({ error: 'bad_code' }, { status: 400 })
     }
+    // Bounded, after validation: a wrong-shaped code spends nothing.
+    if (await overHourlyCap('restore', DEFAULT_READ_CAP)) return rateLimited()
     try {
       const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
       if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
@@ -89,6 +95,8 @@ export default async function handler(req: Request) {
   if (req.method === 'DELETE') {
     const code = normalise(new URL(req.url).searchParams.get('code') ?? '')
     if (code.length !== CODE_LENGTH) return Response.json({ error: 'bad_code' }, { status: 400 })
+    // Bounded like the restore above, and for a sharper reason: this deletes.
+    if (await overHourlyCap('forget', DEFAULT_READ_CAP)) return rateLimited()
     try {
       const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
       if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
@@ -99,6 +107,7 @@ export default async function handler(req: Request) {
       const vouches = getStore('vouches')
       const cohort = getStore('cohort')
       const contacts = getStore('contacts')
+      const reports = getStore('reports')
 
       if (coupleCode.length === CODE_LENGTH) await couples.delete(coupleCode)
       const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
@@ -111,6 +120,16 @@ export default async function handler(req: Request) {
       // The way to reach her, which used to be deleted by hand — see
       // netlify/functions/cohort.ts and docs/OWNED.md.
       await contacts.delete(code)
+      // Any report she filed. Trust promises deletion of everything, and this
+      // store holds the one free text in the product — her own words about
+      // what happened. It was the only store the cascade missed
+      // (docs/HARD.md). The couple record it points at is deleted just above,
+      // so a report left here would point at nothing anyway. Resolved stubs
+      // carry no code and nothing of hers, and stay.
+      if (coupleCode.length === CODE_LENGTH) {
+        const { blobs } = await reports.list({ prefix: `${coupleCode}-` })
+        for (const { key } of blobs) await reports.delete(key)
+      }
       await store.delete(code)
       return Response.json({ forgotten: true })
     } catch (err) {
@@ -124,9 +143,24 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
   }
 
+  // Measured before it is parsed, like every other function here. This one
+  // used to `req.json()` first and `JSON.stringify` the result back to check
+  // its size — so an arbitrarily large body was fully buffered and parsed
+  // before the guard that exists to refuse it ever ran, and every honest keep
+  // paid for a second full pass over the object.
+  let raw: string
+  try {
+    raw = await req.text()
+  } catch {
+    return Response.json({ error: 'bad_json' }, { status: 400 })
+  }
+  // A real map is a few kilobytes; anything far past that is a mistake or an
+  // attempt to use us as free storage.
+  if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
+
   let body: { snapshot?: unknown; code?: string }
   try {
-    body = (await req.json()) as { snapshot?: unknown; code?: string }
+    body = JSON.parse(raw) as { snapshot?: unknown; code?: string }
   } catch {
     return Response.json({ error: 'bad_json' }, { status: 400 })
   }
@@ -147,17 +181,10 @@ export default async function handler(req: Request) {
     )
   }
 
-  // A rough ceiling. A real map is a few kilobytes; anything far past that is a
-  // mistake or an attempt to use us as free storage.
-  const serialised = JSON.stringify(body.snapshot)
-  if (serialised.length > 128_000) {
-    return Response.json({ error: 'too_large' }, { status: 413 })
-  }
-
   // Re-keeping under the code she already has, so updating a map does not
   // hand her a second code to remember.
-  const code = body.code ? normalise(body.code) : newCode()
-  if (code.length !== CODE_LENGTH) {
+  const code = body.code ? normalise(body.code) : ''
+  if (body.code && code.length !== CODE_LENGTH) {
     return Response.json({ error: 'bad_code' }, { status: 400 })
   }
 
@@ -169,14 +196,26 @@ export default async function handler(req: Request) {
     // Re-keeping refreshes the year but keeps the day it was first kept. A
     // createdAt that moved on every save was a last-seen timestamp under
     // another name — an activity trace this store has no business holding.
-    const existing = body.code ? ((await store.get(code, { type: 'json' })) as KeptMap | null) : null
+    const existing = code ? ((await store.get(code, { type: 'json' })) as KeptMap | null) : null
     const kept: KeptMap = {
       snapshot: body.snapshot,
       createdAt: existing?.createdAt ?? day(now),
       expiresAt: day(now + TTL_MS),
     }
-    await store.setJSON(code, kept)
-    return Response.json({ code })
+    // Hers, under the code she gave: an ordinary write. A code nobody holds
+    // yet: minted with `onlyIfNew`, so a collision costs a retry instead of
+    // somebody's map — see netlify/shared/code.ts for why that is not
+    // theoretical.
+    if (code) {
+      await store.setJSON(code, kept)
+      return Response.json({ code })
+    }
+    const minted = await mint((c, v: KeptMap) => store.setJSON(c, v, { onlyIfNew: true }), kept)
+    if (!minted) {
+      console.error('[niyyah] keep: every minted code collided')
+      return Response.json({ error: 'unavailable' }, { status: 503 })
+    }
+    return Response.json({ code: minted })
   } catch (err) {
     // Storage is unavailable. The app keeps working exactly as it did before
     // this function existed — her map is still on her device — so this degrades

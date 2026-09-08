@@ -82,7 +82,10 @@ and stays there until behaviour or a member says otherwise.
 9. **The wrong seven non-negotiables.** *Test:* `ended.which['non-negotiable']`
    and `marriedBy.ended`; stated dealbreakers as a fact, at introductions.
 10. **The wrong taxonomy of harm.** *Test:* `safety` reasons, and `other`'s
-    share.
+    share — readable since `docs/HARD.md`, as `resolved.byReason` in the
+    `/safety` readout. Resolving a report used to delete it outright, which
+    made this test permanently uncomputable; what survives now is the kind of
+    harm and what was done about it, joined to nobody.
 
 ## The learning method
 

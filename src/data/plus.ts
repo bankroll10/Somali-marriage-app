@@ -46,7 +46,7 @@ export const freeForever: string[] = [
   'Asking him to answer the eleven on his own phone, and seeing where you match',
   'The family conversations — words for your wali, for hooyo, and for two families meeting',
   'Your family’s vouch, when they give it',
-  'Your privacy controls, and reporting or blocking anyone, instantly',
+  'Your privacy controls, and reporting anyone who is on the other side of your eleven',
   'Being introduced — and replying to anyone who is serious about you',
   `The guide — ${REPLIES_PER_STEP} replies for every step you take, and every follow-up you answer`,
 ]

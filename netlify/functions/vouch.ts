@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { CODE, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
 import { day } from '../shared/day'
 import { floor } from '../shared/floor'
 import { isFounder, notFounder } from '../shared/founder'
@@ -42,11 +43,6 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
  * the graph of them, and it should only ever grow.
  */
 
-const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
-const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
-/** Eight, never six: a token is not a code and cannot be mistaken for one. */
-const TOKEN = /^[ACDEFGHJKMNPQRTWXY34789]{8}$/
-const TOKEN_LENGTH = 8
 const RELATIONSHIPS = new Set(['father', 'brother', 'uncle', 'mother', 'aunt', 'other'])
 const MAX_BODY = 4_000
 /** Links minted and vouches given in one hour, from everyone. A circuit breaker — see netlify/shared/limit.ts. */
@@ -72,12 +68,9 @@ interface VouchPublic {
 const publicView = (r: VouchRecord): VouchPublic => ({ vouched: true, relationship: r.relationship, firstName: r.firstName })
 
 const clean = (s: unknown, max: number) => (typeof s === 'string' ? s.trim().slice(0, max) : '')
-const normalise = (s: unknown) => (typeof s === 'string' ? s.toUpperCase().replace(/[^A-Z0-9]/g, '') : '')
 
-function newToken(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(TOKEN_LENGTH))
-  return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('')
-}
+/** A vouch token, from the one generator — netlify/shared/code.ts. */
+const newToken = () => newCode(TOKEN_LENGTH)
 
 type Store = ReturnType<typeof getStore>
 

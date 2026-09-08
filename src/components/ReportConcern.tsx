@@ -38,7 +38,7 @@ export default function ReportConcern({ code, side }: Props) {
   if (state === 'sent') {
     return (
       <p className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty">
-        Sent, to a person, not a queue. It reaches no one else, and it is never a warning — it is acted on.
+        Sent. It reaches the founder and no one else — not the other person, and nothing that counts. She reads these weekly, and what she does about it is written down.
       </p>
     )
   }

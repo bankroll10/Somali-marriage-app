@@ -109,7 +109,7 @@ category's incentives were most quietly present. Three changes:
 **Principle: nothing we sell may earn more when a member is doing worse.**
 
 **Free, forever:** the map and every reading, the work, the read, the eleven,
-the two-sided eleven, the family words, the vouch, reporting and blocking,
+the two-sided eleven, the family words, the vouch, reporting a concern,
 being introduced, replying to anyone serious, and the guide within its budget.
 
 **Bought once, ends on its own:**

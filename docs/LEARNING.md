@@ -79,7 +79,7 @@ described on the Trust screen in the same commit, gated by "Count me":
 **Deliberately not collected**, and why — so the next engineer does not "just
 add it":
 
-- **Anything she or he typed about the other person.** Not the advice line, not the guide, not a box on the ending or the ended screen. Free text is where reputation leaks in, and this is a tight community. The one carve-out, designed and not built: a safety report, Tier 4, founder-read, never tallied, expunged on resolution — because Trust promises "players, liars and creeps removed," and a report is free text about a named person
+- **Anything she or he typed about the other person.** Not the advice line, not the guide, not a box on the ending or the ended screen. Free text is where reputation leaks in, and this is a tight community. The one carve-out: a safety report, Tier 4, founder-read, never tallied beside anyone, and **expunged on resolution** — her words are deleted the moment the founder acts, and what survives is a stub holding the reason, the day and what was done, joined to nobody. That stub is the only way the taxonomy of harm above can ever be read, and it carries no code, no side and nothing she wrote (`docs/HARD.md`). Forget-me takes any report she filed
 - **His name, ever.** The read never asks it. Nothing else does
 - **Attention traces.** Dwell, scroll, opens, session counts, reply latency, time in app, days since last open. PRODUCT §6 says sessions should *fall*; a system that collected them would optimise them within a quarter
 - **Message content.** There is no messaging. If one is ever built, its content is Tier 1 by construction

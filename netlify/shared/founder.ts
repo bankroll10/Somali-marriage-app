@@ -83,3 +83,26 @@ export function notFounder(): Response {
     },
   )
 }
+
+/**
+ * The same gate, refusing when no key is configured.
+ *
+ * `isFounder` fails **open** deliberately: a missing variable must never lock
+ * the owner out of her own numbers, and a tally of rungs going public is
+ * embarrassing rather than dangerous. That reasoning does not survive contact
+ * with the safety queue, which holds free text naming a specific person and
+ * what they are alleged to have done. One misconfigured deploy would publish
+ * it — and unlike a tally, it cannot be un-published.
+ *
+ * So `/safety` uses this instead, and it is the only route that does. The
+ * trade is the one the rest of the file refuses: if the key is lost, the
+ * founder cannot read her own reports until she sets it again. That is the
+ * right way round for this one queue. See docs/HARD.md and docs/CONTROL.md.
+ */
+export function requireFounder(req: Request): boolean {
+  if (!process.env.FOUNDER_KEY) {
+    warnOnce('[niyyah] FOUNDER_KEY is not set — /safety refuses until it is')
+    return false
+  }
+  return isFounder(req)
+}

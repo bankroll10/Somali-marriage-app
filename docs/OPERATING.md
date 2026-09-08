@@ -31,9 +31,24 @@ week it falls in relative to the monthly hour below.
 curl -s -H "$K" $S/safety | jq .   # weekly — a report is a person waiting, not a metric
 ```
 
-Resolving one is `DELETE $S/safety?code=<code>&side=<woman|man>` with the
-founder key — it expunges the report, per `docs/LEARNING.md`. There is
-nothing to keep once it has been acted on.
+Resolving one names the report and what you did about it:
+
+```bash
+curl -s -X DELETE -H "$K" \
+  "$S/safety?code=<code>&side=<woman|man>&id=<id>&outcome=<outcome>"
+```
+
+`id` comes from the report itself. `outcome` is one of `spoke-to-them`,
+`told-the-family`, `never-introduce`, `not-enough`, `no-action`
+(`src/data/safety.ts`). It expunges her words, per `docs/LEARNING.md`, and
+leaves a stub carrying only the reason, the day and what was done — no code,
+no side, nothing of hers. That stub is what makes `resolved.byReason` in the
+readout possible, and it is the only reason the founder can ever answer
+"is this the same kind of harm as last time?" — see `docs/HARD.md`.
+
+**This route is the one thing here that fails closed.** With no `FOUNDER_KEY`
+set it refuses rather than opening, unlike every other readout: free text
+naming a person cannot be un-published.
 
 **The rest of the weekly pulse** rides alongside the safety check, five
 minutes, and does two things only: acts on an open report (above), and

@@ -522,3 +522,40 @@ describe('the facts', () => {
     expect(body.facts.read.band).toEqual({})
   })
 })
+
+/**
+ * A marriage does not expire.
+ *
+ * The record's year was refreshed on every report — and marrying is the thing
+ * that ends the reporting. So the one outcome this product exists to cause
+ * dropped out of every readout at day 366 and the historical count changed
+ * retroactively, while the blob stayed on disk for ever because nothing
+ * deleted it either. docs/HARD.md.
+ */
+describe('what the year does and does not take', () => {
+  const stale = (extra: Record<string, unknown>) => ({
+    first: { arrived: '2024-01-01', ...(extra.first as object) },
+    expiresAt: '2025-01-01',
+    ...extra,
+  })
+
+  it('keeps and counts a record that reached married, however old', async () => {
+    await memStore('progress').setJSON('ACDEFG', stale({ first: { married: '2024-06-01' } }))
+    const body = await (await readout()).json()
+    expect(body.rungs.married).toBe(1)
+    expect(stores.get('progress')!.has('ACDEFG')).toBe(true)
+  })
+
+  it('stops counting a record past its year, and sweeps it as it goes', async () => {
+    await memStore('progress').setJSON('HJKMNP', stale({}))
+    await post({ id: 'QRTWXY', rungs: ['arrived'] })
+
+    const body = await (await readout()).json()
+    // Only the live one.
+    expect(body.rungs.arrived).toBe(1)
+    // The year is real now: skipping without deleting left the store holding
+    // exactly what the readout refuses to count.
+    expect(stores.get('progress')!.has('HJKMNP')).toBe(false)
+    expect(stores.get('progress')!.has('QRTWXY')).toBe(true)
+  })
+})

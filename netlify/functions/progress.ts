@@ -59,7 +59,21 @@ import {
 /** Same alphabet and length as netlify/functions/keep.ts — but a different code. */
 const ID = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 
-/** A year, refreshed on every report. */
+/**
+ * A year, refreshed on every report — except once someone has married.
+ *
+ * The refresh was anti-correlated with the value of the record: it happens on
+ * a write, and marrying is the thing that ends the writing. So the one outcome
+ * this product exists to cause dropped out of every readout at day 366, and
+ * the historical count changed retroactively — while the blob, and its cost,
+ * stayed on disk for ever because nothing deleted it either. `export.ts` never
+ * checked `expiresAt` at all, so the backup and the readout disagreed in both
+ * directions with nothing reconciling them. docs/HARD.md.
+ *
+ * A record that has reached `married` is kept and counted, whatever its date.
+ * Everything else honours the year — and the year is now real: the tally
+ * deletes what it walks past and refuses to count.
+ */
 const TTL_MS = 365 * 24 * 60 * 60 * 1000
 
 /** Twelve rungs, a scene, a via and every fact at once is the largest thing anyone can send. */
@@ -255,8 +269,10 @@ type Store = ReturnType<typeof getStore>
 async function tally(store: Store) {
   const { blobs } = await store.list()
   const records = await Promise.all(
-    blobs.map(async ({ key }) => (await store.get(key, { type: 'json' })) as ProgressRecord | null),
+    blobs.map(async ({ key }) => ({ key, record: (await store.get(key, { type: 'json' })) as ProgressRecord | null })),
   )
+  /** Records past their year, swept as the tally walks them. */
+  const stale: string[] = []
   const now = Date.now()
   const rungs: Record<string, number> = {}
   const scenes: Record<string, Record<string, number>> = {}
@@ -265,9 +281,16 @@ async function tally(store: Store) {
   const arrivedByDay: Record<string, number> = {}
   const facts = emptyFactsTally()
 
-  for (const record of records) {
+  for (const { key, record } of records) {
     if (!record?.first) continue
-    if (Date.parse(record.expiresAt) < now) continue
+    // A marriage is the asset. It never expires, and it is the one thing here
+    // that a member stops writing about precisely because it happened.
+    if (!('married' in record.first) && Date.parse(record.expiresAt) < now) {
+      // The year, made real. Skipping without deleting left the store holding
+      // exactly what the readout refuses to count.
+      stale.push(key)
+      continue
+    }
     const scene = record.scene && SCENES.has(record.scene) ? record.scene : 'unsaid'
     const via = record.via && VIAS.has(record.via) ? record.via : 'unsaid'
     const side = record.gender && GENDERS.has(record.gender) ? record.gender : 'unsaid'
@@ -288,6 +311,18 @@ async function tally(store: Store) {
     }
     if (record.facts) tallyFacts(facts, record.facts, 'married' in record.first, 'counted' in record.first)
   }
+
+  // The sweep. Nothing else in this product ever deleted an expired record, so
+  // the year was a claim the storage did not keep — and the records that
+  // expire are by definition the ones nobody reads again, so a lazy
+  // delete-on-read would never have fired for them. This is the founder's own
+  // readout, made rarely, so it is the right place to do the walking.
+  // Failures are ignored: a record that outlives its year by a month is a
+  // tidiness problem, and a readout that 503s because a delete failed is not.
+  if (stale.length) {
+    await Promise.all(stale.map((key) => store.delete(key).catch(() => {})))
+  }
+
   // Whole-population counts as they are; every split by a quasi-identifier
   // floored — see netlify/shared/floor.ts. `sides.man` therefore reads null
   // until five men have arrived, which is also the first moment a conclusion

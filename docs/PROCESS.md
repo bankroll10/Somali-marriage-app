@@ -186,6 +186,7 @@ one place to see them together.
 | The wedge channel (alumni/professional group links, Minneapolis) | Fewer than twenty women or five men counted after eight weeks of the playbook — change channel first, city second | `docs/WEDGE.md` |
 | Onboarding length (the thirteen-question map, the read, the eleven) | Completion under the thresholds in A1 — shorten, cut to one chapter, or fix the two-sided flow, by instrument | `docs/EXPERIMENTS.md` A1 |
 | Support as one founder inbox | More than a handful of emails in a week | `docs/TIME.md` |
+| The safety queue as one weekly `curl` | A second reader is needed, or a report waits more than a week | `docs/HARD.md`, `docs/TIME.md` |
 | Any dependence on a live model | It becomes load-bearing — an instrument that cannot run without a key. Not a threshold but a rule, asserted in `tests/durable.test.ts` | `docs/DURABLE.md` |
 | The `door` link and the second ask on the door | After four weeks: under five men arrived → the channel pivots (WEDGE); five or more and under one in four `mapped` → cut the men's map first (A1); women's `counted` per hundred `arrived` falls → back to one ask | `docs/MACHINE.md`, logged as A6 |
 

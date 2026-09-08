@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { CODE, mint, normalise } from '../shared/code'
 import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, TOPICS, YES_STATES as STATES } from '../shared/vocab'
 import { day } from '../shared/day'
@@ -32,16 +33,14 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
  * which is symmetric by construction.
  */
 
-const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
-const CODE_LENGTH = 6
-/** The shape of a couple code. Exported so safety.ts can validate against the same pattern. */
-export const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 const TTL_MS = 90 * 24 * 60 * 60 * 1000
 const MAX_BODY = 8_000
 /** The one key in the tallies store this function writes. */
 const TALLY_KEY = 'joint'
 /** Conditional writes lose a race now and then; three tries is plenty at any scale we will see. */
 const TALLY_ATTEMPTS = 3
+/** Joints read back in one hour, from everyone — the read cap, per keep.ts. */
+const DEFAULT_READ_CAP = 600
 /**
  * Elevens started in one hour, from everyone. Only the first side is capped:
  * his answer is bounded by the links that exist, and refusing it would waste
@@ -90,11 +89,6 @@ function jointOf(first: Sides, second: Sides): Record<string, Joint> {
   const out: Record<string, Joint> = {}
   for (const id of TOPICS) out[id] = joint(first[id], second[id])
   return out
-}
-
-function newCode(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(CODE_LENGTH))
-  return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('')
 }
 
 function validSides(x: unknown): x is Sides {
@@ -157,8 +151,12 @@ export default async function handler(req: Request) {
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
     }
-    const code = (params.get('code') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const code = normalise(params.get('code'))
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    // Bounded: a couple code is six characters and reading one back returns
+    // the joint. See the read cap in netlify/functions/keep.ts for why reads
+    // needed one at all.
+    if (await overHourlyCap('couple-read', DEFAULT_READ_CAP)) return rateLimited()
     try {
       const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
       if (!record) return Response.json({ error: 'not_found' }, { status: 404 })
@@ -195,12 +193,12 @@ export default async function handler(req: Request) {
   // ── The person who started it ─────────────────────────────────────────────
   if (body.side === 'first') {
     if (!GENDERS.has(body.gender ?? '')) return Response.json({ error: 'bad_gender' }, { status: 400 })
-    const code = body.code ? body.code.toUpperCase().replace(/[^A-Z0-9]/g, '') : newCode()
-    if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    const code = body.code ? normalise(body.code) : ''
+    if (body.code && !CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
     // Bounded, like every public write — after validation, before any read.
     if (await overHourlyCap('couple', DEFAULT_HOURLY_CAP)) return rateLimited()
     try {
-      const existing = (await store.get(code, { type: 'json' })) as CoupleRecord | null
+      const existing = code ? ((await store.get(code, { type: 'json' })) as CoupleRecord | null) : null
       // Once the other side has answered, hers is frozen — re-posting would let
       // her flip one topic and read his exact state off the joint.
       if (existing?.second) return Response.json({ error: 'answered' }, { status: 409 })
@@ -210,8 +208,20 @@ export default async function handler(req: Request) {
         createdAt: existing?.createdAt ?? day(now),
         expiresAt: day(now + TTL_MS),
       }
-      await store.setJSON(code, record)
-      return Response.json({ code })
+      // Hers again, under the code she already sent him: an ordinary write.
+      // A new pair: minted with `onlyIfNew`, so two women drawing the same six
+      // characters costs a retry rather than one of them answering into the
+      // other's sheet — netlify/shared/code.ts.
+      if (code) {
+        await store.setJSON(code, record)
+        return Response.json({ code })
+      }
+      const minted = await mint((c, v: CoupleRecord) => store.setJSON(c, v, { onlyIfNew: true }), record)
+      if (!minted) {
+        console.error('[niyyah] couple: every minted code collided')
+        return Response.json({ error: 'unavailable' }, { status: 503 })
+      }
+      return Response.json({ code: minted })
     } catch (err) {
       console.error('[niyyah] couple: create failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -220,7 +230,7 @@ export default async function handler(req: Request) {
 
   // ── The person who was sent the link ──────────────────────────────────────
   if (body.side === 'second') {
-    const code = (body.code ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const code = normalise(body.code)
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
     try {
       const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null

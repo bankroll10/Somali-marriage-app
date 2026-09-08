@@ -126,6 +126,7 @@ docs/BETS.md           Twenty asymmetric bets, scored on upside, cost, reversibi
 docs/DURABLE.md        What survives if the AI hype, the app fashions and the platforms all disappear — durable value, temporary novelty, trend-dependent, and the rule that keeps a supplier out of the core
 docs/NORTHSTAR.md      The problem, the purpose and the North Star in one sentence each — and every screen held against them: core, weak, distraction, missed
 docs/OWNED.md          What we rent and what we produce, and the three moves from renter to owner — the address, the customer list, the constants' lineage
+docs/HARD.md           Where an easy decision now would have cost something irreversible later — the collision, the erasable report, the unmetered delete — and the four deferred with triggers
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures
 .github/pull_request_template.md   The release-review checklist, in front of every PR

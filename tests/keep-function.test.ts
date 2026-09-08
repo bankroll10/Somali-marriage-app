@@ -118,6 +118,9 @@ describe('keeping a map', () => {
     stores.get('couples')!.set('QRTWXY', JSON.stringify({ creator: 'man', first: {} }))
     stores.get('cohort')!.set('ca/toronto/man/city/serious/QRTWXY', JSON.stringify({ at: 'd', ledger: [] }))
     stores.get('contacts')!.set('QRTWXY', JSON.stringify({ contact: 'other@example.com', scene: 'toronto', country: 'ca', at: 'd' }))
+    memStore('reports')
+    stores.get('reports')!.set('HJKMNP-woman-ACDEFG', JSON.stringify({ id: 'ACDEFG', code: 'HJKMNP', side: 'woman', reason: 'threats', details: 'her words', at: 'd' }))
+    stores.get('reports')!.set('resolved/QRTWXY', JSON.stringify({ reason: 'harassment', at: 'd', resolvedAt: 'd', outcome: 'no-action' }))
 
     const res = await forget('ACDEFG')
     expect(res.status).toBe(200)
@@ -130,6 +133,11 @@ describe('keeping a map', () => {
     // to delete it by hand. See docs/OWNED.md.
     expect(stores.get('contacts')!.has('ACDEFG')).toBe(false)
     expect(stores.get('contacts')!.has('QRTWXY')).toBe(true)
+    // Her words about what happened go with the rest of it — the one store the
+    // cascade used to miss (docs/HARD.md). A resolved stub carries no code and
+    // nothing of hers, so it stays.
+    expect(stores.get('reports')!.has('HJKMNP-woman-ACDEFG')).toBe(false)
+    expect(stores.get('reports')!.has('resolved/QRTWXY')).toBe(true)
     expect(stores.get('couples')!.has('QRTWXY')).toBe(true)
     // Nothing left to forget.
     expect((await forget('ACDEFG')).status).toBe(404)
@@ -146,5 +154,77 @@ describe('keeping a map', () => {
     expect((await post({ snapshot: {}, code: 'nope' })).status).toBe(400)
     expect((await get('nope')).status).toBe(400)
     expect((await get('ACDEFG')).status).toBe(404)
+  })
+})
+
+/**
+ * Minting a code must never overwrite somebody.
+ *
+ * This route used to write a freshly minted code with a bare
+ * `setJSON(code, kept)`. Six characters from a 23-symbol alphabet is 23^6 —
+ * about 148 million — so two members drawing the same one is a birthday
+ * problem: roughly 0.3% at a thousand kept maps, 29% at ten thousand, an even
+ * chance by 14,300. The loser's map is the only server copy of thirteen honest
+ * answers and every reading she ever had, and nothing anywhere would record
+ * that it had been replaced. See netlify/shared/code.ts.
+ */
+describe('a minted code never lands on somebody', () => {
+  /** Bytes that make `newCode` draw these characters, in this order. */
+  function drawing(...codes: string[]) {
+    const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
+    const queue = codes.flatMap((c) => [...c].map((ch) => ALPHABET.indexOf(ch)))
+    return (array: Uint8Array) => {
+      for (let i = 0; i < array.length; i++) array[i] = queue.shift() ?? 0
+      return array
+    }
+  }
+
+  it('retries onto a free code, and leaves the taken one exactly as it was', async () => {
+    const hers = { snapshot: { identity: { firstName: 'Sagal' } }, createdAt: '2026-01-01', expiresAt: '2027-01-01' }
+    memStore('maps').setJSON('AAAAAA', hers)
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation(drawing('AAAAAA', 'CCCCCC') as never)
+
+    const res = await post({ snapshot: { identity: { firstName: 'Hodan' } } })
+    expect(res.status).toBe(200)
+    expect((await res.json()).code).toBe('CCCCCC')
+
+    // Hers is untouched, byte for byte.
+    expect(JSON.parse(stores.get('maps')!.get('AAAAAA')!)).toEqual(hers)
+    // And the new map really is stored, under the code that was free.
+    expect(JSON.parse(stores.get('maps')!.get('CCCCCC')!).snapshot.identity.firstName).toBe('Hodan')
+    vi.restoreAllMocks()
+  })
+
+  it('refuses rather than overwrites when every attempt collides', async () => {
+    for (const c of ['AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF']) {
+      memStore('maps').setJSON(c, { snapshot: { taken: c }, createdAt: 'd', expiresAt: 'z' })
+    }
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation(
+      drawing('AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF') as never,
+    )
+    // Failing to save is recoverable — her map is still on her phone.
+    // Overwriting one of these five is not.
+    expect((await post({ snapshot: { identity: { firstName: 'Hodan' } } })).status).toBe(503)
+    for (const c of ['AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF']) {
+      expect(JSON.parse(stores.get('maps')!.get(c)!).snapshot.taken).toBe(c)
+    }
+    vi.restoreAllMocks()
+  })
+
+  it('re-keeping under the code she already has still writes straight through', async () => {
+    const first = await post({ snapshot: { identity: { firstName: 'Hodan' } } })
+    const { code } = await first.json()
+    const again = await post({ snapshot: { identity: { firstName: 'Hodan', age: 27 } }, code })
+    expect(again.status).toBe(200)
+    expect((await again.json()).code).toBe(code)
+    expect(JSON.parse(stores.get('maps')!.get(code)!).snapshot.identity.age).toBe(27)
+  })
+
+  it('measures the body before it parses it', async () => {
+    const huge = JSON.stringify({ snapshot: { blob: 'x'.repeat(200_000) } })
+    const res = await handler(
+      new Request('http://x/.netlify/functions/keep', { method: 'POST', body: huge }),
+    )
+    expect(res.status).toBe(413)
   })
 })
