@@ -111,22 +111,67 @@ describe('the hourly cap', () => {
     expect((await second.json()).error).toBe('rate_limited')
   })
 
+  it('bounds the day, not just the hour — the cap that makes an unattended month survivable', async () => {
+    // An hourly counter resets 720 times a month, so "the worst hour is
+    // survivable" and "the worst month is survivable" were different claims.
+    // The day binds even while the hour still has room. docs/ROADMAP.md.
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    vi.stubEnv('GUIDE_DAILY_CAP', '2')
+    vi.stubEnv('GUIDE_HOURLY_CAP', '100')
+
+    await ask()
+    await ask()
+    expect(stream).toHaveBeenCalledTimes(2)
+
+    const third = await ask()
+    expect(stream).toHaveBeenCalledTimes(2)
+    expect(third.status).toBe(503)
+    expect((await third.json()).error).toBe('rate_limited')
+  })
+
+  it('keeps the day’s count when the hour sweeps its own old keys', async () => {
+    // The hour and the day live in the same store, and an hourly stamp has a
+    // daily one as its prefix. A single `guide-` listing would return both, and
+    // the sweep deletes everything but the key it was given — so the hour would
+    // have eaten the day's counter every hour and the daily cap would never
+    // have bound. The period is in the key to keep the two listings disjoint.
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    vi.stubEnv('GUIDE_DAILY_CAP', '10')
+    await ask()
+
+    const dayKeys = [...limits.keys()].filter((k) => k.startsWith('guide-d-'))
+    const hourKeys = [...limits.keys()].filter((k) => k.startsWith('guide-h-'))
+    expect(dayKeys).toHaveLength(1)
+    expect(hourKeys).toHaveLength(1)
+    // Neither listing can see the other, which is the whole guarantee.
+    expect(dayKeys[0].startsWith('guide-h-')).toBe(false)
+    expect(hourKeys[0].startsWith('guide-d-')).toBe(false)
+  })
+
   it('is generous enough that it never touches a real call, by default', async () => {
     vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
     for (let i = 0; i < 50; i++) await ask()
     expect(stream).toHaveBeenCalledTimes(50)
   })
 
-  it('the first call of a new hour sweeps the hours before it, so the store never grows', async () => {
+  it('the first call of a new period sweeps the ones before it, so the store never grows', async () => {
     vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
-    limits.set('guide-2020-01-01T00', '5')
-    limits.set('guide-2020-01-01T01', '2')
+    limits.set('guide-h-2020-01-01T00', '5')
+    limits.set('guide-h-2020-01-01T01', '2')
+    limits.set('guide-d-2020-01-01', '7')
     await ask()
     await ask()
-    const keys = [...limits.keys()]
-    expect(keys).toHaveLength(1)
-    expect(keys[0]).toMatch(/^guide-\d{4}-\d{2}-\d{2}T\d{2}$/)
-    expect(keys[0]).not.toMatch(/^guide-2020/)
-    expect(JSON.parse(limits.get(keys[0])!)).toBe(2)
+    // One live key per period, and every stale one gone — including the stale
+    // day, which only its own period's sweep can reach.
+    const hourKeys = [...limits.keys()].filter((k) => k.startsWith('guide-h-'))
+    const dayKeys = [...limits.keys()].filter((k) => k.startsWith('guide-d-'))
+    expect(hourKeys).toHaveLength(1)
+    expect(dayKeys).toHaveLength(1)
+    expect(hourKeys[0]).toMatch(/^guide-h-\d{4}-\d{2}-\d{2}T\d{2}$/)
+    expect(dayKeys[0]).toMatch(/^guide-d-\d{4}-\d{2}-\d{2}$/)
+    expect(hourKeys[0]).not.toMatch(/2020/)
+    expect(dayKeys[0]).not.toMatch(/2020/)
+    expect(JSON.parse(limits.get(hourKeys[0])!)).toBe(2)
+    expect(JSON.parse(limits.get(dayKeys[0])!)).toBe(2)
   })
 })

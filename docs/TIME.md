@@ -134,7 +134,7 @@ spend on it yet is different from missing it.
   on every public write including `keep` and `progress`, for a reason this
   audit did not have: the door became the unit that opens a marketplace, and
   a door whose writes are unbounded can be walked toward forty by a script.
-- **No alert when a safety report is filed, or when the guide's hourly cap is
+- **No alert when a safety report is filed, or when the guide's caps are
   hit.** Both are readable only by opening `/safety` or `/guide` by hand —
   exactly the founder-must-remember-to-check pattern this whole audit is
   about. A real fix (email or push on either event) needs an outbound
@@ -142,7 +142,10 @@ spend on it yet is different from missing it.
   list, which deliberately has no email/notification vendor in it. **Trigger:
   the day a paid Netlify tier or a transactional-email vendor is added for
   any other reason — piggyback this alert on it rather than adding a new
-  dependency just for this.**
+  dependency just for this.** Until then, `GUIDE_DAILY_CAP` is what stands in
+  for the guide half of it: an alert tells the founder a runaway month is
+  happening, and a bounded day means she can find out late without it having
+  cost anything (`docs/DEPLOY.md`, `docs/ROADMAP.md`).
 - **No support deflection (FAQ, canned replies, anyone but the founder).**
   Right for a product with a few dozen users. Wrong the day support volume
   and founder attention stop being the same order of magnitude. **Trigger:

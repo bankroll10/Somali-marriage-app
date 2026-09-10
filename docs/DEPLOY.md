@@ -97,6 +97,7 @@ these live in the repository, and none should.
 | `VITE_SITE_HOST` | The domain the app calls itself, in every link it hands out and every share card. | `joinniyyah.com` — ours, and the same default the code carries. Set in every context; see `docs/OWNED.md`. |
 | `VITE_CONTACT_EMAIL` | Where a signup reaches a human when the form is down. | Defaults to `salaam@joinniyyah.com`, which does not receive mail yet — so production must keep this set to an address a person reads. The one open step in `docs/CONTROL.md`'s cutover. |
 | `GUIDE_HOURLY_CAP` | The circuit breaker on the live Guide (`netlify/shared/limit.ts`) — the most calls it will answer in one hour, from anyone, combined. | `300`, chosen well above any real hour this product has seen. See `docs/TIME.md`. |
+| `GUIDE_DAILY_CAP` | The same, by the day — **the only cap that bounds a month**, and the only one on a route that spends money rather than storage. | `400`. An hourly counter resets 720 times a month, so the hour bounded an hour and nothing longer: at ~2¢ a reply, 300/hour is ~$145 a day and ~$4,300 in a month nobody watched. Forty members asking ten questions each is ~400 replies, or ~$8. See `docs/ROADMAP.md`. |
 | `COHORT_HOURLY_CAP` | Joins the door will count in one hour, from everyone. | `200`. See `docs/SCALE.md`. |
 | `KEEP_HOURLY_CAP` | Maps kept in one hour — the cheapest way to spend a free plan's storage, bounded. | `300` |
 | `VOUCH_HOURLY_CAP` | Vouch links minted and vouches given in one hour. | `100` |
@@ -108,9 +109,9 @@ these live in the repository, and none should.
 | `COUPLE_READ_HOURLY_CAP` | Joint sheets read back in one hour. | `600` |
 | `DOOR_HOURLY_CAP` | Public door counts in one hour — the one open route that walks a whole prefix of the store on every call. | `600` |
 
-Every `*_HOURLY_CAP` is a circuit breaker, not a member limit: one counter per
-route per hour, with no identity attached, refused with the same quiet 503 a
-client already treats as "try later". Past the cap a real member sees exactly
+Every `*_HOURLY_CAP` and `*_DAILY_CAP` is a circuit breaker, not a member
+limit: one counter per route per period, with no identity attached, refused
+with the same quiet 503 a client already treats as "try later". Past the cap a real member sees exactly
 what she sees when storage is unreachable, which is to say nothing that looks
 like a wall. The defaults sit well above any real hour this product has seen.
 **The one time to raise them is the week a pool opens**, when a city's worth of

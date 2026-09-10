@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { Context } from '@netlify/functions'
 import { isFounder, notFounder } from '../shared/founder'
-import { overHourlyCap, rateLimited } from '../shared/limit'
+import { overDailyCap, overHourlyCap, rateLimited } from '../shared/limit'
 
 /**
  * The live Guide.
@@ -35,12 +35,32 @@ const EFFORT = 'low'
 const MODEL = 'claude-opus-5'
 
 /**
- * A circuit breaker, not a usage policy — see shared/limit.ts. Chosen well
- * above any real hour this product has seen, so it never touches a genuine
- * member; it exists only so an unattended month cannot end in a bill nobody
- * saw coming. Override with GUIDE_HOURLY_CAP if that assumption ever changes.
+ * Two circuit breakers, not a usage policy — see shared/limit.ts. Both sit well
+ * above any real hour or day this product has seen, so neither touches a
+ * genuine member; they exist so that an unattended month cannot end in a bill
+ * nobody saw coming. `GUIDE_HOURLY_CAP` and `GUIDE_DAILY_CAP` override them.
+ *
+ * The hour alone did not do that job, and the arithmetic is why. One reply is
+ * roughly two thousand input tokens and five hundred output tokens including
+ * thinking, so about two cents at this model's rates. Three hundred an hour is
+ * ~$6 an hour — and an hourly counter resets seven hundred and twenty times a
+ * month, so the hour bounded an hour and nothing longer: ~$145 a day and
+ * ~$4,300 in a month nobody was watching. Forty counted members asking ten
+ * questions each is about four hundred replies, or eight dollars. The ceiling
+ * sat five hundred times above the traffic.
+ *
+ * So the day is the real bound: four hundred replies is thirty times any
+ * founding-scale day and holds an unattended month near $250. Raise it the
+ * moment real numbers justify it — that is a one-variable change and this
+ * comment is the arithmetic to redo when they arrive.
+ *
+ * The refusal is the ordinary 503 the client already reads as "fall back to
+ * the offline voice", so a member who meets a cap gets the local guide rather
+ * than a wall. There is no alert when one is hit (docs/TIME.md); a bounded day
+ * is what stands in for it until an outbound channel exists.
  */
 const DEFAULT_HOURLY_CAP = 300
+const DEFAULT_DAILY_CAP = 400
 
 interface Body {
   system?: string
@@ -102,6 +122,12 @@ export default async function handler(req: Request, _context: Context) {
   if (!process.env.ANTHROPIC_API_KEY) {
     // Not an error — the guide simply isn't switched on yet.
     return Response.json({ error: 'guide_not_configured' }, { status: 503 })
+  }
+
+  // The day first, so an hour's budget is not spent by a call the day would
+  // have refused anyway.
+  if (await overDailyCap('guide', DEFAULT_DAILY_CAP)) {
+    return rateLimited()
   }
 
   if (await overHourlyCap('guide', DEFAULT_HOURLY_CAP)) {
