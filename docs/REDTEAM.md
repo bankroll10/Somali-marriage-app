@@ -352,6 +352,11 @@ after the fifth city.
   for turning the model *on*, instead of running an unmeasurable cost and
   waiting for A3 to argue it off. The local voice is already what every
   member gets when the key is absent (`netlify/functions/guide.ts`).
+- **OUTCOME — 2026-09-10.** Put to the founder and **declined**: the guide
+  stays on. The attack above stands as written; only its status changed. What
+  changed with it is the exposure — the hourly cap bounded an hour and not a
+  month, so `GUIDE_DAILY_CAP` now bounds one (`docs/ROADMAP.md`). A3 remains
+  the kill rule, unaltered.
 
 ### 11 · Our initial geography and target user are correct
 

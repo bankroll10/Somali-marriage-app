@@ -11,10 +11,26 @@ import { overDailyCap, overHourlyCap, rateLimited } from '../shared/limit'
  * written alongside the six voices and is the single source of truth for how
  * this guide speaks. This function only carries it to the model.
  *
- * Dormant by default: with no ANTHROPIC_API_KEY set it returns 503 and the app
- * falls back to its local matcher, which is exactly today's behaviour. That is
- * deliberate — the Trust screen promises answers stay on the device, and that
- * promise must be rewritten in the same change that switches this on.
+ * **On in production, deliberately** (docs/ROADMAP.md, 2026-09-10). This used
+ * to say the guide was dormant and that Trust's promise "must be rewritten in
+ * the same change that switches this on". Both halves have since stopped being
+ * true and the comment was telling the next engineer the opposite of the
+ * truth: ANTHROPIC_API_KEY is set, and Trust was rewritten in an earlier pass —
+ * it names Claude and Anthropic, states exactly what is sent, and offers
+ * "Keep the Guide on this device", which answers offline and sends nothing.
+ * That toggle is the member's opt-out and the reason this is honest.
+ *
+ * Dormancy is still the behaviour with no key: 503, and the app falls back to
+ * its local matcher. That is the fallback the whole error contract below is
+ * built on, and it is also what docs/EXPERIMENTS.md's A3 would return the
+ * product to — fewer than one in five who reach an ending naming the guide and
+ * the live half goes. Keeping the model on was a decision, not a default, and
+ * A3 is still the rule that can undo it.
+ *
+ * The model may never become load-bearing: it adds a layer on top of something
+ * the product already does completely without it, and never produces the map,
+ * the read, the eleven, the match or the door. docs/DURABLE.md holds the rule
+ * and tests/durable.test.ts asserts it.
  */
 
 // Effort, chosen by measurement rather than instinct.

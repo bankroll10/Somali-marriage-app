@@ -95,11 +95,29 @@ of `facts.through`, so nothing it does reaches a readout before an ending
 exists. Its best use, the 1am spiral, is the one thing `docs/STRATEGY.md`
 has ruled it will never sell. `docs/DURABLE.md` already calls the model a
 supplier and the guidance ours; `docs/REDTEAM.md` proposed inverting the
-default. This audit agrees: **leave `ANTHROPIC_API_KEY` unset and make A3
+default. This audit agreed: **leave `ANTHROPIC_API_KEY` unset and make A3
 argue the model *on*, rather than paying for it while waiting for A3 to
 argue it off.** The local voice is already what every member gets without a
-key. *This is a live-behaviour change and is the founder's to make; it is
-recommended here and deliberately not executed.*
+key.
+
+> **Raised, and declined by the founder — 2026-09-10.** The guide stays on.
+> The reasoning above is left standing rather than edited away, because a
+> recommendation that loses is still the record of what was weighed: the guide
+> remains the only paid dependency, the only supplier in a core surface, and
+> unmeasurable before an ending.
+>
+> Two things make the decision safe rather than merely made. **Trust already
+> earned it**: the screen names Claude and Anthropic, states exactly what is
+> sent, and offers *"Keep the Guide on this device"*, which answers offline and
+> sends nothing — so the promise `netlify/functions/guide.ts` said must be
+> rewritten before switching this on had already been rewritten. And **the
+> month now has a ceiling**: `GUIDE_DAILY_CAP`, because the hourly cap bounded
+> an hour and nothing longer (`docs/DEPLOY.md`).
+>
+> **A3 is untouched and still governs.** Fewer than one in five who reach an
+> ending name the guide, and the live half goes
+> (`docs/EXPERIMENTS.md`, `docs/PROCESS.md`'s kill table). Declining the
+> default-off recommendation is not declining the measurement.
 
 **The sample introduction sold an invented person from the home screen.**
 Labelled honestly, four times — and still the wrong screen. Home is for the
