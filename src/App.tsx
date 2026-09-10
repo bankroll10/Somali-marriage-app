@@ -175,7 +175,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onAsk={(text, mode) => n.askGuide(text, n.identity.gender, mode)}
           onOpenMap={n.reflection ? () => n.setScreen('reflection') : n.beginMap}
           onOpenProfile={() => n.setScreen('profile')}
-          onOpenSample={() => n.setScreen('sample')}
           onOpenRead={() => n.setScreen('read')}
           hasRead={!!n.read}
           onOpenBeforeYes={() => n.setScreen('beforeYes')}
@@ -255,6 +254,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           saveOk={n.saveOk}
           onOpenTrust={() => n.openTrust('profile')}
           onOpenPlus={() => n.setScreen('plus')}
+          onOpenSample={() => n.setScreen('sample')}
           waitlist={n.waitlist}
           onJoinWaitlist={n.joinedCohort}
           onHesitate={n.saveHesitation}
@@ -271,6 +271,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           hasMap={n.completed}
           onScene={setScene}
           onCountry={setCountry}
+          onGender={(gender) => n.setIdentity((prev) => ({ ...prev, gender }))}
           onCount={n.completed ? n.enterHome : n.beginMap}
           onHesitate={n.saveHesitation}
           onBack={backHome}
@@ -353,7 +354,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onReach={setReach}
           onHesitate={n.saveHesitation}
           onAnswer={n.answer}
-          onBack={() => n.setScreen('home')}
+          onBack={() => n.setScreen('profile')}
         />
       )
 

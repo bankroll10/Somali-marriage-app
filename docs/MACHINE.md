@@ -275,7 +275,8 @@ the channel is fine. Today the founder would pivot the channel either way.
 ## Why this, and not a feature
 
 - **Everything downstream is dead until it moves.** Match quality, mutual
-  interest, the introductions record, the concierge, the checkout — stages 6
+  interest, the introductions record, the concierge — a service, not a build
+  (`docs/ROADMAP.md`) — the checkout — stages 6
   through 10 run at exactly zero until one pool has forty men.
   `docs/PROCESS.md`'s roadmap already blocks items 5 and 6 on it. A feature
   built for any of those stages has no measurable value now, and no way to

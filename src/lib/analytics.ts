@@ -17,9 +17,9 @@
  *
  * Key funnel: onboarding_started → hook_answered → map_completed →
  * guide_asked (activation) → read_completed / before_yes_completed /
- * guide_committed (progression) → words_sent / door_sent / invite_copied /
- * reflection_shared (the words travelling). Nothing here counts sends per
- * person; the ladder store counts arrivals by source, and that is the metric.
+ * guide_committed (progression) → words_sent / door_sent / invite_copied (the
+ * words travelling). Nothing here counts sends per person; the ladder store
+ * counts arrivals by source, and that is the metric.
  */
 const KEY = 'niyyah.events.v1'
 const MAX_EVENTS = 300

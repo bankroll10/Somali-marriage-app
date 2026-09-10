@@ -16,7 +16,18 @@ import { ArrowRight, CheckIcon, Spinner } from './ui'
  * email — a code, because the cheapest way to keep a promise about privacy is
  * to hold as little as possible.
  */
-export default function KeepMap() {
+interface Props {
+  /**
+   * Keeping the map is a rung, and the hook holds the code in state — so
+   * without this the ladder would not learn about it until a remount or a
+   * cohort join, which is exactly the person the rung exists to find: the one
+   * who keeps her map and does not walk through the door. Same callback
+   * VouchRow already uses.
+   */
+  onKept?: (code: string) => void
+}
+
+export default function KeepMap({ onKept }: Props = {}) {
   const [code, setCode] = useState<string | null>(() => rememberedCode())
   const [state, setState] = useState<'idle' | 'saving' | 'error'>('idle')
   const [copied, setCopied] = useState(false)
@@ -30,6 +41,7 @@ export default function KeepMap() {
     }
     track('map_kept')
     setCode(result)
+    onKept?.(result)
     setState('idle')
   }
 

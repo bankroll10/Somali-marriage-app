@@ -10,7 +10,7 @@ import InviteRow from './InviteRow'
 import VouchRow from './VouchRow'
 import type { LedgerEntry } from '../lib/ledger'
 import HowYoudLive from './HowYoudLive'
-import { CheckIcon, ScreenHeader, ShieldGlyph, fieldClass } from './ui'
+import { CheckIcon, ScreenHeader, ShieldGlyph, SparkGlyph, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -27,6 +27,13 @@ interface Props {
   saveOk: boolean
   onOpenTrust: () => void
   onOpenPlus: () => void
+  /**
+   * How an introduction will look, on one invented person. It lives here
+   * rather than on Home: this screen is already about what decides who you
+   * meet, and Home is for the woman with a live problem tonight
+   * (`docs/ROADMAP.md`).
+   */
+  onOpenSample: () => void
   waitlist: WaitlistState | null
   onJoinWaitlist: (s: WaitlistState) => void
   /** She is not walking through the door yet, and said why — one word about the door. */
@@ -63,6 +70,7 @@ export default function Profile({
   saveOk,
   onOpenTrust,
   onOpenPlus,
+  onOpenSample,
   waitlist,
   onJoinWaitlist,
   onHesitate,
@@ -312,6 +320,29 @@ export default function Profile({
             </p>
           </div>
         </section>
+
+        {/* How the choosing works, on a person we invented and say so four
+            times. The matching is real and runs on her actual map; only the
+            person is not. A demonstration belongs beside the things it
+            demonstrates, which is this screen. */}
+        {reflection && (
+          <button
+            onClick={onOpenSample}
+            className="group mt-5 flex w-full items-center gap-3 rounded-card border border-line bg-white/60 px-5 py-4 text-left transition-colors hover:border-forest/40"
+          >
+            <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gold/15 text-gold">
+              <SparkGlyph />
+            </span>
+            <span className="flex-1">
+              <span className="text-[0.95rem] font-medium text-ink">How an introduction will look</span>
+              <span className="mt-0.5 block text-[0.8rem] text-muted text-pretty">
+                A sample, read against your real map — so you can see how we choose, before anyone
+                is chosen.
+              </span>
+            </span>
+            <span className="text-[0.85rem] font-medium text-forest">See →</span>
+          </button>
+        )}
 
         {/* What's free and what isn't — a plain row, no badge. */}
         <button

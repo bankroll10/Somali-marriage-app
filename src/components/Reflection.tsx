@@ -422,7 +422,7 @@ export default function ReflectionView({
             steps aside once she's counted. */}
         {!waitlist && (
           <section className="mb-12">
-            <KeepMap />
+            <KeepMap onKept={onKept} />
           </section>
         )}
 

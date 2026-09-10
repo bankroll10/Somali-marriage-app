@@ -33,6 +33,7 @@ export type RungId =
   | 'arrived'
   | 'situated'
   | 'mapped'
+  | 'kept'
   | 'read'
   | 'eleven'
   | 'asked-him'
@@ -48,6 +49,7 @@ export const RUNG_IDS: RungId[] = [
   'arrived',
   'situated',
   'mapped',
+  'kept',
   'read',
   'eleven',
   'asked-him',
@@ -66,6 +68,15 @@ export const RUNG_IDS: RungId[] = [
 export interface RungInput {
   situated: boolean
   completed: boolean
+  /**
+   * Her map is on the server under a code she holds. The one rung that is
+   * about trusting us rather than about her courtship — and the reason it
+   * exists: without it, a woman who built a map and did not keep it and a
+   * woman who kept one and did not join the door are the same number, and
+   * docs/GAPS.md ranks telling them apart third most dangerous. A funnel
+   * cannot be recovered from traffic that has already gone (docs/ROADMAP.md).
+   */
+  kept: boolean
   stage: Stage
   read: ReadRecord | null
   beforeYes: ReadRecord | null
@@ -82,6 +93,7 @@ export function rungsFrom(i: RungInput): RungId[] {
     arrived: true,
     situated: i.situated,
     mapped: i.completed,
+    kept: i.kept,
     read: !!i.read,
     eleven: !!i.beforeYes,
     'asked-him': !!i.couple,

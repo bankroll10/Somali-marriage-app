@@ -43,46 +43,13 @@ export async function shareOrCopy(payload: SharePayload, event: string): Promise
   return 'copied'
 }
 
-export type ImageShareResult = ShareResult | 'saved'
-
 /**
- * Share an image. On a phone this opens the OS sheet with the card attached, so
- * it lands in a group chat or a story as a picture. On desktop — where no
- * browser will share a file — it downloads instead of silently doing nothing.
- *
- * Returns 'cancelled' when the sheet is dismissed: no consolation download, no
- * surprise clipboard write. Declining to share should mean nothing happened.
+ * There was an image share here — `shareImage`, and `src/lib/card.ts`, which
+ * drew a reflection onto a 1080×1350 canvas for a story or a group chat. Both
+ * went with the daily reflection card that `docs/NORTHSTAR.md` removed from
+ * Home, and both sat unreferenced afterwards: a whole rendering path, fully
+ * built, that nothing in the product could reach. What travels here is words —
+ * the exact sentence that worked, sent by one person to one person
+ * (`docs/PRODUCT.md` §9) — and an image of the product was never that.
+ * `docs/ROADMAP.md`.
  */
-export async function shareImage(
-  blob: Blob,
-  filename: string,
-  event: string,
-): Promise<ImageShareResult> {
-  track(event)
-  const file = new File([blob], filename, { type: blob.type || 'image/png' })
-
-  if (typeof navigator !== 'undefined' && navigator.canShare?.({ files: [file] })) {
-    try {
-      // Files only. Several platforms silently drop the attachment when text or
-      // a url rides along, which turns an image share into a link share.
-      await navigator.share({ files: [file] })
-      return 'shared'
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') return 'cancelled'
-      // A real failure falls through to the download so the tap still delivers.
-    }
-  }
-
-  try {
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    a.click()
-    // Revoke on the next frame — revoking immediately can cancel the download.
-    window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
-    return 'saved'
-  } catch {
-    return 'cancelled'
-  }
-}

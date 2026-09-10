@@ -117,7 +117,9 @@ being introduced, replying to anyone serious, and the guide within its budget.
 1. **Deciding together** — per courtship: the joint conversation guide over the
    two-sided eleven, the family scripts, one call with a human matchmaker.
 2. **Concierge matchmaking** — when a city opens. AI + a vetted human, the role
-   our families already pay for.
+   our families already pay for. Priced and staffed as what it is: a
+   matchmaker has a matchmaker's margins, and the software does the queue and
+   the candidates, never the choosing (`docs/ROADMAP.md`).
 3. **Events** — vetted, halal, family-friendly.
 
 Founding members keep everything free for a year after launch. Prices are set
@@ -258,25 +260,44 @@ importance, whether it can run at all today — and, since `docs/DURABLE.md`,
 by how close each item sits to the need that does not move: a compatible
 partner and a marriage that lasts. Not by convenience to build.
 
-0. **Run the loop** — `docs/OPERATING.md`, monthly, from the first hundred
-   records, within what `docs/LEARNING.md` allows. The moat is the process,
-   not the constants.
-1. **The door, for men** — `docs/MACHINE.md`'s weakest link, M0–M2 built and
-   M3 walked; the four-week decision rule (A6) is what says whether the
-   channel or the map is the constraint.
-2. **The first pool opens** — one introduction at a time, per §7, Minneapolis
-   first, on the dormant introductions store `docs/LEARNING.md` designs and
-   the sequencing `docs/SCALE.md` sets out. The enduring need, made real.
-3. **Concierge** — the human matchmaker, priced per person. The oldest durable
-   form of this business, and the one families already pay for.
-4. **The first-year sheet** — the one instrument the married stage is still
+0. **Post the link.** Ten connectors by name, then `/?read&via=group`,
+   `/?eleven&via=group` and `/?door&via=group`, and the door's honest count
+   into the same rooms weekly — `docs/WEDGE.md` steps 1–4. It is not a build,
+   which is exactly why it was missing from this list for nine passes: every
+   item below waits on it, and it waits on nothing. `docs/ROADMAP.md`.
+1. **Everything that must be true before strangers arrive** — the `kept` rung
+   and the door's side question (both built), a mailbox on our own domain
+   (`docs/CONTROL.md`), and the price written into `docs/STRATEGY.md` as a
+   prediction. None of it can be added to traffic that has already come and
+   gone, which is the only reason any of it outranks reading the numbers.
+2. **Read what comes back** — A6 at four weeks; A1, A2 and A4 at their
+   thresholds; `docs/REDTEAM.md`'s three at their dates; then the monthly
+   loop of `docs/OPERATING.md`, within what `docs/LEARNING.md` allows. Six
+   decision rules, every one written before its build and none ever run. The
+   moat is the process, not the constants.
+3. **The first pool opens** — one introduction at a time, per §7, Minneapolis
+   first, with the introductions record shipping in the same commit as the
+   pool-open flag (`docs/HARD.md`) and the sequencing `docs/SCALE.md` sets
+   out. The enduring need, made real.
+4. **Concierge, by hand** — the founder matchmaking the first ten couples.
+   The oldest durable form of this business and the one families already pay
+   for — but a *service*, not a build: a human matchmaker has a matchmaker's
+   margins, and software does not change that (`docs/ROADMAP.md`). It is also
+   the only test of willingness to pay the free-for-a-year promise permits.
+5. **The first-year sheet** — the one instrument the married stage is still
    missing, and the thing the wedding gift sells. The eleven's engine over a
    second topic list. Nobody serves the marriage after the wedding.
-5. **Your record** — everything this phone has sent, in Trust's words, with a
-   retract on each item. The visibility half of Forget me.
-6. **Real backend** — auth, persistence, real verification, moderation and
+6. **Your record** — everything this phone has sent, in Trust's words, with a
+   retract on each item. The visibility half of Forget me. Runnable today and
+   deliberately not first: nobody has asked for it, and Forget me already
+   delivers the substance.
+7. **Real backend** — auth, persistence, real verification, moderation and
    reporting (safety is first-class). Buys durability rather than value, and
    is blocked by scale.
+
+**Left this list.** *The door, for men* was item 1; M0–M3 are shipped, so it
+is no longer a build — it is A6, inside item 2. *Run the loop* was item 0 and
+is now item 2, because a loop with nothing in it is not a first step.
 
 **Declined: live Claude behind the map.** It sat at 3 on this list for a long
 time, described as closing "the last local seam" — as though local were a

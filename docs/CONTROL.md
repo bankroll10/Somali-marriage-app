@@ -91,7 +91,8 @@ every context. The cutover, with what remains:
 4. **Never release the `getniyyah.netlify.app` subdomain.** Netlify keeps
    serving it and redirecting, and that is the only thing that keeps links
    already sitting in people's messages alive. Still true, for ever.
-5. **Set up mail on the domain. This is the one step still open.**
+5. **Set up mail on the domain. This is the one step still open**, and as of
+   2026-09-10 it is the founder's to do — everything around it is ready.
    `VITE_CONTACT_EMAIL` is a Gmail address today, and it reaches a human,
    which is the part that matters most. What is still rented is the domain it
    sits on: the public address of this business — printed on the Trust page,
@@ -100,6 +101,39 @@ every context. The cutover, with what remains:
    now `salaam@joinniyyah.com`; until a mailbox answers there, production must
    keep the variable set. Forwarding the new address to the inbox that already
    works is the whole migration.
+
+   **The runbook, in order. The order is the important part.**
+
+   1. **Choose how mail arrives.** Forwarding is enough and costs nothing —
+      ImprovMX or Cloudflare Email Routing (the latter wants the zone on
+      Cloudflare) will forward `salaam@joinniyyah.com` to the inbox that
+      already works. A real mailbox (Fastmail, Migadu, Google Workspace) is
+      the same migration plus a few dollars a month, and is worth it only if
+      replies should *come from* the address rather than merely reach it.
+      Either satisfies what `docs/OWNED.md` is asking for: the address a member
+      touches is on a domain we can repoint or hand on.
+   2. **Add the records** the provider gives you to whichever zone serves
+      `joinniyyah.com` — MX at minimum, usually an SPF TXT, sometimes DKIM.
+      Nothing in this repository or its tooling can reach DNS, so this is a
+      by-hand step wherever the zone lives.
+   3. **Prove it.** Send one message to `salaam@joinniyyah.com` from an
+      unrelated account and watch it land. Do not skip this: every step below
+      assumes mail actually arrives, and the failure it guards against is
+      silent.
+   4. **Only then, flip the variable.** Set `VITE_CONTACT_EMAIL` to
+      `salaam@joinniyyah.com` — or remove it, since that is already the code's
+      default — and redeploy.
+   5. **Check the two places a member meets it**: the Trust page, and the
+      fallback a failed signup shows.
+
+   **Why the flip is last and not first.** `src/lib/site.ts` carries the
+   default `salaam@joinniyyah.com`, and `src/lib/waitlist.ts` uses
+   `CONTACT_EMAIL` as its final fallback when a signup cannot be posted. Point
+   production at an address that does not yet receive mail and that fallback
+   becomes a black hole: a woman whose signup failed writes to us and nobody
+   ever sees it. `site.ts` says it plainly — *"if it bounces, a person who
+   tried to join is lost silently."* The Gmail address is doing real work until
+   the moment the new one answers, and not one moment less.
 
 **Then own the customer list. Done** — `docs/OWNED.md` move 2. Every join now
 writes the way to reach that person to a `contacts` store of our own, keyed by

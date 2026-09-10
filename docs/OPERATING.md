@@ -108,6 +108,7 @@ What each field in `/progress` means:
 | Field | Reads as |
 |---|---|
 | `rungs[id]` | People who ever reached this rung. `followed-through / arrived` is the North Star |
+| `rungs.mapped`, `rungs.kept`, `rungs.counted` | The trust funnel, and the test of `docs/GAPS.md` gap 3. `kept / mapped` is how many trusted the server with the map; `counted / kept` is how many then left a way to be reached. A product that scores well on the first and badly on the second has a door problem, not a privacy problem — and before the `kept` rung the two were one number |
 | `scenes[city][rung]`, `vias[via][rung]` | The same, by city and by what kind of link brought them |
 | `sides[woman\|man][rung]` | The same, by side. `sides.man.counted / sides.man.arrived` is the men's funnel — the question `docs/MACHINE.md` found the ladder could not answer. Floored, so `sides.man` reads `null` until five men have arrived |
 | `sidesByVia[side][via][rung]` | Side crossed with the kind of link, once. A man who arrived through a woman's eleven — `couple`, or `eleven` — is already talking to someone and is not supply for anyone else; `door` is the men a member sent, some looking and some not. `sidesByVia.man.group` is the men the network channel actually produced — the one cell that counts only men nobody here was already talking to (`docs/REDTEAM.md`). Floored per cell |

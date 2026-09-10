@@ -171,8 +171,8 @@ first revision a recorded fact rather than a remembered one.
 | Foundation | Cost | Begin when |
 |---|---|---|
 | The owned address as the code's default | Done | — |
-| A mailbox on `joinniyyah.com` | An afternoon, a few dollars a month | Now. It is the last rented thing a member touches |
-| The `contacts` store and its founder-gated route | A day | Before the first real member. A list is only owned from member one |
+| A mailbox on `joinniyyah.com` | An afternoon; free by forwarding | Now. It is the last rented thing a member touches. The ordered runbook — and why the `VITE_CONTACT_EMAIL` flip is the **last** step and not the first — is `docs/CONTROL.md` step 5 |
+| The `contacts` store — **and no route to it** | A day | Before the first real member. A list is only owned from member one. This row said "and its founder-gated route" while the prose below refused to build one; `docs/ROADMAP.md` struck it. The founder reads the store with her own credentials |
 | `docs/CONSTANTS.md`, started empty | An hour | Now, so the first revision is recorded rather than remembered |
 | Keep exporting Netlify Forms by hand | Minutes, monthly | Every monthly hour, until the store above exists |
 

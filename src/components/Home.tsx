@@ -18,7 +18,6 @@ import {
   fieldClass,
   PersonGlyph,
   SeedGlyph,
-  SparkGlyph,
 } from './ui'
 
 interface Props {
@@ -30,7 +29,6 @@ interface Props {
   onAsk: (text: string, mode?: ModeId) => void
   onOpenMap: () => void
   onOpenProfile: () => void
-  onOpenSample: () => void
   /** The read on someone — the fastest route from a live problem to an answer. */
   onOpenRead: () => void
   /** True once she has taken one, so the card offers the result rather than the pitch. */
@@ -78,7 +76,6 @@ export default function Home({
   onAsk,
   onOpenMap,
   onOpenProfile,
-  onOpenSample,
   onOpenRead,
   hasRead,
   onOpenBeforeYes,
@@ -447,28 +444,13 @@ export default function Home({
               />
             )}
 
-            {/* One sample introduction, labelled as such — the matching is real
-                and runs on her map; the person is not. */}
-            {seeking && reflection && (
-              <button
-                onClick={onOpenSample}
-                className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
-              >
-                <GlyphTile className="bg-gold/15 text-gold">
-                  <SparkGlyph />
-                </GlyphTile>
-                <span className="flex-1">
-                  <span className="font-display text-[1.2rem] font-medium text-ink">
-                    How an introduction will look
-                  </span>
-                  <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                    A sample, read against your real map — so you can see how we
-                    choose, before anyone is chosen.
-                  </span>
-                </span>
-                <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
-              </button>
-            )}
+            {/* The sample introduction used to sit here, offering an invented
+                person to someone who came with a real one. It moved to Profile
+                — "what decides who you meet", where a demonstration of how we
+                choose actually belongs — because Home is for the woman with a
+                live problem tonight, and a preview of a marketplace that does
+                not exist yet is not it. The same argument that removed the
+                daily reflection card. docs/ROADMAP.md. */}
 
             {/* What decides who you meet — not offered once she is married. */}
             {stage !== 'married' && (

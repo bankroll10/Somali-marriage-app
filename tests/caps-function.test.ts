@@ -166,11 +166,13 @@ describe('every public write is bounded', () => {
     }
   })
 
-  it('the counter carries no identity — nothing but a bucket, an hour and a number', async () => {
+  it('the counter carries no identity — nothing but a bucket, a period and a number', async () => {
     await post(cohort, 'cohort', { code: 'ACDEFG', scene: 'london', gender: 'woman' })
     const limits = stores.get('limits')!
     for (const [key, value] of limits) {
-      expect(key).toMatch(/^cohort-\d{4}-\d{2}-\d{2}T\d{2}$/)
+      // `h` for the hour, `d` for the day — the period is in the key so the two
+      // listings stay disjoint and neither sweep can eat the other's counter.
+      expect(key).toMatch(/^cohort-(h-\d{4}-\d{2}-\d{2}T\d{2}|d-\d{4}-\d{2}-\d{2})$/)
       expect(value).toMatch(/^\d+$/)
     }
   })

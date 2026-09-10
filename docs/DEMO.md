@@ -63,7 +63,8 @@ Niyyah state you care about.)
 9. **The door.** One sentence: *"Minneapolis today: N women, N men. It opens at forty
    each."* *Say: "We never show an invented crowd. And it's a sentence, not a progress
    bar — there's nothing here to come back and watch."*
-10. **How an introduction will look.** Labelled a sample in the first line. Reasons, the
+10. **How an introduction will look** — from *What decides who you meet*, not from Home
+    (`docs/ROADMAP.md` moved it there). Labelled a sample in the first line. Reasons, the
     one place they differ, the first thing to ask. *Say: "No percentage, no band. Her
     non-negotiables are checked first — anyone who fails one is never shown. One person
     at a time; a considered no is progress, not a swipe."*

@@ -4,6 +4,7 @@ import { RUNG_IDS, rungsFrom, type RungId, type RungInput } from './rungs'
 const base: RungInput = {
   situated: false,
   completed: false,
+  kept: false,
   stage: 'preparing',
   read: null,
   beforeYes: null,
@@ -24,6 +25,7 @@ describe('the ladder', () => {
     const cases: [Partial<RungInput>, RungId][] = [
       [{ situated: true }, 'situated'],
       [{ completed: true }, 'mapped'],
+      [{ kept: true }, 'kept'],
       [{ read: record }, 'read'],
       [{ beforeYes: record }, 'eleven'],
       [{ couple: { code: 'ACDEFG', at: 'x' } }, 'asked-him'],
@@ -46,6 +48,23 @@ describe('the ladder', () => {
     expect(both).toContain('he-answered')
   })
 
+  it('keeping the map is its own rung, so mapped → kept → counted can be told apart', () => {
+    // docs/GAPS.md gap #3: "people will not put a map on a server or leave a
+    // way to be reached" is two failures, and before this rung they were one
+    // number. A map built and not kept, and a map kept without joining the
+    // door, are now distinguishable.
+    const built = rungsFrom({ ...base, completed: true })
+    expect(built).toContain('mapped')
+    expect(built).not.toContain('kept')
+
+    const kept = rungsFrom({ ...base, completed: true, kept: true })
+    expect(kept).toContain('kept')
+    expect(kept).not.toContain('counted')
+
+    const counted = rungsFrom({ ...base, completed: true, kept: true, waitlist: { contact: 'a@b.c', joinedAt: 'x' } })
+    expect(counted).toEqual(['arrived', 'mapped', 'kept', 'counted'])
+  })
+
   it('married implies deciding — the arc does not skip backwards', () => {
     const r = rungsFrom({ ...base, stage: 'married' })
     expect(r).toContain('deciding')
@@ -56,6 +75,7 @@ describe('the ladder', () => {
     const all = rungsFrom({
       situated: true,
       completed: true,
+      kept: true,
       stage: 'married',
       read: record,
       beforeYes: record,

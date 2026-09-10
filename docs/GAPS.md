@@ -70,8 +70,11 @@ and stays there until behaviour or a member says otherwise.
    and `couple` share of `arrived`, against `group` and `unsaid`;
    `followed-through` per hundred `arrived`.
 3. **People will not put a map on a server or leave a way to be reached.**
-   *Test:* the `mapped → kept → counted` funnel from the ladder and the
-   ledger, and — new — why they stopped: `hesitated` by reason.
+   *Test:* the `mapped → kept → counted` funnel — computable since
+   `docs/ROADMAP.md` made `kept` a rung of its own, so the two halves are
+   separate numbers rather than one — and why they stopped: `hesitated` by
+   reason. The halves fail differently: `kept / mapped` is whether they
+   trust us with the map, `counted / kept` is whether they will be reached.
 4. **The instruments are not wanted without a marketplace.** *Test:* `read`,
    `eleven`, `followed-through` per hundred `arrived`; `ending.used`.
 5. **Family is a barrier, not a feature.** *Test:* `vouched` per hundred

@@ -128,6 +128,7 @@ docs/NORTHSTAR.md      The problem, the purpose and the North Star in one senten
 docs/OWNED.md          What we rent and what we produce, and the three moves from renter to owner — the address, the customer list, the constants' lineage
 docs/HARD.md           Where an easy decision now would have cost something irreversible later — the collision, the erasable report, the unmetered delete — and the four deferred with triggers
 docs/REDTEAM.md        The case against every conviction the company rests on — twelve attacked, three named as fatal, and the tests that kill or validate each; the market arithmetic
+docs/ROADMAP.md        Every shipped and proposed feature against the nine Fastlane tests — build now, test first, defer, delete — and why the reordered roadmap's first item is not code
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures
 .github/pull_request_template.md   The release-review checklist, in front of every PR

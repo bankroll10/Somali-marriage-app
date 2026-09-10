@@ -95,10 +95,10 @@ breaks at that stage.
 | **Recommendations** | `alignment()` over fourteen invented people (`src/lib/matching.ts`), geography-blind | `introduce.ts` per LEARNING's design, founder by hand; order is who has waited longest, never who is most wanted | The matchmaker's tool computes the next pair for one person — O(pool) — and a human says yes. Nothing ranks by past yeses; LEARNING says no tally shape may | `alignment` revised from `marriedBy`, monthly, ≥100 records per row (OPERATING); per-country split *visible*, constants still global | Same loop, more rows. Still no model of a person |
 | **Gender balance** | 40/40 symmetric; likely six women to one man; shown as it is | The scarce side sets the pace. The only lever is hers — send him the read, send him the eleven. Never boost, never pay for reach (STRATEGY) | Men's share per pool in the monthly hour (PRODUCT's guardrail). A pool at 400/40 is "open" and she waits ten times longer; the queue makes the wait fair, not short | — | — |
 | **Moderation** | `/safety`, weekly, one inbox (`docs/TIME.md`) | Same, oldest first | Reports carry the pool; the pool's matchmaker is first line, the founder is escalations; a matchmaker key beside the founder key | Real backend with identity — "removed" becomes a button rather than a phone call | — |
-| **Verification** | The vouch, peer to peer, no review | Calling the vouching family at *join* would be O(members) — call at *introduction* | The matchmaker calls at introduction; a vouch phone reused across many maps is visible in Tier 4, by hand | Identity verification, roadmap 4 | — |
+| **Verification** | The vouch, peer to peer, no review | Calling the vouching family at *join* would be O(members) — call at *introduction* | The matchmaker calls at introduction; a vouch phone reused across many maps is visible in Tier 4, by hand | Identity verification — `docs/PRODUCT.md` §10's *real backend* | — |
 | **Support** | `mailto:`, "we read every one" | A FAQ from the inbox (TIME's trigger) | The matchmaker is first line for their pool | A shared inbox; a person who is not the founder | — |
 | **Fraud prevention** | Kept-map requirement; no cap on any public write. **Fixed now** | The founder tally shows implausible shapes: a city of forty with one hardest part, one reach | Duplicates are undetectable without identity, by design; the matchmaker is the check | Accounts | — |
-| **Infrastructure** | Fine | `progress.tally()` fires 1,000 concurrent gets in one invocation and `export.ts` does it twice — the first function timeout. Door `list('uk/')` fine. Cohort entries begin outliving lapsed maps | Pre-aggregate on write (`tallies/progress` on `couple`'s etag pattern, decrement on forget, monthly recompute as repair); running pool counters with a founder `recount`; a scheduled sweep; a paid plan for secrets and timeouts. `couple`'s single tally key only hot past ~10 answers a second | Blobs list-as-query ends: no secondary index, no transactions. Real database, roadmap 4; export paged by prefix | Multi-region, data residency (EU/UK). Nothing here survives, and that is fine |
+| **Infrastructure** | Fine | `progress.tally()` fires 1,000 concurrent gets in one invocation and `export.ts` does it twice — the first function timeout. Door `list('uk/')` fine. Cohort entries begin outliving lapsed maps | Pre-aggregate on write (`tallies/progress` on `couple`'s etag pattern, decrement on forget, monthly recompute as repair); running pool counters with a founder `recount`; a scheduled sweep; a paid plan for secrets and timeouts. `couple`'s single tally key only hot past ~10 answers a second | Blobs list-as-query ends: no secondary index, no transactions. Real database — `docs/PRODUCT.md` §10's *real backend*; export paged by prefix | Multi-region, data residency (EU/UK). Nothing here survives, and that is fine |
 | **Notifications** | None | "Your pool opened": the founder exports the form CSV, filters by country, city and reach, sends by hand. O(pools opening), not O(members). The form carries those fields **now** or even this is impossible | Automated through a transactional vendor — a new dependency, through CONTROL's six questions | Same. Still the only notification ever (STRATEGY) | — |
 | **Payments** | None | A checkout link for "Deciding together" at the first pool; the matchmaker is the founder, paid at the nikah directly | Matchmaker payouts — real marketplace infrastructure | Disputes, refunds, tax by country. Never inside an app-store binary (CONTROL) | — |
 
@@ -179,7 +179,7 @@ the founder could not segment the first "your pool opened" mail even by hand.
 | Support: a FAQ → the matchmaker as first line → a shared inbox | a handful of support mails in a week (`docs/TIME.md`) |
 | Payments: a checkout link for "Deciding together" → payouts to matchmakers | the first pool; then the first matchmaker who is not the founder |
 | Country on the ladder (`/progress` split by country) | `scenes.other` in `/progress` exceeds any named city |
-| A real database, per `docs/PRODUCT.md` roadmap 4 | any store past ~50,000 keys |
+| A real database, per `docs/PRODUCT.md` §10's *real backend* | any store past ~50,000 keys |
 
 **Considered and declined.** *OR reach semantics* — viewer-dependent pools.
 *A worldwide sentence on the door* — expansion by another name. *Per-person
@@ -192,7 +192,7 @@ against six methods. *Splitting a metro below the city* — ever.
 
 - `docs/STRATEGY.md`: "your city opened" is now "the pool you're counted in
   opened"; the density rule names pools.
-- `docs/PRODUCT.md`: §7 and roadmap item 5 speak of the first pool.
+- `docs/PRODUCT.md`: §7 and §10's *first pool opens* speak of the first pool.
 - `docs/LEARNING.md`: the collected list gains her country and how far she
   said she would go.
 - `docs/OPERATING.md`: the `/cohort` readout's new shape; a housekeeping line
