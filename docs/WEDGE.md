@@ -135,7 +135,12 @@ seeded count.
 ## DENSITY NEEDED
 
 Forty women and forty men with kept maps in the Minneapolis–St. Paul metro
-pool — `COHORT_TARGET`, unchanged, in `netlify/functions/cohort.ts`.
+pool — `COHORT_TARGET`, unchanged, in `netlify/functions/cohort.ts`. That is
+the door's promise. What opens the pool is the checklist in
+`docs/LIQUIDITY.md`, read from `/pool`: forty and forty *live*, thirty a side
+still preparing, an age for everyone, and fewer than five on either side with
+nobody eligible — because forty and forty on the door can be a room where a
+quarter of the women have no man in their band, and the door cannot show it.
 
 The funnel between "opened a link" and "counted" is unknown and must be
 measured rather than assumed. The hypothesis to beat: through the one-to-one
@@ -200,6 +205,10 @@ nobody can marry someone met here before anything has opened.
   *learned* feature. But it is one more quasi-identifier in a key that already
   holds five, and it reads `null` under five people anyway. *Trigger: the
   metro passes twenty per side and the founder cannot tell from the room.*
+  Since `docs/LIQUIDITY.md`, age is asked at the door and goes into the kept
+  map, and `/pool` reads it back as a floored histogram per side — so the
+  founder *can* tell whether the wedge held, from the maps. What stays
+  deferred, with this trigger, is the band as a segment of the door's key.
 - **A prior-marriage question.** *Trigger: the second offer.*
 - **Any wedge word in public copy.** Never. The channel is the wedge; the
   brand is not.

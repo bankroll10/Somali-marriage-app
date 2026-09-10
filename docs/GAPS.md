@@ -40,7 +40,8 @@ and stays there until behaviour or a member says otherwise.
 | | A city of forty is re-identifiable from facts | KNOWN (self-admitted) | — |
 | **Family involvement** | Family in the room is wanted; a father will vouch | ASSUMED | `vouched` per hundred `kept`; hook `family`; `hesitated.family` |
 | **Geography** | MSP ~84,000; Columbus 50–60,000; UK 176,645; Toronto ~20,000 | KNOWN (census) | — |
-| | Liquidity is local; who would relocate | LIKELY / UNKNOWN | `reach` per city; `across` |
+| | Liquidity is local; who would relocate | LIKELY / UNKNOWN | `reach` per city; `across`; `/pool?country=` against `/pool?scene=` |
+| | Forty and forty can introduce nearly everyone in it — age does not strand a side | ASSUMED — `docs/LIQUIDITY.md`'s finding: the door cannot see age, and age is the fragmenter that strands | `/pool` `ages`, `pairs`, `stranded`; A7 |
 | **Why conversations fail** | The eleven are what break Somali marriages, found out after families are involved; secrecy predicts non-seriousness; "I don't know my own answer" is the most common state | ASSUMED — central to the product | `ended.reason` and `which`; couple tally `both-not-talked` per topic; `marriedBy.through`; `eleven.unknown` histogram |
 | **Safety** | Players, liars, creeps; six kinds of harm; one incident can kill us | ASSUMED / LIKELY | `safety` reasons; `other`'s share |
 | **Competing alternatives** | Hinge exposes her; Muzz and Salams are low-trust; aunties are limited and judging | ASSUMED — no instrument | hook `finding`; conversations |
@@ -144,7 +145,9 @@ other constant, one change at a time, on a hundred records.
   The first pool's checkout is the test.
 - **A "saw the door" rung.** An attention trace, refused by LEARNING. `mapped`
   against `counted` is the honest funnel; `hesitated` says why.
-- **An age band on the door.** Still deferred, per `docs/WEDGE.md`.
+- **An age band on the door.** Still deferred as a key segment, per
+  `docs/WEDGE.md`; age itself is asked at the door and read back by `/pool`,
+  floored, since `docs/LIQUIDITY.md`.
 
 ## Reclassification log
 

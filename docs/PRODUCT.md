@@ -153,8 +153,12 @@ Defined in `src/lib/rungs.ts`; the code wins over this document.
 
 A pool is a city, or a country for the people who said they would travel
 within it — the smallest geography in which both sides clear the door's
-target, given each member's stated reach (`docs/SCALE.md`). The marketplace,
-when it exists, obeys the same rules as the instruments:
+target, given each member's stated reach (`docs/SCALE.md`). Clearing the
+target is the door's promise; what opens the pool is the checklist in
+`docs/LIQUIDITY.md` — live, still looking, aged, nobody stranded — because
+forty and forty can be a room where a quarter of the women have nobody in
+their band. The marketplace, when it exists, obeys the same rules as the
+instruments:
 
 - **One introduction at a time.** The next arrives only after a yes or a no
   *with a reason*. A considered no is progress and is recorded; it is not a

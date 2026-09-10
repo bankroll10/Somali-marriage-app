@@ -126,6 +126,34 @@
   families are still the ones bringing people together, the role being sold is
   the right role.
 
+## A7 · Forty and forty is a working market
+
+- **HYPOTHESIS.** A pool at the door's target — forty women and forty men
+  with kept maps — can introduce nearly everyone in it: after lapsed maps,
+  people already talking to someone, the age band and the two checkable
+  non-negotiables in both directions, few on either side have nobody.
+- **WHY WE BELIEVE IT.** Arithmetic, not evidence. `docs/LIQUIDITY.md`'s
+  model gives about twenty eligible partners each at forty and forty if half
+  of all pairs clear the gates — and warns that the gates correlate, so age
+  can strand a whole side at once while the door reads full.
+- **WHAT WOULD CONFIRM IT.** `/pool` at forty and forty: `stranded` reads
+  `null` on both sides and `pairs.eligible / pairs.of` is near a half.
+- **WHAT WOULD DISPROVE IT.** `stranded` reads a number on the abundant
+  side — five or more women with no eligible man — or `pairs.eligible /
+  pairs.of` under a fifth. Then forty and forty is a count, not a market.
+- **METRIC.** `/pool` `pairs`, `stranded`, `inventory`, `unaged`, `ages`.
+- **SMALLEST CREDIBLE TEST.** **Built in this pass** — the readout, and
+  nothing more, because the test needs a door near forty and there is none.
+- **TIME TO LEARN.** The first pool to reach the door's target.
+- **DECISION RULE.** The opening checklist in `docs/LIQUIDITY.md`, every
+  line, or the pool does not open; the blocker is named by `ages` and the
+  pair rate and answered with the room the link goes into, never a wider
+  band.
+
+**The age ask at the door** (2026-09-10, `docs/LIQUIDITY.md`) sits between
+`mapped` and `counted` on both sides. A1's and A6's `counted` funnels read
+across it, and `docs/PROCESS.md` carries the rule for a drop after that date.
+
 ## The ranking
 
 By learning value × business importance × whether it can run at all today.
@@ -137,6 +165,7 @@ By learning value × business importance × whether it can run at all today.
 | 3 | A4 family scripts confirmed | Medium | Medium-high | Yes, slowly | None |
 | 4 | A3 the guide's worth | Medium-high | Medium — the only live cost | Needs endings | None |
 | 5 | A5 willingness to pay | High | High — the whole model | No | Blocked by a promise |
+| 6 | A7 forty and forty is a market | High — the whole marketplace turns on it | Highest — the opening decision | Needs a full door | **Built** — `/pool` |
 
 Experiment 1 is the only one that is simultaneously high-value, wedge-critical,
 and impossible to answer today. It is the one that got built.

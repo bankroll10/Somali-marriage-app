@@ -179,6 +179,7 @@ message cites the readout row and the month.
 | Scripts | `src/data/read.ts` `SCRIPTS`, `src/data/beforeYes.ts` `script`, `src/data/families.ts` | `through["source:topic"]` against how often that script was handed out (`eleven.open`, `read.thin`) | Words handed out often and said rarely get rewritten. Words never once confirmed get cut |
 | Joint `URGENCY` | `src/lib/couple.ts` | `/couple` `topics[topic][joint]` | The joint state pairs most often land in for a topic is the one that topic's line should name |
 | `alignment` scales | `src/lib/matching.ts` | only once `ending.who.here > 0` | Nothing to calibrate against until this product has introduced two people who married. Do not touch |
+| `AGE_GAP` | `netlify/functions/pool.ts` | only by hand, from the introductions record's `age` no-reason *(designed)*, on a hundred introductions | An assumption about what families consider, never a learned one — `docs/LEARNING.md` forbids learning age. If `age` leads the reasons people say no, the question in `docs/LIQUIDITY.md`'s deferred list ships; the band itself moves only by the founder's judgement |
 | The `dealbreakers` question and its gate | `src/data/intake.ts`, `matching.ts` `gate()` | `ended.which['non-negotiable']` × `marriedBy.ended['non-negotiable']` | A non-negotiable that ends courtships and precedes marriage is load-bearing; one that ends nothing is aspirational, and the question — never her gate — is what changes |
 | The order of the four questions on the ending | `src/data/ending.ts` | `ending.*` answer rates against `rungs.married` | A question skipped by most is asked last, or dropped |
 
@@ -212,10 +213,13 @@ Three kinds of blob outlive their purpose and have no sweep:
   map lapses a year after its last keep. The vouch blob stays, harmless and
   unreadable through any route. Once a year: list `maps`, list `vouches`,
   delete vouches whose code has no map.
-- **Door entries for maps that lapsed.** A join requires a kept map, but
-  nothing re-checks, so the door drifts from the truth over a year. The same
-  once-a-year pass: list `cohort`, and delete any `index/<code>` and the
-  member key it points at when `<code>` has no map. And once, by hand, the
+- **Door entries for maps that lapsed.** Swept on every `/pool` read of
+  that pool since `docs/LIQUIDITY.md`: the member key and its index go, a
+  lapsed map's blob goes with them, and her `contacts` row stays — lapsed is
+  not forgotten, so `reach-<date>.json` includes lapsed members. The yearly
+  pass remains for pools never read: list `cohort`, and delete any
+  `index/<code>` and the member key it points at when `<code>` has no map.
+  And once, by hand, the
   handful of four-segment keys written before countries existed
   (`docs/SCALE.md`) — every read ignores them, but they are clutter.
 - **Maps kept before the guide's threads were left out.** Each re-keep
@@ -251,7 +255,11 @@ In this order, because each question only means something after the last:
    forty, by the founder's hand. Until `here` is more than zero in a pool that
    has opened, that pool has not yet done what a marketplace is for — and no
    second pool opens until one has. That is "density before expansion" with a
-   number on it (`docs/WEDGE.md`, `docs/SCALE.md`).
+   number on it (`docs/WEDGE.md`, `docs/SCALE.md`). **And before any pool
+   opens: is it honestly near?** Read `/pool` for the one nearest forty —
+   `live`, `supply`, `unaged`, `pairs`, `stranded` — against the opening
+   checklist in `docs/LIQUIDITY.md`, every line, or it does not open. A
+   number in `stranded` names a side to find, never a band to widen.
 6. **One revision.** Pick the single row above with the clearest signal, move
    its constant, and write the line below.
 7. **Save the backup.** One curl, one file, kept somewhere that is not Netlify.

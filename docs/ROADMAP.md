@@ -187,9 +187,11 @@ The introductions record (same-commit rule holds), match quality, mutual
 interest, block-before-introduction, the joint alignment tally, the
 pool-open flag, running counters, "your pool opened" mail, payments and the
 checkout, events, the first-year sheet, the age band, the prior-marriage
-question, real backend, schema versions, the cohort reconcile, per-country
-readouts, the matchmaker's tooling, the safety alert. Their triggers are
-already written and correct. Nothing about them changes but their position.
+question, real backend, schema versions, per-country readouts, the
+matchmaker's tooling, the safety alert. Their triggers are already written
+and correct. Nothing about them changes but their position. The cohort
+reconcile left this list in `docs/LIQUIDITY.md`, built as the founder-read
+half; the age question left it half-way — asked, into the map, never a key.
 
 Two move *down*, against their own documents:
 
@@ -224,7 +226,7 @@ Two move *down*, against their own documents:
 | **0** | **Post the link** | Ten connectors by name; `/?read&via=group`, `/?eleven&via=group`, `/?door&via=group`; the door's honest count posted weekly. `docs/WEDGE.md` steps 1–4. **Waits on nothing.** Every line below waits on it |
 | **1** | **What must be true before strangers arrive** | The `kept` rung and the door's side question (**done**); mail on the domain; the price written down. None of it can be retrofitted onto traffic that has already come |
 | **2** | **Read what comes back** | A6 at four weeks; A1, A2, A4 at their thresholds; `docs/REDTEAM.md`'s three at their dates; then the monthly loop of `docs/OPERATING.md`. Six rules already written, waiting only for numbers |
-| **3** | **The first pool opens** | Minneapolis, one introduction at a time, with the introductions record in the same commit (`docs/HARD.md`). *Gate: 40/40 and the founder's judgement* |
+| **3** | **The first pool opens** | Minneapolis, one introduction at a time, with the introductions record in the same commit (`docs/HARD.md`). *Gate: 40/40 on the door, then the opening checklist in `docs/LIQUIDITY.md` — live, still looking, aged, nobody stranded — read from `/pool`, and the founder's judgement* |
 | **4** | **Concierge, by hand** | The founder matchmaking the first ten. A service, deliberately not a build |
 | **5** | **The first-year sheet** | The marriage after the wedding, which nobody serves. *Gate: the first marriage* |
 | **6** | **Your record** | *Gate: the first member who asks, or the first pool* |
@@ -257,3 +259,7 @@ finding, not a shortfall.
   door's missing side question found by pre-flight and fixed. Concierge
   reclassified from software to service. The guide's default recommended
   off, and left to the founder.
+- 2026-09-10 — `docs/LIQUIDITY.md`. Three builds, each under a named clause
+  of the rule: the re-keep on join and `/pool` with its sweep (an honest
+  public number), age at the door (cannot be retrofitted). The cohort
+  reconcile left DEFER; item 3's gate is the opening checklist.
