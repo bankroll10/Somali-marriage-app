@@ -216,4 +216,18 @@ describe('the read and delete paths are bounded', () => {
     expect((await cohort(new Request(url))).status).toBe(200)
     expect((await cohort(new Request(url))).status).toBe(503)
   })
+
+  it('a hyphenated bucket reads the underscored variable docs/DEPLOY.md names', async () => {
+    // `couple-read` used to look for COUPLE-READ_HOURLY_CAP, which no shell
+    // can set, so the documented COUPLE_READ_HOURLY_CAP silently never bound.
+    const { envName } = await import('../netlify/shared/limit')
+    expect(envName('couple-read', 'HOURLY')).toBe('COUPLE_READ_HOURLY_CAP')
+    expect(envName('guide', 'DAILY')).toBe('GUIDE_DAILY_CAP')
+
+    vi.stubEnv('COUPLE_READ_HOURLY_CAP', '1')
+    const { default: couple } = await import('../netlify/functions/couple')
+    const url = 'http://x/.netlify/functions/couple?code=QRTWXY'
+    expect((await couple(new Request(url))).status).toBe(200)
+    expect((await couple(new Request(url))).status).toBe(503)
+  })
 })

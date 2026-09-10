@@ -105,13 +105,25 @@ export async function underLimit(bucket: string, cap: number, period: Period = '
 }
 
 /**
+ * The variable a bucket reads its cap from. A bucket name may carry a hyphen
+ * (`couple-read`), and a hyphen is not a character an environment variable
+ * name can hold — so it becomes an underscore, and `couple-read` reads
+ * `COUPLE_READ_HOURLY_CAP`, the name docs/DEPLOY.md has always given it.
+ * Until this existed the function looked for `COUPLE-READ_HOURLY_CAP`, which
+ * nothing can set, so the documented variable silently never bound.
+ */
+export function envName(bucket: string, period: 'HOURLY' | 'DAILY'): string {
+  return `${bucket.toUpperCase().replace(/-/g, '_')}_${period}_CAP`
+}
+
+/**
  * The cap for a bucket is `<BUCKET>_HOURLY_CAP` — `COHORT_HOURLY_CAP`,
  * `GUIDE_HOURLY_CAP` — read per call so a change takes effect on the next
  * request, falling back to the function's own default. True when this call
  * would take the bucket past it.
  */
 export async function overHourlyCap(bucket: string, fallback: number): Promise<boolean> {
-  const cap = Number(process.env[`${bucket.toUpperCase()}_HOURLY_CAP`]) || fallback
+  const cap = Number(process.env[envName(bucket, 'HOURLY')]) || fallback
   return !(await underLimit(bucket, cap, 'h'))
 }
 
@@ -129,7 +141,7 @@ export async function overHourlyCap(bucket: string, fallback: number): Promise<b
  * be spent by a call the day was going to refuse anyway.
  */
 export async function overDailyCap(bucket: string, fallback: number): Promise<boolean> {
-  const cap = Number(process.env[`${bucket.toUpperCase()}_DAILY_CAP`]) || fallback
+  const cap = Number(process.env[envName(bucket, 'DAILY')]) || fallback
   return !(await underLimit(bucket, cap, 'd'))
 }
 
