@@ -54,6 +54,15 @@ export interface JoinInput {
    * provider's (docs/OWNED.md).
    */
   contact?: string
+  /**
+   * Her age. It goes into the kept map and never to the door: the cohort
+   * store does not see it and its key does not carry it (docs/WEDGE.md keeps
+   * an age band off the door). Passed here rather than read from the device
+   * because persistence is debounced (useNiyyah), and the re-keep below is
+   * what has to hold it — an introduction cannot be made without an age, so
+   * being counted is the moment it is asked (docs/LIQUIDITY.md).
+   */
+  age?: number
 }
 
 async function withTimeout(input: string, init: RequestInit = {}): Promise<Response | null> {
@@ -106,19 +115,30 @@ async function postJoin(code: string, input: JoinInput): Promise<Response | null
 }
 
 /**
- * Keep the map if it isn't already, then count her. Returns her code and the
- * count after she is in it, or null when any part of that could not happen.
+ * Keep the map — again, if it is already kept — then count her. Returns her
+ * code and the count after she is in it, or null when any part of that could
+ * not happen.
+ *
+ * The re-keep is deliberate. A join is the one moment we know she is here,
+ * and the map the server holds from then on is what the founder reads when
+ * the pool is weighed for opening (netlify/functions/pool.ts): her age, her
+ * stage, what she will not compromise on. Until this, a map kept once and
+ * edited since was counted as it had been, not as it was. If the re-keep
+ * fails she is still counted under the code she already has.
  */
 export async function joinCohort(input: JoinInput): Promise<({ code: string } & CohortCount) | null> {
-  let code = rememberedCode() ?? (await keepMap())
+  const { age, ...place } = input
+  const patch = age === undefined ? undefined : { identity: { age } }
+  let code = (await keepMap(patch)) ?? rememberedCode()
   if (!code) return null
 
-  let res = await postJoin(code, input)
+  let res = await postJoin(code, place)
   // A remembered code the server no longer holds (expired, or a store that was
-  // reset): keep the map again under it and try once more.
+  // reset, or a re-keep that failed just now): keep the map again under it
+  // and try once more.
   if (res?.status === 404) {
-    code = (await keepMap()) ?? code
-    res = await postJoin(code, input)
+    code = (await keepMap(patch)) ?? code
+    res = await postJoin(code, place)
   }
   if (!res?.ok) return null
   try {

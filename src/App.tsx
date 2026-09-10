@@ -59,6 +59,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
   const setScene = (scene: string) => n.setIdentity((prev) => ({ ...prev, scene }))
   const setCountry = (country: string) => n.setIdentity((prev) => ({ ...prev, country }))
   const setReach = (reach: Reach) => n.setIdentity((prev) => ({ ...prev, reach }))
+  const setAge = (age: number) => n.setIdentity((prev) => ({ ...prev, age }))
   // One line about her last read, recomputed from her answers rather than stored,
   // so a change to how we read never leaves an old verdict in the Guide's prompt.
   const readNote = (() => {
@@ -153,6 +154,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onScene={setScene}
           onCountry={setCountry}
           onReach={setReach}
+          onAge={setAge}
           onHesitate={n.saveHesitation}
           hookId={hookId}
           onJoinWaitlist={n.joinedCohort}
@@ -201,6 +203,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onScene={setScene}
           onCountry={setCountry}
           onReach={setReach}
+          onAge={setAge}
           onHesitate={n.saveHesitation}
         />
       )
@@ -352,6 +355,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onScene={setScene}
           onCountry={setCountry}
           onReach={setReach}
+          onAge={setAge}
           onHesitate={n.saveHesitation}
           onAnswer={n.answer}
           onBack={() => n.setScreen('profile')}

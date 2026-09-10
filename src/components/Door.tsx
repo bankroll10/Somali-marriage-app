@@ -186,7 +186,7 @@ export default function Door({
           <p className="mt-3 text-[0.85rem] leading-relaxed text-muted text-pretty">
             {hasMap
               ? 'Your map is already here — being counted is one step from your space.'
-              : 'Being counted takes a map — sixteen questions about you, kept under a code with no name on it — and a way to reach you. No photos, no account. The day someone here fits your map, you hear from us, and nobody else does.'}
+              : 'Being counted takes a map — sixteen questions about you, kept under a code with no name on it — your age, and a way to reach you. No photos, no account. The day someone here fits your map, you hear from us, and nobody else does.'}
           </p>
 
           {/* The one no this product records — the same word, from the same

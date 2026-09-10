@@ -170,3 +170,55 @@ describe('joining', () => {
     expect(await joinCohort({ scene: 'twin-cities', gender: 'woman' })).toBeNull()
   })
 })
+
+describe('the map is current when she is counted', () => {
+  function record() {
+    const calls: { url: string; body: Record<string, unknown> }[] = []
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const body = init?.body ? (JSON.parse(init.body as string) as Record<string, unknown>) : {}
+        calls.push({ url, body })
+        if (url.endsWith('/keep')) return json({ code: 'ACDEFG' })
+        return json({ code: 'ACDEFG', ...served })
+      }),
+    )
+    return calls
+  }
+
+  it('re-keeps a map that is already kept, under the same code, before counting', async () => {
+    saveProgress(state)
+    localStorage.setItem('niyyah.keep.code.v1', 'ACDEFG')
+    const calls = record()
+    await joinCohort({ scene: 'twin-cities', gender: 'woman' })
+    expect(calls[0].url).toContain('/keep')
+    expect(calls[0].body.code).toBe('ACDEFG')
+    expect(calls[1].url).toContain('/cohort')
+    expect(calls[1].body.code).toBe('ACDEFG')
+  })
+
+  it('carries the age she gave into the map, and never onto the door', async () => {
+    saveProgress(state)
+    const calls = record()
+    await joinCohort({ scene: 'twin-cities', gender: 'woman', age: 28 })
+    expect((calls[0].body.snapshot as { identity: { age?: number } }).identity.age).toBe(28)
+    expect('age' in calls[1].body).toBe(false)
+  })
+
+  it('still counts her under the remembered code when the re-keep fails', async () => {
+    saveProgress(state)
+    localStorage.setItem('niyyah.keep.code.v1', 'ACDEFG')
+    let cohortBody: Record<string, unknown> = {}
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url.endsWith('/keep')) return json({ error: 'unavailable' }, 503)
+        cohortBody = JSON.parse(init!.body as string)
+        return json({ code: 'ACDEFG', ...served })
+      }),
+    )
+    const result = await joinCohort({ scene: 'twin-cities', gender: 'woman' })
+    expect(result?.code).toBe('ACDEFG')
+    expect(cohortBody.code).toBe('ACDEFG')
+  })
+})

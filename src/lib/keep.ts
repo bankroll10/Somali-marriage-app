@@ -1,5 +1,5 @@
 import { loadProgress, type PersistedState } from './storage'
-import type { WaitlistState } from '../types'
+import type { Identity, WaitlistState } from '../types'
 
 /**
  * Keeping a map somewhere it can survive a lost phone.
@@ -77,15 +77,27 @@ async function withTimeout(input: string, init: RequestInit): Promise<Response |
   }
 }
 
+/** Something to lay over what the device holds before it is sent — see `keepMap`. */
+export interface KeepPatch {
+  identity?: Partial<Identity>
+}
+
 /**
  * Send the current map up, and return the code that brings it back.
  *
  * Re-keeps under her existing code when she has one, so keeping an updated map
  * never hands her a second code to remember.
+ *
+ * A patch lays over what is on the device before it is sent, and changes
+ * nothing on the device. The door hands the age she just typed this way:
+ * persistence is debounced (useNiyyah), so a re-keep that read storage could
+ * send the map from a quarter-second ago — without the one fact being counted
+ * requires.
  */
-export async function keepMap(): Promise<string | null> {
-  const snapshot = loadProgress()
-  if (!snapshot) return null
+export async function keepMap(patch?: KeepPatch): Promise<string | null> {
+  const state = loadProgress()
+  if (!state) return null
+  const snapshot = patch?.identity ? { ...state, identity: { ...state.identity, ...patch.identity } } : state
 
   const res = await withTimeout(ENDPOINT, {
     method: 'POST',

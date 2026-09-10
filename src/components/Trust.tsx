@@ -131,11 +131,14 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Joining the founding cohort.</span>{' '}
-              If you ask to be counted, your map is kept as above, and we record
-              your city and country, how far you said you’d go for the right
-              person, who you’re seeking, the hardest part you named, and which
-              of the things above you’ve done — under that same code, with no
-              name on it. Nothing about how your map read, and nothing about how
+              If you ask to be counted, your map is kept as above — kept again
+              that day, as it is then, and if you have not given your age we ask
+              it first, because an introduction cannot be made without one; it
+              goes into your map and never onto the door — and we record your
+              city and country, how far you said you’d go for the right person,
+              who you’re seeking, the hardest part you named, and which of the
+              things above you’ve done — under that same code, with no name on
+              it. Nothing about how your map read, and nothing about how
               you use the app, goes anywhere. Your email or phone is kept apart
               from all of that, in a place of its own, with your city and
               country beside it and nothing else — so we can write to you when

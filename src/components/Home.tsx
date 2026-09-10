@@ -66,6 +66,7 @@ interface Props {
   onScene: (scene: string) => void
   onCountry: (country: string) => void
   onReach: (reach: Reach) => void
+  onAge: (age: number) => void
   onHesitate: (reason: Hesitation) => void
 }
 
@@ -102,6 +103,7 @@ export default function Home({
   onScene,
   onCountry,
   onReach,
+  onAge,
   onHesitate,
 }: Props) {
   const name = identity.firstName?.trim()
@@ -439,6 +441,7 @@ export default function Home({
                 onScene={onScene}
                 onCountry={onCountry}
                 onReach={onReach}
+                onAge={onAge}
                 onHesitate={onHesitate}
                 compact
               />

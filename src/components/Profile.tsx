@@ -8,6 +8,7 @@ import type { Hesitation } from '../data/hesitation'
 import Cohort from './Cohort'
 import InviteRow from './InviteRow'
 import VouchRow from './VouchRow'
+import { parseAge } from '../lib/age'
 import type { LedgerEntry } from '../lib/ledger'
 import HowYoudLive from './HowYoudLive'
 import { CheckIcon, ScreenHeader, ShieldGlyph, SparkGlyph, fieldClass } from './ui'
@@ -223,11 +224,9 @@ export default function Profile({
                     maxLength={2}
                     value={identity.age ?? ''}
                     onChange={(e) => {
-                      const n = parseInt(e.target.value, 10)
-                      // Below the gate is not a valid age here — someone who
-                      // confirmed 18+ at the door cannot type their way under it.
-                      const valid = Number.isFinite(n) && n >= MIN_AGE && n <= MAX_AGE
-                      onChangeIdentity((prev) => ({ ...prev, age: valid ? n : undefined }))
+                      // One rule for what counts as an age, shared with the door — src/lib/age.ts.
+                      const age = parseAge(e.target.value)
+                      onChangeIdentity((prev) => ({ ...prev, age }))
                     }}
                     placeholder="—"
                     aria-describedby="profile-age-hint"
@@ -375,6 +374,7 @@ export default function Profile({
             onScene={(scene) => onChangeIdentity((prev) => ({ ...prev, scene }))}
             onCountry={(country) => onChangeIdentity((prev) => ({ ...prev, country }))}
             onReach={(reach) => onChangeIdentity((prev) => ({ ...prev, reach }))}
+            onAge={(age) => onChangeIdentity((prev) => ({ ...prev, age }))}
             onHesitate={onHesitate}
             compact
           />

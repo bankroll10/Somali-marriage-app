@@ -55,8 +55,9 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
             })}
           </div>
 
-          {/* Name only — age and community wait until the profile, where their
-              value is visible. Nothing else stands between here and the insight. */}
+          {/* Name only — age and community wait until the profile or the door,
+              where their value is visible. Nothing else stands between here and
+              the insight. */}
           <div className="animate-rise mt-6" style={{ animationDelay: '120ms' }}>
             <label
               htmlFor="identity-first-name"

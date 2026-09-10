@@ -18,6 +18,7 @@ interface Props {
   onScene?: (scene: string) => void
   onCountry?: (country: string) => void
   onReach?: (reach: Reach) => void
+  onAge?: (age: number) => void
   onHesitate?: (reason: Hesitation) => void
   /** The three "how you'd live" answers are taken here, where they change the reasons in front of her. */
   onAnswer: (questionId: string, value: AnswerValue) => void
@@ -47,6 +48,7 @@ export default function SampleIntroduction({
   onScene,
   onCountry,
   onReach,
+  onAge,
   onHesitate,
   onAnswer,
   onBack,
@@ -197,6 +199,7 @@ export default function SampleIntroduction({
             onScene={onScene}
             onCountry={onCountry}
             onReach={onReach}
+            onAge={onAge}
             onHesitate={onHesitate}
             compact
           />
