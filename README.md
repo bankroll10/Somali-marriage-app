@@ -111,8 +111,8 @@ src/
   lib/storage.ts       localStorage persistence
   hooks/useNiyyah.ts   Single source of truth: state, actions, persistence
   components/          One file per screen; home/ holds Home's cards
-netlify/functions/     guide · keep · cohort · couple · vouch · progress · safety · export (Netlify Blobs)
-netlify/shared/        founder — the bearer key on every readout; vocab — every closed set the functions accept; limit — the hourly cap on every public write
+netlify/functions/     guide · keep · cohort · couple · vouch · progress · safety · export · pool (Netlify Blobs)
+netlify/shared/        founder — the bearer key on every readout; vocab — every closed set the functions accept; limit — the hourly cap on every public write; gate — the two non-negotiables a form can check, twin of lib/matching.ts
 docs/OPERATING.md      The monthly loop: readout field → constant it revises
 docs/LEARNING.md       What it learns and what it refuses to — the tiers, the two lists, the honest limits
 docs/SCALE.md          What breaks at each order of magnitude, the pool as the unit, and what to build now versus at its trigger
@@ -214,13 +214,16 @@ At real launch, remove three things together: the `[[headers]]` block in
 
 ## The founder's readout
 
-Four routes return aggregates and nothing else: the ladder
+Seven routes return aggregates and nothing else: the ladder
 (`/.netlify/functions/progress`), the door's full tally (`/cohort` with no
-`scene`), how pairs come out on the eleven (`/couple` with no `code`), and the
-guide's health check (`/guide`). None returns a person. They are still the one
-thing here a second team could not build for itself, and the health check
-spends Anthropic credit on every call, so all four sit behind one bearer token
-read from `FOUNDER_KEY` (`netlify/shared/founder.ts`).
+`scene`), how pairs come out on the eleven (`/couple` with no `code`), the
+vouch's asks and gives (`/vouch` with no `code`), the shape of a pool —
+live, looking, ages, eligible pairs, stranded (`/pool?scene=` or
+`?country=`, `docs/LIQUIDITY.md`) — the backup (`/export`), and the guide's
+health check (`/guide`). None returns a person. They are still the one thing
+here a second team could not build for itself, and the health check spends
+Anthropic credit on every call, so all seven sit behind one bearer token read
+from `FOUNDER_KEY` (`netlify/shared/founder.ts`).
 
 | Field | Value |
 |---|---|
@@ -236,6 +239,8 @@ curl -sI https://<your-site>/.netlify/functions/progress | head -1     # expect:
 curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/progress
 curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/cohort
 curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/couple
+curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/vouch
+curl -s -H "Authorization: Bearer $FOUNDER_KEY" "https://<your-site>/.netlify/functions/pool?scene=twin-cities"
 curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://<your-site>/.netlify/functions/guide
 ```
 

@@ -391,7 +391,11 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             of the things on your Trust page you’ve done. Nothing about how your
             map read, and nothing about how you use the app. Your map is kept
             again, as it is today, under a code with no name on it, so it can be
-            matched — your age goes there, never onto the door. Your email or
+            matched — your age goes there, never onto the door. Once you are
+            counted, the founder can read the kept maps in your pool to count
+            its shape — how many of each age, how many pairs clear each other’s
+            non-negotiables, how many have nobody here who does — as counts of
+            five or more, never a map and never which person. Your email or
             phone is kept apart from all of it, with only your city beside it,
             so we can tell you when your city opens — and it goes when you tap
             forget. Your answers stay yours.

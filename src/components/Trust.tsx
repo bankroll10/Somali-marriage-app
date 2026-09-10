@@ -145,7 +145,16 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               someone fits, or when the people you’d travel for are counted. It
               is never stored next to your answers, and it is ours to hold
               rather than a form company’s, which is what lets us delete it the
-              moment you ask.
+              moment you ask. Once you are counted, the founder can read your
+              kept map along with everyone else’s in your pool — not to look at
+              anyone, but to count the pool’s shape: how many women and men of
+              each age, how many are still looking, how many pairs clear each
+              other’s non-negotiables both ways, and how many have nobody here
+              who does. What comes back is counts of five or more with no code
+              on them — never a map, never a person, never which person. It is
+              the first use of your map beyond handing it back to you, and it is
+              the one it was kept for. A map nobody has kept for a year lapses,
+              and the same reading takes it off the door.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
               <span className="font-medium text-ink">Asking him to do the eleven too.</span>{' '}

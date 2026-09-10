@@ -73,6 +73,8 @@ curl -s -H "$K" $S/progress | jq .     # the ladder, and the facts
 curl -s -H "$K" $S/cohort   | jq .     # the door: every country and city, how far people would go, hardest parts, ledgers
 curl -s -H "$K" $S/couple   | jq .     # how pairs come out on the eleven
 curl -s -H "$K" $S/vouch    | jq .     # the vouch: asks made, vouches given, and who in the family gave them
+curl -s -H "$K" "$S/pool?scene=twin-cities" | jq .   # the shape of a pool: live, looking, ages, eligible pairs, stranded — and it sweeps lapsed maps off the door
+curl -s -H "$K" "$S/pool?country=us"        | jq .   # the same for a country's travellers
 curl -s -H "$K" $S/guide    | jq .     # the guide's health — one live call, so rarely
 curl -s -H "$K" $S/export   -o "backup-$(date +%F).json"   # the backup — save it
 netlify blobs:list contacts --json > "reach-$(date +%F).json"   # the customer list — save it too
@@ -102,6 +104,27 @@ relatives who answered. Two failures look identical without both:
 | `asked` | Maps whose owner asked a family member to vouch. Asking twice is one ask — the token is reused |
 | `given` | Vouches actually given. `given / asked` under a half means the relative's screen is the problem, not the ask |
 | `byRelationship[rel]` | Who in the family vouched — father, brother, uncle, mother, aunt, other. Floored, like every split by a quasi-identifier |
+
+What `/pool` means — the number the door cannot give, read before any pool is
+opened and never by anyone but the founder (`docs/LIQUIDITY.md`). `?scene=` is
+a city, every reach; `?country=` is the country's travellers. Reading it
+sweeps door entries whose map is gone or lapsed, so the door falls as well as
+rises. Whole numbers are the door's own and the checklist's denominators;
+everything finer is floored, and the subtraction caveat below applies.
+
+| Field | Reads as |
+|---|---|
+| `door` | Women and men on the door, from keys — what the public count says |
+| `live` | Of those, how many have a map that is present and not past its year. `door − live` is what this read just swept |
+| `supply` | Of those, how many are *preparing* as of their last keep — the people an introduction could go to. `talking` is not supply: she is in one, and the rule is one at a time |
+| `unaged` | Live members with no age. An introduction cannot be made to one; before this pass nobody was asked |
+| `swept` | Entries removed on this read, by side. Their `contacts` rows stay — lapsed is not forgotten |
+| `stages[side][stage]` | The live members by stage. Floored |
+| `ages[side][band]` | The live members by age band — 18–24, 25–29, 30–34, 35–39, 40+. Floored. The one split the door could never show, and the one that strands people |
+| `pairs` | `{eligible, of}` over supply: `of` is every woman against every man; `eligible` is the pairs where both have an age, he is within `assumptions.ageGap`, and neither fails the other's checkable non-negotiables (`netlify/shared/gate.ts`). `eligible / of` is `p_gate`, the number every worked example in `docs/LIQUIDITY.md` assumed and this replaces |
+| `inventory[side][bucket]` | How many members have 0, 1–2, 3–5 or 6+ eligible partners in the pool. Floored, computed on read, never stored — a histogram over the pool, not a count on a person |
+| `stranded[side]` | `inventory[side]['0']` under its own name: the members the pool could not introduce to anyone. `null` means fewer than five, which at 40/40 is the checklist's pass; a number is the checklist's fail and names the side |
+| `assumptions.ageGap` | What the pairs rest on: he may be older by `olderBy`, younger by `youngerBy`. An assumption, revised only by hand |
 
 What each field in `/progress` means:
 

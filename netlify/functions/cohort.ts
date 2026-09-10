@@ -12,9 +12,10 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
  * A marriage platform with no members is a promise, and the honest thing to do
  * with a promise is to count toward it in public. This is that count: how many
  * women and how many men have kept a map and can be reached, against the number
- * a pool opens at. It goes up when a real person acts, and it is never seeded,
- * rounded up, or invented — the day it lies is the day the trust claim under it
- * stops being true.
+ * a pool opens at. It goes up when a real person acts, down when a kept map
+ * lapses and the founder's read of the pool sweeps it (netlify/functions/pool.ts),
+ * and it is never seeded, rounded up, or invented — the day it lies is the day
+ * the trust claim under it stops being true.
  *
  * The unit is the pool, not the city. A city is where a person can meet someone
  * this week; a country is where she would move for the right person — and for
@@ -81,7 +82,7 @@ const MAX_BODY = 2_560
 /** An email or a phone number. Long enough for any real address, short enough that nothing else fits. */
 const MAX_CONTACT = 200
 /** A member key has exactly this many segments. Anything else is the index, or a key from before countries existed. */
-const SEGMENTS = 6
+export const SEGMENTS = 6
 /** Joins in one hour, from everyone. A circuit breaker, not a member limit — see netlify/shared/limit.ts. */
 const DEFAULT_HOURLY_CAP = 200
 /** Door counts read in one hour, from everyone — the read cap, per keep.ts. */
@@ -110,7 +111,7 @@ export interface PoolCount {
 
 type Store = ReturnType<typeof getStore>
 
-function sideOf(gender: string): keyof SideCount | null {
+export function sideOf(gender: string): keyof SideCount | null {
   return gender === 'woman' ? 'women' : gender === 'man' ? 'men' : null
 }
 
@@ -118,7 +119,7 @@ function sideOf(gender: string): keyof SideCount | null {
  * A named city knows its country; somewhere-else has to be told one. Null when
  * the person cannot be placed — and an unplaced person cannot be counted.
  */
-function countryOf(scene: string, told: unknown): string | null {
+export function countryOf(scene: string, told: unknown): string | null {
   if (scene !== 'other') return SCENE_COUNTRY[scene] ?? null
   return typeof told === 'string' && COUNTRIES.has(told) ? told : null
 }
