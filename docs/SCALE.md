@@ -179,6 +179,7 @@ the founder could not segment the first "your pool opened" mail even by hand.
 | Support: a FAQ → the matchmaker as first line → a shared inbox | a handful of support mails in a week (`docs/TIME.md`) |
 | Payments: a checkout link for "Deciding together" → payouts to matchmakers | the first pool; then the first matchmaker who is not the founder |
 | Country on the ladder (`/progress` split by country) | `scenes.other` in `/progress` exceeds any named city |
+| Marriages on the door: a running `tallies/married/<scene>` counter written on the first `married` rung and the first `ending.who = here`, decremented on forget, read by `countPool`, rendered only above zero (`docs/FLYWHEEL.md`) | the first `rungs.married` — recomputable from `first.married` days, so waiting loses nothing |
 | A real database, per `docs/PRODUCT.md` §10's *real backend* | any store past ~50,000 keys |
 
 **Considered and declined.** *OR reach semantics* — viewer-dependent pools.

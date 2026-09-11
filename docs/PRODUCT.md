@@ -229,7 +229,7 @@ forwarded — a profile, a match, a map. What gets said to a friend is about
 which are words a person can say, are the thing that travels, and the product
 is the footnote.
 
-Three loops, in order of strength:
+Four loops, in order of strength:
 
 1. **"I said the words, and something happened."** The moment a follow-up
    resolves to "we talked" is the moment worth telling someone. Home keeps the
@@ -243,8 +243,12 @@ Three loops, in order of strength:
 3. **The family words and the vouch.** Cross-generational: the aunties are the
    existing matchmaking network, and the vouch puts the product on a father's
    phone.
+4. **The couple it worked for.** The ending's two shares — the eleven for the
+   friend who is talking to someone, the door for the one who is looking,
+   through the spouse's side. The only loop that reaches an unattached man
+   without anyone admitting they are looking (`docs/FLYWHEEL.md`).
 
-Three links open an instrument directly — `?read`, `?eleven`, `?families` —
+Four links open an instrument directly — `?read`, `?eleven`, `?families`, `?door` —
 with no Welcome and no account. Any link may carry `&via=` naming what kind of
 link it was (words, eleven, couple, door, family, married — a link from
 someone this worked for — or group, a link shared into a community's chat

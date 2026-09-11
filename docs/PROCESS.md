@@ -202,6 +202,7 @@ one place to see them together.
 | Opening a pool | `docs/LIQUIDITY.md`'s checklist, every line — forty and forty live, thirty a side preparing, nobody unaged, `stranded` null on both sides — or it does not open. A number in `stranded` names the side to find, never a band to widen | `docs/LIQUIDITY.md`, logged as A7 |
 | The age ask at the door | Women's `counted` per hundred `arrived` falls by a quarter after 2026-09-10 → age becomes optional at the door and required at the first introduction instead | `docs/LIQUIDITY.md` |
 | The queue, once a pool is open | The scarce side's median remaining inventory under two → pause the queue and go back to the playbook for supply; `no-answer` above three in ten in the first month → require the reply to "your pool opened" before anyone is queued | `docs/LIQUIDITY.md` *(designed)* |
+| The ending's door share | Ten endings and `sidesByVia.man.married.arrived` still `null` → the ask is rewritten once; null after ten more → dropped, the eleven alone | `docs/FLYWHEEL.md`, logged as A8 |
 | The company itself — the red team's three | Each carries a kill number and a date: ten connectors asked this week, the `group` cell at two weeks, the pivot at eight; the three-bin conversations this month; the matchmaker-payment question this month. When any one resolves either way, `docs/REDTEAM.md` is re-run before the next roadmap pick, not after | `docs/REDTEAM.md` |
 
 A feature with no decision rule is not yet a feature this process can

@@ -154,6 +154,29 @@
 `mapped` and `counted` on both sides. A1's and A6's `counted` funnels read
 across it, and `docs/PROCESS.md` carries the rule for a drop after that date.
 
+## A8 · The couple it worked for reaches the side nobody else can
+
+- **HYPOTHESIS.** A married couple will send the door to someone who is
+  looking — through the spouse's side — and that is how serious, unattached
+  men arrive without a woman being attached to them.
+- **WHY WE BELIEVE IT.** Reasoned. Every other loop reaches a man already
+  attached (`docs/WEDGE.md`); the moment she is married the cost of
+  forwarding inverts (the ending's own thesis); his friends are the one room
+  of unattached men she can reach. Nobody has been asked.
+- **WHAT WOULD CONFIRM IT.** `sidesByVia.man.married.arrived` reads a number
+  after the first endings, and its `counted / arrived` is no worse than
+  `group`'s.
+- **WHAT WOULD DISPROVE IT.** Ten endings and the cell still `null` — the
+  couple sends the eleven or nothing, and the door ask is decoration.
+- **METRIC.** `sidesByVia.man.married`; `vias.married.counted / arrived`.
+- **SMALLEST CREDIBLE TEST.** **Built in this pass** — the second share
+  (`docs/FLYWHEEL.md`). Nothing else.
+- **TIME TO LEARN.** The first ten endings — the slowest of the eight;
+  honestly, years.
+- **DECISION RULE.** Ten endings and `sidesByVia.man.married.arrived` still
+  `null` → the door ask is rewritten once — the copy, not the mechanism. Null
+  after ten more → dropped, and the ending sends the eleven alone.
+
 ## The ranking
 
 By learning value × business importance × whether it can run at all today.
@@ -166,6 +189,7 @@ By learning value × business importance × whether it can run at all today.
 | 4 | A3 the guide's worth | Medium-high | Medium — the only live cost | Needs endings | None |
 | 5 | A5 willingness to pay | High | High — the whole model | No | Blocked by a promise |
 | 6 | A7 forty and forty is a market | High — the whole marketplace turns on it | Highest — the opening decision | Needs a full door | **Built** — `/pool` |
+| 7 | A8 the couple reaches men | High — the only loop to the scarce side | High — the flywheel's one referral | Needs endings | **Built** — the second share |
 
 Experiment 1 is the only one that is simultaneously high-value, wedge-critical,
 and impossible to answer today. It is the one that got built.

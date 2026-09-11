@@ -263,3 +263,7 @@ finding, not a shortfall.
   of the rule: the re-keep on join and `/pool` with its sweep (an honest
   public number), age at the door (cannot be retrofitted). The cohort
   reconcile left DEFER; item 3's gate is the opening checklist.
+- 2026-09-11 — `docs/FLYWHEEL.md`. Ten transitions inspected; one build,
+  under the cannot-be-retrofitted clause: the ending's door share, through
+  the spouse's side (B11, sharpened). Marriages on the door designed at the
+  first marriage.
