@@ -164,6 +164,36 @@ every product decision after that is a negotiation between them.
   at software margins.
 - **Vetted IRL events** — halal, family-friendly. Revenue + liquidity + trust.
 
+**The price, as a prediction** — written 2026-09-11, before the first pool,
+so the eventual checkout tests a belief rather than reacting to a room
+(`docs/ROADMAP.md`, `docs/REDTEAM.md`, `docs/BACKWARD.md`):
+
+| Line | Price | Paid |
+|---|---|---|
+| Deciding together | $99, once, for one courtship | At the move to *deciding* |
+| A matchmaker in your corner | $1,500 at the nikah, the company's share half; nothing owed if nothing came of it | At the nikah |
+| The first year, as a gift | $79 | By someone else, at the wedding |
+
+At those prices, with three in five marriages using a matchmaker, the
+company's take is about $1,000 a marriage — a $4M company at total dominance
+of the diaspora (`docs/BACKWARD.md`). The institution price — $3,000 and up
+at the nikah, what a matchmaker actually charges — is what a real company
+requires, and the ten conversations must find out whether families pay it.
+No price appears on any screen until the public launch (`src/data/plus.ts`);
+this is the prediction the checkout will be measured against.
+
+**Public launch** is the day the first pool opens on `docs/LIQUIDITY.md`'s
+checklist. Two promises hang on it: everyone here before it keeps every paid
+feature free for a year after it, and prices are set at it.
+
+**The institution rule.** The endgame below reaches past one community and
+the brand's first sentence names one. So: nothing that would need renaming
+for a second community carries a community's name — the product is Niyyah,
+an intention, not "the Somali app" — and a community's content (its cities,
+its countries, its eleven, its lines) lives in `src/data/` as data, which is
+already true. Zero cost today; it is what keeps `docs/BACKWARD.md`'s second
+target reachable.
+
 **What is free, forever:** the map and every reading, the work, the
 read, the eleven, the family conversations, the family vouch, reporting and
 blocking, being introduced, and replying to anyone who is serious about you.
@@ -376,7 +406,9 @@ Become **the trusted relationship institution of the global Muslim/Somali
 diaspora** — the modern wali. Start Somali (deep, defensible), then expand to the
 broader Muslim diaspora (enormous), then to other high-trust, marriage-minded,
 underserved communities (South Asian, Arab, African, and beyond). The wedge is
-narrow on purpose; the destination is not.
+narrow on purpose; the destination is not. `docs/BACKWARD.md` does the
+arithmetic: Somali-only caps at a good business, and the destination is the
+only route to a valuable one — which is why the institution rule above exists.
 
 **We are not building swipes. We're building the place where a confused generation
 learns to choose — properly, and for life.**

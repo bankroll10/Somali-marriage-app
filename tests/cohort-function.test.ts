@@ -290,8 +290,10 @@ describe('the way to reach her', () => {
     expect(record.scene).toBe('toronto')
     expect(record.country).toBe('ca')
     // No side, no hardest part, no ledger — the tally store already has those,
-    // and they have no business sitting beside a way to reach someone.
-    expect(Object.keys(record).sort()).toEqual(['at', 'contact', 'country', 'scene'])
+    // and they have no business sitting beside a way to reach someone. The
+    // record's version is the one field allowed beside a way to reach her,
+    // and it says nothing about her (netlify/shared/record.ts).
+    expect(Object.keys(record).sort()).toEqual(['at', 'contact', 'country', 'scene', 'v'])
   })
 
   it('never touches the store that gets listed and tallied', async () => {

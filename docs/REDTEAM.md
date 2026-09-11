@@ -507,7 +507,9 @@ re-examined as the first product rather than the matchmaker.
 
 **What can be decided now.** The price, in `docs/STRATEGY.md`, before the
 first pool opens — a prediction with a date, so the eventual checkout tests
-a belief rather than reacting to a room.
+a belief rather than reacting to a room. **Decided 2026-09-11:**
+`docs/STRATEGY.md` §5 carries the schedule, and `docs/BACKWARD.md` shows what
+the arithmetic needs it to be — the institution price, not the software one.
 
 **What can be checked when endings exist.** `ending.who.family`. If families
 are still bringing people together, the role being sold is the right role,
@@ -566,3 +568,6 @@ checkout completes at the written price more than once.
 - 2026-09-10 — `docs/LIQUIDITY.md`: assumption 11's test gains `/pool`. A
   finding beside the three: the door's forty and forty could not say whether
   anyone could be introduced, and age is the fragmenter it cannot see.
+- 2026-09-11 — `docs/BACKWARD.md`: the third threat's "what can be decided
+  now" is decided — the price, as a prediction — and public launch is defined,
+  which puts a date on the year this threat says the company cannot see past.
