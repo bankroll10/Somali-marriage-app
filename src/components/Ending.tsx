@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import type { EndingRecord, Identity } from '../types'
 import type { Ending } from '../lib/ending'
-import { endingHeadline } from '../lib/ending'
+import { endingHeadline, marriedShares } from '../lib/ending'
 import { ADVICE_PLACEHOLDER, ADVICE_PROMPT, PAY_IT_FORWARD, endingQuestions } from '../data/ending'
-import { instrumentLink } from '../lib/links'
+import { speak } from '../data/read'
 import { shareOrCopy } from '../lib/share'
 import { CheckIcon, Logo, fieldClass } from './ui'
 
@@ -35,9 +35,10 @@ export default function Ending({ identity, ending, saved, onSave, onBack }: Prop
   const name = identity.firstName?.trim()
   const gender = identity.gender ?? 'woman'
   const questions = endingQuestions(gender)
+  const fix = speak(gender)
   const [answers, setAnswers] = useState<EndingRecord>(saved ?? { at: new Date().toISOString() })
   const [copied, setCopied] = useState(false)
-  const [shared, setShared] = useState(false)
+  const [shared, setShared] = useState<'eleven' | 'door' | null>(null)
 
   function put(patch: Partial<EndingRecord>) {
     const next = { ...answers, ...patch, at: answers.at }
@@ -73,25 +74,16 @@ export default function Ending({ identity, ending, saved, onSave, onBack }: Prop
   }
 
   /**
-   * The one thing only she can say.
-   *
-   * Everything else this product hands out is careful never to reveal that the
-   * sender is looking, because in this community that costs her something. The
-   * moment she is married that inverts entirely: "before we said yes, we had
-   * these conversations" is not an admission, it is the most credible thing
-   * anyone can say about marrying well, and only she can say it.
+   * The two things only a married person can send — see `marriedShares` in
+   * src/lib/ending.ts for why there are two, and why the second is the one
+   * that reaches the side the marketplace is short of.
    */
-  async function tellSomeone() {
-    const advice = answers.advice?.trim()
-    const text = [
-      'Before we said yes, we went through eleven conversations — where we’d live, money home, all of it. I wish someone had handed me that list earlier.',
-      advice ? `\n${advice}` : '',
-      '\nIt is free, and there is no account.',
-    ].join('')
-    const result = await shareOrCopy({ text, url: instrumentLink('eleven', 'married') }, 'married_told')
+  async function tell(kind: 'eleven' | 'door') {
+    const shares = marriedShares(identity, answers.advice)
+    const result = await shareOrCopy(shares[kind], kind === 'eleven' ? 'married_told' : 'married_door')
     if (result === 'copied') {
-      setShared(true)
-      window.setTimeout(() => setShared(false), 2400)
+      setShared(kind)
+      window.setTimeout(() => setShared(null), 2400)
     }
   }
 
@@ -176,19 +168,43 @@ export default function Ending({ identity, ending, saved, onSave, onBack }: Prop
           </p>
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-muted text-pretty">
             While you were looking, forwarding anything about it meant admitting you were looking. That
-            is over. “Before we said yes, we had these eleven conversations” is a thing a married woman
-            can say to anyone — a sister, a cousin, the girl at the wedding who is where you were.
+            is over. “Before we said yes, we had these eleven conversations” is a thing a married{' '}
+            {gender === 'man' ? 'man' : 'woman'} can say to anyone — a sister, a cousin, the one at the
+            wedding who is where you were.
           </p>
           <button
-            onClick={tellSomeone}
+            onClick={() => tell('eleven')}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-[0.9rem] font-medium text-cream transition hover:bg-forest-deep"
           >
-            {shared ? (
+            {shared === 'eleven' ? (
               <>
                 <CheckIcon size={13} /> Copied to send
               </>
             ) : (
               'Send the eleven to someone'
+            )}
+          </button>
+
+          {/* The second share, and the one that turns the flywheel on the side
+              the marketplace is short of. Every other loop here reaches a man
+              already attached to the woman who sent it; a married couple can
+              reach an unattached one through the spouse, and nobody has to
+              admit they are looking — docs/FLYWHEEL.md. */}
+          <p className="mt-5 border-t border-gold/20 pt-4 text-[0.95rem] leading-relaxed text-muted text-pretty">
+            {fix(
+              'And you two are the one pair in the room who can reach someone serious without anyone admitting they are looking. If {he} knows one who is — a brother, a cousin, the friend from the wedding — send {him} the door: the honest count for your city, and the map as the way in.',
+            )}
+          </p>
+          <button
+            onClick={() => tell('door')}
+            className="mt-4 inline-flex items-center gap-2 rounded-full border border-forest/30 px-5 py-2.5 text-[0.9rem] font-medium text-forest transition hover:bg-forest/[0.06]"
+          >
+            {shared === 'door' ? (
+              <>
+                <CheckIcon size={13} /> Copied to send
+              </>
+            ) : (
+              'Send the door to someone who is looking'
             )}
           </button>
         </section>

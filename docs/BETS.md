@@ -108,7 +108,10 @@ half the wedge's primary loop is missing from his side.
 **B11 · The ending's share carries the door.** The one share only a married
 woman can make sends the eleven. For most of the people she would tell, the
 door is the truer thing to send.
-*Upside Med · Cost S · Free · Confidence Med · Learning Low.*
+*Upside Med · Cost S · Free · Confidence Med · Learning Low.* **Built
+2026-09-11** (`docs/FLYWHEEL.md`), and sharper than scored: the ask names the
+spouse's friend, because the couple is the one pair who can reach an
+unattached man without anyone admitting they are looking.
 
 **B12 · The waitlist confirmation names the two numbers.** She is counted, and
 the screen says so; it does not say what she just moved. Copy only.

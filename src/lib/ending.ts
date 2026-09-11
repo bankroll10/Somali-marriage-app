@@ -11,6 +11,10 @@ import type {
 import { buildBeforeYes } from './beforeYes'
 import { conversationsHad } from './followup'
 import { relationshipLabel } from '../data/vouch'
+import { countryFor, getScene } from '../data/scenes'
+import { getCountry } from '../data/countries'
+import { instrumentLink } from './links'
+import { COHORT_TARGET } from './cohort'
 
 /**
  * How you chose.
@@ -171,4 +175,55 @@ export function endingHeadline(ending: Ending): string {
   if (n === 0) return 'You chose someone, and you did it in the open.'
   if (n === 1) return 'You had one conversation you were not going to have.'
   return `You had ${words(n)} conversations you were not going to have.`
+}
+
+/** Something she can send: the words, and the link they carry. */
+export interface Share {
+  text: string
+  url: string
+}
+
+/**
+ * The two things only a married person can send.
+ *
+ * Everything else this product hands out is careful never to reveal that the
+ * sender is looking, because in this community that costs her something. The
+ * moment she is married that inverts entirely — and it inverts twice.
+ *
+ * The first share is the eleven, for the friend who is already talking to
+ * someone: "before we said yes, we had these conversations" is the most
+ * credible thing anyone can say about marrying well, and only she can say it.
+ *
+ * The second is the door, for the friend who is looking — and it is the one
+ * that turns the flywheel on the side that needs it (docs/FLYWHEEL.md). The
+ * marketplace's scarce side is serious, unattached men, and every other loop
+ * in the product reaches a man already attached to the woman who sent it. A
+ * married couple is the one pair who can reach an unattached person through
+ * the spouse's side without anyone admitting they are looking. Until this
+ * existed the ending sent women an instrument for people already in a
+ * courtship, and nothing reached the door.
+ *
+ * Both carry `via=married` and nothing else — the kind of link, never who sent
+ * it (docs/STRATEGY.md). The pool is named the way the door names it. Pure, so
+ * a test can hold the line that nothing here carries a name or a code.
+ */
+export function marriedShares(identity: { scene?: string; country?: string }, advice?: string): { eleven: Share; door: Share } {
+  const scene = getScene(identity.scene)
+  const within = getCountry(countryFor(identity))?.within
+  const pool = !scene ? 'your city' : scene.id === 'other' ? (within ?? 'your country') : scene.label
+  const line = advice?.trim()
+  return {
+    eleven: {
+      text: [
+        'Before we said yes, we went through eleven conversations — where we’d live, money home, all of it. I wish someone had handed me that list earlier.',
+        line ? `\n${line}` : '',
+        '\nIt is free, and there is no account.',
+      ].join(''),
+      url: instrumentLink('eleven', 'married'),
+    },
+    door: {
+      text: `We married this year, alhamdulillah. Niyyah is being built for us, one city at a time — ${pool} opens when ${COHORT_TARGET} serious women and ${COHORT_TARGET} serious men have kept a map and can be reached. If you’re looking, this is where it stands. No photos, no account: a map, and a way to reach you.`,
+      url: instrumentLink('door', 'married'),
+    },
+  }
 }

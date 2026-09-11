@@ -223,14 +223,19 @@ actually see; where it is not, the failure is invisible and that is said.
 
 ### 12 · Success → Referral
 
-- **Metric.** `vias.married` as a share of `arrived`; `vias.words`.
+- **Metric.** `vias.married` as a share of `arrived`; `vias.words`; and
+  `sidesByVia.man.married.arrived` — the men a married couple's share
+  produced, the flywheel's number (`docs/FLYWHEEL.md`).
 - **Friction.** No referral reward, no invite counter, no link that carries
   who sent it — by rule, forever. A married woman has no reason to open the
   app again; the ending is her last screen.
 - **Failure state.** `vias.married` at zero after the first marriages.
 - **Dependencies.** Stage 11.
-- **Mechanism.** The auntie inversion — `via: 'married'` from the ending.
-- **Improvement.** None until a marriage. Then read it.
+- **Mechanism.** The auntie inversion — `via: 'married'` from the ending, as
+  two shares: the eleven for the friend who is talking to someone, and the
+  door for the one who is looking, through the spouse's side — the one loop
+  that reaches an unattached man.
+- **Improvement.** None until a marriage. Then read it; A8 has the rule.
 
 ## The weakest link
 
@@ -258,9 +263,9 @@ The evidence, in the code:
     reading?" A man who came because he is *looking* cannot answer it. His
     only ways forward are eleven questions about a woman he is not seeing, or
     the back button.
-- There is no link kind for the door: `src/lib/entry.ts` `InstrumentKind` is
-  `'read' | 'eleven' | 'families'`; `ENTRY_SCREEN` in `src/hooks/useNiyyah.ts`
-  has no `door`.
+- There was no link kind for the door: `src/lib/entry.ts` `InstrumentKind`
+  was `'read' | 'eleven' | 'families'`; `ENTRY_SCREEN` in
+  `src/hooks/useNiyyah.ts` had no `door`. (M1 added both, 2026-09-07.)
 - And the failure cannot be seen. `ProgressRecord` in
   `netlify/functions/progress.ts` carries scene, via and facts — no gender.
   The readout can show `vias.group` and `vias.door` but cannot split either by
@@ -433,4 +438,5 @@ or a new weakest link — and the readout that showed it._
 
 - 2026-09-07 — M0–M2 built: `sides` on the ladder, the `/?door` link, two asks on the door, the playbook posts both links. The decision rule is now runnable; A6's four weeks start when the first group post goes out.
 - 2026-09-08 — `sidesByVia` on the readout. A6 reads the `group` cell, not the side: `sides.man` counted a man who arrived through a woman's eleven as if the channel had produced him (`docs/REDTEAM.md`).
+- 2026-09-11 — Stage 12 gains its second mechanism: the ending's door share, `via=married`, through the spouse's side (`docs/FLYWHEEL.md`). `sidesByVia.man.married` is the cell to read.
 - 2026-09-10 — Age is asked at the door when she is counted (`docs/LIQUIDITY.md`): a new step between `mapped` and `counted`, on both sides. A6's `counted` per hundred `arrived` and the eight-week rule read across it; a drop after this date is attributed to it first, and `docs/PROCESS.md` carries the rule.

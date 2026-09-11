@@ -245,7 +245,11 @@ In this order, because each question only means something after the last:
    and its ratio against `words` is the first test of that wedge. Read
    `sidesByVia.man.group` beside it: the men that channel produced, as
    against the men who arrived through someone's eleven, who were never
-   anyone else's to meet.
+   anyone else's to meet. Read `counted` per hundred `arrived` by via as
+   well — the supply a kind of link brings, not only the conversations; the
+   best door for each may differ. And once there are endings, read
+   `sidesByVia.man.married` beside `group`: the men a married couple's share
+   produced, the flywheel's number (`docs/FLYWHEEL.md`).
 3. **Which conversations get had, and which only get handed out?**
    `eleven.open` against `throughByTopic`. The gap is the next script to
    rewrite.

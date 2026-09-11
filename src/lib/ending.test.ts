@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildEnding, endingHeadline, type EndingInput } from './ending'
+import { buildEnding, endingHeadline, marriedShares, type EndingInput } from './ending'
 import type { FollowUp } from '../types'
 
 const TODAY = '2026-09-04'
@@ -92,5 +92,36 @@ describe('how you chose', () => {
     expect(span('2026-03-04', '2026-09-04')).toBe('six months')
     expect(span('2025-09-04', '2026-09-04')).toBe('one year')
     expect(span('2025-07-04', '2026-09-04')).toBe('one year and two months')
+  })
+})
+
+describe('the two things only a married person can send', () => {
+  it('both say what kind of link they are, and nothing about who sent them', () => {
+    const { eleven, door } = marriedShares({ scene: 'twin-cities' }, 'Ask about money home before anyone books a hall.')
+    expect(eleven.url).toMatch(/\/\?eleven&via=married$/)
+    expect(door.url).toMatch(/\/\?door&via=married$/)
+    for (const share of [eleven, door]) {
+      expect(share.url).not.toMatch(/code|map=|ref|name/)
+      expect(share.text).not.toMatch(/Hodan|ACDEFG/)
+    }
+  })
+
+  it('her line rides on the eleven — the friend who is talking to someone — and not on the door', () => {
+    const { eleven, door } = marriedShares({ scene: 'twin-cities' }, 'Ask about money home before anyone books a hall.')
+    expect(eleven.text).toContain('Ask about money home before anyone books a hall.')
+    expect(door.text).not.toContain('money home before anyone')
+    expect(marriedShares({}).eleven.text).not.toMatch(/\n\n/)
+  })
+
+  it('names the pool the way the door does — the city, or the country for somewhere else', () => {
+    expect(marriedShares({ scene: 'twin-cities' }).door.text).toContain('Minneapolis–St. Paul opens when 40 serious women and 40 serious men')
+    expect(marriedShares({ scene: 'other', country: 'uk' }).door.text).toContain('the UK opens when')
+    expect(marriedShares({}).door.text).toContain('your city opens when')
+  })
+
+  it('the door share is for the person who is looking, and says so', () => {
+    const { door } = marriedShares({ scene: 'london' })
+    expect(door.text).toMatch(/If you’re looking/)
+    expect(door.text).toMatch(/No photos, no account/)
   })
 })
