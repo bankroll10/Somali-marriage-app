@@ -3,6 +3,7 @@ import { CODE, mint, normalise } from '../shared/code'
 import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, TOPICS, YES_STATES as STATES } from '../shared/vocab'
 import { day } from '../shared/day'
+import { stamp } from '../shared/record'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 
 /**
@@ -213,10 +214,10 @@ export default async function handler(req: Request) {
       // characters costs a retry rather than one of them answering into the
       // other's sheet — netlify/shared/code.ts.
       if (code) {
-        await store.setJSON(code, record)
+        await store.setJSON(code, stamp(record))
         return Response.json({ code })
       }
-      const minted = await mint((c, v: CoupleRecord) => store.setJSON(c, v, { onlyIfNew: true }), record)
+      const minted = await mint((c, v: CoupleRecord) => store.setJSON(c, v, { onlyIfNew: true }), stamp(record))
       if (!minted) {
         console.error('[niyyah] couple: every minted code collided')
         return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -239,7 +240,9 @@ export default async function handler(req: Request) {
       // Once. A second answer would let him probe hers the same way.
       if (record.second) return Response.json({ error: 'answered' }, { status: 409 })
       const updated: CoupleRecord = { ...record, second: body.states, answeredAt: day(now) }
-      await store.setJSON(code, updated)
+      // Stamped after the spread, so a sheet born at one version and answered
+      // at another carries the version it was last written in.
+      await store.setJSON(code, stamp(updated))
       // The pair is saved. Now, and only now, it is counted.
       await countPair(jointOf(updated.first, body.states))
       return Response.json(view(updated))

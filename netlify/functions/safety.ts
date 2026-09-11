@@ -2,6 +2,7 @@ import { getStore } from '@netlify/blobs'
 import { notFounder, requireFounder } from '../shared/founder'
 import { GENDERS, SAFETY_OUTCOMES, SAFETY_REASONS } from '../shared/vocab'
 import { day } from '../shared/day'
+import { stamp } from '../shared/record'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import { CODE, newCode, normalise } from '../shared/code'
 
@@ -158,7 +159,7 @@ export default async function handler(req: Request) {
     const id = newCode()
     const record: Report = { id, code, side: body.side as 'woman' | 'man', reason: body.reason!, ...(details ? { details } : {}), at: day() }
     try {
-      await store.setJSON(keyFor(code, body.side!, id), record)
+      await store.setJSON(keyFor(code, body.side!, id), stamp(record))
     } catch (err) {
       console.error('[niyyah] safety: write failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -184,7 +185,7 @@ export default async function handler(req: Request) {
       const open = (await store.get(keyFor(code, side, id), { type: 'json' })) as Report | null
       if (!open) return Response.json({ error: 'not_found' }, { status: 404 })
       const stub: Resolved = { reason: open.reason, at: open.at, resolvedAt: day(), outcome }
-      await store.setJSON(`resolved/${id}`, stub)
+      await store.setJSON(`resolved/${id}`, stamp(stub))
       await store.delete(keyFor(code, side, id))
     } catch (err) {
       console.error('[niyyah] safety: delete failed', err)

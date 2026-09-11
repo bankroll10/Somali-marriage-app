@@ -61,8 +61,11 @@ export interface Backup {
   /** When this copy was taken. */
   at: string
   /**
-   * What shape the records are in, so a future reader knows how to read them.
+   * What shape this wrapper is in, so a future reader knows how to read it.
    * Version 2: the door is nested country → city and each city carries `reach`.
+   * The records inside carry their own version — `v`, netlify/shared/record.ts
+   * — since 2026-09-11; before that the wrapper was versioned and the asset
+   * inside it was not, which docs/HARD.md called exactly backwards.
    */
   version: 2
   /** Install code → the whole record. The learning asset. */

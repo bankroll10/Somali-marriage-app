@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { CODE, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
 import { day } from '../shared/day'
+import { stamp } from '../shared/record'
 import { floor } from '../shared/floor'
 import { isFounder, notFounder } from '../shared/founder'
 import { overHourlyCap, rateLimited } from '../shared/limit'
@@ -245,7 +246,7 @@ export default async function handler(req: Request) {
       ...(phone ? { phone } : {}),
       at: day(),
     }
-    await store.setJSON(code, record)
+    await store.setJSON(code, stamp(record))
     return Response.json(publicView(record))
   } catch (err) {
     console.error('[niyyah] vouch: write failed', err)

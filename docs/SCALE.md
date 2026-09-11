@@ -180,7 +180,7 @@ the founder could not segment the first "your pool opened" mail even by hand.
 | Payments: a checkout link for "Deciding together" → payouts to matchmakers | the first pool; then the first matchmaker who is not the founder |
 | Country on the ladder (`/progress` split by country) | `scenes.other` in `/progress` exceeds any named city |
 | Marriages on the door: a running `tallies/married/<scene>` counter written on the first `married` rung and the first `ending.who = here`, decremented on forget, read by `countPool`, rendered only above zero (`docs/FLYWHEEL.md`) | the first `rungs.married` — recomputable from `first.married` days, so waiting loses nothing |
-| A real database, per `docs/PRODUCT.md` §10's *real backend* | any store past ~50,000 keys |
+| A real database, per `docs/PRODUCT.md` §10's *real backend*. Every member record already carries `v` (`netlify/shared/record.ts`, since 2026-09-11), so the move branches on a number rather than on a key's segment count or a field's presence | any store past ~50,000 keys |
 
 **Considered and declined.** *OR reach semantics* — viewer-dependent pools.
 *A worldwide sentence on the door* — expansion by another name. *Per-person

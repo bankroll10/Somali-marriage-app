@@ -53,7 +53,7 @@ the safety catch off.
 | **11** | `src/lib/analytics.ts` signposts PostHog/Amplitude | `docs/LEARNING.md` forbids exactly that. The easy path was written into the file that would implement it | **Chose Hard** — the comment says what is permitted |
 | **12** | Cohort entries never expire and are never re-checked against `maps` | The door's count — the trust claim the product is staked on — only ever rises, and will one day open a pool of people whose maps lapsed a year ago | **Hard, partially built** — the founder's `/pool` read re-checks and sweeps (`docs/LIQUIDITY.md`); the public route still trusts its keys |
 | **13** | No introductions record; `introduce.ts` triggered "at the first pool" | Retroactively impossible, exactly like the customer list. Mutual interest, the waited-longest queue, and *refusing to introduce someone again* all read from a store with no writer | **Hard, deferred — trigger tightened** |
-| **14** | No schema version on any record | Five shapes already disambiguated by heuristics: segment count, field presence, a ten-character date prefix. `export.ts` stamps `version: 2` on the wrapper and nothing on the records inside it, which is exactly backwards | **Hard, deferred** |
+| **14** | No schema version on any record | Five shapes already disambiguated by heuristics: segment count, field presence, a ten-character date prefix. `export.ts` stamps `version: 2` on the wrapper and nothing on the records inside it, which is exactly backwards | **Chose Hard, 2026-09-11** — `netlify/shared/record.ts`: every member record carries `v`, stamped last; done while there were zero records, so the migration this row feared cost nothing (`docs/BACKWARD.md`) |
 | **15** | The vouch token is eight characters, minted without `onlyIfNew` | 23⁸ ≈ 78 billion, so an even chance of collision at ~330,000 tokens — beyond this product's horizon, and a collision would point a family member's link at the wrong map | **Live Easy, with a trigger** |
 | **16** | The man answering the eleven has no identity — `createCouple(picked, gender)` never passes the map code | The person most likely to be reported is unidentifiable and unblockable by construction | **Live Easy** — see below |
 
@@ -81,7 +81,7 @@ that does not exist.
 |---|---|---|
 | **The introductions record** (`introduce.ts`, Tier 4 per `docs/LEARNING.md`) | **Ships in the same commit as the pool-open flag, never after.** Tightened from `docs/SCALE.md`'s "at the first pool is opened" | A list is only ever owned from the first row — the lesson of `docs/OWNED.md` move 2. But introductions cannot happen before a pool opens, and opening one is a founder action she controls, so the trigger is reliable if it is enforced as *the same commit* |
 | **Cohort reconcile** — the door's count re-checked against live maps | **Built for the founder's read** (`netlify/functions/pool.ts`, `docs/LIQUIDITY.md`): every `/pool` read of a pool sweeps entries whose map is gone or lapsed, the lapsed blob with them. The public count still trusts its keys; that half keeps its trigger — the first pool reaching 40/40 | Re-reading `maps` on every public count is O(n) on a public route. It belongs in the same pass as the running pool counters `docs/SCALE.md` already designs |
-| **Schema versions on stored records** | The next shape change to any record — it carries `v` and every reader learns to branch on it | Retrofitting a version onto existing records is a migration in itself; the honest moment is the next change, and this is the note that makes it happen then |
+| **Schema versions on stored records** | **Built 2026-09-11**, ahead of its trigger: at zero records the retrofit is free, and it is never free again. The next shape change branches on `v` (`tests/record-version.test.ts` holds every writer to it) | The "why not now" — a migration — was true of a store with records in it and false of this one; `docs/BACKWARD.md` names the rule: build what is cheaper today than on any later day |
 | **The vouch token minted with `onlyIfNew`** | Any store past ~50,000 keys, alongside `docs/SCALE.md`'s database trigger | 78 billion is a different order of risk from 148 million. Recorded so it is a decision rather than an oversight |
 
 ## What this pass changed
@@ -107,3 +107,7 @@ _Dated, one line each: an inversion found or a trigger fired._
 - 2026-09-10 — #12 partially built: the founder's `/pool` read re-checks the
   door against live maps and sweeps what lapsed (`docs/LIQUIDITY.md`). The
   door can fall now. The public route is unchanged.
+- 2026-09-11 — #14 built ahead of its trigger: `v` on every member record,
+  stamped last, while there were none to migrate (`docs/BACKWARD.md`). The
+  contacts record gained a named type on the way; the backup's wrapper is no
+  longer the only thing versioned.

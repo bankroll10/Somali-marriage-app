@@ -2,6 +2,7 @@ import { getStore } from '@netlify/blobs'
 import { CODE_LENGTH, mint, normalise } from '../shared/code'
 import { day } from '../shared/day'
 import { overHourlyCap, rateLimited } from '../shared/limit'
+import { stamp } from '../shared/record'
 
 /**
  * The first thing this business actually owns.
@@ -207,10 +208,10 @@ export default async function handler(req: Request) {
     // somebody's map — see netlify/shared/code.ts for why that is not
     // theoretical.
     if (code) {
-      await store.setJSON(code, kept)
+      await store.setJSON(code, stamp(kept))
       return Response.json({ code })
     }
-    const minted = await mint((c, v: KeptMap) => store.setJSON(c, v, { onlyIfNew: true }), kept)
+    const minted = await mint((c, v: KeptMap) => store.setJSON(c, v, { onlyIfNew: true }), stamp(kept))
     if (!minted) {
       console.error('[niyyah] keep: every minted code collided')
       return Response.json({ error: 'unavailable' }, { status: 503 })

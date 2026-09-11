@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 import { day } from '../shared/day'
+import { stamp } from '../shared/record'
 import { floorRows } from '../shared/floor'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import {
@@ -555,7 +556,7 @@ export default async function handler(req: Request) {
       ...(merged && Object.keys(merged).length ? { facts: merged } : {}),
       expiresAt: day(now + TTL_MS),
     }
-    await store.setJSON(id, record)
+    await store.setJSON(id, stamp(record))
     return Response.json({ ok: true })
   } catch (err) {
     // The app never depended on this and must never start. Failing to count

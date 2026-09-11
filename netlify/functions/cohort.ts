@@ -5,6 +5,7 @@ import { COUNTRIES, GENDERS, HOOKS, LEDGER, REACH, SCENES, SCENE_COUNTRY } from 
 import { day } from '../shared/day'
 import { floor } from '../shared/floor'
 import { overHourlyCap, rateLimited } from '../shared/limit'
+import { stamp } from '../shared/record'
 
 /**
  * The number on the door.
@@ -92,6 +93,19 @@ export interface CohortRecord {
   at: string
   /** Which instruments she has used — the seriousness that got her counted. */
   ledger: string[]
+}
+
+/**
+ * The way to reach her — the `contacts` store's record, and the only one that
+ * holds free text about a member. Her contact, and the pool it belongs to, so
+ * the founder can write to exactly the people whose pool opened. Nothing else
+ * may be added here: tests/cohort-function.test.ts holds the key list.
+ */
+export interface ContactRecord {
+  contact: string
+  scene: string
+  country: string
+  at: string
 }
 
 export interface SideCount {
@@ -305,7 +319,7 @@ export default async function handler(req: Request) {
     // counting her twice.
     const previous = (await store.get(indexKey, { type: 'text' })) as string | null
     if (previous && previous !== key) await store.delete(previous)
-    await store.setJSON(key, record)
+    await store.setJSON(key, stamp(record))
     await store.set(indexKey, key)
 
     // The way to reach her, to its own store. After the count, and in its own
@@ -313,7 +327,8 @@ export default async function handler(req: Request) {
     // the list did. Joining again with a new address replaces the old one.
     if (contact) {
       try {
-        await getStore('contacts').setJSON(code, { contact, scene, country, at: day() })
+        const reach: ContactRecord = { contact, scene, country, at: day() }
+        await getStore('contacts').setJSON(code, stamp(reach))
       } catch (err) {
         console.error('[niyyah] cohort: contact write failed', err)
       }
