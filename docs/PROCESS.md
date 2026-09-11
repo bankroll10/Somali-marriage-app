@@ -114,7 +114,10 @@ whether anyone reads the rest:
    entry in `docs/EXPERIMENTS.md` with a decision rule already written.
 8. One commit per logical slice, so the history reads as the loop it came
    from rather than a single undifferentiated diff.
-9. From the day a price exists, every release: the incentive audit. Every
+9. From the day a price exists, every release: the incentive audit. A price
+   exists as a written prediction since 2026-09-11 (`docs/STRATEGY.md` §5,
+   `docs/BACKWARD.md`), so this runs from now, on the screens that already
+   name the paid stages. Every
    sentence on every screen that mentions a paid stage, read against
    `docs/STRATEGY.md`'s rule — does it earn more if she stays single longer,
    opens the app more, or is having a worse night? `docs/REDTEAM.md`'s third

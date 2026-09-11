@@ -130,6 +130,7 @@ docs/HARD.md           Where an easy decision now would have cost something irre
 docs/REDTEAM.md        The case against every conviction the company rests on — twelve attacked, three named as fatal, and the tests that kill or validate each; the market arithmetic
 docs/LIQUIDITY.md      Liquidity as the thing that kills matchmaking products — nine dimensions, the model with three worked doors, ten systems classed, the opening checklist, what the founder monitors, and the pool and introductions record designed
 docs/FLYWHEEL.md       The outcome flywheel, ten transitions inspected against the code — where it turns, where it is substituted until a pool opens, the break at the ending fixed, marriages on the door designed, and what replaces advertising at every link
+docs/BACKWARD.md       Working backward from "extremely valuable": the arithmetic and the Somali-only ceiling, fourteen must-be-trues with their readouts, the seven assumptions that forbid the outcome, the bottleneck that is an act rather than a build, and four optionality moves
 docs/ROADMAP.md        Every shipped and proposed feature against the nine Fastlane tests — build now, test first, defer, delete — and why the reordered roadmap's first item is not code
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures

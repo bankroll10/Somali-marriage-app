@@ -167,7 +167,7 @@ their real items and scored, they fall out like this.
 | 1 | **Post the link** — ten connectors by name, this week; then the three URLs | It is the only act that produces a vote. No code |
 | 2 | **The `kept` rung** | Records a vote that is otherwise lost for ever. **Done this pass** |
 | 3 | **Mail on `joinniyyah.com`** (`docs/CONTROL.md` step 5, `docs/OWNED.md`) | The playbook is about to send strangers to a site whose contact address is rented. An afternoon; founder-side |
-| 4 | **Write the price into `docs/STRATEGY.md`** before the pool opens | Costs nothing, and makes the eventual checkout a prediction rather than a reaction (`docs/REDTEAM.md`) |
+| 4 | **Write the price into `docs/STRATEGY.md`** before the pool opens | Costs nothing, and makes the eventual checkout a prediction rather than a reaction (`docs/REDTEAM.md`). **Done 2026-09-11** (`docs/BACKWARD.md`): a dated prediction, and public launch defined as the day the first pool opens |
 
 The door's side question joined this list when the pre-flight found it.
 
@@ -224,7 +224,7 @@ Two move *down*, against their own documents:
 | # | Item | What it is, and what it waits on |
 |---|---|---|
 | **0** | **Post the link** | Ten connectors by name; `/?read&via=group`, `/?eleven&via=group`, `/?door&via=group`; the door's honest count posted weekly. `docs/WEDGE.md` steps 1–4. **Waits on nothing.** Every line below waits on it |
-| **1** | **What must be true before strangers arrive** | The `kept` rung and the door's side question (**done**); mail on the domain; the price written down. None of it can be retrofitted onto traffic that has already come |
+| **1** | **What must be true before strangers arrive** | The `kept` rung and the door's side question (**done**); mail on the domain; the price written down (**done**). None of it can be retrofitted onto traffic that has already come |
 | **2** | **Read what comes back** | A6 at four weeks; A1, A2, A4 at their thresholds; `docs/REDTEAM.md`'s three at their dates; then the monthly loop of `docs/OPERATING.md`. Six rules already written, waiting only for numbers |
 | **3** | **The first pool opens** | Minneapolis, one introduction at a time, with the introductions record in the same commit (`docs/HARD.md`). *Gate: 40/40 on the door, then the opening checklist in `docs/LIQUIDITY.md` — live, still looking, aged, nobody stranded — read from `/pool`, and the founder's judgement* |
 | **4** | **Concierge, by hand** | The founder matchmaking the first ten. A service, deliberately not a build |
@@ -267,3 +267,6 @@ finding, not a shortfall.
   under the cannot-be-retrofitted clause: the ending's door share, through
   the spouse's side (B11, sharpened). Marriages on the door designed at the
   first marriage.
+- 2026-09-11 — `docs/BACKWARD.md`. BUILD NOW item 4 done; a version on every
+  record, built ahead of its trigger while there were none to migrate; public
+  launch defined. The bottleneck named as the unposted link, not a build.
