@@ -382,7 +382,9 @@ after the fifth city.
   five men *via the group link*. And, from week one, the door's `across` —
   the people in her country who said they would travel — against the metro's
   own count: if the country pool fills faster than the metro, the need is in
-  the thin places and the unit is the country, not the city.
+  the thin places and the unit is the country, not the city. `/pool?country=us`
+  against `/pool?scene=twin-cities` reads the same two pools with lapsed maps
+  removed and the eligible pairs computed (`docs/LIQUIDITY.md`).
 
 ### 12 · Our distribution strategy can create sufficient marketplace density
 
@@ -561,3 +563,6 @@ checkout completes at the written price more than once.
   distribution, market-with-specificity, payment. `sidesByVia` built as the
   one instrument the first kill test needed. Ten conversations named as the
   only credible source for three of the six fields on seven of the twelve.
+- 2026-09-10 — `docs/LIQUIDITY.md`: assumption 11's test gains `/pool`. A
+  finding beside the three: the door's forty and forty could not say whether
+  anyone could be introduced, and age is the fragmenter it cannot see.

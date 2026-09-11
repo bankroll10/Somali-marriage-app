@@ -117,6 +117,13 @@ like a wall. The defaults sit well above any real hour this product has seen.
 **The one time to raise them is the week a pool opens**, when a city's worth of
 people may arrive in an afternoon — set the variable, no deploy needed.
 
+The founder's readouts — `/progress`, `/cohort` with no scene, `/couple` with
+no code, `/vouch` with no code, `/pool`, `/export` and `/guide` — carry no
+cap; the key is what bounds them. `/pool` is the one to know about here: it
+reads every counted member's kept map to say whether a pool could open, and
+sweeps lapsed maps off the door as it goes (`docs/OPERATING.md`,
+`docs/LIQUIDITY.md`). Nothing new to set for it.
+
 Two rules about them:
 
 - **The name is the whole contract.** The code looks up these exact strings. A

@@ -85,7 +85,9 @@ deferred out of an instrumentation pass.
 **B7 · An age band on the door.** Deferred with a trigger in `docs/WEDGE.md`:
 the founder cannot tell whether the wedge held. It is also a sixth
 quasi-identifier in a key that already holds five.
-*Upside Med · Cost S · Costly · Confidence Med · Learning Med.*
+*Upside Med · Cost S · Costly · Confidence Med · Learning Med.* Since
+`docs/LIQUIDITY.md`, age is asked at the door, into the map, and `/pool` reads
+it back floored — the measurement half, without the key segment.
 
 **B8 · A prior-marriage question.** The divorced and remarrying are the largest
 unserved segment in the strategy and are served by nothing here. Deferred to

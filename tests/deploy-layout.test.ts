@@ -64,7 +64,7 @@ describe('Netlify deploy directories hold only deployable code', () => {
     // would deploy as an endpoint that answers nothing — or worse, one that
     // answers. Shared code lives in netlify/shared, which Netlify never scans.
     const functions = readdirSync(join(process.cwd(), 'netlify/functions')).sort()
-    expect(functions).toEqual(['cohort.ts', 'couple.ts', 'export.ts', 'guide.ts', 'keep.ts', 'progress.ts', 'safety.ts', 'vouch.ts'])
+    expect(functions).toEqual(['cohort.ts', 'couple.ts', 'export.ts', 'guide.ts', 'keep.ts', 'pool.ts', 'progress.ts', 'safety.ts', 'vouch.ts'])
     expect(existsSync(join(process.cwd(), 'netlify/shared/founder.ts'))).toBe(true)
   })
 

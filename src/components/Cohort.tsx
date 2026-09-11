@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Identity, Reach, WaitlistState } from '../types'
+import { MAX_AGE, MIN_AGE, type Identity, type Reach, type WaitlistState } from '../types'
 import { countryFor, getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
 import { getHookOption } from '../data/hook'
@@ -7,6 +7,7 @@ import { hesitationOptions, type Hesitation } from '../data/hesitation'
 import { COHORT_TARGET, cohortCount, joinCohort, type CohortCount, type SideCount } from '../lib/cohort'
 import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../lib/waitlist'
 import { instrumentLink } from '../lib/links'
+import { parseAge } from '../lib/age'
 import { shareOrCopy } from '../lib/share'
 import { track } from '../lib/analytics'
 import { ArrowRight, CheckIcon, Spinner, fieldClass } from './ui'
@@ -25,6 +26,12 @@ interface Props {
   onCountry?: (country: string) => void
   /** When she says she would travel, likewise. */
   onReach?: (reach: Reach) => void
+  /**
+   * When she gives her age here. An introduction cannot be made without one,
+   * so being counted is where it is asked if Profile never was; it goes into
+   * her kept map and never onto the door (docs/LIQUIDITY.md).
+   */
+  onAge?: (age: number) => void
   /** She is not walking through the door yet, and said why — one word about the door. */
   onHesitate?: (reason: Hesitation) => void
   /** Quieter variant for Home and Profile; the full card is for the map. */
@@ -53,7 +60,7 @@ interface Props {
  * nobody else does. The count is a sentence, not two progress bars: there is
  * nothing here to come back and watch.
  */
-export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, onCountry, onReach, onHesitate, compact }: Props) {
+export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, onCountry, onReach, onAge, onHesitate, compact }: Props) {
   const configured = waitlistConfigured()
   const [contact, setContact] = useState('')
   // "Not now" — the one no this product records, as one word about the door.
@@ -64,6 +71,12 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   const [namedCountry, setNamedCountry] = useState('')
   // Said she would travel here, before anything upstream has heard it.
   const [travelled, setTravelled] = useState(false)
+  // Her age, when she arrives here without one. Asked once — the field stays
+  // for the rest of this visit even after the first valid keystroke has
+  // reached identity, so it does not vanish under her hands.
+  const [askAge] = useState(!identity.age)
+  const [ageText, setAgeText] = useState('')
+  const age = identity.age ?? parseAge(ageText)
   const [count, setCount] = useState<CohortCount | null>(null)
   const [state, setState] = useState<'idle' | 'sending' | 'error'>('idle')
 
@@ -129,7 +142,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
     setTravelled(true)
     onReach?.('country')
     if (joined && identity.gender && country) {
-      const result = await joinCohort({ scene, gender: identity.gender, hook: hookId, ledger, country, reach: 'country' })
+      const result = await joinCohort({ scene, gender: identity.gender, hook: hookId, ledger, country, reach: 'country', age: identity.age })
       if (result) setCount(result)
     }
   }
@@ -201,7 +214,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!contact.trim() || !scene || !country || !identity.gender || state === 'sending') return
+    if (!contact.trim() || !scene || !country || !identity.gender || !age || state === 'sending') return
     setState('sending')
 
     // First the count — it needs a kept map, and it is the part that can fail.
@@ -215,6 +228,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
       // Kept in a store of its own so the list of people waiting for a pool is
       // ours, not a form provider's — see docs/OWNED.md.
       contact: contact.trim(),
+      // Into the kept map, never to the door — see JoinInput.
+      age,
     })
     if (!result) {
       setState('error')
@@ -240,7 +255,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
     onJoined({ contact: trimmed, scene, code: result.code, joinedAt: at })
   }
 
-  const disabled = !contact.trim() || !scene || !country || !identity.gender || state === 'sending'
+  const disabled = !contact.trim() || !scene || !country || !identity.gender || !age || state === 'sending'
 
   return (
     <div className={`rounded-card border border-gold/30 bg-gold/[0.07] ${compact ? 'px-5 py-5' : 'p-6'}`}>
@@ -311,6 +326,29 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
               ))}
             </select>
           )}
+          {askAge && (
+            <div>
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={2}
+                value={ageText}
+                onChange={(e) => {
+                  setAgeText(e.target.value)
+                  const n = parseAge(e.target.value)
+                  if (n) onAge?.(n)
+                }}
+                placeholder="Your age"
+                aria-label="Your age"
+                aria-describedby="cohort-age-hint"
+                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+              />
+              <p id="cohort-age-hint" className="mt-1.5 text-[0.78rem] leading-relaxed text-muted text-pretty">
+                {MIN_AGE}–{MAX_AGE}. An introduction cannot be made without it. It goes into your kept map, never onto
+                the door.
+              </p>
+            </div>
+          )}
           <input
             type="text"
             inputMode="email"
@@ -352,7 +390,12 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             you’d go, who you’re seeking, the hardest part you named, and which
             of the things on your Trust page you’ve done. Nothing about how your
             map read, and nothing about how you use the app. Your map is kept
-            under a code with no name on it, so it can be matched. Your email or
+            again, as it is today, under a code with no name on it, so it can be
+            matched — your age goes there, never onto the door. Once you are
+            counted, the founder can read the kept maps in your pool to count
+            its shape — how many of each age, how many pairs clear each other’s
+            non-negotiables, how many have nobody here who does — as counts of
+            five or more, never a map and never which person. Your email or
             phone is kept apart from all of it, with only your city beside it,
             so we can tell you when your city opens — and it goes when you tap
             forget. Your answers stay yours.

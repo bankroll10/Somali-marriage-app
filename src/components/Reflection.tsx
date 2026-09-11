@@ -104,6 +104,7 @@ interface Props {
   onScene?: (scene: string) => void
   onCountry?: (country: string) => void
   onReach?: (reach: Reach) => void
+  onAge?: (age: number) => void
   onHesitate?: (reason: Hesitation) => void
   /** Their "hardest part" answer, carried onto the signup. */
   hookId?: string
@@ -132,6 +133,7 @@ export default function ReflectionView({
   onScene,
   onCountry,
   onReach,
+  onAge,
   onHesitate,
   hookId,
   onJoinWaitlist,
@@ -273,6 +275,7 @@ export default function ReflectionView({
             onScene={onScene}
             onCountry={onCountry}
             onReach={onReach}
+            onAge={onAge}
             onHesitate={onHesitate}
           />
           {/* The one verification we claim, offered where she has just finished

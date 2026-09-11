@@ -46,7 +46,7 @@ loop in `docs/OPERATING.md`.
 
 | Tier | Where | Holds | Readable by | Joinable to |
 |---|---|---|---|---|
-| **1 · The device** | localStorage | Her answers and sheets, guide threads and the follow-ups it handed her, the advice line, the way to reach her, any name | Her | Nothing, unless she keeps her map |
+| **1 · The device** | localStorage | Her answers and sheets, guide threads and the follow-ups it handed her, the advice line, the way to reach her, any name | Her — and, once she is counted, `/pool` reads five fields of her kept map (age, stage, practice, children, non-negotiables) into floored counts over a pool with no code on them (`docs/LIQUIDITY.md`) | Nothing, unless she keeps her map |
 | **2 · The install code** | `progress` | Rungs, dated to the day; facts — grounds, read, eleven counts, conversations confirmed, ending, ended. Closed ids only | Founder, as distributions never records | **Not by key.** Not by name. See *honest limits* below |
 | **3 · No code at all** | `tallies` | How pairs come out on the eleven | Founder | Nothing — there is no id |
 | **4 · Human-read** | `vouches` sentence and phone; **`contacts` — the way to reach her, with her city**; the waitlist form; *(designed)* the introductions record | What a human matchmaker needs — who vouched, how to reach her, who was introduced to whom | Founder, in the store, with her own credentials. **No endpoint returns any of it** — not the tallies, not the backup. The one exception is a founder-gated count of vouch *asks and gives*, which returns no sentence, phone, name or code (`docs/BETS.md` B1) | The map code, because you cannot introduce two people without knowing who they are. **Never fed to learning**, which reads only a stripped tally |
@@ -94,7 +94,7 @@ add it":
 - **Anything from the guide.** Threads and the follow-ups it hands her are Tier 1
 - **Precise time.** Every stored date is a day — `netlify/shared/day.ts`
 - **Her contact next to her answers.** The way to reach her lives in the `contacts` store, keyed by her code, with her city and country beside it and nothing else — never in the store that gets listed and tallied, never returned by any route, and deleted by forget-me rather than by hand. It is kept at all so that the list of people waiting for a pool belongs to Niyyah rather than to a form provider (`docs/OWNED.md`)
-- **Decision latency, A/B assignment, push tokens, profile completeness, matches per member** — the year-two temptations, refused in advance
+- **Decision latency, A/B assignment, push tokens, profile completeness, matches per member** — the year-two temptations, refused in advance. *Matches per member* is a count on a person: how many she was shown, or how many responded. `/pool`'s `inventory` is a different object and must stay one — a floored histogram over a pool of how many eligible partners its members have, from stated non-negotiables and the age band, computed on read and never written (`netlify/functions/pool.ts`, `docs/LIQUIDITY.md`)
 - **How often, how far, or how long.** `began` says *that* a questionnaire was started, once, for ever — never how many times it was opened, how far through she got, or how long she stayed. It is a set with a union merge precisely so a counter cannot be derived from it, and it must never be widened into one (`docs/EXPERIMENTS.md`)
 
 The test for any future field: *does this describe a person, or a pairing, a
@@ -137,6 +137,12 @@ Written down so nobody has to discover them.
   Netlify site is readable by anyone on the team. `docs/DEPLOY.md`.
 - **Links sent before 2026-09-05 carried the map code.** They still vouch, and
   they still open the map. `docs/DEPLOY.md` says what to tell their holders.
+- **The founder reads maps to count a pool.** `/pool` opens every counted
+  member's kept map to say whether a pool could introduce anyone — the first
+  reading of a map for any purpose but handing it back, permitted because
+  matching is the job she kept it for. It returns counts of five or more and
+  cannot be asked for one member; the founder holds the store and could
+  count by hand anyway. Trust says so (`docs/LIQUIDITY.md`).
 
 ## Where each piece lives
 
@@ -152,5 +158,6 @@ Written down so nobody has to discover them.
 | The day, never the moment | `netlify/shared/day.ts` |
 | The floor | `netlify/shared/floor.ts` |
 | Forget me | `src/lib/forget.ts`, `DELETE` on `keep` and `progress` |
+| The shape of a pool | `netlify/functions/pool.ts`; the gate twin `netlify/shared/gate.ts` |
 | What she is told | `src/components/Trust.tsx` |
 | What the readout revises | `docs/OPERATING.md` |

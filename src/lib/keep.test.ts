@@ -199,3 +199,23 @@ describe('bringing a map back', () => {
     expect(codeFromUrl()).toBeNull()
   })
 })
+
+describe('a patch laid over the device', () => {
+  it('is sent under her existing code, and the device is left as it was', async () => {
+    saveProgress(state)
+    localStorage.setItem('niyyah.keep.code.v1', 'ACDEFG')
+    let sent: { code?: string; snapshot?: { identity?: { age?: number; firstName?: string } } } = {}
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        sent = JSON.parse(init!.body as string)
+        return new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 })
+      }),
+    )
+    expect(await keepMap({ identity: { age: 28 } })).toBe('ACDEFG')
+    expect(sent.code).toBe('ACDEFG')
+    expect(sent.snapshot?.identity).toMatchObject({ firstName: 'Sagal', age: 28 })
+    // The patch is for the copy on the server; nothing on the phone moved.
+    expect(loadProgress()?.identity.age).toBeUndefined()
+  })
+})

@@ -135,8 +135,10 @@ actually see; where it is not, the failure is invisible and that is said.
 
 ### 6 · Match liquidity → Match quality
 
-- **Metric.** Pools open: a `scenes[s]` cell at forty on both sides.
-  Introductions made — *designed*, the Tier 4 introductions record.
+- **Metric.** `/pool`'s `supply`, `pairs` and `stranded` against the
+  opening checklist in `docs/LIQUIDITY.md` — a `scenes[s]` cell at forty on
+  both sides is the door's promise, not the gate. Introductions made —
+  *designed*, the Tier 4 introductions record.
 - **Friction.** Forty and forty in *one* pool, which no city reaches on its
   own without the country's travellers (`across`, `docs/SCALE.md`); then a
   founder's judgement to open.
@@ -431,3 +433,4 @@ or a new weakest link — and the readout that showed it._
 
 - 2026-09-07 — M0–M2 built: `sides` on the ladder, the `/?door` link, two asks on the door, the playbook posts both links. The decision rule is now runnable; A6's four weeks start when the first group post goes out.
 - 2026-09-08 — `sidesByVia` on the readout. A6 reads the `group` cell, not the side: `sides.man` counted a man who arrived through a woman's eleven as if the channel had produced him (`docs/REDTEAM.md`).
+- 2026-09-10 — Age is asked at the door when she is counted (`docs/LIQUIDITY.md`): a new step between `mapped` and `counted`, on both sides. A6's `counted` per hundred `arrived` and the eight-week rule read across it; a drop after this date is attributed to it first, and `docs/PROCESS.md` carries the rule.

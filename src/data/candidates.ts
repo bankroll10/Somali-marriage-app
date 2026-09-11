@@ -353,7 +353,3 @@ export function candidatesFor(gender?: Gender): Candidate[] {
   if (gender === 'man') return women
   return men
 }
-
-export function getCandidate(id: string): Candidate | undefined {
-  return [...men, ...women].find((c) => c.id === id)
-}

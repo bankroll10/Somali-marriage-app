@@ -73,6 +73,8 @@ curl -s -H "$K" $S/progress | jq .     # the ladder, and the facts
 curl -s -H "$K" $S/cohort   | jq .     # the door: every country and city, how far people would go, hardest parts, ledgers
 curl -s -H "$K" $S/couple   | jq .     # how pairs come out on the eleven
 curl -s -H "$K" $S/vouch    | jq .     # the vouch: asks made, vouches given, and who in the family gave them
+curl -s -H "$K" "$S/pool?scene=twin-cities" | jq .   # the shape of a pool: live, looking, ages, eligible pairs, stranded — and it sweeps lapsed maps off the door
+curl -s -H "$K" "$S/pool?country=us"        | jq .   # the same for a country's travellers
 curl -s -H "$K" $S/guide    | jq .     # the guide's health — one live call, so rarely
 curl -s -H "$K" $S/export   -o "backup-$(date +%F).json"   # the backup — save it
 netlify blobs:list contacts --json > "reach-$(date +%F).json"   # the customer list — save it too
@@ -102,6 +104,27 @@ relatives who answered. Two failures look identical without both:
 | `asked` | Maps whose owner asked a family member to vouch. Asking twice is one ask — the token is reused |
 | `given` | Vouches actually given. `given / asked` under a half means the relative's screen is the problem, not the ask |
 | `byRelationship[rel]` | Who in the family vouched — father, brother, uncle, mother, aunt, other. Floored, like every split by a quasi-identifier |
+
+What `/pool` means — the number the door cannot give, read before any pool is
+opened and never by anyone but the founder (`docs/LIQUIDITY.md`). `?scene=` is
+a city, every reach; `?country=` is the country's travellers. Reading it
+sweeps door entries whose map is gone or lapsed, so the door falls as well as
+rises. Whole numbers are the door's own and the checklist's denominators;
+everything finer is floored, and the subtraction caveat below applies.
+
+| Field | Reads as |
+|---|---|
+| `door` | Women and men on the door, from keys — what the public count says |
+| `live` | Of those, how many have a map that is present and not past its year. `door − live` is what this read just swept |
+| `supply` | Of those, how many are *preparing* as of their last keep — the people an introduction could go to. `talking` is not supply: she is in one, and the rule is one at a time |
+| `unaged` | Live members with no age. An introduction cannot be made to one; before this pass nobody was asked |
+| `swept` | Entries removed on this read, by side. Their `contacts` rows stay — lapsed is not forgotten |
+| `stages[side][stage]` | The live members by stage. Floored |
+| `ages[side][band]` | The live members by age band — 18–24, 25–29, 30–34, 35–39, 40+. Floored. The one split the door could never show, and the one that strands people |
+| `pairs` | `{eligible, of}` over supply: `of` is every woman against every man; `eligible` is the pairs where both have an age, he is within `assumptions.ageGap`, and neither fails the other's checkable non-negotiables (`netlify/shared/gate.ts`). `eligible / of` is `p_gate`, the number every worked example in `docs/LIQUIDITY.md` assumed and this replaces |
+| `inventory[side][bucket]` | How many members have 0, 1–2, 3–5 or 6+ eligible partners in the pool. Floored, computed on read, never stored — a histogram over the pool, not a count on a person |
+| `stranded[side]` | `inventory[side]['0']` under its own name: the members the pool could not introduce to anyone. `null` means fewer than five, which at 40/40 is the checklist's pass; a number is the checklist's fail and names the side |
+| `assumptions.ageGap` | What the pairs rest on: he may be older by `olderBy`, younger by `youngerBy`. An assumption, revised only by hand |
 
 What each field in `/progress` means:
 
@@ -156,6 +179,7 @@ message cites the readout row and the month.
 | Scripts | `src/data/read.ts` `SCRIPTS`, `src/data/beforeYes.ts` `script`, `src/data/families.ts` | `through["source:topic"]` against how often that script was handed out (`eleven.open`, `read.thin`) | Words handed out often and said rarely get rewritten. Words never once confirmed get cut |
 | Joint `URGENCY` | `src/lib/couple.ts` | `/couple` `topics[topic][joint]` | The joint state pairs most often land in for a topic is the one that topic's line should name |
 | `alignment` scales | `src/lib/matching.ts` | only once `ending.who.here > 0` | Nothing to calibrate against until this product has introduced two people who married. Do not touch |
+| `AGE_GAP` | `netlify/functions/pool.ts` | only by hand, from the introductions record's `age` no-reason *(designed)*, on a hundred introductions | An assumption about what families consider, never a learned one — `docs/LEARNING.md` forbids learning age. If `age` leads the reasons people say no, the question in `docs/LIQUIDITY.md`'s deferred list ships; the band itself moves only by the founder's judgement |
 | The `dealbreakers` question and its gate | `src/data/intake.ts`, `matching.ts` `gate()` | `ended.which['non-negotiable']` × `marriedBy.ended['non-negotiable']` | A non-negotiable that ends courtships and precedes marriage is load-bearing; one that ends nothing is aspirational, and the question — never her gate — is what changes |
 | The order of the four questions on the ending | `src/data/ending.ts` | `ending.*` answer rates against `rungs.married` | A question skipped by most is asked last, or dropped |
 
@@ -189,10 +213,13 @@ Three kinds of blob outlive their purpose and have no sweep:
   map lapses a year after its last keep. The vouch blob stays, harmless and
   unreadable through any route. Once a year: list `maps`, list `vouches`,
   delete vouches whose code has no map.
-- **Door entries for maps that lapsed.** A join requires a kept map, but
-  nothing re-checks, so the door drifts from the truth over a year. The same
-  once-a-year pass: list `cohort`, and delete any `index/<code>` and the
-  member key it points at when `<code>` has no map. And once, by hand, the
+- **Door entries for maps that lapsed.** Swept on every `/pool` read of
+  that pool since `docs/LIQUIDITY.md`: the member key and its index go, a
+  lapsed map's blob goes with them, and her `contacts` row stays — lapsed is
+  not forgotten, so `reach-<date>.json` includes lapsed members. The yearly
+  pass remains for pools never read: list `cohort`, and delete any
+  `index/<code>` and the member key it points at when `<code>` has no map.
+  And once, by hand, the
   handful of four-segment keys written before countries existed
   (`docs/SCALE.md`) — every read ignores them, but they are clutter.
 - **Maps kept before the guide's threads were left out.** Each re-keep
@@ -228,7 +255,11 @@ In this order, because each question only means something after the last:
    forty, by the founder's hand. Until `here` is more than zero in a pool that
    has opened, that pool has not yet done what a marketplace is for — and no
    second pool opens until one has. That is "density before expansion" with a
-   number on it (`docs/WEDGE.md`, `docs/SCALE.md`).
+   number on it (`docs/WEDGE.md`, `docs/SCALE.md`). **And before any pool
+   opens: is it honestly near?** Read `/pool` for the one nearest forty —
+   `live`, `supply`, `unaged`, `pairs`, `stranded` — against the opening
+   checklist in `docs/LIQUIDITY.md`, every line, or it does not open. A
+   number in `stranded` names a side to find, never a band to widen.
 6. **One revision.** Pick the single row above with the clearest signal, move
    its constant, and write the line below.
 7. **Save the backup.** One curl, one file, kept somewhere that is not Netlify.
