@@ -11,6 +11,8 @@ interface Props {
   identity: Identity
   /** Her record, built from what she actually did. See src/lib/ending.ts. */
   ending: Ending
+  /** She did the eleven — her own, or the two-sided one — so the share may say so. */
+  didEleven: boolean
   saved: EndingRecord | null
   onSave: (record: EndingRecord) => void
   onBack: () => void
@@ -31,7 +33,7 @@ interface Props {
  * one thing it would like. Nothing on this page is required to finish, and
  * nothing on it is required to leave.
  */
-export default function Ending({ identity, ending, saved, onSave, onBack }: Props) {
+export default function Ending({ identity, ending, didEleven, saved, onSave, onBack }: Props) {
   const name = identity.firstName?.trim()
   const gender = identity.gender ?? 'woman'
   const questions = endingQuestions(gender)
@@ -79,7 +81,7 @@ export default function Ending({ identity, ending, saved, onSave, onBack }: Prop
    * that reaches the side the marketplace is short of.
    */
   async function tell(kind: 'eleven' | 'door') {
-    const shares = marriedShares(identity, answers.advice)
+    const shares = marriedShares(identity, answers.advice, { eleven: didEleven })
     const result = await shareOrCopy(shares[kind], kind === 'eleven' ? 'married_told' : 'married_door')
     if (result === 'copied') {
       setShared(kind)

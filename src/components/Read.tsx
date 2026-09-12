@@ -37,7 +37,7 @@ type Phase = 'intro' | 'asking' | 'result'
  * does not need us to introduce her to anyone. She needs to stop re-reading
  * messages at 1am and start reading behaviour.
  *
- * Deliberately reachable without the intake. Making a woman answer thirteen
+ * Deliberately reachable without the intake. Making a woman answer sixteen
  * questions about herself before we will help her with tonight is the toll gate
  * this product kept mistaking for an onboarding.
  *

@@ -55,7 +55,7 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
   const [advancing, setAdvancing] = useState(false)
 
   // Reaching this screen is the map being begun — the only start signal the
-  // thirteen questions have ever had. Recorded once; `noteBegan` is idempotent,
+  // sixteen questions have ever had. Recorded once; `noteBegan` is idempotent,
   // so a resume changes nothing.
   useEffect(() => {
     onBegan()

@@ -383,6 +383,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         <Ending
           identity={n.identity}
           ending={n.endingRecord}
+          didEleven={!!n.beforeYes || !!n.couple}
           saved={n.ending}
           onSave={n.setEnding}
           onBack={backHome}

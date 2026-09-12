@@ -124,4 +124,20 @@ describe('the two things only a married person can send', () => {
     expect(door.text).toMatch(/If you’re looking/)
     expect(door.text).toMatch(/No photos, no account/)
   })
+
+  it('claims the eleven only when she did them, and never names the year', () => {
+    // The record refuses to claim anything she did not do; the share must not
+    // either — a template testimonial is the one thing that would poison the
+    // married referral in a community this tight (docs/BOARD.md).
+    const without = marriedShares({ scene: 'london' }, 'Ask early.')
+    expect(without.eleven.text).not.toMatch(/we went through/)
+    expect(without.eleven.text).toMatch(/There are eleven conversations/)
+    expect(without.eleven.text).toContain('Ask early.')
+    const withEleven = marriedShares({ scene: 'london' }, undefined, { eleven: true })
+    expect(withEleven.eleven.text).toMatch(/Before we said yes, we went through eleven conversations/)
+    for (const s of [without, withEleven]) {
+      expect(s.door.text).not.toMatch(/this year/)
+      expect(s.door.text).toMatch(/^We married, alhamdulillah\./)
+    }
+  })
 })

@@ -8,7 +8,7 @@ import { ArrowRight, CheckIcon, Spinner } from './ui'
  * "Keep this map."
  *
  * Everything she has done so far lives in this browser and nowhere else. Clear
- * Safari, lose the phone, or open Niyyah on a laptop and it is gone — thirteen
+ * Safari, lose the phone, or open Niyyah on a laptop and it is gone — sixteen
  * honest answers and the only reading anyone has ever given her.
  *
  * This is offered rather than assumed, and it is a trade she can see: the map

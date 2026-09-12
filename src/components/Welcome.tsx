@@ -171,9 +171,11 @@ export default function Welcome({
               The map answers "am I ready" — which ranks near the bottom of what
               actually hurts. The woman with a live problem is already talking to
               someone and wants to know what he means, tonight. Making her answer
-              thirteen questions about herself first is a toll gate, not an
-              onboarding, and it is where we lost Samira. This costs the hero
-              nothing and opens the product to the person in the most pain. */}
+              sixteen questions about herself first is a toll gate, not an
+              onboarding: of the two real people who have ever opened the intake,
+              both stopped partway (src/data/intake.ts) — n = 2, and the only
+              user evidence this product has. This costs the hero nothing and
+              opens the product to the person in the most pain. */}
           <div
             className="animate-rise mt-8 w-full max-w-md rounded-card border border-cream/15 bg-cream/[0.06] p-5"
             style={{ animationDelay: '300ms' }}
