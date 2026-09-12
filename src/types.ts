@@ -342,7 +342,7 @@ export const defaultGuideUse: GuideUse = { replies: 0 }
  *
  * Growth is shown as the difference between her answers then and now — "last
  * time: still healing; this time: at peace with it" — never as a delta on a
- * number. So the snapshot keeps the answers themselves; they are thirteen
+ * number. So the snapshot keeps the answers themselves; they are sixteen
  * short values and they never leave the device.
  */
 export interface MapSnapshot {

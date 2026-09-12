@@ -28,8 +28,9 @@ const chip = (on: boolean) =>
  * Muzz asks sect, prayer frequency, an ethnicity filter and photos. Family asks
  * which family he is from. We ask, after her name and gender, one question in
  * her own words — and the answer decides where we start. A woman who is already
- * talking to someone does not need thirteen questions about herself before we
- * will help her with tonight; that toll gate is where Samira quit.
+ * talking to someone does not need sixteen questions about herself before we
+ * will help her with tonight; that toll gate is where both of the two real
+ * people who ever opened the intake stopped (src/data/intake.ts — n = 2).
  *
  * The line she reads after choosing is the sentence test: something no
  * alternative in the category would think to say.

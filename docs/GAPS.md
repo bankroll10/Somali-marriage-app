@@ -45,7 +45,7 @@ and stays there until behaviour or a member says otherwise.
 | **Why conversations fail** | The eleven are what break Somali marriages, found out after families are involved; secrecy predicts non-seriousness; "I don't know my own answer" is the most common state | ASSUMED — central to the product | `ended.reason` and `which`; couple tally `both-not-talked` per topic; `marriedBy.through`; `eleven.unknown` histogram |
 | **Safety** | Players, liars, creeps; six kinds of harm; one incident can kill us | ASSUMED / LIKELY | `safety` reasons; `other`'s share |
 | **Competing alternatives** | Hinge exposes her; Muzz and Salams are low-trust; aunties are limited and judging | ASSUMED — no instrument | hook `finding`; conversations |
-| **Willingness to pay** | Families already pay matchmakers, at the nikah | LIKELY (culturally attested) | — |
+| **Willingness to pay** | Families already pay matchmakers, at the nikah | ASSUMED — demoted 2026-09-12: attested by nobody in this repository (`docs/REDTEAM.md` assumption 7), and this file's own rule classes founder opinion as ASSUMED | the ten conversations' wedding-payment question; three practising matchmakers' fees (`docs/BOARD.md`) |
 | | They will pay this product, at a price not yet set | UNKNOWN | the first pool's checkout for "Deciding together" |
 | **Reasons people hesitate** | Exposure; "does opening this mean something failed"; the toll gate of thirteen questions | ASSUMED — until this pass, no instrument | `hesitated` by reason; `countedBy.hesitated`; and, for the toll gate itself, `rungs / facts.began` (`docs/EXPERIMENTS.md`) |
 
@@ -153,5 +153,10 @@ other constant, one change at a time, on a hundred records.
 
 _Dated, one line each: the claim, the class it moved from and to, and the
 evidence. A claim moves one class at a time._
+
+- 2026-09-12 — *Families already pay matchmakers, at the nikah*: LIKELY →
+  ASSUMED. No source in the repository; `docs/REDTEAM.md` proposed the
+  demotion on 2026-09-08 and `docs/BOARD.md` executed it. The evidence that
+  would move it back: amounts, without names, in `docs/FEEDBACK.md`.
 
 - _(none yet — the first hundred records are not in)_

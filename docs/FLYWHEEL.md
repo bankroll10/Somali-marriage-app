@@ -64,8 +64,10 @@ then pointed it at the wrong people, twice.
   people already in a courtship.
 
 **Fixed.** `marriedShares` (`src/lib/ending.ts`) hands the ending two
-things: the eleven, unchanged, with her line on it, for the friend who is
-talking to someone; and the door — the honest count for her pool and the map
+things: the eleven — claimed as *hers* only when she did them, since
+2026-09-12; before that every woman at the ending was handed "we went through
+eleven conversations" (`docs/BOARD.md`) — with her line on it, for the friend
+who is talking to someone; and the door — the honest count for her pool and the map
 as the way in — for the person who is looking, with an ask that names the
 spouse's friend in the member's own voice. Both carry `via=married` and
 nothing else. `sidesByVia.man.married.arrived` — men a married couple's share

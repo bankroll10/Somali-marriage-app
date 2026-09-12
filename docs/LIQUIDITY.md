@@ -85,6 +85,7 @@ Three doors, taking supply as the door for the shape of it and `p = 0.5`:
 |---|---|---|---|---|---|---|
 | **40 / 40** | 20 / 20 | ≈ 0 | 40 | 14 days | ≈ 9 months | A market |
 | **120 / 40** | 20 / 60 | ≈ 0 | 40 | 42 days | years | A market with a queue; the honest one to expect, since `docs/WEDGE.md`'s hypothesis is one man per three women |
+| **240 / 40** | 20 / 120 | ≈ 0 | 40 | 84 days | years | The pessimistic bound — `docs/WEDGE.md`'s six-to-one risk: a third of `docs/REDTEAM.md`'s ~700 reachable women in the metro, just to open (`docs/BOARD.md`) |
 | **40 / 8** | 4 / 20 | 2% if independent; **a quarter or more** once age correlates | 8 | 70 days | ≈ 9 months, then nothing | **Not a market, and the door cannot tell** |
 
 The gender ratio, not the count, bounds throughput. Two failure modes,

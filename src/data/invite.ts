@@ -10,12 +10,18 @@ import { instrumentLink } from '../lib/links'
  * who forwards something is the one whose friend is *also* talking to someone.
  * So the invitation names the thing that helped her, in the words she would
  * use, and promises nothing we cannot deliver tonight.
+ *
+ * And none of it says the sender is looking. In this community that costs her
+ * something, so every text here is about the instrument and the friend, never
+ * about the sender's own use of a marriage product — the rule docs/PRODUCT.md
+ * §9 states for everything that gets forwarded. The Profile invitation used to
+ * open "I've been using Niyyah"; it now says what the read text says.
  */
 export type InviteSource = 'profile' | 'read' | 'beforeYes' | 'couple'
 
 const TEXT: Record<InviteSource, string> = {
   profile:
-    'Salaam — I’ve been using Niyyah, built for us. If you’re talking to someone, it reads what {he}’s actually done in ninety seconds and gives you the one question to ask {him}. No swiping, no account.',
+    'Talking to someone? Niyyah reads what {he}’s actually done — not what {he} says — in ninety seconds, and gives you the one question to ask {him} next. Built for us. No swiping, no account.',
   read:
     'Talking to someone? Niyyah reads what {he}’s actually done — not what {he} says — in ninety seconds, and gives you the one question to ask {him} next. Built for us. No swiping, no account.',
   beforeYes:

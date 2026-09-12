@@ -1,5 +1,11 @@
 [build]
-  command = "npm run build"
+  # `verify` first: typecheck, lint and the whole suite, then the build. The
+  # GitHub Action runs the same checks — but it runs *alongside* the deploy,
+  # not before it: a push to main started Netlify's build in the same second,
+  # and a red run stopped nothing (docs/BOARD.md). With the suite in the
+  # build command a failing test cannot ship; the build fails and Netlify
+  # keeps serving the last deploy that passed, which is the safe failure.
+  command = "npm run verify && npm run build"
   publish = "dist"
   functions = "netlify/functions"
   edge_functions = "netlify/edge-functions"

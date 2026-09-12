@@ -21,7 +21,7 @@ rather than quietly giving up later.
 | **Social SDKs** | Sharing uses the browser's own share sheet | A tracking pixel on a page about someone's marriage |
 | **Paid acquisition** | The product is designed to travel by word of mouth | A channel whose price is set by someone else and rises every year |
 
-**The exposure is one vendor.** Netlify holds the hostname, all six data
+**The exposure is one vendor.** Netlify holds the hostname, all nine data
 stores, the only customer list, the deploy pipeline, and three secrets its
 plan refuses to hide. That is not a spread of risks. It is one point through
 which the company can end.
@@ -32,9 +32,9 @@ which the company can end.
 |---|---|---|---|---|---|---|---|
 | **1** | **The hostname** | Free, so no | Links keep working: DNS repoints at any host on earth | Nothing to reclaim — the registration is ours | Yes. The address moves with us, which is the whole point of owning one | — | **Yes — `joinniyyah.com` is ours.** Was Netlify's; see below |
 | **2** | **Blobs — nine stores** | Free-tier limits, not prices; exceeding them degrades quietly | **Every kept map, vouch, pair sheet, door entry and the whole learning record, gone** | A free account can be suspended on an acceptable-use reading of a marriage app with member content | The surface is get, set, delete, list and one conditional write. A few hundred lines — but there is nothing to migrate if the data is already gone | — | The data yes. **A copy: now yes** |
-| **3** | **Forms — a second copy of the customer list** | n/a | Nothing that is not also in the `contacts` store, which is ours and is exported monthly | Retention is theirs | The transport is already portable — `VITE_WAITLIST_URL` posts to any endpoint | **Yes — since `docs/OWNED.md` move 2** | **Yes. A copy leaves every month** |
+| **3** | **Forms — a second copy of the customer list** | n/a | Nothing that is not also in the `contacts` store, which is ours and is exported monthly by the loop in `docs/OPERATING.md` — a `blobs:list` alone lists keys, and until 2026-09-12 the runbook saved codes and no contacts (`docs/BOARD.md`) | Retention is theirs | The transport is already portable — `VITE_WAITLIST_URL` posts to any endpoint | **Yes — since `docs/OWNED.md` move 2** | **Yes. A copy leaves every month** |
 | **4** | **Build and deploy** | n/a | The site cannot be rebuilt; the last deploy keeps serving | Build minutes can change | Yes — it is `npm run build`, a static `dist`, and handlers written against the web-standard `Request` | — | Yes, in git |
-| **5** | **The three secrets** | n/a | Both guards fail open, and now say so — **except `/safety`, which fails closed** (`docs/HARD.md`): free text naming a person cannot be un-published | **The free plan refuses to mark them secret**, so every key is plaintext to anyone on the team | Trivial | — | No |
+| **5** | **The three secrets** | n/a | The edge gate fails open and says so; **every readout fails closed** since 2026-09-12 (`netlify/shared/founder.ts`, `docs/BOARD.md`) — `/export` returns whole records and `/pool` deletes on read, so an unset key refuses rather than publishes | **The free plan refuses to mark them secret**, so every key is plaintext to anyone on the team | Trivial | — | No |
 | **6** | **Google Fonts** | Free | Typography falls back; the share card's measurements change | Google saw the IP of every visitor | — | — | **Removed. The fonts are ours** |
 | **7** | **Anthropic** | The guide costs double; the per-member budget already caps volume, and one variable turns it off | **Nothing breaks.** The client falls back to a complete local voice and the member sees no error | A refusal or terms change degrades answers only | One function to rewrite | — | **Yes — the five voices and the prompt are ours**, built client-side |
 | **8** | **GitHub** | n/a | Git is distributed; every clone is a full copy | — | Minutes | — | Yes |
@@ -70,9 +70,12 @@ alongside.
 open" and "the readouts are public" appear in a log rather than being
 discovered.
 
-**The tests run before `main` deploys.** `main` auto-deploys on merge and
-nothing was checking it first. The workflow is in the repository, so it leaves
-with the code if the host ever changes.
+**The tests run before `main` deploys** — since 2026-09-12, literally:
+`netlify.toml`'s build command runs `npm run verify` first, so a red test
+fails the build and the last passing deploy keeps serving. Before that the
+workflow ran *alongside* the deploy — the same push started both — and a red
+run stopped nothing (`docs/BOARD.md`). The workflow is in the repository, so
+it leaves with the code if the host ever changes.
 
 ## What only money can fix
 

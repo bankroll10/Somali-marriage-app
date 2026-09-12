@@ -80,8 +80,10 @@ const cases: { bucket: string; path: string; handler: Handler; store: string; fi
     path: 'keep',
     handler: keep,
     store: 'maps',
-    first: { snapshot: { answers: {} }, code: 'ACDEFH' },
-    second: { snapshot: { answers: {} }, code: 'ACDEFJ' },
+    // Re-keeps of the two seeded maps: a code the server did not mint is never
+    // created on demand (netlify/functions/keep.ts).
+    first: { snapshot: { answers: {} }, code: 'ACDEFG' },
+    second: { snapshot: { answers: {} }, code: 'HJKMNP' },
   },
   {
     bucket: 'vouch',
@@ -142,7 +144,7 @@ describe('every public write is bounded', () => {
     expect((await post(cohort, 'cohort', { code: 'ACDEFG', scene: 'london', gender: 'woman' })).status).toBe(200)
   })
 
-  it('his answer to her eleven is never capped — only starting one is', async () => {
+  it('his answer to her eleven has its own bucket — starting one at the cap never refuses his answer', async () => {
     vi.stubEnv('COUPLE_HOURLY_CAP', '1')
     const { code } = await (await post(couple, 'couple', { side: 'first', gender: 'woman', states: sides })).json()
     expect((await post(couple, 'couple', { side: 'first', gender: 'woman', states: sides })).status).toBe(503)
@@ -151,11 +153,31 @@ describe('every public write is bounded', () => {
     expect((await answered.json()).status).toBe('joint')
   })
 
+  it('his answer is bounded too — a guessed live code used to be an uncapped write that froze her sheet', async () => {
+    vi.stubEnv('COUPLE_ANSWER_HOURLY_CAP', '1')
+    const { code } = await (await post(couple, 'couple', { side: 'first', gender: 'woman', states: sides })).json()
+    const { code: other } = await (await post(couple, 'couple', { side: 'first', gender: 'woman', states: sides })).json()
+    expect((await post(couple, 'couple', { side: 'second', code, states: sides })).status).toBe(200)
+    const refused = await post(couple, 'couple', { side: 'second', code: other, states: sides })
+    expect(refused.status).toBe(503)
+    expect(JSON.parse(stores.get('couples')!.get(other)!).second).toBeUndefined()
+  })
+
+  it('forgetting an install is bounded — it was the one public write with no cap', async () => {
+    vi.stubEnv('PROGRESS_FORGET_HOURLY_CAP', '1')
+    await post(progress, 'progress', { id: 'ACDEFG', rungs: ['arrived'] })
+    await post(progress, 'progress', { id: 'HJKMNP', rungs: ['arrived'] })
+    const del = (id: string) => progress(new Request(`http://x/.netlify/functions/progress?id=${id}`, { method: 'DELETE' }))
+    expect((await del('ACDEFG')).status).toBe(200)
+    expect((await del('HJKMNP')).status).toBe(503)
+    expect(stores.get('progress')!.has('HJKMNP')).toBe(true)
+  })
+
   it('each bucket is its own — spending one leaves the others open', async () => {
     vi.stubEnv('COHORT_HOURLY_CAP', '1')
     expect((await post(cohort, 'cohort', { code: 'ACDEFG', scene: 'london', gender: 'woman' })).status).toBe(200)
     expect((await post(cohort, 'cohort', { code: 'HJKMNP', scene: 'london', gender: 'man' })).status).toBe(503)
-    expect((await post(keep, 'keep', { snapshot: { answers: {} }, code: 'ACDEFH' })).status).toBe(200)
+    expect((await post(keep, 'keep', { snapshot: { answers: {} }, code: 'ACDEFG' })).status).toBe(200)
     expect((await post(progress, 'progress', { id: 'ACDEFG', rungs: ['arrived'] })).status).toBe(200)
   })
 

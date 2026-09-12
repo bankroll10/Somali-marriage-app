@@ -65,10 +65,18 @@ const MODEL = 'claude-opus-5'
  * questions each is about four hundred replies, or eight dollars. The ceiling
  * sat five hundred times above the traffic.
  *
- * So the day is the real bound: four hundred replies is thirty times any
- * founding-scale day and holds an unattended month near $250. Raise it the
- * moment real numbers justify it — that is a one-variable change and this
- * comment is the arithmetic to redo when they arrive.
+ * So the day is the real bound on *calls*: four hundred replies is thirty
+ * times any founding-scale day. But a cap on calls is not a cap on spend, and
+ * this file used to claim one (docs/BOARD.md): with no limit on the body, one
+ * call could carry a multi-megabyte history — ~900k input tokens, nearly $5 —
+ * and four hundred of those a day was ~$1,900 a day, not $250 a month. The
+ * three bounds below close that: the body is measured before it is parsed
+ * (`MAX_BODY`), the thread is cut to its last ten turns and a fixed number of
+ * characters (`MAX_HISTORY_CHARS`), and the answer is capped (`MAX_TOKENS`).
+ * The worst call is then ~8k tokens in and ~2k out — about nine cents — so the
+ * worst unattended day is ~$36 and the worst month ~$1,100, against an
+ * ordinary month near $8. The Anthropic console's monthly spend limit is the
+ * bound outside the code (docs/DEPLOY.md); this is the bound inside it.
  *
  * The refusal is the ordinary 503 the client already reads as "fall back to
  * the offline voice", so a member who meets a cap gets the local guide rather
@@ -77,12 +85,51 @@ const MODEL = 'claude-opus-5'
  */
 const DEFAULT_HOURLY_CAP = 300
 const DEFAULT_DAILY_CAP = 400
+/**
+ * The whole request — system prompt, thread and message — measured on the raw
+ * body before parsing, like every other public function. The system prompt
+ * carries the map and the persona and runs a few kilobytes; ten turns of a
+ * real thread a few more. 32 KB is roughly 8k tokens: room for every honest
+ * call, and a ceiling on the dishonest one.
+ */
+const MAX_BODY = 32_768
+/** The thread's tail, in characters, after the ten-turn cut: continuity, not context. */
+const MAX_HISTORY_CHARS = 6_000
+/**
+ * Replies are capped at 180 words by the prompt — a few hundred tokens — and
+ * adaptive thinking at `low` effort adds little. 2,048 leaves room for both
+ * and is a quarter of what this used to allow.
+ */
+const MAX_TOKENS = 2_048
+
+interface Turn {
+  role: 'user' | 'coach'
+  text: string
+}
 
 interface Body {
   system?: string
   message?: string
   /** Prior turns in this thread, oldest first, so the guide remembers. */
-  history?: { role: 'user' | 'coach'; text: string }[]
+  history?: Turn[]
+}
+
+/**
+ * The newest turns that fit in `limit` characters, oldest dropped first. A
+ * thread is kept whole-turn: a half turn would hand the model a sentence
+ * nobody said.
+ */
+export function trimHistory(turns: Turn[], limit: number): Turn[] {
+  const kept: Turn[] = []
+  let used = 0
+  for (let i = turns.length - 1; i >= 0; i--) {
+    const t = turns[i]
+    if (typeof t?.text !== 'string' || (t.role !== 'user' && t.role !== 'coach')) continue
+    if (used + t.text.length > limit) break
+    used += t.text.length
+    kept.unshift(t)
+  }
+  return kept
 }
 
 export default async function handler(req: Request, _context: Context) {
@@ -153,9 +200,19 @@ export default async function handler(req: Request, _context: Context) {
     return rateLimited()
   }
 
+  // Measured before it is parsed, like keep.ts and cohort.ts: the size of the
+  // body is the size of the bill, and this route used to accept any size.
+  let raw: string
+  try {
+    raw = await req.text()
+  } catch {
+    return Response.json({ error: 'bad_json' }, { status: 400 })
+  }
+  if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
+
   let body: Body
   try {
-    body = (await req.json()) as Body
+    body = JSON.parse(raw) as Body
   } catch {
     return Response.json({ error: 'bad_json' }, { status: 400 })
   }
@@ -168,8 +225,8 @@ export default async function handler(req: Request, _context: Context) {
 
   // Keep the tail of the thread only. The map is already in the system prompt,
   // so old turns buy continuity, not context, and they are the cheapest thing
-  // to drop.
-  const history = (body.history ?? []).slice(-10)
+  // to drop: the last ten turns, and within them the most recent characters.
+  const history = trimHistory((body.history ?? []).slice(-10), MAX_HISTORY_CHARS)
 
   /** Map an SDK error onto the 503 contract the client already understands. */
   function errorResponse(err: unknown): Response {
@@ -190,7 +247,7 @@ export default async function handler(req: Request, _context: Context) {
 
   const stream = new Anthropic().messages.stream({
     model: MODEL,
-    max_tokens: 8192,
+    max_tokens: MAX_TOKENS,
     system,
     thinking: { type: 'adaptive' },
     output_config: { effort: EFFORT },

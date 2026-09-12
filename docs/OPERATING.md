@@ -31,6 +31,14 @@ week it falls in relative to the monthly hour below.
 curl -s -H "$K" $S/safety | jq .   # weekly — a report is a person waiting, not a metric
 ```
 
+Since 2026-09-12 `.github/workflows/watch.yml` makes the same read every
+Monday with the founder's key and fails — which emails the owner — when
+anything is open. It needs `FOUNDER_KEY` as a repository secret
+(`docs/DEPLOY.md`). Before the first link is posted, `DELETE /progress?id=`
+each of the founder's own install ids (`installId()` in
+`src/lib/progress.ts`, in that device's localStorage), so the first twenty
+arrivals are strangers.
+
 Resolving one names the report and what you did about it:
 
 ```bash
@@ -77,7 +85,13 @@ curl -s -H "$K" "$S/pool?scene=twin-cities" | jq .   # the shape of a pool: live
 curl -s -H "$K" "$S/pool?country=us"        | jq .   # the same for a country's travellers
 curl -s -H "$K" $S/guide    | jq .     # the guide's health — one live call, so rarely
 curl -s -H "$K" $S/export   -o "backup-$(date +%F).json"   # the backup — save it
-netlify blobs:list contacts --json > "reach-$(date +%F).json"   # the customer list — save it too
+# The customer list — save it too. `blobs:list` prints keys and etags only, so
+# each value is fetched; the one-liner that stood here saved codes and no contacts
+# (docs/BOARD.md). Then open one file: it must hold an email or a phone.
+d="reach-$(date +%F)"; mkdir -p "$d"
+netlify blobs:list contacts --json | jq -r '.blobs[].key' \
+  | while read -r k; do netlify blobs:get contacts "$k" > "$d/$k.json"; done
+ls "$d" | wc -l   # must match the door's counted total
 ```
 
 **Save both files every time.** The backup is the only copy of the learning
@@ -132,7 +146,8 @@ What each field in `/progress` means:
 |---|---|
 | `rungs[id]` | People who ever reached this rung. `followed-through / arrived` is the North Star |
 | `rungs.mapped`, `rungs.kept`, `rungs.counted` | The trust funnel, and the test of `docs/GAPS.md` gap 3. `kept / mapped` is how many trusted the server with the map; `counted / kept` is how many then left a way to be reached. A product that scores well on the first and badly on the second has a door problem, not a privacy problem — and before the `kept` rung the two were one number |
-| `scenes[city][rung]`, `vias[via][rung]` | The same, by city and by what kind of link brought them |
+| `scenes[city][rung]`, `vias[via][rung]` | The same, by city and by what kind of link brought them. `alumni`, `professional` and `mosque` are kinds of room — the split the eight-week pivot rule reads |
+| `countries[country][rung]` | The same, by country — the North Star for the nine countries with no named city (`docs/BOARD.md`). Floored |
 | `sides[woman\|man][rung]` | The same, by side. `sides.man.counted / sides.man.arrived` is the men's funnel — the question `docs/MACHINE.md` found the ladder could not answer. Floored, so `sides.man` reads `null` until five men have arrived |
 | `sidesByVia[side][via][rung]` | Side crossed with the kind of link, once. A man who arrived through a woman's eleven — `couple`, or `eleven` — is already talking to someone and is not supply for anyone else; `door` is the men a member sent, some looking and some not. `sidesByVia.man.group` is the men the network channel actually produced — the one cell that counts only men nobody here was already talking to (`docs/REDTEAM.md`). Floored per cell |
 | `arrivedByDay` | The denominator over time, so a cohort can be followed. Every date in every store is a day, never a moment — see `netlify/shared/day.ts` |
@@ -191,6 +206,10 @@ Rules for the loop itself:
   question. Below that the readout is anecdote.
 - **The ladder decides, not the facts.** A constant that makes a fact look
   better while `followed-through / arrived` falls is wrong.
+- **A decision rule written before its build overrides the hundred-record
+  floor.** A1's twenty arrivals, `docs/GAPS.md`'s ten conversations and
+  `docs/REDTEAM.md`'s three-in-ten are rules; the floor governs calibration
+  constants and class moves no rule names (`docs/PROCESS.md`).
 - **Nothing here ever becomes a score on a person.** The tables are about
   the community and the product. The rule on the read and the map stands.
 
@@ -267,6 +286,9 @@ In this order, because each question only means something after the last:
 6. **One revision.** Pick the single row above with the clearest signal, move
    its constant, and write the line below.
 7. **Save the backup.** One curl, one file, kept somewhere that is not Netlify.
+   Since 2026-09-12 `.github/workflows/watch.yml` saves it monthly as a 90-day
+   artifact once the repository is private and `BACKUP_TO_ARTIFACT` is set;
+   this step is then a check that last month's artifact exists.
 8. **Do people finish what they open?** `rungs.read / facts.began.read`, and
    the same for the map, the eleven and the couple side. `docs/EXPERIMENTS.md`
    holds the decision rule for each, fixed in advance — if one fires, act on it

@@ -47,8 +47,13 @@ const post = (body: unknown) =>
 const raw = (body: string) =>
   handler(new Request('http://x/.netlify/functions/progress', { method: 'POST', body }))
 const forget = (id: string) => handler(new Request(`http://x/.netlify/functions/progress?id=${id}`, { method: 'DELETE' }))
-const readout = (headers: Record<string, string> = {}) =>
+const readout = (headers: Record<string, string> = FOUNDER) =>
   handler(new Request('http://x/.netlify/functions/progress', { headers }))
+/** The founder's key, set for every test: a readout never answers without one (netlify/shared/founder.ts). */
+const FOUNDER_KEY = 'test-founder-key'
+const FOUNDER = { authorization: `Bearer ${FOUNDER_KEY}` }
+beforeEach(() => vi.stubEnv('FOUNDER_KEY', FOUNDER_KEY))
+
 
 beforeEach(() => stores.clear())
 afterEach(() => vi.unstubAllEnvs())
@@ -169,6 +174,27 @@ describe('the readout', () => {
     expect(body.scenes.toronto.arrived).toBeNull()
     expect(body.scenes.toronto.read).toBeNull()
     expect('arrived' in body.scenes.toronto).toBe(true)
+  })
+
+  it('splits the ladder by country, floored — so the North Star reads for the nine countries with no named city', async () => {
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'other', country: 'ke' })
+    await post({ id: 'ACDEFK', rungs: ['arrived'], scene: 'london', country: 'uk' })
+    await post({ id: 'ACDEFM', rungs: ['arrived'] })
+    const body = await (await readout()).json()
+    expect(body.countries.ke.arrived).toBe(5)
+    expect(body.countries.uk.arrived).toBeNull()
+    expect(body.countries.unsaid.arrived).toBeNull()
+    // Last told wins, like the scene — she moved.
+    await post({ id: 'ACDEFK', rungs: ['arrived'], country: 'se' })
+    expect(JSON.parse(stores.get('progress')!.get('ACDEFK')!).country).toBe('se')
+    expect((await post({ id: 'ACDEFN', rungs: ['arrived'], country: 'mars' })).status).toBe(400)
+  })
+
+  it('tells the kind of room apart — alumni, professional, mosque — and never the room', async () => {
+    for (const via of ['alumni', 'professional', 'mosque', 'group']) {
+      expect((await post({ id: `ACDEF${via[0].toUpperCase()}`, rungs: ['arrived'], via })).status).toBe(200)
+    }
+    expect((await post({ id: 'ACDEFX', rungs: ['arrived'], via: 'ssa-umn' })).status).toBe(400)
   })
 
   it('splits the ladder by side, floored — so the men’s funnel can be read once five men have arrived', async () => {
@@ -359,14 +385,16 @@ describe('forgetting an install', () => {
 })
 
 describe('the founder key', () => {
-  it('stays open when no key is configured, and says so out loud', async () => {
+  it('refuses when no key is configured, and says why out loud', async () => {
     const { resetWarnings } = await import('../netlify/shared/founder')
     resetWarnings()
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    vi.stubEnv('FOUNDER_KEY', '')
     await post({ id: ID, rungs: ['arrived'] })
-    expect((await readout()).status).toBe(200)
-    // Unset means open by design; silently open is how a readout stays public
-    // for a month. The warning is the difference.
+    // Unset used to mean open; a misconfigured deploy published every readout
+    // and the founder learned of it from this log line (docs/BOARD.md). Now
+    // unset means closed, and the log line says how to open it.
+    expect((await readout()).status).toBe(401)
     expect(warn.mock.calls.flat().join(' ')).toContain('FOUNDER_KEY is not set')
     // Once per cold start, not once per request: a guard that is off should be
     // visible in the log, not a wall of noise that gets filtered out.
@@ -377,7 +405,7 @@ describe('the founder key', () => {
 
   it('refuses the readout without the key, and with the wrong one', async () => {
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
-    const bare = await readout()
+    const bare = await readout({})
     expect(bare.status).toBe(401)
     expect(bare.headers.get('www-authenticate')).toMatch(/^Bearer/)
     expect(bare.headers.get('cache-control')).toBe('no-store')

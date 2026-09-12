@@ -1,5 +1,6 @@
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
 import RestoreMap from './RestoreMap'
+import { BUILT_BY, EYEBROW } from '../data/brand'
 
 interface Props {
   onBegin: () => void
@@ -34,7 +35,7 @@ export default function Welcome({
 
         <main className="flex flex-1 flex-col justify-center py-16">
           <p className="animate-fade mb-5 text-sm font-medium uppercase tracking-[0.25em] text-gold-soft">
-            Built for the Somali diaspora
+            {EYEBROW}
           </p>
 
           {/* The hook keeps the shape of a question you can't answer about
@@ -115,7 +116,7 @@ export default function Welcome({
             style={{ animationDelay: '220ms' }}
           >
             {[
-              'Built by a Somali, for the questions our aunties ask — and the ones they don’t.',
+              BUILT_BY,
               'We start where you are: getting ready, talking to someone, or deciding with the families.',
               'The conversations that break marriages — where you’d live, money home, a second wife — asked early, not too late.',
             ].map((line) => (
@@ -171,9 +172,11 @@ export default function Welcome({
               The map answers "am I ready" — which ranks near the bottom of what
               actually hurts. The woman with a live problem is already talking to
               someone and wants to know what he means, tonight. Making her answer
-              thirteen questions about herself first is a toll gate, not an
-              onboarding, and it is where we lost Samira. This costs the hero
-              nothing and opens the product to the person in the most pain. */}
+              sixteen questions about herself first is a toll gate, not an
+              onboarding: of the two real people who have ever opened the intake,
+              both stopped partway (src/data/intake.ts) — n = 2, and the only
+              user evidence this product has. This costs the hero nothing and
+              opens the product to the person in the most pain. */}
           <div
             className="animate-rise mt-8 w-full max-w-md rounded-card border border-cream/15 bg-cream/[0.06] p-5"
             style={{ animationDelay: '300ms' }}

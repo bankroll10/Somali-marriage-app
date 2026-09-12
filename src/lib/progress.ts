@@ -91,14 +91,20 @@ let lastSent = ''
  * Report the rungs reached. Fire-and-forget: the promise resolves either way
  * and the caller has nothing to do with the result.
  */
-export async function reportRungs(rungs: RungId[], scene?: string, facts?: Facts, gender?: Gender): Promise<void> {
+export async function reportRungs(
+  rungs: RungId[],
+  scene?: string,
+  facts?: Facts,
+  gender?: Gender,
+  country?: string,
+): Promise<void> {
   const id = installId()
   if (!id || rungs.length === 0) return
   const some = facts && Object.keys(facts).length > 0 ? facts : undefined
   // The facts are part of the signature: a re-render with the same facts posts
   // nothing, and a new fact — a read taken, a conversation confirmed — posts once.
   // So is which side she is on, so a correction at Identity posts once too.
-  const signature = `${scene ?? ''}:${gender ?? ''}:${rungs.join(',')}:${some ? JSON.stringify(some) : ''}`
+  const signature = `${scene ?? ''}:${country ?? ''}:${gender ?? ''}:${rungs.join(',')}:${some ? JSON.stringify(some) : ''}`
   if (signature === lastSent) return
   lastSent = signature
 
@@ -115,6 +121,10 @@ export async function reportRungs(rungs: RungId[], scene?: string, facts?: Facts
         id,
         rungs,
         ...(scene ? { scene } : {}),
+        // The country the scene sits in, or the one she named for "somewhere
+        // else" — so the ladder can be read for the nine countries with no
+        // named city (docs/BOARD.md). A closed id, floored on the server.
+        ...(country ? { country } : {}),
         ...(via ? { via } : {}),
         ...(gender ? { gender } : {}),
         ...(some ? { facts: some } : {}),

@@ -10,9 +10,12 @@ import type { CoachMessage, ModeId } from '../types'
  * every failure: not configured, offline, rate limited, or a safety decline.
  *
  * The local matcher is therefore not scaffolding — it is the offline voice, and
- * the only one that speaks until an ANTHROPIC_API_KEY is set. Until then nothing
- * a member writes leaves their device, which is what the Trust screen promises.
- * Switching the live guide on means rewriting that promise in the same change.
+ * the one that speaks whenever the live guide cannot: no ANTHROPIC_API_KEY, the
+ * route unreachable, a cap met, a decline. The live guide is on in production
+ * (netlify/functions/guide.ts, a decision recorded in docs/ROADMAP.md), and the
+ * Trust screen says so — it names what is sent and offers "Keep the Guide on
+ * this device", which answers offline and sends nothing. This comment used to
+ * say the opposite of both (docs/BOARD.md).
  */
 
 function normalize(s: string): string {

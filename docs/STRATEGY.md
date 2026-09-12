@@ -160,8 +160,10 @@ every product decision after that is a negotiation between them.
   not for the month.
 - **A person.** Concierge matchmaking (AI + a vetted human) when a city opens.
   This is *culturally native*: Somali families **already pay** aunties and
-  matchmakers real money. We productise the most trusted role in the community
-  at software margins.
+  matchmakers real money. We productise the most trusted role in the community —
+  at a matchmaker's margins, not software's: a human paid at the nikah is a
+  service, and `docs/BACKWARD.md`'s margins row is tested against the
+  software-priced lines alone (`docs/BOARD.md`).
 - **Vetted IRL events** — halal, family-friendly. Revenue + liquidity + trust.
 
 **The price, as a prediction** — written 2026-09-11, before the first pool,
@@ -175,12 +177,19 @@ so the eventual checkout tests a belief rather than reacting to a room
 | The first year, as a gift | $79 | By someone else, at the wedding |
 
 At those prices, with three in five marriages using a matchmaker, the
-company's take is about $1,000 a marriage — a $4M company at total dominance
-of the diaspora (`docs/BACKWARD.md`). The institution price — $3,000 and up
-at the nikah, what a matchmaker actually charges — is what a real company
-requires, and the ten conversations must find out whether families pay it.
-No price appears on any screen until the public launch (`src/data/plus.ts`);
-this is the prediction the checkout will be measured against.
+company's take is **about $628 a marriage** — $99 + 3/5 × the company's half
+of $1,500 ($450) + $79 — not the ~$1,000 an earlier draft reached by counting
+the matchmaker's half as ours: a $2.5M company at total dominance of the
+diaspora (`docs/BACKWARD.md`, corrected in `docs/BOARD.md`). The
+software-priced part is $178, and $79 once the call inside "Deciding
+together" is priced as the founder's hour it is. The institution price —
+$3,000 and up at the nikah — is a *fee*, not a take: at half share and three
+in five it is a $1,078 take, still the $2.5M row; a $3,000 *take* needs a fee
+near $9,400 at the written share. What a matchmaker actually charges is
+unsourced in this repository; the ten conversations, and three practising
+matchmakers, must supply it. No price appears on any screen until the public
+launch (`src/data/plus.ts`); this is the prediction the checkout will be
+measured against.
 
 **Public launch** is the day the first pool opens on `docs/LIQUIDITY.md`'s
 checklist. Two promises hang on it: everyone here before it keeps every paid
@@ -190,9 +199,11 @@ feature free for a year after it, and prices are set at it.
 the brand's first sentence names one. So: nothing that would need renaming
 for a second community carries a community's name — the product is Niyyah,
 an intention, not "the Somali app" — and a community's content (its cities,
-its countries, its eleven, its lines) lives in `src/data/` as data, which is
-already true. Zero cost today; it is what keeps `docs/BACKWARD.md`'s second
-target reachable.
+its countries, its eleven, its lines) lives in `src/data/` as data. Enforced
+by test for the brand strings since 2026-09-12 (`src/data/brand.ts`,
+`tests/brand.test.ts`); the instruments' own copy still names the community in
+seven components, as content (`docs/BOARD.md`). Zero cost today; it is what
+keeps `docs/BACKWARD.md`'s second target reachable.
 
 **What is free, forever:** the map and every reading, the work, the
 read, the eleven, the family conversations, the family vouch, reporting and
@@ -385,7 +396,8 @@ a company like this normally carries — the app stores, an auth provider, an
 analytics vendor, social SDKs, paid acquisition — do not exist here, each by an
 earlier decision. What remains is concentrated in one vendor holding the
 hostname, the data, the customer list and the deploys, and the single largest
-gap is the cheapest to close: this product does not yet own its own domain.
+gap was the cheapest to close, and is closed: the product owns its domain
+(`docs/CONTROL.md`); the mailbox on it is the next (`docs/CONTROL.md` step 5).
 
 ## Risks I'm watching (no self-deception)
 

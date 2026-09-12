@@ -112,10 +112,13 @@ seeded count.
    circle says is the person everyone asks. In person where possible, a
    direct message where not. One ask each: post the read into the group.
 2. **Lead with the instruments, not the marketplace.** The link is
-   `joinniyyah.com/?read&via=group` — the read, opened directly, no Welcome,
-   no account. The `group` via is the kind of room, never which room. A week
-   later, the eleven the same way: `/?eleven&via=group`. And in the same
-   post, the door: `joinniyyah.com/?door&via=group` — the honest number, for
+   `joinniyyah.com/?read&via=alumni` — `professional` or `mosque` for the
+   other kinds of room — the read, opened directly, no Welcome, no account.
+   The via is the kind of room, never which room: three kinds, so the pivot
+   rule below can be read from the readout, which a single `group` cell could
+   not tell (`docs/BOARD.md`; `group` stays for any other room). A week
+   later, the eleven the same way: `/?eleven&via=alumni`. And in the same
+   post, the door: `joinniyyah.com/?door&via=alumni` — the honest number, for
    the man who is looking rather than talking. The read presumes someone on
    the other side; a single man sent only the read had nowhere to land, and
    that was the machine's weakest link (`docs/MACHINE.md`).
@@ -143,9 +146,11 @@ nobody eligible — because forty and forty on the door can be a room where a
 quarter of the women have no man in their band, and the door cannot show it.
 
 The funnel between "opened a link" and "counted" is unknown and must be
-measured rather than assumed. The hypothesis to beat: through the one-to-one
-loops alone, men arrive at about one per three counted women, so forty men
-would need a hundred and twenty women. The network channel is the bet that
+measured rather than assumed. The hypothesis to beat — **the one working
+ratio**; `docs/SCALE.md` and the risk below carry six to one as the
+pessimistic bound, and `docs/LIQUIDITY.md` works both (`docs/BOARD.md`):
+through the one-to-one loops alone, men arrive at about one per three counted
+women, so forty men would need a hundred and twenty women. The network channel is the bet that
 changes that ratio, and the men's count on the door is the whole test of it —
 read as `sidesByVia.man.group` in the ladder's readout, not as men on the
 door, because a man who arrived through a woman's eleven is already talking
@@ -175,8 +180,8 @@ nobody can marry someone met here before anything has opened.
 
 ## RISKS
 
-- **Men stall.** Women arrive at five or six to one and the door reads
-  40/7 for months. The mixed-network entry is the mitigation; the honest door
+- **Men stall.** Women arrive at five or six to one — the pessimistic bound
+  on the 1:3 hypothesis above — and the door reads 40/7 for months. The mixed-network entry is the mitigation; the honest door
   is what makes the stall visible rather than hidden behind a feed. Never
   boost, never pay a man for reach.
 - **The channel is heard as elitist.** "Alumni" and "professional" stay out

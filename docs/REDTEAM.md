@@ -442,7 +442,10 @@ has not yet imagined. Cost: ten messages.
 
 **Kill test, two weeks after the first post.** `sidesByVia.man.group.arrived`
 reads `null`. The floor is five, so a null cell two weeks after a posted link
-*is* the reading: the channel produced fewer than five men. Change the room.
+*is* the reading — with one caveat (`docs/BOARD.md`): a man who reads the door
+and leaves without tapping his side is `unsaid`, so read `vias.group.arrived`
+and the room-kind vias (`alumni`, `professional`, `mosque`) beside it. Null
+on both means the channel produced fewer than five men. Change the room.
 
 **Kill test, eight weeks.** WEDGE's pivot rule, as tightened this pass: fewer
 than twenty women counted in the metro, or fewer than five men who arrived
@@ -473,8 +476,10 @@ which a bigger room serves better; specificity is a cost the company is
 paying for the founder's comfort, and the expansion question moves from year
 three to now.
 
-**Kill test, weeks 1–8.** Cumulative `arrivedByDay` against the reachable
-estimate (~700 a side). Arrivals plateau under seventy while the link is
+**Kill test, weeks 1–8.** Cumulative `arrivedByDay` — a **global** series
+with no pool split (`docs/BOARD.md`) — against the reachable estimate (~700 a
+side). While one metro is posted the two coincide; the day a room in a second
+city is posted, restate this test or add `arrivedByDay` per scene. Arrivals plateau under seventy while the link is
 still being posted → the reachable pool is the ceiling; the wedge is not the
 constraint, the market is.
 

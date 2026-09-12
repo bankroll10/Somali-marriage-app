@@ -33,8 +33,13 @@ vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) =>
 
 const { default: handler, AGE_GAP } = await import('../netlify/functions/pool')
 
-const get = (query: string, headers: Record<string, string> = {}) =>
+const get = (query: string, headers: Record<string, string> = FOUNDER) =>
   handler(new Request(`http://x/.netlify/functions/pool?${query}`, { headers }))
+/** The founder's key, set for every test: a readout never answers without one (netlify/shared/founder.ts). */
+const FOUNDER_KEY = 'test-founder-key'
+const FOUNDER = { authorization: `Bearer ${FOUNDER_KEY}` }
+beforeEach(() => vi.stubEnv('FOUNDER_KEY', FOUNDER_KEY))
+
 const read = async (query: string) => (await get(query)).json()
 
 const LIVE = '2099-01-01'
@@ -86,13 +91,13 @@ beforeEach(() => stores.clear())
 afterEach(() => vi.unstubAllEnvs())
 
 describe('who may read it', () => {
-  it('is the founder’s, and open only when no key is set', async () => {
+  it('is the founder’s, and closed when no key is set — it deletes on read', async () => {
     vi.stubEnv('FOUNDER_KEY', 'k')
-    expect((await get('scene=twin-cities')).status).toBe(401)
+    expect((await get('scene=twin-cities', {})).status).toBe(401)
     expect((await get('scene=twin-cities', { Authorization: 'Bearer wrong' })).status).toBe(401)
     expect((await get('scene=twin-cities', { Authorization: 'Bearer k' })).status).toBe(200)
-    vi.unstubAllEnvs()
-    expect((await get('scene=twin-cities')).status).toBe(200)
+    vi.stubEnv('FOUNDER_KEY', '')
+    expect((await get('scene=twin-cities')).status).toBe(401)
   })
 
   it('names a pool that can open — a city, or a country’s travellers — and nothing else', async () => {

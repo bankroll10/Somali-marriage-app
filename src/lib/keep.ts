@@ -65,6 +65,14 @@ function rememberCode(code: string) {
   }
 }
 
+function forgetCode() {
+  try {
+    localStorage.removeItem(CODE_KEY)
+  } catch {
+    /* nothing to forget */
+  }
+}
+
 async function withTimeout(input: string, init: RequestInit): Promise<Response | null> {
   const abort = new AbortController()
   const timer = setTimeout(() => abort.abort(), TIMEOUT_MS)
@@ -98,12 +106,24 @@ export async function keepMap(patch?: KeepPatch): Promise<string | null> {
   const state = loadProgress()
   if (!state) return null
   const snapshot = patch?.identity ? { ...state, identity: { ...state.identity, ...patch.identity } } : state
+  const body = keptSnapshot(snapshot)
 
-  const res = await withTimeout(ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ snapshot: keptSnapshot(snapshot), code: rememberedCode() ?? undefined }),
-  })
+  const send = (code: string | null) =>
+    withTimeout(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ snapshot: body, code: code ?? undefined }),
+    })
+
+  let res = await send(rememberedCode())
+  // Her remembered code points at nothing — the map lapsed, or was forgotten
+  // from another device. The server no longer creates a map under a code it
+  // did not mint (netlify/functions/keep.ts), so forget the code and keep
+  // fresh: she gets a new one, and nobody else's map is ever written over.
+  if (res?.status === 404 && rememberedCode()) {
+    forgetCode()
+    res = await send(null)
+  }
   if (!res?.ok) return null
 
   try {

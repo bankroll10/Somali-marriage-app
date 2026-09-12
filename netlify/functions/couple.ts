@@ -43,11 +43,19 @@ const TALLY_ATTEMPTS = 3
 /** Joints read back in one hour, from everyone — the read cap, per keep.ts. */
 const DEFAULT_READ_CAP = 600
 /**
- * Elevens started in one hour, from everyone. Only the first side is capped:
- * his answer is bounded by the links that exist, and refusing it would waste
- * the one thing she asked him to do. A circuit breaker — see netlify/shared/limit.ts.
+ * Elevens started in one hour, from everyone. A circuit breaker — see
+ * netlify/shared/limit.ts.
  */
 const DEFAULT_HOURLY_CAP = 200
+/**
+ * Answers to a sent eleven in one hour, from everyone. This side used to be
+ * uncapped on the reasoning that his answer is bounded by the links that
+ * exist — but a guessed live code is also an answer, and one that freezes her
+ * sheet for ever and pollutes the joint tally (docs/BOARD.md). Bounded like a
+ * read, well above any real hour, so refusing it never costs the one thing
+ * she asked him to do.
+ */
+const DEFAULT_ANSWER_CAP = 600
 
 export type YesState = 'agree' | 'differ' | 'not-talked' | 'unknown'
 export type Joint = 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
@@ -233,6 +241,8 @@ export default async function handler(req: Request) {
   if (body.side === 'second') {
     const code = normalise(body.code)
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    // Bounded after validation, before any read — like every other public write.
+    if (await overHourlyCap('couple-answer', DEFAULT_ANSWER_CAP)) return rateLimited()
     try {
       const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
       if (!record) return Response.json({ error: 'not_found' }, { status: 404 })

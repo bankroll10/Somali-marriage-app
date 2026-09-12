@@ -35,7 +35,7 @@ the thirteen stages:
 | **Mutual interest** | Two yeses on one introduction. **Designed, not built** | none — designed (`docs/LEARNING.md` row 1) |
 | **Conversation** | Off-platform, on purpose. The product's part is the instruments: the read, the eleven, the eleven sent to him, the words | `read`, `eleven`, `asked-him`, `he-answered`, `followed-through`; `facts.through`; the couple tally |
 | **Serious progression** | Talking → deciding; the family scripts; the vouch | `deciding`, `vouched`; `facts.ended`; `through['family:*']` |
-| **Monetization** | "Deciding together", paid at the nikah — `docs/EXPERIMENTS.md` A5. No price exists in the code | none — blocked by the free-for-a-year promise |
+| **Monetization** | "Deciding together", paid at the move to deciding (`docs/STRATEGY.md` §5; the matchmaker line is what is paid at the nikah) — `docs/EXPERIMENTS.md` A5. No price exists in the code | none — blocked by the free-for-a-year promise |
 | **Success** | `married`, and the ending: who, what mattered, what here was real | `married`; `facts.ending`; `marriedBy` |
 | **Referral** | The one share only she can make — `via: 'married'` from the ending — and every forwarded word | `vias.married`, `vias.words`, `vias.eleven`, `vias.couple` |
 
@@ -399,11 +399,14 @@ After four weeks of posting `?door&via=group`:
   (`docs/REDTEAM.md`).
   `docs/WEDGE.md`'s pivot rule fires: change the channel first, the city
   second.
-- Five or more arrived and fewer than one in four reach `mapped` → **the map
-  is the toll gate for men.** A1's "cut to one chapter" fires for the men's
-  path first, before any change to the women's.
-- One in four or better `counted` → **the link was the bottleneck.** Keep
-  posting; read the door; the next weakest link is A2.
+- Seventeen or more arrived and `mapped` still null → **the map is the toll
+  gate for men.** A1's "cut to one chapter" fires for the men's path first,
+  before any change to the women's. Below seventeen arrivals this branch is
+  undecidable: `mapped` is floored at five, so eight arrived and one mapped
+  reads exactly like eight and none (`docs/BOARD.md`).
+- `counted` at five or more while arrived is twenty or fewer → **the link was
+  the bottleneck.** Keep posting; read the door; the next weakest link is A2.
+  Between five and sixteen arrivals only the first branch is readable.
 - Counter-metric: women's `counted` per hundred `arrived` must not fall while
   the men's rises. If it does, the second ask on the door is costing her the
   first, and M2 reverts to one ask.

@@ -47,16 +47,44 @@ const forget = (code: string) => handler(new Request(`http://x/.netlify/function
 
 beforeEach(() => stores.clear())
 
+/**
+ * Her map, already kept under ACDEFG — the way every test below that re-keeps
+ * starts. A code the server did not mint is never created on demand any more
+ * (see "a supplied code is never created"), so the seed is written directly.
+ */
+function seed(code = 'ACDEFG', snapshot: unknown = { identity: {}, answers: {} }) {
+  memStore('maps').setJSON(code, { snapshot, createdAt: '2026-01-01', expiresAt: '2099-01-01', v: 1 })
+}
+
 describe('keeping a map', () => {
-  it('stores the snapshot under a code and hands it back', async () => {
-    const res = await post({ snapshot: { identity: { firstName: 'Sagal' }, answers: {} }, code: 'ACDEFG' })
+  it('stores the snapshot under a minted code and hands it back', async () => {
+    const res = await post({ snapshot: { identity: { firstName: 'Sagal' }, answers: {} } })
     expect(res.status).toBe(200)
-    expect((await res.json()).code).toBe('ACDEFG')
-    const back = await (await get('ACDEFG')).json()
+    const { code } = await res.json()
+    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{6}$/)
+    const back = await (await get(code)).json()
     expect(back.snapshot.identity.firstName).toBe('Sagal')
   })
 
+  it('a supplied code is never created — nothing under it is a 404, and the client mints fresh', async () => {
+    // This used to write whatever code the body carried, skipping mint's
+    // onlyIfNew and letting a guessed code land on a stranger's map
+    // (docs/HARD.md row 3, docs/BOARD.md).
+    const res = await post({ snapshot: { identity: { firstName: 'Sagal' } }, code: 'ACDEFG' })
+    expect(res.status).toBe(404)
+    expect((await res.json()).error).toBe('not_found')
+    expect(stores.get('maps')?.has('ACDEFG') ?? false).toBe(false)
+  })
+
+  it('re-keeping writes over her own map only, at the version it was read', async () => {
+    seed('ACDEFG', { identity: { firstName: 'Sagal' } })
+    const res = await post({ snapshot: { identity: { firstName: 'Sagal', age: 27 } }, code: 'ACDEFG' })
+    expect(res.status).toBe(200)
+    expect(JSON.parse(stores.get('maps')!.get('ACDEFG')!).snapshot.identity.age).toBe(27)
+  })
+
   it('drops guide threads an older client still sends', async () => {
+    seed()
     await post({
       snapshot: { identity: {}, coachThreads: { auntie: [{ id: '1', role: 'user', text: 'never stored' }] } },
       code: 'ACDEFG',
@@ -67,6 +95,7 @@ describe('keeping a map', () => {
   })
 
   it('drops the contact and the guide’s follow-ups an older client still sends', async () => {
+    seed()
     await post({
       snapshot: {
         identity: {},
@@ -88,7 +117,7 @@ describe('keeping a map', () => {
   })
 
   it('re-keeping keeps the day it was first kept', async () => {
-    await post({ snapshot: { answers: {} }, code: 'ACDEFG' })
+    seed('ACDEFG', { answers: {} })
     const first = JSON.parse(stores.get('maps')!.get('ACDEFG')!).createdAt
     await new Promise((r) => setTimeout(r, 5))
     await post({ snapshot: { answers: { timeline: '1-2' } }, code: 'ACDEFG' })
@@ -98,13 +127,13 @@ describe('keeping a map', () => {
   })
 
   it('an eight-character vouch token is not a code, and opens nothing', async () => {
-    await post({ snapshot: { identity: { firstName: 'Sagal' } }, code: 'ACDEFG' })
+    seed('ACDEFG', { identity: { firstName: 'Sagal' } })
     expect((await get('ACDEFGHJ')).status).toBe(400)
   })
 
   it('forgetting a code removes the map, the pair, the vouch and its token, and the door entry — and a second time is a quiet 404', async () => {
     // Everything one person can leave behind, seeded as the functions write it.
-    await post({ snapshot: { identity: { firstName: 'Sagal' }, couple: { code: 'HJKMNP', at: 'x' } }, code: 'ACDEFG' })
+    seed('ACDEFG', { identity: { firstName: 'Sagal' }, couple: { code: 'HJKMNP', at: 'x' } })
     memStore('couples'); memStore('vouches'); memStore('cohort')
     stores.get('couples')!.set('HJKMNP', JSON.stringify({ creator: 'woman', first: {} }))
     stores.get('vouches')!.set('ACDEFG', JSON.stringify({ relationship: 'father', firstName: 'Cabdi', sentence: 's', at: 'd' }))

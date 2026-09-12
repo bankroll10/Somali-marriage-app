@@ -28,7 +28,7 @@ Niyyah state you care about.)
    the second door: *"Already talking to someone? Start with a read on them instead."*
    *Say: "Our wedge user is a 24–34 diaspora woman. In a marriage marketplace, women's
    trust IS the liquidity. Note what this page does not promise: a number. It promises
-   the one place she's thinnest, in words."*
+   the one thing to say next."*
 2. Tap **Is he serious?** → **the read.** Eleven questions about what he has actually
    *done* — told anyone, named marriage, moved toward family, followed through. Answer
    them as a real situation (two months in, nobody in his life knows about her, no
@@ -92,9 +92,10 @@ Niyyah state you care about.)
 > "Everything you saw runs end to end, with no invented people. The one number this
 > company watches is followed-through per hundred arrived — how many people had a
 > conversation they weren't going to have. Sessions per week should fall after every
-> rung. The build from here: Claude behind the map, the first-year sheet for married
-> members, real verification and backend, then Minneapolis opens — one introduction at
-> a time."
+> rung. The build from here is not a build: the link goes to ten named rooms, the
+> first hundred arrivals are read, and Minneapolis opens — one introduction at a time.
+> The first-year sheet waits on the first marriage; a model behind the map was
+> declined (`docs/PRODUCT.md` §10)."
 
 **If asked "what's real?"** — honest answer: every instrument is real and working; the
 guide runs on Claude when the key is set and on a local voice otherwise; the sample

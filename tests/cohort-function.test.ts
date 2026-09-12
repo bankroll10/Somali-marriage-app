@@ -50,8 +50,14 @@ const post = (body: unknown) =>
 const count = (scene: string, country?: string) =>
   handler(new Request(`http://x/.netlify/functions/cohort?scene=${scene}${country ? `&country=${country}` : ''}`))
 const raw = (body: string) => handler(new Request('http://x/.netlify/functions/cohort', { method: 'POST', body }))
-const tallyReq = (headers: Record<string, string> = {}) =>
+const tallyReq = (headers: Record<string, string> = FOUNDER) =>
   handler(new Request('http://x/.netlify/functions/cohort', { headers }))
+/** The founder's key, set for every test: a readout never answers without one (netlify/shared/founder.ts). */
+const FOUNDER_KEY = 'test-founder-key'
+const FOUNDER = { authorization: `Bearer ${FOUNDER_KEY}` }
+beforeEach(() => vi.stubEnv('FOUNDER_KEY', FOUNDER_KEY))
+afterEach(() => vi.unstubAllEnvs())
+
 const keys = () => [...(stores.get('cohort')?.keys() ?? [])].filter((k) => !k.startsWith('index/')).sort()
 
 beforeEach(() => {
@@ -247,15 +253,16 @@ describe('the founder key', () => {
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
     await post({ code: 'ACDEFG', scene: 'toronto', gender: 'woman' })
     expect((await count('toronto')).status).toBe(200)
-    expect((await tallyReq()).status).toBe(401)
+    expect((await tallyReq({})).status).toBe(401)
     expect((await tallyReq({ authorization: 'Bearer wrong' })).status).toBe(401)
     const ok = await tallyReq({ authorization: 'Bearer open-sesame' })
     expect(ok.status).toBe(200)
     expect((await ok.json()).countries.ca.scenes.toronto.women).toBe(1)
   })
 
-  it('stays open when no key is configured', async () => {
-    expect((await tallyReq()).status).toBe(200)
+  it('refuses when no key is configured — every readout fails closed', async () => {
+    vi.stubEnv('FOUNDER_KEY', '')
+    expect((await tallyReq()).status).toBe(401)
   })
 })
 

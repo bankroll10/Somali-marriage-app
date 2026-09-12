@@ -12,6 +12,8 @@ import { ledger } from '../lib/ledger'
 import { rungsFrom } from '../lib/rungs'
 import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState } from '../lib/followup'
 import { buildRead } from '../lib/read'
+import { stageAfterInstrument } from '../lib/inferStage'
+import { countryFor } from '../data/scenes'
 import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
@@ -246,10 +248,11 @@ export function useNiyyah(entry: Entry | null = null) {
   // screen, never on a minute spent. Gated on the control that says so: with
   // countMe off this call site does not run, so the toggle is the mechanism
   // rather than a promise about one.
+  const country = countryFor(identity)
   useEffect(() => {
     if (!trust.countMe) return
-    void reportRungs(rungs, identity.scene, facts, identity.gender)
-  }, [rungs, trust.countMe, identity.scene, facts, identity.gender])
+    void reportRungs(rungs, identity.scene, facts, identity.gender, country)
+  }, [rungs, trust.countMe, identity.scene, country, facts, identity.gender])
 
   // Has he answered the eleven she sent? Asked once per code, only until we
   // know — he answers on his own phone, and it has to reach hers without her
@@ -507,6 +510,12 @@ export function useNiyyah(entry: Entry | null = null) {
     if (!record) return
     const r = buildRead(record.answers, identity.gender ?? 'woman')
     if (r) setFollowups((prev) => noteFollowUp(prev, 'read', r.band === 'early' ? 'early' : r.thin))
+    // A read is about someone she is talking to. Said nothing else, that is
+    // where she is — and it is what gives the read-first user a Home, so the
+    // follow-up just written is ever asked (src/lib/inferStage.ts). Raw: an
+    // inference is not a stage change she made, so nothing else fires.
+    const inferred = stageAfterInstrument('read', stage, situated)
+    if (inferred) setStageRaw(inferred)
   }
 
   /** The same for the eleven: the one it told her to open is the one we ask about. */
@@ -515,6 +524,8 @@ export function useNiyyah(entry: Entry | null = null) {
     if (!record) return
     const r = buildBeforeYes(record.answers, identity.gender ?? 'woman')
     if (r) setFollowups((prev) => noteFollowUp(prev, 'beforeYes', r.open.id))
+    const inferred = stageAfterInstrument('eleven', stage, situated)
+    if (inferred) setStageRaw(inferred)
   }
 
   /**

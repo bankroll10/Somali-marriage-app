@@ -45,7 +45,7 @@ the safety catch off.
 | **3** | Cap writes, leave reads unmetered | `DELETE /keep?code=` was an unauthenticated, unmetered destruction primitive cascading across five stores — and it takes the *other* person's couple record with it. `GET /keep` was an enumeration surface over a 27-bit secret: at a hundred requests a second against fifty thousand members, a stranger's whole map roughly every thirty seconds | **Chose Hard** — four read buckets |
 | **4** | Refresh the record's year on every report | The refresh is **anti-correlated with the data's value**: marrying ends the reporting, so the one success outcome left every readout at day 366 while the blob persisted for ever | **Chose Hard** — married never expires, the year is swept |
 | **5** | Resolution is deletion | "Resolved" and "never happened" were the same byte. `docs/GAPS.md`'s own harm-taxonomy test was permanently uncomputable | **Chose Hard** — an anonymous stub survives |
-| **6** | Safety fails open with no founder key, like every readout | One misconfigured deploy publishes free text naming alleged harm — and unlike a tally it cannot be un-published | **Chose Hard** — `requireFounder`, one route |
+| **6** | Safety fails open with no founder key, like every readout | One misconfigured deploy publishes free text naming alleged harm — and unlike a tally it cannot be un-published | **Chose Hard** — `requireFounder`, one route; every route since 2026-09-12 (row 21) |
 | **7** | Forget-me skips the `reports` store | The strongest privacy promise is false in the one place free text exists | **Chose Hard** — the cascade takes it |
 | **8** | Sell "reporting or **blocking** anyone, instantly" | There is no blocking of any kind in this repository — no store, no field, no code path | **Chose Hard** — the copy is true now |
 | **9** | `b % 23` in four copied generators | A, C and D came up 9% more often than every other symbol, in the only secret this product has | **Chose Hard** — rejection sampling, one generator |
@@ -56,6 +56,11 @@ the safety catch off.
 | **14** | No schema version on any record | Five shapes already disambiguated by heuristics: segment count, field presence, a ten-character date prefix. `export.ts` stamps `version: 2` on the wrapper and nothing on the records inside it, which is exactly backwards | **Chose Hard, 2026-09-11** — `netlify/shared/record.ts`: every member record carries `v`, stamped last; done while there were zero records, so the migration this row feared cost nothing (`docs/BACKWARD.md`) |
 | **15** | The vouch token is eight characters, minted without `onlyIfNew` | 23⁸ ≈ 78 billion, so an even chance of collision at ~330,000 tokens — beyond this product's horizon, and a collision would point a family member's link at the wrong map | **Live Easy, with a trigger** |
 | **16** | The man answering the eleven has no identity — `createCouple(picked, gender)` never passes the map code | The person most likely to be reported is unidentifiable and unblockable by construction | **Live Easy** — see below |
+| **17** | `POST /keep` with a supplied code wrote whatever the body carried | A code nobody minted was created on demand, skipping `mint`'s `onlyIfNew`; a guessed code overwrote a stranger's map as surely as row 3's DELETE destroyed one | **Chose Hard, 2026-09-12** — nothing under the code is a 404 and the client mints fresh; something under it is written with the etag it was read at (`docs/BOARD.md`) |
+| **18** | Key layouts carry no version | `v` (row 14) versions values; the cohort key's six segments and the safety and vouch indexes are parsed positionally, and `export.ts` hardcoded the six | **Live Easy, with a rule** — a reader of keys reads the value's `v` to know its key's layout; a key change is a migration and is named as one. The literal became `SEGMENTS` |
+| **19** | `couple side=second` and `DELETE /progress` outside the caps | A guessed live couple code froze her sheet for ever and polluted the joint tally; the one unmetered public write deleted over a 27-bit secret | **Chose Hard, 2026-09-12** — their own buckets, at the read-cap shape |
+| **20** | The `never-introduce` stub carries no code and no side | The one outcome that needs a subject erases it; Trust promised "mark that they are never to be introduced" about nobody | **Live Easy, honestly** — Trust says the decision is a note in the queue until introductions exist; row 13's record decides where a mark lives, and row 16 says how far it can reach |
+| **21** | Every readout but `/safety` failed open with no key | `/export` returns whole progress records and `/pool` deletes on read; a misconfigured deploy published silently | **Chose Hard, 2026-09-12** — `isFounder` fails closed everywhere; row 6's exception became the rule |
 
 ## The limit nobody should paper over
 
@@ -111,3 +116,6 @@ _Dated, one line each: an inversion found or a trigger fired._
   stamped last, while there were none to migrate (`docs/BACKWARD.md`). The
   contacts record gained a named type on the way; the backup's wrapper is no
   longer the only thing versioned.
+- 2026-09-12 — The board audit (`docs/BOARD.md`) found five more: #17, #19 and
+  #21 chosen hard; #18 and #20 lived easy with a rule and an honest sentence.
+  Row 6's one fail-closed route became every route.

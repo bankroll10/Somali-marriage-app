@@ -228,3 +228,8 @@ decision that changed it._
   three moved in; sixteen). TodaysReflection: distraction → removed. "Readiness"
   renamed; the Matchmaker re-aimed. The solo eleven declined and its purpose
   delivered through the map and six "your side" lines.
+- 2026-09-12 — The read-first user gets a Home (`src/lib/inferStage.ts`): a
+  read with nothing else said is taken as `talking`, the eleven as `deciding`,
+  so the follow-up — the North Star's numerator — is asked of the one user the
+  wedge is built around. Until then it read zero for her by construction
+  (`docs/BOARD.md`).

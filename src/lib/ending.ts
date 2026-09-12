@@ -206,23 +206,40 @@ export interface Share {
  * Both carry `via=married` and nothing else — the kind of link, never who sent
  * it (docs/STRATEGY.md). The pool is named the way the door names it. Pure, so
  * a test can hold the line that nothing here carries a name or a code.
+ *
+ * And both say only what is true of her. The record above refuses to claim
+ * anything she did not do; until docs/BOARD.md the share did not — every woman
+ * who reached the ending was handed "we went through eleven conversations"
+ * whether or not she had opened the eleven, and "we married this year" whenever
+ * she married. A false sentence in a community this tight is the one thing
+ * that would poison the referral the whole ending exists for. So the eleven
+ * share claims the eleven only when she did them (`did.eleven`: her own sheet,
+ * or the two-sided one she started), and the door share names no year.
  */
-export function marriedShares(identity: { scene?: string; country?: string }, advice?: string): { eleven: Share; door: Share } {
+export interface MarriedDid {
+  /** She opened the eleven herself, or sent him the two-sided one. */
+  eleven: boolean
+}
+
+export function marriedShares(
+  identity: { scene?: string; country?: string },
+  advice?: string,
+  did: MarriedDid = { eleven: false },
+): { eleven: Share; door: Share } {
   const scene = getScene(identity.scene)
   const within = getCountry(countryFor(identity))?.within
   const pool = !scene ? 'your city' : scene.id === 'other' ? (within ?? 'your country') : scene.label
   const line = advice?.trim()
+  const lead = did.eleven
+    ? 'Before we said yes, we went through eleven conversations — where we’d live, money home, all of it. I wish someone had handed me that list earlier.'
+    : 'There are eleven conversations most of us have too late — where you’d live, money home, a second wife. I wish someone had handed me that list before we said yes.'
   return {
     eleven: {
-      text: [
-        'Before we said yes, we went through eleven conversations — where we’d live, money home, all of it. I wish someone had handed me that list earlier.',
-        line ? `\n${line}` : '',
-        '\nIt is free, and there is no account.',
-      ].join(''),
+      text: [lead, line ? `\n${line}` : '', '\nIt is free, and there is no account.'].join(''),
       url: instrumentLink('eleven', 'married'),
     },
     door: {
-      text: `We married this year, alhamdulillah. Niyyah is being built for us, one city at a time — ${pool} opens when ${COHORT_TARGET} serious women and ${COHORT_TARGET} serious men have kept a map and can be reached. If you’re looking, this is where it stands. No photos, no account: a map, and a way to reach you.`,
+      text: `We married, alhamdulillah. Niyyah is being built for us, one city at a time — ${pool} opens when ${COHORT_TARGET} serious women and ${COHORT_TARGET} serious men have kept a map and can be reached. If you’re looking, this is where it stands. No photos, no account: a map, and a way to reach you.`,
       url: instrumentLink('door', 'married'),
     },
   }

@@ -1,0 +1,99 @@
+# The two things the founder had to remember, on a clock.
+#
+# Nothing in this product ran on a schedule: the safety queue was read when
+# someone remembered to open /safety, and the backup existed when someone
+# remembered to curl /export (docs/TIME.md). Trust promises the founder reads
+# reports "every week and no later", and no mechanism kept the word. docs/TIME.md
+# said an alert needed "an outbound channel this product does not have yet" —
+# but GitHub emails the owner when a workflow fails, and this repository already
+# runs one. So: a job that fails when a report is open is the alert, and it adds
+# no vendor (docs/BOARD.md).
+#
+# Two schedules, one file. The weekly job reads /safety with the founder's key
+# and fails when anything is open — printing the count, never the body, which
+# holds free text naming a person. Until FOUNDER_KEY exists as a repository
+# secret the request is a 401 and the job fails too, which is the prompt to add
+# it (docs/DEPLOY.md).
+#
+# The monthly job saves /export as a 90-day artifact, replacing the by-hand
+# step in docs/OPERATING.md. It runs only when the repository variable
+# BACKUP_TO_ARTIFACT is "true": the export holds pseudonymous learning records,
+# and an artifact on a public repository can be downloaded by anyone signed in
+# to GitHub. Flip the repository private first (docs/BOARD.md action 5), then
+# set the variable.
+name: watch
+
+on:
+  schedule:
+    # Mondays, 09:00 UTC — the weekly safety check.
+    - cron: '0 9 * * 1'
+    # The first of the month, 09:30 UTC — the backup.
+    - cron: '30 9 1 * *'
+  workflow_dispatch:
+    inputs:
+      job:
+        description: Which job to run by hand
+        type: choice
+        options: [safety, backup]
+        default: safety
+
+env:
+  SITE: ${{ vars.SITE_URL || 'https://joinniyyah.com' }}
+
+jobs:
+  safety:
+    if: github.event.schedule == '0 9 * * 1' || (github.event_name == 'workflow_dispatch' && inputs.job == 'safety')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read the safety queue
+        env:
+          FOUNDER_KEY: ${{ secrets.FOUNDER_KEY }}
+        run: |
+          set -u
+          if [ -z "$FOUNDER_KEY" ]; then
+            echo "::error::FOUNDER_KEY is not a repository secret — add it (Settings → Secrets → Actions) so this check can read /safety. docs/DEPLOY.md"
+            exit 1
+          fi
+          status=$(curl -sS -o body.json -w '%{http_code}' -H "Authorization: Bearer $FOUNDER_KEY" "$SITE/.netlify/functions/safety")
+          if [ "$status" != "200" ]; then
+            echo "::error::/safety answered $status — the key is wrong, or the site is down. Nobody can read the queue until this is green."
+            exit 1
+          fi
+          open=$(jq '.reports | length' body.json)
+          rm -f body.json
+          if [ "$open" -gt 0 ]; then
+            echo "::error::$open open safety report(s). Read /safety this week — docs/OPERATING.md."
+            exit 1
+          fi
+          echo "Safety queue clear."
+
+  backup:
+    if: (github.event.schedule == '30 9 1 * *' || (github.event_name == 'workflow_dispatch' && inputs.job == 'backup')) && vars.BACKUP_TO_ARTIFACT == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Save the learning record
+        env:
+          FOUNDER_KEY: ${{ secrets.FOUNDER_KEY }}
+        run: |
+          set -u
+          if [ -z "$FOUNDER_KEY" ]; then
+            echo "::error::FOUNDER_KEY is not a repository secret. docs/DEPLOY.md"
+            exit 1
+          fi
+          name="niyyah-backup-$(date -u +%F).json"
+          status=$(curl -sS -o "$name" -w '%{http_code}' -H "Authorization: Bearer $FOUNDER_KEY" "$SITE/.netlify/functions/export")
+          if [ "$status" != "200" ]; then
+            echo "::error::/export answered $status — no backup was taken this month."
+            exit 1
+          fi
+          jq -e '.version' "$name" > /dev/null
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+        id: save
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.save.outputs.name }}
+          path: ${{ steps.save.outputs.name }}
+          retention-days: 90
+          if-no-files-found: error

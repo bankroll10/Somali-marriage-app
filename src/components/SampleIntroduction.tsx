@@ -111,10 +111,10 @@ export default function SampleIntroduction({
             <p className="text-[0.95rem] text-muted">
               {c.occupation} · {getScene(c.scene)?.label}
             </p>
+            {/* No vouch pill here, ever: a vouch badge on an invented person was
+                the only vouch badge in the product, on the one person who has
+                none (docs/BOARD.md). */}
             <p className="mt-1 text-[0.78rem] font-medium uppercase tracking-[0.14em] text-gold">Sample</p>
-            <p className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-forest/10 px-2.5 py-1 text-[0.72rem] font-semibold text-forest">
-              Vouched by family · sample
-            </p>
           </div>
         </div>
 

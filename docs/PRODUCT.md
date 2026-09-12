@@ -67,10 +67,13 @@ handing her one thing to do about it; (3) the follow-up remembering.
 **Activation:** *reached one instrument's words within the first session, and
 answered one follow-up within fourteen days.* Not "signed up", not "completed
 the map", not "sent a message to the guide". The second half is the one that
-matters: it is the first time the product knows something happened.
+matters: it is the first time the product knows something happened. For the
+read-first user it was unreachable by construction until 2026-09-12 — she had
+no Home, so the follow-up her read wrote was never asked
+(`src/lib/inferStage.ts`, `docs/BOARD.md`).
 
 **The front door promises the right thing.** It used to promise "your number".
-It now promises the one place she is thinnest and the one thing to do about it.
+It now promises the one thing to say next (`docs/NORTHSTAR.md`).
 
 ## 3. The map
 
@@ -258,8 +261,10 @@ recorded, first arrival wins, and the founder's readout splits every rung by
 it. The two-sided eleven also adds each answered pair to a count of how pairs
 come out per topic, with no pair in it, and a family vouch now lives exactly as
 long as the map it was given about. The metric is **arrivals by source per hundred
-followed-through**. Until the founding-preview gate comes off, every shared
-link returns 401 to anyone without the password.
+followed-through**. While `PREVIEW_PASSWORD` is set, every shared link
+returns 401 to anyone without the password — `docs/DEPLOY.md` holds the one
+description of the gate's state and the decision that must precede the first
+post.
 
 ## 10. Roadmap
 

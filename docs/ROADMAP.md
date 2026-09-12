@@ -125,7 +125,7 @@ woman with a live problem tonight; a preview of a marketplace that does not
 exist is not that, and this product's stated difference is that it never
 pretends a city is full. It moved to *What decides who you meet*, which is
 already about how the choosing works. The engine stays: it is the pool's,
-dormant by design.
+dormant by design — and not yet re-aimable: `alignment()` takes an invented `Candidate`, and no adapter from a kept map exists (`docs/BOARD.md`).
 
 **Keeping the map was the one hole traffic would have made permanent.**
 `docs/GAPS.md` ranks *"people will not put a map on a server or leave a way
@@ -223,7 +223,7 @@ Two move *down*, against their own documents:
 
 | # | Item | What it is, and what it waits on |
 |---|---|---|
-| **0** | **Post the link** | Ten connectors by name; `/?read&via=group`, `/?eleven&via=group`, `/?door&via=group`; the door's honest count posted weekly. `docs/WEDGE.md` steps 1–4. **Waits on nothing.** Every line below waits on it |
+| **0** | **Post the link** | Ten connectors by name; `/?read&via=group`, `/?eleven&via=group`, `/?door&via=group`; the door's honest count posted weekly. `docs/WEDGE.md` steps 1–4. **Waits on one decision — the gate** (`docs/DEPLOY.md`): while `PREVIEW_PASSWORD` is set every posted link is a 401 (`docs/BOARD.md`). Otherwise, nothing.** Every line below waits on it |
 | **1** | **What must be true before strangers arrive** | The `kept` rung and the door's side question (**done**); mail on the domain; the price written down (**done**). None of it can be retrofitted onto traffic that has already come |
 | **2** | **Read what comes back** | A6 at four weeks; A1, A2, A4 at their thresholds; `docs/REDTEAM.md`'s three at their dates; then the monthly loop of `docs/OPERATING.md`. Six rules already written, waiting only for numbers |
 | **3** | **The first pool opens** | Minneapolis, one introduction at a time, with the introductions record in the same commit (`docs/HARD.md`). *Gate: 40/40 on the door, then the opening checklist in `docs/LIQUIDITY.md` — live, still looking, aged, nobody stranded — read from `/pool`, and the founder's judgement* |
@@ -256,7 +256,10 @@ finding, not a shortfall.
 - 2026-09-08 — First version. Nine tests defined; ~40 shipped features and
   166 proposals scored; the roadmap reorganised around posting the link.
   `card.ts` and the Home sample card deleted, the `kept` rung built, the
-  door's missing side question found by pre-flight and fixed. Concierge
+  door's missing side question found by pre-flight and fixed — partly: a man
+  who reads the door and leaves without tapping his side is `unsaid`, so read
+  `vias.group.arrived` beside `sidesByVia.man.group.arrived` before killing a
+  room (`docs/BOARD.md`). Concierge
   reclassified from software to service. The guide's default recommended
   off, and left to the founder.
 - 2026-09-10 — `docs/LIQUIDITY.md`. Three builds, each under a named clause
