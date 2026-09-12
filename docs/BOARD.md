@@ -603,6 +603,30 @@ table and turn on 2FA everywhere → have a native speaker approve the ten Somal
 lines → delete `PREVIEW_PASSWORD` and deploy → post the eleven, the read and
 the door to the ten connectors, and write down what they say.
 
+*Done 2026-09-12, by the founder:* private; the secret (the `watch` workflow's
+first run was green); the spend limit; the backup variable; the gate off and
+`main` deployed; the links posted. *Deferred by the founder:* the accounts
+table and 2FA, "later" — the two logins that matter are GitHub and Netlify.
+
+### The Somali lines
+
+The founder had no native speaker to hand and chose a language model as the
+reviewer (2026-09-12). Its reading, recorded in `src/data/somali.ts`: all ten
+lines understandable; seven reworded for naturalness where the draft carried
+an English idiom word for word (`Waa kuu suurtagal` → `Way kuu suurtagal
+tahay`; `Guurku waa shaqo` → `Guurku wuxuu u baahan yahay dadaal`, and the
+English softened from "and you chose it"); three kept as written. The founder
+accepted the review and nine lines are approved and live. The auntie greeting
+(`Kaalay, gabadhaydaay`) is held under `VERIFY`: the calling ending is a voice
+choice the reviewer asked to have read aloud by a woman from the audience
+first, and it has no caller yet, so holding it costs nothing.
+
+**HYPOTHESIS, carried:** a model's Somali is not a Somali woman's Somali. The
+test is the ten conversations — if any of the ten reads a line and winces, the
+line goes back behind the gate the same day. Four of the ten keys
+(`auntie.opener`, `brother.opener`, `map.warmest`, `read.eyebrow`) have no
+caller in `src/components` yet; approval makes them available, not visible.
+
 ## The pre-flight
 
 The failed product lens, done by hand in Chromium at 400 px after the changes
