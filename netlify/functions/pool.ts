@@ -1,6 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
-import { COUNTRIES, SCENES } from '../shared/vocab'
+import { COUNTRIES, SCENES, STAGES as VOCAB_STAGES } from '../shared/vocab'
 import { floorRows } from '../shared/floor'
 import { blocked } from '../shared/gate'
 import { COHORT_TARGET, SEGMENTS, countryOf, sideOf } from './cohort'
@@ -78,7 +78,7 @@ export const AGE_GAP = { olderBy: 10, youngerBy: 3 } as const
 
 /** Eligible partners a member has in the pool, as a bucket — never a number on a person. */
 const INVENTORY = ['0', '1-2', '3-5', '6+'] as const
-const STAGES = ['preparing', 'talking', 'deciding', 'married'] as const
+const STAGES = [...VOCAB_STAGES] as const
 
 type Side = 'women' | 'men'
 type Row = Record<string, number>
@@ -126,7 +126,7 @@ function readMember(key: string, side: Side, kept: KeptMap | null, now: number):
   }
   const rawAge = snap.identity?.age
   const age = typeof rawAge === 'number' && Number.isInteger(rawAge) && rawAge >= 18 && rawAge <= 99 ? rawAge : undefined
-  const stage = typeof snap.stage === 'string' && (STAGES as readonly string[]).includes(snap.stage) ? snap.stage : 'preparing'
+  const stage = typeof snap.stage === 'string' && VOCAB_STAGES.has(snap.stage) ? snap.stage : 'preparing'
   const nn = Array.isArray(snap.answers?.dealbreakers)
     ? snap.answers.dealbreakers.filter((v): v is string => typeof v === 'string')
     : []

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import * as vocab from '../netlify/shared/vocab'
+import * as prompt from '../netlify/shared/prompt'
 import { joint } from '../netlify/functions/couple'
 import { RUNG_IDS } from '../src/lib/rungs'
 import { VIAS } from '../src/lib/entry'
@@ -10,6 +11,8 @@ import { STATES, beforeYesTopics } from '../src/data/beforeYes'
 import { familyScripts } from '../src/data/families'
 import { endingQuestions } from '../src/data/ending'
 import { ENDED_REASON_IDS, REASONS_WITH_WHICH, dealbreakerOptions } from '../src/data/ended'
+import { modes as MODES } from '../src/data/coach'
+import { stages } from '../src/data/stages'
 import { scenes } from '../src/data/scenes'
 import { COUNTRY_IDS } from '../src/data/countries'
 import { REACH_IDS } from '../src/data/reach'
@@ -70,6 +73,25 @@ describe('every word the server accepts is a word the app uses', () => {
     const produced = new Set<string>()
     for (const a of states) for (const b of states) produced.add(joint(a, b))
     expect(sorted(vocab.JOINTS)).toEqual(sorted(produced))
+  })
+
+  it('the guide\u2019s five voices, and the copy the prompt speaks them in', () => {
+    // The prompt lives on the server now (netlify/shared/prompt.ts), so the
+    // voices and the stage lines have a second copy. These are the two halves
+    // of the same words; a change to either without the other would put a
+    // persona on the screen that the model was never given.
+    expect(sorted(vocab.GUIDE_MODES)).toEqual(sorted(MODES.map((m) => m.id)))
+    for (const m of MODES) {
+      expect(prompt.MODE_VOICE[m.id], m.id).toEqual({
+        label: m.label,
+        tagline: m.tagline,
+        description: m.description,
+      })
+    }
+    expect(sorted(vocab.STAGES)).toEqual(sorted(stages.map((s) => s.id)))
+    for (const s of stages) {
+      expect(prompt.STAGE_FOCUS[s.id], s.id).toEqual({ label: s.label, focus: s.focus })
+    }
   })
 
   it('the family scripts, for both of them', () => {

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { askCoach, closersFor, guideSystemPrompt, scriptIn } from './coach'
+import { askCoach, closersFor, scriptIn } from './coach'
 import type { CoachContext } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
@@ -77,7 +77,11 @@ describe('askCoach — the local voice is the one that ships today', () => {
     expect(body.history).toHaveLength(2)
     expect(body.history[0]).toEqual({ role: 'user', text: 'he texts at 1am' })
     expect(body.message).toBe('so what do I say?')
-    expect(body.system).toContain('Niyyah')
+    // The browser no longer decides how the guide speaks: it names a voice
+    // and hands over the map, and netlify/shared/prompt.ts builds the rest.
+    expect(body.system).toBeUndefined()
+    expect(body.mode).toBe('auntie')
+    expect(body.context.identity.firstName).toBe('Amina')
   })
 
   it('always offers a way to stop — a guide ends conversations, a chat app extends them', async () => {
@@ -116,41 +120,6 @@ describe('closers', () => {
   })
 })
 
-describe('guideSystemPrompt', () => {
-  it('carries the member’s real map, not a generic persona', () => {
-    const p = guideSystemPrompt('auntie', ctx)
-    expect(p).toContain('Amina')
-    expect(p).toContain('twin-cities')
-    expect(p).toContain('honesty, respect')
-  })
-
-  it('carries no invented people, because there are none to carry', () => {
-    // The prompt used to end with "LIVE APP STATE: connected with [...]",
-    // naming simulated matches on every request. Nobody is here yet, and the
-    // guide saying otherwise is the one thing this product cannot afford.
-    const p = guideSystemPrompt('matchmaker', ctx)
-    expect(p).not.toMatch(/LIVE APP STATE/)
-    expect(p).not.toMatch(/connected with|awaiting reply/i)
-  })
-
-  it('keeps the grounding rules that make it safe to ship', () => {
-    const p = guideSystemPrompt('islamic', ctx)
-    expect(p).toMatch(/never invent people/i)
-    expect(p).toMatch(/scholar/i)
-    expect(p).toMatch(/never diagnose/i)
-  })
-
-  it('tells the model to close on an action, not to keep the thread going', () => {
-    const p = guideSystemPrompt('auntie', ctx)
-    expect(p).toMatch(/End on ONE concrete action/)
-    expect(p).toMatch(/never to keep the conversation going/i)
-    expect(p).not.toMatch(/ONE question or ONE concrete action/)
-  })
-
-  it('speaks in the voice of the mode it was asked for', () => {
-    expect(guideSystemPrompt('auntie', ctx)).not.toBe(guideSystemPrompt('brother', ctx))
-  })
-})
 
 /**
  * The adversarial pass — the local voice is the live-failure path, so this runs

@@ -1,13 +1,13 @@
-import { getStage } from '../data/stages'
 import { getMode, type CoachContext, type CoachIntent } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
 /**
  * The AI Guide engine — mode-aware, with two voices behind one call.
  *
- * `askCoach` tries the live guide first (netlify/functions/guide.ts, prompted
- * with `guideSystemPrompt` below) and falls back to the local intent matcher for
- * every failure: not configured, offline, rate limited, or a safety decline.
+ * `askCoach` tries the live guide first (netlify/functions/guide.ts, which
+ * builds its own system prompt from netlify/shared/prompt.ts) and falls back
+ * to the local intent matcher for every failure: not configured, offline, rate
+ * limited, or a safety decline.
  *
  * The local matcher is therefore not scaffolding — it is the offline voice, and
  * the one that speaks whenever the live guide cannot: no ANTHROPIC_API_KEY, the
@@ -173,8 +173,19 @@ async function askLiveGuide(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       signal: abort.signal,
+      // The mode and the map, never the prompt. The persona, the frame and
+      // the grounding rules are built on the server from these — see
+      // netlify/shared/prompt.ts for why this is not a thing the browser gets
+      // to decide.
       body: JSON.stringify({
-        system: guideSystemPrompt(modeId, ctx),
+        mode: modeId,
+        context: {
+          identity: ctx.identity,
+          answers: ctx.answers,
+          stage: ctx.stage,
+          readNote: ctx.readNote,
+          beforeYesNote: ctx.beforeYesNote,
+        },
         message,
         history: history.map((m) => ({ role: m.role, text: m.text })),
       }),
@@ -254,50 +265,3 @@ export async function askCoach(
   }
 }
 
-/**
- * The guide's system prompt — persona + the member's real map + where she is
- * in the arc + the grounding rules that keep the model honest. Built on the client and
- * sent with each request, so the voices stay defined in one place
- * (data/coach.ts) rather than drifting between the app and the server.
- */
-export function guideSystemPrompt(modeId: ModeId, ctx: CoachContext): string {
-  const mode = getMode(modeId)
-  const i = ctx.identity
-  const a = ctx.answers
-  const nn = Array.isArray(a['dealbreakers']) ? (a['dealbreakers'] as string[]).join(', ') : '—'
-  const stage = getStage(ctx.stage)
-  return [
-    `You are "${mode.label}" — ${mode.tagline}. ${mode.description}`,
-    `You are one voice of Niyyah, the trusted marriage platform for the Somali diaspora: serious, culturally fluent (hooyo, wali, aunties, deen — used naturally, never performatively), warm but direct. Depth over dopamine; alignment over attraction; family honoured.`,
-    ``,
-    `THE PERSON YOU ARE GUIDING (their private map — use it, specifically):`,
-    `- ${i.firstName ?? 'Unnamed'}${i.age ? `, ${i.age}` : ''}, ${i.gender ?? '—'}, scene: ${i.scene ?? '—'}`,
-    `- Timeline: ${a['timeline'] ?? '—'} · Practice: ${a['practice'] ?? '—'} · Faith centrality: ${a['faith-role'] ?? '—'}/5`,
-    `- Family involvement: ${a['family-role'] ?? '—'} · Children: ${a['children'] ?? '—'}`,
-    `- Attachment lean: ${a['attachment'] ?? '—'} · Feels safe with: ${Array.isArray(a['comm-safety']) ? (a['comm-safety'] as string[]).join(', ') : '—'}`,
-    `- Non-negotiables: ${nn}`,
-    `- Hardest part right now: ${a['hardest-part'] ?? '—'}`,
-    ``,
-    // The single most important thing about her, and until now the only one we
-    // never sent: someone mid-conversation needs a different guide than someone
-    // still preparing. Both the label and what actually matters at that stage.
-    `WHERE THEY ARE: ${stage.label.toLowerCase()}. What matters at this stage: ${stage.focus}`,
-    `Speak to that stage. Do not push someone who is deciding, or married, back toward looking.`,
-    // Only when there is something to say. "connected with [no one yet]" went out
-    // on every single request and told the model nothing.
-    ...(ctx.readNote ? [`THEIR READ ON SOMEONE (their own answers, taken in this app): ${ctx.readNote}. Use it if relevant; never invent detail about this person beyond it.`] : []),
-    ...(ctx.beforeYesNote ? [`BEFORE YOU SAY YES (which of the eleven pre-marriage conversations they have had with this person): ${ctx.beforeYesNote}. Help them open the next one; never take a position on the topic itself.`] : []),
-    ``,
-    `GROUNDING RULES (non-negotiable):`,
-    `- Only reference facts given above or said by the user. Never invent people, messages, events, or history.`,
-    `- If you don't know, say so plainly and ask for the specific detail.`,
-    `- Religious rulings: give general Islamic principles only; explicitly defer fiqh rulings to a trusted scholar.`,
-    `- Never diagnose; you are a wise companion, not a clinician. For crisis or abuse, advise real-world help immediately.`,
-    `- Format: under 180 words, short paragraphs, bullets sparingly, quote suggested scripts on a "Try:" line.`,
-    // The old rule allowed "one question OR one action". A question is the
-    // better business outcome — the thread continues — and an action is the
-    // better life outcome, and the model was told either was fine. Now it is
-    // told to close, and to ask only when it is genuinely missing a fact.
-    `- End on ONE concrete action, stated plainly — usually the act of saying the words you gave. Ask a question only when you genuinely lack a fact you need to answer; never to keep the conversation going. Once you have given words, close: the next step is theirs to take, not another message to you.`,
-  ].join('\n')
-}
