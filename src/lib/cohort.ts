@@ -24,6 +24,21 @@ const TIMEOUT_MS = 10_000
 /** Mirrors the function. Shown on the door, so it lives in one place. */
 export const COHORT_TARGET = 40
 
+/**
+ * What the door promises, in one sentence used everywhere the door speaks.
+ *
+ * It used to say "opens at forty each" — a number promised as a contract,
+ * while docs/LIQUIDITY.md's opening checklist says forty on the door does not
+ * open a pool: the forty must be live, looking, aged and able to be introduced
+ * to someone on the other side. A member could watch the door reach the number
+ * she was promised and be told it was not open. So the sentence is the
+ * condition, and forty is named as the first mark, not the promise
+ * (docs/BOARD.md, decision 2).
+ */
+export function opensWhen(pool: string): string {
+  return `${pool} opens when ${COHORT_TARGET} women and ${COHORT_TARGET} men here can each be introduced to someone — counted, reachable, and fitting at least one person on the other side.`
+}
+
 export interface SideCount {
   women: number
   men: number

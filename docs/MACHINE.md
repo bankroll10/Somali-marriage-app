@@ -35,7 +35,7 @@ the thirteen stages:
 | **Mutual interest** | Two yeses on one introduction. **Designed, not built** | none — designed (`docs/LEARNING.md` row 1) |
 | **Conversation** | Off-platform, on purpose. The product's part is the instruments: the read, the eleven, the eleven sent to him, the words | `read`, `eleven`, `asked-him`, `he-answered`, `followed-through`; `facts.through`; the couple tally |
 | **Serious progression** | Talking → deciding; the family scripts; the vouch | `deciding`, `vouched`; `facts.ended`; `through['family:*']` |
-| **Monetization** | "Deciding together", paid at the move to deciding (`docs/STRATEGY.md` §5; the matchmaker line is what is paid at the nikah) — `docs/EXPERIMENTS.md` A5. No price exists in the code | none — blocked by the free-for-a-year promise |
+| **Monetization** | "Deciding together", paid at the joint view of the two-sided eleven — never at the stage she declares (`docs/STRATEGY.md` §5; the matchmaker line is what is paid at the nikah) — `docs/EXPERIMENTS.md` A5. No price exists in the code | none — blocked by the free-for-a-year promise |
 | **Success** | `married`, and the ending: who, what mattered, what here was real | `married`; `facts.ending`; `marriedBy` |
 | **Referral** | The one share only she can make — `via: 'married'` from the ending — and every forwarded word | `vias.married`, `vias.words`, `vias.eleven`, `vias.couple` |
 

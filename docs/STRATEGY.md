@@ -172,7 +172,7 @@ so the eventual checkout tests a belief rather than reacting to a room
 
 | Line | Price | Paid |
 |---|---|---|
-| Deciding together | $99, once, for one courtship | At the move to *deciding* |
+| Deciding together | $99, once, for one courtship | At the joint view of the two-sided eleven — when he has answered. Never at the stage she declares: `deciding` is a measured rung and stays a free word (`docs/BOARD.md`, decision 16) |
 | A matchmaker in your corner | $1,500 at the nikah, the company's share half; nothing owed if nothing came of it | At the nikah |
 | The first year, as a gift | $79 | By someone else, at the wedding |
 
@@ -192,8 +192,13 @@ launch (`src/data/plus.ts`); this is the prediction the checkout will be
 measured against.
 
 **Public launch** is the day the first pool opens on `docs/LIQUIDITY.md`'s
-checklist. Two promises hang on it: everyone here before it keeps every paid
-feature free for a year after it, and prices are set at it.
+checklist. Two promises hang on it: everyone *counted* before their pool
+opens keeps every paid feature free for a year after it opens, and prices are
+set at it. The promise is about what a member is charged — bounded 2026-09-12
+(`src/data/plus.ts`, `docs/BOARD.md` decision 0): what a family pays a
+matchmaker at the nikah, and what a guest gives, was never hers to be charged
+and is outside it. So the concierge's first ten couples are a permitted
+revenue test, and the company learns whether anyone pays in year one.
 
 **The institution rule.** The endgame below reaches past one community and
 the brand's first sentence names one. So: nothing that would need renaming

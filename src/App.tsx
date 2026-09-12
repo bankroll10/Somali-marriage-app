@@ -20,6 +20,9 @@ import Vouch from './components/Vouch'
 import Plus from './components/Plus'
 import Ending from './components/Ending'
 import Ended from './components/Ended'
+import ShortMap from './components/ShortMap'
+import Cohort from './components/Cohort'
+import { ArrowRight, Button, ScreenHeader } from './components/ui'
 import type { Gender, Reach } from './types'
 import type { Entry } from './lib/entry'
 import { buildRead, readSummary } from './lib/read'
@@ -275,10 +278,50 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onScene={setScene}
           onCountry={setCountry}
           onGender={(gender) => n.setIdentity((prev) => ({ ...prev, gender }))}
-          onCount={n.completed ? n.enterHome : n.beginMap}
+          onCount={n.beginCount}
           onHesitate={n.saveHesitation}
           onBack={backHome}
         />
+      )
+
+    case 'shortMap':
+      return (
+        <ShortMap
+          answers={n.answers}
+          gender={n.identity.gender}
+          onAnswer={n.answer}
+          onDone={() => n.setScreen('count')}
+          onBack={() => n.setScreen('door')}
+        />
+      )
+
+    case 'count':
+      return (
+        <div className="min-h-dvh bg-cream pb-16">
+          <ScreenHeader onBack={() => n.setScreen('shortMap')} sticky>
+            <span className="font-display text-[1.05rem] font-medium text-ink">Being counted</span>
+          </ScreenHeader>
+          <main className="mx-auto max-w-xl px-6 py-8">
+            <Cohort
+              identity={n.identity}
+              hookId={hookId}
+              ledger={n.ledgerDone}
+              joined={n.waitlist}
+              onJoined={n.joinedCohort}
+              onScene={setScene}
+              onCountry={setCountry}
+              onReach={setReach}
+              onAge={setAge}
+              onHesitate={n.saveHesitation}
+            />
+            {n.waitlist && (
+              <Button onClick={n.enterHome} className="group mt-6">
+                Your space
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            )}
+          </main>
+        </div>
       )
 
     case 'read':

@@ -118,7 +118,7 @@ nothing else.
 | **Match pacing** | Designed | One open introduction per person; a fourteen-day window; the scarce side walked first; whoever has waited longest since the last, never-introduced first. Trigger: the pool-open flag (`docs/HARD.md`: the introductions record ships in the same commit) |
 | **Radius expansion** | Built | "I'd travel within the UK" on the counted card re-joins on one tap; the door always shows the country's travellers beside the city. A timed prompt to widen is refused: it is a nudge |
 | **Relocation preferences** | Built | `reach`, asked once, mutual by construction; `anywhere` counted and never rendered (`docs/SCALE.md`) |
-| **Dormant-user handling** | **The sweep, this pass**; the rest designed | A lapsed map leaves the door on the founder's read, its contact kept. Designed: the reply to "your pool opened" is the confirmation that puts a member in the queue; an introduction unanswered at the window closes as `no-answer`; two in a row pause her, and she is told and can undo it by replying. Refused: last-seen, a nudge, an expiry shorter than the map's year |
+| **Dormant-user handling** | **The sweep, this pass**; the rest designed | A lapsed map leaves the door on the founder's read, and since 2026-09-12 its contact goes with it — the way to reach her lives exactly as long as her map (`docs/BOARD.md` decision 13). Designed: the reply to "your pool opened" is the confirmation that puts a member in the queue; an introduction unanswered at the window closes as `no-answer`; two in a row pause her, and she is told and can undo it by replying. Refused: last-seen, a nudge, an expiry shorter than the map's year |
 | **Recommendation inventory** | **Built this pass as a floored histogram**, founder-only | `/pool` `inventory` and `stranded` — eligible partners per member, as buckets over the pool, computed on read and never stored. Designed: *remaining* inventory from the introductions record, for the matchmaker's tool. **Never shown to her** — "N people match you" is a number on a person |
 | **Marketplace health metrics** | **This pass** | The table below, and `docs/OPERATING.md`'s field table |
 
@@ -277,3 +277,36 @@ question at its no-reason; the running counters and the automated mail at
   the door, `/pool` with the sweep, the gate twin. The finding: age is the
   fragmenter the door cannot see, and the door's forty and forty could not
   say whether anyone could be introduced.
+
+## The by-hand introduction, one page
+
+Written 2026-09-12 because the first pool is run by hand and no page said
+how (`docs/BOARD.md`, decision 17). Dry-run it with two consenting testers
+before the first pool opens, and time it: **if one introduction costs more
+than an hour, forty a fortnight cannot be served inside the fourteen-day
+window, and the target or the window changes** — not the founder's sleep.
+
+1. **Read the pool.** `GET /pool?scene=twin-cities` (`docs/OPERATING.md`):
+   `live`, `supply`, `ages`, `pairs.eligible`, `stranded`. The checklist above
+   must pass before any introduction is made.
+2. **List both sides.** `netlify blobs:list cohort --json | jq -r '.blobs[].key'
+   | grep '^us/twin-cities/'` — women and men, by key; the `at` day in each
+   record is who has waited longest, and the queue is that order and nothing
+   else (`docs/LEARNING.md`: never who is most wanted).
+3. **Read the two maps.** `netlify blobs:get maps <code>` for her and for each
+   candidate; apply `eligible()` by hand exactly as `pool.ts` does — age band,
+   both sides' checkable non-negotiables — and nothing it does not: no photo,
+   no essay, no preference the map does not carry.
+4. **Write to both, from the owned address**, two mails, no name exchanged: who
+   is on the other side in the map's own words (age, city, practice, children,
+   what they will not compromise on), and one question — *would you like to be
+   introduced?* — with a day to answer by. A reply of yes from both is the
+   introduction; one no, or the day passing, closes it as `no-answer` and
+   nobody is told why.
+5. **Record it** in the introductions record the moment it exists
+   (`docs/HARD.md` row 13); until then in the founder's notebook: date, the two
+   codes, outcome. Never the mails.
+6. **Send one "your pool opened" test mail** from the owned domain to a test
+   contact read out of the `contacts` store, and time that too. If the loop
+   cannot close in an hour by hand, the counted card's sentence is softened to
+   what is true before the pool opens.

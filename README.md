@@ -207,14 +207,16 @@ Edge Functions. Non-secret only means readable by someone already signed in to
 the Netlify account; it is still never bundled and never in this repository.
 Any username is accepted; only the password is checked, in constant time.
 
-**Unset means no gate.** After setting it, confirm a bare request is refused:
+**Unset means no gate.** While it is set, confirm a bare request is refused:
 
 ```bash
-curl -sI https://<your-site>/ | head -1     # expect: HTTP/2 401
+curl -sI https://<your-site>/ | head -1     # expect: HTTP/2 401 while the preview is gated
 ```
 
-At real launch, remove three things together: the `[[headers]]` block in
-`netlify.toml`, `public/robots.txt`, and this gate.
+**The preview ends with the first post** (`docs/DEPLOY.md`, decided
+2026-09-12): delete `PREVIEW_PASSWORD`, trigger a deploy, and the same request
+answers 200. The `[[headers]]` block in `netlify.toml` and `public/robots.txt`
+stay until the first pool opens, then come off together.
 
 ## The founder's readout
 
@@ -237,8 +239,9 @@ that one bearer token.
 | **Value** | a long random string — `openssl rand -base64 32` |
 | Contains secret values | checked is fine — Node functions receive secret-scoped variables, unlike edge functions |
 
-**Unset means open**, the same convention as the gate, so local runs and tests
-behave as before. After setting it:
+**Unset means closed** — every readout answers 401 until the key is set
+(`netlify/shared/founder.ts`, since 2026-09-12); tests set their own. After
+setting it:
 
 ```bash
 curl -sI https://<your-site>/.netlify/functions/progress | head -1     # expect: HTTP/2 401

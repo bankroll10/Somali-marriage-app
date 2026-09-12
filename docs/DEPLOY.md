@@ -187,17 +187,18 @@ which deletes the report and leaves an anonymous stub carrying the outcome;
 `docs/OPERATING.md` has the exact command and `SAFETY_OUTCOMES` in
 `src/data/safety.ts` is the closed list.
 
-## Before the first post: the gate
+## Before the first post: the gate — decided
 
 Every share path hands a stranger a link, and while `PREVIEW_PASSWORD` is set
 that link is a 401 — so the playbook in `docs/WEDGE.md` cannot run against a
-gated site, and `docs/ROADMAP.md` item 0 waits on exactly this decision and
-nothing else (`docs/BOARD.md`). Either the variable comes off the day the
-first link is posted, with the `noindex` header and `robots.txt` kept until
-the pool opens — a *quiet launch*, distinct from the public launch below — or
-the password travels in the posts. Decide in one commit, and verify from a
-phone with no cookies that `/?eleven` answers 200. This file is the one place
-the gate's state is described; `docs/PRODUCT.md` §9 points here.
+gated site. **Decided 2026-09-12 (`docs/BOARD.md`, decision 1): the quiet
+launch.** The founding preview ends the day the first link is posted:
+`PREVIEW_PASSWORD` is deleted from the site's environment variables and a
+deploy is triggered so the edge function picks up its absence; the `noindex`
+header and `robots.txt` stay until the first pool opens, so the site is open
+to anyone with a link and found by nobody searching. Verify from a phone with
+no cookies that `/?eleven` answers 200. This file is the one place the gate's
+state is described; `docs/PRODUCT.md` §9 points here.
 
 ## At real launch
 

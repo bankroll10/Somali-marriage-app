@@ -83,14 +83,19 @@
 - **WHAT WOULD DISPROVE IT.** It is opened once and never again, and
   `ending.used` rarely names it — the instruments carry everything and the
   guide is an expensive ornament.
-- **METRIC.** `facts.ending.used.guide` share; `followed-through` among people
-  with a guide-sourced follow-up.
-- **SMALLEST CREDIBLE TEST.** No build. `ending.used` already carries `guide` as
-  a closed option, and a guide follow-up can already resolve to `asked`, which
-  lights `followed-through`. Read it.
-- **TIME TO LEARN.** Needs endings, so months — the slowest of the five.
-- **DECISION RULE.** If fewer than one in five who reach an ending name the
-  guide, stop paying for the live model and keep the local voice.
+- **METRIC.** `facts.followedThroughBy.asked.guide` — of everyone who ever
+  asked the guide (one bit, `facts.asked`, since 2026-09-12), how many followed
+  through on a conversation, against everyone who did not ask; and, later,
+  `facts.ending.used.guide`.
+- **SMALLEST CREDIBLE TEST.** One set-bit, built (`src/lib/facts.ts`,
+  `netlify/functions/progress.ts`): the same shape as `began`, so it can never
+  become a count of how often. Read it at twenty `followed-through`.
+- **TIME TO LEARN.** Weeks, not months — the ending is now the second reading,
+  not the first (`docs/BOARD.md` decision 15).
+- **DECISION RULE.** At twenty `followed-through`: if followed-through per
+  hundred among those who asked the guide is not above those who did not, the
+  live model goes and the local voice stays. At the first endings, the old
+  rule as well: fewer than one in five naming the guide confirms it.
 
 ## A4 · Family-oriented progression
 
@@ -120,10 +125,13 @@
 - **WHAT WOULD CONFIRM IT.** A real checkout completes at a real price.
 - **WHAT WOULD DISPROVE IT.** People reach the point of sale and do not buy.
 - **METRIC.** Paid conversions on "Deciding together" at the first pool.
-- **SMALLEST CREDIBLE TEST.** Blocked, deliberately. The promise that everyone
-  here before launch keeps every paid feature free for a year rules out a
-  pre-order, and a fake price would be the one lie this product cannot tell.
-  The first honest test is a real checkout when the first pool opens.
+- **SMALLEST CREDIBLE TEST.** Two, neither a fake price. This month, before
+  any member: the wedding-payment question in the ten conversations, and three
+  practising matchmakers on what they charge and who pays (`docs/BOARD.md`).
+  Then the first nikah from the first pool: the family's payment to the
+  matchmaker is outside the founding promise — bounded 2026-09-12 to what a
+  member is charged — so the concierge's first ten couples are the test, in
+  year one rather than year two. A pre-order is still ruled out.
 - **TIME TO LEARN.** Quarters.
 - **DECISION RULE.** Defer. The proxy until then is `ending.who.family`: if
   families are still the ones bringing people together, the role being sold is

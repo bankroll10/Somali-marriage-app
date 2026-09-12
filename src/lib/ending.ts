@@ -14,7 +14,7 @@ import { relationshipLabel } from '../data/vouch'
 import { countryFor, getScene } from '../data/scenes'
 import { getCountry } from '../data/countries'
 import { instrumentLink } from './links'
-import { COHORT_TARGET } from './cohort'
+import { opensWhen } from './cohort'
 
 /**
  * How you chose.
@@ -239,7 +239,7 @@ export function marriedShares(
       url: instrumentLink('eleven', 'married'),
     },
     door: {
-      text: `We married, alhamdulillah. Niyyah is being built for us, one city at a time — ${pool} opens when ${COHORT_TARGET} serious women and ${COHORT_TARGET} serious men have kept a map and can be reached. If you’re looking, this is where it stands. No photos, no account: a map, and a way to reach you.`,
+      text: `We married, alhamdulillah. Niyyah is being built for us, one city at a time. ${opensWhen(pool)} If you’re looking, this is where it stands. No photos, no account: three answers, your age, and a way to reach you.`,
       url: instrumentLink('door', 'married'),
     },
   }

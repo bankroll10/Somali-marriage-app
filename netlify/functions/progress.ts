@@ -6,6 +6,7 @@ import { stamp } from '../shared/record'
 import { floorRows } from '../shared/floor'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import {
+  ASKED,
   COUNTRIES,
   DIMENSIONS,
   ENDED_REASONS,
@@ -102,6 +103,8 @@ export interface Facts {
   hesitated?: string
   /** Which questionnaires she began — the denominator for a completion rate. */
   began?: string[]
+  /** What she asked, ever, as a set — today only `guide`. */
+  asked?: string[]
 }
 
 /** Courtships a person can report as ended. Eight is a lot of courtships. */
@@ -143,7 +146,7 @@ const count = (n: unknown): n is number => typeof n === 'number' && Number.isInt
  * a value nobody chose to allow.
  */
 function parseFacts(x: unknown): Facts | null {
-  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'hesitated', 'began'])) return null
+  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'hesitated', 'began', 'asked'])) return null
   const out: Facts = {}
 
   if (x.grounds !== undefined) {
@@ -232,6 +235,12 @@ function parseFacts(x: unknown): Facts | null {
     out.began = [...new Set(x.began as string[])].sort()
   }
 
+  if (x.asked !== undefined) {
+    if (!Array.isArray(x.asked) || x.asked.length > ASKED.size) return null
+    if (!x.asked.every((id) => typeof id === 'string' && ASKED.has(id))) return null
+    out.asked = [...new Set(x.asked as string[])].sort()
+  }
+
   return out
 }
 
@@ -255,6 +264,8 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
   // A beginning cannot be un-begun, so this is a union like `through` — and
   // because it is a set, it can never become a count of how often she opened one.
   const began = [...new Set([...(existing.began ?? []), ...(incoming.began ?? [])])].sort()
+  // Asked is a set too: a thing asked once was asked.
+  const asked = [...new Set([...(existing.asked ?? []), ...(incoming.asked ?? [])])].sort()
   const merged: Facts = {
     ...(existing.grounds ?? incoming.grounds ? { grounds: existing.grounds ?? incoming.grounds } : {}),
     ...(existing.read ?? incoming.read ? { read: existing.read ?? incoming.read } : {}),
@@ -264,6 +275,7 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
     ...(incoming.ended ?? existing.ended ? { ended: incoming.ended ?? existing.ended } : {}),
     ...(incoming.hesitated ?? existing.hesitated ? { hesitated: incoming.hesitated ?? existing.hesitated } : {}),
     ...(began.length ? { began } : {}),
+    ...(asked.length ? { asked } : {}),
   }
   return merged
 }
@@ -344,7 +356,9 @@ async function tally(store: Store) {
         arrivedByDay[d] = (arrivedByDay[d] ?? 0) + 1
       }
     }
-    if (record.facts) tallyFacts(facts, record.facts, 'married' in record.first, 'counted' in record.first)
+    if (record.facts) {
+      tallyFacts(facts, record.facts, 'married' in record.first, 'counted' in record.first, 'followed-through' in record.first)
+    }
   }
 
   // The sweep. Nothing else in this product ever deleted an expired record, so
@@ -381,6 +395,9 @@ async function tally(store: Store) {
       },
       countedBy: {
         hesitated: floorRows(facts.countedBy.hesitated),
+      },
+      followedThroughBy: {
+        asked: floorRows(facts.followedThroughBy.asked),
       },
     },
   }
@@ -419,6 +436,15 @@ function emptyFactsTally() {
      * that stay numbers at founding scale. See docs/EXPERIMENTS.md.
      */
     began: {} as Counts,
+    /** Who ever asked the guide. Whole-population, like `began`. */
+    asked: {} as Counts,
+    /**
+     * Of the people who ever asked the guide, how many followed through on a
+     * conversation — against everyone. The reading docs/EXPERIMENTS.md A3 could
+     * not make before an ending; readable at twenty followed-through instead of
+     * in years.
+     */
+    followedThroughBy: { asked: {} as Pair },
     /** The cross-tabs: each fact against whether the person went on to marry. */
     marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
     /** Of the people who stopped at the door for a reason, how many were later counted after all. */
@@ -426,7 +452,7 @@ function emptyFactsTally() {
   }
 }
 
-function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean, counted: boolean) {
+function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean, counted: boolean, followedThrough: boolean) {
   const bump = (c: Counts, k: string) => void (c[k] = (c[k] ?? 0) + 1)
   const pair = (p: Pair, k: string, seen: string) => {
     const row = (p[k] ??= { [seen]: 0, married: 0 })
@@ -434,6 +460,12 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
     if (married) row.married += 1
   }
   for (const id of f.began ?? []) bump(t.began, id)
+  for (const id of f.asked ?? []) {
+    bump(t.asked, id)
+    const row = (t.followedThroughBy.asked[id] ??= { asked: 0, followedThrough: 0 })
+    row.asked += 1
+    if (followedThrough) row.followedThrough += 1
+  }
   if (f.hesitated) {
     bump(t.hesitated, f.hesitated)
     const row = (t.countedBy.hesitated[f.hesitated] ??= { hesitated: 0, counted: 0 })

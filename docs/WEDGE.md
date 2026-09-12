@@ -111,14 +111,18 @@ seeded count.
    two imams who run young-adult programmes, and whoever the founder's own
    circle says is the person everyone asks. In person where possible, a
    direct message where not. One ask each: post the read into the group.
-2. **Lead with the instruments, not the marketplace.** The link is
-   `joinniyyah.com/?read&via=alumni` — `professional` or `mosque` for the
-   other kinds of room — the read, opened directly, no Welcome, no account.
-   The via is the kind of room, never which room: three kinds, so the pivot
-   rule below can be read from the readout, which a single `group` cell could
-   not tell (`docs/BOARD.md`; `group` stays for any other room). A week
-   later, the eleven the same way: `/?eleven&via=alumni`. And in the same
-   post, the door: `joinniyyah.com/?door&via=alumni` — the honest number, for
+2. **Lead with the instruments, not the marketplace — and with the eleven
+   first.** The link is `joinniyyah.com/?eleven&via=alumni` — `professional`
+   or `mosque` for the other kinds of room — the eleven, opened directly, no
+   Welcome, no account. The eleven leads because it is the sentence a stranger
+   repeats ("he answered the same eleven on his own phone and neither of us
+   saw the other's answers") and the one thing no pan-Muslim product has; the
+   read follows in the same week, `/?read&via=alumni`, and the via split
+   settles which door people actually use (`docs/BOARD.md`, decision 6). The
+   via is the kind of room, never which room: three kinds, so the pivot rule
+   below can be read from the readout, which a single `group` cell could not
+   tell (`group` stays for any other room). And in the same post, the door:
+   `joinniyyah.com/?door&via=alumni` — the honest number, for
    the man who is looking rather than talking. The read presumes someone on
    the other side; a single man sent only the read had nowhere to land, and
    that was the machine's weakest link (`docs/MACHINE.md`).

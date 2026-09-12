@@ -24,6 +24,21 @@ export const scenes: Scene[] = [
   { id: 'london', label: 'London', note: 'From Woolwich to Wembley.', country: 'uk' },
   { id: 'columbus', label: 'Columbus', note: 'The heart of Ohio’s community.', country: 'us' },
   { id: 'stockholm', label: 'Stockholm', note: 'Rinkeby, Tensta, and the city.', country: 'se' },
+  // Named before the first post, so nobody is counted as `other` in a city
+  // that gets a door of its own a month later — a cohort key is written once,
+  // and a member counted as `other` stays `other` (docs/BOARD.md, decision 7).
+  { id: 'seattle', label: 'Seattle', note: 'Rainier Valley, Tukwila, SeaTac.', country: 'us' },
+  { id: 'san-diego', label: 'San Diego', note: 'City Heights and beyond.', country: 'us' },
+  { id: 'birmingham', label: 'Birmingham', note: 'Small Heath to Sparkhill.', country: 'uk' },
+  { id: 'bristol', label: 'Bristol', note: 'Easton, Barton Hill, and the city.', country: 'uk' },
+  { id: 'leicester', label: 'Leicester', note: 'St Matthews and the whole city.', country: 'uk' },
+  { id: 'gothenburg', label: 'Gothenburg', note: 'Angered, Bergsjön, and the city.', country: 'se' },
+  { id: 'oslo', label: 'Oslo', note: 'Grønland to Groruddalen.', country: 'no' },
+  { id: 'copenhagen', label: 'Copenhagen', note: 'Nørrebro and the whole city.', country: 'dk' },
+  { id: 'helsinki', label: 'Helsinki', note: 'The capital region.', country: 'fi' },
+  { id: 'amsterdam', label: 'Amsterdam', note: 'And the Randstad around it.', country: 'nl' },
+  { id: 'nairobi', label: 'Nairobi', note: 'Eastleigh and the city.', country: 'ke' },
+  { id: 'melbourne', label: 'Melbourne', note: 'The west and the north.', country: 'au' },
   { id: 'other', label: 'Somewhere else', note: 'Wherever the diaspora took you.' },
 ]
 

@@ -80,6 +80,14 @@ export const promises: string[] = [
   'We are paid when you get somewhere, and never while you are stuck. If you stay single, we earn nothing from you — that is on purpose, and it is the whole design.',
   'Nothing that protects you is ever paid, at any price.',
   'What we sell is bought once and ends on its own. There is no subscription to forget.',
-  'Everyone here before the public launch keeps every paid feature free for a year after it.',
+  // Bounded 2026-09-12 (docs/BOARD.md, decision 0). It used to read "everyone
+  // here before the public launch keeps every paid feature free for a year" —
+  // with no marker for who "here" was, and a reading under which a family's
+  // payment to a matchmaker at the nikah was barred, so the company had
+  // arranged not to learn whether anyone pays until a year after the first
+  // pool. The promise is about what a member is charged, and she is charged
+  // nothing; what a family pays at a wedding, and what a guest gives, was
+  // never hers to be charged.
+  'Everyone counted before their pool opens keeps every paid feature free for a year after it opens. That is a promise about what you are charged — and you are charged nothing. What a family chooses to pay at a nikah, or a guest chooses to give, is theirs.',
   'We will never sell your data, and we will never charge you without asking first.',
 ]

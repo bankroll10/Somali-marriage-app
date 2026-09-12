@@ -143,9 +143,15 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               from all of that, in a place of its own, with your city and
               country beside it and nothing else — so we can write to you when
               someone fits, or when the people you’d travel for are counted. It
-              is never stored next to your answers, and it is ours to hold
-              rather than a form company’s, which is what lets us delete it the
-              moment you ask. Once you are counted, the founder can read your
+              is kept in its own store, apart from your answers, under the same
+              code — ours to hold rather than a form company’s, which is what
+              lets us delete it the moment you ask, and it lives exactly as long
+              as your kept map does: when the map lapses, so does the way to
+              reach you. One more honest thing: your kept map lives in one
+              place, with the company we rent storage from, and the founder’s
+              backup deliberately does not include it. If that storage were
+              ever lost, the map would be too — which is why it also stays on
+              your phone, and why the code is worth keeping. Once you are counted, the founder can read your
               kept map along with everyone else’s in your pool — not to look at
               anyone, but to count the pool’s shape: how many women and men of
               each age, how many are still looking, how many pairs clear each

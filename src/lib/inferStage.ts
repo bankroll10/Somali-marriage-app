@@ -26,3 +26,13 @@ export function stageAfterInstrument(kind: Instrument, stage: Stage, situated: b
   if (situated || stage !== 'preparing') return undefined
   return kind === 'read' ? 'talking' : 'deciding'
 }
+
+/**
+ * Who has a Home. Anyone with a map; anyone who has said where she is; and —
+ * since the short map became the ticket to the door (docs/BOARD.md, decision
+ * 3) — anyone who has been counted, who may have three answers and no
+ * reading, and still needs somewhere to return to.
+ */
+export function hasHomeFor(i: { completed: boolean; stage: Stage; counted: boolean }): boolean {
+  return i.completed || i.stage !== 'preparing' || i.counted
+}

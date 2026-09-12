@@ -12,7 +12,7 @@ import { ledger } from '../lib/ledger'
 import { rungsFrom } from '../lib/rungs'
 import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState } from '../lib/followup'
 import { buildRead } from '../lib/read'
-import { stageAfterInstrument } from '../lib/inferStage'
+import { hasHomeFor, stageAfterInstrument } from '../lib/inferStage'
 import { countryFor } from '../data/scenes'
 import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
@@ -68,6 +68,8 @@ export type Screen =
   | 'beforeYes'
   | 'families'
   | 'door'
+  | 'shortMap'
+  | 'count'
   | 'couple'
   | 'vouch'
   | 'plus'
@@ -108,13 +110,13 @@ export function useNiyyah(entry: Entry | null = null) {
     // and a member with a Home who is sent the read should land on the read.
     const fromLink = entry ? ENTRY_SCREEN[entry.kind] : undefined
     if (fromLink) return fromLink
-    return saved && (saved.completed || saved.stage !== 'preparing') ? 'home' : 'welcome'
+    return saved && hasHomeFor({ completed: saved.completed, stage: saved.stage, counted: !!saved.waitlist }) ? 'home' : 'welcome'
   })
   /** The code in the link that opened the app, for the screen it opened. */
   const [entryCode] = useState<string | null>(entry?.code ?? null)
   // Where Identity hands off: the situation question on a fresh start; straight
   // to the hook when she is building the map from an instrument she already used.
-  const [identityNext, setIdentityNext] = useState<'situation' | 'hook'>('situation')
+  const [identityNext, setIdentityNext] = useState<'situation' | 'hook' | 'shortMap'>('situation')
   const [identity, setIdentity] = useState<Identity>(saved?.identity ?? {})
   const [answers, setAnswers] = useState<Answers>(saved?.answers ?? {})
   const [trust, setTrust] = useState<TrustSettings>(saved?.trust ?? defaultTrust)
@@ -188,7 +190,7 @@ export function useNiyyah(entry: Entry | null = null) {
   const completed = !!reflection || everCompleted
   // A Home exists for anyone with a map, or anyone who has said where she is.
   // `completed` keeps meaning "the intake is done"; this is the wider door.
-  const hasHome = completed || stage !== 'preparing'
+  const hasHome = hasHomeFor({ completed, stage, counted: !!waitlist })
   // What she has actually done here. Replaces a trust score that scored taps.
   const ledgerEntries = useMemo(
     () => ledger({ completed, read, beforeYes, answers, keptCode, waitlist, vouch }),
@@ -240,8 +242,20 @@ export function useNiyyah(entry: Entry | null = null) {
   // read thin, how the read came out, which conversation was had, who she
   // married. See src/lib/facts.ts. Never an answer in her words.
   const facts = useMemo(
-    () => factsFrom({ reflection, read, beforeYes, followups, ending, endings, hesitated, began, gender: identity.gender ?? 'woman' }),
-    [reflection, read, beforeYes, followups, ending, endings, hesitated, began, identity.gender],
+    () =>
+      factsFrom({
+        reflection,
+        read,
+        beforeYes,
+        followups,
+        ending,
+        endings,
+        hesitated,
+        began,
+        gender: identity.gender ?? 'woman',
+        askedGuide: guideUse.replies > 0,
+      }),
+    [reflection, read, beforeYes, followups, ending, endings, hesitated, began, identity.gender, guideUse.replies],
   )
 
   // Rungs reached, reported on transitions only — never on a tap, never on a
@@ -453,6 +467,21 @@ export function useNiyyah(entry: Entry | null = null) {
     track('onboarding_started')
     setIdentityNext('hook')
     setScreen(identity.gender && identity.adult ? 'hook' : 'identity')
+  }
+
+  /**
+   * Be counted. The short map — the three answers the pool reads — then the
+   * door's own card for her age and a way to reach her (src/data/shortMap.ts).
+   * Someone with a full map already goes straight to the card on Home.
+   */
+  function beginCount() {
+    track('count_started')
+    if (completed) {
+      enterHome()
+      return
+    }
+    setIdentityNext('shortMap')
+    setScreen(identity.gender && identity.adult ? 'shortMap' : 'identity')
   }
 
   /** Enter the intake from the hook; the insight path skips chapter 1's intro. */
@@ -785,6 +814,7 @@ export function useNiyyah(entry: Entry | null = null) {
     completeIntake,
     beginIntake,
     beginMap,
+    beginCount,
     chooseSituation,
     forgetEverything,
     startFresh,

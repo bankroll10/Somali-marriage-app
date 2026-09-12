@@ -116,7 +116,7 @@ describe('who may read it', () => {
 })
 
 describe('the door against the maps', () => {
-  it('counts the door from keys, live from maps, and sweeps an entry whose map is gone — keeping her contact', async () => {
+  it('counts the door from keys, live from maps, and sweeps an entry whose map is gone — and her contact with it', async () => {
     woman(1)
     const gone = woman(2, { expiresAt: null })
     man(1)
@@ -126,7 +126,8 @@ describe('the door against the maps', () => {
     expect(r.swept).toEqual({ women: 1, men: 0 })
     expect(stores.get('cohort')!.has(gone)).toBe(false)
     expect(stores.get('cohort')!.has(`index/${code('W', 2)}`)).toBe(false)
-    expect(stores.get('contacts')!.has(code('W', 2))).toBe(true)
+    // The contact lives exactly as long as the map (docs/BOARD.md, decision 13).
+    expect(stores.get('contacts')!.has(code('W', 2))).toBe(false)
     // The live member is untouched.
     expect(stores.get('cohort')!.size).toBe(4)
   })

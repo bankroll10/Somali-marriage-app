@@ -59,6 +59,18 @@ That’s why Niyyah starts with where you actually are, not with a profile. Your
 Niyyah is a different room — one that only opens when enough serious people are in it, and matches on how lives fit instead of on looks. First we build your map, so when you meet people here, you’re matched on what actually lasts.`,
   },
   {
+    // The list's own test. Without this, a skip and "none of these fit" both
+    // arrived at the door as `none`, and docs/GAPS.md's rule — a closed list's
+    // `other` share tests the list — had nothing to read (docs/BOARD.md).
+    id: 'other',
+    label: 'Something else',
+    short: 'something else',
+    insight: (name) =>
+      `${name ? `${name}, t` : 'T'}hat is allowed. The five things people name most are not everyone’s, and what you actually carry is what your map should start from — nothing here presumes your problem.
+
+Your map will show where you stand, in words, and your guide will take the rest in your own.`,
+  },
+  {
     id: 'ready',
     label: 'Knowing if I’m even ready',
     short: 'knowing if you’re even ready',
