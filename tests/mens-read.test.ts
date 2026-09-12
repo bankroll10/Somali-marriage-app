@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Gender } from '../src/types'
-import { familyScripts } from '../src/data/families'
+import { familyScripts, familyScriptsLine } from '../src/data/families'
 import { readQuestions, scriptFor } from '../src/data/read'
 import { buildRead, readSummary, type ReadResult } from '../src/lib/read'
 
@@ -146,6 +146,26 @@ describe('the questions a man is asked', () => {
     }
     expect(familyScripts('man').map((s) => s.id)).toContain('approach-her-family')
     expect(familyScripts('woman').map((s) => s.id)).not.toContain('approach-her-family')
+  })
+
+  it('advertises under the card only scripts the reader can open', () => {
+    // The card's line was a literal — "telling your wali, the first
+    // conversation with hooyo, asking her to send her people" — which named
+    // two women-only scripts to a man and inverted his own step. Derived from
+    // familyScripts(), it cannot drift from what is behind the card.
+    for (const gender of ['woman', 'man'] as const) {
+      const mine = new Set(familyScripts(gender).map((s) => s.title.split(',')[0].toLowerCase()))
+      for (const part of familyScriptsLine(gender).replace(/ — word for word\.$/, '').split(', ')) {
+        expect(mine.has(part), `${gender}: ${part}`).toBe(true)
+      }
+    }
+    for (const file of ['src/components/Read.tsx', 'src/components/BeforeYes.tsx']) {
+      const src = readFileSync(file, 'utf8')
+      expect(src, file).toContain('familyScriptsLine(')
+      expect(src, file).not.toMatch(/Telling your wali, the first conversation/)
+    }
+    // And the friend being sent the read is the sender's own side.
+    expect(readFileSync('src/components/InviteRow.tsx', 'utf8')).toMatch(/gender === 'man' \? 'A brother' : 'A sister'/)
   })
 
   it('does not read her restraint as his red flag', () => {

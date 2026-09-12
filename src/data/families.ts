@@ -131,6 +131,23 @@ export function familyScripts(memberGender: Gender = 'woman', stage?: Stage): Fa
     .sort((a, b) => Number(!!stage && b.stages.includes(stage)) - Number(!!stage && a.stages.includes(stage)))
 }
 
+/**
+ * The one line under "The words for your family", built from the scripts this
+ * member can actually open.
+ *
+ * It used to be a literal — "telling your wali, the first conversation with
+ * hooyo, asking her to send her people" — which named two scripts a man is
+ * never shown and inverted his own step: he sends his people, he does not ask
+ * her to send hers. Derived, it cannot drift from what is behind the card.
+ */
+export function familyScriptsLine(memberGender: Gender = 'woman', stage?: Stage): string {
+  const titles = familyScripts(memberGender, stage)
+    .slice(0, 3)
+    // Titles with a clause ("Opening mahr, and where you'd live") give the head.
+    .map((s) => s.title.split(',')[0].toLowerCase())
+  return `${titles.join(', ')} — word for word.`
+}
+
 /** One script by id, pronouns resolved — or undefined when it is not for this member. */
 export function familyScript(id: string, memberGender: Gender = 'woman'): FamilyScript | undefined {
   return familyScripts(memberGender).find((s) => s.id === id)

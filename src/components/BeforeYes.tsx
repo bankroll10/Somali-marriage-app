@@ -9,6 +9,7 @@ import { withVia } from '../lib/links'
 import { SITE_URL } from '../lib/site'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
+import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
 import { ArrowRight, Button, ScreenHeader } from './ui'
@@ -326,7 +327,7 @@ function Result({
           <span className="flex-1">
             <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
             <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-              Telling your wali, the first conversation with hooyo, opening mahr — word for word.
+              {familyScriptsLine(gender ?? 'woman')}
             </span>
           </span>
           <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
