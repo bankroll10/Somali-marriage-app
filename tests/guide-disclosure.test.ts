@@ -1,0 +1,120 @@
+import { readFileSync } from 'node:fs'
+import { describe, expect, it } from 'vitest'
+import { buildSystemPrompt, sanitiseContext } from '../netlify/shared/prompt'
+
+/**
+ * Trust says "here is exactly what it sends". This is what keeps that word.
+ *
+ * It was not exact. The Guide's system prompt carried the member's age, her
+ * gender, her attachment lean and what she said she feels safe with — the two
+ * most clinically sensitive answers in the intake — and up to ten earlier
+ * turns of the conversation, none of which the sentence named. Nothing was
+ * hidden on purpose; four fields were added to the prompt over time and the
+ * disclosure was not (docs/BOARD.md, the reality-sprint pass).
+ *
+ * So the disclosure is checked against the prompt itself rather than against a
+ * list someone remembered to update. Every slot the prompt fills is built here
+ * with a word Trust must contain; the day a field is added to the prompt, this
+ * fails until the sentence names it.
+ */
+
+// Collapsed, because the file is wrapped for reading and a sentence in it
+// routinely spans three lines.
+const trust = readFileSync('src/components/Trust.tsx', 'utf8').replace(/\s+/g, ' ')
+
+/**
+ * Each slot, the marker that proves it reached the prompt, and the words Trust
+ * has to use for it. Trust speaks to a member, so it says "how you lean in
+ * closeness" rather than "attachment lean" — the test asks for the member's
+ * words, not the field's.
+ */
+const SENT: { slot: string; marker: string; named: RegExp }[] = [
+  { slot: 'firstName', marker: 'Khadija', named: /your first name/i },
+  { slot: 'age', marker: '31', named: /your\s+age/i },
+  { slot: 'gender', marker: 'woman', named: /whether you are a woman or a man/i },
+  { slot: 'scene', marker: 'toronto', named: /your city|city,/i },
+  { slot: 'timeline', marker: '1-2', named: /timeline/i },
+  { slot: 'practice', marker: 'consistent', named: /where you are in your practice/i },
+  { slot: 'faith-role', marker: 'Faith centrality: 4', named: /how central faith is/i },
+  { slot: 'family-role', marker: 'guided', named: /family’s role/i },
+  { slot: 'children', marker: 'want', named: /children/i },
+  { slot: 'attachment', marker: 'anxious', named: /how you lean in closeness/i },
+  { slot: 'comm-safety', marker: 'patient', named: /what you said you feel safe with/i },
+  { slot: 'dealbreakers', marker: 'honesty', named: /your non-negotiables/i },
+  { slot: 'hardest-part', marker: 'serious', named: /the hardest part/i },
+  { slot: 'stage', marker: 'deciding together', named: /which stage you said you’re at/i },
+  { slot: 'readNote', marker: 'a pattern of being kept hidden', named: /if you’ve taken a read/i },
+  { slot: 'beforeYesNote', marker: 'agreed on 3 of 11', named: /Before you say yes/i },
+]
+
+const ctx = sanitiseContext({
+  identity: { firstName: 'Khadija', age: 31, gender: 'woman', scene: 'toronto' },
+  answers: {
+    timeline: '1-2',
+    practice: 'consistent',
+    'faith-role': 4,
+    'family-role': 'guided',
+    children: 'want',
+    attachment: 'anxious',
+    'comm-safety': ['patient'],
+    dealbreakers: ['honesty'],
+    'hardest-part': 'serious',
+  },
+  stage: 'deciding',
+  readNote: 'a pattern of being kept hidden; thinnest ground: whether you exist in his life',
+  beforeYesNote: 'agreed on 3 of 11; open next: where you would live',
+})
+const prompt = buildSystemPrompt('auntie', ctx)
+
+describe('what the Guide sends, and what Trust says it sends', () => {
+  for (const { slot, marker, named } of SENT) {
+    it(`sends ${slot}, and Trust names it`, () => {
+      // It really is in the prompt — otherwise this test would pass by
+      // describing something the guide no longer does.
+      expect(prompt, `${slot} is not in the prompt`).toContain(marker)
+      expect(named.test(trust), `${slot} is sent and Trust does not name it`).toBe(true)
+    })
+  }
+
+  it('says the thread goes too, not only the newest message', () => {
+    // netlify/functions/guide.ts forwards up to ten prior turns. Trust used to
+    // say "your message", singular.
+    expect(trust).toMatch(/the earlier messages in that conversation/i)
+  })
+
+  it('still names where it goes and what is not kept', () => {
+    expect(trust).toMatch(/Claude, made by Anthropic/)
+    expect(trust).toMatch(/We don’t store it/)
+    expect(trust).toMatch(/Keep the Guide on this device/)
+  })
+
+  it('covers every slot the prompt has — no field can be added unnoticed', () => {
+    // The prompt renders one labelled line per group of map fields. If a new
+    // label appears, this list is out of date and so, probably, is Trust.
+    // Only the map block — the lines between the heading that introduces it
+    // and the blank line that ends it. The grounding rules below are also
+    // "- Label: ..." lines and are the server's own, not the member's.
+    const lines = prompt.split('\n')
+    const from = lines.findIndex((l) => l.startsWith('THE PERSON YOU ARE GUIDING'))
+    const block = lines.slice(from + 1, lines.indexOf('', from + 1))
+    const labels = block
+      .flatMap((l) => l.split('·'))
+      .map((part) => part.replace(/^-\s*/, '').split(':')[0].trim())
+      // The first line is the identity line — a name, an age, a side and a
+      // city — and each of its fields is covered row by row above.
+      .filter((label) => /^[A-Z]/.test(label) && !label.includes(','))
+    expect(labels.sort()).toEqual(
+      [
+        'Attachment lean',
+        'Children',
+        'Faith centrality',
+        'Family involvement',
+        'Feels safe with',
+        'Hardest part right now',
+        'Non-negotiables',
+        'Practice',
+        'Timeline',
+      ].sort(),
+    )
+  })
+})

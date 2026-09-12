@@ -93,7 +93,7 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
 
           <Control
             title="Count me"
-            desc="When you do one of the things above, we count that it happened — the step, the date, and for a few steps how it came out, in a word from a list we wrote — under a random code that is not your map code. No answer in your words, no name, nothing that leads back to you. It is how we find out whether any of this actually helps anyone. Turn it off and nothing is sent."
+            desc="Opening Niyyah is the first thing we count, once — a count of whether any of this helps has to know how many arrived. After that, when you do one of the things above we count that it happened — the step, the date, and for a few steps how it came out, in a word from a list we wrote — under a random code that is not your map code. No answer in your words, no name, nothing that leads back to you. It is how we find out whether any of this actually helps anyone. Turn it off and nothing is sent."
             icon={<LockGlyph />}
           >
             <Toggle on={countMe} label="Count me" onClick={() => onCountMe(!countMe)} />
@@ -109,7 +109,7 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
           <div className="min-w-0 flex-1">
             <h3 className="font-display text-[1.08rem] font-medium text-ink">Where your answers live</h3>
             <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
-              Your reflection, your check-ins and every answer you gave are stored
+              Your reflection and every answer you gave are stored
               on this device — not on our servers, and no one at Niyyah can read
               them. That includes a read you take on someone, and Before you say
               yes: those answers stay here too, and we never ask their name in the
@@ -144,10 +144,14 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               country beside it and nothing else — so we can write to you when
               someone fits, or when the people you’d travel for are counted. It
               is kept in its own store, apart from your answers, under the same
-              code — ours to hold rather than a form company’s, which is what
-              lets us delete it the moment you ask, and it lives exactly as long
-              as your kept map does: when the map lapses, so does the way to
-              reach you. One more honest thing: your kept map lives in one
+              code, which is what lets us delete it the moment you ask, and it lives exactly as
+              long as your kept map does: when the map lapses, so does the way to reach you.
+              One thing we have to be straight about: the same tap also sends the way to reach
+              you, your city, your country, how far you’d go, whether you are a woman or a man,
+              and the hardest part in your own words to the form service this site runs on — a
+              second copy, so that a list this small cannot be lost with one account. Your map
+              code is not in it, and nothing about your answers is. That copy is the one thing
+              Forget me cannot reach on its own; ask, and it is deleted by hand the same week. One more honest thing: your kept map lives in one
               place, with the company we rent storage from, and the founder’s
               backup deliberately does not include it. If that storage were
               ever lost, the map would be too — which is why it also stays on
@@ -156,8 +160,9 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               anyone, but to count the pool’s shape: how many women and men of
               each age, how many are still looking, how many pairs clear each
               other’s non-negotiables both ways, and how many have nobody here
-              who does. What comes back is counts of five or more with no code
-              on them — never a map, never a person, never which person. It is
+              who does. What comes back has no code on it and is never a map, never a person, never which
+              person: how many are here in total, and beyond that only groups of five or more —
+              a breakdown that would come back as one or two comes back blank instead. It is
               the first use of your map beyond handing it back to you, and it is
               the one it was kept for. A map nobody has kept for a year lapses,
               and the same reading takes it off the door.
@@ -226,7 +231,9 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               from a link someone sent you, it also says what kind of link that
               was — words, the eleven, a couple’s link, the door, a family link,
               a link shared into a community’s group, or a link from someone this
-              worked for — and never who sent it, and never which group. It
+              worked for — and never who sent it, and never which group. One more word, once:
+              that you have asked the guide at all, ever — not what you asked, not how often,
+              not a word of what either of you said. It
               goes under a code this phone made up for itself, which is not your
               map code — nothing links the two by name, and every date is a day,
               never a time. Nothing about how long you spent here or how often
@@ -234,13 +241,14 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               control off and none of it is sent.
             </p>
             <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-              The Guide is the last exception, and here is exactly what it sends
-              when you ask it something: your message, and a summary of your map —
-              your first name, city, timeline, where you are in your practice, how
-              central faith is, family’s role, children, your non-negotiables, and
-              what you named as the hardest part, which stage you said you’re at,
-              and — if you’ve taken a read, or been through Before you say yes —
-              one line saying how each came out. Never their name; we don’t have
+              The Guide is the last exception, and here is exactly what it sends when you ask
+              it something: your message and the earlier messages in that conversation, and a
+              summary of your map — your first name, your age, whether you are a woman or a
+              man, your city, timeline, where you are in your practice, how central faith is,
+              family’s role, children, how you lean in closeness and what you said you feel
+              safe with, your non-negotiables, and what you named as the hardest part, which
+              stage you said you’re at, and — if you’ve taken a read, or been through Before
+              you say yes — one line saying how each came out. Never their name; we don’t have
               it. It goes to Claude, made by Anthropic, which writes the reply. We
               don’t store it. If you would rather none of that left your phone, turn
               on <span className="font-medium text-ink">Keep the Guide on this device</span>{' '}
@@ -258,9 +266,10 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             — then clears this phone. One thing stays: if he answered your eleven,
             your pair was already added to a count of how pairs come out, and that
             count carries no code, so it cannot be found again — not by us, not by
-            you. Your email or phone goes with the rest of it — it used to need a
-            person to delete it by hand, and now it does not. If you come back
-            after this, you start as a stranger.
+            you. Your email or phone goes with the rest of it, from the store we hold. The second
+            copy with the form service this site runs on is the one thing this button cannot
+            reach — ask, and it is deleted by hand the same week. If you come back after this,
+            you start as a stranger.
           </p>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             {forgetting === 'idle' && (

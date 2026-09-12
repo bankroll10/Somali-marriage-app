@@ -20,9 +20,18 @@ const QUEUE_KEY = 'niyyah.waitlist.queue.v1'
 export interface WaitlistEntry {
   /** Email or phone — whichever she chose to give. */
   contact: string
-  /** The code her kept map lives under (see lib/keep.ts), so a person on the
-   *  form can be matched to a map in the store without a name on either. */
-  code?: string
+  /**
+   * The map code used to travel here too, so a row on the form could be
+   * matched to a map in the store. It no longer does.
+   *
+   * A six-character code is the sole authenticator for a kept map — for
+   * reading it back and for the cascading delete in
+   * netlify/functions/keep.ts — and sending it here put it in a third party's
+   * store, in the same row as the way to reach her, while Trust told her the
+   * code "is registered to nobody". The `contacts` store we own is keyed by
+   * the code already, so the link still exists where it belongs
+   * (docs/BOARD.md, the reality-sprint pass).
+   */
   /** Diaspora community id (see data/scenes.ts) — this is the city signal. */
   scene?: string
   /**
@@ -106,7 +115,6 @@ async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<bo
   const body = new URLSearchParams({ 'form-name': form })
   // Only send what we have; an empty field is noise in the submissions table.
   if (entry.contact) body.set('contact', entry.contact)
-  if (entry.code) body.set('code', entry.code)
   if (entry.scene) body.set('scene', entry.scene)
   if (entry.country) body.set('country', entry.country)
   if (entry.reach) body.set('reach', entry.reach)
