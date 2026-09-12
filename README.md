@@ -1,7 +1,7 @@
 # Niyyah
 
-**The trusted marriage platform for the Somali diaspora — powered by AI, guided
-by faith, designed for serious people.**
+**The trusted marriage platform for the Somali diaspora — guided by faith,
+designed for serious people.**
 
 A modern bridge: between tradition and technology, family and individual choice,
 attraction and intention, AI and faith, Somali culture and modern reality. Not a

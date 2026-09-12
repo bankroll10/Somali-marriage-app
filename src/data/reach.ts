@@ -20,11 +20,21 @@ export interface ReachOption {
   label: string
 }
 
-/** The three chips. `within` is the country's name as the door says it — "the UK", "Sweden". */
+/**
+ * The three chips. `within` is the country's name as the door says it — "the
+ * UK", "Sweden".
+ *
+ * The third chip says what the code does with it. No cross-country pool is
+ * computed anywhere — `anywhere` counts exactly as `country` does in every
+ * readout, and will until a second country opens (netlify/functions/cohort.ts,
+ * pool.ts). "Anywhere the diaspora is" offered a preference the product could
+ * not honour (docs/BOARD.md); the preference is still recorded, so the day a
+ * cross-country pool exists it is already known.
+ */
 export function reachOptions(within: string = 'my country'): ReachOption[] {
   return [
     { id: 'city', label: 'My city' },
     { id: 'country', label: `Anywhere in ${within}` },
-    { id: 'anywhere', label: 'Anywhere the diaspora is' },
+    { id: 'anywhere', label: `Anywhere the diaspora is — for now, ${within}` },
   ]
 }

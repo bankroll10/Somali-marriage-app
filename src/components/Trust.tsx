@@ -296,8 +296,10 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
             to. Here is exactly what that does, because you should be able to
             hold us to it: it reaches the founder, who reads these every week
             and no later. She can speak to them, tell the family who vouched
-            for them, or mark that they are never to be introduced to anyone —
-            and what she did is written down. There are no accounts here, so
+            for them, and decide that nobody here will ever introduce them —
+            and what she did is written down, though until introductions
+            exist here that decision is a note in her queue, not a mark on a
+            person, because nobody here has an account to mark. There are no accounts here, so
             nobody can be thrown off a list that doesn’t exist; a man who
             answered your eleven left no account behind either. That is the
             honest limit, and it is why the vouch and the introduction are

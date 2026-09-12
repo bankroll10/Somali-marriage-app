@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { CODE } from '../shared/code'
 import { isFounder, notFounder } from '../shared/founder'
 import { day } from '../shared/day'
 import { stamp } from '../shared/record'
@@ -58,8 +59,8 @@ import {
  * are still counts of ids, never a record of a person, never a sentence.
  */
 
-/** Same alphabet and length as netlify/functions/keep.ts — but a different code. */
-const ID = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
+/** The install id: the same shape as a map code, minted on her device — but a different code. */
+const ID = CODE
 
 /**
  * A year, refreshed on every report — except once someone has married.

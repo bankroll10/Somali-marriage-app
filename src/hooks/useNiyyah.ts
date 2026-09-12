@@ -248,10 +248,11 @@ export function useNiyyah(entry: Entry | null = null) {
   // screen, never on a minute spent. Gated on the control that says so: with
   // countMe off this call site does not run, so the toggle is the mechanism
   // rather than a promise about one.
+  const country = countryFor(identity)
   useEffect(() => {
     if (!trust.countMe) return
-    void reportRungs(rungs, identity.scene, facts, identity.gender, countryFor(identity))
-  }, [rungs, trust.countMe, identity.scene, identity.country, facts, identity.gender])
+    void reportRungs(rungs, identity.scene, facts, identity.gender, country)
+  }, [rungs, trust.countMe, identity.scene, country, facts, identity.gender])
 
   // Has he answered the eleven she sent? Asked once per code, only until we
   // know — he answers on his own phone, and it has to reach hers without her

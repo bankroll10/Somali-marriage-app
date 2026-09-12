@@ -5,7 +5,11 @@
  * `couple.ts`, `vouch.ts` and the client's install id — each with its own
  * spelling of the alphabet and its own regex. Four copies of a security
  * primitive is three chances to fix a bug in only some of them, so this is the
- * one that stays.
+ * one that stays. (Two more regex copies survived that consolidation, in
+ * `cohort.ts` and `progress.ts`; docs/BOARD.md found them and they now import
+ * `CODE` from here. The client keeps its own twin in `src/lib/progress.ts`,
+ * because the browser bundle does not reach into `netlify/`; the length lives
+ * in one place on each side.)
  *
  * **The alphabet.** Twenty-three symbols, unambiguous over the phone and in a
  * text message: no O/0, no I/1/l, no U/V. She may well be reading this to a

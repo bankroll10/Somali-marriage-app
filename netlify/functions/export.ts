@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
 import { COUNTRIES, SCENES } from '../shared/vocab'
+import { SEGMENTS } from './cohort'
 import type { ProgressRecord } from './progress'
 
 /**
@@ -106,9 +107,10 @@ async function allProgress(store: Store): Promise<Record<string, ProgressRecord>
 async function door(store: Store): Promise<Backup['door']> {
   const { blobs } = await store.list()
   const out: Backup['door'] = {}
-  // Six segments is a member; the index is one, and a key from before
-  // countries existed is four. See netlify/functions/cohort.ts.
-  const members = blobs.filter(({ key }) => key.split('/').length === 6)
+  // A member key has SEGMENTS parts; the index is one, and a key from before
+  // countries existed is four. The layout is cohort.ts's to define — a literal
+  // here was the one copy that would not have moved with it (docs/BOARD.md).
+  const members = blobs.filter(({ key }) => key.split('/').length === SEGMENTS)
   const records = await Promise.all(
     members.map(async ({ key }) => ({ key, record: (await store.get(key, { type: 'json' })) as { ledger?: string[] } | null })),
   )

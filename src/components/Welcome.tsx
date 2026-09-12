@@ -1,5 +1,6 @@
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
 import RestoreMap from './RestoreMap'
+import { BUILT_BY, EYEBROW } from '../data/brand'
 
 interface Props {
   onBegin: () => void
@@ -34,7 +35,7 @@ export default function Welcome({
 
         <main className="flex flex-1 flex-col justify-center py-16">
           <p className="animate-fade mb-5 text-sm font-medium uppercase tracking-[0.25em] text-gold-soft">
-            Built for the Somali diaspora
+            {EYEBROW}
           </p>
 
           {/* The hook keeps the shape of a question you can't answer about
@@ -115,7 +116,7 @@ export default function Welcome({
             style={{ animationDelay: '220ms' }}
           >
             {[
-              'Built by a Somali, for the questions our aunties ask — and the ones they don’t.',
+              BUILT_BY,
               'We start where you are: getting ready, talking to someone, or deciding with the families.',
               'The conversations that break marriages — where you’d live, money home, a second wife — asked early, not too late.',
             ].map((line) => (

@@ -12,7 +12,7 @@
     <meta name="theme-color" content="#16271f" />
     <meta
       name="description"
-      content="The trusted marriage platform for the Somali diaspora — powered by AI, guided by faith, designed for serious people."
+      content="%BRAND_DESCRIPTION%"
     />
     <!-- Standalone (add-to-home-screen) so the app runs full-screen, chrome-free. -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -22,7 +22,7 @@
     <meta property="og:title" content="Niyyah" />
     <meta
       property="og:description"
-      content="Find someone serious — without losing your dignity, faith, time, or peace."
+      content="%BRAND_TAGLINE%"
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Niyyah" />
@@ -32,16 +32,17 @@
     <meta property="og:image:height" content="630" />
     <meta
       property="og:image:alt"
-      content="Niyyah — built for the Somali diaspora. What’s actually in your way?"
+      content="%BRAND_OG_ALT%"
     />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Niyyah" />
     <meta
       name="twitter:description"
-      content="Find someone serious — without losing your dignity, faith, time, or peace."
+      content="%BRAND_TAGLINE%"
     />
     <meta name="twitter:image" content="https://%SITE_HOST%/og.png" />
-    <title>Niyyah — the trusted marriage platform for the Somali diaspora</title>
+    <!-- The brand strings above and this title are filled from src/data/brand.ts by vite.config.ts. -->
+    <title>%BRAND_TITLE%</title>
   </head>
   <body>
     <!-- The Netlify form declaration lives in public/__forms.html, not here —

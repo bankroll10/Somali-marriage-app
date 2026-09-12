@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { CODE } from '../shared/code'
 import { isFounder, notFounder } from '../shared/founder'
 // Validated against closed sets so a bad key can never be written — see netlify/shared/vocab.ts.
 import { COUNTRIES, GENDERS, HOOKS, LEDGER, REACH, SCENES, SCENE_COUNTRY } from '../shared/vocab'
@@ -76,8 +77,6 @@ import { stamp } from '../shared/record'
 /** A pool opens when both sides have this many people who can be reached. */
 export const COHORT_TARGET = 40
 
-/** Same alphabet and length as netlify/functions/keep.ts. */
-const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
 /** A code, a city, a country, a side, a reach, a hardest part, seven ledger ids and a way to reach her is the largest thing anyone can send. */
 const MAX_BODY = 2_560
 /** An email or a phone number. Long enough for any real address, short enough that nothing else fits. */
