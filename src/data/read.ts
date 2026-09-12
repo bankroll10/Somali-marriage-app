@@ -39,6 +39,26 @@ export interface ReadQuestion {
   options: ReadOption[]
 }
 
+/**
+ * Where his side of a question is not her side with the pronouns flipped.
+ *
+ * Most of the eleven transfer: whether the other person has named a timeline,
+ * met you properly, or keeps the plans they make reads the same from either
+ * side. Three do not, because the road itself is not symmetric — see the
+ * `man` entries in TEMPLATE below.
+ *
+ * Options are merged by id, never replaced, so a variant can change what an
+ * answer says and what it is worth but can never change which answers exist.
+ * A read kept from either side therefore stays readable by the other, and
+ * `src/lib/read.ts`'s named cases (`explicit`, `blames`, `nobody`) keep
+ * meaning what they mean. Held by tests/mens-read.test.ts.
+ */
+interface ManVariant {
+  prompt?: string
+  helper?: string
+  options?: Record<string, Partial<Omit<ReadOption, 'id'>>>
+}
+
 export const DIMENSION_LABEL: Record<ReadDimension, string> = {
   intent: 'Stated intention',
   public: 'Whether you exist in {his} life',
@@ -82,7 +102,7 @@ function say(text: string, v: Voice): string {
  * The questions, in the order she should meet them: easy and factual first,
  * hardest last, once she is already being honest.
  */
-const TEMPLATE: ReadQuestion[] = [
+const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
   {
     id: 'duration',
     dimension: 'context',
@@ -186,6 +206,20 @@ const TEMPLATE: ReadQuestion[] = [
         note: '{he} has asked you more than once to keep this hidden',
       },
     ],
+    // Hidden is the sharpest signal there is for a woman, and it is not the
+    // same signal for a man. Before the families have met, a woman asking for
+    // discretion is usually protecting her own name in a community that will
+    // discuss her either way. So his weights do not read discretion alone as
+    // non-seriousness. Discretion AND nobody in her life knowing him is a
+    // different thing, and src/lib/read.ts still names that combination for
+    // either side.
+    man: {
+      helper: 'Before the families have met, some discretion is her protecting her own name. Repeated, with nobody in her life knowing you, is something else.',
+      options: {
+        soft: { weight: 0.65, note: 'she has asked you to hold off telling people for now' },
+        explicit: { weight: 0.3, note: 'she has asked you more than once to keep this between the two of you' },
+      },
+    },
   },
   {
     id: 'family',
@@ -213,6 +247,29 @@ const TEMPLATE: ReadQuestion[] = [
         note: '{he} moves away from the subject of your family when it comes up',
       },
     ],
+    // Asked of a man, her question inverts: it is his people who go to hers,
+    // so "has she asked how to approach my family" marks him down for her
+    // waiting on the step that is his. His version asks the same thing about
+    // her — whether she will tell him who to speak to, and when.
+    man: {
+      prompt: 'When approaching her family comes up, what happens?',
+      helper: 'Who you would speak to, and when. In our families this step is yours to take — what you are reading is whether she will hand it to you.',
+      options: {
+        how: {
+          label: 'She told me who to speak to, and roughly when',
+          note: 'she has told you who to approach in her family, and roughly when',
+        },
+        passing: {
+          label: 'She is open to it — no name, no time yet',
+          note: 'she is open to your approaching her family, without a name or a time yet',
+        },
+        no: { label: 'It has not come up', note: 'approaching her family has not come up' },
+        avoids: {
+          label: 'She changes the subject when it comes up',
+          note: 'she moves away from the subject of her family when it comes up',
+        },
+      },
+    },
   },
   {
     id: 'initiative',
@@ -225,6 +282,18 @@ const TEMPLATE: ReadQuestion[] = [
       { id: 'eventually', label: 'Eventually — days later', weight: 0.3, note: 'it takes days for {him} to come back' },
       { id: 'silence', label: 'It just goes quiet', weight: 0, note: 'when you stop, it goes quiet' },
     ],
+    // Her not texting first is not his red flag. Plenty of practising women
+    // never open a conversation on purpose, and scoring that at zero would
+    // read modesty as disinterest. Hearing nothing at all still counts — it
+    // is just no longer the bottom of the scale.
+    man: {
+      helper: 'Be honest. Some people never text first on purpose — what you are reading is whether you hear from her at all.',
+      options: {
+        'day-two': { weight: 0.85 },
+        eventually: { weight: 0.55 },
+        silence: { label: 'It stays quiet until I start again', weight: 0.15, note: 'when you stop, it stays quiet until you start again' },
+      },
+    },
   },
   {
     id: 'in-person',
@@ -291,20 +360,28 @@ export function speak(memberGender: Gender = 'woman'): (text: string) => string 
   return (text) => say(text.replace(/\{himself\}/g, reflexive), v)
 }
 
-/** The questions, with pronouns resolved for who she is reading. */
+/** The questions, with pronouns resolved for whoever is reading. */
 export function readQuestions(memberGender: Gender = 'woman'): ReadQuestion[] {
   const fix = speak(memberGender)
-  return TEMPLATE.map((q) => ({
-    ...q,
-    prompt: fix(q.prompt),
-    helper: q.helper ? fix(q.helper) : undefined,
-    options: q.options.map((o) => ({
-      ...o,
-      label: fix(o.label),
-      hint: o.hint ? fix(o.hint) : undefined,
-      note: fix(o.note),
-    })),
-  }))
+  return TEMPLATE.map(({ man, ...q }) => {
+    const v = memberGender === 'man' ? man : undefined
+    const helper = v?.helper ?? q.helper
+    return {
+      ...q,
+      prompt: fix(v?.prompt ?? q.prompt),
+      helper: helper ? fix(helper) : undefined,
+      options: q.options.map((o) => {
+        // Merged by id: a variant never adds or removes an answer.
+        const merged = { ...o, ...v?.options?.[o.id] }
+        return {
+          ...merged,
+          label: fix(merged.label),
+          hint: merged.hint ? fix(merged.hint) : undefined,
+          note: fix(merged.note),
+        }
+      }),
+    }
+  })
 }
 
 export const READ_QUESTION_COUNT = TEMPLATE.length

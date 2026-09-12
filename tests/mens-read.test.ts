@@ -1,6 +1,7 @@
+import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Gender } from '../src/types'
-import { readQuestions } from '../src/data/read'
+import { readQuestions, scriptFor } from '../src/data/read'
 import { buildRead, readSummary, type ReadResult } from '../src/lib/read'
 
 /**
@@ -81,6 +82,12 @@ describe('the read speaks to whoever is reading', () => {
     }
   })
 
+  it('still names the combination we do not coach, from either side', () => {
+    for (const gender of ['woman', 'man'] as const) {
+      expect(buildRead(BANDS.caution, gender)!.band).toBe('caution')
+    }
+  })
+
   it('reaches every band, so the sweep above is not vacuous', () => {
     const bands = Object.entries(BANDS).map(([name, set]) => [name, buildRead(set, 'woman')!.band])
     expect(Object.fromEntries(bands)).toEqual({
@@ -90,5 +97,52 @@ describe('the read speaks to whoever is reading', () => {
       thin: 'thin',
       mixed: 'mixed',
     })
+  })
+})
+
+describe('the questions a man is asked', () => {
+  const his = readQuestions('man')
+  const hers = readQuestions('woman')
+  const q = (list: typeof his, id: string) => list.find((x) => x.id === id)!
+  const opt = (list: typeof his, id: string, o: string) => q(list, id).options.find((x) => x.id === o)!
+
+  it('offers the same answers to both sides, so a kept read stays readable', () => {
+    expect(his.map((x) => x.id)).toEqual(hers.map((x) => x.id))
+    for (const [i, x] of his.entries()) {
+      expect(x.options.map((o) => o.id), x.id).toEqual(hers[i].options.map((o) => o.id))
+      expect(x.dimension, x.id).toBe(hers[i].dimension)
+    }
+  })
+
+  it('never grades him on the step the product gives him', () => {
+    // The product's own family scripts: a serious man asks how to approach
+    // HER family, and she asks him to send his people. Her read asks whether
+    // he did that. His read cannot be the same sentence — it would mark him
+    // down for her waiting on the step that is his to take.
+    const families = readFileSync('src/data/families.ts', 'utf8')
+    expect(families).toContain('asked how to approach you')
+    expect(families).toContain('send your people to my family')
+
+    expect(q(hers, 'family').prompt).toMatch(/asked about your family/i)
+    expect(q(his, 'family').prompt).not.toBe(q(hers, 'family').prompt)
+
+    // What earns full marks on his side is her handing him the step.
+    const best = q(his, 'family').options.find((o) => o.weight === 1)!
+    expect(best.note).toMatch(/her family/i)
+    expect(best.note).not.toMatch(/your family/i)
+
+    // And the words the read hands him say it in the right direction.
+    expect(scriptFor('family', 'man').words).toMatch(/approach your family/i)
+    expect(scriptFor('family', 'woman').words).toMatch(/approach my family/i)
+  })
+
+  it('does not read her restraint as his red flag', () => {
+    // Never texting first, and asking for discretion before the families have
+    // met, are both ordinary on her side. They are the two sharpest signals
+    // there are on his.
+    expect(opt(his, 'initiative', 'silence').weight).toBeGreaterThan(0)
+    expect(opt(his, 'secret', 'explicit').weight).toBeGreaterThan(0)
+    expect(opt(hers, 'initiative', 'silence').weight).toBe(0)
+    expect(opt(hers, 'secret', 'explicit').weight).toBe(0)
   })
 })
