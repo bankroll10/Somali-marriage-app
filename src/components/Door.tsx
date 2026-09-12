@@ -3,7 +3,7 @@ import type { Gender, Identity } from '../types'
 import { countryFor, getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
 import { hesitationOptions, type Hesitation } from '../data/hesitation'
-import { COHORT_TARGET, cohortCount, type CohortCount } from '../lib/cohort'
+import { cohortCount, opensWhen, type CohortCount } from '../lib/cohort'
 import { DoorCount } from './Cohort'
 import { ArrowRight, ScreenHeader, fieldClass } from './ui'
 
@@ -102,8 +102,7 @@ export default function Door({
             Nobody is introduced to anyone until both sides are here.
           </h1>
           <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
-            {scene && country ? pool : 'Each city'} opens when {COHORT_TARGET} women and {COHORT_TARGET} men have
-            kept a map and can be reached.{' '}
+            {opensWhen(scene && country ? pool : 'Each city')}{' '}
             {scene && country ? (
               <DoorCount count={count} city={city} within={within} other={other} />
             ) : scene ? (
@@ -186,7 +185,7 @@ export default function Door({
           <p className="mt-3 text-[0.85rem] leading-relaxed text-muted text-pretty">
             {hasMap
               ? 'Your map is already here — being counted is one step from your space.'
-              : 'Being counted takes a map — sixteen questions about you, kept under a code with no name on it — your age, and a way to reach you. No photos, no account. The day someone here fits your map, you hear from us, and nobody else does.'}
+              : 'Being counted takes three answers — your practice, children, and what you won’t compromise on — kept under a code with no name on it, your age, and a way to reach you. No photos, no account. The rest of your map can wait. The day someone here fits, you hear from us, and nobody else does.'}
           </p>
 
           {/* The one no this product records — the same word, from the same

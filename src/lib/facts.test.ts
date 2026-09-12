@@ -12,7 +12,7 @@ import type { FollowUp } from '../types'
  * a person wrote can be.
  */
 
-const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], hesitated: null, began: [], gender: 'woman' }
+const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], hesitated: null, began: [], gender: 'woman', askedGuide: false }
 
 /** A complete read, every question answered with its first option. */
 const readAnswers = Object.fromEntries(readQuestions('woman').map((q) => [q.id, q.options[0].id]))
@@ -178,6 +178,7 @@ describe('what the rungs were made of', () => {
       ending: { at: '2026-05-01', who: 'here', mattered: 'shown', used: ['read'], advice: 'a whole sentence, with spaces.' },
       endings: [{ at: '2026-03-01T10:00:00Z', from: 'talking', reason: 'his-read', which: 'public' }],
       hesitated: { at: '2026-03-02T10:00:00Z', reason: 'seen' },
+      askedGuide: true,
       began: ['map', 'read', 'eleven'],
       gender: 'woman',
     })

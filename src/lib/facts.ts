@@ -49,7 +49,17 @@ export interface Facts {
    * finishing one is already a rung. One bit each, never a count of openings.
    */
   began?: string[]
+  /**
+   * What she asked, ever, as a set: today only `guide`. One bit, never a count
+   * — the same shape as `began`, and for the same reason. The guide is the one
+   * metered cost and, without this, the one thing unmeasurable before an
+   * ending (docs/EXPERIMENTS.md A3, docs/BOARD.md decision 15).
+   */
+  asked?: string[]
 }
+
+/** Must match netlify/shared/vocab.ts ASKED. */
+export const ASKED = ['guide'] as const
 
 export interface FactsInput {
   reflection: Reflection | null
@@ -62,6 +72,8 @@ export interface FactsInput {
   /** Ids of the questionnaires this person has begun. See src/data/instruments.ts. */
   began: string[]
   gender: Gender
+  /** She has asked the guide at least once. */
+  askedGuide: boolean
 }
 
 /**
@@ -148,6 +160,9 @@ export function factsFrom(i: FactsInput): Facts {
   // Deduped and sorted like `through`: the set is the fact, the order is not.
   const began = [...new Set(i.began.filter((id) => INSTRUMENTS.has(id)))].sort()
   if (began.length) facts.began = began
+
+  // One bit for the guide: that it was ever asked. Not how often, not what.
+  if (i.askedGuide) facts.asked = ['guide']
 
   return facts
 }

@@ -431,7 +431,7 @@ export default function Home({
                 as today's introduction. This is the honest version: the real
                 count toward her city opening, and her place in it. Hidden once
                 she's deciding on someone or married. */}
-            {seeking && reflection && (
+            {stage === 'preparing' && (reflection || waitlist) && (
               <Cohort
                 identity={identity}
                 hookId={hookId}

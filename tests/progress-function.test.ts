@@ -176,6 +176,21 @@ describe('the readout', () => {
     expect('arrived' in body.scenes.toronto).toBe(true)
   })
 
+  it('counts who ever asked the guide, and of them who followed through — the guide’s one measurement', async () => {
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
+      await post({ id, rungs: ['arrived', 'followed-through'], facts: { asked: ['guide'] } })
+    }
+    await post({ id: 'ACDEFK', rungs: ['arrived'], facts: { asked: ['guide'] } })
+    await post({ id: 'ACDEFM', rungs: ['arrived', 'followed-through'] })
+    const body = await (await readout()).json()
+    expect(body.facts.asked.guide).toBe(6)
+    expect(body.facts.followedThroughBy.asked.guide).toEqual({ asked: 6, followedThrough: 5 })
+    // Asked is a set: asking again is not a second ask, and an unknown thing asked is refused whole.
+    await post({ id: 'ACDEFK', rungs: ['arrived'], facts: { asked: ['guide'] } })
+    expect(JSON.parse(stores.get('progress')!.get('ACDEFK')!).facts.asked).toEqual(['guide'])
+    expect((await post({ id: 'ACDEFN', rungs: ['arrived'], facts: { asked: ['auntie'] } })).status).toBe(400)
+  })
+
   it('splits the ladder by country, floored — so the North Star reads for the nine countries with no named city', async () => {
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'other', country: 'ke' })
     await post({ id: 'ACDEFK', rungs: ['arrived'], scene: 'london', country: 'uk' })

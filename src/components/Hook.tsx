@@ -57,7 +57,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
                 className="animate-fade mt-5 self-start text-sm font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline"
                 style={{ animationDelay: '260ms' }}
               >
-                None of these quite fits — skip for now
+                Skip for now
               </button>
             </>
           ) : (

@@ -4,7 +4,7 @@ import { countryFor, getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
 import { getHookOption } from '../data/hook'
 import { hesitationOptions, type Hesitation } from '../data/hesitation'
-import { COHORT_TARGET, cohortCount, joinCohort, type CohortCount, type SideCount } from '../lib/cohort'
+import { COHORT_TARGET, cohortCount, joinCohort, opensWhen, type CohortCount, type SideCount } from '../lib/cohort'
 import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../lib/waitlist'
 import { instrumentLink } from '../lib/links'
 import { parseAge } from '../lib/age'
@@ -121,11 +121,11 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
     const result = await shareOrCopy(
       kind === 'door'
         ? {
-            text: `Salaam — Niyyah is being built for us, one city at a time. ${pool} opens when forty serious women and forty serious men have kept a map and can be reached — here’s where it stands. No photos, no account: a map, and a way to reach you.`,
+            text: `Salaam — Niyyah is being built for us, one city at a time. ${opensWhen(pool)} Here’s where it stands. No photos, no account: three answers, your age, and a way to reach you.`,
             url: instrumentLink('door', 'door'),
           }
         : {
-            text: `Salaam — Niyyah is being built for us, one city at a time, and ${pool} opens when forty serious women and forty serious men are counted. Start with the read: ninety seconds on what someone has actually done, and the one question to ask next. No account.`,
+            text: `Salaam — Niyyah is being built for us, one city at a time. ${opensWhen(pool)} Start with the read: ninety seconds on what someone has actually done, and the one question to ask next. No account.`,
             url: instrumentLink('read', 'door'),
           },
       'door_sent',
@@ -178,7 +178,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         )}
         <div className="mt-4 border-t border-forest/15 pt-4">
           <p className="text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
-            {pool} opens at {COHORT_TARGET} each. If you know one serious {one} who is looking, send {them} the
+            {pool} needs {COHORT_TARGET} on each side who can be introduced. If you know one serious {one} who is looking, send {them} the
             door. If {theyre} already talking to someone, send the read.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
@@ -268,8 +268,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         Your map’s job is to be matched.
       </p>
       <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-        {pool} opens when {COHORT_TARGET} women and {COHORT_TARGET} men have kept a map
-        and can be reached. Nobody is introduced to anyone before then.{' '}
+        {opensWhen(pool)} Nobody is introduced to anyone before then.{' '}
         {scene && country ? (
           <DoorCount count={count} city={city} within={within} other={other} />
         ) : scene ? (
@@ -500,7 +499,7 @@ export function DoorCount({ count, city, within, other }: { count: CohortCount |
           <span className="font-medium text-ink">
             {city} today: {people(count.here).replace(' and ', ', ')}.
           </span>{' '}
-          It opens at {count.target} each.
+          {count.target} each is the first mark; it opens when they can be introduced.
         </>
       ) : (
         <>{other ? `Somewhere else in ${within} isn’t a city we count yet.` : ''}</>

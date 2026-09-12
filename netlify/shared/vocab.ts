@@ -29,7 +29,11 @@ export const RUNGS = new Set([
 ])
 
 /** Must match src/data/scenes.ts. */
-export const SCENES = new Set(['twin-cities', 'toronto', 'london', 'columbus', 'stockholm', 'other'])
+export const SCENES = new Set([
+  'twin-cities', 'toronto', 'london', 'columbus', 'stockholm',
+  'seattle', 'san-diego', 'birmingham', 'bristol', 'leicester', 'gothenburg', 'oslo', 'copenhagen', 'helsinki', 'amsterdam', 'nairobi', 'melbourne',
+  'other',
+])
 
 /**
  * Must match src/data/countries.ts. The country sits above the city in the
@@ -48,13 +52,25 @@ export const SCENE_COUNTRY: Record<string, string> = {
   london: 'uk',
   columbus: 'us',
   stockholm: 'se',
+  seattle: 'us',
+  'san-diego': 'us',
+  birmingham: 'uk',
+  bristol: 'uk',
+  leicester: 'uk',
+  gothenburg: 'se',
+  oslo: 'no',
+  copenhagen: 'dk',
+  helsinki: 'fi',
+  amsterdam: 'nl',
+  nairobi: 'ke',
+  melbourne: 'au',
 }
 
 /** Must match src/data/reach.ts — how far she would go for the right person. */
 export const REACH = new Set(['city', 'country', 'anywhere'])
 
 /** Must match src/data/hook.ts, plus 'none' for a hardest part never named. */
-export const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'ready', 'none'])
+export const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'other', 'ready', 'none'])
 
 /** Must match src/lib/ledger.ts. */
 export const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'counted', 'vouched'])
@@ -162,6 +178,9 @@ export const ENDED_WHICH: Record<string, Set<string>> = {
  * One bit each, merged as a union: not a count, not a time, not a session.
  */
 export const INSTRUMENTS = new Set(['map', 'read', 'eleven', 'couple'])
+
+/** Must match src/lib/facts.ts ASKED — what a person asked, ever, as a set. Today only the guide. */
+export const ASKED = new Set(['guide'])
 
 /**
  * Must match src/data/hesitation.ts — why someone reached the door and did

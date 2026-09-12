@@ -17,6 +17,7 @@ import { hookOptions } from '../src/data/hook'
 import { SAFETY_OUTCOMES, SAFETY_REASONS } from '../src/data/safety'
 import { HESITATION_IDS } from '../src/data/hesitation'
 import { INSTRUMENT_IDS } from '../src/data/instruments'
+import { ASKED } from '../src/lib/facts'
 
 /**
  * The server accepts only words from closed lists, and each list has a twin in
@@ -44,6 +45,7 @@ describe('every word the server accepts is a word the app uses', () => {
       else expect(vocab.COUNTRIES.has(s.country!)).toBe(true)
     }
   })
+  it('asked — what a person asked, ever', () => expect(sorted(vocab.ASKED)).toEqual(sorted(ASKED)))
   it('hardest parts, plus none', () => expect(sorted(vocab.HOOKS)).toEqual(sorted([...hookOptions.map((h) => h.id), 'none'])))
 
   it('the map’s seven grounds and their three states', () => {

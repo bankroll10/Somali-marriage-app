@@ -148,7 +148,7 @@ interface Pool {
   country: string
 }
 
-async function health(cohort: Store, maps: Store, pool: Pool, now = Date.now()) {
+async function health(cohort: Store, maps: Store, pool: Pool, contacts: Store, now = Date.now()) {
   const { blobs } = await cohort.list({ prefix: `${pool.country}/` })
   const keys = blobs
     .map(({ key }) => key)
@@ -188,6 +188,13 @@ async function health(cohort: Store, maps: Store, pool: Pool, now = Date.now()) 
         await cohort.delete(m.key).catch(() => {})
         await cohort.delete(`index/${m.code}`).catch(() => {})
         if (m.expired) await maps.delete(m.code).catch(() => {})
+        // The way to reach her lives exactly as long as her map. It used to
+        // stay for ever — "lapsed is not forgotten" — so a person who had not
+        // touched the product in over a year was still on a list, under the
+        // same code as the map that was gone, in countries with retention law.
+        // Trust now says the contact goes when the map does (docs/BOARD.md,
+        // decision 13).
+        await contacts.delete(m.code).catch(() => {})
       }),
   )
 
@@ -264,7 +271,7 @@ export default async function handler(req: Request) {
   }
 
   try {
-    return Response.json(await health(getStore('cohort'), getStore('maps'), pool))
+    return Response.json(await health(getStore('cohort'), getStore('maps'), pool, getStore('contacts')))
   } catch (err) {
     console.error('[niyyah] pool: read failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
