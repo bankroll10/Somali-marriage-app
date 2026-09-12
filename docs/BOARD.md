@@ -105,11 +105,13 @@ through an intake (`src/data/intake.ts:10-14`).
   log that is empty; by `docs/OPERATING.md`'s own rule (a hundred records per
   row, one revision a month) and `docs/WEDGE.md`'s pace, the learning loop
   turns in years.
-- **FACT** — The men's side is served by pronoun substitution. The read for a
-  man asks whether *she* has asked how to approach *his* family — the
-  cultural inverse of the product's own family script; two of five family
-  scripts are women-only and none is men-only (`src/data/read.ts`,
-  `src/data/families.ts`).
+- **FACT** — The men's side was served by pronoun substitution, and nobody had
+  read it. The read for a man asked whether *she* had asked how to approach
+  *his* family — the cultural inverse of the product's own family script; two
+  of five family scripts were women-only and none was men-only; and the read's
+  *result* still called her "he". **Partly fixed** after the founder's own walk
+  of the live site — see "What the founder's own walk found" at the end. What
+  remains is the whole of it: no man has been asked what he needs.
 - **FACT** — Three write paths sat outside the protections `docs/HARD.md`
   describes: `POST /keep` with a supplied code overwrote whatever was under it
   with no existence check and no etag; `POST /couple side=second` and
@@ -658,3 +660,41 @@ fixed above. The copy that a member reads first — the door's "Being counted
 takes a map — sixteen questions about you… your age, and a way to reach you"
 — is true of the code as it stands; whether the map should be the ticket is
 the founder's decision 3.
+
+## What the founder's own walk found
+
+The pre-flight above was done in Chromium against intercepted functions. On
+2026-09-12, an hour after `PREVIEW_PASSWORD` came off, the founder walked the
+deployed site on a phone — as a man, which no walk had done — and reached
+question 7 of the read. The pronouns were right. Three things behind them
+were not, and all three are the same defect: **the men's side was her side
+with the pronouns flipped, and nobody had read it.**
+
+| # | What a man met | Label | Fixed |
+|---|---|---|---|
+| 1 | The read's *result* called her "he" — nine strings and two dimension labels. The caution band told him this was "the shape that leaves women without anyone to compare notes with" and to tell "an older woman you trust", about the woman he is deciding on | FACT, printed from `buildRead(answers, 'man')` | Every sentence a result returns passes through `speak()`; `readSummary` takes the gender; `tests/mens-read.test.ts` reads all five bands from both sides |
+| 2 | Three of the eleven graded him backwards. `family` asked whether *she* had asked how to approach *his* family — full marks for yes, zero for no — while `src/data/families.ts` tells a woman that a serious man asks how to approach *hers* and that she should ask him to send his people. `initiative` scored her never texting first at zero; `secret` scored her asking for discretion at zero | FACT (the inversion); INFERENCE (that restraint is ordinary on her side, from the product's own family scripts) | His `family` asks whether she will tell him who to speak to and when; restraint is no longer zero. Variants merge by option id, so a read kept from either side stays readable and `read.ts`'s named cases still mean what they mean |
+| 3 | A man who reached the family ask had no words behind it: two scripts were women-only, none was his | FACT | `approach-her-family` — what to say standing in front of her father or her brother |
+| 4 | Found by walking the fixed read, not by reading it. The card under his result advertised "telling your wali, the first conversation with hooyo, asking her to send her people" — two scripts a man is never shown, and his own step backwards; and the invite row offered the read to "a sister" | FACT, walked in Chromium at 400 px | The card's line is derived from `familyScripts(gender)`, so it cannot name what is not behind it; the friend is the sender's own side |
+
+**The eight questions that transfer** were left alone. `named`, `timeline`,
+`known`, `in-person`, `plans`, `nonneg`, `hard` and `duration` read the same
+from either side once the pronouns resolve, and changing them would have been
+a rewrite rather than a repair.
+
+**What this does not settle.** The audit's men's-side finding was that the
+read is written from her vantage; three questions of eleven were, and are not
+now. It is still true that no man has been asked what he needs, that the door
+counts him as supply on her instruments, and that `docs/GAPS.md`'s men's-side
+row is ASSUMED. Ten men, before anything else is built for him.
+
+**The rule this walk earns:** nothing ships to a side of the product nobody
+has walked on a phone. The Chromium pre-flight covered every screen and
+missed all three of these, because it walked as a woman.
+
+**Still the founder's hands:** the "Powered by Netlify" badge. It is not in
+our code — Netlify turns it on by default for Free-plan projects created on
+or after 2026-08-19, and the API does not expose the switch. Netlify →
+`getniyyah` → Project configuration → General → "Powered by Netlify badge" →
+off. No redeploy needed. It tells every visitor the site is on a free plan,
+on a product whose front door is trust.
