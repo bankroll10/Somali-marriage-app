@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import type { Gender } from '../src/types'
+import { familyScripts } from '../src/data/families'
 import { readQuestions, scriptFor } from '../src/data/read'
 import { buildRead, readSummary, type ReadResult } from '../src/lib/read'
 
@@ -134,6 +135,17 @@ describe('the questions a man is asked', () => {
     // And the words the read hands him say it in the right direction.
     expect(scriptFor('family', 'man').words).toMatch(/approach your family/i)
     expect(scriptFor('family', 'woman').words).toMatch(/approach my family/i)
+  })
+
+  it('hands him the words for the step it tells him is his', () => {
+    // The read now sends a man at her family. Something has to give him the
+    // sentences: until 2026-09-12 two family scripts were women-only and none
+    // was his, so a man reached the ask with nothing behind it.
+    for (const gender of ['woman', 'man'] as const) {
+      expect(familyScripts(gender).some((s) => s.for === gender), gender).toBe(true)
+    }
+    expect(familyScripts('man').map((s) => s.id)).toContain('approach-her-family')
+    expect(familyScripts('woman').map((s) => s.id)).not.toContain('approach-her-family')
   })
 
   it('does not read her restraint as his red flag', () => {

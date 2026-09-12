@@ -13,6 +13,13 @@ import { speak, type Script } from './read'
  * Every script here is offered, never recommended. There is no state in the
  * app that decides she should end it, or that it is time to send his people.
  * She decides; we hand her the sentences.
+ *
+ * Most of these read from either side once the pronouns are resolved. Two do
+ * not, and carry `for: 'woman'` — telling a wali she met him online, and
+ * asking him to send his people. The mirror of the second is his to walk, so
+ * `approach-her-family` carries `for: 'man'`: it is the words for the step the
+ * read now tells him is his, and until 2026-09-12 nothing in the product gave
+ * them to him (docs/BOARD.md, "What the founder's own walk found").
  */
 
 export interface FamilyScript {
@@ -67,6 +74,20 @@ const SCRIPTS: FamilyScript[] = [
         'I think we’ve talked long enough to know what this is. I’d like you to send your people to my family. I’m not asking for a date — I’m asking for the step. If that feels too soon, tell me honestly, and tell me when wouldn’t be.',
       tells:
         'A serious man asks “when” and “who should I bring”. A man who says “let’s not rush” has just told you his timeline is not yours. Give him the second question — “when wouldn’t be” — so that his answer has to have a month in it.',
+    },
+  },
+  {
+    id: 'approach-her-family',
+    title: 'Speaking to her family for the first time',
+    when: 'Once she has told you who to approach.',
+    stages: ['talking', 'deciding'],
+    for: 'man',
+    script: {
+      why: 'This is the step that turns talking into an intention, and it is the one thing no message can do for you. It costs you something to stand in front of her father or her brother and say it out loud. That is exactly why it counts — and why every month you wait, she is the one carrying the question.',
+      words:
+        'Assalaamu alaykum. My name is ———. I have been speaking with your daughter, and I did not want that to go further without coming to you first. My intention is marriage, and I want to do this the way you would want it done. If you will allow it, I would like my family to come and sit with yours.',
+      tells:
+        'Expect the questions to come fast, and to be about your work, your family and your deen. Answer plainly and do not sell. “I don’t know yet” is a better answer than a smooth one. If he asks you to wait, ask what he would want to see by then — a father who names something is not refusing you, and a father who names nothing has told you something too.',
     },
   },
   {

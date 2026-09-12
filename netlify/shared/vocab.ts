@@ -132,6 +132,7 @@ export const FAMILY_SCRIPT_IDS = new Set([
   'tell-wali-online',
   'first-with-hooyo',
   'send-his-people',
+  'approach-her-family',
   'open-mahr-and-living',
   'end-it-kindly',
 ])
