@@ -224,3 +224,21 @@ cannot remove it. Turn it off at Netlify → `getniyyah` → Project
 configuration → General → "Powered by Netlify badge". Per project, no
 redeploy needed. A visitor can hide it for themselves; only that switch hides
 it for everyone. Found on the live site 2026-09-12 (docs/BOARD.md).
+
+
+## The Guide's request contract
+
+`POST /.netlify/functions/guide` takes `{ mode, context, message, history }`.
+`mode` is one of the five in `netlify/shared/vocab.ts` `GUIDE_MODES`; anything
+else is a 400. `context` is the member's map, checked field by field in
+`netlify/shared/prompt.ts` before it reaches the prompt. The system prompt is
+built on the server and **a `system` field in the body is ignored** — it used
+to be the whole prompt, which made the route a general-purpose Claude endpoint
+on our key (`docs/BOARD.md`, the reality-sprint pass). Ignored rather than
+refused, so a client still cached on a phone keeps working.
+
+## Reading a pool without changing it
+
+`GET /pool?scene=…` now deletes nothing. `swept` reports what a sweep would
+take; `sweep=1` performs it and `sweptForReal` says so. Sweep between tests,
+never during one.

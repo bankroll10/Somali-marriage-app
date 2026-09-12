@@ -120,7 +120,7 @@ describe('the door against the maps', () => {
     woman(1)
     const gone = woman(2, { expiresAt: null })
     man(1)
-    const r = await read('scene=twin-cities')
+    const r = await read('scene=twin-cities&sweep=1')
     expect(r.door).toEqual({ women: 2, men: 1 })
     expect(r.live).toEqual({ women: 1, men: 1 })
     expect(r.swept).toEqual({ women: 1, men: 0 })
@@ -135,13 +135,44 @@ describe('the door against the maps', () => {
   it('treats a map past its year as gone, and takes the blob with the entry — one expiry rule, both readers', async () => {
     woman(1)
     woman(2, { expiresAt: '2025-01-01' })
-    const r = await read('scene=twin-cities')
+    const r = await read('scene=twin-cities&sweep=1')
     expect(r.live.women).toBe(1)
     expect(r.swept.women).toBe(1)
     expect(stores.get('maps')!.has(code('W', 2))).toBe(false)
     expect(stores.get('maps')!.has(code('W', 1))).toBe(true)
     // Read again: nothing left to sweep, the count holds.
-    expect((await read('scene=twin-cities')).swept).toEqual({ women: 0, men: 0 })
+    expect((await read('scene=twin-cities&sweep=1')).swept).toEqual({ women: 0, men: 0 })
+  })
+
+  it('deletes nothing unless the sweep was asked for', async () => {
+    // A readout must not be able to remove a member of the pool it reports on.
+    // It used to: every read swept, so the founder could not look at the door
+    // during a test without losing anyone whose map read as absent — and the
+    // way to reach them went too, permanently, with the readout naming a count
+    // and never a code (docs/BOARD.md, the reality-sprint pass).
+    woman(1)
+    const gone = woman(2, { expiresAt: null })
+    man(1)
+
+    const r = await read('scene=twin-cities')
+    // It still says exactly what it would take.
+    expect(r.swept).toEqual({ women: 1, men: 0 })
+    expect(r.sweptForReal).toBe(false)
+    expect(r.live).toEqual({ women: 1, men: 1 })
+    // And has taken none of it.
+    expect(stores.get('cohort')!.has(gone)).toBe(true)
+    expect(stores.get('cohort')!.has(`index/${code('W', 2)}`)).toBe(true)
+    expect(stores.get('contacts')!.has(code('W', 2))).toBe(true)
+
+    // Reading again is still safe, however many times.
+    await read('scene=twin-cities')
+    expect(stores.get('contacts')!.has(code('W', 2))).toBe(true)
+
+    // Asked for, it happens — and says so.
+    const swept = await read('scene=twin-cities&sweep=1')
+    expect(swept.sweptForReal).toBe(true)
+    expect(stores.get('cohort')!.has(gone)).toBe(false)
+    expect(stores.get('contacts')!.has(code('W', 2))).toBe(false)
   })
 
   it('supply is who is looking: live and preparing, as of the last keep', async () => {
