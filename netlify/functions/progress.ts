@@ -5,6 +5,7 @@ import { stamp } from '../shared/record'
 import { floorRows } from '../shared/floor'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import {
+  COUNTRIES,
   DIMENSIONS,
   ENDED_REASONS,
   ENDED_STAGES,
@@ -109,6 +110,14 @@ export interface ProgressRecord {
   /** Rung id → when it was first reached. A rung never un-reaches. */
   first: Record<string, string>
   scene?: string
+  /**
+   * The country, last told wins like `scene`. Without it the North Star could
+   * not be read for any country: thirteen of fourteen have no named city, so
+   * every member outside the five cities collapsed into one `other` row. Added
+   * while there were zero records — a field is cheapest before member one
+   * (docs/BACKWARD.md, docs/BOARD.md). Floored like every quasi-identifier.
+   */
+  country?: string
   /** What kind of link brought this person here. First told wins; never a person. */
   via?: string
   /**
@@ -283,6 +292,8 @@ async function tally(store: Store) {
   const now = Date.now()
   const rungs: Record<string, number> = {}
   const scenes: Record<string, Record<string, number>> = {}
+  /** The ladder per country — the North Star for the nine countries with no named city. */
+  const countries: Record<string, Record<string, number>> = {}
   const vias: Record<string, Record<string, number>> = {}
   const sides: Record<string, Record<string, number>> = {}
   /**
@@ -310,9 +321,11 @@ async function tally(store: Store) {
       continue
     }
     const scene = record.scene && SCENES.has(record.scene) ? record.scene : 'unsaid'
+    const country = record.country && COUNTRIES.has(record.country) ? record.country : 'unsaid'
     const via = record.via && VIAS.has(record.via) ? record.via : 'unsaid'
     const side = record.gender && GENDERS.has(record.gender) ? record.gender : 'unsaid'
     const perScene = (scenes[scene] ??= {})
+    const perCountry = (countries[country] ??= {})
     const perVia = (vias[via] ??= {})
     const perSide = (sides[side] ??= {})
     const perSideVia = ((sidesByVia[side] ??= {})[via] ??= {})
@@ -320,6 +333,7 @@ async function tally(store: Store) {
       if (!RUNGS.has(id)) continue
       rungs[id] = (rungs[id] ?? 0) + 1
       perScene[id] = (perScene[id] ?? 0) + 1
+      perCountry[id] = (perCountry[id] ?? 0) + 1
       perVia[id] = (perVia[id] ?? 0) + 1
       perSide[id] = (perSide[id] ?? 0) + 1
       perSideVia[id] = (perSideVia[id] ?? 0) + 1
@@ -351,6 +365,7 @@ async function tally(store: Store) {
   return {
     rungs,
     scenes: floorRows(scenes),
+    countries: floorRows(countries),
     vias: floorRows(vias),
     sides: floorRows(sides),
     sidesByVia: Object.fromEntries(Object.entries(sidesByVia).map(([s, rows]) => [s, floorRows(rows)])),
@@ -513,7 +528,7 @@ export default async function handler(req: Request) {
   const raw = await req.text()
   if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
 
-  let body: { id?: string; rungs?: unknown; scene?: string; via?: string; gender?: string; facts?: unknown }
+  let body: { id?: string; rungs?: unknown; scene?: string; country?: string; via?: string; gender?: string; facts?: unknown }
   try {
     body = JSON.parse(raw)
   } catch {
@@ -528,6 +543,9 @@ export default async function handler(req: Request) {
   if (rungs.length !== body.rungs.length) return Response.json({ error: 'bad_rungs' }, { status: 400 })
   if (body.scene !== undefined && !SCENES.has(body.scene)) {
     return Response.json({ error: 'bad_scene' }, { status: 400 })
+  }
+  if (body.country !== undefined && !COUNTRIES.has(body.country)) {
+    return Response.json({ error: 'bad_country' }, { status: 400 })
   }
   if (body.via !== undefined && !VIAS.has(body.via)) {
     return Response.json({ error: 'bad_via' }, { status: 400 })
@@ -558,6 +576,7 @@ export default async function handler(req: Request) {
     const record: ProgressRecord = {
       first,
       ...(body.scene ? { scene: body.scene } : existing?.scene ? { scene: existing.scene } : {}),
+      ...(body.country ? { country: body.country } : existing?.country ? { country: existing.country } : {}),
       ...(via ? { via } : {}),
       ...(body.gender ? { gender: body.gender } : existing?.gender ? { gender: existing.gender } : {}),
       ...(merged && Object.keys(merged).length ? { facts: merged } : {}),

@@ -18,7 +18,12 @@
  * one person. Never who sent it. It is the only attribution this product
  * records, and it is validated here so that nothing else can ride along under
  * that name. `group` is the one the first forty are found through — see
- * docs/WEDGE.md — and it names the kind of room, never the room.
+ * docs/WEDGE.md — and it names the kind of room, never the room. Its three
+ * siblings — `alumni`, `professional`, `mosque` — name the kind of room more
+ * exactly, because the eight-week rule pivots "channel first" and a single
+ * `group` cell could not tell which kind of room produced the men
+ * (docs/BOARD.md). A kind of room is still not a person, and never which
+ * room; added before the first post because it cannot be retrofitted.
  *
  * This is the one place links are recognised, so main.tsx can dispatch without
  * a router and the query string can be cleaned before React reads storage.
@@ -27,9 +32,9 @@ export type CodedKind = 'map' | 'couple' | 'vouch'
 export type InstrumentKind = 'read' | 'eleven' | 'families' | 'door'
 export type EntryKind = CodedKind | InstrumentKind
 
-export type Via = 'words' | 'eleven' | 'couple' | 'door' | 'family' | 'married' | 'group'
+export type Via = 'words' | 'eleven' | 'couple' | 'door' | 'family' | 'married' | 'group' | 'alumni' | 'professional' | 'mosque'
 /** Must match netlify/shared/vocab.ts VIAS. */
-export const VIAS: Via[] = ['words', 'eleven', 'couple', 'door', 'family', 'married', 'group']
+export const VIAS: Via[] = ['words', 'eleven', 'couple', 'door', 'family', 'married', 'group', 'alumni', 'professional', 'mosque']
 
 export interface Entry {
   kind: EntryKind

@@ -176,6 +176,27 @@ describe('the readout', () => {
     expect('arrived' in body.scenes.toronto).toBe(true)
   })
 
+  it('splits the ladder by country, floored — so the North Star reads for the nine countries with no named city', async () => {
+    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'other', country: 'ke' })
+    await post({ id: 'ACDEFK', rungs: ['arrived'], scene: 'london', country: 'uk' })
+    await post({ id: 'ACDEFM', rungs: ['arrived'] })
+    const body = await (await readout()).json()
+    expect(body.countries.ke.arrived).toBe(5)
+    expect(body.countries.uk.arrived).toBeNull()
+    expect(body.countries.unsaid.arrived).toBeNull()
+    // Last told wins, like the scene — she moved.
+    await post({ id: 'ACDEFK', rungs: ['arrived'], country: 'se' })
+    expect(JSON.parse(stores.get('progress')!.get('ACDEFK')!).country).toBe('se')
+    expect((await post({ id: 'ACDEFN', rungs: ['arrived'], country: 'mars' })).status).toBe(400)
+  })
+
+  it('tells the kind of room apart — alumni, professional, mosque — and never the room', async () => {
+    for (const via of ['alumni', 'professional', 'mosque', 'group']) {
+      expect((await post({ id: `ACDEF${via[0].toUpperCase()}`, rungs: ['arrived'], via })).status).toBe(200)
+    }
+    expect((await post({ id: 'ACDEFX', rungs: ['arrived'], via: 'ssa-umn' })).status).toBe(400)
+  })
+
   it('splits the ladder by side, floored — so the men’s funnel can be read once five men have arrived', async () => {
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], gender: 'man' })
     await post({ id: 'ACDEFK', rungs: ['arrived', 'mapped'], gender: 'man' })

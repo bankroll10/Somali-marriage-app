@@ -65,9 +65,11 @@ export const GENDERS = new Set(['woman', 'man'])
  * Must match src/lib/entry.ts. What kind of link first brought a person here —
  * never who sent it; the link does not carry that. `group` is a link shared
  * into a community's chat rather than sent to one person: the kind of room,
- * never the room (docs/WEDGE.md).
+ * never the room (docs/WEDGE.md). `alumni`, `professional` and `mosque` say
+ * which kind of room, so the eight-week pivot rule can be read from the
+ * readout — still never which room, never a person (docs/BOARD.md).
  */
-export const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family', 'married', 'group'])
+export const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family', 'married', 'group', 'alumni', 'professional', 'mosque'])
 
 /** Must match `Dimension` in src/types.ts — the map's seven grounds. */
 export const DIMENSIONS = new Set(['intention', 'faith', 'family', 'vision', 'character', 'emotional', 'selfAwareness'])
