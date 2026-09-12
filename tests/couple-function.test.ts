@@ -65,8 +65,13 @@ const sides = (over: Record<string, string> = {}, base = 'agree') => ({ ...Objec
 const post = (body: unknown) => handler(new Request('http://x/.netlify/functions/couple', { method: 'POST', body: JSON.stringify(body) }))
 const get = (code: string) => handler(new Request(`http://x/.netlify/functions/couple?code=${code}`))
 
-const tallyReq = (headers: Record<string, string> = {}) =>
+const tallyReq = (headers: Record<string, string> = FOUNDER) =>
   handler(new Request('http://x/.netlify/functions/couple', { headers }))
+/** The founder's key, set for every test: a readout never answers without one (netlify/shared/founder.ts). */
+const FOUNDER_KEY = 'test-founder-key'
+const FOUNDER = { authorization: `Bearer ${FOUNDER_KEY}` }
+beforeEach(() => vi.stubEnv('FOUNDER_KEY', FOUNDER_KEY))
+
 const storedTally = () => JSON.parse(stores.get('tallies')?.get('joint') ?? 'null')
 
 beforeEach(() => {
@@ -203,7 +208,7 @@ describe('how pairs come out', () => {
     expect(storedTally()).toBeNull()
   })
 
-  it('the founder reads the tally with no code; a bad code is still a bad code; the key is required once set', async () => {
+  it('the founder reads the tally with her key; a bad code is still a bad code; the key is required', async () => {
     await pair(sides(), sides({ work: 'differ' }))
     const open = await tallyReq()
     expect(open.status).toBe(200)
@@ -211,8 +216,10 @@ describe('how pairs come out', () => {
     expect((await get('nope')).status).toBe(400)
 
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
-    expect((await tallyReq()).status).toBe(401)
+    expect((await tallyReq({})).status).toBe(401)
     expect((await tallyReq({ authorization: 'Bearer open-sesame' })).status).toBe(200)
+    vi.stubEnv('FOUNDER_KEY', '')
+    expect((await tallyReq()).status).toBe(401)
   })
 
   it('reads as empty before any pair has answered', async () => {

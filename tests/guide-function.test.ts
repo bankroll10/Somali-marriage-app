@@ -46,14 +46,14 @@ vi.mock('@netlify/blobs', () => ({
   }),
 }))
 
-const { default: handler } = await import('../netlify/functions/guide')
+const { default: handler, trimHistory } = await import('../netlify/functions/guide')
 const health = (headers: Record<string, string> = {}) =>
   handler(new Request('http://x/.netlify/functions/guide', { headers }), {} as never)
-const ask = () =>
+const ask = (body: unknown = { system: 'you are a guide', message: 'hi' }) =>
   handler(
     new Request('http://x/.netlify/functions/guide', {
       method: 'POST',
-      body: JSON.stringify({ system: 'you are a guide', message: 'hi' }),
+      body: typeof body === 'string' ? body : JSON.stringify(body),
     }),
     {} as never,
   )
@@ -82,14 +82,68 @@ describe('the health check', () => {
     expect(JSON.stringify(body)).not.toContain('sk-ant-test')
   })
 
-  it('with no founder key configured it still answers, and with no API key it says the guide is off', async () => {
+  it('with no founder key configured it refuses — a readout never answers without one', async () => {
+    vi.stubEnv('FOUNDER_KEY', '')
     vi.stubEnv('ANTHROPIC_API_KEY', '')
-    const res = await health()
+    expect((await health()).status).toBe(401)
+    expect(create).not.toHaveBeenCalled()
+  })
+
+  it('with the key but no API key it says the guide is off, and makes no call', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    vi.stubEnv('ANTHROPIC_API_KEY', '')
+    const res = await health({ authorization: 'Bearer open-sesame' })
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.keyPresent).toBe(false)
     expect(body.call).toBeUndefined()
     expect(create).not.toHaveBeenCalled()
+  })
+})
+
+describe('the bounds on one call', () => {
+  // A cap on calls was never a cap on spend: a multi-megabyte body was a
+  // multi-dollar call. The body is measured before it is parsed, the thread is
+  // cut, and the answer is capped — so the worst call has a price.
+  it('refuses an oversize body before parsing it or reaching the model', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    const huge = JSON.stringify({ system: 'x'.repeat(40_000), message: 'hi' })
+    const res = await ask(huge)
+    expect(res.status).toBe(413)
+    expect((await res.json()).error).toBe('too_large')
+    expect(stream).not.toHaveBeenCalled()
+  })
+
+  it('caps the answer, and sends the thread trimmed to its last turns and characters', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    const history = Array.from({ length: 14 }, (_, i) => ({
+      role: i % 2 === 0 ? 'user' : 'coach',
+      text: `turn ${i} ${'…'.repeat(800)}`,
+    }))
+    await ask({ system: 'you are a guide', message: 'hi', history })
+    expect(stream).toHaveBeenCalledTimes(1)
+    const params = (stream.mock.calls[0] as unknown[])[0] as { max_tokens: number; messages: { content: string }[] }
+    expect(params.max_tokens).toBe(2048)
+    // Ten turns of 800+ characters is more than the character bound allows, so
+    // fewer than ten arrive — plus her message.
+    const turns = params.messages.length - 1
+    expect(turns).toBeLessThan(10)
+    expect(turns).toBeGreaterThan(0)
+    const chars = params.messages.slice(0, -1).reduce((n, m) => n + m.content.length, 0)
+    expect(chars).toBeLessThanOrEqual(6_000)
+    // The newest turns survive, never the oldest.
+    expect(params.messages[params.messages.length - 2].content).toMatch(/^turn 13/)
+  })
+
+  it('keeps whole turns, newest first, and drops anything that is not a turn', () => {
+    const turns = [
+      { role: 'user' as const, text: 'a'.repeat(50) },
+      { role: 'coach' as const, text: 'b'.repeat(50) },
+      { role: 'user' as const, text: 'c'.repeat(50) },
+    ]
+    expect(trimHistory(turns, 120).map((t) => t.text[0])).toEqual(['b', 'c'])
+    expect(trimHistory(turns, 49)).toEqual([])
+    expect(trimHistory([{ role: 'x', text: 'nope' } as never, ...turns], 1000)).toHaveLength(3)
   })
 })
 

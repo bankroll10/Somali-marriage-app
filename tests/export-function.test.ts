@@ -30,8 +30,14 @@ vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) =>
 
 const { default: handler } = await import('../netlify/functions/export')
 
-const get = (headers: Record<string, string> = {}) =>
+const get = (headers: Record<string, string> = FOUNDER) =>
   handler(new Request('http://x/.netlify/functions/export', { headers }))
+/** The founder's key, set for every test: a readout never answers without one (netlify/shared/founder.ts). */
+const FOUNDER_KEY = 'test-founder-key'
+const FOUNDER = { authorization: `Bearer ${FOUNDER_KEY}` }
+beforeEach(() => vi.stubEnv('FOUNDER_KEY', FOUNDER_KEY))
+afterEach(() => vi.unstubAllEnvs())
+
 
 /** One of everything a real site would hold, including what must not come back. */
 function seed() {
@@ -63,7 +69,6 @@ beforeEach(() => {
   stores.clear()
   seed()
 })
-afterEach(() => vi.unstubAllEnvs())
 
 describe('the backup', () => {
   it('hands back every progress record whole — the part nobody could recreate', async () => {
@@ -107,7 +112,10 @@ describe('the backup', () => {
 
   it('is the founder’s, and downloads as a dated file', async () => {
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    expect((await get({})).status).toBe(401)
+    vi.stubEnv('FOUNDER_KEY', '')
     expect((await get()).status).toBe(401)
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
     expect((await get({ authorization: 'Bearer wrong' })).status).toBe(401)
     const res = await get({ authorization: 'Bearer open-sesame' })
     expect(res.status).toBe(200)

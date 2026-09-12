@@ -2,17 +2,21 @@
  * The founder's key.
  *
  * Every readout this product produces — the ladder, the door's full tally, how
- * pairs come out on the eleven, the guide's health — is aggregate and holds no
- * person. It is also the only thing here a second team could not build for
- * themselves, which is exactly why it should not be a public URL. This gates
- * those routes behind one bearer token, read from `FOUNDER_KEY`.
+ * pairs come out on the eleven, the guide's health, the pool, the backup — is
+ * the only thing here a second team could not build for themselves, which is
+ * exactly why none of it should be a public URL. This gates those routes
+ * behind one bearer token, read from `FOUNDER_KEY`.
  *
- * Unset means open — the same convention as `PREVIEW_PASSWORD` in the edge
- * gate, and for the same reason: a missing variable must never lock the owner
- * out of her own numbers, and local runs and tests should behave normally. The
- * trade is that forgetting to set it leaves the readouts as public as they
- * were before this file existed, so the README's deploy checklist checks for
- * a 401.
+ * **Unset means closed.** It used to mean open, on the reasoning that every
+ * readout was aggregate and a public tally is embarrassing rather than
+ * dangerous. That reasoning was wrong about two routes and weak about the
+ * rest: `/export` returns every progress record whole, `/pool` deletes lapsed
+ * entries on GET, and the cost of a misconfigured deploy was silent
+ * publication that the founder would learn of from a cold-start log line
+ * (docs/BOARD.md). The cost of failing closed is one environment variable,
+ * and the recovery is one line in docs/DEPLOY.md: set `FOUNDER_KEY`. Local
+ * runs and tests set it too — a readout that answers without a key is the bug
+ * this file exists to make impossible.
  *
  * Shared, not a function: Netlify treats every file in `netlify/functions` as
  * a deployable handler, so this lives beside that directory and is inlined by
@@ -48,7 +52,7 @@ function matches(a: string, b: string): boolean {
 }
 
 /**
- * True when no key is configured, or the request carries
+ * True only when a key is configured and the request carries
  * `Authorization: Bearer <FOUNDER_KEY>`. Read per call, never at module load:
  * a rotated key must take effect on the next request, and tests stub the
  * environment between cases.
@@ -56,10 +60,10 @@ function matches(a: string, b: string): boolean {
 export function isFounder(req: Request): boolean {
   const key = process.env.FOUNDER_KEY
   if (!key) {
-    // Unset means open, deliberately — but silently open is how a readout ends
-    // up public for a month without anyone noticing. Say it once per cold start.
-    warnOnce('[niyyah] FOUNDER_KEY is not set — every readout is public to anyone with the URL')
-    return true
+    // Closed, and said once per cold start so the reason is in the logs
+    // rather than in a 401 the founder has to guess at.
+    warnOnce('[niyyah] FOUNDER_KEY is not set — every readout refuses until it is (docs/DEPLOY.md)')
+    return false
   }
   const header = req.headers.get('authorization') ?? ''
   const space = header.indexOf(' ')
@@ -85,24 +89,12 @@ export function notFounder(): Response {
 }
 
 /**
- * The same gate, refusing when no key is configured.
- *
- * `isFounder` fails **open** deliberately: a missing variable must never lock
- * the owner out of her own numbers, and a tally of rungs going public is
- * embarrassing rather than dangerous. That reasoning does not survive contact
- * with the safety queue, which holds free text naming a specific person and
- * what they are alleged to have done. One misconfigured deploy would publish
- * it — and unlike a tally, it cannot be un-published.
- *
- * So `/safety` uses this instead, and it is the only route that does. The
- * trade is the one the rest of the file refuses: if the key is lost, the
- * founder cannot read her own reports until she sets it again. That is the
- * right way round for this one queue. See docs/HARD.md and docs/CONTROL.md.
+ * The same gate. This was the fail-closed exception for `/safety` alone,
+ * while every other readout failed open (docs/HARD.md row 6); since
+ * docs/BOARD.md every readout fails closed, so the two are one gate. Kept as
+ * a name because the safety queue is the route where the distinction mattered
+ * most, and the call sites read better for saying so.
  */
 export function requireFounder(req: Request): boolean {
-  if (!process.env.FOUNDER_KEY) {
-    warnOnce('[niyyah] FOUNDER_KEY is not set — /safety refuses until it is')
-    return false
-  }
   return isFounder(req)
 }

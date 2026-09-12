@@ -50,6 +50,11 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllEnvs())
 
+/** The founder's key, set for every test: a readout never answers without one (netlify/shared/founder.ts). */
+const FOUNDER_KEY = 'test-founder-key'
+const FOUNDER = { authorization: `Bearer ${FOUNDER_KEY}` }
+beforeEach(() => vi.stubEnv('FOUNDER_KEY', FOUNDER_KEY))
+
 describe('a family vouch', () => {
   it('attaches to a kept map and comes back as relationship and first name only', async () => {
     const res = await post(good)
@@ -180,7 +185,7 @@ describe('the token in the link', () => {
  * founder's, and that nothing a family member wrote can leave through it.
  */
 describe('the founder’s readout', () => {
-  const tally = (headers: Record<string, string> = {}) =>
+  const tally = (headers: Record<string, string> = FOUNDER) =>
     handler(new Request('http://x/.netlify/functions/vouch', { headers }))
   const ask = (code: string) => post({ side: 'ask', code })
 
@@ -234,7 +239,10 @@ describe('the founder’s readout', () => {
 
   it('is the founder’s when a key is set, and a bad code is still a bad code', async () => {
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
+    expect((await tally({})).status).toBe(401)
+    vi.stubEnv('FOUNDER_KEY', '')
     expect((await tally()).status).toBe(401)
+    vi.stubEnv('FOUNDER_KEY', 'open-sesame')
     expect((await tally({ authorization: 'Bearer wrong' })).status).toBe(401)
     expect((await tally({ authorization: 'Bearer open-sesame' })).status).toBe(200)
     // Asking about one code needs no key — it is hers, and her family's.
