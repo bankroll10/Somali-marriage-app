@@ -19,7 +19,7 @@
 | **Build** | The smallest slice that tests the hypothesis — one commit, `npm run verify` green, the standing rules in "Release review," below |
 | **Ship** | A pull request against `main`, `.github/workflows/verify.yml` green, merge — `docs/DEPLOY.md` |
 | **Measure** | `docs/OPERATING.md`'s readouts, read at the two cadences below |
-| **Talk to users** | `docs/GAPS.md`'s ten behaviour-anchored conversations, and every passive channel, logged in `docs/FEEDBACK.md` |
+| **Talk to users** | `docs/GAPS.md`'s behaviour-anchored conversations, run as `docs/PROTOCOL.md` for the first ten, and every passive channel, logged in `docs/FEEDBACK.md` |
 | **Learn** | The dated logs — `docs/GAPS.md`'s reclassification log, `docs/EXPERIMENTS.md`'s results log, `docs/OPERATING.md`'s revisions log |
 | **Iterate** | The next roadmap pick (`docs/PRODUCT.md` §10), prioritised as below, closing back to Observe |
 
