@@ -3,7 +3,6 @@ import { NETLIFY_FORM_ENDPOINT, joinWaitlist, mailtoFor, waitlistConfigured } fr
 
 const entry = {
   contact: 'hodan@example.com',
-  code: 'ACDEFG',
   scene: 'twin-cities',
   country: 'us',
   reach: 'country',
@@ -79,7 +78,12 @@ describe('the waitlist — the only line out of this app', () => {
     const sent = new URLSearchParams(init.body as string)
     expect(sent.get('form-name')).toBe('niyyah-waitlist')
     expect(sent.get('contact')).toBe(entry.contact)
-    expect(sent.get('code')).toBe(entry.code)
+    // Her map code is the sole authenticator for her whole map — for reading
+    // it and for the cascading delete — and it used to travel here, into a
+    // third party's store, in the same row as the way to reach her, while
+    // Trust told her the code was "registered to nobody" (docs/BOARD.md).
+    expect(sent.get('code')).toBeNull()
+    expect([...sent.keys()]).not.toContain('code')
     // The city signal — which city has enough serious people to open first —
     // and, beside it, the country and how far she would go: the only way the
     // founder can write to exactly the people whose pool has opened, since

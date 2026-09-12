@@ -698,3 +698,38 @@ or after 2026-08-19, and the API does not expose the switch. Netlify →
 `getniyyah` → Project configuration → General → "Powered by Netlify badge" →
 off. No redeploy needed. It tells every visitor the site is on a free plan,
 on a product whose front door is trust.
+
+## The reality sprint — one launch-hardening pass
+
+*2026-09-12, after the founder's walk and before the links go to real people.*
+The strategy phase is over. This pass fixed only what could make a real-user
+test **invalid, unsafe, misleading, broken, or harder to trust than it needs
+to be**. Everything else is in the deferred list below and was left alone.
+
+| # | Problem | Why it could corrupt the sprint | The fix | The test |
+|---|---|---|---|---|
+| 1 | **The Guide was a general-purpose Claude endpoint.** The browser built the whole system prompt and posted it; `guide.ts` checked only that it was not empty | The hourly and daily caps are global. Anyone using our key eats the same 400/day the testers draw from, and when it empties every member silently gets the offline voice — the client reads every failure as a fallback, by design. We would have spent a fortnight measuring the local matcher believing it was the live guide | The prompt is built in `netlify/shared/prompt.ts`. The caller names one of five voices and fills named slots; a `system` in the body is ignored (not refused, so a cached client still works). Every slot is checked against a closed set where one exists, and otherwise flattened to one line and cut | `tests/guide-prompt.test.ts`, `tests/guide-function.test.ts` — an injected prompt never reaches the model; an unknown mode is a 400 before it; a value carrying newlines cannot start a line, and every rule in this prompt is a line |
+| 2 | **Trust's guide disclosure said "exactly what it sends" and named nine of thirteen.** The age, the side, the attachment lean and what someone feels safe with went unlisted, as did the earlier turns of the thread | Trust is the one screen whose whole job is being believed. A tester who reads it and then learns what actually leaves has been misled by it, and in a community this tight one person saying that out loud ends the test | The sentence names all of it | `tests/guide-disclosure.test.ts` drives the list off the prompt itself: add a field to the prompt and the disclosure fails until it is named |
+| 3 | **The door's signup posted the map code to the form service.** A six-character code is the sole authenticator for reading a map *and* for the cascading delete, and it sat in a third party's row beside the way to reach her — while Trust said it "is registered to nobody" and the contact was "ours to hold rather than a form company's" | The most sensitive claim, at the moment of collection, on the most sensitive data | The code no longer travels there. The second copy is named on Trust and in the fine print under the form, and so is the fact that Forget me cannot reach it | `src/lib/waitlist.test.ts` pins that no `code` field is sent |
+| 4 | **Forget me left the eleven behind for anyone who never kept a map.** `createCouple` needs no map code, and the cascade finds the couple code inside a kept snapshot | The eleven is what the sprint asks people to try, and Trust says forgetting deletes it with no condition attached. Told it was done; both sheets stayed for ninety days | The sheet has its own delete, keyed on the couple code that both of them hold. It touches nothing else — never a safety report, so a man cannot erase one about himself, and never the joint tally, which has no code in it to find | `tests/couple-function.test.ts`, `src/lib/forget.test.ts` |
+| 5 | **Reading a pool deleted from it.** Every `GET /pool` swept: anyone whose map read as absent lost their place on the door and the only way to reach them, permanently, inside the readout — which reported a count and never a code | The readout is the instrument. The founder reads it every few days, and a test of twenty to forty cannot absorb a silent loss or detect one. A map reads as absent when it lapses, when it is forgotten, and for a moment when the store does not answer | Sweeping is `?sweep=1`. A plain read counts what it would take and says whether it took it | `tests/pool-function.test.ts` — a read leaves the entry, the index and the contact in place, however many times it runs |
+| 6 | **Nothing tested the follow-up chain**, though every link was unit-tested alone. The last time it broke, no test noticed | "Did they actually say the words" is the sprint's outcome measure. Broken again, every number comes back zero and reads as "nobody followed through" rather than "nobody was asked" | No product change — the chain holds | `src/lib/followup-chain.test.ts` walks a stranger on `?read` and `?eleven`, both genders, from no state to the ask ripening on day three |
+
+**Walked**, Chromium at 400 px, store cleared between runs: `?read` and
+`?eleven`, each as a woman and as a man, all eleven questions to the result and
+its script; the send-to-them screen; the guide live and with the function
+refusing. No page errors, no wrong-side words, nothing broken. The one defect
+the walk turned up was in the walker.
+
+**Deferred, and untouched.** Forged `coach` turns in the history — a real
+vector, but against a server-owned prompt it yields a constrained Niyyah reply,
+not a proxy. Per-member guide caps. The limiter failing open, which is
+deliberate. Cutting `attachment` and `comm-safety` from the prompt — a product
+decision, after the sprint. Closed vocabularies for the six intake answers that
+have no server twin; the length cap and the flattening shut the slot. The
+`?fresh` / `?demo` params, which no posted link can carry. `GET /progress`
+deleting year-stale records, when nothing is a year old. A follow-up written by
+`?families` or a guide commitment for someone with no Home: written, and never
+askable — out of scope because `?read` and `?eleven` are what is being posted,
+and recorded in `src/lib/followup-chain.test.ts` so that number is read as "not
+asked" rather than "did not follow through".

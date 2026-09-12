@@ -2,14 +2,24 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { Context } from '@netlify/functions'
 import { isFounder, notFounder } from '../shared/founder'
 import { overDailyCap, overHourlyCap, rateLimited } from '../shared/limit'
+import { GUIDE_MODES, buildSystemPrompt, sanitiseContext } from '../shared/prompt'
 
 /**
  * The live Guide.
  *
- * The persona, the member's readiness map, the live app state and the grounding
- * rules all come from `guideSystemPrompt` in src/lib/coach.ts — the prompt was
- * written alongside the six voices and is the single source of truth for how
- * this guide speaks. This function only carries it to the model.
+ * The persona, the frame and the grounding rules come from
+ * `netlify/shared/prompt.ts` and are built here, on the server.
+ *
+ * They used to be built in the browser and posted, and this function handed
+ * whatever arrived straight to the model. That made the route a
+ * general-purpose Claude endpoint: any persona, any instruction, our key, and
+ * the same global caps every member draws from — and because the client reads
+ * every failure as "fall back to the offline voice", the first sign of it
+ * would have been a fortnight of members quietly getting the local matcher
+ * while we believed we were watching the live guide (docs/BOARD.md, the
+ * reality-sprint pass). The caller now names a mode and fills named slots.
+ * `body.system` is ignored rather than refused, so a client still cached on
+ * someone's phone keeps working.
  *
  * **On in production, deliberately** (docs/ROADMAP.md, 2026-09-10). This used
  * to say the guide was dormant and that Trust's promise "must be rewritten in
@@ -108,10 +118,18 @@ interface Turn {
 }
 
 interface Body {
-  system?: string
+  /** One of GUIDE_MODES — which of the five voices is answering. */
+  mode?: string
+  /** The member's map, checked against shared/prompt.ts before it reaches the prompt. */
+  context?: unknown
   message?: string
   /** Prior turns in this thread, oldest first, so the guide remembers. */
   history?: Turn[]
+  /**
+   * Read by an older client only, and deliberately ignored. Kept in the type
+   * so the next reader knows it arrives and knows it goes nowhere.
+   */
+  system?: never
 }
 
 /**
@@ -218,10 +236,16 @@ export default async function handler(req: Request, _context: Context) {
   }
 
   const message = body.message?.trim()
-  const system = body.system?.trim()
-  if (!message || !system) {
-    return Response.json({ error: 'missing_message_or_system' }, { status: 400 })
-  }
+  if (!message) return Response.json({ error: 'missing_message' }, { status: 400 })
+
+  // The mode is the only thing the caller chooses about how the guide speaks,
+  // and it chooses from five. Anything else is not a voice this product has.
+  const mode = typeof body.mode === 'string' ? body.mode : ''
+  if (!GUIDE_MODES.has(mode)) return Response.json({ error: 'bad_mode' }, { status: 400 })
+
+  // Built here, from values checked here. Nothing the caller sends can reach
+  // the persona, the frame or the grounding rules.
+  const system = buildSystemPrompt(mode, sanitiseContext(body.context))
 
   // Keep the tail of the thread only. The map is already in the system prompt,
   // so old turns buy continuity, not context, and they are the cheapest thing

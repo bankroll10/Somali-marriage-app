@@ -81,7 +81,8 @@ curl -s -H "$K" $S/progress | jq .     # the ladder, and the facts
 curl -s -H "$K" $S/cohort   | jq .     # the door: every country and city, how far people would go, hardest parts, ledgers
 curl -s -H "$K" $S/couple   | jq .     # how pairs come out on the eleven
 curl -s -H "$K" $S/vouch    | jq .     # the vouch: asks made, vouches given, and who in the family gave them
-curl -s -H "$K" "$S/pool?scene=twin-cities" | jq .   # the shape of a pool: live, looking, ages, eligible pairs, stranded — and it sweeps lapsed maps off the door
+curl -s -H "$K" "$S/pool?scene=twin-cities" | jq .   # the shape of a pool: live, looking, ages, eligible pairs, stranded. Reads only — `swept` says what is sweepable
+curl -s -H "$K" "$S/pool?scene=twin-cities&sweep=1" | jq .   # the same, and actually takes lapsed maps off the door. Deliberate; see below
 curl -s -H "$K" "$S/pool?country=us"        | jq .   # the same for a country's travellers
 curl -s -H "$K" $S/guide    | jq .     # the guide's health — one live call, so rarely
 curl -s -H "$K" $S/export   -o "backup-$(date +%F).json"   # the backup — save it
@@ -236,10 +237,16 @@ Three kinds of blob outlive their purpose and have no sweep:
   map lapses a year after its last keep. The vouch blob stays, harmless and
   unreadable through any route. Once a year: list `maps`, list `vouches`,
   delete vouches whose code has no map.
-- **Door entries for maps that lapsed.** Swept on every `/pool` read of
-  that pool since `docs/LIQUIDITY.md`: the member key and its index go, a
-  lapsed map's blob goes with them, and her `contacts` row stays — lapsed is
-  not forgotten, so `reach-<date>.json` includes lapsed members. The yearly
+- **Door entries for maps that lapsed.** Swept on a `/pool?...&sweep=1` read
+  of that pool: the member key and its index go, a lapsed map's blob goes with
+  them, and her `contacts` row goes too — the way to reach someone lives
+  exactly as long as her map, which is what Trust says (`docs/BOARD.md`,
+  decision 13). **A plain `/pool` read deletes nothing**; `swept` tells you
+  what a sweep would take and `sweptForReal` says whether one happened. The
+  readout used to sweep on every read, so looking at a pool changed it — and
+  during a test that is a participant, and the only way to reach them, gone
+  with no code in the readout to say who (`docs/BOARD.md`, the reality-sprint
+  pass). Sweep when a sprint is over, not while one is running. The yearly
   pass remains for pools never read: list `cohort`, and delete any
   `index/<code>` and the member key it points at when `<code>` has no map.
   And once, by hand, the

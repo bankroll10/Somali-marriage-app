@@ -78,6 +78,20 @@ export const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'co
 export const GENDERS = new Set(['woman', 'man'])
 
 /**
+ * Must match `ModeId` in src/types.ts and the mode ids in src/data/coach.ts —
+ * which of the five voices is answering. The only thing about how the guide
+ * speaks that a caller gets to choose (netlify/shared/prompt.ts).
+ */
+export const GUIDE_MODES = new Set(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker'])
+
+/**
+ * Must match `Stage` in src/types.ts and the ids in src/data/stages.ts. Lifted
+ * out of netlify/functions/pool.ts, which had the only server copy, when the
+ * Guide's prompt moved to the server and needed to check a stage too.
+ */
+export const STAGES = new Set(['preparing', 'talking', 'deciding', 'married'])
+
+/**
  * Must match src/lib/entry.ts. What kind of link first brought a person here —
  * never who sent it; the link does not carry that. `group` is a link shared
  * into a community's chat rather than sent to one person: the kind of room,

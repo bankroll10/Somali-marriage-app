@@ -1,6 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { isFounder, notFounder } from '../shared/founder'
-import { COUNTRIES, SCENES } from '../shared/vocab'
+import { COUNTRIES, SCENES, STAGES as VOCAB_STAGES } from '../shared/vocab'
 import { floorRows } from '../shared/floor'
 import { blocked } from '../shared/gate'
 import { COHORT_TARGET, SEGMENTS, countryOf, sideOf } from './cohort'
@@ -78,7 +78,7 @@ export const AGE_GAP = { olderBy: 10, youngerBy: 3 } as const
 
 /** Eligible partners a member has in the pool, as a bucket — never a number on a person. */
 const INVENTORY = ['0', '1-2', '3-5', '6+'] as const
-const STAGES = ['preparing', 'talking', 'deciding', 'married'] as const
+const STAGES = [...VOCAB_STAGES] as const
 
 type Side = 'women' | 'men'
 type Row = Record<string, number>
@@ -126,7 +126,7 @@ function readMember(key: string, side: Side, kept: KeptMap | null, now: number):
   }
   const rawAge = snap.identity?.age
   const age = typeof rawAge === 'number' && Number.isInteger(rawAge) && rawAge >= 18 && rawAge <= 99 ? rawAge : undefined
-  const stage = typeof snap.stage === 'string' && (STAGES as readonly string[]).includes(snap.stage) ? snap.stage : 'preparing'
+  const stage = typeof snap.stage === 'string' && VOCAB_STAGES.has(snap.stage) ? snap.stage : 'preparing'
   const nn = Array.isArray(snap.answers?.dealbreakers)
     ? snap.answers.dealbreakers.filter((v): v is string => typeof v === 'string')
     : []
@@ -148,7 +148,7 @@ interface Pool {
   country: string
 }
 
-async function health(cohort: Store, maps: Store, pool: Pool, contacts: Store, now = Date.now()) {
+async function health(cohort: Store, maps: Store, pool: Pool, contacts: Store, sweep = false, now = Date.now()) {
   const { blobs } = await cohort.list({ prefix: `${pool.country}/` })
   const keys = blobs
     .map(({ key }) => key)
@@ -177,14 +177,27 @@ async function health(cohort: Store, maps: Store, pool: Pool, contacts: Store, n
     }),
   )
 
-  // The sweep. Best effort, like progress.ts: a delete that fails is retried
-  // by the next read, and never fails the readout.
+  // The sweep, and only when it is asked for.
+  //
+  // It used to run on every read, which meant the founder could not look at a
+  // pool without changing it: anyone whose map read as absent lost their place
+  // on the door AND the only way to reach them, permanently, inside a GET,
+  // with the readout reporting a count and never a code. A map reads as absent
+  // when it has lapsed or been forgotten — and also for a moment if the store
+  // simply does not answer, and that delete is not recoverable. Through a
+  // sprint of twenty or forty people, one of those is a participant who
+  // vanishes with no way to tell which (docs/BOARD.md, the reality-sprint
+  // pass).
+  //
+  // So the readout counts what it would sweep and touches nothing. `?sweep=1`
+  // is the founder saying, deliberately, that now is the time.
   const swept = sides(() => 0)
   await Promise.all(
     members
       .filter((m) => !m.live)
       .map(async (m) => {
         swept[m.side] += 1
+        if (!sweep) return
         await cohort.delete(m.key).catch(() => {})
         await cohort.delete(`index/${m.code}`).catch(() => {})
         if (m.expired) await maps.delete(m.code).catch(() => {})
@@ -271,7 +284,13 @@ export default async function handler(req: Request) {
   }
 
   try {
-    return Response.json(await health(getStore('cohort'), getStore('maps'), pool, getStore('contacts')))
+    // Deliberate, never incidental: a readout must not be able to delete a
+    // member of the pool it is reporting on.
+    const sweep = params.get('sweep') === '1'
+    return Response.json({
+      ...(await health(getStore('cohort'), getStore('maps'), pool, getStore('contacts'), sweep)),
+      sweptForReal: sweep,
+    })
   } catch (err) {
     console.error('[niyyah] pool: read failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })

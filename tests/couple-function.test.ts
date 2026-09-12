@@ -64,6 +64,8 @@ const STATES = ['agree', 'differ', 'not-talked', 'unknown'] as const
 const sides = (over: Record<string, string> = {}, base = 'agree') => ({ ...Object.fromEntries(IDS.map((id) => [id, base])), ...over })
 const post = (body: unknown) => handler(new Request('http://x/.netlify/functions/couple', { method: 'POST', body: JSON.stringify(body) }))
 const get = (code: string) => handler(new Request(`http://x/.netlify/functions/couple?code=${code}`))
+const forget = (code: string) =>
+  handler(new Request(`http://x/.netlify/functions/couple?code=${code}`, { method: 'DELETE' }))
 
 const tallyReq = (headers: Record<string, string> = FOUNDER) =>
   handler(new Request('http://x/.netlify/functions/couple', { headers }))
@@ -224,5 +226,48 @@ describe('how pairs come out', () => {
 
   it('reads as empty before any pair has answered', async () => {
     expect(await (await tallyReq()).json()).toEqual({ pairs: 0, topics: {} })
+  })
+})
+
+describe('forgetting the sheet', () => {
+  // Trust promises forgetting deletes "the eleven you sent him" with no
+  // condition attached, and until the reality-sprint pass that was only true
+  // of someone who had also kept a map: createCouple needs no map code, and
+  // the cascade in keep.ts finds the couple code inside a kept snapshot
+  // (docs/BOARD.md).
+  it('deletes the sheet for whoever holds the code', async () => {
+    const code = await pair(sides(), sides())
+    expect((await get(code)).status).toBe(200)
+    const res = await forget(code)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ ok: true })
+    expect((await get(code)).status).toBe(404)
+  })
+
+  it('treats an already-gone sheet as gone, and refuses a code that is not one', async () => {
+    expect((await forget('ACDEFG')).status).toBe(404)
+    expect((await forget('nope')).status).toBe(400)
+    expect((await forget('')).status).toBe(400)
+  })
+
+  it('leaves the joint tally alone, because there is nothing in it to find', async () => {
+    const code = await pair(sides(), sides())
+    const before = storedTally()
+    expect(before.pairs).toBe(1)
+    await forget(code)
+    // The tally carries no code and no side. Trust says so, and deleting a
+    // sheet must not quietly rewrite how pairs came out.
+    expect(storedTally()).toEqual(before)
+  })
+
+  it('never touches a safety report — a man must not erase one about himself', async () => {
+    const code = await pair(sides(), sides())
+    // A report filed against this couple code, as netlify/functions/safety.ts
+    // writes one.
+    const reports = stores.get('reports') ?? new Map<string, string>()
+    stores.set('reports', reports)
+    reports.set(`${code}-abc`, JSON.stringify({ reason: 'threats' }))
+    await forget(code)
+    expect(reports.has(`${code}-abc`)).toBe(true)
   })
 })

@@ -241,9 +241,10 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
     // is queued and retried on the next visit rather than lost.
     const trimmed = contact.trim()
     const at = new Date().toISOString()
+    // Her map code stays out of this: it is the sole authenticator for the
+    // map, and the form is a third party's store (src/lib/waitlist.ts).
     const sent = await joinWaitlist({
       contact: trimmed,
-      code: result.code,
       scene,
       country,
       reach,
@@ -385,19 +386,21 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
               privacy claim is the one thing that must never drift from the code
               it describes. */}
           <p className="text-[0.78rem] leading-relaxed text-muted text-pretty">
-            We send your email or phone, your city and country, how far you said
-            you’d go, who you’re seeking, the hardest part you named, and which
-            of the things on your Trust page you’ve done. Nothing about how your
-            map read, and nothing about how you use the app. Your map is kept
-            again, as it is today, under a code with no name on it, so it can be
-            matched — your age goes there, never onto the door. Once you are
-            counted, the founder can read the kept maps in your pool to count
+            We send your email or phone, your city and country, how far you said you’d go,
+            who you’re seeking, the hardest part you named, and which of the things on your
+            Trust page you’ve done. Nothing about how your map read, and nothing about how
+            you use the app. Your map is kept again, as it is today, under a code with no
+            name on it, so it can be matched — your age goes there, never onto the door.
+            Once you are counted, the founder can read the kept maps in your pool to count
             its shape — how many of each age, how many pairs clear each other’s
-            non-negotiables, how many have nobody here who does — as counts of
-            five or more, never a map and never which person. Your email or
-            phone is kept apart from all of it, with only your city beside it,
-            so we can tell you when your city opens — and it goes when you tap
-            forget. Your answers stay yours.
+            non-negotiables, how many have nobody here who does — never a map and never
+            which person, and any breakdown that would come back as one or two comes back
+            blank. Your email or phone is kept apart from all of it, with only your city
+            beside it, so we can tell you when your city opens — and it goes when you tap
+            forget. This same tap also sends your email or phone, your city, country, how
+            far you’d go, who you’re seeking and that hardest part to the form service this
+            site runs on, as a second copy — never your map code, and never your answers.
+            That copy is deleted by hand when you ask. Your answers stay yours.
           </p>
         </form>
       ) : (
