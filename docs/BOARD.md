@@ -569,5 +569,25 @@ a kept map lives with one vendor.
 
 ## The pre-flight
 
-_The failed product lens, done by hand in Chromium at phone width after the
-changes above. Filled below._
+The failed product lens, done by hand in Chromium at 400 px after the changes
+above, with the functions answering like an empty, healthy site. Every screen
+below rendered with no page error, no console error of the product's own, and
+no horizontal overflow: Welcome; the read from `/?read&via=alumni` through its
+result and Back to Home; the eleven from `/?eleven`; the door from `/?door`,
+and again after tapping "A man"; the family words; a restore link whose code
+is gone; a couple link that is gone ("This link isn't working."); a vouch link;
+Identity → Situation → Hook → the first two intake questions; Home for the
+read-first user, and Home again on reload; What decides who you meet; Trust,
+with the never-introduce sentence reworded and the old one absent; What is
+free and what costs; Philosophy. Not walked: the remaining fourteen intake
+questions and the Reflection (the walker's option-clicker could not drive the
+second question's control; the intake is unchanged in this pass and covered by
+`src/data/intake.test.ts`), the Ending (reachable only at `married`; its share
+texts are held by `src/lib/ending.test.ts`), and the Couple screen with a live
+pair.
+
+Defects found by the walk: none beyond those the audit had already named and
+fixed above. The copy that a member reads first — the door's "Being counted
+takes a map — sixteen questions about you… your age, and a way to reach you"
+— is true of the code as it stands; whether the map should be the ticket is
+the founder's decision 3.
