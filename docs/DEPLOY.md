@@ -92,12 +92,12 @@ these live in the repository, and none should.
 |---|---|---|
 | `PREVIEW_PASSWORD` | The founding-preview gate (`netlify/edge-functions/gate.ts`). Any username, this password. | **No gate. The site is open to anyone with the link.** |
 | `ANTHROPIC_API_KEY` | Switches on the live Guide (`netlify/functions/guide.ts`). | The Guide answers from its offline voice; no error shown. |
-| `FOUNDER_KEY` | Bearer token on every readout (`netlify/shared/founder.ts`). | **The readouts are public to anyone who guesses the URL.** |
+| `FOUNDER_KEY` | Bearer token on every readout (`netlify/shared/founder.ts`). Also a **GitHub Actions secret** of the same name, so `.github/workflows/watch.yml` can read `/safety` weekly. | **Every readout answers 401 until it is set** — fails closed since 2026-09-12 (`docs/BOARD.md`); the recovery is setting it. |
 | `VITE_WAITLIST_FORM` | Names the Netlify form signups post to. Already set in `netlify.toml`. | The signup card falls back to a mailto. |
 | `VITE_SITE_HOST` | The domain the app calls itself, in every link it hands out and every share card. | `joinniyyah.com` — ours, and the same default the code carries. Set in every context; see `docs/OWNED.md`. |
 | `VITE_CONTACT_EMAIL` | Where a signup reaches a human when the form is down. | Defaults to `salaam@joinniyyah.com`, which does not receive mail yet — so production must keep this set to an address a person reads. The one open step in `docs/CONTROL.md`'s cutover. |
 | `GUIDE_HOURLY_CAP` | The circuit breaker on the live Guide (`netlify/shared/limit.ts`) — the most calls it will answer in one hour, from anyone, combined. | `300`, chosen well above any real hour this product has seen. See `docs/TIME.md`. |
-| `GUIDE_DAILY_CAP` | The same, by the day — **the only cap that bounds a month**, and the only one on a route that spends money rather than storage. | `400`. An hourly counter resets 720 times a month, so the hour bounded an hour and nothing longer: at ~2¢ a reply, 300/hour is ~$145 a day and ~$4,300 in a month nobody watched. Forty members asking ten questions each is ~400 replies, or ~$8. See `docs/ROADMAP.md`. |
+| `GUIDE_DAILY_CAP` | The same, by the day — **the only cap that bounds a month**, and the only one on a route that spends money rather than storage. | `400`. An hourly counter resets 720 times a month, so the hour bounded an hour and nothing longer: at ~2¢ a reply, 300/hour is ~$145 a day and ~$4,300 in a month nobody watched. Forty members asking ten questions each is ~400 replies, or ~$8. See `docs/ROADMAP.md`. A cap on calls is not a cap on spend: since 2026-09-12 the body is measured (32 KB), the thread cut and the answer capped, so the worst call is ~9¢ and the worst day ~$36 (`netlify/functions/guide.ts`). Set a monthly spend limit in the Anthropic console as well — that is the bound outside the code. |
 | `COHORT_HOURLY_CAP` | Joins the door will count in one hour, from everyone. | `200`. See `docs/SCALE.md`. |
 | `KEEP_HOURLY_CAP` | Maps kept in one hour — the cheapest way to spend a free plan's storage, bounded. | `300` |
 | `VOUCH_HOURLY_CAP` | Vouch links minted and vouches given in one hour. | `100` |
@@ -114,8 +114,12 @@ limit: one counter per route per period, with no identity attached, refused
 with the same quiet 503 a client already treats as "try later". Past the cap a real member sees exactly
 what she sees when storage is unreachable, which is to say nothing that looks
 like a wall. The defaults sit well above any real hour this product has seen.
-**The one time to raise them is the week a pool opens**, when a city's worth of
-people may arrive in an afternoon — set the variable, no deploy needed.
+**The two times to raise them are the day a link is first posted into a
+group** — the door's count is one global counter, and a 500-member chat can
+spend `DOOR_HOURLY_CAP` in an hour, after which every visitor reads "the count
+isn't reachable" (`docs/BOARD.md`) — **and the week a pool opens**, when a
+city's worth of people may arrive in an afternoon. Set the variable, no deploy
+needed.
 
 The founder's readouts — `/progress`, `/cohort` with no scene, `/couple` with
 no code, `/vouch` with no code, `/pool`, `/export` and `/guide` — carry no
@@ -175,9 +179,25 @@ curl -s -H "Authorization: Bearer $FOUNDER_KEY" \
 report against a real, named person a member has raised a concern about —
 see `netlify/functions/safety.ts` and `docs/LEARNING.md` for what this is and
 is not. Unlike the monthly readouts, this one does not wait for the month:
-`docs/OPERATING.md` calls for checking it weekly. Resolving a report is
-`DELETE /.netlify/functions/safety?code=<code>&side=<woman|man>`, which
-deletes it — a report is a live concern to act on, not a record to keep.
+`docs/OPERATING.md` calls for checking it weekly — and since 2026-09-12
+`.github/workflows/watch.yml` does the weekly read itself and fails when
+anything is open. Resolving a report is
+`DELETE /.netlify/functions/safety?code=<code>&side=<woman|man>&id=<id>&outcome=<outcome>`,
+which deletes the report and leaves an anonymous stub carrying the outcome;
+`docs/OPERATING.md` has the exact command and `SAFETY_OUTCOMES` in
+`src/data/safety.ts` is the closed list.
+
+## Before the first post: the gate
+
+Every share path hands a stranger a link, and while `PREVIEW_PASSWORD` is set
+that link is a 401 — so the playbook in `docs/WEDGE.md` cannot run against a
+gated site, and `docs/ROADMAP.md` item 0 waits on exactly this decision and
+nothing else (`docs/BOARD.md`). Either the variable comes off the day the
+first link is posted, with the `noindex` header and `robots.txt` kept until
+the pool opens — a *quiet launch*, distinct from the public launch below — or
+the password travels in the posts. Decide in one commit, and verify from a
+phone with no cookies that `/?eleven` answers 200. This file is the one place
+the gate's state is described; `docs/PRODUCT.md` §9 points here.
 
 ## At real launch
 

@@ -50,7 +50,9 @@ verification this product claims into a measured thing.
 *Upside High · Cost S · Free · Confidence High · Learning High.*
 
 **B2 · The vouch ask moves to the moment after being counted.** It lives on
-Profile, which a woman who joined the door from Home may never open. The ask is
+Profile and, since the door moved onto the map screen, beneath the door card
+there (`Reflection.tsx`) — but not beneath the compact door card on Home,
+which a woman who joined from Home may never leave (`docs/BOARD.md`). The ask is
 heavy — she has to tell a father she is looking — and it is currently made at
 the least motivated moment. Same words, different place.
 *Upside Med · Cost S · Free · Confidence Med · Learning Med.*
@@ -104,6 +106,10 @@ offers the map alone. *Upside Med · Cost S · Free · Confidence Med · Learnin
 answers. A man who arrives through the door or the read cannot start it, so
 half the wedge's primary loop is missing from his side.
 *Upside High · Cost M · Free · Confidence Med · Learning Med.*
+**Struck 2026-09-12** — the code already has it: `BeforeYes` asks gender when
+unknown, renders *Together* for either, and `createCouple(picked, gender)` is
+accepted with `creator` set from it (`docs/BOARD.md`). The bet described a
+gap that did not exist.
 
 **B11 · The ending's share carries the door.** The one share only a married
 woman can make sends the eleven. For most of the people she would tell, the
@@ -165,7 +171,7 @@ door's whole argument. *Scored zero.*
 | 3 | B4 "What a match would see" | High | M | Free | Med | High |
 | 4 | B14 The follow-up as a calendar file | High | M | Free | Med | Med |
 | 5 | B2 The vouch ask, better placed | Med | S | Free | Med | Med |
-| 6 | B10 His side of the eleven | High | M | Free | Med | Med |
+| 6 | ~~B10 His side of the eleven~~ — already built; struck 2026-09-12 | — | — | — | — | — |
 | 7 | B3 The door names the vouched | High | M | Free | Med | Med |
 | 8 | B9 The read's result offers the door | Med | S | Free | Med | Low |
 | 9 | B11 The ending's share carries the door | Med | S | Free | Med | Low |

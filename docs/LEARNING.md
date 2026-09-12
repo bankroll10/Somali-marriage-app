@@ -104,7 +104,11 @@ conversation, or a question?* Only the last three are collected.
 
 1. **Trust enumerates every field**, in plain words, and the copy moves in the
    same commit as the payload. That is a standing rule of this repository.
-2. **"Count me" gates the call itself.** Off means nothing is sent.
+2. **"Count me" gates the call itself.** Off means nothing is sent. It is *on
+   by default*, and the first report — one `arrived` — is posted on first
+   render, before Trust is ever opened: one open per install is recorded
+   unless she turns it off. The honest word is opt-out, not consent
+   (`docs/BOARD.md`); the men's kill tests depend on that denominator.
 3. **Told at the moment, not in a policy.** The ended screen says on its face
    that nothing about him is recorded and that the reason reaches us as one of
    ten words and never reaches him.

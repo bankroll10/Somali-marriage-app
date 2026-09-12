@@ -60,7 +60,7 @@ an app?* Only the first kind survives.
 | **The ledger deciding who meets whom** | What someone has *done* here, not how others responded to them. Immune to fashion because it measures effort, not popularity |
 | **The words that travel** | One person sending one person the exact sentence that worked. The oldest distribution there is, and the only one nobody can switch off |
 | **The ending, and the first-year sheet** | The marriage after the wedding, which no product in this category serves at all |
-| **The charter** — no photos, no messaging, no free text, no attention traces | Constraints, not features. They cannot be copied by anyone whose revenue depends on time-on-app, and they are why this can be trusted with a marriage |
+| **The charter** — no photos, no messaging, no free text, no attention traces | Constraints, not features. They cannot be copied by anyone whose revenue depends on time-on-app — a barrier against the incumbents, not against a fresh entrant, who can copy a charter as easily as a screen (`docs/BOARD.md`) — and they are why this can be trusted with a marriage |
 | **The learning record** | Why Somali courtships end, at which stage, and whether it was foreseeable. The dataset nobody has, it needs no marketplace, and it compounds |
 | **The founder's own hands** | Ten named connectors, one room, conversations with the first ten members (`docs/WEDGE.md`, `docs/GAPS.md`). Distribution that no algorithm grants and none can revoke |
 
@@ -73,7 +73,7 @@ the product would still solve the enduring need.
 |---|---|
 | **The live model behind the guide** | *Guidance* is durable; the model answering is a supplier. Five voices, the prompt and the framework answers are ours and are already the only voice until a key is set. `docs/EXPERIMENTS.md` A3 has the decision rule that would drop the live half |
 | **Generated prose in the map** | The *reading* is durable — where she stands on seven grounds, in a word each. Which sentences say it is decoration. Declined for exactly this reason |
-| **"Powered by AI" as a claim** | Found once, on `Philosophy.tsx`. It dates the product the way "Powered by Web 2.0" dates a page, and it makes the model the reason to exist. **Removed in this pass** |
+| **"Powered by AI" as a claim** | Found once, on `Philosophy.tsx`. It dates the product the way "Powered by Web 2.0" dates a page, and it makes the model the reason to exist. **Removed in this pass** from `Philosophy.tsx` — and found again on 2026-09-12 in `index.html`, the manifest and the README, where it had survived; `tests/brand.test.ts` now holds every surface (`docs/BOARD.md`) |
 | **"AI" paired against "Faith"** in the philosophy list | Every other row of that list pairs two enduring things. A supplier does not belong beside faith. **Rewritten as "Smart guidance"** |
 
 **What stays, and why.** `src/components/Trust.tsx` names Claude and Anthropic

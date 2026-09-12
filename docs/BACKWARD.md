@@ -18,14 +18,24 @@
 Revenue is *marriages the product is part of × take per marriage*, plus the
 per-courtship line. `docs/REDTEAM.md`'s market arithmetic: a diaspora of
 roughly two million, about 110,000 people looking in any year, so on the
-order of **20,000 Somali diaspora marriages a year**. Then:
+order of **20,000 Somali diaspora marriages a year** — asserted, not derived:
+REDTEAM computes the 110,000 and stops, and 20,000 implies a crude marriage
+rate of ten per thousand against a US rate near six and a UK rate near four.
+At five or six per thousand every row below halves; the ten conversations
+should source the rate (`docs/BOARD.md`). Then:
 
 | Share of those marriages | Take per marriage | Revenue a year |
 |---|---|---|
-| 5% | $1,000 | $1M |
-| 20% — dominance | $1,000 | $4M |
-| 20% | $3,000 | $12M |
+| 5% | $628 — the written schedule, net | $0.6M |
+| 20% — dominance | $628 | $2.5M |
+| 20% | $1,078 — a $3,000 fee at the nikah, half to the company, three in five | $4.3M |
+| 20% | $3,000 — a fee near $9,400 at the written share and attach | $12M |
 | 40% | $3,000 | $24M |
+
+*Take* is the company's revenue, not the fee at the nikah. An earlier draft
+counted the matchmaker's half of $1,500 as ours and reached ~$1,000 and a $4M
+row; on the schedule's own terms — `docs/STRATEGY.md` §5, "the company's
+share half" — it is $628 (`docs/BOARD.md`).
 
 **Somali-only, the ceiling is $10–25M a year, and only at dominance with
 institution pricing.** "A real company" is plausible Somali-only if two
@@ -58,7 +68,7 @@ one is zero — the link has never been posted.
 | **Geographic expansion** | Pool two only after `ending.who.here > 0`; the UK opens as a country, not a city | `/pool?country=uk` |
 | **Trust** | Zero incidents that reach the community; vouch rate ≥ 50%; `hesitated.seen` under a fifth | `/safety`, `/vouch`, `facts.hesitated` |
 | **Defensibility** | ≥1,000 endings before a copier has one; the connectors' rooms are ours; the constants revised ten or more times from readouts | `docs/OPERATING.md`'s revisions log |
-| **Margins** | ≥50% of revenue from software-priced lines by year three, or the multiple is a services multiple | The ledger of revenue by line |
+| **Margins** | ≥50% of revenue from software-priced lines by year three, or the multiple is a services multiple. **Fails as written:** at the schedule the software-priced share is 28% at best ($178 of $628), and 13% once the call inside "Deciding together" is priced as founder time (`docs/BOARD.md`) | The ledger of revenue by line |
 | **Brand strength** | Heard as an institution: the name and the frame survive a second community without a rename; the honest door is the proof people cite | `vias.married` share; the conversations |
 
 ## The assumptions that forbid the outcome
@@ -118,15 +128,20 @@ forecloses nothing. Four things pass; one is code.
   and never again. Built: `netlify/shared/record.ts`, `v` on every member
   record, stamped last, held by `tests/record-version.test.ts`. It is what
   makes `docs/SCALE.md`'s move to a real database, and every later change of
-  shape, a transcription rather than an archaeology.
+  shape, a transcription rather than an archaeology — for values. Key layouts
+  (the cohort key's segments, the indexes) carry no version; a reader of keys
+  reads the value's `v` to know its key's layout, and a key change is a
+  migration, named as such (`docs/HARD.md` row 18).
 - **The price, written down.** `docs/ROADMAP.md`'s open BUILD NOW item.
   `docs/STRATEGY.md` §5 now carries a prediction with a date: Deciding
   together $99 a courtship; a matchmaker in your corner $1,500 at the nikah,
   the company's share half; the first year $79 as a gift. At those prices and
-  three in five marriages using a matchmaker the take is about $1,000 — the
-  $4M line in the table above. **So the institution price, $3,000 and up at
-  the nikah, is what "a real company" requires**, and the ten conversations
-  must find out whether families pay what they already pay matchmakers. No
+  three in five marriages using a matchmaker the take is about $628 — the
+  $2.5M line in the table above, once the matchmaker's half is counted as his
+  and not ours (`docs/BOARD.md`). **So a $3,000 *take* — a fee near $9,400 at
+  the nikah at the written share, or a far larger share of a smaller fee — is
+  what "a real company" requires**, and the ten conversations must find out
+  whether families pay what they already pay matchmakers, and what that is. No
   price appears on a screen until launch; this is what the checkout will be
   measured against.
 - **"Public launch" defined** — the day the first pool opens. Two promises
@@ -134,9 +149,14 @@ forecloses nothing. Four things pass; one is code.
   are set.
 - **The institution rule.** Nothing that would need renaming for a second
   community carries a community's name; a community's content lives in
-  `src/data/` as data. Already true of the code — the product is Niyyah, an
-  intention — and now a rule, so it stays true. Zero cost; keeps the second
-  target reachable without building one line toward it.
+  `src/data/` as data. Not true of the code when this was written — the hero,
+  a Welcome bullet, the title, the meta description and the manifest all named
+  the community as literals (`docs/BOARD.md`); since 2026-09-12
+  `src/data/brand.ts` holds the brand strings and `tests/brand.test.ts` holds
+  the surfaces to it. The instruments' own copy still names the community in
+  seven components — content, which a second community gets a second
+  `src/data` of, not a rename. Zero cost; keeps the second target reachable
+  without building one line toward it.
 
 **Not now, by name:** payments, a database, the matchmaker's tool, the
 introductions record (same-commit rule), a second community's content, more

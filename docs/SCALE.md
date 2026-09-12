@@ -12,7 +12,10 @@
 
 This architecture — Netlify Functions over Netlify Blobs, on a free plan, with
 listing-by-prefix as the only query — ends somewhere around a hundred thousand
-members. It is written down here so nobody is surprised: Blobs has no
+members for the *public* routes, and near a thousand records for the
+founder's readouts, which rebuild from every record in one invocation (the
+table below; `docs/BOARD.md`). The ceiling that binds first is the moat's,
+not the door's. It is written down here so nobody is surprised: Blobs has no
 secondary index and no transactions, every founder readout rebuilds itself
 from every record, and the door counts a country by walking its keys. Those
 are the right choices for a product with a few hundred members and a founder
@@ -50,7 +53,9 @@ each member's stated reach.** Two closed ids now sit on every cohort record
 
 **Reach is mutual by construction.** A is in B's pool exactly when B is in
 A's: the same city, always; the same country, if both would travel within
-it; across countries, if both said anywhere. The alternative — "he would come
+it. Not across countries: `anywhere` counts exactly as `country` in every
+readout until a second country opens, and the chip says so
+(`src/data/reach.ts`, `docs/BOARD.md`). The alternative — "he would come
 to her" — counts more pairs but makes the reachable set depend on who is
 looking, and "a pool opened" stops meaning anything.
 
@@ -65,9 +70,9 @@ each."* and always *"Across the UK, 31 women and 12 men would travel for the
 right person."* The second sentence is the whole answer to "many registered,
 still empty". A woman in a city of nine used to see nine. She now sees the
 nine, the thirty-one across the country who would come to her, and one tap
-puts her among them. The `anywhere` pool is counted in the founder's tally
-and never rendered — a worldwide sentence on the door would be expansion by
-another name, and `docs/STRATEGY.md` is density-first.
+puts her among them. `anywhere` is counted as the country and rendered as
+nothing more — a worldwide sentence on the door would be expansion by another
+name, and `docs/STRATEGY.md` is density-first.
 
 **The two gates, resolved.** The docs held two definitions of "open" that
 could disagree: 40 per side (`cohort.ts`) and `ending.who.here > 0`
@@ -117,6 +122,12 @@ Here is where they go instead:
 
 - **O(1) throughout** — the monthly hour (`docs/OPERATING.md`), the weekly
   safety check (`docs/TIME.md`), the backup.
+- **O(introductions) at the first pool** — `docs/LIQUIDITY.md`'s min(W, M) a
+  fortnight, about thirty at a 40/40 door with 30/30 supply, each made by hand
+  from a record that does not yet exist and mailed from the contacts store.
+  This term was missing from this list (`docs/BOARD.md`): it is the services
+  business the first pool is, and the trigger for the introductions record and
+  the pool-opened mail in the table below.
 - **O(pools) from 1,000 to 10,000** — vet one matchmaker per pool. A
   matchmaker is the role the community already pays, at the nikah
   (`src/data/plus.ts`); the product supplies the queue and the computed
@@ -153,7 +164,8 @@ the founder could not segment the first "your pool opened" mail even by hand.
   `src/components/Cohort.tsx`, the form registry, Trust's "Joining the
   founding cohort" paragraph in the same commit).
 - **An hourly cap on every public write** (`netlify/shared/limit.ts`,
-  `overHourlyCap`). `docs/TIME.md` deferred this with a trigger; this pass
+  `overHourlyCap`). Restored 2026-09-12: `couple side=second`, `DELETE
+  /progress` and the re-keep path had slipped outside it (`docs/BOARD.md`). `docs/TIME.md` deferred this with a trigger; this pass
   supersedes it for a reason that audit did not have. The door is now the
   unit that opens a marketplace, and a door whose writes are unbounded can
   be walked toward forty by a script; a `keep` loop is the cheapest way to
@@ -178,7 +190,7 @@ the founder could not segment the first "your pool opened" mail even by hand.
 | A scheduled sweep: expired progress records, orphan vouches — and the half of the cohort sweep a founder never reads. **Cohort entries whose map is gone or lapsed are swept on every founder `/pool` read of that pool** since `docs/LIQUIDITY.md`; the public count still trusts its keys | the first orphan found in the yearly listing (`docs/OPERATING.md`) |
 | Support: a FAQ → the matchmaker as first line → a shared inbox | a handful of support mails in a week (`docs/TIME.md`) |
 | Payments: a checkout link for "Deciding together" → payouts to matchmakers | the first pool; then the first matchmaker who is not the founder |
-| Country on the ladder (`/progress` split by country) | `scenes.other` in `/progress` exceeds any named city |
+| Country on the ladder (`/progress` split by country) — **built 2026-09-12**, ahead of its trigger: a field is cheapest before member one (`docs/BOARD.md`) | — |
 | Marriages on the door: a running `tallies/married/<scene>` counter written on the first `married` rung and the first `ending.who = here`, decremented on forget, read by `countPool`, rendered only above zero (`docs/FLYWHEEL.md`) | the first `rungs.married` — recomputable from `first.married` days, so waiting loses nothing |
 | A real database, per `docs/PRODUCT.md` §10's *real backend*. Every member record already carries `v` (`netlify/shared/record.ts`, since 2026-09-11), so the move branches on a number rather than on a key's segment count or a field's presence | any store past ~50,000 keys |
 

@@ -49,7 +49,10 @@ traded away by the next person who finds it inconvenient.
   the monthly loop, the learning charter, the scale triggers, the wedge
   playbook, the gaps map, the experiments with decision rules fixed in
   advance, the process, the machine, the bets, the durability rule. A
-  competitor could copy the screens in a month and would still not have this.
+  competitor could copy the screens in a month and would still not have this —
+  or would, since the repository is public: every one of these documents is
+  downloadable today. Flipping it private is the founder's one-click decision
+  in `docs/BOARD.md`.
 - **The brand.** The name, the Trust page, the philosophy, the refusal to fake
   a count. And now the address it all lives at.
 - **The fonts.** Self-hosted, licence included — so no third party sees the IP
@@ -135,7 +138,10 @@ held a family member's phone number since the day it was written and says of
 it: *read in the Blobs store, never on any endpoint.* So the founder reads it
 with her own credentials, and `docs/OPERATING.md`'s monthly hour writes it to
 a file beside the backup — which is what actually gets it off the platform,
-and therefore what actually makes it hers.
+and therefore what actually makes it hers. Note, 2026-09-12: the one-liner
+that did this — `netlify blobs:list contacts --json` — lists keys and etags,
+not values, so the monthly file held codes and no contacts until
+`docs/BOARD.md` found it; the runbook is now the loop in `docs/OPERATING.md`.
 
 ### 3 · The compatibility framework's lineage
 

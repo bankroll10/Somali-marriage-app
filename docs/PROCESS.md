@@ -25,7 +25,16 @@
 
 Nothing here replaces those docs. This one exists because the loop only
 works if each step hands cleanly to the next, and until now that handoff was
-implicit — held in one person's head rather than written down.
+implicit — held in one person's head rather than written down. As of
+2026-09-12 the loop has never turned: every log it writes to is empty, and
+its Observe step has had no input from a stranger (`docs/BOARD.md`).
+
+**One precedence rule.** A decision rule written before its build —
+`docs/EXPERIMENTS.md` A1's twenty arrivals, `docs/GAPS.md`'s ten
+conversations, `docs/REDTEAM.md`'s three-in-ten — overrides
+`docs/OPERATING.md`'s hundred-record floor. The floor governs calibration
+constants and class moves no rule names; without this sentence three
+documents gave three thresholds for the same kind of act.
 
 ## Weekly product metrics: the pulse, not the hour
 
@@ -47,6 +56,7 @@ named below:
 curl -s -H "$K" $S/safety   | jq .   # any report — act on it now, not at the pulse
 curl -s -H "$K" $S/progress | jq '.rungs, .facts.began'   # arrived, and who finished what they began
 curl -s -H "$K" $S/cohort   | jq '.countries'              # the door: women and men, every open pool
+curl -s -H "$K" "$S/pool?scene=twin-cities" | jq '.door, .live, .supply'   # the pool — and its sweep, so the number posted this week is post-sweep
 ```
 
 The two things a pulse is allowed to do: **act on an open safety report**
@@ -201,7 +211,7 @@ one place to see them together.
 | Support as one founder inbox | More than a handful of emails in a week | `docs/TIME.md` |
 | The safety queue as one weekly `curl` | A second reader is needed, or a report waits more than a week | `docs/HARD.md`, `docs/TIME.md` |
 | Any dependence on a live model | It becomes load-bearing — an instrument that cannot run without a key. Not a threshold but a rule, asserted in `tests/durable.test.ts` | `docs/DURABLE.md` |
-| The `door` link and the second ask on the door | After four weeks: under five men arrived through the group link (`sidesByVia.man.group.arrived`) → the channel pivots (WEDGE); five or more and under one in four `mapped` → cut the men's map first (A1); women's `counted` per hundred `arrived` falls → back to one ask | `docs/MACHINE.md`, logged as A6 |
+| The `door` link and the second ask on the door | After four weeks: under five men arrived through the group link (`sidesByVia.man.group.arrived`) → the channel pivots (WEDGE); seventeen or more and `mapped` still null → cut the men's map first (A1; under the k = 5 floor the ratio is undecidable below seventeen — `docs/BOARD.md`); women's `counted` per hundred `arrived` falls → back to one ask | `docs/MACHINE.md`, logged as A6 |
 | Opening a pool | `docs/LIQUIDITY.md`'s checklist, every line — forty and forty live, thirty a side preparing, nobody unaged, `stranded` null on both sides — or it does not open. A number in `stranded` names the side to find, never a band to widen | `docs/LIQUIDITY.md`, logged as A7 |
 | The age ask at the door | Women's `counted` per hundred `arrived` falls by a quarter after 2026-09-10 → age becomes optional at the door and required at the first introduction instead | `docs/LIQUIDITY.md` |
 | The queue, once a pool is open | The scarce side's median remaining inventory under two → pause the queue and go back to the playbook for supply; `no-answer` above three in ten in the first month → require the reply to "your pool opened" before anyone is queued | `docs/LIQUIDITY.md` *(designed)* |

@@ -34,8 +34,8 @@ the fix would be.
 | **Reporting** | **No, until this pass.** There was no way for a member to name a concern about a specific real person; the only free-text field anywhere near a name went to the guide, which never leaves the device | **Fixed this pass.** One couple-code-scoped report, closed reasons plus one line of her own words, straight to a founder-only queue (Tier 4 per `docs/LEARNING.md`) |
 | **Support** | **No.** A stuck member's only path is `mailto:salaam@joinniyyah.com` (`src/lib/waitlist.ts`), and Cohort.tsx tells her outright: *"we read every one"* | A promise made in the product's own voice, kept by exactly one inbox. Today's volume is near zero, so 30 days of silence costs little — but this line item's burden rises in lockstep with every other success in this document, and nothing here scales it |
 | **Payments** | **N/A.** Nothing is sold yet (`docs/CONTROL.md`); `paidLater` in `src/data/plus.ts` describes prices, not a working checkout | Nothing to break. Revisit this file the day a payment processor is wired in — a stuck payment is a different, sharper kind of thirty-day silence |
-| **Notifications** | **N/A, not a founder dependency.** There is no notification system for anyone, present or absent. A woman who sends her eleven has to return and check | This is a real product gap, but it does not become worse if the founder disappears — it is already the steady state. Out of scope for this pass, which asks what the founder's *absence* changes |
-| **Fraud detection** | **Partially — and thinly.** `guide.ts` had no cap on call volume until this pass; `cohort.ts`, `vouch.ts`, and `couple.ts` cap body size but have no rate limit on repeat calls from the same source | **The guide's exposure is fixed this pass** (below). The other three are lower-value targets today — see "Identified, not built" |
+| **Notifications** | **No — and the one the product promises is founder labour.** "The day someone in your pool fits your map, we write to you" is the founder reading the contacts store and mailing by hand; nothing else notifies anyone, and a woman who sends her eleven has to return and check. It is the first thing that stops in her absence (`docs/BOARD.md`) | This is a real product gap, but it does not become worse if the founder disappears — it is already the steady state. Out of scope for this pass, which asks what the founder's *absence* changes |
+| **Fraud detection** | **Partially — and thinly.** `guide.ts` had no cap on call volume until this pass; `cohort.ts`, `vouch.ts` and `couple.ts` cap body size and, since `docs/SCALE.md`, every public write sits behind an hourly cap — one counter per route, no identity | **The guide's exposure is fixed this pass** (below). The other three are lower-value targets today — see "Identified, not built" |
 | **Account recovery** | **Yes, entirely.** There are no accounts. A kept map is recovered by its own code (`netlify/functions/keep.ts`); `forget.ts` and `keep.ts` cascade a deletion the same way, with no founder step in either direction | Nothing stops. This was the right design from the start: recovery that needs the founder's help is recovery that fails at 2am for someone in a different timezone |
 | **Match outcome tracking** | **Yes, entirely.** The ending screen, `facts.ts`, and the progress tally (`docs/OPERATING.md`) record what happened with zero founder involvement at write time | Nothing stops. *Reading* what was recorded is founder labor, but it is monthly by design (see `docs/OPERATING.md`), not something a 30-day absence breaks — it just means the next reading is late |
 
@@ -92,8 +92,9 @@ about someone the product never introduced. The reason is a closed id
 capped at 500 characters, because "what happened" sometimes genuinely needs
 more than six categories can hold. It reaches the founder's queue only —
 never a tally, never a signal to matching, never joined to a map. Resolving
-one deletes it: a report is a live concern to act on, not a record to keep
-once it has been.
+one names an outcome from a closed list and leaves an anonymous stub, so
+"resolved" and "never happened" are different bytes (`docs/HARD.md` row 5);
+the report itself is deleted.
 
 ## What this pass deliberately leaves to the founder, and why
 
@@ -101,6 +102,9 @@ Two things are unavoidably still founder labor, and both are named here on
 purpose rather than quietly automated away:
 
 - **Acting on a report is a human decision** — still true, and now recorded.
+  The subject is not: the stub carries no code and no side, so a
+  `never-introduce` outcome is a note in the queue, not a mark on a person,
+  and Trust says so since 2026-09-12 (`docs/BOARD.md`).
   Since `docs/HARD.md`, resolving one names an outcome from a closed list and
   leaves a stub behind, so "it is acted on" has evidence rather than a promise
   in front of it. What the founder can honestly do is unchanged: this product
@@ -137,9 +141,12 @@ spend on it yet is different from missing it.
 - **No alert when a safety report is filed, or when the guide's caps are
   hit.** Both are readable only by opening `/safety` or `/guide` by hand —
   exactly the founder-must-remember-to-check pattern this whole audit is
-  about. A real fix (email or push on either event) needs an outbound
-  channel this product does not have yet — see `docs/CONTROL.md`'s dependency
-  list, which deliberately has no email/notification vendor in it. **Trigger:
+  about. The safety half is fixed, 2026-09-12, with no new vendor:
+  `.github/workflows/watch.yml` reads `/safety` weekly with the founder's key
+  and fails when anything is open, and GitHub — already on `docs/CONTROL.md`'s
+  list — emails the owner on a failed run (`docs/BOARD.md`). The guide-cap
+  half still has no alert; an outbound channel for it is not in the
+  dependency list, which deliberately has no email/notification vendor. **Trigger:
   the day a paid Netlify tier or a transactional-email vendor is added for
   any other reason — piggyback this alert on it rather than adding a new
   dependency just for this.** Until then, `GUIDE_DAILY_CAP` is what stands in

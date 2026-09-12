@@ -132,6 +132,7 @@ docs/LIQUIDITY.md      Liquidity as the thing that kills matchmaking products �
 docs/FLYWHEEL.md       The outcome flywheel, ten transitions inspected against the code — where it turns, where it is substituted until a pool opens, the break at the ending fixed, marriages on the door designed, and what replaces advertising at every link
 docs/BACKWARD.md       Working backward from "extremely valuable": the arithmetic and the Somali-only ceiling, fourteen must-be-trues with their readouts, the seven assumptions that forbid the outcome, the bottleneck that is an act rather than a build, and four optionality moves
 docs/ROADMAP.md        Every shipped and proposed feature against the nine Fastlane tests — build now, test first, defer, delete — and why the reordered roadmap's first item is not code
+docs/BOARD.md          The board-level audit: fifteen questions answered with every claim labelled FACT / INFERENCE / HYPOTHESIS, the top ten actions ranked, what was built from it and what is the founder's to decide
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind
 docs/DEPLOY.md         How main gets live, and the two failure signatures
 .github/pull_request_template.md   The release-review checklist, in front of every PR
@@ -223,10 +224,12 @@ Seven routes return aggregates and nothing else: the ladder
 vouch's asks and gives (`/vouch` with no `code`), the shape of a pool —
 live, looking, ages, eligible pairs, stranded (`/pool?scene=` or
 `?country=`, `docs/LIQUIDITY.md`) — the backup (`/export`), and the guide's
-health check (`/guide`). None returns a person. They are still the one thing
-here a second team could not build for itself, and the health check spends
-Anthropic credit on every call, so all seven sit behind one bearer token read
-from `FOUNDER_KEY` (`netlify/shared/founder.ts`).
+health check (`/guide`). The backup returns whole progress records, so none of
+them is public: every one refuses with a 401 until `FOUNDER_KEY` is set —
+fails closed, since 2026-09-12 (`netlify/shared/founder.ts`, `docs/BOARD.md`).
+They are the one thing here a second team could not build for itself, and the
+health check spends Anthropic credit on every call, so all seven sit behind
+that one bearer token.
 
 | Field | Value |
 |---|---|

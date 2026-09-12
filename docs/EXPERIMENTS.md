@@ -24,8 +24,11 @@
 - **WHAT WOULD DISPROVE IT.** A majority abandon partway, concentrated in one
   instrument.
 - **METRIC.** Completion rate per instrument: `rungs.mapped / facts.began.map`,
-  and the same for `read`, `eleven`, and `couple` (his side finishes by writing
-  his own sheet, so his completion appears as the `eleven` rung).
+  and the same for `read` and `eleven`. His completion is
+  `rungs['he-answered'] / rungs['asked-him']`, both from her device — not the
+  `eleven` rung, which mixes his couple-side completions with women's own
+  (`docs/BOARD.md`); `began.couple` against `he-answered` separates "opened and
+  quit" from "never opened".
 - **SMALLEST CREDIBLE TEST.** Record one bit when each questionnaire is begun.
   Nothing else — the completion half is already a rung. **Built in this pass.**
 - **TIME TO LEARN.** Twenty arrivals through the wedge playbook: days, not
