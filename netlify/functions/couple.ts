@@ -180,7 +180,44 @@ export default async function handler(req: Request) {
     }
   }
 
-  if (req.method !== 'POST') return Response.json({ error: 'GET or POST only' }, { status: 405 })
+  /**
+   * Forget me, from either side of the sheet.
+   *
+   * Trust promises that forgetting deletes "the eleven you sent him", and
+   * until the reality-sprint pass that was only true of a woman who had also
+   * kept her map: the cascade in netlify/functions/keep.ts finds the couple
+   * code inside her kept snapshot, and `createCouple` needs no map code at
+   * all. So a woman who sent him the eleven, kept nothing, and tapped forget
+   * me was told it was done while both sheets sat here for the rest of the
+   * ninety days (docs/BOARD.md).
+   *
+   * Possession of the couple code is the authority, exactly as it is for
+   * reading the joint — and both of them hold it, which is right: either one
+   * asking to be forgotten should take the sheet with them.
+   *
+   * It deletes the sheet and nothing else. In particular it does not touch
+   * `reports`: those are deleted only by the cascade in keep.ts, at the
+   * request of the person who filed one. A man must never be able to erase a
+   * safety report about himself by tapping forget me.
+   */
+  if (req.method === 'DELETE') {
+    const code = normalise(new URL(req.url).searchParams.get('code'))
+    if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    if (await overHourlyCap('couple-forget', DEFAULT_ANSWER_CAP)) return rateLimited()
+    try {
+      const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
+      if (!record) return Response.json({ error: 'not_found' }, { status: 404 })
+      await store.delete(code)
+      // The joint tally is not touched and cannot be: it carries no code and
+      // no side, so there is nothing in it to find (Trust says so).
+      return Response.json({ ok: true })
+    } catch (err) {
+      console.error('[niyyah] couple: delete failed', err)
+      return Response.json({ error: 'unavailable' }, { status: 503 })
+    }
+  }
+
+  if (req.method !== 'POST') return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
 
   let text: string
   try {
