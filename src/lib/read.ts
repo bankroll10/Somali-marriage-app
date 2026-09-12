@@ -1,8 +1,9 @@
 import type { Gender } from '../types'
 import {
   DIMENSION_LABEL,
-  SCRIPTS,
   readQuestions,
+  scriptFor,
+  speak,
   type ReadDimension,
   type Script,
 } from '../data/read'
@@ -10,15 +11,19 @@ import {
 /**
  * The engine behind the read.
  *
- * It answers one question — what has he actually shown her — and it is built to
- * be unable to answer any other. There is no character verdict in here, no
- * number attached to a human being, and no instruction to stay or go. Those are
- * hers, and ours would be worthless: we have never met him.
+ * It answers one question — what has the other person actually shown — and it
+ * is built to be unable to answer any other. There is no character verdict in
+ * here, no number attached to a human being, and no instruction to stay or go.
+ * Those are the reader's, and ours would be worthless: we have never met them.
  *
  * What it does have is an opinion about which evidence matters most. Whether
- * she exists in his life outranks everything else, because in this community a
- * man who keeps a woman hidden has told you the whole story and the rest is
- * commentary.
+ * you exist in their life outranks everything else, because in this community
+ * someone who keeps a person hidden has told you the whole story and the rest
+ * is commentary.
+ *
+ * Every sentence this file returns passes through `speak(gender)` before it
+ * leaves, because a man reading a woman must not be told what "he" intends.
+ * `tests/mens-read.test.ts` holds that: no result may name the wrong side.
  */
 
 export type ReadBand = 'early' | 'strong' | 'mixed' | 'thin' | 'caution'
@@ -93,6 +98,15 @@ const DURATION_NOTE: Record<string, string> = {
 /** Long enough that a gap is a decision rather than an oversight. */
 const MATURE = new Set(['months-3', 'months-plus'])
 
+/**
+ * Who to tell, in the one band we do not coach. Not a pronoun — a different
+ * set of people — so it cannot be a token and is keyed on the reader instead.
+ */
+const CONFIDANTE: Record<Gender, string> = {
+  woman: 'a sister, a friend, an older woman you trust',
+  man: 'a brother, a friend, an older man you trust',
+}
+
 function stateOf(score: number): DimensionState {
   if (score >= 0.7) return 'shown'
   if (score >= 0.35) return 'partly'
@@ -117,6 +131,7 @@ function sentence(text: string): string {
 export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadResult | null {
   const questions = readQuestions(gender)
   if (questions.some((q) => !answers[q.id])) return null
+  const fix = speak(gender)
 
   // ── Score each dimension ─────────────────────────────────────────────────
   const collected: Record<string, number[]> = {}
@@ -145,7 +160,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
 
   const dimensions: ReadDimensionReading[] = PRIORITY.map((dimension) => ({
     dimension,
-    label: DIMENSION_LABEL[dimension],
+    label: fix(DIMENSION_LABEL[dimension]),
     state: stateOf(scores[dimension]),
   }))
 
@@ -169,18 +184,19 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     return {
       band: 'caution',
       headline: 'Two of these go together, and it is worth saying so plainly.',
-      summary: `${durationNote} You have been asked to keep this hidden, and ${
+      summary: fix(`${durationNote} You have been asked to keep this hidden, and ${
         answers.hard === 'blames'
           ? 'when you raise something difficult you come away feeling like the problem'
-          : 'there is no one in his life who knows you exist'
-      }. Kept quiet, and left doubting yourself, is the shape that leaves women without anyone to compare notes with. We cannot tell you what he intends, and we are not going to guess at his character from eleven questions. We can tell you that this particular combination is not a question for an app.`,
+          : 'there is no one in {his} life who knows you exist'
+      }. Kept quiet, and left doubting yourself, is the shape that leaves someone with nobody to compare notes with. We cannot tell you what {he} intends, and we are not going to guess at {his} character from eleven questions. We can tell you that this particular combination is not a question for an app.`),
       shown,
       missing,
       dimensions,
       thin,
-      script: SCRIPTS[thin],
-      caution:
-        'Tell one person who knows you — a sister, a friend, an older woman you trust — exactly what you have just told us. Out loud, to a human being, this week. Not for advice. So that someone other than him knows the shape of it.',
+      script: scriptFor(thin, gender),
+      caution: fix(
+        `Tell one person who knows you — ${CONFIDANTE[gender]} — exactly what you have just told us. Out loud, to a human being, this week. Not for advice. So that someone other than {him} knows the shape of it.`,
+      ),
     }
   }
 
@@ -189,13 +205,13 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     return {
       band: 'early',
       headline: 'It is too early for this to tell you much.',
-      summary: `${durationNote} That is not a failing — it means the honest answer is that he has not had time to show you anything yet, and anyone who tells you otherwise this early is guessing. What you can do now is know exactly what you are watching for, so that in a month you are reading behaviour instead of re-reading messages.`,
+      summary: fix(`${durationNote} That is not a failing — it means the honest answer is that {he} has not had time to show you anything yet, and anyone who tells you otherwise this early is guessing. What you can do now is know exactly what you are watching for, so that in a month you are reading behaviour instead of re-reading messages.`),
       shown,
       missing,
       dimensions,
       thin,
-      script: SCRIPTS.early,
-      watch: PRIORITY.map((d) => `${DIMENSION_LABEL[d]} — ${WHY_IT_MATTERS[d]}`),
+      script: scriptFor('early', gender),
+      watch: PRIORITY.map((d) => fix(`${DIMENSION_LABEL[d]} — ${WHY_IT_MATTERS[d]}`)),
     }
   }
 
@@ -211,7 +227,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
   let summary: string
 
   if (band === 'strong') {
-    headline = 'He has shown you the things that actually predict it.'
+    headline = '{He} has shown you the things that actually predict it.'
     summary = `${durationNote} ${sentence(join(strongest))}${
       strongest.length ? '. ' : ''
     }Those are not small, and they are not what someone passing time produces. ${
@@ -231,36 +247,36 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
       mature ? ' At this point that is a decision rather than an oversight.' : ''
     }`
   } else {
-    headline = 'So far, he has shown you very little of it.'
+    headline = 'So far, {he} has shown you very little of it.'
     summary = `${durationNote} ${
       weakest.length ? `${sentence(join(weakest))}. ` : ''
     }${WHY_IT_MATTERS[thin]}${
       mature
         ? ' You are far enough in that this is information, not impatience on your part.'
-        : ' It is still early enough that this can change — but it changes because he does something, not because more time passes.'
-    } None of that is a verdict on him, and it is certainly not one on you. It is a description of what has happened so far.`
+        : ' It is still early enough that this can change — but it changes because {he} does something, not because more time passes.'
+    } None of that is a verdict on {him}, and it is certainly not one on you. It is a description of what has happened so far.`
   }
 
   return {
     band,
-    headline,
-    summary,
+    headline: fix(headline),
+    summary: fix(summary),
     shown,
     missing,
     dimensions,
     thin,
-    script: SCRIPTS[thin],
+    script: scriptFor(thin, gender),
   }
 }
 
 /** A one-line summary of a past read, for the Guide's context. */
-export function readSummary(result: Pick<ReadResult, 'band' | 'thin'>): string {
+export function readSummary(result: Pick<ReadResult, 'band' | 'thin'>, gender: Gender = 'woman'): string {
   const BAND: Record<ReadBand, string> = {
     early: 'too early to tell',
-    strong: 'he has shown the things that predict seriousness',
+    strong: '{he} has shown the things that predict seriousness',
     mixed: 'real signals with one significant gap',
     thin: 'very little shown so far',
     caution: 'a pattern of being kept hidden',
   }
-  return `${BAND[result.band]}; thinnest ground: ${DIMENSION_LABEL[result.thin].toLowerCase()}`
+  return speak(gender)(`${BAND[result.band]}; thinnest ground: ${DIMENSION_LABEL[result.thin].toLowerCase()}`)
 }

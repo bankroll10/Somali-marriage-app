@@ -41,10 +41,10 @@ export interface ReadQuestion {
 
 export const DIMENSION_LABEL: Record<ReadDimension, string> = {
   intent: 'Stated intention',
-  public: 'Whether you exist in his life',
+  public: 'Whether you exist in {his} life',
   family: 'Moving toward family',
   consistency: 'Follow-through',
-  pressure: 'How he handles hard things',
+  pressure: 'How {he} handles hard things',
 }
 
 /**
@@ -368,4 +368,32 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
     tells:
       'It is completely fair to ask this in week one, and it costs you nothing. Anyone who finds it too much this early was never going to find it comfortable later.',
   },
+}
+
+/**
+ * Where his side of the script is not the mirror of hers.
+ *
+ * `family` is the one that cannot be flipped by pronouns: "How would you want
+ * to approach my family?" is the right sentence for a woman and the wrong one
+ * for a man, because in this culture it is his people who go to hers. The
+ * product's own family scripts say so — src/data/families.ts has a woman
+ * asking him to send his people — so handing a man her sentence would tell
+ * him to wait for a step that is his to take.
+ */
+const SCRIPTS_MAN: Partial<Record<ReadDimension | 'early', Script>> = {
+  family: {
+    why: 'In our families this is not a formality — it is the whole road, and your side walks it first. Asking how is not a delay; it is the step.',
+    words:
+      'I would rather ask you than guess. How would you want me to approach your family — who should I speak to, and when would be the right time?',
+    tells:
+      'Listen for whether she can tell you who. Someone who has thought about this has a name and a rough when. "Not yet" is an answer too — ask what would have to be true for it to be yet, and note whether the answer has a month in it.',
+  },
+}
+
+/**
+ * The script for this gap, for whoever is reading. Falls back to the shared
+ * one, so a new dimension needs a man's variant only where the road differs.
+ */
+export function scriptFor(key: ReadDimension | 'early', gender: Gender = 'woman'): Script {
+  return (gender === 'man' ? SCRIPTS_MAN[key] : undefined) ?? SCRIPTS[key]
 }
