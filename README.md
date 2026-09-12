@@ -121,6 +121,7 @@ docs/GAPS.md           Every belief the product rests on, classed known / likely
 docs/EXPERIMENTS.md    Five design bets as formal experiments — hypothesis, metric, smallest credible test, and a decision rule fixed before the numbers arrive
 docs/PROCESS.md        The operating loop this whole thing runs on — weekly pulse vs monthly hour, the hypothesis template, feedback, roadmap priority, and every kill criterion in one table
 docs/FEEDBACK.md       What real people have said, one conversation at a time — never a name
+docs/PROTOCOL.md       The reality sprint's research protocol for the first ten sessions: who, the 25 minutes, what to ask and observe, what counts, and the decision rules written before the results
 docs/MACHINE.md        The thirteen stages as this product builds them, every transition's metric and failure, the weakest link, and the plan for it
 docs/BETS.md           Twenty asymmetric bets, scored on upside, cost, reversibility, confidence and learning — and the one that got built
 docs/DURABLE.md        What survives if the AI hype, the app fashions and the platforms all disappear — durable value, temporary novelty, trend-dependent, and the rule that keeps a supplier out of the core

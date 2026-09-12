@@ -8,7 +8,10 @@
 
 ## How an entry gets written
 
-One entry per conversation, email, or comment. Two rules, without exception:
+One entry per conversation, email, or comment. For the reality sprint's ten
+sessions, the entry form is the session template in `docs/PROTOCOL.md` — the
+same header, Context and Bears-on as below, with the observed and asked
+blocks between. Two rules, without exception:
 
 - **No name, ever.** Not hers, not a family member's, not anyone she
   mentioned. A city and a stage (`preparing` / `talking` / `deciding` /
