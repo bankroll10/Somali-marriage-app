@@ -67,8 +67,9 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
   // so a change to how we read never leaves an old verdict in the Guide's prompt.
   const readNote = (() => {
     if (!n.read) return undefined
-    const built = buildRead(n.read.answers, n.identity.gender ?? 'woman')
-    return built ? readSummary(built) : undefined
+    const gender = n.identity.gender ?? 'woman'
+    const built = buildRead(n.read.answers, gender)
+    return built ? readSummary(built, gender) : undefined
   })()
   const beforeYesNote = (() => {
     if (!n.beforeYes) return undefined

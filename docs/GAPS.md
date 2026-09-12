@@ -65,6 +65,11 @@ and stays there until behaviour or a member says otherwise.
    `docs/REDTEAM.md`, the cross neither split could make alone:
    `sidesByVia.man.group`. A man who arrived through her eleven is already
    talking to her; the door counted him as supply, and he never was.
+   **2026-09-12:** one cause the readout could never have shown was in the
+   product itself — his read graded him on her script and its result called
+   the woman "he" (`docs/BOARD.md`, "What the founder's own walk found";
+   `docs/FEEDBACK.md`). Fixed, and it changes nothing about this gap: a
+   coherent read is not evidence that he wants one. Ten men first.
 2. **Words do not travel.** If nothing about marriage gets forwarded at all,
    the distribution model has no engine and paid acquisition — which the
    strategy forbids — becomes the only path. *Test:* `vias.words`, `eleven`

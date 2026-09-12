@@ -52,6 +52,14 @@
   Muzz did not leave because it was insufficiently Somali; she left because
   nobody serious was there or she could not trust who was. Both are density
   and trust problems. Neither is solved by narrowing.
+- **2026-09-12.** A thing this conviction assumed and nobody had checked: the
+  product's Somali specificity ran one way. The men's read was the women's
+  read with the pronouns flipped, and three of its eleven questions inverted
+  the community's own family script — the very specificity this conviction
+  rests on, applied backwards to half the market. Repaired
+  (`docs/BOARD.md`, "What the founder's own walk found"). It is not evidence
+  either way for the conviction; it removes an argument the CASE AGAINST
+  could otherwise have made for free.
 - **CURRENT EVIDENCE.** None. Census concentrations (`docs/WEDGE.md`). Two
   testers who stopped partway through a longer intake
   (`src/data/intake.ts`). Not one Somali single has said, in any recorded

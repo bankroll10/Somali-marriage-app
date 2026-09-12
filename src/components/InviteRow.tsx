@@ -22,8 +22,13 @@ export default function InviteRow({
   source,
   gender,
   title = 'Send this to a friend who’s talking to someone',
-  body = 'A sister, a friend, someone re-reading a message late at night. No account, no swiping — just the read.',
+  body,
 }: Props) {
+  // The friend being sent this is the same side as the sender. "A sister" in
+  // front of a man is the same slip as telling him what "he" intends.
+  const line =
+    body ??
+    `${gender === 'man' ? 'A brother' : 'A sister'}, a friend, someone re-reading a message late at night. No account, no swiping — just the read.`
   const [copied, setCopied] = useState(false)
 
   async function invite() {
@@ -41,7 +46,7 @@ export default function InviteRow({
     >
       <span className="flex-1">
         <span className="block text-[0.95rem] font-medium text-ink">{title}</span>
-        <span className="mt-0.5 block text-[0.8rem] text-muted text-pretty">{body}</span>
+        <span className="mt-0.5 block text-[0.8rem] text-muted text-pretty">{line}</span>
       </span>
       <span className="inline-flex flex-none items-center gap-1.5 text-[0.85rem] font-medium text-forest">
         {copied ? (

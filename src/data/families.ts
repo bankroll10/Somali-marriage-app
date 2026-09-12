@@ -13,6 +13,13 @@ import { speak, type Script } from './read'
  * Every script here is offered, never recommended. There is no state in the
  * app that decides she should end it, or that it is time to send his people.
  * She decides; we hand her the sentences.
+ *
+ * Most of these read from either side once the pronouns are resolved. Two do
+ * not, and carry `for: 'woman'` — telling a wali she met him online, and
+ * asking him to send his people. The mirror of the second is his to walk, so
+ * `approach-her-family` carries `for: 'man'`: it is the words for the step the
+ * read now tells him is his, and until 2026-09-12 nothing in the product gave
+ * them to him (docs/BOARD.md, "What the founder's own walk found").
  */
 
 export interface FamilyScript {
@@ -70,6 +77,20 @@ const SCRIPTS: FamilyScript[] = [
     },
   },
   {
+    id: 'approach-her-family',
+    title: 'Speaking to her family for the first time',
+    when: 'Once she has told you who to approach.',
+    stages: ['talking', 'deciding'],
+    for: 'man',
+    script: {
+      why: 'This is the step that turns talking into an intention, and it is the one thing no message can do for you. It costs you something to stand in front of her father or her brother and say it out loud. That is exactly why it counts — and why every month you wait, she is the one carrying the question.',
+      words:
+        'Assalaamu alaykum. My name is ———. I have been speaking with your daughter, and I did not want that to go further without coming to you first. My intention is marriage, and I want to do this the way you would want it done. If you will allow it, I would like my family to come and sit with yours.',
+      tells:
+        'Expect the questions to come fast, and to be about your work, your family and your deen. Answer plainly and do not sell. “I don’t know yet” is a better answer than a smooth one. If he asks you to wait, ask what he would want to see by then — a father who names something is not refusing you, and a father who names nothing has told you something too.',
+    },
+  },
+  {
     id: 'open-mahr-and-living',
     title: 'Opening mahr, and where you’d live',
     when: 'Before the families set it for you.',
@@ -108,6 +129,23 @@ export function familyScripts(memberGender: Gender = 'woman', stage?: Stage): Fa
       script: { why: fix(s.script.why), words: fix(s.script.words), tells: fix(s.script.tells) },
     }))
     .sort((a, b) => Number(!!stage && b.stages.includes(stage)) - Number(!!stage && a.stages.includes(stage)))
+}
+
+/**
+ * The one line under "The words for your family", built from the scripts this
+ * member can actually open.
+ *
+ * It used to be a literal — "telling your wali, the first conversation with
+ * hooyo, asking her to send her people" — which named two scripts a man is
+ * never shown and inverted his own step: he sends his people, he does not ask
+ * her to send hers. Derived, it cannot drift from what is behind the card.
+ */
+export function familyScriptsLine(memberGender: Gender = 'woman', stage?: Stage): string {
+  const titles = familyScripts(memberGender, stage)
+    .slice(0, 3)
+    // Titles with a clause ("Opening mahr, and where you'd live") give the head.
+    .map((s) => s.title.split(',')[0].toLowerCase())
+  return `${titles.join(', ')} — word for word.`
 }
 
 /** One script by id, pronouns resolved — or undefined when it is not for this member. */

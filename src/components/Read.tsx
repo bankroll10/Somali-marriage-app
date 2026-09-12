@@ -4,6 +4,7 @@ import { readQuestions } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
+import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import { ArrowRight, Button, ScreenHeader } from './ui'
 
@@ -422,7 +423,7 @@ function Result({
           <span className="flex-1">
             <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
             <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-              Telling your wali, the first conversation with hooyo, asking {subject} to send {subject === 'him' ? 'his' : 'her'} people — word for word.
+              {familyScriptsLine(subject === 'him' ? 'woman' : 'man')}
             </span>
           </span>
           <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />

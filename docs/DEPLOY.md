@@ -214,3 +214,13 @@ founder's phone call, not a button. Trust's promise of real consequences is
 true as far as a report reaching a person goes; keep it worded that way, not
 as a claim of automatic enforcement this product cannot yet make. See
 `docs/TIME.md`.
+
+
+## The "Powered by Netlify" badge
+
+Netlify shows it by default on Free-plan projects created on or after
+2026-08-19, injected at the edge — it is in no file here, and `npm run build`
+cannot remove it. Turn it off at Netlify → `getniyyah` → Project
+configuration → General → "Powered by Netlify badge". Per project, no
+redeploy needed. A visitor can hide it for themselves; only that switch hides
+it for everyone. Found on the live site 2026-09-12 (docs/BOARD.md).
