@@ -85,6 +85,8 @@ const MAX_BODY = 4_096
  * it time out. A circuit breaker, not a member limit — see netlify/shared/limit.ts.
  */
 const DEFAULT_HOURLY_CAP = 1000
+/** Forgets in one hour, from everyone — the read-cap shape from keep.ts, since this deletes. */
+const DEFAULT_FORGET_CAP = 600
 
 /** Mirrors src/lib/facts.ts, with the ids as plain strings. Every value is validated against vocab.ts. */
 export interface Facts {
@@ -487,6 +489,11 @@ export default async function handler(req: Request) {
   if (req.method === 'DELETE') {
     const id = (new URL(req.url).searchParams.get('id') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
     if (!ID.test(id)) return Response.json({ error: 'bad_id' }, { status: 400 })
+    // Bounded like keep.ts's forget, and for the same reason: possession of
+    // the id is the authority, so an unmetered DELETE is a destruction
+    // primitive over a 27-bit secret. It was the one public write with no cap
+    // (docs/BOARD.md). A circuit breaker, far above any real hour.
+    if (await overHourlyCap('progress-forget', DEFAULT_FORGET_CAP)) return rateLimited()
     try {
       const existing = await store.get(id, { type: 'json' })
       if (!existing) return Response.json({ error: 'not_found' }, { status: 404 })

@@ -194,23 +194,32 @@ export default async function handler(req: Request) {
 
   const now = Date.now()
   try {
-    // Re-keeping refreshes the year but keeps the day it was first kept. A
-    // createdAt that moved on every save was a last-seen timestamp under
-    // another name — an activity trace this store has no business holding.
-    const existing = code ? ((await store.get(code, { type: 'json' })) as KeptMap | null) : null
-    const kept: KeptMap = {
-      snapshot: body.snapshot,
-      createdAt: existing?.createdAt ?? day(now),
-      expiresAt: day(now + TTL_MS),
-    }
-    // Hers, under the code she gave: an ordinary write. A code nobody holds
-    // yet: minted with `onlyIfNew`, so a collision costs a retry instead of
-    // somebody's map — see netlify/shared/code.ts for why that is not
-    // theoretical.
+    // Re-keeping under her code: only ever *over her own map*. This used to be
+    // a bare write under whatever code the body carried — so a code nobody
+    // held was created on demand, skipping `mint`'s `onlyIfNew`, and a guessed
+    // code overwrote a stranger's map as surely as DELETE once destroyed one
+    // (docs/HARD.md row 3, docs/BOARD.md). Now: nothing under the code is a
+    // 404, and the client mints fresh; something under it is written with the
+    // etag it was read at, so two saves racing lose one cleanly instead of
+    // interleaving. Three tries, like every conditional write here.
     if (code) {
-      await store.setJSON(code, stamp(kept))
-      return Response.json({ code })
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const existing = await store.getWithMetadata(code, { type: 'json' })
+        if (!existing) return Response.json({ error: 'not_found' }, { status: 404 })
+        const was = existing.data as KeptMap
+        // Re-keeping refreshes the year but keeps the day it was first kept. A
+        // createdAt that moved on every save was a last-seen timestamp under
+        // another name — an activity trace this store has no business holding.
+        const kept: KeptMap = { snapshot: body.snapshot, createdAt: was.createdAt ?? day(now), expiresAt: day(now + TTL_MS) }
+        const { modified } = await store.setJSON(code, stamp(kept), { onlyIfMatch: existing.etag })
+        if (modified) return Response.json({ code })
+      }
+      return Response.json({ error: 'conflict' }, { status: 409 })
     }
+    // A code nobody holds yet: minted with `onlyIfNew`, so a collision costs a
+    // retry instead of somebody's map — see netlify/shared/code.ts for why
+    // that is not theoretical.
+    const kept: KeptMap = { snapshot: body.snapshot, createdAt: day(now), expiresAt: day(now + TTL_MS) }
     const minted = await mint((c, v: KeptMap) => store.setJSON(c, v, { onlyIfNew: true }), stamp(kept))
     if (!minted) {
       console.error('[niyyah] keep: every minted code collided')
