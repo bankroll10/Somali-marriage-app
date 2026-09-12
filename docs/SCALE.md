@@ -59,6 +59,13 @@ readout until a second country opens, and the chip says so
 to her" — counts more pairs but makes the reachable set depend on who is
 looking, and "a pool opened" stops meaning anything.
 
+**Twelve more cities are named** since 2026-09-12 — Seattle, San Diego,
+Birmingham, Bristol, Leicester, Gothenburg, Oslo, Copenhagen, Helsinki,
+Amsterdam, Nairobi, Melbourne (`src/data/scenes.ts`) — because a cohort key
+is written once and a member counted as `other` in a city that gets a door a
+month later can never be re-placed (`docs/BOARD.md`, decision 7). Every one
+still reads zero; naming a city promises nothing but the honest count.
+
 **`other` is not a city.** Two people at `uk/other` may be Bristol and
 Aberdeen. Someone there is in her country's pool if she would travel, and in
 no pool at all if she would not — counted, seen by the founder, and told so

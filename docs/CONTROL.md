@@ -185,3 +185,25 @@ minutes of downtime, which it does not.
 - **Check this file when adding any dependency.** Six questions: pricing
   doubles, access disappears, policy changes, can we migrate, do we own the
   customer, do we own the asset.
+
+## Accounts, recovery, rotation
+
+Every recovery above assumes one person is available and logged in. This is
+the record that makes a second person possible (`docs/BOARD.md`, decision 9).
+The founder fills the blanks; a copy of the filled table, sealed, goes to one
+trusted person.
+
+| Account | 2FA on | Recovery codes kept where | Second person | Notes |
+|---|---|---|---|---|
+| GitHub (`bankroll10`) | — | — | — | Owns the repository. Private since the audit's decision 5 |
+| Netlify (the team) | — | — | — | Holds every store, every secret and the deploys; "team access is the whole boundary" |
+| Anthropic console | — | — | — | **Monthly spend limit set:** — . The bound outside the code (`netlify/functions/guide.ts`) |
+| Registrar for joinniyyah.com | — | — | — | Registrar: — · Expires: — · Auto-renew: — · Registrar lock: — . Renew for several years |
+| Gmail (the inbox `VITE_CONTACT_EMAIL` points at) | — | — | — | Until step 5 above forwards the owned address |
+
+**Rotation.** The three secrets (`PREVIEW_PASSWORD` while it exists,
+`ANTHROPIC_API_KEY`, `FOUNDER_KEY`) rotate the day a second person joins the
+Netlify team or a new tool is connected to it, and in any case once a quarter;
+the monthly hour checks the date of the last rotation. `FOUNDER_KEY` also
+lives as a GitHub Actions secret (`.github/workflows/watch.yml`) and rotates
+in both places in the same hour.

@@ -202,8 +202,12 @@ Rules for the loop itself:
 
 - **One revision per readout.** If three constants look wrong, move one, wait
   a month, look again. Two moves at once cannot be told apart.
-- **Never move a constant on fewer than a hundred records** for the row in
-  question. Below that the readout is anecdote.
+- **Never move a weight, a `consequence` or anything that changes a reading
+  on fewer than a hundred records** for the row in question. Below that the
+  readout is anecdote. **Low-stakes constants move at twenty** — script
+  wording, the order of steps or questions, a label — so the loop turns in
+  months rather than years, which is the only timescale on which it is a moat
+  (`docs/BOARD.md`, decision 11).
 - **The ladder decides, not the facts.** A constant that makes a fact look
   better while `followed-through / arrived` falls is wrong.
 - **A decision rule written before its build overrides the hundred-record

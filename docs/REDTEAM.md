@@ -497,7 +497,10 @@ ceiling is a price worth paying.
 ### Third · Nobody pays, and the company has arranged not to find out (7 with 8)
 
 The latest of the three to resolve and the only one where the obstacle to
-knowing is the company's own promise. The promise is right — a fake price is
+knowing is the company's own promise. *Resolved in part, 2026-09-12:* the
+promise was bounded to what a member is charged, so a family's payment at
+the first pool's nikah is inside the test, not barred by it (`docs/BOARD.md`
+decision 0). The promise is right — a fake price is
 the one lie this product cannot tell — so the cost of keeping it should be
 written down rather than around: **the company will not know whether anyone
 pays until at least a year after the first pool opens.** Every plan in this

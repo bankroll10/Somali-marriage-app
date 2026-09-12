@@ -526,46 +526,82 @@ a kept map lives with one vendor.
   build list was opened against its file; the remaining findings are carried
   above with their inspector's label.
 
-## What is put to the founder — decisions, not made
+## The decisions — made, 2026-09-12
 
-0. **The free-year promise's boundary** (`src/data/plus.ts`). Member, family,
-   or gift-giver — which payments at the first pool's nikahs are inside it.
-   Recommendation: "everyone counted before the pool opens keeps every paid
-   feature free for a year", with a family's payment at the nikah and a
-   guest's gift outside it. Zero members means it costs nothing today.
-1. **The gate**: off the day the first link is posted with `noindex` kept, or
-   the password in the posts. Recommendation: off.
-2. **The door's forty as a contract**: the door sentence becomes the condition
-   ("opens when forty on each side can be introduced"), or the checklist is
-   published. Recommendation: the condition. And whether `talking` members may
-   be counted; recommendation: no — supply is `preparing`.
-3. **The ticket to the door**: five fields plus a contact, the map afterwards.
-4. **The men's instruments**: write from his side, or state that he is a
-   respondent. Recommendation: ask ten men first.
-5. **The repository's visibility** and which documents, if any, are public.
-6. **The playbook's order**: the eleven first.
-7. **Second-tier metros**: the list, for the countries the door already lists.
-8. **"Something else" on the hook.**
-9. **The Anthropic spend limit; the GitHub secret; 2FA and the recovery
-   record; the registrar record; a key-rotation trigger.**
-10. **Trust disclosing that a kept map lives with one vendor**, or a
-    founder-key encrypted dump of maps and vouches in the monthly hour.
-11. **The learning-loop threshold** for low-stakes constants, or the constants
-    loop labelled a year-two process.
-12. **The code**: keep six characters and the restore link; move `GET/DELETE
-    /keep` to a header. Recommendation: keep six.
-13. **A retention rule for lapsed contacts** (recommendation: one year after
-    `at`, written on Trust), and the Trust sentence "never stored next to your
-    answers" made precise.
-14. **Offer the keep when the map completes**; read `kept / mapped` first.
-15. **A one-bit "asked the guide, ever" fact**, or accept the guide runs
-    unmeasured for years.
-16. **Decouple the $99 line from the `deciding` declaration.**
-17. **The by-hand introduction runbook**, dry-run with two testers; one
-    "your pool opened" test mail, timed.
-18. **The brand question**: strip the community's name from title, meta and
-    hero (institution) or delete the rule (Somali-first). `src/data/brand.ts`
-    makes either a one-file change.
+The founder asked that these not be delegated back. Each is decided here and,
+where it is code or a document, done in the same pass; the founder's part is
+the handful of acts only an account holder can perform, listed at the end.
+
+0. **The free-year promise is bounded** to what a member is charged: everyone
+   counted before her pool opens keeps every paid feature free for a year
+   after it opens. A family's payment at the nikah and a guest's gift are
+   outside it. `src/data/plus.ts`; the concierge's first ten couples are now a
+   permitted revenue test, in year one.
+1. **The gate comes off with the first post — the quiet launch.**
+   `PREVIEW_PASSWORD` is deleted and a deploy triggered; `noindex` and
+   `robots.txt` stay until the first pool opens. `docs/DEPLOY.md` is the one
+   description. *Founder's act.*
+2. **The door promises the condition, not the number.** Every door sentence
+   reads "opens when forty women and forty men here can each be introduced to
+   someone — counted, reachable, and fitting at least one person on the other
+   side" (`opensWhen` in `src/lib/cohort.ts`); forty is named as the first
+   mark. Count-me is offered to `preparing` members only — supply is who is
+   looking.
+3. **The ticket to the door is the short map**: the three answers the pool
+   reads — practice, children, non-negotiables — then age and a way to reach
+   her, at the door's own card. The sixteen are offered afterwards, from Home.
+   A man is counted on the same terms; a counted person has a Home.
+   `src/data/shortMap.ts`, `src/components/ShortMap.tsx`, held to `pool.ts` by
+   `tests/short-map.test.ts`; walked in Chromium.
+4. **The men's instruments** are not rewritten before ten men are asked; he is
+   a member (counted, decision 3), and the read's man-variant stays as it is
+   until the conversations say what he needs. Question 2 of the ten.
+5. **The repository goes private.** No document is public. *Founder's act.*
+6. **The playbook leads with the eleven**, the read in the same week; the via
+   split settles which door people use. `docs/WEDGE.md`.
+7. **Twelve more cities are named** — Seattle, San Diego, Birmingham, Bristol,
+   Leicester, Gothenburg, Oslo, Copenhagen, Helsinki, Amsterdam, Nairobi,
+   Melbourne — so nobody is counted as `other` in a city that gets a door a
+   month later. Every one reads zero, honestly.
+8. **The hook has "Something else."** `none` now means only skipped, and the
+   list can be tested (`docs/GAPS.md`).
+9. **Accounts and recovery**: a table in `docs/CONTROL.md` for 2FA, recovery
+   codes, a second person, the registrar record and the Anthropic spend
+   limit, and a rotation rule — quarterly, and on any new team member or
+   tool. *Founder fills it.*
+10. **Trust discloses that a kept map lives with one vendor** and that the
+    founder's backup does not include it — rather than building an encrypted
+    dump now. The honest sentence costs nothing; the dump waits for records.
+11. **The learning loop's threshold splits**: a hundred records for weights,
+    `consequence` and anything that changes a reading; twenty for script
+    wording, order and labels. `docs/OPERATING.md`.
+12. **The code stays six characters**, the restore link keeps it in the URL
+    (the link is the feature), and the header move is declined. `docs/HARD.md`.
+13. **The contact lives exactly as long as the map**: the pool's sweep deletes
+    it with the lapsed entry (`netlify/functions/pool.ts`), and Trust says so.
+14. **The keep stays where it is** — on the Reflection screen, the moment the
+    map completes (`Reflection.tsx` already offers it there); `kept / mapped`
+    is read from the first ten before anything moves.
+15. **The guide gets one bit**: `facts.asked = ['guide']`, a set like `began`,
+    and the readout crosses it with `followed-through` — so A3 reads in weeks,
+    not years. `docs/EXPERIMENTS.md` A3's rule is rewritten on it.
+16. **The $99 line is sold at the joint view** of the two-sided eleven, never at
+    the stage she declares — `deciding` stays a free word. `docs/STRATEGY.md`,
+    `docs/MACHINE.md`.
+17. **The by-hand introduction is a one-page runbook** in `docs/LIQUIDITY.md`,
+    with the hour-per-introduction limit that changes the target or the window
+    if it is exceeded, and the timed pool-opened test mail. *Founder dry-runs
+    it with two testers before pool one.*
+18. **Somali-first stays.** The brand names the community; the institution
+    rule holds for the brand strings (`src/data/brand.ts`) so the day a second
+    community is served is a one-file change, and that day is not now.
+
+**The founder's acts, in order** (steps in the pull request): flip the
+repository private → add `FOUNDER_KEY` as a GitHub Actions secret → set the
+Anthropic monthly spend limit → set `BACKUP_TO_ARTIFACT` → fill the accounts
+table and turn on 2FA everywhere → have a native speaker approve the ten Somali
+lines → delete `PREVIEW_PASSWORD` and deploy → post the eleven, the read and
+the door to the ten connectors, and write down what they say.
 
 ## The pre-flight
 
@@ -586,7 +622,14 @@ second question's control; the intake is unchanged in this pass and covered by
 texts are held by `src/lib/ending.test.ts`), and the Couple screen with a live
 pair.
 
-Defects found by the walk: none beyond those the audit had already named and
+Walked again after the decisions: the door for a man → "Count me in" →
+Identity → the three questions of the short map → the door's card with the
+new sentence → age and contact → "You’re counted" → "Your space" lands on
+Home, and reload lands on Home; the kept map carried exactly practice,
+children, non-negotiables and age, and the door's join carried the contact.
+No errors, no overflow.
+
+Defects found by the walks: none beyond those the audit had already named and
 fixed above. The copy that a member reads first — the door's "Being counted
 takes a map — sixteen questions about you… your age, and a way to reach you"
 — is true of the code as it stands; whether the map should be the ticket is

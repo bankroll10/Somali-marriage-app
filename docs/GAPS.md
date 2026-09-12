@@ -28,7 +28,7 @@ and stays there until behaviour or a member says otherwise.
 
 | Area | The belief | Class | What tests it |
 |---|---|---|---|
-| **What prevents people** | The room is wrong, not the person; the masjid has no mechanism; anxiety is acute and weekly | ASSUMED | `cohort` `hooks` per city; the hook's `none` share is the test of the list |
+| **What prevents people** | The room is wrong, not the person; the masjid has no mechanism; anxiety is acute and weekly | ASSUMED | `cohort` `hooks` per city; the hook's `other` share is the test of the list — since 2026-09-12 the hook has a "Something else", so `none` means only "skipped" (`docs/BOARD.md` decision 8) |
 | | Which of the five hardest parts dominates | UNKNOWN | same |
 | **Priorities of segments** | Women 24–34, men 26–36; he arrives through her; the divorced and remarrying are the largest unserved segment | ASSUMED | door women/men; `vias.door`; conversations |
 | | Only *preparing* members are marketplace supply | LIKELY (from mechanics) | `scenes[city].situated` against `read`/`eleven` |

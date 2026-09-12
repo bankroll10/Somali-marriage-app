@@ -83,9 +83,14 @@ Ranked by how hard they bind. The first is arithmetic; the rest are choices.
    (`docs/TIME.md`). Prevents a software multiple unless the software-priced
    lines carry half of revenue.
 3. **Free for a year to everyone here before the public launch.** Right, and
-   it means no revenue evidence until a year after the first pool; if the
-   pool takes two years, three years to the first dollar (`docs/REDTEAM.md`
-   third). It delays, and it can starve.
+   as first written it meant no revenue evidence until a year after the first
+   pool; if the pool took two years, three years to the first dollar
+   (`docs/REDTEAM.md` third). **Bounded 2026-09-12** (`src/data/plus.ts`,
+   `docs/BOARD.md` decision 0): the promise is about what a *member* is
+   charged — everyone counted before her pool opens keeps every paid feature
+   free for a year after it opens — and what a family pays at the nikah or a
+   guest gives is outside it. The concierge's first ten couples are a
+   permitted test, in year one. It delays less, and it no longer starves.
 4. **No paid acquisition, ever.** Right, and it makes referral R the whole
    growth rate. R below one forbids scale; nothing else is allowed to.
 5. **"Built for the Somali diaspora" as the first sentence.** Forbids the one

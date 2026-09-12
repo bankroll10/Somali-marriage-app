@@ -119,3 +119,14 @@ _Dated, one line each: an inversion found or a trigger fired._
 - 2026-09-12 — The board audit (`docs/BOARD.md`) found five more: #17, #19 and
   #21 chosen hard; #18 and #20 lived easy with a rule and an honest sentence.
   Row 6's one fail-closed route became every route.
+- 2026-09-12 — The code stays six characters (`docs/BOARD.md` decision 12):
+  the phone-readability trade was deliberate, the read caps bound enumeration,
+  and the restore link keeps the code in its URL because the link *is* the
+  feature. Moving `GET/DELETE /keep` to a header is declined: this product
+  controls no log that would hold the query string. Live Easy, on purpose.
+- 2026-09-12 — The ticket to the door became the short map — the three answers
+  the pool reads — instead of the sixteen (`src/data/shortMap.ts`,
+  `docs/BOARD.md` decision 3). Hard, because it had to be decided before the
+  first man met the door: a person counted under a sixteen-question toll and
+  one counted under three are the same record, but the funnel that produced
+  them is not, and the kill tests read the funnel.

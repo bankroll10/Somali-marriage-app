@@ -75,6 +75,14 @@ no Home, so the follow-up her read wrote was never asked
 **The front door promises the right thing.** It used to promise "your number".
 It now promises the one thing to say next (`docs/NORTHSTAR.md`).
 
+**The ticket to the door is the short map**, since 2026-09-12 (`docs/BOARD.md`
+decision 3): the three answers `netlify/functions/pool.ts` reads — practice,
+children, non-negotiables — plus her age and a way to reach her. The sixteen
+are offered afterwards, from Home, as the thing that makes a reading. A man
+who arrives at the door is counted on the same terms, and a counted person
+has a Home (`src/lib/inferStage.ts`). Count-me is offered to `preparing`
+members only — supply is who is looking (decision 2).
+
 ## 3. The map
 
 The map was a 0–100 readiness score with a counting ring, seven numbered bars,
@@ -294,7 +302,9 @@ partner and a marriage that lasts. Not by convenience to build.
    out. The enduring need, made real.
 4. **Concierge, by hand** — the founder matchmaking the first ten couples.
    The oldest durable form of this business and the one families already pay
-   for — but a *service*, not a build: a human matchmaker has a matchmaker's
+   for — and, since the free-year promise was bounded to what a member is
+   charged (`docs/BOARD.md` decision 0), the first honest revenue test — but a
+   *service*, not a build: a human matchmaker has a matchmaker's
    margins, and software does not change that (`docs/ROADMAP.md`). It is also
    the only test of willingness to pay the free-for-a-year promise permits.
 5. **The first-year sheet** — the one instrument the married stage is still
