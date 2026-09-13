@@ -194,19 +194,58 @@ that link is a 401 — so the playbook in `docs/WEDGE.md` cannot run against a
 gated site. **Decided 2026-09-12 (`docs/BOARD.md`, decision 1): the quiet
 launch.** The founding preview ends the day the first link is posted:
 `PREVIEW_PASSWORD` is deleted from the site's environment variables and a
-deploy is triggered so the edge function picks up its absence; the `noindex`
-header and `robots.txt` stay until the first pool opens, so the site is open
-to anyone with a link and found by nobody searching. Verify from a phone with
-no cookies that `/?eleven` answers 200. This file is the one place the gate's
-state is described; `docs/PRODUCT.md` §9 points here.
+deploy is triggered so the edge function picks up its absence. Verify from a
+phone with no cookies that `/?eleven` answers 200. This file is the one place
+the gate's state is described; `docs/PRODUCT.md` §9 points here.
+
+**Revised 2026-09-13: the site is indexable from that same day.** The plan
+was to keep `noindex` and a disallowing `robots.txt` until the first pool
+opened. Both are gone, for two reasons (`docs/BOARD.md`, the search pass).
+They cancelled each other — a disallowed crawl is a crawl that never reads
+the `noindex`, so the domain stayed in Google as a bare URL under "No
+information is available for this page", which is what a stranger sees when a
+site is broken or hiding. And a different Niyyah, a Muslim matchmaking
+service in Toronto, Ottawa and Montreal, holds the name in search with a real
+title and description, while the first links are about to be handed to people
+who will search it before they trust it.
+
+## Being found: the founder's part
+
+Removing the blocks lets Google in. It does not tell Google we exist, and
+nothing below works while `PREVIEW_PASSWORD` is set — a crawler gets the same
+401 as everyone else, so **the gate must come off first.**
+
+1. **Google Search Console** → Add property → **Domain**, `joinniyyah.com`.
+   It asks for one DNS TXT record; add it wherever the domain's DNS lives and
+   press verify. The domain property covers every subdomain and both schemes,
+   which the URL-prefix kind does not.
+2. **Sitemaps** → submit `sitemap.xml`. It is written by the build, so it is
+   already live and already names the right host.
+3. **URL Inspection** → paste `https://joinniyyah.com/` → **Request
+   indexing.** This is the step that turns days into hours. Do it once; asking
+   repeatedly does not help.
+4. **Check what the crawler actually got**: the inspection's "View crawled
+   page" should show the real `<title>` and description from
+   `src/data/brand.ts`, not an empty shell.
+5. A week later, search `site:joinniyyah.com`. One result with the real title
+   is the whole test. If it still reads "No information is available", the
+   blocks are back or the gate is still on.
+
+Bing has the same flow at Bing Webmaster Tools and can import the Search
+Console property, which is two minutes and worth it.
+
+**The brand collision is not a technical problem and has no technical fix.**
+`niyyahmatch.com` will keep ranking for "Niyyah" until this site has links
+pointing at it from places Google trusts. What earns those is the thing the
+playbook already does: the rooms, the posts, the eventual press. Searching
+"Niyyah Somali" should find us first well before "Niyyah" does, and that is
+the search that matters for the wedge.
 
 ## At real launch
 
-Three things come off together, and forgetting one undoes the others:
+One thing is left, and it is the gate:
 
-1. The `[[headers]]` block in `netlify.toml` (the `X-Robots-Tag: noindex`).
-2. `public/robots.txt`.
-3. `netlify/edge-functions/gate.ts`, and the `PREVIEW_PASSWORD` variable.
+1. `netlify/edge-functions/gate.ts`, and the `PREVIEW_PASSWORD` variable.
 
 Before that day: `netlify/functions/safety.ts` gives reporting a real channel
 (see above), but this product has no accounts, so "removed" still means a

@@ -217,8 +217,11 @@ curl -sI https://<your-site>/ | head -1     # expect: HTTP/2 401 while the previ
 
 **The preview ends with the first post** (`docs/DEPLOY.md`, decided
 2026-09-12): delete `PREVIEW_PASSWORD`, trigger a deploy, and the same request
-answers 200. The `[[headers]]` block in `netlify.toml` and `public/robots.txt`
-stay until the first pool opens, then come off together.
+answers 200. The `noindex` header and the disallowing `robots.txt` are gone as
+of 2026-09-13 — they cancelled each other and left the domain in Google as a
+bare URL with no title. `robots.txt` and `sitemap.xml` are written by the
+build so they carry the same host as every link; `docs/DEPLOY.md` has the
+Search Console steps, which are the founder's.
 
 ## The founder's readout
 

@@ -774,3 +774,54 @@ the code cannot back, which is the class of defect the reality sprint
 removed. The first build, when it comes, is the introductions record — every
 introduction made without one is the one number this plan is missing, thrown
 away.
+
+## The search pass — why the domain read as broken
+
+The founder searched `joinniyyah.com` on 2026-09-13 and found the domain
+listed with no title and the line "No information is available for this page",
+under an AI summary saying the domain "does not currently host an active or
+widely recognized public website". Below it, ranking with a full title and
+description: `niyyahmatch.com`, a private Muslim matchmaking service in the
+GTA, Ottawa and Montreal.
+
+**Nothing was broken.** Two settings told crawlers to stay away, both
+deliberate (decision 1, the quiet launch): `X-Robots-Tag: noindex, nofollow`
+on every path in `netlify.toml`, and `public/robots.txt` disallowing
+everything.
+
+**But they cancelled each other, and the result was the worst of both.**
+Getting a page *out* of Google requires the opposite of what it looks like:
+the crawler has to be let in so it can read the `noindex`. A disallowed crawl
+never reads anything, so a URL Google has seen linked stays listed — with
+nothing under it. So the configuration did not hide the site. It published a
+result that reads, to anyone who does not know better, as a site that is
+defunct or hiding something.
+
+**Two facts changed the decision.** First, that cost lands at exactly the
+wrong moment: the playbook's next act is handing links to strangers
+(`docs/ROADMAP.md` item 0), and a cautious woman asked to trust a marriage
+site with her contact details will search the name first. Second, another
+Niyyah holds that search. Toronto is third on the expansion path
+(`docs/WEDGE.md`).
+
+**Decided, 2026-09-13: the site is indexable from the day the gate comes off,
+not from the day the first pool opens.** Both blocks are removed;
+`robots.txt` and `sitemap.xml` are written by `vite.config.ts` so they carry
+the same host as every link (`src/lib/site.ts`); `index.html` gained a
+canonical tag so the `?read`, `?eleven` and `?via=` links posted into group
+chats do not become separate thin results. `tests/deploy-layout.test.ts` holds
+all four in place, because the way back is a one-line "just while we test"
+that nobody remembers to remove.
+
+**What this does not risk.** Nothing a member keeps is rendered into HTML: a
+map lives under a code nobody can guess, the door's counts are floored, and
+the functions are disallowed as the API they are. There is no marketplace to
+flood and no member to expose. A stranger who arrives early meets a door that
+says plainly it is not open and introduces nobody — which is what the
+reality-sprint pass made true.
+
+**Still the founder's.** Search Console is a DNS record and three clicks;
+`docs/DEPLOY.md` has the steps. None of it works while `PREVIEW_PASSWORD` is
+set, so the gate comes off first. And the brand collision has no technical
+fix — links from places Google trusts are what move it, which is the room
+playbook, not a tag.

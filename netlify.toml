@@ -40,13 +40,19 @@
 [functions]
   node_bundler = "esbuild"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# FOUNDING PREVIEW ONLY — remove this block and public/robots.txt at real launch.
-# The edge-function gate already returns 401 to anyone without the password, so
-# these are belt and braces. They matter most on the day the gate comes off,
-# which is exactly the day they are easy to forget.
-# ─────────────────────────────────────────────────────────────────────────────
-[[headers]]
-  for = "/*"
-  [headers.values]
-    X-Robots-Tag = "noindex, nofollow"
+# There is deliberately no X-Robots-Tag here.
+#
+# Until 2026-09-13 every path carried `noindex, nofollow` and public/robots.txt
+# disallowed everything, so that the founding preview could not be found. The
+# two settings cancelled each other: robots.txt stopped the crawl, so the
+# noindex was never read, so the domain stayed listed — as a bare URL under
+# "No information is available for this page", which reads to a stranger as a
+# site that is broken or hiding something. Meanwhile a different Niyyah, a
+# Muslim matchmaking service in Toronto and Montreal, held the name in search
+# with a real title and description (docs/BOARD.md, the search pass).
+#
+# Being absent from Google requires the opposite of what it looks like: let the
+# crawler in, and let the page tell it what to do. robots.txt and sitemap.xml
+# are written by vite.config.ts so they carry the same host as every link, and
+# index.html's canonical tag keeps ?read, ?eleven and ?via= from being indexed
+# as separate thin pages.

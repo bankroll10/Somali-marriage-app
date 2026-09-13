@@ -134,4 +134,40 @@ describe('Netlify deploy directories hold only deployable code', () => {
     expect(existsSync(join(process.cwd(), 'netlify/functions/vouch.ts'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'netlify/functions/progress.ts'))).toBe(true)
   })
+
+  it('the site can be found, and says so in one voice', () => {
+    // For six days the domain answered a search with "No information is
+    // available for this page": robots.txt disallowed everything, so the
+    // crawler never read the noindex header meant to hide it, so the URL
+    // stayed listed with nothing under it. The two settings cancelled and the
+    // result looked like a broken site at exactly the moment the first links
+    // were about to be handed to strangers (docs/BOARD.md, the search pass).
+    //
+    // Both are gone. This holds them gone, because the way back is a
+    // one-line "just while we test" that nobody remembers to remove.
+    // Comments stripped first: netlify.toml explains at length why the header
+    // is absent, and naming the thing you removed must not read as setting it.
+    const config = readFileSync(join(process.cwd(), 'netlify.toml'), 'utf8')
+      .split('\n')
+      .filter((l) => !l.trim().startsWith('#'))
+      .join('\n')
+    expect(config, 'netlify.toml must not send noindex — see docs/DEPLOY.md').not.toMatch(/X-Robots-Tag/i)
+    expect(config).not.toMatch(/noindex/i)
+
+    // A file here would shadow the generated one and could disagree with it.
+    expect(
+      existsSync(join(process.cwd(), 'public/robots.txt')),
+      'robots.txt is written by vite.config.ts so it carries the same host as every link',
+    ).toBe(false)
+
+    const vite = readFileSync(join(process.cwd(), 'vite.config.ts'), 'utf8')
+    for (const name of ['robots.txt', 'sitemap.xml']) {
+      expect(vite, `vite.config.ts must emit ${name}`).toContain(`fileName: '${name}'`)
+    }
+
+    // Every path serves index.html, so without this each ?read, ?eleven and
+    // ?via= link posted into a group chat is a separate thin result.
+    const html = readFileSync(join(process.cwd(), 'index.html'), 'utf8')
+    expect(html).toContain('<link rel="canonical" href="https://%SITE_HOST%/" />')
+  })
 })
