@@ -30,7 +30,7 @@ the thirteen stages:
 | **Install** | There is no install. The equivalent is the first `/progress` report under a fresh install code, which happens on first render with "Count me" on — `arrived` | `rungs.arrived`, `arrivedByDay`, `vias` |
 | **Onboarding** | Identity → Situation → the hook. Three taps: who you are, what is happening, what is hardest | `situated`; the door's `hooks` |
 | **Profile** | The map — thirteen questions, a reflection, kept under a code with no name on it | `mapped`; `facts.began.map`; `facts.grounds` |
-| **Match liquidity** | The door: forty women and forty men in one pool who have kept a map and can be reached (`COHORT_TARGET`) | `counted`; `countries[c].scenes[s].women / men`; `across`; `facts.hesitated` |
+| **Match liquidity** | The door: one metro's atomic network — twenty active preparing men and at least as many women, each introducible (`docs/ATOMIC.md` §6). Forty (`COHORT_TARGET`) is the first mark on the door, not the gate | `counted`; `countries[c].scenes[s].women / men`; `across`; `facts.hesitated` |
 | **Match quality** | `alignment()`, one introduction at a time, the ledger deciding who meets whom — `docs/PRODUCT.md` §7. **Designed, not built**; today's only caller is the sample screen over fourteen invented people | none — designed |
 | **Mutual interest** | Two yeses on one introduction. **Designed, not built** | none — designed (`docs/LEARNING.md` row 1) |
 | **Conversation** | Off-platform, on purpose. The product's part is the instruments: the read, the eleven, the eleven sent to him, the words | `read`, `eleven`, `asked-him`, `he-answered`, `followed-through`; `facts.through`; the couple tally |
@@ -136,10 +136,11 @@ actually see; where it is not, the failure is invisible and that is said.
 ### 6 · Match liquidity → Match quality
 
 - **Metric.** `/pool`'s `supply`, `pairs` and `stranded` against the
-  opening checklist in `docs/LIQUIDITY.md` — a `scenes[s]` cell at forty on
-  both sides is the door's promise, not the gate. Introductions made —
+  opening checklist in `docs/LIQUIDITY.md`, which since 2026-09-12 is
+  `docs/ATOMIC.md` §6 — a `scenes[s]` cell at forty on both sides is the
+  door's first mark, not the gate. Introductions made —
   *designed*, the Tier 4 introductions record.
-- **Friction.** Forty and forty in *one* pool, which no city reaches on its
+- **Friction.** Twenty active men in *one* pool, which no city reaches on its
   own without the country's travellers (`across`, `docs/SCALE.md`); then a
   founder's judgement to open.
 - **Failure state.** A full door and nothing opens — a founder-dependency
@@ -246,8 +247,9 @@ for a preparing man, and no link that starts him on it.
 
 The evidence, in the code:
 
-- The door opens at forty women **and forty men** in one pool
-  (`COHORT_TARGET` in `netlify/functions/cohort.ts`). Being counted requires
+- The door opens when one pool meets `docs/ATOMIC.md` §6 — twenty **active
+  men** first; forty (`COHORT_TARGET` in `netlify/functions/cohort.ts`) is
+  the first mark on the door, not the gate. Being counted requires
   a completed map (`src/lib/keep.ts` `keepMap()` returns null without one).
 - The path a preparing man can walk exists: Welcome → *Start where you are*
   → Identity → Situation ("not talking to anyone") → the hook → thirteen

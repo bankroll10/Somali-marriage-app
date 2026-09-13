@@ -114,7 +114,7 @@ nothing else.
 | **Geographic launch sequencing** | Built; refined here | Minneapolis → the US travellers → Columbus → Toronto → London → Stockholm (`docs/WEDGE.md`). Refined: the order is the checklist's, not the census's — the pool that passes first opens first, and for the UK that will be the country, not London. A second pool waits on `ending.who.here > 0` in the first (`docs/SCALE.md`) |
 | **Waitlists** | Built | The door and the `contacts` store. **No position, no queue number, no estimate — ever.** A position is a scarcity meter a person comes back to watch (`src/components/Cohort.tsx`) |
 | **Invitations** | Built | "Send the door" and "send the read" from the counted card; `via` names the kind of link. No reward, no counter, no link that carries who sent it (`docs/STRATEGY.md`) |
-| **Density thresholds** | 40/40 public, unchanged; **the opening checklist, this pass** | The door's promise stays the door's promise. Opening is the checklist below, read from `/pool` |
+| **Density thresholds** | The door says its condition, not a number (2026-09-12); **the opening checklist below, rewritten 2026-09-12 as `docs/ATOMIC.md` §6** | Forty was a count. What opens a pool is the atomic network — twenty active preparing men and at least as many women, each introducible, seven in ten answering — read from `/pool` and, once it exists, the introductions record |
 | **Match pacing** | Designed | One open introduction per person; a fourteen-day window; the scarce side walked first; whoever has waited longest since the last, never-introduced first. Trigger: the pool-open flag (`docs/HARD.md`: the introductions record ships in the same commit) |
 | **Radius expansion** | Built | "I'd travel within the UK" on the counted card re-joins on one tap; the door always shows the country's travellers beside the city. A timed prompt to widen is refused: it is a nudge |
 | **Relocation preferences** | Built | `reach`, asked once, mutual by construction; `anywhere` counted and never rendered (`docs/SCALE.md`) |
@@ -127,27 +127,45 @@ nothing else.
 Every number here is an assumption until a pool has opened on it. A rule
 that fires is executed, not debated (`docs/PROCESS.md`).
 
-1. **The door reads forty and forty** — the promise on the door, unchanged.
-2. **`live` reads forty and forty** after `/pool`'s sweep. A lapsed map is
-   not a person who can be introduced.
-3. **`supply` reads thirty a side** — three in four still preparing as of
-   their last keep. Below it, the door is counting people the marketplace is
-   not for yet.
-4. **`unaged` is zero among supply.** Everyone counted since this pass has
-   an age; anyone counted before it is asked by mail, by hand.
-5. **`p_gate` gives `λ ≥ 5` on both sides** — five eligible partners each,
-   on average, and **`stranded` is `null` on both sides**: fewer than five
-   people on either side with nobody. A number there is a side to name, not a
-   pool to open.
+**Rewritten 2026-09-12.** The first version's lines were forty and forty on
+the door, forty and forty `live`, thirty a side in `supply`, nobody unaged,
+and `λ ≥ 5` with `stranded` null. `docs/ATOMIC.md` simulated this pool's own
+`eligible()` and found the coded gate passes about 56% of pairs at *any*
+size, so `λ ≥ 5` held at nine a side and `stranded` — read from the floored
+histogram — returned `null` with up to four people stranded. The checklist
+measured what the gate can see and none of what decides whether two families
+reach a nikah. It is now the atomic network's six conditions, one metro at a
+time:
+
+1. **Men ≥ 20 active preparing, and women ≥ men.** The hard side's number is
+   the gate; the abundant side is never the constraint. `live` and `supply`
+   are read after `/pool?sweep=1`; a lapsed map is not a person who can be
+   introduced, and `supply` still excludes anyone not preparing.
+2. **Every member has ≥ 1 eligible, active counterpart, and ≥ 80% have ≥ 3**
+   — from the *raw* inventory, by hand from the maps until the founder's raw
+   view exists (`docs/ATOMIC.md` T3). `stranded` null under the floor is not
+   a pass below forty a side. And nobody unaged among supply.
+3. **Activity ≥ 70%:** an introduction offered is answered within fourteen
+   days by seven in ten. Below that the pool is a directory.
+4. **Ten or more introductions a fortnight by hand, and the first twenty
+   produce three or more "we are talking".** Under one in ten, the hidden
+   compatibility rate is too low for a pool this size, however many are
+   counted.
+5. **Replenishment ≥ exhaustion:** each fortnight's arrivals at least match
+   the pairs that matched or lapsed.
 6. **The weekly safety check is clean** (`docs/OPERATING.md`), and the
    founder's judgement — unchanged from `docs/SCALE.md`.
 
-A pool that passes 1–2 and fails 5 has its blocker named by `ages` and
-`p_gate`: the men are in one band and the women in another, or half the women
-name `faith-nn` and half the men are cultural. The answer is the room —
-which chats the link goes into — never a wider band. A city may fail while
-its country passes; then the country opens, for the people who said they
-would travel (`docs/SCALE.md`).
+Conditions 1 and 2 can be read today. Conditions 3, 4 and 5 cannot be read
+from anything the product holds until the introductions record exists
+(`docs/ATOMIC.md` T1), which is why it is the first build. A pool that meets
+1 and fails 2 has its blocker named by `ages` and `p_gate`: the men are in
+one band and the women in another, or half the women name `faith-nn` and
+half the men are cultural. The answer is the room — which chats the link
+goes into — never a wider band. A city may fail while its country passes;
+then the country opens, for the people who said they would travel
+(`docs/SCALE.md`) — with `docs/ATOMIC.md`'s caution that a country is not
+yet a real pool for a first meeting.
 
 ## What the founder monitors
 
@@ -157,7 +175,7 @@ would travel (`docs/SCALE.md`).
 | Men the network channel produced | `/progress` `sidesByVia.man.group.arrived` | Weekly | A6 at four weeks; the pivot at eight (`docs/WEDGE.md`) |
 | `live`, `supply`, `unaged`, `swept` | `/pool` | Monthly, and before any opening | Checklist lines 2–4 |
 | `ages` per side; `stages` | `/pool` | Monthly | Names the blocker when line 5 fails |
-| `p_gate`, `inventory`, `stranded` | `/pool` | Monthly | **Stranded not `null` on the abundant side at 40/40 → do not open** |
+| `p_gate`, `inventory`, `stranded` | `/pool` | Monthly | **Anyone stranded on either side, read raw → do not open.** `null` is floored and is not a pass below forty a side (`docs/ATOMIC.md` §3); until T3, read the maps by hand |
 | `across` against `here` | `/cohort`, `/pool?country=` | Monthly | `across` outgrows `here` for eight weeks → the unit is the country (`docs/REDTEAM.md` assumption 11) |
 | The reach mix | `/cohort` `reach` | Monthly | Tells whether the travellers' pool is real |
 | Introductions opened and closed, by outcome | The introductions record *(designed)* | Monthly, once open | `no-answer` above three in ten in the first month → the "opened" mail was not a confirmation; require the reply before queueing |
@@ -277,18 +295,25 @@ question at its no-reason; the running counters and the automated mail at
   the door, `/pool` with the sweep, the gate twin. The finding: age is the
   fragmenter the door cannot see, and the door's forty and forty could not
   say whether anyone could be introduced.
+- 2026-09-12 — The opening checklist rewritten as `docs/ATOMIC.md` §6's six
+  conditions, after that file simulated `eligible()` and found the first
+  version's lines held at nine a side. The monitor table reads `stranded`
+  raw; the density row and the by-hand page resized to the atomic network.
+  Documents only; the code that reads conditions 3–5 is T1–T3 there.
 
 ## The by-hand introduction, one page
 
 Written 2026-09-12 because the first pool is run by hand and no page said
 how (`docs/BOARD.md`, decision 17). Dry-run it with two consenting testers
 before the first pool opens, and time it: **if one introduction costs more
-than an hour, forty a fortnight cannot be served inside the fourteen-day
-window, and the target or the window changes** — not the founder's sleep.
+than an hour, the ten to fifteen a fortnight the atomic network needs
+(`docs/ATOMIC.md` §6) is the founder's whole fortnight, and the window or
+the hand changes** — not the founder's sleep.
 
 1. **Read the pool.** `GET /pool?scene=twin-cities` (`docs/OPERATING.md`):
-   `live`, `supply`, `ages`, `pairs.eligible`, `stranded`. The checklist above
-   must pass before any introduction is made.
+   `live`, `supply`, `ages`, `pairs.eligible`, `stranded`. Conditions 1 and 2
+   of the checklist above must hold before any introduction is made; 3 to 5
+   are what the first twenty introductions measure.
 2. **List both sides.** `netlify blobs:list cohort --json | jq -r '.blobs[].key'
    | grep '^us/twin-cities/'` — women and men, by key; the `at` day in each
    record is who has waited longest, and the queue is that order and nothing

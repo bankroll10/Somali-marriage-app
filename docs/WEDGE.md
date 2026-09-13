@@ -3,9 +3,10 @@
 > MJ DeMarco's Specialized Unit says: do not enter the market, enter a unit of
 > it small enough to dominate, and expand from the inside. "Somali singles" is
 > already a specialisation, and the strategy already narrows it further —
-> women first, Minneapolis first, forty per side before anything opens. This
-> document asks whether an even narrower *initial* unit would reach forty and
-> forty, and the word of mouth that follows, faster; and it answers with one
+> women first, Minneapolis first, one metro's atomic network before anything
+> opens (`docs/ATOMIC.md`). This document asks whether an even narrower
+> *initial* unit would reach that network, and the word of mouth that
+> follows, faster; and it answers with one
 > wedge, the evidence for it, and the hypotheses it rests on, kept apart.
 
 ## Two facts that shape everything below
@@ -28,7 +29,7 @@ serious men already stand together.
 
 | Fact | Source | What it supports |
 |---|---|---|
-| Minneapolis–St. Paul holds the largest Somali community in North America: roughly 84,000 in the metro, about 50,000 in Hennepin County; Minnesota over 86,000 | US Census / ACS via [KTTC](https://www.kttc.com/2025/12/04/by-numbers-minnesotas-somali-population-according-census-data/), [ctsomali.ca](https://ctsomali.ca/somali-population-in-usa-2025/), [factually.co](https://factually.co/fact-checks/society/minnesota-largest-somali-communities-2025-a42794) | Minneapolis first — the smallest share of the whole reaches forty |
+| Minneapolis–St. Paul holds the largest Somali community in North America: roughly 84,000 in the metro, about 50,000 in Hennepin County; Minnesota over 86,000 | US Census / ACS via [KTTC](https://www.kttc.com/2025/12/04/by-numbers-minnesotas-somali-population-according-census-data/), [ctsomali.ca](https://ctsomali.ca/somali-population-in-usa-2025/), [factually.co](https://factually.co/fact-checks/society/minnesota-largest-somali-communities-2025-a42794) | Minneapolis first — the smallest share of the whole reaches the atomic network |
 | Columbus is the second US hub at 50–60,000; Seattle and San Diego (6,500–15,000) a tier below | [factually.co](https://factually.co/fact-checks/society/largest-somali-populations-us-states-metropolitan-areas-2025-74071f), [Neilsberg](https://www.neilsberg.com/insights/lists/somali-population-in-united-states-by-city/) | Columbus second in the expansion path |
 | The UK's 2021 census counted 176,645 self-identified Somalis — the largest in Europe, spread across London, Birmingham, Bristol, Leicester | ONS Census 2021 | London later; the UK is the first place the *country* pool matters more than any metro |
 | Toronto holds roughly 20,000 Somalis | Statistics Canada, via the usual secondary sources | Toronto third |
@@ -51,7 +52,7 @@ cell passes five people, the only numbers visible per city are women and men.
 | Alumni and professional networks hold unattached serious men in numbers | `countries.us.scenes['twin-cities'].men` against `.women`, week over week, once the playbook runs |
 | A link shared into a group produces arrivals who follow through at least as well as a one-to-one send | `vias.group['followed-through'] / vias.group.arrived` against `vias.words` |
 | Men counted per woman counted is better through a mixed network than through the one-to-one loops | `men / women` on the door, against the one-per-three the loops alone would suggest |
-| Forty and forty in one metro is reachable in a quarter | The door, weekly |
+| Twenty active preparing men in one metro is reachable in a quarter (`docs/ATOMIC.md` §6) | The door's men, weekly; their answers to introductions once there is a record |
 
 ## The eight wedges, judged
 
@@ -75,8 +76,8 @@ Cities Somali professionals' events, with the mosques' young-adult circles as
 the second ring.
 
 This is a *channel* wedge. The public brand does not move: Niyyah is for
-Somali singles, and the door already says "Minneapolis–St. Paul opens at 40
-each." Nothing in copy says "alumni" or "professional", and nothing ever will
+Somali singles, and the door already says the condition it opens on rather
+than a number (`docs/BOARD.md`, decision 2). Nothing in copy says "alumni" or "professional", and nothing ever will
 — the ledger, not the résumé, decides who meets whom.
 
 ## WHY IT WORKS
@@ -88,9 +89,10 @@ each." Nothing in copy says "alumni" or "professional", and nothing ever will
   is where "when are you getting married" becomes weekly; the founder's own
   circle sits in it, which is the one unfair advantage a founder with no
   community position has.
-- **It is the largest metro, so forty is the smallest share of the whole.**
-  Forty women and forty men is well under one percent of the Somalis of
-  marrying age in the Twin Cities.
+- **It is the largest metro, so the atomic network is the smallest share of
+  the whole.** Twenty-five women and twenty men — active, preparing,
+  introducible (`docs/ATOMIC.md` §5) — is well under one percent of the
+  Somalis of marrying age in the Twin Cities.
 - **The instruments work at zero liquidity.** A read and the eleven are useful
   to a network before any marketplace exists — the strategy's own answer to
   the cold start. The room gets value first and a marketplace second.
@@ -141,20 +143,25 @@ seeded count.
 
 ## DENSITY NEEDED
 
-Forty women and forty men with kept maps in the Minneapolis–St. Paul metro
-pool — `COHORT_TARGET`, unchanged, in `netlify/functions/cohort.ts`. That is
-the door's promise. What opens the pool is the checklist in
-`docs/LIQUIDITY.md`, read from `/pool`: forty and forty *live*, thirty a side
-still preparing, an age for everyone, and fewer than five on either side with
-nobody eligible — because forty and forty on the door can be a room where a
-quarter of the women have no man in their band, and the door cannot show it.
+The atomic network (`docs/ATOMIC.md` §5–6): about twenty-five active
+preparing women and twenty active preparing men in the Minneapolis–St. Paul
+metro pool, every one of them with someone eligible and active on the other
+side, seven in ten answering an introduction within a fortnight, and the
+first twenty introductions yielding three "we are talking". Forty a side —
+`COHORT_TARGET`, unchanged in `netlify/functions/cohort.ts` — stays on the
+door as the first mark, not the gate: the door has said the condition rather
+than the number since 2026-09-12. Forty and forty on the door can be a room
+where nobody answers, and the door cannot show it; `docs/ATOMIC.md`'s
+simulation of this pool's own gate found the old checklist would have passed
+at nine a side.
 
 The funnel between "opened a link" and "counted" is unknown and must be
 measured rather than assumed. The hypothesis to beat — **the one working
 ratio**; `docs/SCALE.md` and the risk below carry six to one as the
 pessimistic bound, and `docs/LIQUIDITY.md` works both (`docs/BOARD.md`):
 through the one-to-one loops alone, men arrive at about one per three counted
-women, so forty men would need a hundred and twenty women. The network channel is the bet that
+women, so twenty men would need sixty women — and twenty *active* men more than
+that (`docs/ATOMIC.md` §7). The network channel is the bet that
 changes that ratio, and the men's count on the door is the whole test of it —
 read as `sidesByVia.man.group` in the ladder's readout, not as men on the
 door, because a man who arrived through a woman's eleven is already talking

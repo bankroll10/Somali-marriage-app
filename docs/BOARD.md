@@ -733,3 +733,44 @@ deleting year-stale records, when nothing is a year old. A follow-up written by
 askable — out of scope because `?read` and `?eleven` are what is being posted,
 and recorded in `src/lib/followup-chain.test.ts` so that number is read as "not
 asked" rather than "did not follow through".
+
+## The atomic network — the analysis, and no build
+
+Written 2026-09-12 as `docs/ATOMIC.md`, on Andrew Chen's Cold Start frame:
+a network product is valuable the moment its smallest self-sustaining network
+exists, not at a count. The founder's question was whether one serious
+person entering today would meet several compatible, active possibilities.
+
+**What it found.** FACT: the network half of the product is a readout and a
+person — nothing introduces anyone, and there is no record of an
+introduction. INFERENCE, from simulating `pool.ts`'s own `eligible()`: the
+coded gate passes about 56% of pairs at *any* pool size, so the opening
+checklist's `λ ≥ 5` held at nine a side and its `stranded` line — floored —
+read `null` with four people stranded. Forty and forty on the door measured
+the two things the gate can see. What decides a pool is two numbers the
+architecture does not hold: the share of eligible pairs where an
+introduction is welcome both ways, and the share of counted members still
+there to answer. At the plausible value of the first, a woman arriving at
+forty and forty has a coin-flip chance of three real options; at forty women
+and seven men, under one in two of even one.
+
+**The determinations.** The atomic network is about twenty-five active
+preparing women and twenty active preparing men in one metro, all within the
+age rule, seven in ten answering an introduction within a fortnight, served
+by one founder making ten to fifteen introductions a fortnight. Six
+conditions replace forty and forty (`docs/ATOMIC.md` §6). The constraint that
+most reduces liquidity is the men's activity, then geography as a false
+pool, then the hidden compatibility rate. Twelve assumptions carry tests;
+twelve metrics read the network's health, none of them engagement.
+
+**Decisions.** The analysis is a document and the checklist is rewritten in
+every document that carried the old lines. The code — an introductions
+record, activity from answers, the founder's raw view, the door reading its
+condition from them, a pool state, refusal reasons as vocabulary, four
+readout corrections (T1–T7) — is planned and **held**, because the founder
+said plan first. The door's sentence stays as it is until T1 and T2 exist:
+promising "active" members with nothing measuring activity would be a claim
+the code cannot back, which is the class of defect the reality sprint
+removed. The first build, when it comes, is the introductions record — every
+introduction made without one is the one number this plan is missing, thrown
+away.

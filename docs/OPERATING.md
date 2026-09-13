@@ -138,7 +138,7 @@ everything finer is floored, and the subtraction caveat below applies.
 | `ages[side][band]` | The live members by age band — 18–24, 25–29, 30–34, 35–39, 40+. Floored. The one split the door could never show, and the one that strands people |
 | `pairs` | `{eligible, of}` over supply: `of` is every woman against every man; `eligible` is the pairs where both have an age, he is within `assumptions.ageGap`, and neither fails the other's checkable non-negotiables (`netlify/shared/gate.ts`). `eligible / of` is `p_gate`, the number every worked example in `docs/LIQUIDITY.md` assumed and this replaces |
 | `inventory[side][bucket]` | How many members have 0, 1–2, 3–5 or 6+ eligible partners in the pool. Floored, computed on read, never stored — a histogram over the pool, not a count on a person |
-| `stranded[side]` | `inventory[side]['0']` under its own name: the members the pool could not introduce to anyone. `null` means fewer than five, which at 40/40 is the checklist's pass; a number is the checklist's fail and names the side |
+| `stranded[side]` | `inventory[side]['0']` under its own name: the members the pool could not introduce to anyone. `null` means fewer than five — which is **not** a pass below forty a side (`docs/ATOMIC.md` §3: up to four people with nobody read as `null`); until the raw view exists, read the maps by hand. A number is the checklist's fail and names the side |
 | `assumptions.ageGap` | What the pairs rest on: he may be older by `olderBy`, younger by `youngerBy`. An assumption, revised only by hand |
 
 What each field in `/progress` means:
@@ -285,12 +285,13 @@ In this order, because each question only means something after the last:
    rewrite.
 4. **What do couples miss?** `/couple` `topics` — the topics where
    `one-thinks-talked` and `both-not-talked` lead.
-5. **Who did they marry?** `ending.who`. The first pool opens on forty and
-   forty, by the founder's hand. Until `here` is more than zero in a pool that
+5. **Who did they marry?** `ending.who`. The first pool opens when one metro
+   meets `docs/ATOMIC.md` §6's conditions, by the founder's hand. Until `here` is more than zero in a pool that
    has opened, that pool has not yet done what a marketplace is for — and no
    second pool opens until one has. That is "density before expansion" with a
    number on it (`docs/WEDGE.md`, `docs/SCALE.md`). **And before any pool
-   opens: is it honestly near?** Read `/pool` for the one nearest forty —
+   opens: is it honestly near?** Read `/pool` for the one nearest twenty
+   active men —
    `live`, `supply`, `unaged`, `pairs`, `stranded` — against the opening
    checklist in `docs/LIQUIDITY.md`, every line, or it does not open. A
    number in `stranded` names a side to find, never a band to widen.
