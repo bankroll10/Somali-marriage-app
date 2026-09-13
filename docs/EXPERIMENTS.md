@@ -165,6 +165,17 @@
 `mapped` and `counted` on both sides. A1's and A6's `counted` funnels read
 across it, and `docs/PROCESS.md` carries the rule for a drop after that date.
 
+**Revised 2026-09-12** (`docs/ATOMIC.md`). The metric cannot disprove the
+hypothesis. Under the coded gate about 56% of pairs are eligible at any
+size, so `stranded` reads `null` and `pairs.eligible / pairs.of` reads near
+a half from about nine a side upward — the readout would confirm A7 for a
+pool that could introduce nobody in practice. What confirms or disproves it
+is the introductions record: of the first twenty introductions in one metro,
+three or more reach "we are talking" and seven in ten are answered within
+fourteen days, or they are not. The decision rule is `docs/ATOMIC.md` §6,
+every condition; `stranded` is read raw, and `null` under the floor is not a
+pass below forty a side.
+
 ## A8 · The couple it worked for reaches the side nobody else can
 
 - **HYPOTHESIS.** A married couple will send the door to someone who is

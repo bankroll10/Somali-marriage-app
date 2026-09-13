@@ -129,6 +129,7 @@ docs/NORTHSTAR.md      The problem, the purpose and the North Star in one senten
 docs/OWNED.md          What we rent and what we produce, and the three moves from renter to owner — the address, the customer list, the constants' lineage
 docs/HARD.md           Where an easy decision now would have cost something irreversible later — the collision, the erasable report, the unmetered delete — and the four deferred with triggers
 docs/REDTEAM.md        The case against every conviction the company rests on — twelve attacked, three named as fatal, and the tests that kill or validate each; the market arithmetic
+docs/ATOMIC.md         The atomic network: the smallest self-sustaining pool, from the code and a simulation of its own gate — the hard side, six conditions that replace forty and forty, seven constraints ranked, twelve assumptions with tests, twelve health metrics, and the technical plan held for the founder's go-ahead
 docs/LIQUIDITY.md      Liquidity as the thing that kills matchmaking products — nine dimensions, the model with three worked doors, ten systems classed, the opening checklist, what the founder monitors, and the pool and introductions record designed
 docs/FLYWHEEL.md       The outcome flywheel, ten transitions inspected against the code — where it turns, where it is substituted until a pool opens, the break at the ending fixed, marriages on the door designed, and what replaces advertising at every link
 docs/BACKWARD.md       Working backward from "extremely valuable": the arithmetic and the Somali-only ceiling, fourteen must-be-trues with their readouts, the seven assumptions that forbid the outcome, the bottleneck that is an act rather than a build, and four optionality moves
@@ -216,8 +217,11 @@ curl -sI https://<your-site>/ | head -1     # expect: HTTP/2 401 while the previ
 
 **The preview ends with the first post** (`docs/DEPLOY.md`, decided
 2026-09-12): delete `PREVIEW_PASSWORD`, trigger a deploy, and the same request
-answers 200. The `[[headers]]` block in `netlify.toml` and `public/robots.txt`
-stay until the first pool opens, then come off together.
+answers 200. The `noindex` header and the disallowing `robots.txt` are gone as
+of 2026-09-13 — they cancelled each other and left the domain in Google as a
+bare URL with no title. `robots.txt` and `sitemap.xml` are written by the
+build so they carry the same host as every link; `docs/DEPLOY.md` has the
+Search Console steps, which are the founder's.
 
 ## The founder's readout
 

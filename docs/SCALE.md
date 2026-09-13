@@ -190,7 +190,7 @@ the founder could not segment the first "your pool opened" mail even by hand.
 | Item | Trigger |
 |---|---|
 | Running pool counters, updated on join with `couple.ts`'s etag pattern, and a founder `recount` that rebuilds them from keys | any country past ~2,000 cohort keys, or a door render over a second |
-| An `open` flag per pool; the first flipped by hand on forty-and-forty; a second only once an open pool shows `ending.who.here > 0`; later ones on count; the founder may close one | the first pool clears 40/40 |
+| An `open` flag per pool; the first flipped by hand when one metro meets `docs/ATOMIC.md` §6's six conditions; a second only once an open pool shows `ending.who.here > 0`; later ones on the same conditions; the founder may close one | the first pool meets `docs/ATOMIC.md` §6 |
 | `introduce.ts` per `docs/LEARNING.md` (Tier 4, keyed by map codes, codes stripped from the tally), the waited-longest queue, and a matchmaker key beside the founder key | the first pool is opened |
 | "Your pool opened", by hand: export the form, filter by country / city / reach, one mail through a vendor. Then automated | the first pool opens; then more than one pool a month |
 | A pre-aggregated `/progress` readout, written on report and decremented on forget, with today's recompute kept as the monthly repair | `/progress` past ~2,000 records, or its first 503 |

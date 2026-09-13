@@ -41,7 +41,9 @@ and stays there until behaviour or a member says otherwise.
 | **Family involvement** | Family in the room is wanted; a father will vouch | ASSUMED | `vouched` per hundred `kept`; hook `family`; `hesitated.family` |
 | **Geography** | MSP ~84,000; Columbus 50–60,000; UK 176,645; Toronto ~20,000 | KNOWN (census) | — |
 | | Liquidity is local; who would relocate | LIKELY / UNKNOWN | `reach` per city; `across`; `/pool?country=` against `/pool?scene=` |
-| | Forty and forty can introduce nearly everyone in it — age does not strand a side | ASSUMED — `docs/LIQUIDITY.md`'s finding: the door cannot see age, and age is the fragmenter that strands | `/pool` `ages`, `pairs`, `stranded`; A7 |
+| | Forty and forty can introduce nearly everyone in it — age does not strand a side | **INFERENCE, 2026-09-12** — on the coded gate, yes: about 56% of pairs are eligible at any size and `λ ≥ 5` holds at nine a side (`docs/ATOMIC.md` §3). Which is why it was the wrong question | `/pool` `pairs`, `inventory` read raw; A7 |
+| | *q* — the share of eligible pairs where an introduction is welcome both ways — is at least 0.15 | UNKNOWN — the number that decides whether the atomic network is 25/20 or 100/100 (`docs/ATOMIC.md` §4) | The yield of the first twenty introductions |
+| | Counted members are still there when someone is offered — seven in ten answer within a fortnight | UNKNOWN — a kept map is live for a year and nothing reads activity | Response to the first twenty introductions, within fourteen days |
 | **Why conversations fail** | The eleven are what break Somali marriages, found out after families are involved; secrecy predicts non-seriousness; "I don't know my own answer" is the most common state | ASSUMED — central to the product | `ended.reason` and `which`; couple tally `both-not-talked` per topic; `marriedBy.through`; `eleven.unknown` histogram |
 | **Safety** | Players, liars, creeps; six kinds of harm; one incident can kill us | ASSUMED / LIKELY | `safety` reasons; `other`'s share |
 | **Competing alternatives** | Hinge exposes her; Muzz and Salams are low-trust; aunties are limited and judging | ASSUMED — no instrument | hook `finding`; conversations |
@@ -164,4 +166,11 @@ evidence. A claim moves one class at a time._
   demotion on 2026-09-08 and `docs/BOARD.md` executed it. The evidence that
   would move it back: amounts, without names, in `docs/FEEDBACK.md`.
 
-- _(none yet — the first hundred records are not in)_
+- 2026-09-12 — *Forty and forty can introduce nearly everyone in it*:
+  ASSUMED → INFERENCE. `docs/ATOMIC.md` simulated `pool.ts`'s own
+  `eligible()` under stated distributions: true on the coded gate at any
+  size, and so not the question. The two claims it hid — the hidden
+  compatibility rate and activity — enter as UNKNOWN with the introductions
+  record as their instrument.
+
+- _(no member evidence yet — the first hundred records are not in)_

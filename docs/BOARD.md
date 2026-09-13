@@ -733,3 +733,95 @@ deleting year-stale records, when nothing is a year old. A follow-up written by
 askable — out of scope because `?read` and `?eleven` are what is being posted,
 and recorded in `src/lib/followup-chain.test.ts` so that number is read as "not
 asked" rather than "did not follow through".
+
+## The atomic network — the analysis, and no build
+
+Written 2026-09-12 as `docs/ATOMIC.md`, on Andrew Chen's Cold Start frame:
+a network product is valuable the moment its smallest self-sustaining network
+exists, not at a count. The founder's question was whether one serious
+person entering today would meet several compatible, active possibilities.
+
+**What it found.** FACT: the network half of the product is a readout and a
+person — nothing introduces anyone, and there is no record of an
+introduction. INFERENCE, from simulating `pool.ts`'s own `eligible()`: the
+coded gate passes about 56% of pairs at *any* pool size, so the opening
+checklist's `λ ≥ 5` held at nine a side and its `stranded` line — floored —
+read `null` with four people stranded. Forty and forty on the door measured
+the two things the gate can see. What decides a pool is two numbers the
+architecture does not hold: the share of eligible pairs where an
+introduction is welcome both ways, and the share of counted members still
+there to answer. At the plausible value of the first, a woman arriving at
+forty and forty has a coin-flip chance of three real options; at forty women
+and seven men, under one in two of even one.
+
+**The determinations.** The atomic network is about twenty-five active
+preparing women and twenty active preparing men in one metro, all within the
+age rule, seven in ten answering an introduction within a fortnight, served
+by one founder making ten to fifteen introductions a fortnight. Six
+conditions replace forty and forty (`docs/ATOMIC.md` §6). The constraint that
+most reduces liquidity is the men's activity, then geography as a false
+pool, then the hidden compatibility rate. Twelve assumptions carry tests;
+twelve metrics read the network's health, none of them engagement.
+
+**Decisions.** The analysis is a document and the checklist is rewritten in
+every document that carried the old lines. The code — an introductions
+record, activity from answers, the founder's raw view, the door reading its
+condition from them, a pool state, refusal reasons as vocabulary, four
+readout corrections (T1–T7) — is planned and **held**, because the founder
+said plan first. The door's sentence stays as it is until T1 and T2 exist:
+promising "active" members with nothing measuring activity would be a claim
+the code cannot back, which is the class of defect the reality sprint
+removed. The first build, when it comes, is the introductions record — every
+introduction made without one is the one number this plan is missing, thrown
+away.
+
+## The search pass — why the domain read as broken
+
+The founder searched `joinniyyah.com` on 2026-09-13 and found the domain
+listed with no title and the line "No information is available for this page",
+under an AI summary saying the domain "does not currently host an active or
+widely recognized public website". Below it, ranking with a full title and
+description: `niyyahmatch.com`, a private Muslim matchmaking service in the
+GTA, Ottawa and Montreal.
+
+**Nothing was broken.** Two settings told crawlers to stay away, both
+deliberate (decision 1, the quiet launch): `X-Robots-Tag: noindex, nofollow`
+on every path in `netlify.toml`, and `public/robots.txt` disallowing
+everything.
+
+**But they cancelled each other, and the result was the worst of both.**
+Getting a page *out* of Google requires the opposite of what it looks like:
+the crawler has to be let in so it can read the `noindex`. A disallowed crawl
+never reads anything, so a URL Google has seen linked stays listed — with
+nothing under it. So the configuration did not hide the site. It published a
+result that reads, to anyone who does not know better, as a site that is
+defunct or hiding something.
+
+**Two facts changed the decision.** First, that cost lands at exactly the
+wrong moment: the playbook's next act is handing links to strangers
+(`docs/ROADMAP.md` item 0), and a cautious woman asked to trust a marriage
+site with her contact details will search the name first. Second, another
+Niyyah holds that search. Toronto is third on the expansion path
+(`docs/WEDGE.md`).
+
+**Decided, 2026-09-13: the site is indexable from the day the gate comes off,
+not from the day the first pool opens.** Both blocks are removed;
+`robots.txt` and `sitemap.xml` are written by `vite.config.ts` so they carry
+the same host as every link (`src/lib/site.ts`); `index.html` gained a
+canonical tag so the `?read`, `?eleven` and `?via=` links posted into group
+chats do not become separate thin results. `tests/deploy-layout.test.ts` holds
+all four in place, because the way back is a one-line "just while we test"
+that nobody remembers to remove.
+
+**What this does not risk.** Nothing a member keeps is rendered into HTML: a
+map lives under a code nobody can guess, the door's counts are floored, and
+the functions are disallowed as the API they are. There is no marketplace to
+flood and no member to expose. A stranger who arrives early meets a door that
+says plainly it is not open and introduces nobody — which is what the
+reality-sprint pass made true.
+
+**Still the founder's.** Search Console is a DNS record and three clicks;
+`docs/DEPLOY.md` has the steps. None of it works while `PREVIEW_PASSWORD` is
+set, so the gate comes off first. And the brand collision has no technical
+fix — links from places Google trusts are what move it, which is the room
+playbook, not a tag.
