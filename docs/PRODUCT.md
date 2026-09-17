@@ -269,10 +269,9 @@ recorded, first arrival wins, and the founder's readout splits every rung by
 it. The two-sided eleven also adds each answered pair to a count of how pairs
 come out per topic, with no pair in it, and a family vouch now lives exactly as
 long as the map it was given about. The metric is **arrivals by source per hundred
-followed-through**. While `PREVIEW_PASSWORD` is set, every shared link
-returns 401 to anyone without the password — `docs/DEPLOY.md` holds the one
-description of the gate's state and the decision that must precede the first
-post.
+followed-through**. Every shared link reaches a stranger: the site
+opened on 2026-09-12, and `docs/DEPLOY.md` holds the one description of that
+and of the close switch that can shut it again.
 
 ## 10. Roadmap
 

@@ -215,12 +215,17 @@ and they are what let the founder write to exactly those people when it does.
 A failed POST is queued in localStorage and retried on the member's next
 visit, so one bad connection never costs a real person.
 
-## The founding-preview gate
+## The close switch
 
-`netlify/edge-functions/gate.ts` password-protects the whole site at the edge, so
-an unauthenticated visitor never receives the app's HTML.
+**The site is open.** `PREVIEW_PASSWORD` was deleted on 2026-09-12 and the
+founding preview ended that day (`docs/DEPLOY.md`, the one place the gate's
+state is described). `netlify/edge-functions/gate.ts` stays, dormant: setting
+that variable again password-protects the whole site at the edge within one
+deploy, so a visitor never receives the app's HTML. It is the only way to
+close this site in a single action, which is worth keeping for the day
+`docs/TIME.md` names.
 
-In Netlify (Site configuration → Environment variables) add:
+To close it, in Netlify (Site configuration → Environment variables) add:
 
 | Field | Value |
 |---|---|
@@ -233,15 +238,14 @@ Edge Functions. Non-secret only means readable by someone already signed in to
 the Netlify account; it is still never bundled and never in this repository.
 Any username is accepted; only the password is checked, in constant time.
 
-**Unset means no gate.** While it is set, confirm a bare request is refused:
+**Unset means no gate — the normal state.** After setting it, confirm a bare
+request is refused; after deleting it, confirm the same request answers 200:
 
 ```bash
-curl -sI https://<your-site>/ | head -1     # expect: HTTP/2 401 while the preview is gated
+curl -sI https://<your-site>/ | head -1     # closed: HTTP/2 401 · open: HTTP/2 200
 ```
 
-**The preview ends with the first post** (`docs/DEPLOY.md`, decided
-2026-09-12): delete `PREVIEW_PASSWORD`, trigger a deploy, and the same request
-answers 200. The `noindex` header and the disallowing `robots.txt` are gone as
+The `noindex` header and the disallowing `robots.txt` are gone as
 of 2026-09-13 — they cancelled each other and left the domain in Google as a
 bare URL with no title. `robots.txt` and `sitemap.xml` are written by the
 build so they carry the same host as every link; `docs/DEPLOY.md` has the

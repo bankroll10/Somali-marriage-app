@@ -222,7 +222,8 @@ pass below forty a side.
   the page, return visits.
 - **SMALLEST CREDIBLE TEST.** **Built in this pass** — `/guides/before-you-say-yes`
   and its one-page sample (`docs/DEPLOY.md`). Then two pitches, sent by the
-  founder, each with the sample attached and the live URL.
+  founder, each with the sample attached and the live URL, which resolves for
+  a stranger: the site has been open since 2026-09-12.
 - **TIME TO LEARN.** Eight weeks from the second acceptance.
 - **DECISION RULE.** Disproved → no more building for institutional
   channels; the printed page stays available, and the outreach effort moves
