@@ -56,7 +56,21 @@ when the link is actually visible somewhere a stranger could find it.
 | 2026-09-17 | Al-Ansar Islamic Movement of Minnesota, North Minneapolis | email, nikah contact | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply | — |
 | 2026-09-17 | ICSA / Dar Al-Hijrah, Counseling & Family Services | phone, then email | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply | — |
 | 2026-09-17 | The Family & Youth Institute | contact form | N2 | `…/guides/before-you-say-yes?via=group` | sent, awaiting reply | — |
-| — | Masjid Al-Israa, Fridley | email, nikah coordinator | N2 | `…/guides/before-you-say-yes?via=mosque` | **drafted, not sent** | — |
+| 2026-09-17 | Masjid Al-Israa, Fridley | email, nikah coordinator | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply | — |
+
+**One difference between these four, worth remembering when the replies come
+in.** The first three carried the link alone. Masjid Al-Israa also carried the
+one-page sample as a PDF attachment, the version with the marking boxes. If
+Al-Israa answers and the others do not, the attachment is the first thing to
+suspect — a coordinator can see a printed sheet in two minutes without
+clicking anything. Four sends is not evidence of anything; it is a difference
+to notice, not a conclusion to draw.
+
+**Who keeps this ledger.** The founder sends; the entries are written in the
+working session, from what the founder reports. A send is logged the day it
+happens. A reply goes here as an outcome **and** in `docs/FEEDBACK.md` as what
+was said, because two acceptances start the eight-week clock on
+`docs/EXPERIMENTS.md` A9.
 
 Named but not yet approached, from the playbook: the UMN Somali Student
 Association, the MuslimMatters money episode team, Amaliah's relationships
