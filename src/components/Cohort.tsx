@@ -102,7 +102,6 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   const city = place && !other ? place.label : 'Your city'
   // The pool she is counted in, named: her city, or — somewhere else — her country.
   const pool = other ? within : city
-  const seeking = identity.gender === 'man' ? 'women' : 'men'
   const one = identity.gender === 'man' ? 'woman' : 'man'
   const them = identity.gender === 'man' ? 'her' : 'him'
   const theyre = identity.gender === 'man' ? 'she’s' : 'he’s'
@@ -164,10 +163,10 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           <CheckIcon size={12} /> You’re counted
         </p>
         <p className="mt-3 text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
-          <DoorCount count={count} city={city} within={within} other={other} /> The day someone in {pool} fits your map, we
-          write to{' '}
+          <DoorCount count={count} city={city} within={within} other={other} /> Nobody in {pool} is introduced to anyone
+          yet — the count above is what exists. Your map is counted, and{' '}
           <span className="font-medium text-ink">{joined.contact || 'the address you gave'}</span>{' '}
-          — and to nobody else. There is nothing to check back on; you will hear from us.
+          is kept apart from it for the day that changes, and reaches nobody else. When it changes, this screen will say so.
         </p>
         {travelAsk}
         {joined.code && (
@@ -281,8 +280,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
       {travelAsk}
       {!compact && (
         <p className="mt-3.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-          Keep your map, leave a way to reach you, and the day one of the {seeking} here
-          fits it, you hear from us — and nobody else does.
+          Keep your map and leave a way to reach you. Nobody is introduced yet; if that changes
+          here, this screen will say so first — and the way to reach you goes to nobody else.
         </p>
       )}
 
@@ -396,7 +395,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             non-negotiables, how many have nobody here who does — never a map and never
             which person, and any breakdown that would come back as one or two comes back
             blank. Your email or phone is kept apart from all of it, with only your city
-            beside it, so we can tell you when your city opens — and it goes when you tap
+            beside it, so you can be reached if your pool ever opens — and it goes when you tap
             forget. This same tap also sends your email or phone, your city, country, how
             far you’d go, who you’re seeking and that hardest part to the form service this
             site runs on, as a second copy — never your map code, and never your answers.

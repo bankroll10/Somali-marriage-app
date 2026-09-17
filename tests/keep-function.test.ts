@@ -133,7 +133,7 @@ describe('keeping a map', () => {
 
   it('forgetting a code removes the map, the pair, the vouch and its token, and the door entry — and a second time is a quiet 404', async () => {
     // Everything one person can leave behind, seeded as the functions write it.
-    seed('ACDEFG', { identity: { firstName: 'Sagal' }, couple: { code: 'HJKMNP', at: 'x' } })
+    seed('ACDEFG', { identity: { firstName: 'Sagal', gender: 'woman' }, couple: { code: 'HJKMNP', at: 'x' } })
     memStore('couples'); memStore('vouches'); memStore('cohort')
     stores.get('couples')!.set('HJKMNP', JSON.stringify({ creator: 'woman', first: {} }))
     stores.get('vouches')!.set('ACDEFG', JSON.stringify({ relationship: 'father', firstName: 'Cabdi', sentence: 's', at: 'd' }))
@@ -171,6 +171,39 @@ describe('keeping a map', () => {
     // Nothing left to forget.
     expect((await forget('ACDEFG')).status).toBe(404)
     expect((await get('ACDEFG')).status).toBe(404)
+  })
+
+  it('a man’s forget me leaves her report about him exactly where it was', async () => {
+    // He sent her the eleven, kept his map, and she reported him. Both hold
+    // the couple code, so until 2026-09-17 his forget me took her report with
+    // his sheet — the one thing netlify/functions/couple.ts says must never
+    // happen (docs/RISKS.md R4). Her words stay; only his own filings go.
+    seed('ACDEFG', { identity: { gender: 'man' }, couple: { code: 'HJKMNP', at: 'x' } })
+    memStore('couples').setJSON('HJKMNP', { creator: 'man', first: {} })
+    memStore('reports')
+    stores.get('reports')!.set('HJKMNP-woman-QRTWXY', JSON.stringify({ id: 'QRTWXY', code: 'HJKMNP', side: 'woman', reason: 'threats', details: 'her words', at: 'd' }))
+    stores.get('reports')!.set('HJKMNP-man-BCDFGH', JSON.stringify({ id: 'BCDFGH', code: 'HJKMNP', side: 'man', reason: 'other', at: 'd' }))
+
+    expect((await forget('ACDEFG')).status).toBe(200)
+    expect(stores.get('reports')!.has('HJKMNP-woman-QRTWXY')).toBe(true)
+    expect(stores.get('reports')!.has('HJKMNP-man-BCDFGH')).toBe(false)
+    expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
+  })
+
+  it('her forget me takes her report and leaves his — and a map with no side takes none', async () => {
+    seed('ACDEFG', { identity: { gender: 'woman' }, couple: { code: 'HJKMNP', at: 'x' } })
+    memStore('reports')
+    stores.get('reports')!.set('HJKMNP-woman-QRTWXY', JSON.stringify({ id: 'QRTWXY', code: 'HJKMNP', side: 'woman', reason: 'threats', at: 'd' }))
+    stores.get('reports')!.set('HJKMNP-man-BCDFGH', JSON.stringify({ id: 'BCDFGH', code: 'HJKMNP', side: 'man', reason: 'other', at: 'd' }))
+    expect((await forget('ACDEFG')).status).toBe(200)
+    expect(stores.get('reports')!.has('HJKMNP-woman-QRTWXY')).toBe(false)
+    expect(stores.get('reports')!.has('HJKMNP-man-BCDFGH')).toBe(true)
+
+    // An older snapshot that never said which side it was: nothing in reports
+    // is guessed at, so nothing in reports is deleted.
+    seed('JKMNPQ', { identity: {}, couple: { code: 'HJKMNP', at: 'x' } })
+    expect((await forget('JKMNPQ')).status).toBe(200)
+    expect(stores.get('reports')!.has('HJKMNP-man-BCDFGH')).toBe(true)
   })
 
   it('forgetting needs a code the right shape', async () => {

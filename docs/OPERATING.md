@@ -123,17 +123,18 @@ relatives who answered. Two failures look identical without both:
 What `/pool` means — the number the door cannot give, read before any pool is
 opened and never by anyone but the founder (`docs/LIQUIDITY.md`). `?scene=` is
 a city, every reach; `?country=` is the country's travellers. Reading it
-sweeps door entries whose map is gone or lapsed, so the door falls as well as
-rises. Whole numbers are the door's own and the checklist's denominators;
+changes nothing; `?sweep=1` takes door entries whose map is gone or lapsed, and
+`netlify/functions/sweep.ts` does the same for every pool weekly on Netlify's
+scheduler, so the door falls as well as rises. Whole numbers are the door's own and the checklist's denominators;
 everything finer is floored, and the subtraction caveat below applies.
 
 | Field | Reads as |
 |---|---|
 | `door` | Women and men on the door, from keys — what the public count says |
-| `live` | Of those, how many have a map that is present and not past its year. `door − live` is what this read just swept |
+| `live` | Of those, how many have a map that is present and not past its year. `door − live` is what a sweep would take |
 | `supply` | Of those, how many are *preparing* as of their last keep — the people an introduction could go to. `talking` is not supply: she is in one, and the rule is one at a time |
 | `unaged` | Live members with no age. An introduction cannot be made to one; before this pass nobody was asked |
-| `swept` | Entries removed on this read, by side. Their `contacts` rows stay — lapsed is not forgotten |
+| `swept` | Entries a sweep would remove, by side — removed only with `?sweep=1`, and weekly by `netlify/functions/sweep.ts`. Their `contacts` rows go with them: the way to reach someone lives exactly as long as her map (`docs/BOARD.md` decision 13) |
 | `stages[side][stage]` | The live members by stage. Floored |
 | `ages[side][band]` | The live members by age band — 18–24, 25–29, 30–34, 35–39, 40+. Floored. The one split the door could never show, and the one that strands people |
 | `pairs` | `{eligible, of}` over supply: `of` is every woman against every man; `eligible` is the pairs where both have an age, he is within `assumptions.ageGap`, and neither fails the other's checkable non-negotiables (`netlify/shared/gate.ts`). `eligible / of` is `p_gate`, the number every worked example in `docs/LIQUIDITY.md` assumed and this replaces |
@@ -238,7 +239,8 @@ Three kinds of blob outlive their purpose and have no sweep:
   unreadable through any route. Once a year: list `maps`, list `vouches`,
   delete vouches whose code has no map.
 - **Door entries for maps that lapsed.** Swept on a `/pool?...&sweep=1` read
-  of that pool: the member key and its index go, a lapsed map's blob goes with
+  of that pool, and weekly for every pool by `netlify/functions/sweep.ts` since
+  2026-09-17 (`docs/RISKS.md` R3): the member key and its index go, a lapsed map's blob goes with
   them, and her `contacts` row goes too — the way to reach someone lives
   exactly as long as her map, which is what Trust says (`docs/BOARD.md`,
   decision 13). **A plain `/pool` read deletes nothing**; `swept` tells you

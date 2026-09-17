@@ -111,7 +111,7 @@ src/
   lib/storage.ts       localStorage persistence
   hooks/useNiyyah.ts   Single source of truth: state, actions, persistence
   components/          One file per screen; home/ holds Home's cards
-netlify/functions/     guide · keep · cohort · couple · vouch · progress · safety · export · pool (Netlify Blobs)
+netlify/functions/     guide · keep · cohort · couple · vouch · progress · safety · export · pool · sweep (weekly, scheduled) (Netlify Blobs)
 netlify/shared/        founder — the bearer key on every readout; vocab — every closed set the functions accept; limit — the hourly cap on every public write; gate — the two non-negotiables a form can check, twin of lib/matching.ts
 docs/OPERATING.md      The monthly loop: readout field → constant it revises
 docs/LEARNING.md       What it learns and what it refuses to — the tiers, the two lists, the honest limits
@@ -135,6 +135,7 @@ docs/LIQUIDITY.md      Liquidity as the thing that kills matchmaking products �
 docs/FLYWHEEL.md       The outcome flywheel, ten transitions inspected against the code — where it turns, where it is substituted until a pool opens, the break at the ending fixed, marriages on the door designed, and what replaces advertising at every link
 docs/BACKWARD.md       Working backward from "extremely valuable": the arithmetic and the Somali-only ceiling, fourteen must-be-trues with their readouts, the seven assumptions that forbid the outcome, the bottleneck that is an act rather than a build, and four optionality moves
 docs/ROADMAP.md        Every shipped and proposed feature against the nine Fastlane tests — build now, test first, defer, delete — and why the reordered roadmap's first item is not code
+docs/RISKS.md          Every major system against Cagan's four risks — value, usability, feasibility, viability — classed strong / at risk / unproven / unnecessary; the five risks hiding behind working code, the smallest intervention for each, and which were built
 docs/AUDIT.md          The current-state audit, 2026-09-17: what product actually exists — core, supporting and speculative systems, duplication, contradictions between code and its promises, orphaned complexity, and the quality gaps ranked; every claim FACT or INFERENCE with a file — the one place that says what is built
 docs/BOARD.md          The board-level audit: fifteen questions answered with every claim labelled FACT / INFERENCE / HYPOTHESIS, the top ten actions ranked, what was built from it and what is the founder's to decide
 docs/CONTROL.md        Every dependency, ranked: what happens when a supplier changes their mind

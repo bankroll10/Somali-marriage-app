@@ -101,8 +101,12 @@ export default async function handler(req: Request) {
     try {
       const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
       if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
-      const snapshot = (kept.snapshot ?? {}) as { couple?: { code?: unknown } }
+      const snapshot = (kept.snapshot ?? {}) as { couple?: { code?: unknown }; identity?: { gender?: unknown } }
       const coupleCode = typeof snapshot.couple?.code === 'string' ? normalise(snapshot.couple.code) : ''
+      // Whose side this map is. Reports are keyed `${couple}-${side}-${id}` by
+      // the side that filed them, so this is what lets the cascade take hers
+      // and leave his (or the other way round).
+      const ownSide = snapshot.identity?.gender === 'woman' || snapshot.identity?.gender === 'man' ? snapshot.identity.gender : null
 
       const couples = getStore('couples')
       const vouches = getStore('vouches')
@@ -121,14 +125,20 @@ export default async function handler(req: Request) {
       // The way to reach her, which used to be deleted by hand — see
       // netlify/functions/cohort.ts and docs/OWNED.md.
       await contacts.delete(code)
-      // Any report she filed. Trust promises deletion of everything, and this
-      // store holds the one free text in the product — her own words about
-      // what happened. It was the only store the cascade missed
-      // (docs/HARD.md). The couple record it points at is deleted just above,
-      // so a report left here would point at nothing anyway. Resolved stubs
-      // carry no code and nothing of hers, and stay.
-      if (coupleCode.length === CODE_LENGTH) {
-        const { blobs } = await reports.list({ prefix: `${coupleCode}-` })
+      // Any report she filed — and only hers. Trust promises deletion of
+      // everything, and this store holds the one free text in the product,
+      // her own words about what happened. It was the only store the cascade
+      // missed (docs/HARD.md). Until 2026-09-17 it then took every report under
+      // the couple code, whichever side had filed it: both people hold that
+      // code, a man can keep a map too, so a reported man could erase the
+      // report about himself by tapping forget me — the exact thing
+      // netlify/functions/couple.ts says must never happen (docs/RISKS.md R4).
+      // Now the prefix carries the side, and an unknown side deletes nothing
+      // here. The couple record is deleted just above; a report left behind
+      // points at a sheet that is gone, which is what the founder's queue
+      // shows. Resolved stubs carry no code and nothing of hers, and stay.
+      if (coupleCode.length === CODE_LENGTH && ownSide) {
+        const { blobs } = await reports.list({ prefix: `${coupleCode}-${ownSide}-` })
         for (const { key } of blobs) await reports.delete(key)
       }
       await store.delete(code)

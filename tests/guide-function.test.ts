@@ -22,6 +22,8 @@ vi.mock('@anthropic-ai/sdk', () => ({
 /** A minimal etag-aware store, enough for the hourly cap in shared/limit.ts. */
 const limits = new Map<string, string>()
 const limitEtags = new Map<string, number>()
+/** Flip to simulate the store being unreachable — every read and write throws. */
+const outage = { on: false }
 vi.mock('@netlify/blobs', () => ({
   getStore: () => ({
     list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
@@ -30,11 +32,13 @@ vi.mock('@netlify/blobs', () => ({
     }),
     delete: async (key: string) => void limits.delete(key),
     getWithMetadata: async (key: string) => {
+      if (outage.on) throw new Error('blobs unreachable')
       const v = limits.get(key)
       if (v === undefined) return null
       return { data: JSON.parse(v), etag: `${key}#${limitEtags.get(key) ?? 0}` }
     },
     setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
+      if (outage.on) throw new Error('blobs unreachable')
       const current = limitEtags.get(key) ?? 0
       const etag = `${key}#${current}`
       if (opts?.onlyIfNew && limits.has(key)) return { modified: false }
@@ -60,6 +64,7 @@ const ask = (body: unknown = { mode: 'auntie', message: 'hi' }) =>
 
 afterEach(() => {
   vi.unstubAllEnvs()
+  outage.on = false
   create.mockClear()
   stream.mockClear()
   limits.clear()
@@ -233,6 +238,20 @@ describe('the hourly cap', () => {
     expect(stream).toHaveBeenCalledTimes(1)
     expect(second.status).toBe(503)
     expect((await second.json()).error).toBe('rate_limited')
+  })
+
+  it('refuses when the counter cannot be read — the one route that spends money fails closed', async () => {
+    // Every storage route fails open on a counter it cannot read, because a
+    // refused write costs a person something and an allowed one costs nothing.
+    // This route bills per call, so the same outage used to mean every call
+    // went through with no bound but a console limit (docs/RISKS.md R5).
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    outage.on = true
+    const res = await ask()
+    expect(res.status).toBe(503)
+    expect((await res.json()).error).toBe('rate_limited')
+    expect(stream).not.toHaveBeenCalled()
+    expect(create).not.toHaveBeenCalled()
   })
 
   it('bounds the day, not just the hour — the cap that makes an unattended month survivable', async () => {

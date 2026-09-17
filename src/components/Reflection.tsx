@@ -439,9 +439,9 @@ export default function ReflectionView({
           </p>
           <p className="mx-auto mt-3 max-w-md text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
             From here your map quietly powers everything — a guide for the real
-            moments, the work you take on, and, when your city opens,
+            moments, the work you take on, and — if a pool ever opens here —
             introductions chosen by how your lives fit and what you won’t
-            compromise on.
+            compromise on. None exist yet.
           </p>
           <div className="mt-7">
             <Button onClick={onContinue} className="group">

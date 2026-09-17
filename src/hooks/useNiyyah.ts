@@ -79,6 +79,9 @@ export type Screen =
 
 const SAVE_DEBOUNCE_MS = 250
 
+/** The screens Trust can be opened from, and returns to. */
+type TrustReturn = 'profile' | 'read' | 'beforeYes'
+
 /** The word in the link, and the screen it opens. A restored map opens nothing of its own. */
 const ENTRY_SCREEN: Partial<Record<EntryKind, Screen>> = {
   couple: 'couple',
@@ -180,8 +183,10 @@ export function useNiyyah(entry: Entry | null = null) {
   const [guideMode, setGuideMode] = useState<ModeId | null>(null)
   // A question captured elsewhere, waiting to be asked on arrival.
   const [guideAsk, setGuideAsk] = useState<{ text: string; why: string } | null>(null)
-  // Trust lives under Profile.
-  const [trustReturn, setTrustReturn] = useState<'profile'>('profile')
+  // Trust lives under Profile, and is one tap from either public tool, so a
+  // stranger on /tools/is-he-serious can read what leaves her phone before she
+  // answers anything (docs/RISKS.md R4). Back returns to wherever she came from.
+  const [trustReturn, setTrustReturn] = useState<TrustReturn>('profile')
 
   // Guide threads survive navigation AND reloads — the guide remembers.
   const [coachThreads, setCoachThreads] = useState<Partial<Record<ModeId, CoachMessage[]>>>(
@@ -723,7 +728,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setScreen('philosophy')
   }
 
-  function openTrust(from: 'profile') {
+  function openTrust(from: TrustReturn) {
     setTrustReturn(from)
     setScreen('trust')
   }

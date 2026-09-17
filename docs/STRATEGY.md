@@ -211,8 +211,7 @@ seven components, as content (`docs/BOARD.md`). Zero cost today; it is what
 keeps `docs/BACKWARD.md`'s second target reachable.
 
 **What is free, forever:** the map and every reading, the work, the
-read, the eleven, the family conversations, the family vouch, reporting and
-blocking, being introduced, and replying to anyone who is serious about you.
+read, the eleven, the family conversations, the family vouch, reporting a concern, being introduced, and replying to anyone who is serious about you.
 Nothing that protects a person is ever paid.
 
 **The Guide is free and budgeted by progress, not by the calendar.** Every real

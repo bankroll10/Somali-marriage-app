@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import type { Identity } from '../types'
 import type { LedgerEntry } from '../lib/ledger'
 import { BackButton, CheckIcon, LockGlyph, Logo } from './ui'
+import { CONTACT_EMAIL } from '../lib/site'
 
 interface Props {
   identity: Identity
@@ -52,8 +53,9 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
           </h1>
           <p className="animate-rise mt-4 max-w-lg text-[1.04rem] leading-relaxed text-ink-soft text-pretty">
             Not a badge you tap. The things you have actually done — each costs a
-            little time and a little honesty, and none can be faked. When your city
-            opens, this decides who you meet, and who meets you.
+            little time and a little honesty, and none can be faked. If a pool ever
+            opens here, this is what would decide who you meet, and who meets you —
+            and nothing is deciding it yet.
             {isWoman ? ' Sister, every one of these is yours to do or not.' : ''}
           </p>
 
@@ -141,8 +143,9 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               it. Nothing about how your map read, and nothing about how
               you use the app, goes anywhere. Your email or phone is kept apart
               from all of that, in a place of its own, with your city and
-              country beside it and nothing else — so we can write to you when
-              someone fits, or when the people you’d travel for are counted. It
+              country beside it and nothing else — so you can be reached if your
+              pool opens, or if the people you’d travel for are counted; nothing
+              writes to anyone yet. It
               is kept in its own store, apart from your answers, under the same
               code, which is what lets us delete it the moment you ask, and it lives exactly as
               long as your kept map does: when the map lapses, so does the way to reach you.
@@ -151,7 +154,9 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               and the hardest part in your own words to the form service this site runs on — a
               second copy, so that a list this small cannot be lost with one account. Your map
               code is not in it, and nothing about your answers is. That copy is the one thing
-              Forget me cannot reach on its own; ask, and it is deleted by hand the same week. One more honest thing: your kept map lives in one
+              Forget me cannot reach on its own; ask at{' '}
+              <span className="font-medium text-ink">{CONTACT_EMAIL}</span>, and it is deleted by hand the same
+              week — Niyyah is run by one founder, and that address reaches the person. One more honest thing: your kept map lives in one
               place, with the company we rent storage from, and the founder’s
               backup deliberately does not include it. If that storage were
               ever lost, the map would be too — which is why it also stays on

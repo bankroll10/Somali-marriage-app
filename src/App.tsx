@@ -59,9 +59,13 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
   // homepage when someone copies it. `pathFor` returns nothing for every screen
   // change that is not into or out of a tool.
   useEffect(() => {
-    const path = pathFor(n.screen, n.identity.gender, window.location.pathname)
+    // On a preset route (/tools/is-he-serious) the reader is only guessed until
+    // the read begins, so the path is rebuilt from the guess too — otherwise a
+    // trip to Trust and back from the intro would leave the address at '/'.
+    const reader = n.identity.gender ?? (n.entryAbout ? READER_OF[n.entryAbout] : undefined)
+    const path = pathFor(n.screen, reader, window.location.pathname)
     if (path && window.location.pathname !== path) window.history.replaceState({}, '', path)
-  }, [n.screen, n.identity.gender])
+  }, [n.screen, n.identity.gender, n.entryAbout])
 
   // Keyed by screen so every navigation gets one soft, uniform fade-in.
   return (
@@ -353,6 +357,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           hasMap={n.completed}
           onOpenFamilies={() => n.setScreen('families')}
           onOpenBeforeYes={() => n.setScreen('beforeYes')}
+          onTrust={() => n.openTrust('read')}
           onBack={backHome}
         />
       )
@@ -372,6 +377,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           hasMap={n.completed}
           couple={n.couple}
           onCouple={n.setCouple}
+          onTrust={() => n.openTrust('beforeYes')}
           onBack={backHome}
         />
       )

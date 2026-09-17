@@ -106,7 +106,7 @@ export const ADVICE_PLACEHOLDER = 'The thing you wish someone had told you…'
 export const PAY_IT_FORWARD = {
   title: 'Sponsor a place for someone else',
   body: 'Everything you used here was free, and it stays free. If you want to do the thing the aunties have always done, you can pay for the next woman’s place in your city instead of your own. Entirely optional, and nothing here changes if you don’t.',
-  // Not "we will write to you once": this screen collects no way to reach
+  // Not a promise of a letter later: this screen collects no way to reach
   // her, and the product has no outbound channel, so that was a promise the
   // code could not keep (docs/BOARD.md). What is true is when.
   note: 'Opens with our public launch. Nothing to do now.',

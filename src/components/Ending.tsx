@@ -170,9 +170,12 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
           </p>
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-muted text-pretty">
             While you were looking, forwarding anything about it meant admitting you were looking. That
-            is over. “Before we said yes, we had these eleven conversations” is a thing a married{' '}
-            {gender === 'man' ? 'man' : 'woman'} can say to anyone — a sister, a cousin, the one at the
-            wedding who is where you were.
+            is over.{' '}
+            {didEleven
+              ? '“Before we said yes, we had these eleven conversations”'
+              : '“There are eleven conversations most of us have too late”'}{' '}
+            is a thing a married {gender === 'man' ? 'man' : 'woman'} can say to anyone — a sister, a
+            cousin, the one at the wedding who is where you were.
           </p>
           <button
             onClick={() => tell('eleven')}

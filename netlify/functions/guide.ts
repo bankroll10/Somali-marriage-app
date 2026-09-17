@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import type { Context } from '@netlify/functions'
 import { isFounder, notFounder } from '../shared/founder'
-import { overDailyCap, overHourlyCap, rateLimited } from '../shared/limit'
+import { overCapOrUnknown, rateLimited } from '../shared/limit'
 import { GUIDE_MODES, buildSystemPrompt, sanitiseContext } from '../shared/prompt'
 
 /**
@@ -206,12 +206,15 @@ export default async function handler(req: Request, _context: Context) {
   }
 
   // The day first, so an hour's budget is not spent by a call the day would
-  // have refused anyway.
-  if (await overDailyCap('guide', DEFAULT_DAILY_CAP)) {
+  // have refused anyway. Both checks fail closed: this is the one route that
+  // bills per call, so a counter that cannot be read is a refusal here, where
+  // on every storage route it is an allowance (netlify/shared/limit.ts,
+  // docs/RISKS.md R5). The member gets the offline voice either way.
+  if (await overCapOrUnknown('guide', DEFAULT_DAILY_CAP, 'd')) {
     return rateLimited()
   }
 
-  if (await overHourlyCap('guide', DEFAULT_HOURLY_CAP)) {
+  if (await overCapOrUnknown('guide', DEFAULT_HOURLY_CAP, 'h')) {
     // The same 503 shape as every other guide failure — the client already
     // falls back to its offline voice on this, with nothing that looks broken.
     console.error('[niyyah] guide: hourly cap reached')
