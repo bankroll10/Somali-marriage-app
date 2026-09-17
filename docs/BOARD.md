@@ -1052,3 +1052,25 @@ gates on demand and nothing has asked for. And Masjid Al-Israa in Fridley —
 the playbook's own first local pitch, still unsent, drafted and sitting in the
 ledger as such.
 
+## The current-state audit — 2026-09-17
+
+The founder asked for the truth about what product exists before another month
+of building: not another strategy pass, an inventory. `docs/AUDIT.md` is the
+answer, in the seven sections asked for — core, supporting, speculative,
+duplication, contradictions, orphaned complexity, quality gaps — every claim
+labelled FACT or INFERENCE with a file.
+
+**What it found, in one paragraph.** Two small, finished, publicly reachable
+instruments (the read, the eleven interactive and printed) inside a much larger
+private app that no one outside the founder is known to have used. A third of
+the code is the live product, a third the privacy and measurement plumbing, a
+third a marketplace that does not exist and cannot open under its own rules
+for months. Thirty documents restating one model in five or six places, with
+the door's number, the gender ratio and the sweep each carried at two or three
+values. And one security defect: the Forget-me cascade in `keep.ts` deletes
+every report keyed by the couple code, so a man who sent the eleven, kept his
+map and was reported can erase her report (§5.1).
+
+**What this pass changed.** This file's entry, a line in the README index, and
+the audit itself. No code — the ask was to establish the truth first, and the
+ranked list in AUDIT §7 is the build order from here, §7.1 first.
