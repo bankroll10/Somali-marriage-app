@@ -972,3 +972,34 @@ summary for that deploy reads "1 new file uploaded, 1 asset changed", fewer
 than this change should have produced. Probably deduplication; worth one look
 at `/guides/before-you-say-yes`, its `/sample`, and `/tools/is-he-serious`
 before any pitch carries a URL.
+
+## The two guide pages looked like one — corrected 2026-09-17
+
+The founder opened all three new addresses, found them working, and asked
+whether the first two were the same link. They were not — eleven
+conversations against three — but above the fold on a phone they were
+indistinguishable: the same eyebrow, headings two words apart, the same
+Somali line, the same opening paragraph shape, and then the same first
+conversation, "Where you'd live". The word "sample" appeared nowhere until
+after the third conversation, in "The other eight".
+
+That matters for the one job the sample has. It is attached to a pitch while
+the full guide is linked in the same message; a reviewer who opens the
+attachment and takes it for the whole resource has been shown a guide with
+eight conversations missing and no sign any are missing.
+
+**Fixed.** The sample's eyebrow now reads "Before you say yes · three of the
+eleven", and a line under the heading says "A sample" and links the full
+guide — before the conversations rather than only after them. The link
+carries any `via` forward, so a placement's attribution survives the hop from
+the sample to the guide and on into the app. `tests/guides.test.ts` holds the
+two pages apart by comparing only what is above the first conversation, which
+is where the confusion was. The printed sample still fits one Letter page.
+
+**The lesson, since it is the second one this week.** Both pages were built
+from one function with a boolean, and the boolean was applied to the parts
+that carried content — how many conversations, which closing section — and
+not to the parts that carry identity. Everything above the first conversation
+was written once and shared. A page that is a subset of another has to say so
+where a reader looks first, not where the content runs out.
+

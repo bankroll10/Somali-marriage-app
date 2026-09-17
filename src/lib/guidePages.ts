@@ -106,6 +106,8 @@ h1,h2,h3,.eyebrow{font-family:Fraunces,Georgia,"Times New Roman",serif;font-weig
 .eyebrow{font-family:Inter,system-ui,sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin:0 0 .75rem}
 h1{font-size:2rem;line-height:1.15;margin:0 0 .5rem;text-wrap:balance}
 .somali{font-style:italic;color:var(--ink-soft);margin:0 0 1.5rem;font-size:1.05rem}
+.whole{margin:-.9rem 0 1.5rem;font-size:.95rem;color:var(--muted)}
+.whole a{color:var(--forest);font-weight:500}
 .preface p{margin:0 0 .9rem;color:var(--ink-soft)}
 .about{border-left:2px solid var(--gold);padding-left:1rem;margin:1.5rem 0 0;color:var(--muted);font-size:.92rem}
 .about p{margin:0 0 .6rem}
@@ -136,13 +138,14 @@ footer a{color:var(--forest)}
   .talk{padding:.85rem 0 .75rem}
   .talk blockquote{background:none;border-left-color:#999;font-size:10.5pt}
   .cta{display:none}
-  a[data-app]::after{content:" (" attr(href) ")";color:#555;font-weight:400}
+  a[data-app]::after,a[data-guide]::after{content:" (" attr(href) ")";color:#555;font-weight:400}
   .noprint{display:none}
   body.sample{font-size:9.2pt;line-height:1.28}
   body.sample h1{font-size:15pt;margin-bottom:.2rem}
   body.sample .somali{font-size:9.5pt;margin-bottom:.5rem}
   body.sample .eyebrow{margin-bottom:.3rem}
   body.sample .preface p,body.sample .about p{font-size:8.8pt;margin-bottom:.35rem}
+  body.sample .whole{margin:-.25rem 0 .4rem;font-size:8.8pt}
   body.sample .about{margin-top:.5rem;padding-left:.7rem}
   body.sample .talks{margin-top:.8rem;columns:2;column-gap:1.3rem}
   body.sample .talk{break-inside:auto;page-break-inside:auto;padding:.45rem 0 .4rem;border-top:none}
@@ -240,7 +243,7 @@ function closing(guide: Guide, full: boolean): string {
 /** Forwards a `?via=` on this page's address to the links into the app, and nothing else. */
 const VIA_SCRIPT = `<script>
 (function(){var v=new URLSearchParams(location.search).get('via');if(!v||!/^[a-z]+$/.test(v))return;
-document.querySelectorAll('a[data-app]').forEach(function(a){var u=new URL(a.getAttribute('href'),location.origin);u.searchParams.set('via',v);a.setAttribute('href',u.pathname+u.search)})})()
+document.querySelectorAll('a[data-app],a[data-guide]').forEach(function(a){var u=new URL(a.getAttribute('href'),location.origin);u.searchParams.set('via',v);a.setAttribute('href',u.pathname+u.search)})})()
 </script>`
 
 function page(guide: Guide, opts: GuideOptions, sample: boolean): string {
@@ -254,9 +257,18 @@ function page(guide: Guide, opts: GuideOptions, sample: boolean): string {
     `<body class="${sample ? 'sample' : 'full'}">`,
     '<div class="page">',
     '<header>',
-    '<p class="eyebrow">Before you say yes</p>',
+    // The two pages were indistinguishable above the fold on a phone: the same
+    // eyebrow, headings that differed by two words, the same Somali line, and
+    // then the same first conversation. A reviewer could land on the sample and
+    // take it for the whole resource. So the sample says what it is in the
+    // first line read, and links the full guide before the conversations
+    // rather than only after them.
+    `<p class="eyebrow">Before you say yes${sample ? ' \u00b7 three of the eleven' : ''}</p>`,
     `<h1>${sample ? 'Three of the eleven conversations to have before the families do' : 'The eleven conversations to have before the families do'}</h1>`,
     `<p class="somali" lang="so">${SOMALI_INTRO} <span lang="en">The important conversations, before the families have them for you.</span></p>`,
+    ...(sample
+      ? [`<p class="whole">A sample. <a href="${guide.path}" data-guide>The full guide has all eleven \u2192</a></p>`]
+      : []),
     preface(sample),
     about(opts.host, guide, sample),
     '</header>',

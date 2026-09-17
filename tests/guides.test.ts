@@ -118,11 +118,36 @@ describe('the one-page sample', () => {
   })
 })
 
+describe('the two pages are not mistakeable for each other', () => {
+  // The founder opened both and asked whether they were the same link. Above
+  // the fold on a phone they were: one eyebrow, headings two words apart, the
+  // same Somali line, the same first conversation. A reviewer handed the
+  // sample could take it for the whole resource.
+  const above = (html: string) => strip(html.slice(0, html.indexOf('class="talks"'))).replace(/\s+/g, ' ')
+
+  it('says which one it is in the first line read', () => {
+    expect(above(full)).toContain('Before you say yes')
+    expect(above(full)).not.toContain('three of the eleven')
+    expect(above(sample)).toContain('Before you say yes · three of the eleven')
+  })
+
+  it('offers the full guide before the conversations, not only after them', () => {
+    expect(above(sample)).toContain('A sample.')
+    expect(above(sample)).toContain('The full guide has all eleven')
+    expect(sample.slice(0, sample.indexOf('class="talks"'))).toContain(`href="${GUIDE.path}" data-guide`)
+    // The full guide has no such line — it is the full guide. (The script's
+    // selector names the attribute on every page; what matters is that no
+    // anchor here carries it.)
+    expect(above(full)).not.toContain('A sample.')
+    expect(full.match(/<a [^>]*data-guide/g)).toBeNull()
+  })
+})
+
 describe('the only script on the page', () => {
   it('forwards a via to the links into the app, and touches nothing else', () => {
     const script = full.match(/<script>([\s\S]*?)<\/script>/)![1]
     expect(script).toContain("get('via')")
-    expect(script).toContain('a[data-app]')
+    expect(script).toContain('a[data-app],a[data-guide]')
     expect(script).toMatch(/\/\^\[a-z\]\+\$\//) // only a plain lowercase id is ever forwarded
     expect(script).not.toMatch(/fetch|XMLHttpRequest|localStorage|navigator\.send|Image\(/)
     expect(full.match(/<script/g)).toHaveLength(1)
