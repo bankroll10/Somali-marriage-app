@@ -40,7 +40,7 @@ one security defect that must be fixed first.
 | Tests | 51 files, 619 tests, ~7.9k lines; Node env only, zero component or browser tests | `npm run verify` |
 | Docs | 30 markdown files, 8,823 lines; `docs/BOARD.md` alone is 1,054; 13 files have no dated-revision discipline | `wc -l` |
 | Screens | 24 (`Screen` union, `src/hooks/useNiyyah.ts:54-78`) in one 844-line hook, no router | FACT |
-| Backend | 9 Netlify Functions, 9 Blob stores (`limits, maps, couples, vouches, cohort, contacts, reports, tallies, progress`), 1 edge function | `netlify/` |
+| Backend | 10 Netlify Functions (one scheduled, weekly), 9 Blob stores (`limits, maps, couples, vouches, cohort, contacts, reports, tallies, progress`), 1 edge function | `netlify/` |
 | Runtime dependencies | 4: `@anthropic-ai/sdk`, `@netlify/blobs`, `react`, `tailwindcss`; no third-party origin in shipped HTML | `package.json`, `tests/deploy-layout.test.ts` |
 | Live URLs a stranger can open | 5: `/tools/is-he-serious`, `/tools/is-she-serious`, `/tools/before-you-say-yes`, `/guides/before-you-say-yes`, `/guides/before-you-say-yes/sample` | `docs/ASSETS.md` |
 | Known non-founder users | **0 in evidence**; `docs/FEEDBACK.md` has one entry (the founder's own walk); the results logs in OPERATING and EXPERIMENTS are empty | FACT (logs), INFERENCE (users) |
@@ -304,6 +304,8 @@ records "166 distinct proposals across 21 documents were inventoried")
   map, and was reported can delete her report by tapping Forget me.**
 - **INFERENCE** Highest-priority fix in the codebase: cascade only the reports
   the *reporter* filed, plus a test.
+- **Closed 2026-09-17** (`docs/RISKS.md` R4): the cascade deletes only the
+  forgetting side's reports; `tests/keep-function.test.ts` holds both directions.
 
 ### 5.2 Privacy and outcome promises the code does not keep
 | Promise (where) | What the code does | Label |
@@ -314,10 +316,10 @@ records "166 distinct proposals across 21 documents were inventoried")
 | Trust's ladder paragraph | Omits `country`, which the progress record carries | FACT |
 | Trust's kept-map paragraph | Omits `guide.replies`, `trust`, `stage`, `situated`, `completed`, and that the snapshot includes `answers['working-on']`, `ending.advice` free text and `firstName` | FACT |
 | Forget me copy | Does not say it deletes reports; `forget.ts:74` reports progress deleted when there is no install id | FACT |
-| Contacts "live exactly as long as your kept map" (Trust, Cohort) | `contacts` has no TTL; true only if the founder runs `?sweep=1`; `pool.ts:52` comment says the opposite | FACT |
+| ~~Contacts "live exactly as long as your kept map"~~ *true since 2026-09-17: `netlify/functions/sweep.ts` runs weekly* | `contacts` has no TTL; true only if the founder runs `?sweep=1`; `pool.ts:52` comment says the opposite | FACT |
 | Cohort disclosure "only your city" (`Cohort.tsx:398`) | `ContactRecord` holds country and a day timestamp | FACT |
-| **"The day someone in {pool} fits your map, we write to {contact}… you will hear from us"** (`Cohort.tsx:166-171`, `:284-286`, `Door.tsx:188`, `Trust.tsx:144-145`) | No matching over kept maps, no outbound channel anywhere. `docs/TIME.md:37` admits it is "the founder reading the contacts store and mailing by hand… the first thing that stops in her absence" | FACT |
-| **"When your city opens, this decides who you meet"** — 7 screens (`Trust.tsx:55`, `Profile.tsx:54,108,166`, `SampleIntroduction.tsx:90`, `Cohort.tsx:399`, `Reflection.tsx:442`, `plus.ts:70`) | Nothing decides. `alignment()` reads only invented candidates; the gate serves a readout. `docs/SCALE.md:213` claims this pass replaced the phrase; it changed STRATEGY and nothing on screen | FACT |
+| ~~**"The day someone in {pool} fits your map, we write to {contact}… you will hear from us"**~~ *closed 2026-09-17, `tests/promises.test.ts`* (`Cohort.tsx:166-171`, `:284-286`, `Door.tsx:188`, `Trust.tsx:144-145`) | No matching over kept maps, no outbound channel anywhere. `docs/TIME.md:37` admits it is "the founder reading the contacts store and mailing by hand… the first thing that stops in her absence" | FACT |
+| ~~**"When your city opens, this decides who you meet"**~~ *closed 2026-09-17* — was on 7 screens (`Trust.tsx:55`, `Profile.tsx:54,108,166`, `SampleIntroduction.tsx:90`, `Cohort.tsx:399`, `Reflection.tsx:442`, `plus.ts:70`) | Nothing decides. `alignment()` reads only invented candidates; the gate serves a readout. `docs/SCALE.md:213` claims this pass replaced the phrase; it changed STRATEGY and nothing on screen | FACT |
 | "{contact} — we read every one" (`Cohort.tsx:415`) | `CONTACT_EMAIL` defaults to `salaam@joinniyyah.com` (`src/lib/site.ts:51`); `netlify.toml` sets no `VITE_CONTACT_EMAIL`; `docs/CONTROL.md:97` says that mailbox is "the one step still open". Unless the Netlify dashboard overrides it, the live site shows an address nobody reads | FACT (code), INFERENCE (dashboard) |
 | "Minneapolis opens first" (`Welcome.tsx:169`) | A plan; code treats 18 scenes identically | FACT |
 | `couples` "kept ninety days" | TTL is enforced delete-on-read only; nothing sweeps | FACT |
@@ -328,19 +330,19 @@ records "166 distinct proposals across 21 documents were inventoried")
   permanently. It is the product" (`docs/BETS.md:159-160`, `STRATEGY.md:297`,
   README). Messaging: "Off-platform, on purpose" (`MACHINE.md:36`,
   `LEARNING.md:86`). The two strongest refusals in the corpus are promised in
-  one sentence of live copy, and no test forbids the words.
+  one sentence of live copy, and no test forbids the words. **Closed 2026-09-17:** the sentence is gone and `tests/promises.test.ts` forbids the words.
 - **FACT** "Reporting **and blocking**" (`docs/STRATEGY.md:214-215`),
   "report-and-block" (`src/data/plus.ts:11`). `docs/HARD.md:50`: "There is no
   blocking of any kind in this repository… the copy is true now." It is not,
-  in two places.
+  in two places. **Closed 2026-09-17.**
 - **FACT** Two free-year promises on one screen: `Plus.tsx:110-115` "Everyone
   here **before the public launch** keeps every paid feature free for a full
   year" (the unbounded wording `plus.ts:83-85` says was replaced) vs
-  `plus.ts:91` "Everyone **counted before their pool opens**."
+  `plus.ts:91` "Everyone **counted before their pool opens**." **Closed 2026-09-17:** the hero carries the bounded sentence.
 - **FACT** `Ending.tsx:169-176` tells every married member "'Before we said
   yes, we had these eleven conversations' is a thing a married woman can say";
   the share text is gated on having done the eleven (`ending.ts:233-236`), the
-  sentence above the button is not.
+  sentence above the button is not. **Closed 2026-09-17.**
 - **FACT** `Philosophy.tsx:132-139` names "the Somali diaspora" in a hero
   literal, against the institution rule (`STRATEGY.md:203-211`,
   `BACKWARD.md:155-164`); `tests/brand.test.ts` pins `brand.ts`, `index.html`,
@@ -483,7 +485,7 @@ is why they are the ones that drifted.
 
 ## 7. HIGHEST-LEVERAGE QUALITY GAPS (ranked)
 
-1. **The report-deletion defect (§5.1).** One condition in `keep.ts`, one
+1. ~~**The report-deletion defect (§5.1).**~~ **Closed 2026-09-17** (`docs/RISKS.md` R4). One condition in `keep.ts`, one
    test. Nothing else here matters if a reported man can erase the report.
 2. **Make the privacy sentences true.** `Welcome.tsx:88`, `Read.tsx:178`,
    `BeforeYes.tsx:146` become accurate, or `countMe` stops sending
@@ -491,7 +493,7 @@ is why they are the ones that drifted.
    inventory gains the seventh path, `country`, and the snapshot's real fields.
    Then **pin it**: extend the guide-disclosure pattern to Trust's other five
    paragraphs and to the Cohort join list, so the copy moves with the payload.
-3. **Delete the promises the code cannot keep.** The "we write to you"
+3. ~~**Delete the promises the code cannot keep.**~~ **Closed 2026-09-17** (`docs/RISKS.md` R3; `tests/promises.test.ts` keeps them out). The "we write to you"
    sentences on Door, Cohort and Trust; the seven "when your city opens"
    lines; the photos-and-conversation sentence in `SampleIntroduction.tsx:186`;
    "and blocking" in STRATEGY and `plus.ts:11`; the unbounded free-year hero on
@@ -499,8 +501,7 @@ is why they are the ones that drifted.
    Replace each with the form `Trust.tsx:310-317` and `coach.ts:377` already
    use: say the limit on the face of the screen. Add a test that forbids
    "photo" and "conversation opens" in component copy.
-4. **A TTL on `contacts`** (or a scheduled sweep by cron, not by hand), and
-   fix `pool.ts:52`. The only PII the product holds should not depend on the
+4. ~~**A TTL on `contacts`**~~ **Closed 2026-09-17** by the weekly `netlify/functions/sweep.ts` (`docs/RISKS.md` R3); `pool.ts:52` still to fix. The only PII the product holds should not depend on the
    founder remembering `?sweep=1`. Set `VITE_CONTACT_EMAIL` on Netlify to an
    address that is read, or land the mailbox, before another pitch goes out.
 5. **One door condition, one owner.** Either wire the door back in under

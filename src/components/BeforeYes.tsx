@@ -31,6 +31,8 @@ interface Props {
   couple: CoupleState | null
   onCouple: (state: CoupleState) => void
   onBack: () => void
+  /** Trust, one tap from a public tool (docs/RISKS.md R4). */
+  onTrust?: () => void
 }
 
 type Phase = 'intro' | 'asking' | 'result'
@@ -60,6 +62,7 @@ export default function BeforeYes({
   couple,
   onCouple,
   onBack,
+  onTrust,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender)
   const [phase, setPhase] = useState<Phase>('intro')
@@ -148,6 +151,14 @@ export default function BeforeYes({
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>
             ))}
           </ul>
+          {onTrust && (
+            <button
+              onClick={onTrust}
+              className="animate-rise mt-3 text-[0.85rem] font-medium text-forest underline-offset-4 hover:underline"
+            >
+              What leaves your phone, and what never does →
+            </button>
+          )}
           <div className="mt-8">
             <Button onClick={begin} className="group">
               Start

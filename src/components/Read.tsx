@@ -33,6 +33,8 @@ interface Props {
   /** The eleven — and, from there, asking them to answer their own side. */
   onOpenBeforeYes: () => void
   onBack: () => void
+  /** What leaves the phone and what never does — Trust, one tap from a public tool (docs/RISKS.md R4). */
+  onTrust?: () => void
 }
 
 type Phase = 'intro' | 'asking' | 'result'
@@ -64,6 +66,7 @@ export default function Read({
   onOpenFamilies,
   onOpenBeforeYes,
   onBack,
+  onTrust,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender ?? presetGender)
   // The address guessed who she is. Say so, and let her correct it in one tap.
@@ -182,6 +185,14 @@ export default function Read({
               </li>
             ))}
           </ul>
+          {onTrust && (
+            <button
+              onClick={onTrust}
+              className="animate-rise mt-3 text-[0.85rem] font-medium text-forest underline-offset-4 hover:underline"
+            >
+              What leaves your phone, and what never does →
+            </button>
+          )}
 
           <div className="mt-8">
             <Button onClick={() => begin(true)} className="group">
@@ -410,29 +421,12 @@ function Result({
         }
       />
 
-      {/* Where she can go from here. */}
+      {/* Where she can go from here. Two things above the fold — the words to
+          send, in the card above, and the eleven — and the rest behind one
+          disclosure. This screen carried eight calls to action and nearly six
+          hundred words before anyone outside the founder had reached it
+          (docs/RISKS.md R2). */}
       <div className="mt-9 flex flex-col gap-3">
-        <button
-          onClick={() =>
-            onAskGuide(
-              `I just did a read on someone. ${result.headline} The thinnest part is ${result.dimensions
-                .find((d) => d.dimension === result.thin)
-                ?.label.toLowerCase()}. Help me think it through.`,
-            )
-          }
-          className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
-        >
-          <span className="flex-1">
-            <span className="font-display text-[1.15rem] font-medium text-ink">
-              Talk it through with your guide
-            </span>
-            <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-              It already knows what this read said. Ask it the thing you did not want to ask a friend.
-            </span>
-          </span>
-          <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
-        </button>
-
         {/* The natural next thing after being told what {they} has not shown:
             the eleven, and from there the two-sided version {they} answers. */}
         <button
@@ -452,45 +446,77 @@ function Result({
           <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
         </button>
 
-        <button
-          onClick={onOpenFamilies}
-          className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
-        >
-          <span className="flex-1">
-            <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
-            <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-              {familyScriptsLine(subject === 'him' ? 'woman' : 'man')}
+        <details className="group/more rounded-card border border-line bg-white/50">
+          <summary className="cursor-pointer list-none px-5 py-4 text-[0.95rem] font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
+            <span className="flex items-center justify-between gap-3">
+              More you can do here
+              <span className="text-[0.8rem] font-normal text-muted group-open/more:hidden">Your guide, your family, a friend</span>
             </span>
-          </span>
-          <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
-        </button>
-
-        {!hasMap && (
+          </summary>
+          <div className="flex flex-col gap-3 px-4 pb-4">
           <button
-            onClick={onBuildMap}
-            className="group flex items-center gap-4 rounded-card border border-gold/30 bg-gold/[0.07] p-5 text-left transition-all hover:-translate-y-0.5"
+            onClick={() =>
+              onAskGuide(
+                `I just did a read on someone. ${result.headline} The thinnest part is ${result.dimensions
+                  .find((d) => d.dimension === result.thin)
+                  ?.label.toLowerCase()}. Help me think it through.`,
+              )
+            }
+            className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
           >
             <span className="flex-1">
               <span className="font-display text-[1.15rem] font-medium text-ink">
-                Now the other half of it
+                Talk it through with your guide
               </span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                That was about {subject}. Two minutes on you — what you actually need, and what you
-                will not compromise on. It makes every read after this one sharper.
+                It already knows what this read said. Ask it the thing you did not want to ask a friend.
               </span>
             </span>
-            <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
           </button>
-        )}
 
-        <InviteRow source="read" gender={subject === 'him' ? 'woman' : 'man'} />
 
-        <button
-          onClick={onAgain}
-          className="mt-1 self-start text-[0.85rem] font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline"
-        >
-          Take the read again
-        </button>
+          <button
+            onClick={onOpenFamilies}
+            className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
+          >
+            <span className="flex-1">
+              <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
+              <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                {familyScriptsLine(subject === 'him' ? 'woman' : 'man')}
+              </span>
+            </span>
+            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+          </button>
+
+          {!hasMap && (
+            <button
+              onClick={onBuildMap}
+              className="group flex items-center gap-4 rounded-card border border-gold/30 bg-gold/[0.07] p-5 text-left transition-all hover:-translate-y-0.5"
+            >
+              <span className="flex-1">
+                <span className="font-display text-[1.15rem] font-medium text-ink">
+                  Now the other half of it
+                </span>
+                <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                  That was about {subject}. Two minutes on you — what you actually need, and what you
+                  will not compromise on. It makes every read after this one sharper.
+                </span>
+              </span>
+              <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
+            </button>
+          )}
+
+          <InviteRow source="read" gender={subject === 'him' ? 'woman' : 'man'} />
+
+          <button
+            onClick={onAgain}
+            className="mt-1 self-start text-[0.85rem] font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline"
+          >
+            Take the read again
+          </button>
+          </div>
+        </details>
       </div>
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">

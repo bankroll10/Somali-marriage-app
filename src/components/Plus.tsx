@@ -110,8 +110,8 @@ export default function Plus({ onBack }: Props) {
             Your first year is on us.
           </p>
           <p className="mt-2 max-w-md text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
-            Everyone here before the public launch keeps every paid feature free for a full year after it —
-            our thanks for building this with us.
+            Everyone counted before their pool opens keeps every paid feature free for a full year after it
+            opens — our thanks for building this with us.
           </p>
         </section>
 

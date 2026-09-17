@@ -87,7 +87,7 @@ export default function SampleIntroduction({
             Chosen by alignment — not looks.
           </h1>
           <p className="mt-2 text-[0.95rem] leading-relaxed text-muted text-pretty">
-            When your city opens, this is what you’ll see: one person at a time,
+            If a pool opens here, this is the shape an introduction would take: one person at a time,
             why we think your lives fit, where you differ, and the first thing to
             ask. Never a percentage, never a ranking. {c.name} is invented to show
             it. Your side is real — every line below comes from your own map.
@@ -183,9 +183,11 @@ export default function SampleIntroduction({
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
             Here you’d say yes, or no with a reason — one person at a time, and the
             next only after you’ve answered. A considered no is progress here, not
-            a swipe. If it’s mutual, photos are shown to each other and a guided
-            conversation opens, with your wali welcome inside it. Nobody is on the
-            other side of this sample, so the only honest next step is the one below.
+            a swipe. If it were mutual, both of you would be told — your wali too, if
+            you want them there — and the rest would happen where it always has,
+            between the families, off this screen. No photos here, and no messaging.
+            Nobody is on the other side of this sample, so the only honest next step
+            is the one below.
           </p>
         </div>
 

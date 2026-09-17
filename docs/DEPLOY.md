@@ -97,7 +97,7 @@ these live in the repository, and none should.
 | `VITE_SITE_HOST` | The domain the app calls itself, in every link it hands out and every share card. | `joinniyyah.com` — ours, and the same default the code carries. Set in every context; see `docs/OWNED.md`. |
 | `VITE_CONTACT_EMAIL` | Where a signup reaches a human when the form is down. | Defaults to `salaam@joinniyyah.com`, which does not receive mail yet — so production must keep this set to an address a person reads. The one open step in `docs/CONTROL.md`'s cutover. |
 | `GUIDE_HOURLY_CAP` | The circuit breaker on the live Guide (`netlify/shared/limit.ts`) — the most calls it will answer in one hour, from anyone, combined. | `300`, chosen well above any real hour this product has seen. See `docs/TIME.md`. |
-| `GUIDE_DAILY_CAP` | The same, by the day — **the only cap that bounds a month**, and the only one on a route that spends money rather than storage. | `400`. An hourly counter resets 720 times a month, so the hour bounded an hour and nothing longer: at ~2¢ a reply, 300/hour is ~$145 a day and ~$4,300 in a month nobody watched. Forty members asking ten questions each is ~400 replies, or ~$8. See `docs/ROADMAP.md`. A cap on calls is not a cap on spend: since 2026-09-12 the body is measured (32 KB), the thread cut and the answer capped, so the worst call is ~9¢ and the worst day ~$36 (`netlify/functions/guide.ts`). Set a monthly spend limit in the Anthropic console as well — that is the bound outside the code. |
+| `GUIDE_DAILY_CAP` | The same, by the day — **the only cap that bounds a month**, and the only one on a route that spends money rather than storage. | `400`. An hourly counter resets 720 times a month, so the hour bounded an hour and nothing longer: at ~2¢ a reply, 300/hour is ~$145 a day and ~$4,300 in a month nobody watched. Forty members asking ten questions each is ~400 replies, or ~$8. See `docs/ROADMAP.md`. A cap on calls is not a cap on spend: since 2026-09-12 the body is measured (32 KB), the thread cut and the answer capped, so the worst call is ~9¢ and the worst day ~$36 (`netlify/functions/guide.ts`). Set a monthly spend limit in the Anthropic console as well — that is the bound outside the code. Since 2026-09-17 the guide **fails closed** when its own counter cannot be read (`overCapOrUnknown` in `netlify/shared/limit.ts`): every storage route still fails open, this one route bills per call (`docs/RISKS.md` R5). |
 | `COHORT_HOURLY_CAP` | Joins the door will count in one hour, from everyone. | `200`. See `docs/SCALE.md`. |
 | `KEEP_HOURLY_CAP` | Maps kept in one hour — the cheapest way to spend a free plan's storage, bounded. | `300` |
 | `VOUCH_HOURLY_CAP` | Vouch links minted and vouches given in one hour. | `100` |
@@ -125,7 +125,7 @@ The founder's readouts — `/progress`, `/cohort` with no scene, `/couple` with
 no code, `/vouch` with no code, `/pool`, `/export` and `/guide` — carry no
 cap; the key is what bounds them. `/pool` is the one to know about here: it
 reads every counted member's kept map to say whether a pool could open, and
-sweeps lapsed maps off the door as it goes (`docs/OPERATING.md`,
+reports what a sweep would take — `?sweep=1` performs one, and `netlify/functions/sweep.ts` performs it weekly for every pool on Netlify's scheduler (`docs/OPERATING.md`,
 `docs/LIQUIDITY.md`). Nothing new to set for it.
 
 Two rules about them:
@@ -360,5 +360,5 @@ refused, so a client still cached on a phone keeps working.
 ## Reading a pool without changing it
 
 `GET /pool?scene=…` now deletes nothing. `swept` reports what a sweep would
-take; `sweep=1` performs it and `sweptForReal` says so. Sweep between tests,
+take; `sweep=1` performs it and `sweptForReal` says so. Since 2026-09-17 `netlify/functions/sweep.ts` performs the same sweep for every pool at once, weekly, on Netlify's scheduler (`export const config = { schedule: '@weekly' }`) — no key, no request, nothing to remember; its log line names what it took (`docs/RISKS.md` R3). After the first deploy that carries it, the Netlify dashboard's function list should show `sweep` with a schedule; if it does not, the function deployed unscheduled and `?sweep=1` remains the way. Sweep between tests,
 never during one.

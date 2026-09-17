@@ -4,7 +4,7 @@
  * Two rules decide everything on this screen:
  *
  *  1. Nothing that protects a person is ever paid. Your privacy controls, your
- *     family's vouch, report-and-block, and replying to someone who is serious
+ *     family's vouch, reporting a concern, and replying to someone who is serious
  *     about you are free forever. Charging a woman to protect herself — or to
  *     answer a man who has already expressed interest — is the oldest move in
  *     this category and we don't make it.
@@ -67,7 +67,7 @@ export const paidLater: PaidLater[] = [
   },
   {
     title: 'A matchmaker in your corner',
-    body: 'When your city opens — a real, vetted person who reads your map and works your case, and who is paid at the nikah, the way that role has always been paid. If nothing comes of it, nothing is owed.',
+    body: 'If a pool opens — a real, vetted person who reads your map and works your case, and who is paid at the nikah, the way that role has always been paid. If nothing comes of it, nothing is owed.',
   },
   {
     title: 'The first year, as a gift',
@@ -80,9 +80,9 @@ export const promises: string[] = [
   'We are paid when you get somewhere, and never while you are stuck. If you stay single, we earn nothing from you — that is on purpose, and it is the whole design.',
   'Nothing that protects you is ever paid, at any price.',
   'What we sell is bought once and ends on its own. There is no subscription to forget.',
-  // Bounded 2026-09-12 (docs/BOARD.md, decision 0). It used to read "everyone
-  // here before the public launch keeps every paid feature free for a year" —
-  // with no marker for who "here" was, and a reading under which a family's
+  // Bounded 2026-09-12 (docs/BOARD.md, decision 0). It used to promise everyone
+  // "here" at launch a free year of every paid feature — with no marker for who
+  // "here" was, and a reading under which a family's
   // payment to a matchmaker at the nikah was barred, so the company had
   // arranged not to learn whether anyone pays until a year after the first
   // pool. The promise is about what a member is charged, and she is charged

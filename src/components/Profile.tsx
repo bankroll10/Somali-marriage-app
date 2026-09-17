@@ -51,7 +51,7 @@ interface Props {
  *
  * This was a profile: a banner, an avatar with a "No photo yet" badge and no
  * way to add one, a bio textarea, "Add your age and community →", and the line
- * "This is how members will see you when your city opens." A marketplace
+ * a line promising members would see it once a city opened. A marketplace
  * profile for a room with nobody in it, teaching her that presentation is the
  * work. The product's thesis is that it is not.
  *
@@ -105,9 +105,9 @@ export default function Profile({
             {name ? `${name}, this is what will decide it.` : 'This is what will decide it.'}
           </h1>
           <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
-            Not a photo, not a bio, not a number. When your city opens, who you meet is decided by what
-            you have actually done here, what you will not compromise on, and how you would live. All of
-            it is yours to do or not — and none of it can be tapped into being.
+            Not a photo, not a bio, not a number. Nobody is introduced here yet. If a pool opens, who you
+            meet would be decided by what you have actually done here, what you will not compromise on, and
+            how you would live. All of it is yours to do or not — and none of it can be tapped into being.
           </p>
           {!saveOk && (
             <p className="mt-3 text-[0.85rem] font-medium text-clay text-pretty">
@@ -163,7 +163,7 @@ export default function Profile({
         <section className="mt-5 rounded-card border border-line bg-white/60 p-5">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">How you’d live</p>
           <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">
-            Whose house, work, and money home. Read by the alignment engine when your city opens;
+            Whose house, work, and money home. Nothing reads it yet but the sample introduction;
             nobody sees the answers themselves.
           </p>
           <div className="mt-4">

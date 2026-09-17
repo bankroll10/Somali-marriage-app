@@ -72,18 +72,22 @@ async function sweep(store: Store, bucket: string, period: Period, keep: string)
 }
 
 /**
- * True while `bucket` has room left in the current period. Increments on every
- * call that returns true, so callers must call this once per attempt, not
- * once per allowed attempt.
+ * Where `bucket` stands in the current period, counting this attempt:
+ * `under` (and the count went up), `over` (the cap is met, nothing written),
+ * or `unknown` (the store could not be read or written, so nothing at all is
+ * known about the count). Callers decide what `unknown` means for them —
+ * see `underLimit` and `overCapOrUnknown` below.
  */
-export async function underLimit(bucket: string, cap: number, period: Period = 'h'): Promise<boolean> {
+export type CapState = 'under' | 'over' | 'unknown'
+
+export async function capState(bucket: string, cap: number, period: Period = 'h'): Promise<CapState> {
   const store = getStore({ name: 'limits', consistency: 'strong' })
   const key = periodKey(bucket, period)
   try {
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       const current = (await store.getWithMetadata(key, { type: 'json' })) as { data: number; etag?: string } | null
       const count = current?.data ?? 0
-      if (count >= cap) return false
+      if (count >= cap) return 'over'
       const next = count + 1
       const result = current?.etag
         ? await store.setJSON(key, next, { onlyIfMatch: current.etag })
@@ -91,17 +95,31 @@ export async function underLimit(bucket: string, cap: number, period: Period = '
       if (result.modified) {
         // A new period began: the ones before it are done with.
         if (!current?.etag) await sweep(store, bucket, period, key)
-        return true
+        return 'under'
       }
     }
-    // Lost the race three times under real concurrency — let it through rather
-    // than block a legitimate call over a counting glitch.
+    // Lost the race three times under real concurrency — the store answered
+    // every time, so this is a counting glitch, not an outage: let it through
+    // rather than block a legitimate call.
     console.error(`[niyyah] limit: ${bucket}/${period} lost the count three times in a row; allowing the call`)
-    return true
+    return 'under'
   } catch (err) {
-    console.error(`[niyyah] limit: ${bucket}/${period} check failed; allowing the call`, err)
-    return true
+    console.error(`[niyyah] limit: ${bucket}/${period} check failed; the caller decides`, err)
+    return 'unknown'
   }
+}
+
+/**
+ * True while `bucket` has room left in the current period. Increments on every
+ * call that returns true, so callers must call this once per attempt, not
+ * once per allowed attempt.
+ *
+ * Fails open: a counter that cannot be read never refuses a write that costs
+ * storage and nothing else. The one route that costs money on every call must
+ * not use this — it uses `overCapOrUnknown`.
+ */
+export async function underLimit(bucket: string, cap: number, period: Period = 'h'): Promise<boolean> {
+  return (await capState(bucket, cap, period)) !== 'over'
 }
 
 /**
@@ -143,6 +161,19 @@ export async function overHourlyCap(bucket: string, fallback: number): Promise<b
 export async function overDailyCap(bucket: string, fallback: number): Promise<boolean> {
   const cap = Number(process.env[envName(bucket, 'DAILY')]) || fallback
   return !(await underLimit(bucket, cap, 'd'))
+}
+
+/**
+ * The strict twin of `overHourlyCap` / `overDailyCap`, for a bucket that spends
+ * money: true when the cap is met **or when the count cannot be known**. A
+ * storage outage under the guide used to mean every call went through and the
+ * only bound left was a console spend limit nobody had written down
+ * (docs/RISKS.md R5). The member sees the same 503 as at the cap, and the
+ * offline voice answers her.
+ */
+export async function overCapOrUnknown(bucket: string, fallback: number, period: Period): Promise<boolean> {
+  const cap = Number(process.env[envName(bucket, period === 'h' ? 'HOURLY' : 'DAILY')]) || fallback
+  return (await capState(bucket, cap, period)) !== 'under'
 }
 
 /**

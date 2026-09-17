@@ -1074,3 +1074,36 @@ map and was reported can erase her report (§5.1).
 **What this pass changed.** This file's entry, a line in the README index, and
 the audit itself. No code — the ask was to establish the truth first, and the
 ranked list in AUDIT §7 is the build order from here, §7.1 first.
+
+## The four risks — the Cagan pass, 2026-09-17
+
+Every major system held against value, usability, feasibility and viability,
+with "already built" ruled out as evidence of value; `docs/RISKS.md` is the
+matrix. Zero product rows are STRONG, because zero non-founder users exist in
+any log; two plumbing rows are. Five are AT RISK, four of them on the path a
+stranger walks this week. New measurements: the read's result had 593 words
+and eight calls to action; Home has 17 buttons and is 43 taps from Welcome;
+the copy reads at grade 5.5; no privacy notice or controller identity existed
+anywhere, and Trust was unreachable from either public tool.
+
+**The five risks hiding behind working code, and what was done.** R1, value —
+never chosen by anyone: the founder's, five sessions this week from the rooms
+already pitched, PROTOCOL's script, no code. R2, usability — the result was a
+wall: it now carries the words and the eleven above one disclosure. R3,
+feasibility — four screens promised "we write to you" and seven "when your
+city opens" with no mechanism, and the sample promised photos and a
+conversation the docs forbid: every sentence replaced with the present-tense
+truth, `tests/promises.test.ts` keeps them out, and `netlify/functions/sweep.ts`
+takes lapsed contacts off the door weekly so "lives as long as your map" is
+true without anyone remembering. R4, viability — Forget me could erase the
+other side's safety report: the cascade now takes only the forgetting side's,
+Trust is one tap from both tools and names the address to ask at. R5,
+viability — the only route that spends money failed open: the guide now
+refuses when its counter cannot be read (`overCapOrUnknown`); the console
+spend limit is the founder's, and `docs/CONTROL.md` now says to write the
+number in.
+
+**Untouched, on purpose:** the map, Home, the door's number, the marketplace
+code, every strategy argument. The protocol forbids changing the map before
+ten sessions, and none have run.
+

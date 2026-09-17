@@ -197,7 +197,7 @@ trusted person.
 |---|---|---|---|---|
 | GitHub (`bankroll10`) | — | — | — | Owns the repository. Private since the audit's decision 5 |
 | Netlify (the team) | — | — | — | Holds every store, every secret and the deploys; "team access is the whole boundary" |
-| Anthropic console | — | — | — | **Monthly spend limit set:** — . The bound outside the code (`netlify/functions/guide.ts`) |
+| Anthropic console | — | — | — | **Monthly spend limit set:** — **(write the number here the day it is set; blank means unset).** The bound outside the code (`netlify/functions/guide.ts`) — and since 2026-09-17 the guide fails closed when its own counter cannot be read (`docs/RISKS.md` R5), so the console limit is the second bound rather than the only one |
 | Registrar for joinniyyah.com | — | — | — | Registrar: — · Expires: — · Auto-renew: — · Registrar lock: — . Renew for several years |
 | Gmail (the inbox `VITE_CONTACT_EMAIL` points at) | — | — | — | Until step 5 above forwards the owned address |
 
