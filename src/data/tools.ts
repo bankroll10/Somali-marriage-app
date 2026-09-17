@@ -117,3 +117,44 @@ export function toolFor(kind: 'read' | 'eleven', reader?: ToolSide): Tool | unde
   if (!reader) return undefined
   return TOOLS.find((t) => t.kind === 'read' && t.about === READER_OF[reader])
 }
+
+/**
+ * The guide: the eleven conversations as a page to read and print, at an
+ * address of its own, and a one-page sample of three of them.
+ *
+ * Built for the person a mosque or a counselling service hands it to — a
+ * couple, or one half of one, who already know each other and are about to
+ * involve the families. So it is written in a voice for two readers, says on
+ * page one who made it and what it does and does not record, and names every
+ * topic including qabiil and a second wife before anyone has to discover them.
+ * Written from src/data/eleven.ts at build time (src/lib/guidePages.ts); no
+ * app runs on it, nothing is counted when it is opened.
+ *
+ * `sample` is the three the outreach asked for: where you would live, their
+ * family in your home, money sent home. One printed page.
+ */
+export interface Guide {
+  path: string
+  samplePath: string
+  title: string
+  description: string
+  sampleTitle: string
+  sampleDescription: string
+  /** Topic ids from src/data/eleven.ts, in the order the sample prints them. */
+  sample: string[]
+  /** The interactive version, for the link at the foot of the page. */
+  toolSlug: ToolSlug
+}
+
+export const GUIDE: Guide = {
+  path: '/guides/before-you-say-yes',
+  samplePath: '/guides/before-you-say-yes/sample',
+  title: 'Before you say yes — the eleven conversations to have before the families do',
+  description:
+    'The eleven things that decide a Somali marriage and almost never get asked before the families are involved — where you’d live, their family in your home, money sent home, children, deen day to day, the aroos and the mahr, qabiil, going back, a second wife, when the families disagree. Each one with why it matters, the words to open it, and what to listen for. Free, no account, nothing recorded. Made by Niyyah.',
+  sampleTitle: 'Before you say yes — three of the eleven conversations, a sample',
+  sampleDescription:
+    'Three of the eleven conversations to have before the families do — where you’d live, their family in your home, money sent home — each with why it matters, the words to open it, and what to listen for. A one-page sample of the full guide. Free, no account, nothing recorded. Made by Niyyah.',
+  sample: ['live', 'his-family-in-home', 'money-home'],
+  toolSlug: 'before-you-say-yes',
+}

@@ -199,6 +199,36 @@ pass below forty a side.
   `null` → the door ask is rewritten once — the copy, not the mechanism. Null
   after ten more → dropped, and the ending sends the eleven alone.
 
+## A9 · The eleven travels through institutions
+
+- **HYPOTHESIS.** A mosque's nikah-preparation packet, a counselling service's
+  premarital instructions, or an institute's resource list will carry the
+  eleven to couples who already know each other — and some of those couples
+  will open the interactive version and have the conversations.
+- **WHY WE BELIEVE IT.** Three specific surfaces exist and ask for exactly
+  this (a nikah-services page with its own contact; a counselling page
+  offering premarital support in Somali; a resource page with a
+  family-strengthening category). The guide is what they asked for: a page to
+  read and print, with the disclosures on it. Nobody at any of them has been
+  asked yet.
+- **WHAT WOULD CONFIRM IT.** Eight weeks after two accepted placements,
+  `vias.mosque` (or the placement's via) shows five or more `eleven`
+  completions.
+- **WHAT WOULD DISPROVE IT.** Eight weeks after two accepted placements, the
+  same cell shows fewer than five arrivals at all — the printed page is the
+  product for that channel and the link is not.
+- **METRIC.** `vias.<via>.arrived`, `.eleven`, `.asked-him`, `.he-answered`;
+  `facts.began` ∋ `eleven` under that via; `counted` by `scene`. Not: opens of
+  the page, return visits.
+- **SMALLEST CREDIBLE TEST.** **Built in this pass** — `/guides/before-you-say-yes`
+  and its one-page sample (`docs/DEPLOY.md`). Then two pitches, sent by the
+  founder, each with the sample attached and the live URL.
+- **TIME TO LEARN.** Eight weeks from the second acceptance.
+- **DECISION RULE.** Disproved → no more building for institutional
+  channels; the printed page stays available, and the outreach effort moves
+  to the rooms (`docs/WEDGE.md`). Confirmed → a `partner` via is added so the
+  channels can be told apart, and the next placement is asked for.
+
 ## The ranking
 
 By learning value × business importance × whether it can run at all today.
@@ -212,6 +242,7 @@ By learning value × business importance × whether it can run at all today.
 | 5 | A5 willingness to pay | High | High — the whole model | No | Blocked by a promise |
 | 6 | A7 forty and forty is a market | High — the whole marketplace turns on it | Highest — the opening decision | Needs a full door | **Built** — `/pool` |
 | 7 | A8 the couple reaches men | High — the only loop to the scarce side | High — the flywheel's one referral | Needs endings | **Built** — the second share |
+| 8 | A9 the eleven through institutions | Medium — a channel, not a mechanism | Medium — the first distribution outside the rooms | Yes, once two placements are accepted | **Built** — the guide and its sample |
 
 Experiment 1 is the only one that is simultaneously high-value, wedge-critical,
 and impossible to answer today. It is the one that got built.

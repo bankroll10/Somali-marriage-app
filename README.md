@@ -185,6 +185,16 @@ it in one tap, and the side is committed to identity only when she starts. The
 older `?read` and `?eleven` links still work. `docs/DEPLOY.md` says how to link
 them in public placements.
 
+## The guide, and its one-page sample
+
+The eleven also exist as a plain page — `/guides/before-you-say-yes` — and a
+one-page sample of three of them at `/guides/before-you-say-yes/sample`, both
+written from `src/data/eleven.ts` at build time by `src/lib/guidePages.ts` in a
+voice for two readers, with what the page is and is not on page one. No app
+runs on them; the only script forwards a `?via=` onto the links into the app.
+`docs/DEPLOY.md` says how to hand them to a mosque or a counselling service,
+and A9 in `docs/EXPERIMENTS.md` says what would show it worked.
+
 ## Collecting real people
 
 A signup has to reach a server or the person is lost the moment they close the

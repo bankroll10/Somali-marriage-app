@@ -19,6 +19,8 @@ fresh tab; each survives a reload and previews as itself when pasted into a chat
 | `/tools/is-he-serious` | The read, for a woman reading a man — no "who are you reading?" first |
 | `/tools/is-she-serious` | The read, for a man reading a woman |
 | `/tools/before-you-say-yes` | The eleven, asking who you are deciding about first |
+| `/guides/before-you-say-yes` | The eleven as a page to read and print — all eleven with their words, in a voice for two readers; no app runs on it |
+| `/guides/before-you-say-yes/sample` | Three of the eleven on one printed page — the attachable sample for institutions |
 
 Add `?via=group` (or `alumni`, `professional`, `mosque`) when posting into a room; the
 via is remembered and dropped from the bar. The older `?read`, `?eleven`, `?door` and

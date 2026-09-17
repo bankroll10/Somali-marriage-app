@@ -879,3 +879,47 @@ Pretty-URLs redirect. The follow-on backlog: N2 (the eleven as a standalone
 page and printable cards) builds on `/tools/before-you-say-yes`; A2 and A3
 name `/standard` and Altomic and belong to a different project, not this
 repository.
+
+## The eleven as a page — the N2 pass
+
+Written 2026-09-17, after three outreach pitches (an institute's resource
+list, a mosque's nikah preparation, a counselling service's premarital
+instructions) each asked for the same asset: the eleven as a standalone,
+printable resource and a one-page sample carrying where you'd live, family
+involvement and money sent home — with the URL inserted only after
+publication.
+
+**Readiness, as answered before building.** The content was ready: all eleven
+with prompt, why, words and what to listen for, the three named among them.
+Four things were not. The site was still gated by `PREVIEW_PASSWORD`; the
+eleven's own address was in an unmerged PR; there was no page a mosque could
+staple to a packet and no one-page sample; and everything was written to her
+about him, where a resource handed to a couple needs a voice for two. Two
+promises in the pitches were struck before anything was sent: return visits,
+which `docs/LEARNING.md` refuses, and opens of a static page, which nothing
+here counts.
+
+**Built.** `/guides/before-you-say-yes` and `/guides/before-you-say-yes/sample`,
+plain documents written at build from `src/data/eleven.ts` — the eleven's
+content, split out import-free so the build can load it, with the interactive
+eleven re-exporting it unchanged. A neutral voice (they / them / their) for two
+readers; the two lines that name a side by role stay. The disclosures on page
+one, held by test: made by Niyyah, free, no account, nothing recorded; what
+the app version does with answers; that the app's guide uses an AI model and
+the page does not; that the eleven include qabiil and a second wife. The
+sample carries exactly the three the pitches named and prints on one Letter
+page, which the walk checks. The only script forwards a `?via=` onto the two
+links into the app. Both pages in the sitemap. A9 written with its decision
+rule before any pitch goes out.
+
+**Walked**, Chromium: both pages with JavaScript off (all eleven present, the
+three on the sample, the Somali line, the disclosures); with it on, a
+`?via=mosque` reaches only the two app links, a via that is not a plain id is
+dropped, the page calls no function, and following the link into the app
+remembers `mosque`; the sample to PDF at Letter is one page, the full guide
+seven.
+
+**Still the founder's, in order.** Delete `PREVIEW_PASSWORD` and deploy.
+Review the sample's voice from the PDF. Merge; `curl -sI` the guide for 200.
+Only then the three pitches, each with the sample attached and the live URL,
+disclosing ownership and the topics — and without the two promises above.

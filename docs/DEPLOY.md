@@ -272,6 +272,34 @@ with no query. The eleven is `/tools/before-you-say-yes` either way. A share
 from inside a tool mints `?via=words` (the reads) or `?via=eleven` (the
 eleven), the same ids the invitation row already records — no new via.
 
+## The guide, and its one-page sample
+
+Since 2026-09-17 the eleven also exist as a page — `/guides/before-you-say-yes`
+— and a one-page sample of three of them at `/guides/before-you-say-yes/sample`.
+Both are plain documents written from `src/data/eleven.ts` at build time
+(`src/lib/guidePages.ts`), in a voice for two readers, with the disclosures on
+page one: made by Niyyah, free, no account, nothing recorded; what the
+interactive version does with answers; that the app has a guide using an AI
+model and the page does not; that the eleven include qabiil and a second wife.
+No app runs on them and opening them counts nothing. Their only script forwards
+a `?via=` on the page's address onto the two links into the app, so an arrival
+from a placement is remembered as what kind of link it was.
+
+**Handing it to an institution.** The link for a mosque or a counselling
+service is `https://joinniyyah.com/guides/before-you-say-yes?via=mosque`; for
+a national resource list, `?via=group` (no closer id exists — add a `partner`
+via only once a placement is actually agreed). The printed sample is the same
+page printed: open `/guides/before-you-say-yes/sample` in Chrome, Print, Save
+as PDF, Letter, default margins — it is laid out to fit one page, and the
+build's walk checks that it still does. Attach the PDF to the pitch and put
+the live URL in the body only after `curl -sI` on it answers 200.
+
+**What can and cannot be measured.** Arrivals into the app from the guide, by
+via; eleven begun and completed among them; the two-sided sheet asked and
+answered; `counted` by city. Not measured, and not to be promised in a pitch:
+opens of the page itself, and return visits (`docs/LEARNING.md`). The decision
+rule is A9 in `docs/EXPERIMENTS.md`.
+
 ## At real launch
 
 One thing is left, and it is the gate:

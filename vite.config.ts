@@ -4,8 +4,9 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { DESCRIPTION, OG_ALT, TAGLINE, TITLE } from './src/data/brand.js'
-import { TOOLS, toolPath } from './src/data/tools.js'
+import { GUIDE, TOOLS, toolPath } from './src/data/tools.js'
 import { sitemapXml, toolPageHtml } from './src/lib/toolPages.js'
+import { guideHtml, sampleHtml } from './src/lib/guidePages.js'
 
 /** Must match DEFAULT_SITE_HOST in src/lib/site.ts. */
 const DEFAULT_SITE_HOST = 'joinniyyah.com'
@@ -45,8 +46,8 @@ function robots(host: string): string {
   ].join('\n')
 }
 
-/** The pages there are: the root, and the tools at their own addresses. */
-const PAGES = ['/', ...TOOLS.map((t) => toolPath(t.slug))]
+/** The pages there are: the root, the tools at their own addresses, the guide and its sample. */
+const PAGES = ['/', ...TOOLS.map((t) => toolPath(t.slug)), GUIDE.path, GUIDE.samplePath]
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -86,6 +87,19 @@ export default defineConfig(({ mode }) => {
             const folder = join(dir, 'tools', tool.slug)
             mkdirSync(folder, { recursive: true })
             writeFileSync(join(folder, 'index.html'), toolPageHtml(html, tool, host))
+          }
+          // The guide and its sample are not the app: plain documents written
+          // from src/data/eleven.ts, linked to the built stylesheet only for
+          // the two typefaces and the palette (src/lib/guidePages.ts).
+          const css = Object.keys(bundle).find((k) => /^assets\/index-.*\.css$/.test(k))
+          const opts = { host, cssHref: css ? `/${css}` : undefined }
+          for (const [path, render] of [
+            [GUIDE.path, guideHtml],
+            [GUIDE.samplePath, sampleHtml],
+          ] as const) {
+            const folder = join(dir, ...path.split('/').filter(Boolean))
+            mkdirSync(folder, { recursive: true })
+            writeFileSync(join(folder, 'index.html'), render(GUIDE, opts))
           }
         },
       },
