@@ -825,3 +825,57 @@ reality-sprint pass made true.
 set, so the gate comes off first. And the brand collision has no technical
 fix — links from places Google trusts are what move it, which is the room
 playbook, not a tag.
+
+## The tools at their own addresses — the sharing pass
+
+Written 2026-09-17, on the founder's brief: make the existing seriousness tool
+directly shareable. During inspection every route kept the address at the
+homepage — `src/main.tsx` read `?read` once, stripped the query, and the bar
+never moved again. So a reload landed on Welcome, the bar copied into a chat
+sent the homepage, and a shared link previewed as the homepage.
+
+**Built.** Three paths, defined once in `src/data/tools.ts`:
+`/tools/is-he-serious` (the read, reader preset as a woman),
+`/tools/is-she-serious` (the read, reader a man), `/tools/before-you-say-yes`
+(the eleven, asking as before). `entryFromUrl` reads the path; the bar mirrors
+the tool by `replaceState` only — no history is manufactured, so Back behaves
+as it always has and an eleven-question flow cannot be half-lost to a Back tap.
+The preset side is committed to identity when she starts, never on load, and
+never over a side she has already given; when the address guessed, the intro
+says so and flips in one tap. The intro gained the sentence the brief asked for
+and the code supports — no account, answers stay on this phone unless you keep
+your map — and an example result built by the real engine from a fixed set of
+made-up answers, labelled as an example, pinned to the middle band by test so
+a weight change can never turn the landing example into a warning. "Share this
+tool" is the invitation row already on the result, pointed at the tool's
+address for the friend's side; the link carries the path and a via the ladder
+already knows, and nothing else. The build writes one HTML document per tool
+with its own title, description, social card and canonical, and the sitemap
+lists all four pages.
+
+**Not built, and why.** No new via: `words` and `eleven` already mean "a
+friend handed you the instrument", and splitting a young channel under the
+k-floor makes both halves read null for longer. No `next_conversation_open` or
+`return_visit` events: the first is an attention trace on a screen the result
+already occupies, the second is refused by `docs/LEARNING.md`; everything else
+the brief named already exists as a rung or fact. No age gate on the read or
+the eleven: none existed, the brief said preserve, and the tools write nothing
+to a server on their own — recorded here as the open question it is. Query
+weights, questions and results untouched.
+
+**Walked**, Chromium at 400 px, a fresh context per check, forty-three
+checks: each route direct, on reload, with a trailing slash and with a via;
+the switch line; the eleven's chooser; a full read by the path and by `?read`
+giving the same result; reload returning to the intro with the past read
+offered; in-app Back returning the bar to `/`; the share text ending in the
+blank link and opening blank elsewhere with nothing of the sender arriving;
+every request body free of answer ids and the progress body carrying only its
+coarse keys; Welcome's own button reaching the same address; the older links
+untouched.
+
+**Still the founder's.** `PREVIEW_PASSWORD` gates every route until it is
+deleted. After the first deploy, the one `curl` in `docs/DEPLOY.md` for a
+Pretty-URLs redirect. The follow-on backlog: N2 (the eleven as a standalone
+page and printable cards) builds on `/tools/before-you-say-yes`; A2 and A3
+name `/standard` and Altomic and belong to a different project, not this
+repository.

@@ -171,6 +171,20 @@ git clone . /tmp/cibuild && cd /tmp/cibuild
 NODE_ENV=production npm ci --include=dev && npm run build
 ```
 
+## The tools at their own addresses
+
+The read and the eleven have paths of their own — `/tools/is-he-serious`,
+`/tools/is-she-serious`, `/tools/before-you-say-yes` — defined once in
+`src/data/tools.ts`, recognised in `src/lib/entry.ts`, minted in
+`src/lib/links.ts`, mirrored into the address bar by `src/App.tsx` (always
+`replaceState`, never `pushState`: no history is manufactured), and written as
+one HTML document each by `vite.config.ts` so a reload, a fresh visit and a
+chat preview all read the tool's own title. A route about a man presets the
+reader as a woman and skips the "who are you reading?" question; she can flip
+it in one tap, and the side is committed to identity only when she starts. The
+older `?read` and `?eleven` links still work. `docs/DEPLOY.md` says how to link
+them in public placements.
+
 ## Collecting real people
 
 A signup has to reach a server or the person is lost the moment they close the

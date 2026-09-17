@@ -26,9 +26,11 @@
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Niyyah" />
-    <!-- Every path serves this same document, so every path is the same page.
-         Without this, a ?read or ?via= link pasted into a group chat becomes a
-         separate thin result competing with the real one. -->
+    <!-- Every path serves this same document, so every path is the same page —
+         except the tools, which get a copy of this file with their own head at
+         build time (vite.config.ts, src/data/tools.ts). Without this, a ?read or
+         ?via= link pasted into a group chat becomes a separate thin result
+         competing with the real one. -->
     <link rel="canonical" href="https://%SITE_HOST%/" />
     <meta property="og:url" content="https://%SITE_HOST%/" />
     <meta property="og:image" content="https://%SITE_HOST%/og.png" />
