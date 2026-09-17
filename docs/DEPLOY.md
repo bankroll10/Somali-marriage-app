@@ -241,6 +241,37 @@ playbook already does: the rooms, the posts, the eventual press. Searching
 "Niyyah Somali" should find us first well before "Niyyah" does, and that is
 the search that matters for the wedge.
 
+## The tools' own addresses
+
+Since 2026-09-17 the read and the eleven have paths — `/tools/is-he-serious`,
+`/tools/is-she-serious`, `/tools/before-you-say-yes` — defined once in
+`src/data/tools.ts`. The build writes one HTML document per tool at
+`dist/tools/<slug>/index.html` from the built `index.html`, with only the head
+changed: its own title, description, social-card lines, canonical and `og:url`
+(`src/lib/toolPages.ts`). Netlify serves the file before the single-page
+rewrite, so a fresh visit, a reload and a messaging app's preview all read the
+tool's own head without running the app. The sitemap lists all four pages.
+
+**After the first deploy that carries them**, once:
+
+```sh
+curl -sI https://joinniyyah.com/tools/is-he-serious | head -1     # want 200, not 301
+curl -s  https://joinniyyah.com/tools/is-he-serious | grep -o '<title>[^<]*'
+```
+
+A 301 means Netlify's "Pretty URLs" is adding a trailing slash; the app
+tolerates the slash and the canonical stays without it, so nothing breaks, but
+turn the setting off under Project configuration → Build & deploy →
+Post processing so the address people copy is the one we mint.
+
+**Linking the tools in public placements.** In a room post, the room's kind:
+`https://joinniyyah.com/tools/is-he-serious?via=group` (or `?via=alumni`,
+`?via=professional`, `?via=mosque`, per `docs/WEDGE.md`); men's rooms get
+`/tools/is-she-serious`. In a bio or anywhere a bare link belongs, the path
+with no query. The eleven is `/tools/before-you-say-yes` either way. A share
+from inside a tool mints `?via=words` (the reads) or `?via=eleven` (the
+eleven), the same ids the invitation row already records — no new via.
+
 ## At real launch
 
 One thing is left, and it is the gate:

@@ -1,4 +1,5 @@
 import type { InstrumentKind, Via } from './entry'
+import { toolPath, type ToolSlug } from '../data/tools'
 import { SITE_URL } from './site'
 
 /**
@@ -11,6 +12,16 @@ import { SITE_URL } from './site'
  */
 export function instrumentLink(kind: InstrumentKind, via: Via, origin = SITE_URL): string {
   return `${origin}/?${kind}&via=${via}`
+}
+
+/**
+ * A link to one of the tools at its own address — the blank tool, for someone
+ * else to use. It carries the tool's name and what kind of link it is, and
+ * nothing else: no answer, no result, no code, no side but the one already in
+ * the tool's name.
+ */
+export function toolLink(slug: ToolSlug, via: Via, origin = SITE_URL): string {
+  return `${origin}${toolPath(slug)}?via=${via}`
 }
 
 /** Attach a via to a link that already carries a code — the couple's and the family's. */

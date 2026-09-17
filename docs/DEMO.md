@@ -11,6 +11,20 @@ Reloading a `?demo` tab resets it to the same known state — safe to re-run mid
 (`?fresh` and `?demo` overwrite local data; don't use them in a browser profile whose
 Niyyah state you care about.)
 
+**The tools at their own addresses** (2026-09-17, `src/data/tools.ts`) — open any in a
+fresh tab; each survives a reload and previews as itself when pasted into a chat:
+
+| URL | Opens |
+|---|---|
+| `/tools/is-he-serious` | The read, for a woman reading a man — no "who are you reading?" first |
+| `/tools/is-she-serious` | The read, for a man reading a woman |
+| `/tools/before-you-say-yes` | The eleven, asking who you are deciding about first |
+
+Add `?via=group` (or `alumni`, `professional`, `mosque`) when posting into a room; the
+via is remembered and dropped from the bar. The older `?read`, `?eleven`, `?door` and
+`?families` links still work, and the bar follows to the tool's address once the side
+is known.
+
 **The one-liner to open with:**
 > "The trusted marriage platform for the Somali diaspora — built on the questions that
 > decide a marriage, guided by faith, designed for serious people. Dating apps answer

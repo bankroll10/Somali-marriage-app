@@ -32,7 +32,7 @@ export default function InviteRow({
   const [copied, setCopied] = useState(false)
 
   async function invite() {
-    const result = await shareOrCopy({ text: inviteText(source, gender), url: inviteLink(source) }, 'invite_copied')
+    const result = await shareOrCopy({ text: inviteText(source, gender), url: inviteLink(source, gender) }, 'invite_copied')
     if (result === 'copied') {
       setCopied(true)
       window.setTimeout(() => setCopied(false), 2400)

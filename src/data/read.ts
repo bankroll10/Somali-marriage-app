@@ -474,3 +474,27 @@ const SCRIPTS_MAN: Partial<Record<ReadDimension | 'early', Script>> = {
 export function scriptFor(key: ReadDimension | 'early', gender: Gender = 'woman'): Script {
   return (gender === 'man' ? SCRIPTS_MAN[key] : undefined) ?? SCRIPTS[key]
 }
+
+/**
+ * One made-up set of answers, for the example on the tool's introduction.
+ *
+ * The example is built from these by the real engine every time it renders,
+ * so it can never say something the read would not — a change to a weight
+ * changes the example with it. Chosen to land in the middle band with the
+ * timeline as the thinnest ground: real signals, one gap, and a question worth
+ * asking. `src/lib/read.test.ts` pins the band, so a future change to the
+ * engine cannot quietly turn the landing example into a warning.
+ */
+export const EXAMPLE_ANSWERS: Record<string, string> = {
+  duration: 'months-3',
+  named: 'after',
+  timeline: 'soft',
+  known: 'friends',
+  secret: 'no',
+  family: 'passing',
+  initiative: 'day-two',
+  'in-person': 'several',
+  plans: 'rescheduled',
+  nonneg: 'untold',
+  hard: 'defensive',
+}

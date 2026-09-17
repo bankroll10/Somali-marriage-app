@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildRead, readSummary } from './read'
-import { READ_QUESTION_COUNT, readQuestions } from '../data/read'
+import { EXAMPLE_ANSWERS, READ_QUESTION_COUNT, readQuestions } from '../data/read'
 
 /**
  * The read says things about a real man to a woman who is already anxious. The
@@ -194,4 +194,22 @@ describe('what the Guide is told', () => {
     expect(s).toMatch(/thinnest ground/)
     expect(s.length).toBeLessThan(120)
   })
+})
+
+describe('the example on the introduction', () => {
+  // The tool's introduction shows one worked result so a stranger knows what
+  // she is about to get. It is built by the real engine from these answers, so
+  // it is pinned here: a change to the engine that turns the example into a
+  // warning or an "it's too early" would be a change to the landing page.
+  for (const gender of ['woman', 'man'] as const) {
+    it(`reads as real signals with one gap, for a ${gender}`, () => {
+      const r = buildRead(EXAMPLE_ANSWERS, gender)
+      expect(r).not.toBeNull()
+      expect(r!.band).toBe('mixed')
+      expect(r!.caution).toBeUndefined()
+      expect(r!.thin).toBe('intent')
+      expect(r!.shown.length).toBeGreaterThanOrEqual(2)
+      expect(r!.script.words.length).toBeGreaterThan(20)
+    })
+  }
 })

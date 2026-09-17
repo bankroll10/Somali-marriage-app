@@ -21,6 +21,7 @@ import { factsFrom } from '../lib/facts'
 import { forgetMe } from '../lib/forget'
 import { coupleReading, readCouple } from '../lib/couple'
 import type { Entry, EntryKind } from '../lib/entry'
+import type { ToolSide } from '../data/tools'
 import { rememberedCode } from '../lib/keep'
 import { readVouch } from '../lib/vouch'
 import { defaultGuideUse, defaultTrust } from '../types'
@@ -114,6 +115,12 @@ export function useNiyyah(entry: Entry | null = null) {
   })
   /** The code in the link that opened the app, for the screen it opened. */
   const [entryCode] = useState<string | null>(entry?.code ?? null)
+  /**
+   * Who the tool path said the read is about (`/tools/is-he-serious` → a man).
+   * Read.tsx presets the reader from it — the other side — and commits it to
+   * identity only when she starts, exactly as the chooser would have.
+   */
+  const [entryAbout] = useState<ToolSide | null>(entry?.about ?? null)
   // Where Identity hands off: the situation question on a fresh start; straight
   // to the hook when she is building the map from an instrument she already used.
   const [identityNext, setIdentityNext] = useState<'situation' | 'hook' | 'shortMap'>('situation')
@@ -770,6 +777,7 @@ export function useNiyyah(entry: Entry | null = null) {
     saveEnded,
     keptCode,
     entryCode,
+    entryAbout,
     reflection,
     resumeIndex,
     skipFirstIntro,

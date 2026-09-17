@@ -55,4 +55,5 @@
 # crawler in, and let the page tell it what to do. robots.txt and sitemap.xml
 # are written by vite.config.ts so they carry the same host as every link, and
 # index.html's canonical tag keeps ?read, ?eleven and ?via= from being indexed
-# as separate thin pages.
+# as separate thin pages. The tools at /tools/* are real files, written from
+# index.html at build with their own head, and the rewrite below yields to them.

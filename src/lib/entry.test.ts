@@ -30,6 +30,38 @@ describe('links into Niyyah', () => {
     expect(entryFromUrl('?map=ACDEFG&door')?.kind).toBe('map')
   })
 
+  describe('a tool at its own address', () => {
+    it('opens the tool the path names, and says who it is about', () => {
+      expect(entryFromUrl('', '/tools/is-he-serious')).toEqual({ kind: 'read', about: 'man' })
+      expect(entryFromUrl('', '/tools/is-she-serious')).toEqual({ kind: 'read', about: 'woman' })
+      expect(entryFromUrl('', '/tools/before-you-say-yes')).toEqual({ kind: 'eleven' })
+    })
+
+    it('tolerates the one thing a host adds, and nothing else', () => {
+      expect(entryFromUrl('', '/tools/is-he-serious/')).toEqual({ kind: 'read', about: 'man' })
+      expect(entryFromUrl('', '/tools/is-he-serious/extra')).toBeNull()
+      expect(entryFromUrl('', '/tools/nope')).toBeNull()
+      expect(entryFromUrl('', '/tools')).toBeNull()
+      expect(entryFromUrl('', '/tools/')).toBeNull()
+      expect(entryFromUrl('', '/TOOLS/is-he-serious')).toBeNull()
+    })
+
+    it('carries a via like any other link', () => {
+      expect(entryFromUrl('?via=group', '/tools/is-she-serious')).toEqual({ kind: 'read', about: 'woman', via: 'group' })
+      expect(entryFromUrl('?via=instagram', '/tools/before-you-say-yes')).toEqual({ kind: 'eleven' })
+    })
+
+    it('wins over a stray query, because no minted link puts a code on a tool path', () => {
+      expect(entryFromUrl('?couple=HJKMNP', '/tools/is-he-serious')).toEqual({ kind: 'read', about: 'man' })
+    })
+
+    it('leaves every query-string link exactly as it was', () => {
+      expect(entryFromUrl('?read&via=words', '/')).toEqual({ kind: 'read', via: 'words' })
+      expect(entryFromUrl('?read&via=words')).toEqual({ kind: 'read', via: 'words' })
+      expect(entryFromUrl('', '/')).toBeNull()
+    })
+  })
+
   describe('what kind of link it was', () => {
     it('rides along with any kind, and never names a person', () => {
       expect(entryFromUrl('?eleven&via=eleven')).toEqual({ kind: 'eleven', via: 'eleven' })
