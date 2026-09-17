@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect } from 'react'
 import Welcome from './components/Welcome'
 import IdentityStep from './components/Identity'
 import Situation from './components/Situation'
@@ -24,7 +24,8 @@ import ShortMap from './components/ShortMap'
 import Cohort from './components/Cohort'
 import { ArrowRight, Button, ScreenHeader } from './components/ui'
 import type { Gender, Reach } from './types'
-import type { Entry } from './lib/entry'
+import { pathFor, type Entry } from './lib/entry'
+import { READER_OF } from './data/tools'
 import { buildRead, readSummary } from './lib/read'
 import { beforeYesSummary, buildBeforeYes } from './lib/beforeYes'
 import { useNiyyah } from './hooks/useNiyyah'
@@ -48,6 +49,19 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
   }, [n.screen])
+
+  // The address bar follows the two tools that have an address of their own
+  // (src/data/tools.ts), and nothing else. Always replaceState, never push: no
+  // history is manufactured, so Back behaves as it always has, and an eleven-
+  // question flow cannot be half-lost to a Back tap — the in-app Back is the
+  // navigation inside a tool. What this buys is that a reload inside the read
+  // lands on the read, and the bar holds the blank tool's link rather than the
+  // homepage when someone copies it. `pathFor` returns nothing for every screen
+  // change that is not into or out of a tool.
+  useEffect(() => {
+    const path = pathFor(n.screen, n.identity.gender, window.location.pathname)
+    if (path && window.location.pathname !== path) window.history.replaceState({}, '', path)
+  }, [n.screen, n.identity.gender])
 
   // Keyed by screen so every navigation gets one soft, uniform fade-in.
   return (
@@ -333,6 +347,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onSave={n.setRead}
           onBegan={() => n.noteBegan('read')}
           onSetGender={(g: Gender) => n.setIdentity((prev) => ({ ...prev, gender: g }))}
+          presetGender={n.entryAbout ? READER_OF[n.entryAbout] : undefined}
           onAskGuide={(text) => n.askGuide(text, n.identity.gender)}
           onBuildMap={n.beginMap}
           hasMap={n.completed}

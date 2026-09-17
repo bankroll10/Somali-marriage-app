@@ -1,6 +1,6 @@
 import type { Gender } from '../types'
 import { speak } from './read'
-import { instrumentLink } from '../lib/links'
+import { instrumentLink, toolLink } from '../lib/links'
 
 /**
  * The invitation, retargeted at the instruments.
@@ -35,14 +35,22 @@ const TEXT: Record<InviteSource, string> = {
  * Where the invitation lands. It used to open the front door; it now opens the
  * instrument the sender is talking about, and says only what kind of link it
  * was — never who sent it.
+ *
+ * Since the tools have addresses (src/data/tools.ts) the read's invitation
+ * points at the one for the friend's side — a woman sends a friend
+ * `/tools/is-he-serious`, which previews as what it is and asks her nothing on
+ * arrival — and the eleven's at `/tools/before-you-say-yes`. The side in the
+ * path is the friend's, the same as the words already are; it says nothing
+ * about the sender. Without a known side the read falls back to the query
+ * form, which asks on arrival.
  */
-export function inviteLink(source: InviteSource): string {
+export function inviteLink(source: InviteSource, gender?: Gender): string {
   switch (source) {
     case 'read':
     case 'profile':
-      return instrumentLink('read', 'words')
+      return gender ? toolLink(gender === 'man' ? 'is-she-serious' : 'is-he-serious', 'words') : instrumentLink('read', 'words')
     case 'beforeYes':
-      return instrumentLink('eleven', 'eleven')
+      return toolLink('before-you-say-yes', 'eleven')
     case 'couple':
       return instrumentLink('eleven', 'couple')
   }

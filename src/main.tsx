@@ -19,15 +19,18 @@ import { saveProgress } from './lib/storage.ts'
  *   /?read · /?eleven · /?families
  *                  — someone sent them the words; they land on the instrument.
  *   /?door         — someone who is looking, not talking; they land on the number.
+ *   /tools/…       — the read and the eleven at an address of their own
+ *                    (src/data/tools.ts); the path stays in the bar.
  *   &via=…         — what kind of link it was, remembered once for the ladder.
  *
  * Failure is a no-op by design: a wrong code, a dead function, or no network
  * simply renders the app she would have seen anyway. The query is dropped from
  * the address bar either way, so a code is not left sitting in history or
- * shared by accident when she sends someone the link.
+ * shared by accident when she sends someone the link. The path is kept: it
+ * carries no code, and it is what makes a reload land where the link did.
  */
 async function resolveEntry(): Promise<Entry | null> {
-  const entry = entryFromUrl(window.location.search)
+  const entry = entryFromUrl(window.location.search, window.location.pathname)
   if (!entry) return null
   // Before the query is stripped, and to its own key — storage the app reads
   // on mount is untouched.

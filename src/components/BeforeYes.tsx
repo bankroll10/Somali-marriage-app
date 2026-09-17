@@ -143,6 +143,7 @@ export default function BeforeYes({
               'This does not score anyone. It records which conversations have happened.',
               'We take no position on any of them — qabiil and a second wife included.',
               'You will leave with something you can actually say.',
+              `No account, no sign-in. Your answers stay on this phone unless you keep your map, or ask ${pronoun} to answer too.`,
             ].map((line) => (
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>
             ))}
@@ -152,6 +153,14 @@ export default function BeforeYes({
               Start
               <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
             </Button>
+          </div>
+          <div className="mt-8">
+            <InviteRow
+              source="beforeYes"
+              gender={gender}
+              title="Share this tool"
+              body="The blank eleven, at its own address. Nothing you answer travels with it."
+            />
           </div>
           {saved && (
             <button

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { Gender, Identity, ReadRecord } from '../types'
-import { readQuestions } from '../data/read'
+import { EXAMPLE_ANSWERS, readQuestions } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
@@ -15,6 +15,13 @@ interface Props {
   onSave: (record: ReadRecord) => void
   /** Learned here when she arrives without onboarding. */
   onSetGender: (g: Gender) => void
+  /**
+   * The reader's side when the address said who the read is about
+   * (`/tools/is-he-serious`), so the chooser is not asked twice. Never used
+   * over a side she has already told us; committed to identity when she
+   * starts, not on arrival.
+   */
+  presetGender?: Gender
   /** The read was begun — the denominator for whether it gets finished. */
   onBegan: () => void
   /** Talk the result through in the voice best suited to it. */
@@ -50,6 +57,7 @@ export default function Read({
   onSave,
   onBegan,
   onSetGender,
+  presetGender,
   onAskGuide,
   onBuildMap,
   hasMap,
@@ -57,7 +65,9 @@ export default function Read({
   onOpenBeforeYes,
   onBack,
 }: Props) {
-  const [gender, setGender] = useState<Gender | undefined>(identity.gender)
+  const [gender, setGender] = useState<Gender | undefined>(identity.gender ?? presetGender)
+  // The address guessed who she is. Say so, and let her correct it in one tap.
+  const guessed = !identity.gender && !!presetGender
   const [phase, setPhase] = useState<Phase>('intro')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [index, setIndex] = useState(0)
@@ -70,6 +80,9 @@ export default function Read({
 
   function begin(fresh: boolean) {
     track('read_started', { again: !fresh })
+    // A side the address supplied becomes hers on the same act the chooser
+    // would have committed it — starting — never on page load.
+    if (!identity.gender && gender) onSetGender(gender)
     onBegan()
     setAnswers(fresh ? {} : (saved?.answers ?? {}))
     setIndex(0)
@@ -145,12 +158,24 @@ export default function Read({
             promised. At the end you get an honest read and the one question worth
             asking {subject} next, word for word.
           </p>
+          {guessed && (
+            <p className="animate-fade mt-3 text-[0.88rem] text-muted">
+              Reading about {gender === 'man' ? 'a woman' : 'a man'}.{' '}
+              <button
+                onClick={() => setGender(gender === 'man' ? 'woman' : 'man')}
+                className="font-medium text-forest underline-offset-4 hover:underline"
+              >
+                Reading about {gender === 'man' ? 'a man' : 'a woman'} instead?
+              </button>
+            </p>
+          )}
 
           <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
             {[
               'We never ask their name. Nothing here identifies anyone.',
               'We will not tell you what kind of person they are. We have not met them.',
               'You will get something you can actually say this week.',
+              'No account, no sign-in. Your answers stay on this phone unless you choose to keep your map.',
             ].map((line) => (
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">
                 {line}
@@ -163,6 +188,17 @@ export default function Read({
               Start the read
               <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
             </Button>
+          </div>
+
+          <Example gender={gender ?? 'woman'} subject={subject} />
+
+          <div className="mt-8">
+            <InviteRow
+              source="read"
+              gender={gender}
+              title="Share this tool"
+              body="The blank read, at its own address. Nothing you answer travels with it."
+            />
           </div>
           {saved && (
             <button
@@ -463,6 +499,61 @@ function Result({
         stay on this device.
       </p>
     </div>
+  )
+}
+
+/**
+ * One worked result, so a stranger knows what she is about to get before she
+ * gives it ninety seconds. Built by the real engine from a fixed, made-up set
+ * of answers (src/data/read.ts), so it can never promise something the read
+ * would not say — and labelled as an example, because a result about nobody
+ * must not read as a result about someone.
+ */
+function Example({ gender, subject }: { gender: Gender; subject: string }) {
+  const example = buildRead(EXAMPLE_ANSWERS, gender)
+  if (!example) return null
+  const unresolved = example.dimensions.find((d) => d.dimension === example.thin)?.label
+  return (
+    <details className="animate-fade group mt-8 rounded-card border border-line bg-white/50">
+      <summary className="cursor-pointer list-none px-5 py-4 text-[0.95rem] font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center justify-between gap-3">
+          See an example result
+          <span className="text-[0.8rem] font-normal text-muted group-open:hidden">What you get at the end</span>
+        </span>
+      </summary>
+      <div className="border-t border-line px-5 pb-5 pt-4">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold">
+          An example, not a verdict
+        </p>
+        <p className="mt-1 text-[0.85rem] leading-snug text-muted text-pretty">
+          One possible read, from made-up answers about nobody. Yours will be built the same way,
+          from what you say {subject === 'him' ? 'he' : 'she'} has done.
+        </p>
+        <dl className="mt-4 flex flex-col gap-3.5">
+          <div>
+            <dt className="text-[0.8rem] font-medium uppercase tracking-wide text-muted">What was reported</dt>
+            <dd className="mt-1 text-[0.95rem] leading-snug text-ink text-pretty">
+              {example.shown.slice(0, 2).map((s, i) => (
+                <span key={s}>
+                  {i > 0 && ' '}
+                  {s.charAt(0).toUpperCase() + s.slice(1)}.
+                </span>
+              ))}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-[0.8rem] font-medium uppercase tracking-wide text-muted">What is still unresolved</dt>
+            <dd className="mt-1 text-[0.95rem] leading-snug text-ink text-pretty">{unresolved}</dd>
+          </div>
+          <div>
+            <dt className="text-[0.8rem] font-medium uppercase tracking-wide text-muted">The next question</dt>
+            <dd className="mt-1 border-l-2 border-gold/40 pl-3 text-[0.95rem] italic leading-snug text-ink text-pretty">
+              “{example.script.words}”
+            </dd>
+          </div>
+        </dl>
+      </div>
+    </details>
   )
 }
 

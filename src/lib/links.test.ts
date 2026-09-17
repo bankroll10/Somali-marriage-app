@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { entryFromUrl } from './entry'
-import { instrumentLink, withVia } from './links'
+import { entryFromUrl, pathFor } from './entry'
+import { instrumentLink, toolLink, withVia } from './links'
 import { coupleLink } from './couple'
 import { restoreLink } from './keep'
 import { vouchLink } from './vouch'
@@ -26,9 +26,40 @@ describe('the links this product hands out', () => {
   })
 
   it('never carries a person', () => {
-    for (const url of [instrumentLink('read', 'door'), withVia(coupleLink('HJKMNP', SITE_URL), 'couple')]) {
-      expect(url).not.toMatch(/install|from=|ref=|by=/)
+    for (const url of [
+      instrumentLink('read', 'door'),
+      withVia(coupleLink('HJKMNP', SITE_URL), 'couple'),
+      toolLink('is-he-serious', 'words'),
+      toolLink('before-you-say-yes', 'eleven'),
+    ]) {
+      expect(url).not.toMatch(/install|from=|ref=|by=|code|answer|name/)
     }
+  })
+
+  describe('a tool at its own address', () => {
+    it('is the path and what carried it, nothing more', () => {
+      expect(toolLink('is-he-serious', 'words')).toBe(`${SITE_URL}/tools/is-he-serious?via=words`)
+      expect(toolLink('is-she-serious', 'words', 'https://x.test')).toBe('https://x.test/tools/is-she-serious?via=words')
+      expect(toolLink('before-you-say-yes', 'eleven')).toBe(`${SITE_URL}/tools/before-you-say-yes?via=eleven`)
+    })
+
+    it('round-trips through the parser, side included', () => {
+      const url = new URL(toolLink('is-she-serious', 'words'))
+      expect(entryFromUrl(url.search, url.pathname)).toEqual({ kind: 'read', about: 'woman', via: 'words' })
+    })
+
+    it('is what the address bar shows while the tool is open, and only then', () => {
+      expect(pathFor('read', 'woman', '/')).toBe('/tools/is-he-serious')
+      expect(pathFor('read', 'man', '/')).toBe('/tools/is-she-serious')
+      // The reader is not known yet: leave the bar alone rather than guess.
+      expect(pathFor('read', undefined, '/')).toBeUndefined()
+      expect(pathFor('beforeYes', undefined, '/')).toBe('/tools/before-you-say-yes')
+      // Leaving a tool returns the bar to the root — and any other screen
+      // change, anywhere else in the app, touches nothing.
+      expect(pathFor('home', 'woman', '/tools/is-he-serious')).toBe('/')
+      expect(pathFor('home', 'woman', '/')).toBeUndefined()
+      expect(pathFor('coach', undefined, '/')).toBeUndefined()
+    })
   })
 })
 
