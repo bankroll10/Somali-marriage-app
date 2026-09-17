@@ -821,8 +821,9 @@ says plainly it is not open and introduces nobody — which is what the
 reality-sprint pass made true.
 
 **Still the founder's.** Search Console is a DNS record and three clicks;
-`docs/DEPLOY.md` has the steps. None of it works while `PREVIEW_PASSWORD` is
-set, so the gate comes off first. And the brand collision has no technical
+`docs/DEPLOY.md` has the steps. ~~None of it works while `PREVIEW_PASSWORD` is
+set, so the gate comes off first.~~ *(Wrong when written — the gate had come
+off the day before; corrected 2026-09-17.)* And the brand collision has no technical
 fix — links from places Google trusts are what move it, which is the room
 playbook, not a tag.
 
@@ -873,8 +874,9 @@ every request body free of answer ids and the progress body carrying only its
 coarse keys; Welcome's own button reaching the same address; the older links
 untouched.
 
-**Still the founder's.** `PREVIEW_PASSWORD` gates every route until it is
-deleted. After the first deploy, the one `curl` in `docs/DEPLOY.md` for a
+**Still the founder's.** ~~`PREVIEW_PASSWORD` gates every route until it is
+deleted.~~ **Wrong when written (corrected 2026-09-17, below): it was deleted
+on 2026-09-12 and the site was already open.** After the first deploy, the one `curl` in `docs/DEPLOY.md` for a
 Pretty-URLs redirect. The follow-on backlog: N2 (the eleven as a standalone
 page and printable cards) builds on `/tools/before-you-say-yes`; A2 and A3
 name `/standard` and Altomic and belong to a different project, not this
@@ -891,7 +893,9 @@ publication.
 
 **Readiness, as answered before building.** The content was ready: all eleven
 with prompt, why, words and what to listen for, the three named among them.
-Four things were not. The site was still gated by `PREVIEW_PASSWORD`; the
+Four things were not — or so it was written; the first of them was wrong, and
+is struck here on 2026-09-17. ~~The site was still gated by
+`PREVIEW_PASSWORD`;~~ *(it had been open since 2026-09-12)* the
 eleven's own address was in an unmerged PR; there was no page a mosque could
 staple to a packet and no one-page sample; and everything was written to her
 about him, where a resource handed to a couple needs a voice for two. Two
@@ -923,3 +927,48 @@ seven.
 Review the sample's voice from the PDF. Merge; `curl -sI` the guide for 200.
 Only then the three pitches, each with the sample attached and the live URL,
 disclosing ownership and the topics — and without the two promises above.
+
+## What the documents got wrong about the gate — corrected 2026-09-17
+
+The founder opened Netlify's environment variables and asked where
+`PREVIEW_PASSWORD` was. It was not there, because they had deleted it on
+2026-09-12 — which this file already recorded, two sections above: *"an hour
+after `PREVIEW_PASSWORD` came off, the founder walked the deployed site on a
+phone."* **The site had been open for five days.**
+
+Six places still said otherwise, and one of them was costing something:
+
+| Where | What it said | Cost |
+|---|---|---|
+| `docs/ROADMAP.md` item 0 | The room playbook *"waits on one act — removing `PREVIEW_PASSWORD`"* | **The founder read that they could not post yet.** The first item of the roadmap, describing itself as blocked by work already done |
+| `docs/DEPLOY.md`, the gate section | The preview *will* end when the password is deleted | The file that calls itself the one place the gate's state is described, describing a state that ended five days earlier |
+| `docs/DEPLOY.md`, "At real launch" | One thing left: remove `gate.ts` and the variable | A finished checklist reading as an open one |
+| `docs/DEPLOY.md`, Search Console | *"nothing below works while `PREVIEW_PASSWORD` is set — the gate must come off first"* | A precondition that had already been met |
+| `README.md` | The whole section in the future tense | Same |
+| `docs/BOARD.md`, the N2 entry | *"`PREVIEW_PASSWORD` gates every route until it is deleted"* | Written on 2026-09-17, five days wrong on the day it was written |
+
+**How it happened, since the same shape will happen again.** Every one of
+those lines was written from another document rather than from the system.
+The deletion was a founder act performed in a dashboard; nothing in the
+repository changed when it happened, so nothing forced the prose to move. The
+repo's own rule — copy moves in the same commit as the thing it describes
+(`docs/PROCESS.md` rule 5) — does not reach a change that happens outside the
+repo. The check that would have caught it is the one that was available all
+along: read the environment, not the document about the environment.
+
+**Decided: `gate.ts` stays, as the close switch.** It was going to be deleted
+"at real launch". It is dormant without the variable and costs nothing, and
+setting that variable shuts every route within one deploy — the only way to
+close this site in a single action. `docs/TIME.md` and `docs/WEDGE.md` both
+name one safety failure in a tight community as the thing that ends the
+company; the minute between learning of it and closing is worth one unused
+edge function. Its docblock and `docs/DEPLOY.md` now call it what it is.
+
+**Unverified, and the founder's to check.** This session's sandbox cannot
+reach `joinniyyah.com` — the egress proxy blocks it — so the pages merged in
+#30 and #31 were confirmed only against the built output and Netlify's deploy
+record (`ready` at `73f4453`, published 2026-09-17T04:06:33Z). Netlify's
+summary for that deploy reads "1 new file uploaded, 1 asset changed", fewer
+than this change should have produced. Probably deduplication; worth one look
+at `/guides/before-you-say-yes`, its `/sample`, and `/tools/is-he-serious`
+before any pitch carries a URL.

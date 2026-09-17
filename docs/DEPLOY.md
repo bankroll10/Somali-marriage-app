@@ -90,7 +90,7 @@ these live in the repository, and none should.
 
 | Key | What it does | Unset means |
 |---|---|---|
-| `PREVIEW_PASSWORD` | The founding-preview gate (`netlify/edge-functions/gate.ts`). Any username, this password. | **No gate. The site is open to anyone with the link.** |
+| `PREVIEW_PASSWORD` | **The close switch** (`netlify/edge-functions/gate.ts`). Any username, this password. Deleted on 2026-09-12; set it only to shut the site after a safety incident. | **No gate — the normal state since 2026-09-12. The site is open to anyone with the link.** |
 | `ANTHROPIC_API_KEY` | Switches on the live Guide (`netlify/functions/guide.ts`). | The Guide answers from its offline voice; no error shown. |
 | `FOUNDER_KEY` | Bearer token on every readout (`netlify/shared/founder.ts`). Also a **GitHub Actions secret** of the same name, so `.github/workflows/watch.yml` can read `/safety` weekly. | **Every readout answers 401 until it is set** — fails closed since 2026-09-12 (`docs/BOARD.md`); the recovery is setting it. |
 | `VITE_WAITLIST_FORM` | Names the Netlify form signups post to. Already set in `netlify.toml`. | The signup card falls back to a mailto. |
@@ -187,16 +187,32 @@ which deletes the report and leaves an anonymous stub carrying the outcome;
 `docs/OPERATING.md` has the exact command and `SAFETY_OUTCOMES` in
 `src/data/safety.ts` is the closed list.
 
-## Before the first post: the gate — decided
+## The gate came off — 2026-09-12
 
-Every share path hands a stranger a link, and while `PREVIEW_PASSWORD` is set
-that link is a 401 — so the playbook in `docs/WEDGE.md` cannot run against a
-gated site. **Decided 2026-09-12 (`docs/BOARD.md`, decision 1): the quiet
-launch.** The founding preview ends the day the first link is posted:
-`PREVIEW_PASSWORD` is deleted from the site's environment variables and a
-deploy is triggered so the edge function picks up its absence. Verify from a
-phone with no cookies that `/?eleven` answers 200. This file is the one place
-the gate's state is described; `docs/PRODUCT.md` §9 points here.
+**The site is open, and has been since 2026-09-12.** `PREVIEW_PASSWORD` was
+deleted that day and the founder walked the deployed site on a phone an hour
+later (`docs/BOARD.md`, "What the founder's own walk found"). Every share path
+now hands a stranger a working link, which is what the playbook in
+`docs/WEDGE.md` needs.
+
+This file is the one place the gate's state is described; `docs/PRODUCT.md` §9
+points here. Corrected 2026-09-17: this section and four others still read as
+though the deletion were pending, and `docs/ROADMAP.md` item 0 still said the
+whole playbook waited on it — five days after it was done (`docs/BOARD.md`,
+the gate-state correction).
+
+**The close switch.** `netlify/edge-functions/gate.ts` stays, dormant. Setting
+`PREVIEW_PASSWORD` again shuts every route behind HTTP Basic within one
+deploy, and that is the only way to close this site in a single action —
+worth keeping for the one day `docs/TIME.md` names, when a safety failure has
+to be stopped in the minute it is learned of rather than after a revert. To
+close: add the variable in Netlify, trigger a deploy, confirm
+
+```sh
+curl -sI https://joinniyyah.com/ | head -1     # want: HTTP/2 401
+```
+
+To reopen: delete it and deploy again.
 
 **Revised 2026-09-13: the site is indexable from that same day.** The plan
 was to keep `noindex` and a disallowing `robots.txt` until the first pool
@@ -211,9 +227,9 @@ who will search it before they trust it.
 
 ## Being found: the founder's part
 
-Removing the blocks lets Google in. It does not tell Google we exist, and
-nothing below works while `PREVIEW_PASSWORD` is set — a crawler gets the same
-401 as everyone else, so **the gate must come off first.**
+Removing the blocks lets Google in. It does not tell Google we exist, so the
+steps below are the founder's. (They needed the gate off first; it came off on
+2026-09-12.)
 
 1. **Google Search Console** → Add property → **Domain**, `joinniyyah.com`.
    It asks for one DNS TXT record; add it wherever the domain's DNS lives and
@@ -292,7 +308,8 @@ via only once a placement is actually agreed). The printed sample is the same
 page printed: open `/guides/before-you-say-yes/sample` in Chrome, Print, Save
 as PDF, Letter, default margins — it is laid out to fit one page, and the
 build's walk checks that it still does. Attach the PDF to the pitch and put
-the live URL in the body only after `curl -sI` on it answers 200.
+the live URL in the body only after `curl -sI` on it answers 200 — the one
+check that matters, since a link in a pitch that 404s is the whole pitch.
 
 **What can and cannot be measured.** Arrivals into the app from the guide, by
 via; eleven begun and completed among them; the two-sided sheet asked and
@@ -302,9 +319,9 @@ rule is A9 in `docs/EXPERIMENTS.md`.
 
 ## At real launch
 
-One thing is left, and it is the gate:
-
-1. `netlify/edge-functions/gate.ts`, and the `PREVIEW_PASSWORD` variable.
+Nothing is left to remove. The `noindex` header and the disallowing
+`robots.txt` went on 2026-09-13, `PREVIEW_PASSWORD` on 2026-09-12, and
+`netlify/edge-functions/gate.ts` stays on purpose as the close switch above.
 
 Before that day: `netlify/functions/safety.ts` gives reporting a real channel
 (see above), but this product has no accounts, so "removed" still means a

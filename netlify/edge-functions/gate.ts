@@ -1,22 +1,35 @@
 import type { Config } from '@netlify/edge-functions'
 
 /**
- * The founding-preview gate.
+ * The close switch.
  *
- * Netlify sells site-wide password protection on its paid plans, but the feature
- * is HTTP Basic Auth with a dashboard on top — so this is the same protection,
- * on the free tier. It runs at the edge, before anything is served, which means
- * an unauthenticated visitor never receives the app's HTML at all. A real lock,
- * not a client-side curtain.
+ * This was the founding-preview gate, and it did that job until 2026-09-12,
+ * when `PREVIEW_PASSWORD` was deleted and the site opened (`docs/DEPLOY.md`).
+ * It is dormant now, and kept on purpose: setting that variable in Netlify
+ * shuts every route behind HTTP Basic within one deploy, and that is the only
+ * way to close this site in a single action.
+ *
+ * Why keep a dormant lock. `docs/TIME.md` and `docs/WEDGE.md` both name the
+ * same ending: one safety failure in a community this tight, amplified by the
+ * reputation that is also the growth engine. If that day comes, the founder
+ * needs the site closed in the minute she learns of it, not after a revert
+ * and a build. One unused edge function is a cheap price for that minute.
+ *
+ * Netlify sells site-wide password protection on its paid plans, but the
+ * feature is HTTP Basic Auth with a dashboard on top — so this is the same
+ * protection, on the free tier. It runs at the edge, before anything is
+ * served, which means a visitor without the password never receives the app's
+ * HTML at all. A real lock, not a client-side curtain.
  *
  * `PREVIEW_PASSWORD` is a Netlify environment variable and stays server-side.
  * It is never bundled, never in the repository, and never needs to be known by
  * anyone but the people being let in.
  *
- * Unset → no gate. That is deliberate: a missing variable must not lock the
- * owner out of their own site, and local builds and the published artifact
- * should behave normally. The trade is that forgetting to set it leaves the
- * site open, so the deploy checklist verifies a bare request gets a 401.
+ * Unset → no gate, and that is the normal state now. It is also deliberate: a
+ * missing variable must not lock the owner out of their own site, and local
+ * builds and the published artifact should behave normally. The warning below
+ * fires once per cold start so "the site is open" is visible in the deploy log
+ * rather than assumed.
  */
 
 /** Constant-time comparison, so the response time never leaks the password. */
@@ -34,11 +47,11 @@ function matches(a: string, b: string): boolean {
 
 function unauthorized(): Response {
   return new Response(
-    'Niyyah is in founding preview. If you were given a password, your browser will ask for it.',
+    'Niyyah is closed right now. If you were given a password, your browser will ask for it.',
     {
       status: 401,
       headers: {
-        'WWW-Authenticate': 'Basic realm="Niyyah founding preview", charset="UTF-8"',
+        'WWW-Authenticate': 'Basic realm="Niyyah", charset="UTF-8"',
         'Content-Type': 'text/plain; charset=utf-8',
         // Never let a shared cache hold either the challenge or what's behind it.
         'Cache-Control': 'no-store',
@@ -57,7 +70,7 @@ export default async function gate(request: Request): Promise<Response | undefin
   if (!password) {
     if (!warnedNoPassword) {
       warnedNoPassword = true
-      console.warn('[niyyah] PREVIEW_PASSWORD is not set — the founding preview is open to anyone with the link')
+      console.warn('[niyyah] PREVIEW_PASSWORD is not set — the site is open, which is the normal state since 2026-09-12')
     }
     return undefined
   }

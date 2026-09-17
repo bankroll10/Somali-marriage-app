@@ -201,8 +201,9 @@ trusted person.
 | Registrar for joinniyyah.com | — | — | — | Registrar: — · Expires: — · Auto-renew: — · Registrar lock: — . Renew for several years |
 | Gmail (the inbox `VITE_CONTACT_EMAIL` points at) | — | — | — | Until step 5 above forwards the owned address |
 
-**Rotation.** The three secrets (`PREVIEW_PASSWORD` while it exists,
-`ANTHROPIC_API_KEY`, `FOUNDER_KEY`) rotate the day a second person joins the
+**Rotation.** The two secrets that exist (`ANTHROPIC_API_KEY`, `FOUNDER_KEY`
+— `PREVIEW_PASSWORD` is unset since 2026-09-12 and would join them the day
+the close switch is used) rotate the day a second person joins the
 Netlify team or a new tool is connected to it, and in any case once a quarter;
 the monthly hour checks the date of the last rotation. `FOUNDER_KEY` also
 lives as a GitHub Actions secret (`.github/workflows/watch.yml`) and rotates
