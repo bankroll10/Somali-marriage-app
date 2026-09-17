@@ -119,6 +119,7 @@ h1{font-size:2rem;line-height:1.15;margin:0 0 .5rem;text-wrap:balance}
 .talk h3{font-family:Inter,system-ui,sans-serif;font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:1.1rem 0 .3rem}
 .talk p{margin:0}
 .talk blockquote{margin:0;padding:.85rem 1rem;border-left:3px solid var(--gold);background:rgba(255,255,255,.55);font-family:Fraunces,Georgia,serif;font-size:1.08rem;line-height:1.5}
+.mark{display:none}
 .close{border-top:1px solid var(--line);margin-top:2.5rem;padding-top:1.5rem}
 .close h2{font-size:1.25rem;margin:0 0 .5rem}
 .close p{margin:0 0 .75rem;color:var(--ink-soft)}
@@ -140,6 +141,9 @@ footer a{color:var(--forest)}
   .cta{display:none}
   a[data-app]::after,a[data-guide]::after{content:" (" attr(href) ")";color:#555;font-weight:400}
   .noprint{display:none}
+  .mark{display:flex;gap:1.4rem;margin:.6rem 0 0;font-size:8.5pt;color:#333;break-before:avoid;page-break-before:avoid}
+  .mark span{display:inline-flex;align-items:center}
+  .mark span::before{content:"";display:inline-block;width:9pt;height:9pt;margin-right:.3rem;border:.6pt solid #666}
   body.sample{font-size:9.2pt;line-height:1.28}
   body.sample h1{font-size:15pt;margin-bottom:.2rem}
   body.sample .somali{font-size:9.5pt;margin-bottom:.5rem}
@@ -157,6 +161,8 @@ footer a{color:var(--forest)}
   body.sample .close{margin-top:.6rem;padding-top:.5rem}
   body.sample .close h2{font-size:10.5pt;margin-bottom:.2rem}
   body.sample .close p{font-size:8.8pt;margin-bottom:.3rem}
+  body.sample .mark{gap:.7rem;margin-top:.35rem;font-size:7.2pt}
+  body.sample .mark span::before{width:7pt;height:7pt;margin-right:.2rem}
   body.sample footer{margin-top:.5rem;padding-top:.4rem;font-size:8pt}
 }
 `
@@ -173,6 +179,11 @@ function talk(topic: Topic, n: number): string {
     `<blockquote>${esc(neutral(s.words))}</blockquote>`,
     '<h3>What to listen for</h3>',
     `<p>${esc(neutral(s.tells))}</p>`,
+    // Print only. On screen the interactive eleven records these states
+    // properly; a row of boxes that cannot be ticked is dead interface. On
+    // paper it is what turns a handout into something two people work
+    // through, which is what a coordinator means by preparation materials.
+    '<p class="mark"><span>Agreed</span><span>Still discussing</span><span>Need help</span></p>',
     '</li>',
   ].join('\n')
 }

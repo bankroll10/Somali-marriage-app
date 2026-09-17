@@ -1003,3 +1003,52 @@ not to the parts that carry identity. Everything above the first conversation
 was written once and shared. A page that is a subset of another has to say so
 where a reader looks first, not where the content runs out.
 
+## The distribution playbook, read against what is built — 2026-09-17
+
+The founder shared the *Small-Asset Traffic Playbook* (researched
+2026-09-13), which plans distribution for Niyyah and a second venture. Read
+against the code, N1 is done and past its spec — the playbook lists
+`/tools/is-he-serious` and `/tools/is-she-serious` as proposed slugs and they
+are live, with the sample result, the "prepare the next conversation" step,
+the blank-tool share and the deliberate city choice all shipped. N2 is done in
+substance. Three gaps were real.
+
+**One: nothing said which URLs were verified.** The playbook requires a
+catalog with each asset's live URL, status and last-checked date, and warns
+that a future research run must never invent a URL from a proposed slug.
+Nineteen mentions of our addresses were spread across four files with no
+single owner, which is exactly why three pitches went out carrying
+`[verified guide URL]` placeholders. `docs/ASSETS.md` is now that file, with
+the rule that an asset is *live and checked* only once a person has opened it
+on a device with no session. `tests/guides.test.ts` fails if a tool or guide
+page is missing a row.
+
+**Two: the printed cards had nowhere to write.** The playbook's N2 spec asks
+each card for space to record *agreed*, *still discussing*, or *need help*.
+Ours had the question, the why, the words and the tells, and no box. In a
+nikah packet that space is the difference between a leaflet and a worksheet.
+Added, print-only — on screen the interactive eleven records those states
+properly, and boxes that cannot be ticked are dead interface. The sample still
+prints on one Letter page, which the walk measures.
+
+**Three: attribution cannot tell two placements apart, and stays that way.**
+The playbook wants a distinct identifier per placement and shows a UTM
+example. This product ignores UTM parameters: `entryFromUrl` reads only `via`
+from ten room kinds and `main.tsx` strips the rest before React mounts. So
+Al-Ansar and ICSA both arrived as `mosque`. Splitting them would break the
+rule `src/lib/entry.ts` states — a link names the kind of room, never the room
+— and under the five-person floor the split cells would read `null` for months
+regardless. The playbook's own answer is a ledger, so the ledger in
+`docs/ASSETS.md` carries the placement's identity and the product carries only
+the kind. Recorded there as a decision rather than left as a gap.
+
+**Also corrected:** the playbook proposes `/tools/before-nikah-conversations`
+for the eleven; we shipped `/tools/before-you-say-yes` and
+`/guides/before-you-say-yes`. The catalog records the divergence so the next
+research run stops proposing a slug we did not use.
+
+**Held:** N3, the mahr and family-support worksheet, which the playbook itself
+gates on demand and nothing has asked for. And Masjid Al-Israa in Fridley —
+the playbook's own first local pitch, still unsent, drafted and sitting in the
+ledger as such.
+
