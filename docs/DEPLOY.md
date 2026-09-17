@@ -301,6 +301,11 @@ No app runs on them and opening them counts nothing. Their only script forwards
 a `?via=` on the page's address onto the two links into the app, so an arrival
 from a placement is remembered as what kind of link it was.
 
+**Before you put a link in a pitch**, check it against `docs/ASSETS.md` — the
+one place an address is declared verified, with the date someone last opened
+it on a device with no session. A slug that is not there with the status
+*live and checked* is not a link to send.
+
 **Handing it to an institution.** The link for a mosque or a counselling
 service is `https://joinniyyah.com/guides/before-you-say-yes?via=mosque`; for
 a national resource list, `?via=group` (no closer id exists — add a `partner`

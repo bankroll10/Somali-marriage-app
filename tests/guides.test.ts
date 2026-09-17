@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { TOPICS } from '../src/data/eleven'
-import { GUIDE } from '../src/data/tools'
+import { GUIDE, TOOLS } from '../src/data/tools'
 import { SOMALI } from '../src/data/somali'
 import { SOMALI_INTRO, guideHtml, neutral, sampleHtml } from '../src/lib/guidePages'
 
@@ -143,6 +143,33 @@ describe('the two pages are not mistakeable for each other', () => {
   })
 })
 
+describe('space to mark each conversation, on paper', () => {
+  // The distribution playbook's spec for these cards: a question, a
+  // follow-up, and somewhere to record agreed / still discussing / need help.
+  // A coordinator putting this in a nikah packet is handing over a worksheet,
+  // not a leaflet.
+  it('gives every card the three states, on both pages', () => {
+    for (const [name, html, count] of [['guide', full, 11], ['sample', sample, 3]] as const) {
+      const rows = html.match(/<p class="mark">.*?<\/p>/g) ?? []
+      expect(rows, name).toHaveLength(count)
+      for (const row of rows) {
+        expect(row).toContain('<span>Agreed</span>')
+        expect(row).toContain('<span>Still discussing</span>')
+        expect(row).toContain('<span>Need help</span>')
+      }
+    }
+  })
+
+  it('shows it only in print, because on screen the app records the state', () => {
+    const css = full.match(/<style>([\s\S]*?)<\/style>/)![1]
+    expect(css).toContain('.mark{display:none}')
+    const print = css.slice(css.indexOf('@media print'))
+    expect(print).toMatch(/\.mark\{display:flex/)
+    // The boxes are drawn, not typed: no glyph to go missing in a PDF.
+    expect(print).toMatch(/\.mark span::before\{content:""/)
+  })
+})
+
 describe('the only script on the page', () => {
   it('forwards a via to the links into the app, and touches nothing else', () => {
     const script = full.match(/<script>([\s\S]*?)<\/script>/)![1]
@@ -151,6 +178,26 @@ describe('the only script on the page', () => {
     expect(script).toMatch(/\/\^\[a-z\]\+\$\//) // only a plain lowercase id is ever forwarded
     expect(script).not.toMatch(/fetch|XMLHttpRequest|localStorage|navigator\.send|Image\(/)
     expect(full.match(/<script/g)).toHaveLength(1)
+  })
+})
+
+describe('the catalog knows every asset', () => {
+  // Three pitches went out carrying placeholder URLs because no single file
+  // said which addresses were verified. docs/ASSETS.md is that file, and a
+  // new asset must not ship without a row in it.
+  const catalog = readFileSync('docs/ASSETS.md', 'utf8')
+
+  it('lists every tool and both guide pages, with a live URL', () => {
+    for (const t of TOOLS) {
+      expect(catalog, t.slug).toContain(`https://joinniyyah.com/tools/${t.slug}`)
+    }
+    expect(catalog).toContain(`https://joinniyyah.com${GUIDE.path}`)
+    expect(catalog).toContain(`https://joinniyyah.com${GUIDE.samplePath}`)
+  })
+
+  it('records the attribution decision rather than leaving it a gap', () => {
+    expect(catalog).toMatch(/ignores UTM parameters/i)
+    expect(catalog).toMatch(/kind.{0,10}of room and never the room/i)
   })
 })
 
