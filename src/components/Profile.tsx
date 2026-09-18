@@ -11,7 +11,7 @@ import VouchRow from './VouchRow'
 import { parseAge } from '../lib/age'
 import type { LedgerEntry } from '../lib/ledger'
 import HowYoudLive from './HowYoudLive'
-import { CheckIcon, ScreenHeader, ShieldGlyph, SparkGlyph, fieldClass } from './ui'
+import { CheckIcon, Disclose, ScreenHeader, ShieldGlyph, SparkGlyph, Words, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -141,9 +141,9 @@ export default function Profile({
         {/* What she will not compromise on — hard gates before anything is weighed. */}
         {reflection && reflection.nonNegotiables.length > 0 && (
           <section className="mt-5 rounded-card border border-line bg-white/60 p-5">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">
+            <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">
               What you won’t compromise on
-            </p>
+            </h2>
             <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">
               Checked first, before anything else about a person is weighed. Someone who fails one of
               these is never introduced, however much else fits.
@@ -161,7 +161,7 @@ export default function Profile({
 
         {/* How you'd live — the three grounds Somali marriages break on. */}
         <section className="mt-5 rounded-card border border-line bg-white/60 p-5">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">How you’d live</p>
+          <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">How you’d live</h2>
           <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">
             Whose house, work, and money home. Nothing reads it yet but the sample introduction;
             nobody sees the answers themselves.
@@ -174,7 +174,7 @@ export default function Profile({
         {/* What you carry — from the map, for her; not a headline for anyone else. */}
         {reflection && reflection.coreValues.length > 0 && (
           <section className="mt-5 rounded-card border border-line bg-white/60 p-5">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">What you carry</p>
+            <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">What you carry</h2>
             <div className="mt-3 flex flex-wrap gap-2">
               {reflection.coreValues.map((v) => (
                 <span
@@ -190,7 +190,7 @@ export default function Profile({
 
         {/* The two facts an introduction cannot do without. */}
         <section className="mt-5 rounded-card border border-line bg-white/60 p-5">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">The facts an introduction needs</p>
+          <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">The facts an introduction needs</h2>
           <p className="mt-2 text-[0.95rem] text-ink-soft">
             {identity.age ? `${identity.age}` : 'Age not given'}
             {' · '}
@@ -343,42 +343,57 @@ export default function Profile({
           </button>
         )}
 
-        {/* What's free and what isn't — a plain row, no badge. */}
-        <button
-          onClick={onOpenPlus}
-          className="group mt-5 flex w-full items-center gap-3 rounded-card border border-line bg-white/60 px-5 py-4 text-left transition-colors hover:border-forest/40"
+        {/* Three commitments that were being asked *while* she answered how she
+            would live: a price, an invite, and the whole door join flow. The
+            screen showed 24 buttons at once and one heading (docs/LOAD.md).
+            Nothing is removed — each is one tap away, named, and she reaches
+            them when she is looking for them rather than in the middle of
+            deciding whose house they would live in. The door is also reachable
+            on its own from Home and from ?door, so nothing here is the only
+            route to any of it. */}
+        <Disclose
+          summary="Other things you can do here"
+          hint="The door, the price, an invite"
+          className="mt-5"
         >
-          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gold/15 text-gold">
-            <CheckIcon size={15} />
-          </span>
-          <span className="flex-1">
-            <span className="text-[0.95rem] font-medium text-ink">What’s free, and what isn’t</span>
-            <span className="mt-0.5 block text-[0.8rem] text-muted">
-              Almost everything, forever. Nothing here is priced by the reply or the month.
-            </span>
-          </span>
-          <span className="text-[0.85rem] font-medium text-forest">View →</span>
-        </button>
+          <div className="flex flex-col gap-3.5">
+            <button
+              onClick={onOpenPlus}
+              className="group flex w-full items-center gap-3 rounded-card border border-line bg-white/60 px-5 py-4 text-left transition-colors hover:border-forest/40"
+            >
+              <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gold/15 text-gold">
+                <CheckIcon size={15} />
+              </span>
+              <span className="flex-1">
+                <span className="text-[0.95rem] font-medium text-ink">What’s free, and what isn’t</span>
+                <span className="mt-0.5 block text-[0.8rem] text-muted">
+                  Almost everything, forever. Nothing here is priced by the reply or the month.
+                </span>
+              </span>
+              <span className="text-[0.85rem] font-medium text-forest">View →</span>
+            </button>
 
-        <div className="mt-3.5">
-          <InviteRow source="profile" gender={identity.gender} title="Invite one serious person" />
-        </div>
+            <InviteRow source="profile" gender={identity.gender} title="Invite one serious person" />
 
-        <div className="mt-5">
-          <Cohort
-            identity={identity}
-            hookId={answers['hardest-part'] as string | undefined}
-            ledger={done.map((e) => e.id)}
-            joined={waitlist}
-            onJoined={onJoinWaitlist}
-            onScene={(scene) => onChangeIdentity((prev) => ({ ...prev, scene }))}
-            onCountry={(country) => onChangeIdentity((prev) => ({ ...prev, country }))}
-            onReach={(reach) => onChangeIdentity((prev) => ({ ...prev, reach }))}
-            onAge={(age) => onChangeIdentity((prev) => ({ ...prev, age }))}
-            onHesitate={onHesitate}
-            compact
-          />
-        </div>
+            <Cohort
+              identity={identity}
+              hookId={answers['hardest-part'] as string | undefined}
+              ledger={done.map((e) => e.id)}
+              joined={waitlist}
+              onJoined={onJoinWaitlist}
+              onScene={(scene) => onChangeIdentity((prev) => ({ ...prev, scene }))}
+              onCountry={(country) => onChangeIdentity((prev) => ({ ...prev, country }))}
+              onReach={(reach) => onChangeIdentity((prev) => ({ ...prev, reach }))}
+              onAge={(age) => onChangeIdentity((prev) => ({ ...prev, age }))}
+              onHesitate={onHesitate}
+              compact
+            />
+          </div>
+        </Disclose>
+
+        {/* This screen says map, ground, vouch, the door and counted, and until
+            now defined none of them anywhere near itself. */}
+        <Words ids={['map', 'ground', 'vouch', 'door', 'counted']} className="mt-3.5" />
 
         <div className="mt-5 text-center">
           <p className="text-[0.82rem] text-muted text-pretty">

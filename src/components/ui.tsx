@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { terms, type TermId } from '../data/lexicon'
 
 /** The Niyyah mark — a small flame/seed for intention. */
 export function Logo({
@@ -397,5 +398,86 @@ export function Announce({ message }: { message: string }) {
     <p role="status" aria-live="polite" className="sr-only">
       {message}
     </p>
+  )
+}
+
+/**
+ * One thing you can open, instead of eight hundred words you cannot close.
+ *
+ * Progressive disclosure, made a primitive. Niyyah's most honest screens were
+ * also its heaviest: Trust said everything true about where a person's answers
+ * live, in 2,366 rendered words and nine phone screens of continuous prose,
+ * two of its paragraphs 562 and 536 words long (docs/LOAD.md). Nothing there
+ * could be cut — every sentence matches a line of code that sends something —
+ * so the fix is not fewer words. It is fewer words *at once*.
+ *
+ * `Read.tsx` had already worked out the right affordance twice by hand: the
+ * native marker stripped, a chevron that rotates, and a hint that disappears
+ * once the thing is open, because on a phone there is no hover to fall back on
+ * (docs/NORMAN.md). This is those two blocks, extracted, so every screen in
+ * the product opens the same way.
+ *
+ * `hint` is what the row says while it is closed: make it the *answer* rather
+ * than a label, so that in the common case nobody has to open anything at all.
+ */
+export function Disclose({
+  summary,
+  hint,
+  children,
+  className = '',
+  divided = true,
+}: {
+  summary: ReactNode
+  hint?: ReactNode
+  children: ReactNode
+  className?: string
+  /** A rule between the summary and the body. Off for a stack of small rows. */
+  divided?: boolean
+}) {
+  return (
+    <details className={`group/d rounded-card border border-line bg-white/50 ${className}`}>
+      <summary className="cursor-pointer list-none px-5 py-4 text-[0.95rem] font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center justify-between gap-3">
+          <span className="min-w-0 flex-1 text-pretty">{summary}</span>
+          <span className="flex flex-none items-center gap-2.5">
+            {hint && (
+              <span className="hidden text-[0.8rem] font-normal text-muted group-open/d:hidden sm:inline">{hint}</span>
+            )}
+            <ArrowRight className="flex-none text-forest transition-transform group-open/d:rotate-90" />
+          </span>
+        </span>
+      </summary>
+      <div className={`px-5 pb-5 ${divided ? 'border-t border-line pt-4' : 'pt-1'}`}>{children}</div>
+    </details>
+  )
+}
+
+/**
+ * The words on this screen, defined, closed.
+ *
+ * Niyyah says "your map" 96 times, "vouch" 41, "the eleven" 35, "kept" 31 —
+ * thirteen product words in live copy, six of which had a definition, all six
+ * of them on one screen reached from Home's footer (docs/LOAD.md). A person
+ * reading her own map had no way to find out what "thin" meant without leaving
+ * the map.
+ *
+ * So the glossary comes to the screen instead: a closed row naming only the
+ * words that screen uses. It costs a person who already knows them nothing —
+ * which is the whole test of a disclosure.
+ */
+export function Words({ ids, className = '' }: { ids: TermId[]; className?: string }) {
+  const list = terms(ids)
+  if (list.length === 0) return null
+  return (
+    <Disclose summary="The words on this page" hint={`${list.length} of them`} className={className}>
+      <dl className="space-y-3">
+        {list.map((t) => (
+          <div key={t.id}>
+            <dt className="text-[0.92rem] font-medium text-ink">{t.term}</dt>
+            <dd className="mt-0.5 text-[0.88rem] leading-snug text-muted text-pretty">{t.body}</dd>
+          </div>
+        ))}
+      </dl>
+    </Disclose>
   )
 }

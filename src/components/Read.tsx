@@ -6,7 +6,7 @@ import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
-import { ArrowRight, Button, ScreenHeader } from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, Words } from './ui'
 
 interface Props {
   identity: Identity
@@ -362,16 +362,16 @@ function Result({
       {/* The one pattern we decline to coach. Sits above everything else. */}
       {result.caution && (
         <div className="animate-rise mt-6 rounded-card border border-clay/40 bg-clay/[0.07] p-6">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-clay">
+          <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-clay">
             Please read this one twice
-          </p>
+          </h2>
           <p className="mt-2.5 text-[1rem] leading-relaxed text-ink text-pretty">{result.caution}</p>
         </div>
       )}
 
       {/* Five things, in words. Never a score on a human being. */}
       <div className="animate-rise mt-8">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">The five that matter</p>
+        <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted">The five that matter</h2>
         <ul className="mt-3.5 flex flex-col">
           {result.dimensions.map((d) => (
             <li
@@ -446,20 +446,10 @@ function Result({
           <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
         </button>
 
-        <details className="group/more rounded-card border border-line bg-white/50">
-          {/* The native marker is stripped, so the chevron is the only thing
-              saying this opens — and on a phone there is no hover to fall back
-              on (docs/NORMAN.md). Same affordance as Families uses. */}
-          <summary className="cursor-pointer list-none px-5 py-4 text-[0.95rem] font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
-            <span className="flex items-center justify-between gap-3">
-              More you can do here
-              <span className="flex items-center gap-2.5">
-                <span className="text-[0.8rem] font-normal text-muted group-open/more:hidden">Your guide, your family, a friend</span>
-                <ArrowRight className="flex-none text-forest transition-transform group-open/more:rotate-90" />
-              </span>
-            </span>
-          </summary>
-          <div className="flex flex-col gap-3 px-4 pb-4">
+        {/* The chevron affordance this screen worked out by hand is now
+            `<Disclose>` in ui.tsx, used by every screen (docs/LOAD.md). */}
+        <Disclose summary="More you can do here" hint="Your guide, your family, a friend" divided={false}>
+          <div className="flex flex-col gap-3">
           <button
             onClick={() =>
               onAskGuide(
@@ -522,7 +512,11 @@ function Result({
             Take the read again
           </button>
           </div>
-        </details>
+        </Disclose>
+
+        {/* This screen says a read, thin, the eleven and your map — and the
+            definitions of all four lived on a different screen. */}
+        <Words ids={['read', 'thin', 'eleven', 'map']} />
       </div>
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
@@ -546,17 +540,8 @@ function Example({ gender, subject }: { gender: Gender; subject: string }) {
   if (!example) return null
   const unresolved = example.dimensions.find((d) => d.dimension === example.thin)?.label
   return (
-    <details className="animate-fade group mt-8 rounded-card border border-line bg-white/50">
-      <summary className="cursor-pointer list-none px-5 py-4 text-[0.95rem] font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
-        <span className="flex items-center justify-between gap-3">
-          See an example result
-          <span className="flex items-center gap-2.5">
-            <span className="text-[0.8rem] font-normal text-muted group-open:hidden">What you get at the end</span>
-            <ArrowRight className="flex-none text-forest transition-transform group-open:rotate-90" />
-          </span>
-        </span>
-      </summary>
-      <div className="border-t border-line px-5 pb-5 pt-4">
+    <Disclose summary="See an example result" hint="What you get at the end" className="animate-fade mt-8">
+      <div>
         <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold">
           An example, not a verdict
         </p>
@@ -588,7 +573,7 @@ function Example({ gender, subject }: { gender: Gender; subject: string }) {
           </div>
         </dl>
       </div>
-    </details>
+    </Disclose>
   )
 }
 
@@ -611,7 +596,10 @@ function StateTag({ state }: { state: DimensionState }) {
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="animate-rise mt-7">
-      <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">{title}</p>
+      {/* A heading, not a styled paragraph. This screen carried 483 rendered
+          words under a single <h1> — the heaviest thing a person reads here
+          arriving as one undifferentiated column (docs/LOAD.md). */}
+      <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted">{title}</h2>
       <ul className="mt-3 flex flex-col gap-2">{children}</ul>
     </div>
   )

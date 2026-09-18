@@ -275,7 +275,9 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         Your map’s job is to be matched.
       </p>
       <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-        {opensWhen(pool)} Nobody is introduced to anyone before then.{' '}
+        {opensWhen(pool)} Nobody is introduced to anyone before then.
+      </p>
+      <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
         {scene && country ? (
           <DoorCount count={count} city={city} within={within} other={other} />
         ) : scene ? (

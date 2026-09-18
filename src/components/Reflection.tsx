@@ -14,7 +14,7 @@ import {
 import Cohort from './Cohort'
 import VouchRow from './VouchRow'
 import KeepMap from './KeepMap'
-import { BackButton, Button, Logo, ArrowRight, CheckIcon } from './ui'
+import { BackButton, Button, Logo, ArrowRight, CheckIcon, Words } from './ui'
 
 const GENERATING_STAGES = [
   'Reading what you shared…',
@@ -428,6 +428,17 @@ export default function ReflectionView({
             <KeepMap onKept={onKept} />
           </section>
         )}
+
+        {/* The words this screen is written in.
+
+            Of the heavy screens this was the only one that already had
+            hierarchy — eight sections, each with a real heading — so it gets no
+            collapse in this pass (docs/LOAD.md). What it never had was a way to
+            find out what "thin" or "the mirror" means without leaving the map
+            it was describing. */}
+        <section className="mb-12">
+          <Words ids={['map', 'reading', 'ground', 'thin', 'work', 'mirror']} />
+        </section>
 
         {/* Next: into your space — light card; the dark hero lives at the top now. */}
         <section className="mt-14 rounded-card border border-line bg-white/60 p-8 text-center">
