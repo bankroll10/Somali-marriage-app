@@ -13,7 +13,7 @@ interface Props {
   countMe: boolean
   onCountMe: (on: boolean) => void
   /** Delete everything kept under her codes, then start this phone over. */
-  onForget: () => Promise<void>
+  onForget: () => Promise<{ map: boolean; progress: boolean; couple: boolean }>
   onBack: () => void
 }
 
@@ -32,6 +32,8 @@ interface Props {
 export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
   const isWoman = identity.gender === 'woman'
   const [forgetting, setForgetting] = useState<'idle' | 'sure' | 'working'>('idle')
+  // What a failed server delete left behind, named rather than hidden.
+  const [stillHeld, setStillHeld] = useState<string[]>([])
 
   return (
     <div className="min-h-dvh bg-cream pb-20">
@@ -290,7 +292,16 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
                 <button
                   onClick={async () => {
                     setForgetting('working')
-                    await onForget()
+                    const result = await onForget()
+                    // A full success replaces the page and never gets here.
+                    setStillHeld(
+                      [
+                        !result.map && 'your kept map',
+                        !result.progress && 'the count of your steps',
+                        !result.couple && 'the eleven you sent',
+                      ].filter((s): s is string => !!s),
+                    )
+                    setForgetting('idle')
                   }}
                   className="rounded-full bg-clay px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:opacity-90"
                 >
@@ -301,6 +312,13 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
                 </button>
                 <span className="text-[0.82rem] text-muted">This cannot be undone.</span>
               </>
+            )}
+            {stillHeld.length > 0 && (
+              <p role="status" className="w-full text-[0.85rem] leading-snug text-clay text-pretty">
+                This phone is cleared. We could not reach {stillHeld.join(' and ')} just now, so
+                {stillHeld.length > 1 ? ' they are' : ' it is'} still held — that is us, not you.
+                Tap Forget me again in a moment, or write to us and it goes by hand.
+              </p>
             )}
             {forgetting === 'working' && <span className="text-[0.88rem] text-muted">Forgetting…</span>}
           </div>

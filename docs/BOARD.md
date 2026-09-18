@@ -1201,3 +1201,45 @@ pause, and the chapter intros as screens. All three change what a session
 participant sees, so they went into `docs/TREE.md` item 4 rather than into this
 commit.
 
+## The interface against Norman — 2026-09-18
+
+Affordances, signifiers, mapping, feedback, constraints and the conceptual
+model, read in code and then watched in Chromium. `docs/NORMAN.md` has the
+findings; twelve were fixed in the same pass.
+
+**What was already right and stayed that way:** not one clickable non-button
+in ~250 handlers; a single zero-specificity focus rule covering every
+hand-rolled button; scroll reset before paint; return addresses on Trust and
+Philosophy; a two-tap constraint on Forget me; one correct `role="switch"`.
+
+**The deepest finding is the conceptual model, and the architecture causes it.**
+Four storage concepts — this phone, a kept map, being counted, a vouch — which
+Trust explains correctly in 355 lines. That is acceptable: collapsing them would
+be a privacy regression. What was not acceptable was the one place the model
+became her homework. The code field showed a placeholder containing three
+characters no code can contain, accepted characters the alphabet exists to
+exclude, then spent a network call and a second and a half to blame her code —
+including when her map had *lapsed*, which the server deletes on that read, so
+she would retype a correct code forever. All four outcomes now read differently,
+and the field only accepts what a code can be.
+
+**Two findings were worse than usability.** The share helper returned "copied"
+after catching the clipboard's rejection, so six screens showed a tick when
+nothing had been copied. And "Start over" was one tap on the faintest text on
+Home, while the same destruction through Trust took two taps and a warning —
+and because it left the remembered code behind, one further tap on "Keep this
+map" overwrote her real map with the empty one, irreversibly. Both fixed, with
+the confirmation Trust already had.
+
+**Forget me now tells the truth.** It discarded the result of three server
+deletes and replaced the page regardless, so a timed-out DELETE left her kept
+map on the server and showed her a stranger's app as proof it was gone. The
+page is replaced only when all three land.
+
+**Named and not fixed:** the phone's own back gesture leaves the site from all
+24 screens (a documented trade-off; wiring history risks the flow the product
+is measured on), `backHome` collapsing six origins, the stage chips that write
+a permanent ending record, the guide's chat having no direct exit, and
+`Read.tsx`'s 21 interactive elements with no ARIA. The first four change flows
+the five sessions will observe.
+

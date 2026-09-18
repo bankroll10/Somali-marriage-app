@@ -33,9 +33,18 @@ export function Logo({
   )
 }
 
-/** Shared text-field styling — inputs and textareas look identical everywhere. */
+/**
+ * Shared text-field styling — inputs and textareas look identical everywhere.
+ *
+ * The focus state used to be `focus:outline-none` plus `ring-4 ring-forest/5`:
+ * a five-percent forest ring on cream, which is to say nothing. Because it
+ * carried a class it also beat the zero-specificity global focus outline in
+ * index.css, so every text field in the product had a weaker focus indicator
+ * than every button beside it (docs/NORMAN.md). Now the ring is visible, and
+ * `outline-none` is gone so the global rule still applies where this does not.
+ */
 export const fieldClass =
-  'rounded-2xl border border-line bg-white/60 text-ink placeholder:text-muted/60 focus:border-forest/50 focus:outline-none focus:ring-4 focus:ring-forest/5'
+  'rounded-2xl border border-line bg-white/60 text-ink placeholder:text-muted/60 focus:border-forest focus:ring-2 focus:ring-forest/40'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'onDark' | 'soft' | 'outline'
@@ -137,7 +146,9 @@ export function BackButton({
     <button
       onClick={onClick}
       aria-label={label}
-      className={`flex h-9 w-9 flex-none items-center justify-center rounded-full transition ${tones[tone]} ${className}`}
+      // 44px: this sits on fourteen screens and was 36, under every
+      // touch-target guideline there is (docs/NORMAN.md).
+      className={`flex h-11 w-11 flex-none items-center justify-center rounded-full transition ${tones[tone]} ${className}`}
     >
       <BackIcon />
     </button>
@@ -366,5 +377,25 @@ export function TypingDots() {
         />
       ))}
     </div>
+  )
+}
+
+/**
+ * A confirmation that exists for someone who cannot see it.
+ *
+ * Every success and every error in this product was a visual change and
+ * nothing else — a swapped button label that clears itself after two seconds,
+ * a coloured paragraph. The whole app contained one live region, on the
+ * guide's thread, so tapping "Copy the words" put them on the clipboard and
+ * announced nothing at all (docs/NORMAN.md).
+ *
+ * Renders nothing visible. Keep it mounted across the state change rather than
+ * mounting it with the message, or there is nothing there to announce into.
+ */
+export function Announce({ message }: { message: string }) {
+  return (
+    <p role="status" aria-live="polite" className="sr-only">
+      {message}
+    </p>
   )
 }

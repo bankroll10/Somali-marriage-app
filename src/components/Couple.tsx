@@ -38,6 +38,9 @@ type Phase = 'loading' | 'dead' | 'answered-already' | 'intro' | 'asking' | 'joi
  */
 export default function Couple({ code, onAnswered, onBegan, onRead, onBuildMap, onHome }: Props) {
   const [phase, setPhase] = useState<Phase>('loading')
+  // The eleventh answer is a network write. Without this a second tap fired it
+  // twice, the second came back 409, and the screen went blank (docs/NORMAN.md).
+  const [sending, setSending] = useState(false)
   const [answerFor, setAnswerFor] = useState<Gender>('man')
   const [picked, setPicked] = useState<Record<string, string>>({})
   const [index, setIndex] = useState(0)
@@ -67,6 +70,7 @@ export default function Couple({ code, onAnswered, onBegan, onRead, onBuildMap, 
   const senderObj = answerFor === 'man' ? 'her' : 'him'
 
   async function choose(stateId: string) {
+    if (sending) return
     const t = topics[index]
     const next = { ...picked, [t.id]: stateId }
     setPicked(next)
@@ -74,7 +78,9 @@ export default function Couple({ code, onAnswered, onBegan, onRead, onBuildMap, 
       setIndex(index + 1)
       return
     }
+    setSending(true)
     const result = await answerCouple(code, next)
+    setSending(false)
     if (result === 'answered') {
       setPhase('answered-already')
       return
@@ -183,6 +189,22 @@ export default function Couple({ code, onAnswered, onBegan, onRead, onBuildMap, 
             </div>
           )
         })()}
+
+        {/* Answered, but the joint sheet did not come back — a second tap, a
+            second device, or the read failing. This branch rendered nothing at
+            all before (docs/NORMAN.md). */}
+        {phase === 'answered-already' && view?.status !== 'joint' && (
+          <div className="py-16">
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">Already answered</p>
+            <h1 className="animate-rise mt-3 font-display text-[1.7rem] font-medium leading-snug tracking-tight text-ink text-balance">
+              This one has been answered.
+            </h1>
+            <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
+              Your answers are in. {sender} can see where the two of you stand — and neither of
+              you sees the other’s answers, only where you match. Nothing more to do here.
+            </p>
+          </div>
+        )}
 
         {(phase === 'joint' || phase === 'answered-already') && view?.status === 'joint' && (() => {
           const r = coupleReading(view.joint, answerFor)

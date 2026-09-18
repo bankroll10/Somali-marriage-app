@@ -3,7 +3,7 @@ import type { Script } from '../data/read'
 import { track } from '../lib/analytics'
 import { shareOrCopy } from '../lib/share'
 import { wordsMessage, type WordsSource } from '../lib/words'
-import { CheckIcon } from './ui'
+import { Announce, CheckIcon } from './ui'
 
 interface Props {
   script: Script
@@ -38,6 +38,7 @@ interface Props {
 export default function ScriptCard({ script, title, preface, source, travel, onTaken }: Props) {
   const [copied, setCopied] = useState(false)
   const [sent, setSent] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   async function copy() {
     try {
@@ -47,13 +48,21 @@ export default function ScriptCard({ script, title, preface, source, travel, onT
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
     } catch {
-      /* clipboard refused — the words are on screen */
+      // The words are on screen, which is why this used to say nothing at all
+      // — but the tap still produced no response of any kind (docs/NORMAN.md).
+      setFailed(true)
+      setTimeout(() => setFailed(false), 3200)
     }
   }
 
   async function send() {
     const result = await shareOrCopy(wordsMessage(script, travel), 'words_sent')
     if (result === 'cancelled') return
+    if (result === 'failed') {
+      setFailed(true)
+      setTimeout(() => setFailed(false), 3200)
+      return
+    }
     onTaken?.()
     if (result === 'copied') {
       setSent(true)
@@ -83,6 +92,8 @@ export default function ScriptCard({ script, title, preface, source, travel, onT
               <>
                 <CheckIcon size={13} /> Copied
               </>
+            ) : failed ? (
+              'Couldn’t copy — select the words above'
             ) : (
               'Copy the words'
             )}
@@ -100,6 +111,17 @@ export default function ScriptCard({ script, title, preface, source, travel, onT
             )}
           </button>
         </div>
+        <Announce
+          message={
+            copied
+              ? 'The words are copied.'
+              : sent
+                ? 'Copied, ready to send.'
+                : failed
+                  ? 'Could not copy. The words are on screen to select by hand.'
+                  : ''
+          }
+        />
         <div className="mt-6 border-t border-cream/15 pt-5">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">
             What the answer tells you

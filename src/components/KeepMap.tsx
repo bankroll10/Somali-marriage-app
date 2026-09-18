@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { keepMap, rememberedCode, restoreLink } from '../lib/keep'
 import { SITE_URL } from '../lib/site'
 import { track } from '../lib/analytics'
-import { ArrowRight, CheckIcon, Spinner } from './ui'
+import { Announce, ArrowRight, CheckIcon, Spinner } from './ui'
 
 /**
  * "Keep this map."
@@ -56,9 +56,19 @@ export default function KeepMap({ onKept }: Props = {}) {
     }
   }
 
+  const announcement =
+    state === 'error'
+      ? 'That did not save. Your map is still on this phone.'
+      : copied
+        ? 'The link is copied.'
+        : code
+          ? `Your map is kept under the code ${code.split('').join(' ')}.`
+          : ''
+
   if (code) {
     return (
       <div className="rounded-card border border-forest/25 bg-forest/[0.06] p-6">
+        <Announce message={announcement} />
         <p className="flex items-center gap-2 text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-forest">
           <CheckIcon size={12} /> Your map is kept
         </p>
@@ -91,6 +101,7 @@ export default function KeepMap({ onKept }: Props = {}) {
 
   return (
     <div className="rounded-card border border-line bg-white/60 p-6">
+      <Announce message={announcement} />
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">
         Right now this lives only here
       </p>

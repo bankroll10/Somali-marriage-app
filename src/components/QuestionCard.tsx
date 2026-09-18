@@ -43,17 +43,21 @@ function OptionRow({
   onClick,
   index,
   kind,
+  disabled = false,
 }: {
   option: Option
   selected: boolean
   onClick: () => void
   index: number
   kind: 'radio' | 'check'
+  /** At a multi-select's maximum: dimmed, and genuinely not tappable. */
+  disabled?: boolean
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       style={{ animationDelay: `${index * 45}ms` }}
       className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 ${
         selected
@@ -143,12 +147,18 @@ function MultiChoice({
         const selected = value.includes(opt.id)
         const disabled = !selected && atMax
         return (
-          <div key={opt.id} className={disabled ? 'opacity-45 transition-opacity' : ''}>
+          // At the maximum, the options she has not picked are dimmed. They
+          // used to stay tappable and silently do nothing — a control that
+          // looks unavailable, accepts the tap and answers with neither a
+          // change nor a reason (docs/NORMAN.md). Now the tap is refused, and
+          // assistive tech is told why by the counter below.
+          <div key={opt.id} className={disabled ? 'opacity-45 transition-opacity' : ''} aria-disabled={disabled || undefined}>
             <OptionRow
               option={opt}
               index={i}
               kind="check"
               selected={selected}
+              disabled={disabled}
               onClick={() => toggle(opt.id)}
             />
           </div>

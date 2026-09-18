@@ -1,5 +1,6 @@
 import { loadProgress, type PersistedState } from './storage'
 import type { Identity, WaitlistState } from '../types'
+import { CODE_LENGTH, cleanCode } from './code'
 
 /**
  * Keeping a map somewhere it can survive a lost phone.
@@ -65,7 +66,7 @@ function rememberCode(code: string) {
   }
 }
 
-function forgetCode() {
+export function forgetCode() {
   try {
     localStorage.removeItem(CODE_KEY)
   } catch {
@@ -136,17 +137,42 @@ export async function keepMap(patch?: KeepPatch): Promise<string | null> {
   }
 }
 
-/** Fetch a kept map by its code. Null for anything that isn't a clean hit. */
-export async function restoreMap(code: string): Promise<PersistedState | null> {
-  const clean = code.toUpperCase().replace(/[^A-Z0-9]/g, '')
-  if (!clean) return null
+/**
+ * Why a restore did not produce a map. Four different things used to arrive as
+ * one `null`, and the screen said "No map found for that code. Check it and try
+ * again" for all of them — so a person whose map had *expired* (the server
+ * deletes the blob on that read) was told to check her typing, and a person
+ * with a perfectly good code and no signal was told her map did not exist. She
+ * retypes a correct code at a server that cannot answer (docs/NORMAN.md).
+ */
+export type RestoreProblem = 'not-a-code' | 'not-found' | 'expired' | 'unreachable'
+
+/** Fetch a kept map by its code, saying why when it cannot. */
+export async function restoreDetail(code: string): Promise<PersistedState | RestoreProblem> {
+  const clean = cleanCode(code)
+  if (clean.length !== CODE_LENGTH) return 'not-a-code'
 
   const res = await withTimeout(`${ENDPOINT}?code=${encodeURIComponent(clean)}`, { method: 'GET' })
-  if (!res?.ok) return null
+  // No response at all: timed out, offline, or blocked. Her code may be perfect.
+  if (!res) return 'unreachable'
+  if (!res.ok) {
+    if (res.status === 404) {
+      // The server says which: a code with nothing under it, or a map that
+      // lapsed — and a lapsed one it has just deleted, so retrying is futile.
+      try {
+        const { error } = (await res.json()) as { error?: string }
+        return error === 'expired' ? 'expired' : 'not-found'
+      } catch {
+        return 'not-found'
+      }
+    }
+    if (res.status === 400) return 'not-a-code'
+    return 'unreachable'
+  }
 
   try {
     const { snapshot } = (await res.json()) as { snapshot?: KeptSnapshot }
-    if (!snapshot || typeof snapshot !== 'object') return null
+    if (!snapshot || typeof snapshot !== 'object') return 'unreachable'
     rememberCode(clean)
     // A restored map starts the guide fresh — its threads were never kept,
     // including in a snapshot kept before that was true. Her contact was
@@ -157,8 +183,14 @@ export async function restoreMap(code: string): Promise<PersistedState | null> {
       waitlist: snapshot.waitlist ? { ...snapshot.waitlist, contact: '' } : null,
     }
   } catch {
-    return null
+    return 'unreachable'
   }
+}
+
+/** The same, for callers that only need the map or nothing (the `?map=` link). */
+export async function restoreMap(code: string): Promise<PersistedState | null> {
+  const result = await restoreDetail(code)
+  return typeof result === 'string' ? null : result
 }
 
 /** A link that restores the map on any device, for sending to herself. */

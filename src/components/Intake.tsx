@@ -15,6 +15,12 @@ interface FlatQuestion {
 }
 
 interface Props {
+  /**
+   * False when the browser refuses to persist. The warning used to live on Home
+   * and Profile only — which is after this screen, and this screen is where the
+   * sixteen answers that would be lost are given (docs/NORMAN.md).
+   */
+  saveOk?: boolean
   answers: Answers
   onAnswer: (questionId: string, value: AnswerValue) => void
   onComplete: () => void
@@ -26,7 +32,7 @@ interface Props {
   skipFirstIntro?: boolean
 }
 
-export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan, startIndex = 0, skipFirstIntro = false }: Props) {
+export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan, startIndex = 0, skipFirstIntro = false, saveOk = true }: Props) {
   const flat = useMemo<FlatQuestion[]>(
     () =>
       chapters.flatMap((chapter, chapterIndex) =>
@@ -169,6 +175,14 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
           </div>
           <Logo className="hidden text-ink sm:inline-flex" />
         </div>
+        {!saveOk && (
+          <div role="status" className="mx-auto max-w-xl px-5 pb-3">
+            <p className="text-[0.82rem] leading-snug text-clay text-pretty">
+              <span className="font-medium">This browser isn’t saving your answers.</span> Private
+              browsing or full storage does that — they will be gone when you close the tab.
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mx-auto max-w-xl px-5 pb-32 pt-8 sm:pt-12">

@@ -148,6 +148,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     case 'intake':
       return (
         <Intake
+          saveOk={n.saveOk}
           answers={n.answers}
           onAnswer={n.answer}
           onComplete={n.completeIntake}
