@@ -1,41 +1,51 @@
 import { useEffect, useState } from 'react'
-import { PICKUP_PLACE, SHOP_NAME, formatMoney } from '../../shared/config.ts'
+import { PICKUP_PLACE, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/config.ts'
 import type { OrderSummary } from '../../shared/types.ts'
-import { formatYmd } from '../../shared/zoned.ts'
+import { formatInstant, formatYmd } from '../../shared/zoned.ts'
 import { ApiError, getOrder } from '../lib/api.ts'
 import { PICKUP_PREFERRED, PICKUP_WINDOW, describeQty } from '../lib/format.ts'
 import { Button, Notice, Page, Spinner, Title } from './ui.tsx'
 
 type State = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { kind: 'order'; order: OrderSummary }
 
-/** Where Stripe sends the customer after paying. Polls briefly if the payment is still settling. */
+/** How long to keep quietly checking whether she's marked the order paid, while this tab stays open. */
+const POLL_MS = (attempt: number) => (attempt < 12 ? 5_000 : 30_000) // ~1 min quick, then every 30s
+const MAX_POLLS = 200 // roughly the length of a hold window
+
+/** Where the order page sends the customer after reserving — /thanks?order=<id>. */
 export default function Thanks() {
-  const [sid] = useState(() => new URLSearchParams(window.location.search).get('session_id'))
-  const [state, setState] = useState<State>(sid ? { kind: 'loading' } : { kind: 'missing' })
+  const [orderId] = useState(() => new URLSearchParams(window.location.search).get('order'))
+  const [state, setState] = useState<State>(orderId ? { kind: 'loading' } : { kind: 'missing' })
 
   useEffect(() => {
-    if (!sid) return
+    if (!orderId) return
     let attempts = 0
     let timer: number | undefined
+    let cancelled = false
     const tick = async () => {
       try {
-        const order = await getOrder(sid)
+        const order = await getOrder(orderId)
+        if (cancelled) return
         setState({ kind: 'order', order })
-        if (order.status === 'pending' && attempts++ < 8) timer = window.setTimeout(tick, 1500)
+        if (order.status === 'pending' && attempts < MAX_POLLS) timer = window.setTimeout(tick, POLL_MS(attempts++))
       } catch (err) {
+        if (cancelled) return
         if (err instanceof ApiError && err.status === 404) setState({ kind: 'missing' })
         else if (attempts++ < 3) timer = window.setTimeout(tick, 2000)
         else setState({ kind: 'error' })
       }
     }
     tick()
-    return () => window.clearTimeout(timer)
-  }, [sid])
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+    }
+  }, [orderId])
 
   if (state.kind === 'loading') {
     return (
       <Page>
-        <Spinner label="Confirming your order…" />
+        <Spinner label="Loading your order…" />
       </Page>
     )
   }
@@ -45,8 +55,8 @@ export default function Thanks() {
         <Title>{state.kind === 'missing' ? 'No order to show' : 'Could not load your order'}</Title>
         <Notice tone="info">
           {state.kind === 'missing'
-            ? 'This link does not point at an order. If you just paid, check your email for the Stripe receipt — the order went through if the receipt did.'
-            : 'Your payment is safe with Stripe. Reload in a moment, or check your email for the receipt.'}
+            ? 'This link does not point at an order. If you just reserved, use the link the order page sent you to.'
+            : 'Could not reach the server just now. Reload in a moment.'}
         </Notice>
         <div className="mt-6">
           <Button variant="secondary" onClick={() => window.location.assign('/')}>
@@ -58,13 +68,61 @@ export default function Thanks() {
   }
 
   const { order } = state
+  if (order.status === 'expired') {
+    return (
+      <Page>
+        <Title kicker="Reservation lapsed">This hold has expired</Title>
+        <Notice tone="info">
+          Your bread was held for a while, but no payment was confirmed in time, so it's been released back into the
+          pool. If you'd still like it, please order again.
+        </Notice>
+        <div className="mt-6">
+          <Button onClick={() => window.location.assign('/')}>Order again</Button>
+        </div>
+      </Page>
+    )
+  }
+
   const firstName = order.name.split(' ')[0]
   const paid = order.status === 'paid'
   return (
     <Page>
-      <Title kicker={paid ? 'Order confirmed' : 'Almost there'} sub={paid ? `Thank you, ${firstName}. Your bread is reserved and paid for.` : 'Your payment is still settling — this page will update on its own.'}>
-        {paid ? "You're all set" : 'Confirming payment…'}
+      <Title
+        kicker={paid ? 'Order confirmed' : 'Reserved — pay by Zelle'}
+        sub={
+          paid
+            ? `Thank you, ${firstName}. Your bread is reserved and paid for.`
+            : `Send the Zelle below and your order confirms itself — this page updates on its own once she's marked it received.`
+        }
+      >
+        {paid ? "You're all set" : "You're holding your bread"}
       </Title>
+
+      {!paid && (
+        <div className="mb-5 rounded-2xl border border-crust/30 bg-crust/5 p-5">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-crust-dark">Send by Zelle</p>
+          <p className="font-display text-[24px] font-semibold text-cocoa">{formatMoney(order.amountCents)}</p>
+          <dl className="mt-3 space-y-1.5 text-[14px] text-cocoa">
+            <div className="flex gap-2">
+              <dt className="w-14 shrink-0 text-cocoa-soft">To</dt>
+              <dd className="font-medium">{order.zelle.name}</dd>
+            </div>
+            <div className="flex gap-2">
+              <dt className="w-14 shrink-0 text-cocoa-soft">At</dt>
+              <dd className="font-medium">{order.zelle.handle}</dd>
+            </div>
+            <div className="flex gap-2">
+              <dt className="w-14 shrink-0 text-cocoa-soft">Memo</dt>
+              <dd className="font-mono font-medium tracking-wider">{order.shortId}</dd>
+            </div>
+          </dl>
+          <p className="mt-3 text-[13px] leading-relaxed text-crust-dark">
+            Include the memo code above so your payment is easy to match. Your bread is held until{' '}
+            {formatInstant(Date.parse(order.holdExpiresAt), TIMEZONE)} — if it isn't confirmed by then, the
+            reservation lapses.
+          </p>
+        </div>
+      )}
 
       <div className="rounded-2xl border border-line bg-white p-5">
         <Row label="Order">
@@ -83,7 +141,9 @@ export default function Thanks() {
       </div>
 
       <p className="mt-4 text-[14px] leading-relaxed text-cocoa-soft">
-        {paid ? 'Stripe has emailed your receipt. ' : ''}Give your name at the front desk when you come for it — screenshot this page if you like.
+        {paid
+          ? "Give your name at the front desk when you come for it — screenshot this page if you like."
+          : 'Keep this page open, or come back to it any time — it will show "Paid" once your Zelle is confirmed.'}
       </p>
 
       <div className="mt-8">

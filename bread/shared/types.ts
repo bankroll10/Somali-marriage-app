@@ -31,12 +31,11 @@ export interface Order {
   qty: Qty
   amountCents: number
   status: OrderStatus
-  stripeSessionId: string
   createdAt: string
+  /** ISO instant. Past this an unconfirmed order's hold is released. */
+  holdExpiresAt: string
   paidAt?: string
   pickedUpAt?: string
-  /** Where Stripe sent the receipt, if it told us. */
-  email?: string
 }
 
 /** What the order page needs to know about one date. */
@@ -62,6 +61,16 @@ export interface CheckoutRequest {
   phone: string
 }
 
+export interface CheckoutResponse {
+  orderId: string
+  shortId: string
+  date: string
+  qty: Qty
+  amountCents: number
+  holdExpiresAt: string
+  zelle: { name: string; handle: string }
+}
+
 /** The confirmation page's view of an order — no phone, nothing to leak. */
 export interface OrderSummary {
   id: string
@@ -71,6 +80,8 @@ export interface OrderSummary {
   qty: Qty
   amountCents: number
   status: OrderStatus
+  holdExpiresAt: string
+  zelle: { name: string; handle: string }
 }
 
 export interface AdminOrder extends Order {
@@ -95,6 +106,8 @@ export type AdminAction =
   | { action: 'block'; date: string }
   | { action: 'unblock'; date: string }
   | { action: 'pickedUp'; orderId: string; pickedUp: boolean }
+  | { action: 'markPaid'; orderId: string; force?: boolean }
+  | { action: 'expireOrder'; orderId: string }
 
 export function zeroQty(): Qty {
   return { sourdough: 0, banana: 0 }

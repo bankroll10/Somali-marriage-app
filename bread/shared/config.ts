@@ -51,19 +51,22 @@ export const ORDER_CUTOFF_HOURS = 48
 export const WEEKS_AHEAD = 4
 
 /**
- * How long a customer has on the Stripe page before it expires. Stripe's
- * minimum is 30 minutes; the extra one absorbs clock skew between us and them.
+ * There is no payment processor — she is paid by Zelle, outside the app, and
+ * confirms each order herself in /admin. A hold protects a customer's bread
+ * only until this many hours pass, then it is released automatically. Long
+ * enough that she can reasonably notice during a shift; short enough that one
+ * customer who never sends the Zelle can't sit on the day's only sourdough
+ * all day. One constant to change if three hours is wrong for her.
  */
-export const CHECKOUT_MINUTES = 31
+export const PAYMENT_HOLD_HOURS = 3
 
 /**
- * How long a started checkout keeps its bread reserved. A minute longer than
- * the Stripe page lives, so a payment made at the last second still finds its
- * reservation waiting rather than someone else's.
+ * Where customers send payment, and the name to expect it from. Both are
+ * placeholders — fill these in with her real Zelle details before this goes
+ * live, or every order page will show fake ones.
  */
-export const HOLD_MINUTES = CHECKOUT_MINUTES + 1
-
-export const CURRENCY = 'usd'
+export const ZELLE_NAME = '<her name on Zelle>'
+export const ZELLE_HANDLE = '<the email or phone her Zelle is registered to>'
 
 /** What an order of these quantities costs. */
 export function totalCents(qty: Record<ProductId, number>): number {

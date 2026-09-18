@@ -5,7 +5,8 @@ import { shortId } from '../../shared/types.ts'
 import { addDays, isYmd, ymdInZone } from '../../shared/zoned.ts'
 import { checkAdmin } from '../lib/auth.ts'
 import { env, error, json, readJson } from '../lib/http.ts'
-import { remaining, setBlocked } from '../lib/inventory.ts'
+import { liveHolds, remaining, setBlocked } from '../lib/inventory.ts'
+import { confirmZelle, expireOrder } from '../lib/orders.ts'
 import { breadStore, readDay, readOrder, writeOrder, type BreadStore } from '../lib/store.ts'
 
 /**
@@ -28,12 +29,17 @@ export default async function handler(req: Request): Promise<Response> {
   }
 }
 
+const toAdminOrder = (o: NonNullable<Awaited<ReturnType<typeof readOrder>>>): AdminOrder => ({ ...o, shortId: shortId(o.id) })
+
+/** Orders paid for this date, plus anyone still holding a live reservation and awaiting Zelle. */
 async function adminDay(store: BreadStore, date: string, now: number): Promise<AdminDay> {
   const { value: day } = await readDay(store, date)
-  const orders = (await Promise.all(day.orderIds.map((id) => readOrder(store, id))))
+  const pendingIds = liveHolds(day, now).map((h) => h.orderId)
+  const ids = [...day.orderIds, ...pendingIds.filter((id) => !day.orderIds.includes(id))]
+  const orders = (await Promise.all(ids.map((id) => readOrder(store, id))))
     .filter((o): o is NonNullable<typeof o> => o !== null)
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-    .map((o): AdminOrder => ({ ...o, shortId: shortId(o.id) }))
+    .map(toAdminOrder)
   return {
     date,
     blocked: day.blocked,
@@ -78,7 +84,27 @@ async function act(req: Request, store: BreadStore): Promise<Response> {
     if (body.pickedUp) order.pickedUpAt = new Date(now).toISOString()
     else delete order.pickedUpAt
     await writeOrder(store, order)
-    return json({ ...order, shortId: shortId(order.id) } satisfies AdminOrder)
+    return json(toAdminOrder(order))
+  }
+
+  // She saw the Zelle land and confirms it. If the hold has since lapsed and
+  // confirming would oversell, this is refused unless she explicitly forces it.
+  if (body.action === 'markPaid') {
+    if (typeof body.orderId !== 'string') return error('bad_request', 400)
+    const result = await confirmZelle(store, body.orderId, now, body.force === true)
+    if (!result.ok) {
+      if (result.reason === 'not_found') return error('not_found', 404)
+      return error('would_exceed_capacity', 409, { remaining: result.remaining })
+    }
+    return json(toAdminOrder(result.order))
+  }
+
+  // She cancels a reservation herself — a no-show, or a customer who asked to.
+  if (body.action === 'expireOrder') {
+    if (typeof body.orderId !== 'string') return error('bad_request', 400)
+    const order = await expireOrder(store, body.orderId, now)
+    if (!order) return error('not_found', 404)
+    return json(toAdminOrder(order))
   }
 
   return error('bad_action', 400)

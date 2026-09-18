@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { PRODUCTS, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/config.ts'
 import { formatPhone } from '../../shared/phone.ts'
-import type { AdminDay, AdminOrder } from '../../shared/types.ts'
+import type { AdminDay, AdminOrder, Qty } from '../../shared/types.ts'
 import { addDays, formatInstant, formatYmd, ymdInZone } from '../../shared/zoned.ts'
 import { ApiError, adminAct, adminList } from '../lib/api.ts'
 import { describeQty } from '../lib/format.ts'
@@ -24,6 +24,8 @@ export default function Admin() {
   const [load, setLoad] = useState<Load>(() => (password ? { state: 'loading' } : { state: 'idle' }))
   const [showPast, setShowPast] = useState(false)
   const [busy, setBusy] = useState<string | null>(null)
+  /** orderId → the remaining counts a markPaid was refused over, so she can choose to force it. */
+  const [overCapacity, setOverCapacity] = useState<Record<string, Qty>>({})
 
   /** Fetch and show. Only ever sets state after the network round-trip. */
   const fetchDays = useCallback(async (pw: string) => {
@@ -106,6 +108,46 @@ export default function Admin() {
     setBusy(order.id)
     try {
       patchOrder(await adminAct(password, { action: 'pickedUp', orderId: order.id, pickedUp: !order.pickedUpAt }))
+    } catch {
+      refresh(password)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  function clearWarning(orderId: string) {
+    setOverCapacity((m) => {
+      if (!(orderId in m)) return m
+      const next = { ...m }
+      delete next[orderId]
+      return next
+    })
+  }
+
+  /** She's seen the Zelle land. Confirming can change what's left to bake for the day, so it reloads the list. */
+  async function markPaid(order: AdminOrder, force = false) {
+    setBusy(order.id)
+    try {
+      await adminAct(password, { action: 'markPaid', orderId: order.id, force })
+      clearWarning(order.id)
+      await refresh(password)
+    } catch (err) {
+      if (err instanceof ApiError && err.code === 'would_exceed_capacity') {
+        setOverCapacity((m) => ({ ...m, [order.id]: err.detail.remaining as Qty }))
+      } else {
+        refresh(password)
+      }
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function cancelOrder(order: AdminOrder) {
+    setBusy(order.id)
+    try {
+      await adminAct(password, { action: 'expireOrder', orderId: order.id })
+      clearWarning(order.id)
+      await refresh(password)
     } catch {
       refresh(password)
     } finally {
@@ -202,14 +244,45 @@ export default function Admin() {
 
       <div className="space-y-4">
         {shown.map((day) => (
-          <DayCard key={day.date} day={day} today={load.today} now={load.now} busy={busy} onBlock={() => toggleBlock(day)} onPicked={togglePicked} />
+          <DayCard
+            key={day.date}
+            day={day}
+            today={load.today}
+            now={load.now}
+            busy={busy}
+            overCapacity={overCapacity}
+            onBlock={() => toggleBlock(day)}
+            onPicked={togglePicked}
+            onMarkPaid={markPaid}
+            onCancel={cancelOrder}
+          />
         ))}
       </div>
     </Page>
   )
 }
 
-function DayCard({ day, today, now, busy, onBlock, onPicked }: { day: AdminDay; today: string; now: number; busy: string | null; onBlock: () => void; onPicked: (o: AdminOrder) => void }) {
+function DayCard({
+  day,
+  today,
+  now,
+  busy,
+  overCapacity,
+  onBlock,
+  onPicked,
+  onMarkPaid,
+  onCancel,
+}: {
+  day: AdminDay
+  today: string
+  now: number
+  busy: string | null
+  overCapacity: Record<string, Qty>
+  onBlock: () => void
+  onPicked: (o: AdminOrder) => void
+  onMarkPaid: (o: AdminOrder, force?: boolean) => void
+  onCancel: (o: AdminOrder) => void
+}) {
   const isToday = day.date === today
   const closed = Date.parse(day.cutoffAt) <= now
   const nothing = PRODUCTS.every((p) => day.toBake[p.id] === 0)
@@ -236,39 +309,101 @@ function DayCard({ day, today, now, busy, onBlock, onPicked }: { day: AdminDay; 
       <div className="px-4 py-3">
         <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-cocoa-soft">To bake</p>
         <p className="font-display text-[22px] font-semibold text-cocoa">{nothing ? 'Nothing yet' : describeQty(day.toBake)}</p>
-        {day.blocked && day.orders.length > 0 && <p className="mt-1 text-[13px] text-berry">Blocked, but these orders were already paid — they still expect their bread.</p>}
+        {day.blocked && day.orders.length > 0 && <p className="mt-1 text-[13px] text-berry">Blocked, but these orders already hold this date — they still expect their bread or a refund.</p>}
       </div>
 
       {day.orders.length > 0 && (
         <ul className="divide-y divide-line border-t border-line">
-          {day.orders.map((o) => (
-            <li key={o.id} className={`flex items-start gap-3 px-4 py-3 ${o.pickedUpAt ? 'opacity-55' : ''}`}>
-              <input
-                type="checkbox"
-                className="mt-1 size-5 shrink-0 accent-sage"
-                checked={!!o.pickedUpAt}
-                disabled={busy === o.id}
-                onChange={() => onPicked(o)}
-                aria-label={`${o.name} picked up`}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-[15px] font-semibold text-cocoa">
-                  {o.name} <span className="ml-1 font-mono text-[12px] font-medium text-cocoa-soft">{o.shortId}</span>
-                </p>
-                <p className="text-[14px] text-cocoa">{describeQty(o.qty)}</p>
-                <a className="text-[14px] text-crust-dark underline-offset-2 hover:underline" href={`tel:${o.phone}`}>
-                  {formatPhone(o.phone)}
-                </a>
-              </div>
-              <div className="shrink-0 text-right">
-                <p className="text-[15px] font-semibold text-cocoa">{formatMoney(o.amountCents)}</p>
-                <p className={`text-[12px] font-semibold uppercase tracking-wide ${o.status === 'paid' ? 'text-sage' : 'text-berry'}`}>{o.status}</p>
-                {o.pickedUpAt && <p className="text-[11px] text-cocoa-soft">picked up</p>}
-              </div>
-            </li>
-          ))}
+          {day.orders.map((o) =>
+            o.status === 'pending' ? (
+              <PendingRow key={o.id} order={o} busy={busy === o.id} warning={overCapacity[o.id]} onMarkPaid={onMarkPaid} onCancel={onCancel} />
+            ) : (
+              <PaidRow key={o.id} order={o} busy={busy === o.id} onPicked={onPicked} />
+            ),
+          )}
         </ul>
       )}
     </section>
+  )
+}
+
+function PaidRow({ order: o, busy, onPicked }: { order: AdminOrder; busy: boolean; onPicked: (o: AdminOrder) => void }) {
+  return (
+    <li className={`flex items-start gap-3 px-4 py-3 ${o.pickedUpAt ? 'opacity-55' : ''}`}>
+      <input type="checkbox" className="mt-1 size-5 shrink-0 accent-sage" checked={!!o.pickedUpAt} disabled={busy} onChange={() => onPicked(o)} aria-label={`${o.name} picked up`} />
+      <div className="min-w-0 flex-1">
+        <p className="text-[15px] font-semibold text-cocoa">
+          {o.name} <span className="ml-1 font-mono text-[12px] font-medium text-cocoa-soft">{o.shortId}</span>
+        </p>
+        <p className="text-[14px] text-cocoa">{describeQty(o.qty)}</p>
+        <a className="text-[14px] text-crust-dark underline-offset-2 hover:underline" href={`tel:${o.phone}`}>
+          {formatPhone(o.phone)}
+        </a>
+      </div>
+      <div className="shrink-0 text-right">
+        <p className="text-[15px] font-semibold text-cocoa">{formatMoney(o.amountCents)}</p>
+        <p className="text-[12px] font-semibold uppercase tracking-wide text-sage">paid</p>
+        {o.pickedUpAt && <p className="text-[11px] text-cocoa-soft">picked up</p>}
+      </div>
+    </li>
+  )
+}
+
+function PendingRow({
+  order: o,
+  busy,
+  warning,
+  onMarkPaid,
+  onCancel,
+}: {
+  order: AdminOrder
+  busy: boolean
+  warning: Qty | undefined
+  onMarkPaid: (o: AdminOrder, force?: boolean) => void
+  onCancel: (o: AdminOrder) => void
+}) {
+  return (
+    <li className="px-4 py-3">
+      <div className="flex items-start gap-3">
+        <span className="mt-1 size-5 shrink-0 rounded-full bg-amber-400" aria-hidden />
+        <div className="min-w-0 flex-1">
+          <p className="text-[15px] font-semibold text-cocoa">
+            {o.name} <span className="ml-1 font-mono text-[12px] font-medium text-cocoa-soft">{o.shortId}</span>
+          </p>
+          <p className="text-[14px] text-cocoa">{describeQty(o.qty)}</p>
+          <a className="text-[14px] text-crust-dark underline-offset-2 hover:underline" href={`tel:${o.phone}`}>
+            {formatPhone(o.phone)}
+          </a>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-[15px] font-semibold text-cocoa">{formatMoney(o.amountCents)}</p>
+          <p className="text-[12px] font-semibold uppercase tracking-wide text-amber-700">awaiting zelle</p>
+        </div>
+      </div>
+      {warning ? (
+        <div className="mt-2 rounded-xl bg-berry/10 p-3">
+          <p className="text-[13px] text-berry">
+            This would exceed capacity — only {PRODUCTS.map((p) => `${warning[p.id]} ${p.name.toLowerCase()}`).join(', ')} left. Confirm anyway?
+          </p>
+          <div className="mt-2 flex gap-2">
+            <Button variant="danger" className="px-3 text-[13px]" disabled={busy} onClick={() => onMarkPaid(o, true)}>
+              Confirm anyway
+            </Button>
+            <Button variant="ghost" className="px-3 text-[13px]" disabled={busy} onClick={() => onCancel(o)}>
+              Cancel order
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-2 flex gap-2">
+          <Button className="px-3 text-[13px]" disabled={busy} onClick={() => onMarkPaid(o)}>
+            Mark paid
+          </Button>
+          <Button variant="ghost" className="px-3 text-[13px]" disabled={busy} onClick={() => onCancel(o)}>
+            Cancel
+          </Button>
+        </div>
+      )}
+    </li>
   )
 }

@@ -4,7 +4,7 @@ import { normalisePhone } from '../../shared/phone.ts'
 import type { DayAvailability, Qty } from '../../shared/types.ts'
 import { zeroQty } from '../../shared/types.ts'
 import { addDays, formatInstant, formatYmd, weekdayOf, ymdInZone } from '../../shared/zoned.ts'
-import { ApiError, cancelCheckout, getAvailability, startCheckout } from '../lib/api.ts'
+import { ApiError, getAvailability, startCheckout } from '../lib/api.ts'
 import { PICKUP_LINE, PICKUP_PREFERRED } from '../lib/format.ts'
 import { Button, Field, Notice, Page, Section, Spinner, Title, inputClass } from './ui.tsx'
 
@@ -14,8 +14,6 @@ const ERRORS: Record<string, string> = {
   sold_out: 'Sorry — that just sold out for the date you picked. The list below is fresh; choose another date.',
   blocked: 'That date is no longer available. Please pick another.',
   closed: 'Orders for that date have closed. Please pick another.',
-  payments_not_configured: 'Online payment is not switched on yet. Please check back soon.',
-  payment_unavailable: 'Could not reach the payment page just now. Nothing was charged — please try again in a minute.',
   offline: 'Could not reach the server. Check your connection and try again.',
   busy: 'Very busy right now — please try again in a moment.',
 }
@@ -29,24 +27,15 @@ function weekLabel(date: string, today: string): string {
   return `Week of ${formatYmd(thatMonday, { month: 'short', day: 'numeric' })}`
 }
 
-/** Stripe sends a customer who backed out to /?canceled=<session>&date=<their date>. */
-function readReturn(): { canceled: string | null; date: string | null } {
-  const params = new URLSearchParams(window.location.search)
-  return { canceled: params.get('canceled'), date: params.get('date') }
-}
-
 export default function Order() {
-  const [returned] = useState(readReturn)
   const [load, setLoad] = useState<Load>({ state: 'loading' })
   const [qty, setQty] = useState<Qty>(zeroQty)
-  const [date, setDate] = useState<string | null>(returned.canceled ? returned.date : null)
+  const [date, setDate] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [touched, setTouched] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [message, setMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(
-    returned.canceled ? { tone: 'info', text: 'No payment was made. Your bread was released — order again whenever you like.' } : null,
-  )
+  const [message, setMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(null)
 
   async function refresh() {
     try {
@@ -58,14 +47,8 @@ export default function Order() {
   }
 
   useEffect(() => {
-    if (returned.canceled) {
-      window.history.replaceState(null, '', '/')
-      // Free the reservation first so the counts below are already right.
-      cancelCheckout(returned.canceled).catch(() => {}).finally(refresh)
-    } else {
-      refresh()
-    }
-  }, [returned])
+    refresh()
+  }, [])
 
   const days = load.state === 'ready' ? load.days : []
   // A chosen date that has since closed or been blocked is no choice at all.
@@ -109,17 +92,17 @@ export default function Order() {
   const nameOk = name.trim().length > 0
   const missing = !anyBread ? 'Choose your bread to start' : !selected ? 'Now pick a pickup date' : !nameOk || !phoneOk ? 'Add your name and phone number' : null
 
-  async function pay() {
+  async function reserve() {
     setTouched(true)
     if (missing || !selected) return
     setSubmitting(true)
     setMessage(null)
     try {
-      const { url } = await startCheckout({ date: selected.date, qty, name: name.trim(), phone })
-      window.location.assign(url)
+      const { orderId } = await startCheckout({ date: selected.date, qty, name: name.trim(), phone })
+      window.location.assign(`/thanks?order=${orderId}`)
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'offline'
-      setMessage({ tone: 'error', text: ERRORS[code] ?? 'Something went wrong. Nothing was charged — please try again.' })
+      setMessage({ tone: 'error', text: ERRORS[code] ?? 'Something went wrong. Please try again.' })
       setSubmitting(false)
       if (code === 'sold_out' || code === 'blocked' || code === 'closed') refresh()
     }
@@ -127,7 +110,7 @@ export default function Order() {
 
   return (
     <Page>
-      <Title kicker="Pre-order · pay now · pick up" sub={<>Baked to order. Pick up {PICKUP_LINE} on Mondays, Wednesdays and Thursdays — {PICKUP_PREFERRED}.</>}>
+      <Title kicker="Pre-order · pay by Zelle · pick up" sub={<>Baked to order. Pick up {PICKUP_LINE} on Mondays, Wednesdays and Thursdays — {PICKUP_PREFERRED}.</>}>
         {SHOP_NAME}
       </Title>
 
@@ -202,6 +185,10 @@ export default function Order() {
             <input className={inputClass} type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(612) 555-0199" aria-invalid={touched && !phoneOk} />
           </Field>
         </div>
+        <p className="mt-4 text-[13px] leading-relaxed text-cocoa-soft">
+          Reserving holds your bread. You'll get her Zelle details on the next page — your bread is confirmed once
+          she's received your payment.
+        </p>
       </Section>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-line bg-cream/95 backdrop-blur" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
@@ -210,8 +197,8 @@ export default function Order() {
             <p className="text-[13px] text-cocoa-soft">{missing ?? `${describe(qty)} · ${formatYmd(selected!.date)}`}</p>
             <p className="font-display text-[22px] font-semibold leading-tight text-cocoa">{formatMoney(total)}</p>
           </div>
-          <Button onClick={pay} disabled={submitting || load.state !== 'ready'} className="shrink-0 px-6">
-            {submitting ? 'Opening payment…' : total > 0 ? `Pay ${formatMoney(total)}` : 'Pay'}
+          <Button onClick={reserve} disabled={submitting || load.state !== 'ready'} className="shrink-0 px-6">
+            {submitting ? 'Reserving…' : total > 0 ? `Reserve — ${formatMoney(total)}` : 'Reserve'}
           </Button>
         </div>
       </div>

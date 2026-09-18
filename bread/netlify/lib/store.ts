@@ -26,7 +26,6 @@ export function breadStore(): BreadStore {
 
 export const dayKey = (date: string) => `day:${date}`
 export const orderKey = (id: string) => `order:${id}`
-export const sessionKey = (sid: string) => `session:${sid}`
 
 export function emptyDay(date: string): DayRecord {
   return { date, blocked: false, holds: [], sold: zeroQty(), orderIds: [] }
@@ -57,13 +56,4 @@ export async function readOrder(store: BreadStore, id: string): Promise<Order | 
 
 export async function writeOrder(store: BreadStore, order: Order): Promise<void> {
   await store.setJSON(orderKey(order.id), order)
-}
-
-export async function orderIdForSession(store: BreadStore, sid: string): Promise<string | null> {
-  const got = (await store.get(sessionKey(sid), { type: 'text' })) as string | null
-  return got || null
-}
-
-export async function rememberSession(store: BreadStore, sid: string, orderId: string): Promise<void> {
-  await store.set(sessionKey(sid), orderId)
 }

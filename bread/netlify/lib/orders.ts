@@ -1,9 +1,10 @@
-import type Stripe from 'stripe'
-import { PRODUCT_IDS, totalCents } from '../../shared/config.ts'
-import type { Order, OrderSummary } from '../../shared/types.ts'
-import { shortId, zeroQty } from '../../shared/types.ts'
-import { confirm, release } from './inventory.ts'
-import { readOrder, writeOrder, type BreadStore } from './store.ts'
+import { ZELLE_HANDLE, ZELLE_NAME } from '../../shared/config.ts'
+import type { Order, OrderSummary, Qty } from '../../shared/types.ts'
+import { shortId } from '../../shared/types.ts'
+import { confirm, fits, liveHolds, release, remaining } from './inventory.ts'
+import { readDay, readOrder, writeOrder, type BreadStore } from './store.ts'
+
+const ZELLE = { name: ZELLE_NAME, handle: ZELLE_HANDLE }
 
 export function summarise(order: Order): OrderSummary {
   return {
@@ -14,68 +15,48 @@ export function summarise(order: Order): OrderSummary {
     qty: order.qty,
     amountCents: order.amountCents,
     status: order.status,
+    holdExpiresAt: order.holdExpiresAt,
+    zelle: ZELLE,
   }
 }
 
-/** The metadata we put on every Checkout Session, so it can rebuild the order alone. */
-export function sessionMetadata(order: Order): Record<string, string> {
-  return {
-    orderId: order.id,
-    date: order.date,
-    name: order.name,
-    phone: order.phone,
-    ...Object.fromEntries(PRODUCT_IDS.map((id) => [id, String(order.qty[id])])),
-  }
-}
+export type ConfirmResult =
+  | { ok: true; order: Order }
+  | { ok: false; reason: 'not_found' }
+  | { ok: false; reason: 'would_exceed_capacity'; remaining: Qty }
 
-function orderFromMetadata(session: Stripe.Checkout.Session): Order | null {
-  const m = session.metadata ?? {}
-  if (!m.orderId || !m.date) return null
-  const qty = zeroQty()
-  for (const id of PRODUCT_IDS) qty[id] = Number(m[id] ?? 0) || 0
-  return {
-    id: m.orderId,
-    date: m.date,
-    name: m.name ?? '',
-    phone: m.phone ?? '',
-    qty,
-    amountCents: session.amount_total ?? totalCents(qty),
-    status: 'pending',
-    stripeSessionId: session.id,
-    createdAt: new Date(session.created * 1000).toISOString(),
+/**
+ * She has seen the Zelle payment land and confirms it. The hold becomes a
+ * sale, same as it always did. Idempotent — confirming an already-paid order
+ * just returns it.
+ *
+ * If the hold has since lapsed (she checked her phone hours later), the sale
+ * is allowed as long as there is still room; if it would push a product past
+ * its daily capacity, that is surfaced instead of silently oversold, so she
+ * can decide — `force` means she has decided.
+ */
+export async function confirmZelle(store: BreadStore, orderId: string, nowMs: number, force = false): Promise<ConfirmResult> {
+  const order = await readOrder(store, orderId)
+  if (!order) return { ok: false, reason: 'not_found' }
+  if (order.status === 'paid') return { ok: true, order }
+
+  const { value: day } = await readDay(store, order.date)
+  const holdLive = liveHolds(day, nowMs).some((h) => h.orderId === orderId)
+  if (!holdLive && !force && !fits(day, order.qty, nowMs)) {
+    return { ok: false, reason: 'would_exceed_capacity', remaining: remaining(day, nowMs) }
   }
+
+  await confirm(store, order.date, order.id, order.qty, nowMs)
+  const paid: Order = { ...order, status: 'paid', paidAt: new Date(nowMs).toISOString() }
+  await writeOrder(store, paid)
+  return { ok: true, order: paid }
 }
 
 /**
- * Stripe says the session is paid. Turn the hold into a sale and the order
- * into a paid one. Safe to call any number of times, from the webhook and
- * from the confirmation page alike — whichever arrives first does the work.
+ * The hold is given back — because nobody paid within the window, or because
+ * she cancelled it herself. Idempotent; a no-op on anything but a pending order.
  */
-export async function settlePaid(store: BreadStore, session: Stripe.Checkout.Session, nowMs: number): Promise<Order | null> {
-  const orderId = session.metadata?.orderId
-  if (!orderId) return null
-  // The order record normally exists; if its write failed after the session
-  // was created, the metadata is enough to rebuild it — the customer paid.
-  const order = (await readOrder(store, orderId)) ?? orderFromMetadata(session)
-  if (!order) return null
-  if (order.status === 'paid') return order
-  await confirm(store, order.date, order.id, order.qty, nowMs)
-  const paid: Order = {
-    ...order,
-    status: 'paid',
-    paidAt: new Date(nowMs).toISOString(),
-    amountCents: session.amount_total ?? order.amountCents,
-  }
-  const email = session.customer_details?.email
-  if (email) paid.email = email
-  await writeOrder(store, paid)
-  return paid
-}
-
-/** The session expired or failed: give the bread back. Idempotent. */
-export async function settleExpired(store: BreadStore, session: Stripe.Checkout.Session, nowMs: number): Promise<Order | null> {
-  const orderId = session.metadata?.orderId
-  if (!orderId) return null
+export async function expireOrder(store: BreadStore, orderId: string, nowMs: number): Promise<Order | null> {
   const order = await readOrder(store, orderId)
   if (!order || order.status !== 'pending') return order
   await release(store, order.date, order.id, nowMs)

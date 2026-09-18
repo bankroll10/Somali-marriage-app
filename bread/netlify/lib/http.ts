@@ -19,24 +19,8 @@ export async function readJson<T>(req: Request, maxBytes = 8_000): Promise<T | R
   }
 }
 
-/** Where the site lives, for Stripe's return URLs. */
-export function siteOrigin(req: Request): string {
-  const configured = process.env.URL
-  const origin = new URL(req.url).origin
-  // Netlify's dev server and branch deploys are on other origins than URL;
-  // trust the request when it is not localhost-on-a-function-port nonsense.
-  if (/^https?:\/\/(localhost|127\.0\.0\.1)/.test(origin)) return configured || origin
-  return origin
-}
-
 /** The one place environment is read, so tests can set it and docs can list it. */
 export const env = {
-  get stripeSecret() {
-    return process.env.STRIPE_SECRET_KEY
-  },
-  get stripeWebhookSecret() {
-    return process.env.STRIPE_WEBHOOK_SECRET
-  },
   get adminPassword() {
     return process.env.ADMIN_PASSWORD
   },

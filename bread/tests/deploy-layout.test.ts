@@ -12,7 +12,7 @@ describe('deploy layout', () => {
     expect(offenders).toEqual([])
   })
   it('every endpoint the app calls exists', () => {
-    for (const fn of ['availability', 'checkout', 'stripe-webhook', 'order', 'cancel', 'admin']) {
+    for (const fn of ['availability', 'checkout', 'order', 'admin']) {
       expect(existsSync(join(process.cwd(), `netlify/functions/${fn}.ts`)), fn).toBe(true)
     }
   })

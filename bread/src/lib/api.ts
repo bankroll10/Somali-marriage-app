@@ -1,12 +1,15 @@
-import type { AdminAction, AdminDay, AdminOrder, AdminResponse, AvailabilityResponse, CheckoutRequest, OrderSummary } from '../../shared/types.ts'
+import type { AdminAction, AdminDay, AdminOrder, AdminResponse, AvailabilityResponse, CheckoutRequest, CheckoutResponse, OrderSummary } from '../../shared/types.ts'
 
 export class ApiError extends Error {
   code: string
   status: number
-  constructor(code: string, status: number) {
+  /** Extra fields the error body carried — e.g. `remaining` on `would_exceed_capacity`. */
+  detail: Record<string, unknown>
+  constructor(code: string, status: number, detail: Record<string, unknown> = {}) {
     super(code)
     this.code = code
     this.status = status
+    this.detail = detail
   }
 }
 
@@ -17,29 +20,27 @@ async function call<T>(path: string, init: RequestInit = {}): Promise<T> {
   } catch {
     throw new ApiError('offline', 0)
   }
-  const body = (await res.json().catch(() => ({}))) as { error?: string }
-  if (!res.ok) throw new ApiError(body.error ?? 'failed', res.status)
+  const body = (await res.json().catch(() => ({}))) as { error?: string } & Record<string, unknown>
+  if (!res.ok) {
+    const { error: code, ...detail } = body
+    throw new ApiError(code ?? 'failed', res.status, detail)
+  }
   return body as T
 }
 
 export const getAvailability = () => call<AvailabilityResponse>('/api/availability')
 
 export const startCheckout = (req: CheckoutRequest) =>
-  call<{ url: string; orderId: string }>('/api/checkout', { method: 'POST', body: JSON.stringify(req) })
+  call<CheckoutResponse>('/api/checkout', { method: 'POST', body: JSON.stringify(req) })
 
-export const getOrder = (sessionId: string) => call<OrderSummary>(`/api/order?session_id=${encodeURIComponent(sessionId)}`)
-
-export const cancelCheckout = (sessionId: string) =>
-  call<{ status: string }>(`/api/cancel?session_id=${encodeURIComponent(sessionId)}`, { method: 'POST' })
+export const getOrder = (orderId: string) => call<OrderSummary>(`/api/order?order=${encodeURIComponent(orderId)}`)
 
 const bearer = (password: string) => ({ authorization: `Bearer ${password}` })
 
 export const adminList = (password: string, range?: { from: string; to: string }) =>
   call<AdminResponse>(`/api/admin${range ? `?from=${range.from}&to=${range.to}` : ''}`, { headers: bearer(password) })
 
+type AdminActResult<A> = A extends { action: 'block' | 'unblock' } ? AdminDay : AdminOrder
+
 export const adminAct = <A extends AdminAction>(password: string, action: A) =>
-  call<A extends { action: 'pickedUp' } ? AdminOrder : AdminDay>('/api/admin', {
-    method: 'POST',
-    body: JSON.stringify(action),
-    headers: bearer(password),
-  })
+  call<AdminActResult<A>>('/api/admin', { method: 'POST', body: JSON.stringify(action), headers: bearer(password) })
