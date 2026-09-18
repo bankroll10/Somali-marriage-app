@@ -191,6 +191,11 @@ Behaviour and specific past events. Never "do you like it", "would you use
 it", or "is this a good idea". If they answer a "would" question, redirect
 to the last time.
 
+`docs/JOBS.md` is the hypothesis sheet these answers are read against: each
+stage's situation, jobs, alternatives, anxieties and habit, and every feature's
+claimed job. Question 4 fills its *alternatives* column; 7 and 15 test the
+functional and social jobs; the three-day text is the outcome.
+
 **A · Before the phone (min 2–8)**
 1. *The last person you seriously talked to about marriage — how did it start,
    and how long did it go on?* (If single: *the last time you seriously wanted
