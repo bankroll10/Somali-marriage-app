@@ -26,7 +26,7 @@ site and the server follow.
 | 5–11 PM, "best after 9 PM" | `PICKUP_START_HOUR`, `PICKUP_END_HOUR`, `PICKUP_PREFERRED_AFTER_HOUR` |
 | Orders close 48 h before the shift starts on the pickup date | `ORDER_CUTOFF_HOURS` |
 | A reservation holds bread for 3 hours awaiting Zelle | `PAYMENT_HOLD_HOURS` |
-| Her Zelle name and handle | `ZELLE_NAME`, `ZELLE_HANDLE` — **placeholders, must be filled in before launch** |
+| Her Zelle name and handle | `ZELLE_NAME` (**placeholder — still needs her name**), `ZELLE_HANDLE` (set to `(612) 703-8698`) |
 | Customers see the next 4 weeks | `WEEKS_AHEAD` |
 | All times are Chicago time | `TIMEZONE` |
 
@@ -79,15 +79,16 @@ window, shorten it; if three hours is too tight, lengthen it — it's the one
 
 ### 1. Her Zelle details
 
-Open [`shared/config.ts`](shared/config.ts) and replace the two placeholders:
+Her Zelle handle is already set in [`shared/config.ts`](shared/config.ts) to
+her phone number, `(612) 703-8698`. `ZELLE_NAME` still needs her real name as
+it appears on Zelle — replace the placeholder before going live:
 
 ```ts
 export const ZELLE_NAME = '<her name on Zelle>'
-export const ZELLE_HANDLE = '<the email or phone her Zelle is registered to>'
+export const ZELLE_HANDLE = '(612) 703-8698'
 ```
 
-Whatever's there ships straight to every customer's confirmation page, so get
-these right before going live.
+Whatever's there ships straight to every customer's confirmation page.
 
 ### 2. Netlify
 

@@ -61,12 +61,12 @@ export const WEEKS_AHEAD = 4
 export const PAYMENT_HOLD_HOURS = 3
 
 /**
- * Where customers send payment, and the name to expect it from. Both are
- * placeholders — fill these in with her real Zelle details before this goes
- * live, or every order page will show fake ones.
+ * Where customers send payment, and the name to expect it from. ZELLE_NAME is
+ * still a placeholder — fill it in with her real name as it appears on Zelle
+ * before this goes live, or every order page will show a fake one.
  */
 export const ZELLE_NAME = '<her name on Zelle>'
-export const ZELLE_HANDLE = '<the email or phone her Zelle is registered to>'
+export const ZELLE_HANDLE = '(612) 703-8698'
 
 /** What an order of these quantities costs. */
 export function totalCents(qty: Record<ProductId, number>): number {
