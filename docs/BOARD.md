@@ -1133,3 +1133,36 @@ exist. The best situation-to-job mapping in the product, the four moments, sits
 No feature added, moved or removed; the thin and no-job rows are for the
 sessions to decide, not a build list.
 
+## The opportunity solution tree — 2026-09-18
+
+One outcome at the top, the person's opportunities under it, solutions only
+beneath those, and experiments beneath them: `docs/TREE.md`. The outcome is
+the one already kept — of everyone who opened this, how many had a conversation
+they were not going to have. Ten opportunities, stated in the person's words
+and sourced to the product's own vocabulary. Then every solution in the
+repository mapped to one, and the arithmetic of where the code actually went.
+
+**The imbalance, measured.** 2,623 lines on "I don't know if I'm ready", the
+opportunity with the weakest trigger and eighth by the repository's own ranked
+importance. Roughly fifty lines, and no dedicated file, on "how does a man show
+he is serious" — third by importance and `docs/GAPS.md`'s most load-bearing
+unevidenced belief. 2,011 lines on "there is nobody serious to meet", none of
+which moves it: six ways to count the opportunity, zero to serve it. Four
+solutions — Plus, the sample introduction and its alignment engine, the
+ledger-as-social-proof, the vouch — serve no opportunity in the space at all,
+each waiting on an audience that does not exist. Five surfaces on the eleven is
+not duplication but distribution; six on the map is not.
+
+**The roadmap is now eleven items, by opportunity.** `docs/ROADMAP.md`'s table
+and `docs/PRODUCT.md` §10 both mirror it. The previous items survive in order —
+0, 1, 2 became 0, 2, 6; 3–7 became 7–10, still pool-gated. Two are new in kind
+and not in code: **subtraction**, which no roadmap here has carried before, and
+the **relocation** of the four moments and five hardest parts ahead of the map,
+which adds no component. The sessions were promoted to item 1: they are the
+only experiment that runs with no traffic, and every ranked gap waits on them.
+
+**Changed:** this entry, `docs/TREE.md`, both roadmaps, the README index, and
+an opportunity column in `docs/EXPERIMENTS.md`'s ranking. No code, no new
+features, nothing subtracted yet — item 3 is four decisions written down so
+they are decisions.
+
