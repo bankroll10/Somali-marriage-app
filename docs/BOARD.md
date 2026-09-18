@@ -1166,3 +1166,38 @@ an opportunity column in `docs/EXPERIMENTS.md`'s ranking. No code, no new
 features, nothing subtracted yet — item 3 is four decisions written down so
 they are decisions.
 
+## Time to meaningful value — 2026-09-18
+
+Every entry walked in Chromium at phone width and counted from arrival to the
+first genuinely useful thing: screens, taps, decisions, required fields, words
+read, waits, permissions. `docs/VALUE.md` has the table and the harness's
+counting conventions.
+
+**What it found.** The two direct tool links are the fastest paths in the
+product: twelve or thirteen taps, no required fields, and — on every one of the
+eight paths — **zero permission prompts before value**. No sign-in, no
+notification ask, no location; share and clipboard are touched only after she
+has something. The front door adds six taps and about five hundred words to
+reach identical value, and *deciding* reads 2,291 words before receiving
+anything. *Preparing* costs 41 taps and 21 decisions, every one about herself,
+then a 1,400 ms deliberate pause, before the product says anything about her.
+The worst path was not the longest: **married** routed to an empty compose box
+and required free text before the product would speak, while the ending — the
+screen built for that moment — was unreachable from the only place anyone says
+they are married.
+
+**Changed, because each was a defect or unambiguous unnecessary work.**
+Married now opens the ending. The vouch no longer requires a relative to
+compose prose before the button turns on — two inputs, not three, on the one
+path where the person is doing somebody else a favour. The eleven explains
+itself before asking which side she is on, folding that question into starting:
+thirteen taps to twelve. And a family member who opens a vouch link is no
+longer counted in `arrived`, which had been quietly moving the denominator of
+the one number this product keeps. Both new rules are pure functions in
+`src/lib/inferStage.ts` with tests.
+
+**Left alone, named, and gated.** Identity before Situation, the deliberate
+pause, and the chapter intros as screens. All three change what a session
+participant sees, so they went into `docs/TREE.md` item 4 rather than into this
+commit.
+
