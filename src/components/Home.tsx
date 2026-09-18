@@ -9,6 +9,7 @@ import FollowUp, { FollowedThrough } from './home/FollowUp'
 import StageBand from './home/StageBand'
 import WorkCard from './home/WorkCard'
 import Cohort from './Cohort'
+import { CONTACT_EMAIL } from '../lib/site'
 import {
   CompassGlyph,
   GlyphTile,
@@ -36,6 +37,13 @@ interface Props {
   /** Before you say yes and the families' words — the deciding stage's instruments. */
   onOpenBeforeYes: () => void
   hasBeforeYes: boolean
+  /**
+   * He has answered the eleven she sent. The hook has polled and recorded this
+   * since the two-sided eleven shipped, and its only reader was the analytics
+   * ladder — so the one outcome the instrument exists to produce was invisible
+   * on the only screen she returns to (docs/NIELSEN.md N2).
+   */
+  coupleAnswered?: boolean
   onOpenFamilies: () => void
   /** How she chose — her record, reachable again after the ending. */
   onOpenEnding: () => void
@@ -81,6 +89,7 @@ export default function Home({
   hasRead,
   onOpenBeforeYes,
   hasBeforeYes,
+  coupleAnswered = false,
   onOpenFamilies,
   onOpenEnding,
   onPhilosophy,
@@ -107,6 +116,8 @@ export default function Home({
   onHesitate,
 }: Props) {
   const [restarting, setRestarting] = useState(false)
+  // Who answered her eleven — the other side.
+  const answerer = identity.gender === 'man' ? 'She' : 'He'
   const name = identity.firstName?.trim()
   const scene = getScene(identity.scene)
   // Once someone is deciding on a person — or married — the app has no business
@@ -315,25 +326,40 @@ export default function Home({
 
         {/* Deciding together: the conversations most of us have too late,
             asked in month two, and the words for the families. */}
-        {stage === 'deciding' && (
+        {(stage === 'deciding' || coupleAnswered) && (
           <button
             onClick={onOpenBeforeYes}
-            className="animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5 hover:bg-forest/[0.09]"
+            className={`animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border p-5 text-left transition-all hover:-translate-y-0.5 ${
+              coupleAnswered
+                ? 'border-gold/45 bg-gold/[0.09] hover:bg-gold/[0.14]'
+                : 'border-forest/25 bg-forest/[0.05] hover:bg-forest/[0.09]'
+            }`}
           >
-            <GlyphTile className="bg-forest/10 text-forest">
+            <GlyphTile className={coupleAnswered ? 'bg-gold/15 text-gold' : 'bg-forest/10 text-forest'}>
               <CompassGlyph />
             </GlyphTile>
             <span className="flex-1">
+              {coupleAnswered && (
+                <span className="mb-1 block text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+                  {answerer} answered
+                </span>
+              )}
               <span className="font-display text-[1.2rem] font-medium text-ink">
-                {hasBeforeYes ? 'Before you say yes — where you left it' : 'Before you say yes'}
+                {coupleAnswered
+                  ? 'Where the two of you stand'
+                  : hasBeforeYes
+                    ? 'Before you say yes — where you left it'
+                    : 'Before you say yes'}
               </span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                {hasBeforeYes
-                  ? 'The conversations you’ve had, the ones you haven’t, and the one to open next.'
-                  : 'Eleven conversations that decide a Somali marriage — where you’d live, money home, a second wife — and which one to open this week.'}
+                {coupleAnswered
+                  ? `${answerer} answered the eleven on ${answerer === 'He' ? 'his' : 'her'} own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
+                  : hasBeforeYes
+                    ? 'The conversations you’ve had, the ones you haven’t, and the one to open next.'
+                    : 'Eleven conversations that decide a Somali marriage — where you’d live, money home, a second wife — and which one to open this week.'}
               </span>
             </span>
-            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${coupleAnswered ? 'text-gold' : 'text-forest'}`} />
           </button>
         )}
 
@@ -526,6 +552,15 @@ export default function Home({
           {/* The same destruction Trust guards behind two taps and a warning was
               one tap here, on the faintest text on the screen, directly under
               another link. Now it asks (docs/NORMAN.md). */}
+          {/* The one route to a person from the screen she returns to. The
+              address was on the door's join form and Trust, and nowhere she
+              would look when something was wrong (docs/NIELSEN.md N5). */}
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="px-3 py-2 text-[0.8rem] text-muted underline underline-offset-4 transition hover:text-ink"
+          >
+            Something wrong, or a question? Write to us
+          </a>
           {restarting ? (
             <div className="flex flex-col items-center gap-2.5">
               <p className="text-[0.85rem] leading-snug text-ink-soft text-pretty">
