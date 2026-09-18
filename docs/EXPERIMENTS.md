@@ -234,19 +234,26 @@ pass below forty a side.
 
 By learning value × business importance × whether it can run at all today.
 
-| # | Experiment | Learning value | Business importance | Runnable now | Build |
-|---|---|---|---|---|---|
-| **1** | **A1 instrument completion** | **High** — answers a question no store can answer today | **High** — top of every funnel; the wedge depends on the couple side | **Yes** | **One field** |
-| 2 | A2 vouch asked-vs-given | High | High — the only verification claimed | Yes | **Built** — the readout |
-| 3 | A4 family scripts confirmed | Medium | Medium-high | Yes, slowly | None |
-| 4 | A3 the guide's worth | Medium-high | Medium — the only live cost | Needs endings | None |
-| 5 | A5 willingness to pay | High | High — the whole model | No | Blocked by a promise |
-| 6 | A7 forty and forty is a market | High — the whole marketplace turns on it | Highest — the opening decision | Needs a full door | **Built** — `/pool` |
-| 7 | A8 the couple reaches men | High — the only loop to the scarce side | High — the flywheel's one referral | Needs endings | **Built** — the second share |
-| 8 | A9 the eleven through institutions | Medium — a channel, not a mechanism | Medium — the first distribution outside the rooms | Yes, once two placements are accepted | **Built** — the guide and its sample |
+| # | Experiment | Opportunity it tests (`docs/TREE.md`) | Learning value | Business importance | Runnable now | Build |
+|---|---|---|---|---|---|---|
+| **1** | **A1 instrument completion** | **O6** am I ready — will anyone answer sixteen questions about herself | **High** — answers a question no store can answer today | **High** — top of every funnel; the wedge depends on the couple side | **Yes** | **One field** |
+| 2 | A2 vouch asked-vs-given | **O7.2** my family's backing counting for something | High | High — the only verification claimed | Yes | **Built** — the readout |
+| 3 | A4 family scripts confirmed | **O3** the words for my family | Medium | Medium-high | Yes, slowly | None |
+| 4 | A3 the guide's worth | **O4.1, O4.2** carrying it alone | Medium-high | Medium — the only live cost | Needs endings | None |
+| 5 | A5 willingness to pay | Neither — a business question, not a person's | High | High — the whole model | No | Blocked by a promise |
+| 6 | A7 forty and forty is a market | **O5** nobody serious to meet | High — the whole marketplace turns on it | Highest — the opening decision | Needs a full door | **Built** — `/pool` |
+| 7 | A8 the couple reaches men | **O8** his side + O10 | High — the only loop to the scarce side | High — the flywheel's one referral | Needs endings | **Built** — the second share |
+| 8 | A9 the eleven through institutions | **O2** the conversations + the coordinator's own job | Medium — a channel, not a mechanism | Medium — the first distribution outside the rooms | Yes, once two placements are accepted | **Built** — the guide and its sample |
 
 Experiment 1 is the only one that is simultaneously high-value, wedge-critical,
 and impossible to answer today. It is the one that got built.
+
+**What the opportunity column shows** (added 2026-09-18, `docs/TREE.md`): the
+two experiments on the most dangerous opportunity — A6 and A8, on whether a man
+will show he is serious — both wait on traffic that has not arrived, and the
+only experiment runnable this week with no traffic at all is not in this table.
+It is the five sessions (`docs/RISKS.md` R1), which is why they are item 1 on
+the roadmap and every one of these waits behind them.
 
 **A6 · The door, for men** lives in `docs/MACHINE.md`, where the whole-machine
 read that produced it is. Its decision rule — four weeks of `?door&via=group`,

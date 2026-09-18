@@ -221,25 +221,44 @@ Two move *down*, against their own documents:
   phone is a honeypot behind a key the free plan cannot even mark as
   secret"* — while its foundations table still listed it. Struck.
 
-## The roadmap, reorganised
+## The roadmap, reorganised — by opportunity
 
-| # | Item | What it is, and what it waits on |
-|---|---|---|
-| **0** | **Post the link** | Ten connectors by name; `/tools/is-he-serious?via=group`, `/tools/is-she-serious?via=group` in men's rooms, `/tools/before-you-say-yes?via=group`, `/guides/before-you-say-yes?via=group` for a printable, and `/?door&via=group` for whoever is looking rather than talking — each `via` named for the kind of room (`alumni`, `professional`, `mosque`), which is what the eight-week pivot rule reads; the door's honest count posted weekly. `docs/WEDGE.md` steps 1–4. **Unblocked since 2026-09-12**, when `PREVIEW_PASSWORD` was deleted and the site opened; the `noindex` followed on 2026-09-13, and the tools and the guide have addresses of their own since 2026-09-17 (`docs/DEPLOY.md`, which also has the Search Console steps). This item now waits on nothing but the founder posting. Every line below waits on it |
-| **1** | **What must be true before strangers arrive** | The `kept` rung and the door's side question (**done**); mail on the domain; the price written down (**done**). None of it can be retrofitted onto traffic that has already come |
-| **2** | **Read what comes back** | A6 at four weeks; A1, A2, A4 at their thresholds; `docs/REDTEAM.md`'s three at their dates; then the monthly loop of `docs/OPERATING.md`. Six rules already written, waiting only for numbers |
-| **3** | **The first pool opens** | Minneapolis, one introduction at a time, with the introductions record in the same commit (`docs/HARD.md`). *Gate: `docs/ATOMIC.md` §6 — twenty active men and at least as many women, everyone with someone eligible and active, seven in ten answering, three of the first twenty introductions talking — read from `/pool` and the introductions record, and the founder's judgement* |
-| **4** | **Concierge, by hand** | The founder matchmaking the first ten. A service, deliberately not a build |
-| **5** | **The first-year sheet** | The marriage after the wedding, which nobody serves. *Gate: the first marriage* |
-| **6** | **Your record** | *Gate: the first member who asks, or the first pool* |
-| **7** | **Real backend** | *Gate: any store past ~50,000 keys* (`docs/SCALE.md`) |
+> Reorganised again on 2026-09-18, by `docs/TREE.md`: an outcome at the top,
+> the person's opportunities under it, and solutions only beneath those. The
+> feature-scored table above is how this file got here and stays as the record;
+> **this is the live order**, and `docs/PRODUCT.md` §10 mirrors it. Each item
+> names its layer — an experiment, a solution, or a subtraction — because a
+> list that mixes them cannot be prioritised.
 
-**What left the roadmap.** *"The door, for men"* was item 1; M0–M3 are
-shipped, so it is no longer a build — it is A6, inside item 2, which is what
-it actually is. *"Run the loop"* was item 0 and is now item 2, because a
-loop with nothing in it is not a first step. *Concierge* left as software
-and stayed as a service. *Live Claude behind the map* remains declined and
-test-enforced (`tests/durable.test.ts`).
+| # | Item | Layer | Opportunity it serves | Gate |
+|---|---|---|---|---|
+| **0** | **Post the link.** Ten connectors by name; the five catalogued URLs with a room-kind `via` (`docs/ASSETS.md` is the only place a URL is declared live), the door's honest count weekly. `docs/WEDGE.md` steps 1–4 | Experiment | Evidence for every opportunity | **Nothing.** Unblocked since 2026-09-12; the tools and guide have had their own addresses since 2026-09-17. Every line below waits on it |
+| **1** | **The five sessions**, read against `docs/JOBS.md`, on `docs/PROTOCOL.md`'s script | Experiment | O1, O2, O3, O6 — and question 4 fills the alternatives column for all ten | Recruiting only. The one experiment that runs with zero traffic (`docs/RISKS.md` R1) |
+| **2** | **What must be true before strangers arrive.** Mail on the domain; the Anthropic spend limit written into `docs/CONTROL.md`; `VITE_CONTACT_EMAIL` at an address someone reads | Solution, founder-side | O4.3 — her trust | Nothing. None of it retrofits onto traffic that has already come |
+| **3** | **Subtract.** The four decisions in `docs/TREE.md` — Plus, the sample and its invented people, the door's counting apparatus, and the ledger-as-social-proof hold | Subtraction | Frees attention from O5 and O7 | Item 1. `docs/PROTOCOL.md` forbids touching the door or the map mid-sprint |
+| **4** | **The situations become the front door.** The four moments and five hardest parts move ahead of the map. **No new component** — `src/data/moments.ts` and `src/data/hook.ts` already exist and render 43 taps in | Solution, relocation | O1, O3.1, O4.2, O8.1 | Item 1 |
+| **5** | **Ask three men what answering her eleven does for them** — A6 and A8's unrun half, inside item 1's sessions | Experiment | **O8.3**, the most dangerous gap (`docs/GAPS.md` gap 1) | Item 1 |
+| **6** | **Read what comes back.** A1, A2, A4 at their thresholds; A6 at four weeks; `docs/REDTEAM.md`'s three at their dates; then `docs/OPERATING.md`'s monthly loop | Experiment | O3, O6, O7, O8 | Items 0–1. Six rules already written, waiting only for numbers |
+| **7** | **The first pool opens.** Minneapolis, one introduction at a time, introductions record in the same commit (`docs/HARD.md`) | Solution | **O5** — the first time anything moves it | *`docs/ATOMIC.md` §6 — twenty active men and at least as many women, everyone with someone eligible and active, seven in ten answering, three of the first twenty introductions talking — read from `/pool` and the introductions record, and the founder's judgement* |
+| **8** | **Concierge, by hand** — the founder matchmaking the first ten | Service, deliberately not a build | O5 | Item 7 |
+| **9** | **The first-year sheet** — the eleven's engine over a second topic list | Solution | O10, and the married stage's only real job | The first marriage |
+| **10** | **Your record**; then **real backend** | Solution | O4.3; none | The first member who asks; any store past ~50,000 keys (`docs/SCALE.md`) |
+
+**What moved on 2026-09-18, and what did not.** The previous items 0, 1 and 2
+are now 0, 2 and 6; the previous 3–7 are now 7–10 in the same order, still
+pool-gated, nothing dropped. Two items are new *in kind and not in code*:
+**subtraction**, which no roadmap here has ever carried, and the
+**relocation**, which moves components that already exist. One item was
+promoted out of "read what comes back": the sessions, because they are the
+only experiment that needs no traffic, and every ranked gap in `docs/GAPS.md`
+waits on them.
+
+**What left the roadmap earlier.** *"The door, for men"* was item 1; M0–M3 are
+shipped, so it is no longer a build — it is A6, now item 5's other half.
+*"Run the loop"* was item 0 and is now item 6, because a loop with nothing in
+it is not a first step. *Concierge* left as software and stayed as a service.
+*Live Claude behind the map* remains declined and test-enforced
+(`tests/durable.test.ts`).
 
 ## What this audit says about itself
 
@@ -255,6 +274,13 @@ finding, not a shortfall.
 
 ## Revisions
 
+- 2026-09-18 — `docs/TREE.md`. The roadmap reorganised a second time, by
+  opportunity rather than by feature: one outcome, ten opportunities, solutions
+  only beneath them. No code, no new features. It found 2,623 lines on "am I
+  ready" against roughly fifty on how a man shows he is serious, four solutions
+  serving no opportunity at all, and 2,011 lines that count "there is nobody to
+  meet" without moving it. Subtraction entered the roadmap as an item for the
+  first time, gated on the sessions.
 - 2026-09-08 — First version. Nine tests defined; ~40 shipped features and
   166 proposals scored; the roadmap reorganised around posting the link.
   `card.ts` and the Home sample card deleted, the `kept` rung built, the

@@ -275,51 +275,62 @@ and of the close switch that can shut it again.
 
 ## 10. Roadmap
 
-Ordered by `docs/PROCESS.md`'s prioritisation — learning value, business
-importance, whether it can run at all today — and, since `docs/DURABLE.md`,
-by how close each item sits to the need that does not move: a compatible
-partner and a marriage that lasts. Not by convenience to build.
+Reorganised on 2026-09-18 by `docs/TREE.md`, which is the live order and the
+reasoning: one outcome (`followed-through` per hundred `arrived`), the person's
+opportunities beneath it, solutions only beneath those. `docs/ROADMAP.md`
+mirrors this table with the gates in full. Each item says which layer it is —
+an experiment, a solution, or a subtraction — because a list that mixes them
+cannot be prioritised, and because the previous nine versions of this list were
+made entirely of solutions.
 
-0. **Post the link.** Ten connectors by name, then `/?read&via=group`,
-   `/?eleven&via=group` and `/?door&via=group`, and the door's honest count
-   into the same rooms weekly — `docs/WEDGE.md` steps 1–4. It is not a build,
-   which is exactly why it was missing from this list for nine passes: every
-   item below waits on it, and it waits on nothing. `docs/ROADMAP.md`.
-1. **Everything that must be true before strangers arrive** — the `kept` rung
-   and the door's side question (both built), a mailbox on our own domain
-   (`docs/CONTROL.md`), and the price written into `docs/STRATEGY.md` as a
-   prediction. None of it can be added to traffic that has already come and
-   gone, which is the only reason any of it outranks reading the numbers.
-2. **Read what comes back** — A6 at four weeks; A1, A2 and A4 at their
-   thresholds; `docs/REDTEAM.md`'s three at their dates; then the monthly
-   loop of `docs/OPERATING.md`, within what `docs/LEARNING.md` allows. Six
-   decision rules, every one written before its build and none ever run. The
-   moat is the process, not the constants.
-3. **The first pool opens** — one introduction at a time, per §7, Minneapolis
+0. **Post the link.** Ten connectors by name, then the five catalogued URLs
+   with a room-kind `via` (`docs/ASSETS.md`), and the door's honest count into
+   the same rooms weekly — `docs/WEDGE.md` steps 1–4. An experiment, not a
+   build, which is exactly why it was missing from this list for nine passes:
+   every item below waits on it and it waits on nothing.
+1. **The five sessions** (`docs/RISKS.md` R1, `docs/PROTOCOL.md`), read
+   against `docs/JOBS.md`. The only experiment in the set that runs with zero
+   traffic, and the gate on every subtraction below. Promoted out of item 6,
+   where it was buried inside "read what comes back".
+2. **What must be true before strangers arrive** — a mailbox on our own
+   domain (`docs/CONTROL.md`), the Anthropic spend limit written down, and
+   `VITE_CONTACT_EMAIL` pointed at an address someone reads. None of it can be
+   added to traffic that has already come and gone.
+3. **Subtract** — the four decisions in `docs/TREE.md`: Plus, the sample
+   introduction and its invented people, the door's counting apparatus, and the
+   vouch held rather than cut. The first time subtraction has appeared on this
+   list. Gated on item 1, which `docs/PROTOCOL.md` requires.
+4. **The situations become the front door** — the four moments and the five
+   hardest parts ahead of the map. No new component: they exist and render 43
+   taps in, which is the single widest gap between where a person reaches for
+   help and where the product offers it.
+5. **Ask three men what answering her eleven does for them** — the unrun half
+   of A6 and A8, inside item 1's sessions. `docs/GAPS.md` gap 1 is the most
+   load-bearing unevidenced belief in the repository and has ~50 lines of
+   product against it.
+6. **Read what comes back** — A1, A2 and A4 at their thresholds; A6 at four
+   weeks; `docs/REDTEAM.md`'s three at their dates; then the monthly loop of
+   `docs/OPERATING.md`, within what `docs/LEARNING.md` allows. Six decision
+   rules, every one written before its build and none ever run. The moat is the
+   process, not the constants.
+7. **The first pool opens** — one introduction at a time, per §7, Minneapolis
    first, with the introductions record shipping in the same commit as the
-   pool-open flag (`docs/HARD.md`) and the sequencing `docs/SCALE.md` sets
-   out. The enduring need, made real.
-4. **Concierge, by hand** — the founder matchmaking the first ten couples.
-   The oldest durable form of this business and the one families already pay
-   for — and, since the free-year promise was bounded to what a member is
-   charged (`docs/BOARD.md` decision 0), the first honest revenue test — but a
-   *service*, not a build: a human matchmaker has a matchmaker's
-   margins, and software does not change that (`docs/ROADMAP.md`). It is also
-   the only test of willingness to pay the free-for-a-year promise permits.
-5. **The first-year sheet** — the one instrument the married stage is still
-   missing, and the thing the wedding gift sells. The eleven's engine over a
-   second topic list. Nobody serves the marriage after the wedding.
-6. **Your record** — everything this phone has sent, in Trust's words, with a
-   retract on each item. The visibility half of Forget me. Runnable today and
-   deliberately not first: nobody has asked for it, and Forget me already
-   delivers the substance.
-7. **Real backend** — auth, persistence, real verification, moderation and
-   reporting (safety is first-class). Buys durability rather than value, and
-   is blocked by scale.
+   pool-open flag (`docs/HARD.md`) and the sequencing `docs/SCALE.md` sets out.
+   The first thing that would actually move the largest opportunity in the
+   category: "there is nobody serious to meet".
+8. **Concierge, by hand** — the founder matchmaking the first ten couples. The
+   oldest durable form of this business and the one families already pay for,
+   and the only test of willingness to pay the free-year promise permits — but
+   a *service*, not a build.
+9. **The first-year sheet** — the eleven's engine over a second topic list.
+   Nobody serves the marriage after the wedding, and it is the married stage's
+   only job that is hers rather than ours.
+10. **Your record**, then **real backend** — the visibility half of Forget me;
+    then auth, persistence, moderation. Both buy durability rather than value.
 
-**Left this list.** *The door, for men* was item 1; M0–M3 are shipped, so it
-is no longer a build — it is A6, inside item 2. *Run the loop* was item 0 and
-is now item 2, because a loop with nothing in it is not a first step.
+**Left this list.** *The door, for men* was item 1; M0–M3 are shipped, so it is
+A6, now inside item 5. *Run the loop* was item 0 and is item 6, because a loop
+with nothing in it is not a first step.
 
 **Declined: live Claude behind the map.** It sat at 3 on this list for a long
 time, described as closing "the last local seam" — as though local were a
