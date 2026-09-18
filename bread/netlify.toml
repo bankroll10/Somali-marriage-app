@@ -1,0 +1,28 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+  functions = "netlify/functions"
+
+[build.environment]
+  # Vite 8 and TypeScript 6 need a modern Node; Netlify's default is older.
+  NODE_VERSION = "22"
+  # Every build tool is a devDependency. Under NODE_ENV=production `npm ci`
+  # prunes them and the build dies on "cannot find module".
+  NPM_FLAGS = "--include=dev"
+
+[functions]
+  node_bundler = "esbuild"
+  # The functions import from ../lib and ../../shared; esbuild follows those.
+  included_files = []
+
+# Friendly API paths. Stripe's webhook is configured against /api/stripe-webhook.
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# A single-page app: every other path is the app.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
