@@ -16,6 +16,7 @@ import type { RungId } from './rungs'
 import { VIAS, type Via } from './entry'
 import type { Facts } from './facts'
 import type { Gender } from '../types'
+import { ALPHABET, CODE_LENGTH } from './code'
 
 const ENDPOINT = '/.netlify/functions/progress'
 const TIMEOUT_MS = 8_000
@@ -49,12 +50,9 @@ export function rememberedVia(): Via | null {
   }
 }
 
-/** Same alphabet and length as netlify/functions/keep.ts — a different code. */
-const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
-const ID_LENGTH = 6
-
+/** Same alphabet and length as a map code (src/lib/code.ts) — a different code. */
 function newId(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(ID_LENGTH))
+  const bytes = crypto.getRandomValues(new Uint8Array(CODE_LENGTH))
   return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('')
 }
 

@@ -456,7 +456,7 @@ function Together({
       },
       'couple_shared',
     )
-    if (result !== 'cancelled') {
+    if (result !== 'cancelled' && result !== 'failed') {
       setShared(true)
       setTimeout(() => setShared(false), 2400)
     }

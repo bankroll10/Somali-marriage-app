@@ -447,10 +447,16 @@ function Result({
         </button>
 
         <details className="group/more rounded-card border border-line bg-white/50">
+          {/* The native marker is stripped, so the chevron is the only thing
+              saying this opens — and on a phone there is no hover to fall back
+              on (docs/NORMAN.md). Same affordance as Families uses. */}
           <summary className="cursor-pointer list-none px-5 py-4 text-[0.95rem] font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
             <span className="flex items-center justify-between gap-3">
               More you can do here
-              <span className="text-[0.8rem] font-normal text-muted group-open/more:hidden">Your guide, your family, a friend</span>
+              <span className="flex items-center gap-2.5">
+                <span className="text-[0.8rem] font-normal text-muted group-open/more:hidden">Your guide, your family, a friend</span>
+                <ArrowRight className="flex-none text-forest transition-transform group-open/more:rotate-90" />
+              </span>
             </span>
           </summary>
           <div className="flex flex-col gap-3 px-4 pb-4">
@@ -544,7 +550,10 @@ function Example({ gender, subject }: { gender: Gender; subject: string }) {
       <summary className="cursor-pointer list-none px-5 py-4 text-[0.95rem] font-medium text-ink marker:content-none [&::-webkit-details-marker]:hidden">
         <span className="flex items-center justify-between gap-3">
           See an example result
-          <span className="text-[0.8rem] font-normal text-muted group-open:hidden">What you get at the end</span>
+          <span className="flex items-center gap-2.5">
+            <span className="text-[0.8rem] font-normal text-muted group-open:hidden">What you get at the end</span>
+            <ArrowRight className="flex-none text-forest transition-transform group-open:rotate-90" />
+          </span>
         </span>
       </summary>
       <div className="border-t border-line px-5 pb-5 pt-4">

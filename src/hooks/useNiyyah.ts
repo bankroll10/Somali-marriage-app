@@ -18,11 +18,11 @@ import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
 import { factsFrom } from '../lib/facts'
-import { forgetMe } from '../lib/forget'
+import { forgetMe, type Forgotten } from '../lib/forget'
 import { coupleReading, readCouple } from '../lib/couple'
 import type { Entry, EntryKind } from '../lib/entry'
 import type { ToolSide } from '../data/tools'
-import { rememberedCode } from '../lib/keep'
+import { forgetCode, rememberedCode } from '../lib/keep'
 import { readVouch } from '../lib/vouch'
 import { defaultGuideUse, defaultTrust } from '../types'
 import { repliesLeft as budgetLeft } from '../lib/budget'
@@ -418,6 +418,13 @@ export function useNiyyah(entry: Entry | null = null) {
     setResumeIndex(0)
     setCoachThreads({})
     clearProgress()
+    // The code this phone remembers goes too. `clearProgress` only clears the
+    // saved state, so it used to survive — and KeepMap reads it straight from
+    // storage on mount, so a person who started over was shown "Your map is
+    // kept" under a code whose map she no longer had, and the next tap on
+    // "Keep this map" re-keyed that code, overwriting the real map with the
+    // empty one. Irreversibly, from one mis-tap (docs/NORMAN.md).
+    forgetCode()
     track('onboarding_started')
     setIdentityNext('situation')
     setScreen('identity')
@@ -428,10 +435,16 @@ export function useNiyyah(entry: Entry | null = null) {
    * effect in this hook can write anything back. Whoever opens the app next
    * on this phone is a stranger with a new code.
    */
-  async function forgetEverything() {
+  async function forgetEverything(): Promise<Forgotten> {
     track('forgotten')
-    await forgetMe()
-    window.location.replace('/')
+    const result = await forgetMe()
+    // The phone is wiped either way. The page is only replaced when every
+    // server delete actually landed: this used to discard the result and
+    // replace regardless, so a timed-out DELETE left her kept map on the
+    // server and showed her a stranger's app as proof it was gone — against
+    // the one promise this product is built on (docs/NORMAN.md).
+    if (result.map && result.progress && result.couple) window.location.replace('/')
+    return result
   }
 
   /**

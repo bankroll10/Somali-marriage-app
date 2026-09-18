@@ -44,8 +44,14 @@ export default function VouchRow({ vouch, onKept }: Props) {
       return
     }
     const result = await shareOrCopy({ text: ASK, url: withVia(vouchLink(token, SITE_URL), 'family') }, 'vouch_asked')
-    setAsking(result === 'cancelled' ? 'idle' : 'sent')
-    if (result !== 'cancelled') window.setTimeout(() => setAsking('idle'), 2600)
+    // 'failed' means the clipboard refused, so nothing is on its way — this
+    // must not claim otherwise.
+    if (result === 'cancelled' || result === 'failed') {
+      setAsking(result === 'failed' ? 'error' : 'idle')
+      return
+    }
+    setAsking('sent')
+    window.setTimeout(() => setAsking('idle'), 2600)
   }
 
   if (vouch) {

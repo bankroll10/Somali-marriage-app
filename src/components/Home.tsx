@@ -106,6 +106,7 @@ export default function Home({
   onAge,
   onHesitate,
 }: Props) {
+  const [restarting, setRestarting] = useState(false)
   const name = identity.firstName?.trim()
   const scene = getScene(identity.scene)
   // Once someone is deciding on a person — or married — the app has no business
@@ -145,7 +146,7 @@ export default function Home({
             Say it plainly — the alternative is a user losing their reflection
             and finding out tomorrow. */}
         {!saveOk && (
-          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-clay/40 bg-clay/[0.07] px-4 py-3.5">
+          <div role="status" className="mt-6 flex items-start gap-3 rounded-2xl border border-clay/40 bg-clay/[0.07] px-4 py-3.5">
             <LockGlyph className="mt-0.5 h-4 w-4 flex-none text-clay" />
             <p className="text-[0.86rem] leading-snug text-ink-soft text-pretty">
               <span className="font-medium text-ink">This browser isn’t saving your progress.</span>{' '}
@@ -522,12 +523,38 @@ export default function Home({
             </span>
             <ArrowRight className="h-3.5 w-3.5 text-gold transition-transform group-hover:translate-x-0.5" />
           </button>
-          <button
-            onClick={onRestart}
-            className="text-xs text-muted/70 underline-offset-4 transition hover:text-ink hover:underline"
-          >
-            Start over from the beginning
-          </button>
+          {/* The same destruction Trust guards behind two taps and a warning was
+              one tap here, on the faintest text on the screen, directly under
+              another link. Now it asks (docs/NORMAN.md). */}
+          {restarting ? (
+            <div className="flex flex-col items-center gap-2.5">
+              <p className="text-[0.85rem] leading-snug text-ink-soft text-pretty">
+                Start over? Your answers, your map and everything you have done here go from
+                this phone. This cannot be undone.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <button
+                  onClick={onRestart}
+                  className="rounded-full bg-clay px-5 py-2.5 text-[0.85rem] font-medium text-cream transition hover:opacity-90"
+                >
+                  Yes, start over
+                </button>
+                <button
+                  onClick={() => setRestarting(false)}
+                  className="px-2 py-2 text-[0.85rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+                >
+                  Keep it
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setRestarting(true)}
+              className="px-3 py-2 text-[0.8rem] text-muted underline underline-offset-4 transition hover:text-ink"
+            >
+              Start over from the beginning
+            </button>
+          )}
         </div>
       </main>
     </div>

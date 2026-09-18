@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { restoreMap } from '../lib/keep'
+import { restoreDetail, type RestoreProblem } from '../lib/keep'
+import { CODE_LENGTH, EXAMPLE_CODE, cleanCode } from '../lib/code'
 import { saveProgress } from '../lib/storage'
 import { track } from '../lib/analytics'
 import { Spinner, fieldClass } from './ui'
@@ -19,20 +20,35 @@ import { Spinner, fieldClass } from './ui'
 export default function RestoreMap() {
   const [open, setOpen] = useState(false)
   const [code, setCode] = useState('')
-  const [state, setState] = useState<'idle' | 'checking' | 'error'>('idle')
+  const [state, setState] = useState<'idle' | 'checking' | RestoreProblem>('idle')
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!code.trim() || state === 'checking') return
+    // Checked here, before anything is spent. A code of the wrong length was
+    // costing a network round trip and a second and a half to come back as
+    // "no map found", which is not what was wrong (docs/NORMAN.md).
+    if (code.length !== CODE_LENGTH) {
+      setState('not-a-code')
+      return
+    }
     setState('checking')
-    const snapshot = await restoreMap(code)
-    if (!snapshot) {
-      setState('error')
+    const result = await restoreDetail(code)
+    if (typeof result === 'string') {
+      setState(result)
       return
     }
     track('map_restored')
-    saveProgress(snapshot)
+    saveProgress(result)
     window.location.href = window.location.pathname
+  }
+
+  /** One sentence per reason, because the reasons want different things done. */
+  const problem: Record<RestoreProblem, string> = {
+    'not-a-code': `A code is ${CODE_LENGTH} characters, like ${EXAMPLE_CODE} — check for a missing one.`,
+    'not-found': 'No map is kept under that code. Check it against the one you saved — nothing here has been changed.',
+    expired: 'That code has lapsed. A kept map is held for a year after the last time it was kept, and this one is past that, so there is nothing left to bring back. Nothing on this phone has been changed.',
+    unreachable: 'We could not reach the map just now — that is us, not your code. Nothing has been changed; try again in a moment.',
   }
 
   if (!open) {
@@ -56,12 +72,21 @@ export default function RestoreMap() {
         <input
           id="restore-code"
           value={code}
-          onChange={(e) => setCode(e.target.value.toUpperCase())}
-          placeholder="ABC123"
+          // A forcing function, not a validation message: a code is built from
+          // an alphabet with no B, O, 0, I, 1 or S in it, chosen so nothing can
+          // be misread off a cracked screen — so those characters cannot be
+          // typed here either. The field used to accept every letter and digit,
+          // and the placeholder itself showed three that no code can contain.
+          onChange={(e) => {
+            setCode(cleanCode(e.target.value))
+            if (state !== 'idle' && state !== 'checking') setState('idle')
+          }}
+          placeholder={EXAMPLE_CODE}
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck={false}
-          maxLength={9}
+          inputMode="text"
+          maxLength={CODE_LENGTH}
           className={`w-full bg-cream/10 px-4 py-2.5 text-[1rem] tracking-[0.2em] text-cream placeholder:text-cream/30 ${fieldClass}`}
         />
         <button
@@ -72,10 +97,9 @@ export default function RestoreMap() {
           {state === 'checking' ? <Spinner /> : 'Restore'}
         </button>
       </div>
-      {state === 'error' && (
-        <p className="mt-2 text-[0.85rem] leading-snug text-gold-soft text-pretty">
-          No map found for that code. Check it and try again — nothing here has
-          been changed.
+      {state !== 'idle' && state !== 'checking' && (
+        <p role="status" className="mt-2 text-[0.85rem] leading-snug text-gold-soft text-pretty">
+          {problem[state]}
         </p>
       )}
     </form>

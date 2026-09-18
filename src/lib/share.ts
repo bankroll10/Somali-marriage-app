@@ -5,7 +5,7 @@ interface SharePayload {
   url?: string
 }
 
-export type ShareResult = 'shared' | 'copied' | 'cancelled'
+export type ShareResult = 'shared' | 'copied' | 'cancelled' | 'failed'
 
 /**
  * The platform's own share sheet on mobile, falling back to the clipboard on
@@ -18,7 +18,14 @@ export type ShareResult = 'shared' | 'copied' | 'cancelled'
  * No SDK, no pixel, no vendor — see docs/CONTROL.md and docs/DURABLE.md.
  *
  * Returns 'shared' when the sheet handled it, 'cancelled' if the user dismissed
- * it (we do nothing — no surprise copy), or 'copied' on the desktop fallback.
+ * it (we do nothing — no surprise copy), 'copied' on the desktop fallback, and
+ * 'failed' when the clipboard refused.
+ *
+ * That last one used to be 'copied' as well: the catch swallowed the rejection
+ * and control fell through to the same return, so six screens showed a tick and
+ * the word "Copied" when nothing had been copied. A confirmation that is
+ * sometimes false is worse than none, because it stops her checking
+ * (docs/NORMAN.md).
  */
 export async function shareOrCopy(payload: SharePayload, event: string): Promise<ShareResult> {
   track(event)
@@ -36,11 +43,15 @@ export async function shareOrCopy(payload: SharePayload, event: string): Promise
   }
 
   try {
-    await navigator.clipboard?.writeText(full)
+    if (!navigator.clipboard) return 'failed'
+    await navigator.clipboard.writeText(full)
+    return 'copied'
   } catch {
-    /* clipboard unavailable — nothing more we can do */
+    // Refused: no permission, an insecure context, or a browser that will not
+    // write outside a direct gesture. The words are on screen either way, and
+    // the caller says so rather than claiming a copy.
+    return 'failed'
   }
-  return 'copied'
 }
 
 /**

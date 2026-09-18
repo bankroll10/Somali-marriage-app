@@ -561,6 +561,7 @@ function inline(text: string) {
  */
 function GuideWords({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
+  const [copyFailed, setCopyFailed] = useState(false)
   const [sent, setSent] = useState(false)
   // The card holds ONLY the words inside the quotes; commentary follows below.
   const body = text.replace(/^Try:\s*/i, '')
@@ -576,14 +577,22 @@ function GuideWords({ text }: { text: string }) {
         <p className="mt-1.5 font-display text-[1.02rem] leading-relaxed text-ink">“{script}”</p>
         <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
           <button
-            onClick={() => {
-              navigator.clipboard?.writeText(script).catch(() => {})
-              setCopied(true)
-              window.setTimeout(() => setCopied(false), 2000)
+            onClick={async () => {
+              // Only on a copy that happened. This used to set it regardless,
+              // having caught the rejection (docs/NORMAN.md).
+              try {
+                if (!navigator.clipboard) throw new Error('no clipboard')
+                await navigator.clipboard.writeText(script)
+                setCopied(true)
+                window.setTimeout(() => setCopied(false), 2000)
+              } catch {
+                setCopyFailed(true)
+                window.setTimeout(() => setCopyFailed(false), 3000)
+              }
             }}
             className="text-[0.8rem] font-medium text-forest underline-offset-4 hover:underline"
           >
-            {copied ? '✓ Copied — make it yours before you send it' : 'Copy'}
+            {copied ? '✓ Copied — make it yours before you send it' : copyFailed ? 'Couldn’t copy — select the words above' : 'Copy'}
           </button>
           <button
             onClick={async () => {
