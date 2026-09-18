@@ -57,8 +57,27 @@ when the link is actually visible somewhere a stranger could find it.
 | 2026-09-17 | ICSA / Dar Al-Hijrah, Counseling & Family Services | phone, then email | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply | — |
 | 2026-09-17 | The Family & Youth Institute | contact form | N2 | `…/guides/before-you-say-yes?via=group` | sent, awaiting reply | — |
 | 2026-09-17 | Masjid Al-Israa, Fridley | email, nikah coordinator | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply | — |
+| 2026-09-18 | Abubakar As-Saddique Islamic Center, Minneapolis | email `aaic@abuubakar.org`, phone 612-871-8600 | **N2 + N2s attached**, N1c linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent | — |
 
-**One difference between these four, worth remembering when the replies come
+**Two corrections made to the 2026-09-18 shortlist before it was logged**, both
+worth keeping because the same two mistakes will recur:
+
+1. **The proposed link carried no `?via=`.** Every earlier placement carries
+   one, and `via` is the *only* attribution this product records
+   (`src/lib/entry.ts`). The shortlist's own measurement plan asks for
+   Minneapolis-area activation to be tracked separately — without `?via=mosque`
+   that is not a harder measurement, it is an impossible one. A link sent
+   without it produces an arrival indistinguishable from a stranger typing the
+   domain.
+2. **The shortlist called the interactive tool N2.** In this ledger **N1c** is
+   the interactive eleven at `/tools/before-you-say-yes` and **N2** is the
+   printable one at `/guides/before-you-say-yes`. They are different assets for
+   different readers, and the proposed surface — "instructions provided to
+   couples applying for marriage services" — is a packet a coordinator hands
+   over, which is what N2 and the one-page N2s exist for. N1c is linked inside
+   N2, so sending N2 loses nothing and gains the printable route.
+
+**One difference between the first four, worth remembering when the replies come
 in.** The first three carried the link alone. Masjid Al-Israa also carried the
 one-page sample as a PDF attachment, the version with the marking boxes. If
 Al-Israa answers and the others do not, the attachment is the first thing to
