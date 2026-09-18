@@ -101,8 +101,13 @@ export default function Door({
           <h1 className="animate-rise mt-2.5 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
             Nobody is introduced to anyone until both sides are here.
           </h1>
+          {/* The condition, then where it stands — two paragraphs, because as
+              one this was the longest block on the screen a stranger from a
+              mosque group lands on (docs/LOAD.md). */}
           <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
-            {opensWhen(scene && country ? pool : 'Each city')}{' '}
+            {opensWhen(scene && country ? pool : 'Each city')}
+          </p>
+          <p className="animate-rise mt-2.5 text-[0.98rem] leading-relaxed text-muted text-pretty">
             {scene && country ? (
               <DoorCount count={count} city={city} within={within} other={other} />
             ) : scene ? (
@@ -182,11 +187,20 @@ export default function Door({
             Count me in
             <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
           </button>
+          {/* What joining costs, then what it does not do. One 67-word block
+              under the only button on the screen (docs/LOAD.md); the same
+              words, in the order a person needs them. */}
           <p className="mt-3 text-[0.85rem] leading-relaxed text-muted text-pretty">
             {hasMap
               ? 'Your map is already here — being counted is one step from your space.'
-              : 'Being counted takes three answers — your practice, children, and what you won’t compromise on — kept under a code with no name on it, your age, and a way to reach you. No photos, no account. The rest of your map can wait. Nobody is introduced yet; if that changes here, this screen will say so, and the way to reach you goes to nobody else.'}
+              : 'Being counted takes three answers — your practice, children, and what you won’t compromise on — kept under a code with no name on it, your age, and a way to reach you. No photos, no account. The rest of your map can wait.'}
           </p>
+          {!hasMap && (
+            <p className="mt-2 text-[0.85rem] leading-relaxed text-muted text-pretty">
+              Nobody is introduced yet; if that changes here, this screen will say so, and the
+              way to reach you goes to nobody else.
+            </p>
+          )}
 
           {/* The one no this product records — the same word, from the same
               list, as the door card on Home. docs/GAPS.md. */}

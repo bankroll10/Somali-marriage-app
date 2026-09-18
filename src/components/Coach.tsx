@@ -8,6 +8,7 @@ import { nextId } from '../lib/id'
 import {
   ArrowRight,
   BackButton,
+  Disclose,
   CrescentGlyph,
   HeartGlyph,
   PenGlyph,
@@ -267,18 +268,29 @@ export default function Coach({
 
         <div className="mx-auto max-w-2xl px-5 py-9">
           <p className="animate-fade text-xs font-medium uppercase tracking-[0.22em] text-gold">
-            Choose your guide
+            Your guide
           </p>
           <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
-            Five guides. One you.
+            Start here.
           </h1>
           <p className="animate-rise mt-3 max-w-md text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-            Different moments need different wisdom. Pick the voice you need right
-            now — you can switch any time.
+            Different moments need different wisdom. This is the voice we’d open
+            for you — you can switch any time.
           </p>
 
-          <div className="mt-8 grid gap-3.5 sm:grid-cols-2">
-            {modes.map((m, i) => (
+          {/* One choice, not five.
+              Home has always said "You don't pick a guide — we read what you
+              said and open the right one" (Home.tsx), and this screen then
+              asked her to choose among five cards before she could ask
+              anything (docs/LOAD.md). `defaultModeFor` already computed the
+              answer and the screen already badged it "For you" — it simply
+              refused to act on it. Now the recommended voice is the thing on
+              screen, and the other four are one tap away, unchanged, which is
+              what "you can switch any time" already promised. */}
+          <div className="mt-8 grid gap-3.5">
+            {modes
+              .filter((m) => m.id === recommended)
+              .map((m, i) => (
               <button
                 key={m.id}
                 onClick={() => openMode(m.id)}
@@ -305,10 +317,44 @@ export default function Coach({
                   <span className="mt-1.5 block text-[0.88rem] leading-snug text-muted text-pretty">
                     {m.description}
                   </span>
-                </span>
+                  </span>
               </button>
             ))}
           </div>
+
+          <Disclose
+            summary="Or choose a different voice"
+            hint="Four others"
+            className="mt-3.5"
+          >
+            <div className="grid gap-3.5 sm:grid-cols-2">
+              {modes
+                .filter((m) => m.id !== recommended)
+                .map((m, i) => (
+                  <button
+                    key={m.id}
+                    onClick={() => openMode(m.id)}
+                    style={{ animationDelay: `${i * 50}ms` }}
+                    className="animate-rise group flex items-start gap-4 rounded-card border border-line bg-white/50 p-5 text-left transition-all duration-200 hover:border-forest/40 hover:bg-white hover:-translate-y-0.5"
+                  >
+                    <span
+                      className={`flex h-12 w-12 flex-none items-center justify-center rounded-2xl ${accentSoft[m.accent]} ${accentText[m.accent]}`}
+                    >
+                      <ModeGlyph id={m.glyph} />
+                    </span>
+                    <span className="min-w-0">
+                      <span className="font-display text-[1.15rem] font-medium text-ink">{m.label}</span>
+                      <span className={`mt-0.5 block text-[0.82rem] font-medium ${accentText[m.accent]}`}>
+                        {m.tagline}
+                      </span>
+                      <span className="mt-1.5 block text-[0.88rem] leading-snug text-muted text-pretty">
+                        {m.description}
+                      </span>
+                    </span>
+                  </button>
+                ))}
+            </div>
+          </Disclose>
         </div>
       </div>
     )

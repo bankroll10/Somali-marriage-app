@@ -12,7 +12,7 @@ import ScriptCard from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
-import { ArrowRight, Button, ScreenHeader } from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, Words } from './ui'
 
 interface Props {
   identity: Identity
@@ -332,34 +332,16 @@ function Result({
 
       <Together gender={gender} pronoun={pronoun} picked={picked} couple={couple} onCouple={onCouple} />
 
+      {/* Where she can go from here — one thing, and then a disclosure.
+          This screen offered eight next actions at once, under one heading,
+          at the moment a person has just been told which marriage
+          conversations she and he have never had (docs/LOAD.md). The read's
+          result had the same problem and was collapsed to three in
+          docs/VALUE.md; this is the same shape. Nothing is removed: the
+          primary is whichever of the two genuinely comes next, and the rest
+          are one tap away, named. */}
       <div className="mt-9 flex flex-col gap-3">
-        <button
-          onClick={() =>
-            onAskGuide(
-              `I just went through Before you say yes. ${result.headline} The one to open is ${result.open.label.toLowerCase()}. Help me think about how to raise it with ${pronoun}.`,
-            )
-          }
-          className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
-        >
-          <span className="flex-1">
-            <span className="font-display text-[1.15rem] font-medium text-ink">Talk it through with your guide</span>
-            <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">It already knows which conversations you’ve had.</span>
-          </span>
-          <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
-        </button>
-        <button
-          onClick={onOpenFamilies}
-          className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
-        >
-          <span className="flex-1">
-            <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
-            <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-              {familyScriptsLine(gender ?? 'woman')}
-            </span>
-          </span>
-          <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
-        </button>
-        {!hasMap && (
+        {!hasMap ? (
           <button
             onClick={onBuildMap}
             className="group flex items-center gap-4 rounded-card border border-gold/30 bg-gold/[0.07] p-5 text-left transition-all hover:-translate-y-0.5"
@@ -372,17 +354,69 @@ function Result({
             </span>
             <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
           </button>
+        ) : (
+          <button
+            onClick={onOpenFamilies}
+            className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
+          >
+            <span className="flex-1">
+              <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
+              <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                {familyScriptsLine(gender ?? 'woman')}
+              </span>
+            </span>
+            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+          </button>
         )}
-        <InviteRow
-          source="beforeYes"
-          gender={pronoun === 'him' ? 'woman' : 'man'}
-          title={pronoun === 'him' ? 'Send the eleven to a sister who’s deciding' : 'Send the eleven to a brother who’s deciding'}
-          body="Whose house, money home, a second wife — which ones they’ve had, and the words for the one that matters. No account."
-        />
 
-        <button onClick={onAgain} className="mt-1 self-start text-[0.85rem] font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline">
-          Go through it again
-        </button>
+        <Disclose summary="More you can do here" hint="Your guide, your family, a friend">
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() =>
+                onAskGuide(
+                  `I just went through Before you say yes. ${result.headline} The one to open is ${result.open.label.toLowerCase()}. Help me think about how to raise it with ${pronoun}.`,
+                )
+              }
+              className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
+            >
+              <span className="flex-1">
+                <span className="font-display text-[1.15rem] font-medium text-ink">Talk it through with your guide</span>
+                <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">It already knows which conversations you’ve had.</span>
+              </span>
+              <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+            </button>
+
+            {/* The one the primary slot did not take. */}
+            {!hasMap ? (
+              <button
+                onClick={onOpenFamilies}
+                className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
+              >
+                <span className="flex-1">
+                  <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
+                  <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                    {familyScriptsLine(gender ?? 'woman')}
+                  </span>
+                </span>
+                <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+              </button>
+            ) : null}
+
+            <InviteRow
+              source="beforeYes"
+              gender={pronoun === 'him' ? 'woman' : 'man'}
+              title={pronoun === 'him' ? 'Send the eleven to a sister who’s deciding' : 'Send the eleven to a brother who’s deciding'}
+              body="Whose house, money home, a second wife — which ones they’ve had, and the words for the one that matters. No account."
+            />
+
+            <button onClick={onAgain} className="mt-1 self-start text-[0.85rem] font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline">
+              Go through it again
+            </button>
+          </div>
+        </Disclose>
+
+        {/* This screen says the eleven, a read, your map and the door. */}
+        <Words ids={['eleven', 'read', 'map']} />
       </div>
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
@@ -398,7 +432,9 @@ function List({ title, items, tone }: { title: string; items: TopicReading[]; to
   const dot = tone === 'forest' ? 'bg-forest' : tone === 'clay' ? 'bg-clay' : 'bg-gold'
   return (
     <div className="animate-rise mt-7">
-      <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">{title}</p>
+      {/* A heading. 434 rendered words under one <h1> until 2026-09-18
+          (docs/LOAD.md). */}
+      <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted">{title}</h2>
       <ul className="mt-3 flex flex-col gap-2">
         {items.map((x) => (
           <li key={x.id} className="flex gap-2.5 text-[0.95rem] leading-snug text-ink-soft text-pretty">

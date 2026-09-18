@@ -1279,3 +1279,48 @@ level 4.2–5.5), recognition over recall, error recovery (after yesterday), and
 status visibility everywhere except the one hole above. The severity 2 queue is
 at the end of the document, in order, and was deliberately not touched.
 
+---
+
+## The cognitive-load pass, 2026-09-18 (docs/LOAD.md)
+
+**The headline is one screen.** Trust — the product's whole case for being
+trusted, and now the screen both public tools link to — was **2,366 rendered
+words over 7,941 px, nine phone screens, with two paragraphs of 562 and 536
+words and nothing collapsed**. It is **463 words and three and a half screens**
+now, and not one sentence was deleted: the six exceptions the screen already
+promises are six rows you open, and the closed hint on each is the answer. The
+three heaviest screens together went from 3,722 rendered words to 1,340.
+
+**The decision this pass rests on:** no word is cut. Every sentence on those
+screens matches a line of code that sends something or a promise we have to
+keep, so the burden was never the amount said — it was the amount said at once.
+`tests/load.test.ts` holds it: nine tests, including a word floor on Trust and
+six clauses a person is most entitled to find, so a later refactor cannot empty
+a disclosure in silence. A closed row looks identical whether it holds nine
+paragraphs or none, which is exactly why it needed a test.
+
+**A promise was being broken and nobody had noticed.** Home says *"You don't
+pick a guide — we read what you said and open the right one."* The guide then
+showed five cards and asked her to choose, with the recommended one already
+computed and already badged "For you". It now opens that voice; the other four
+are behind one row.
+
+**Profile was asking for four things at once** — answer whose house you would
+live in, weigh a price, invite someone, and join the door — under a single
+heading, on the screen that tells her what would decide who she marries. The
+price, the invite and the door are behind one row now; 691 words became 344.
+
+**Two measurements were thrown away and both are recorded**, because they are
+the easy ways to get an audit like this wrong: a static source scan reported
+Trust's longest paragraph as 2,735 words (it was a code comment), and
+`getBoundingClientRect` does not exclude content inside a closed `<details>` in
+this Chromium build, which made a first pass report Profile as unchanged at 24
+controls. `innerText` and `checkVisibility()` are the honest instruments. Both
+columns of every number in `docs/LOAD.md` come from the same probe run against
+two builds — `origin/main` in a worktree, and this branch.
+
+**One screen was left alone on the evidence.** The reflection is the largest
+value screen in the product at ~928 words and it already had eight sections
+with real headings, so it got the glossary and no restructuring. The pull in a
+pass like this is to find something wrong with every screen in the brief; the
+measurement said this one was already right.

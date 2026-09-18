@@ -34,9 +34,14 @@ export const COHORT_TARGET = 40
  * she was promised and be told it was not open. So the sentence is the
  * condition, and forty is named as the first mark, not the promise
  * (docs/BOARD.md, decision 2).
+ *
+ * Two sentences since 2026-09-18. As one they were a thirty-two-word clause
+ * chain ending in three qualifiers, and it was the longest paragraph on the
+ * door — the screen a stranger from a mosque group lands on (docs/LOAD.md).
+ * The condition first, what the condition means second. Same words.
  */
 export function opensWhen(pool: string): string {
-  return `${pool} opens when ${COHORT_TARGET} women and ${COHORT_TARGET} men here can each be introduced to someone — counted, reachable, and fitting at least one person on the other side.`
+  return `${pool} opens when ${COHORT_TARGET} women and ${COHORT_TARGET} men here can each be introduced to someone. That means counted, reachable, and fitting at least one person on the other side.`
 }
 
 export interface SideCount {

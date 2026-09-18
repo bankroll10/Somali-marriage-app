@@ -1,4 +1,5 @@
-import { BackButton, Button, GeoBackdrop, Logo, ArrowRight } from './ui'
+import { BackButton, Button, Disclose, GeoBackdrop, Logo, ArrowRight } from './ui'
+import { LEXICON } from '../data/lexicon'
 
 interface Props {
   onBack: () => void
@@ -55,41 +56,6 @@ const creed = [
   'You want your family in the room — not managing you from outside it.',
   'You have stopped performing for people who were never going to choose you.',
   'You are willing to hear the part about yourself you would rather not hear.',
-]
-
-/**
- * The words this product already uses, collected and defined.
- *
- * These aren't invented jargon — every one of them is live in the app. Writing
- * them down is what turns private product nouns into language members share
- * with each other, and it makes the whole thing legible as one system instead
- * of a pile of screens.
- */
-const lexicon = [
-  {
-    term: 'Your map',
-    body: 'The reading you get at the end of the reflection. Not a score of you as a person — the ground you are standing on.',
-  },
-  {
-    term: 'A reading',
-    body: 'One dated map. You will have several. The distance between them is the whole point.',
-  },
-  {
-    term: 'Your ground',
-    body: 'The seven things a marriage stands on. Everyone is thin somewhere; the map just says where.',
-  },
-  {
-    term: 'The work',
-    body: 'One honest thing, taken on and done. Nothing is scored — doing it changes your answers, and your answers are the map.',
-  },
-  {
-    term: 'The mirror',
-    body: 'The part of your map you would rather not read. It is the reason to trust the rest of it.',
-  },
-  {
-    term: 'Your space',
-    body: 'Where you land when something happens: what happened, what you are working on, and where you are. Not a feed, and not a reason to come back.',
-  },
 ]
 
 const principles = [
@@ -286,7 +252,16 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
         </section>
 
         {/* The vocabulary, written down. Shared words are what make a group a
-            group; these are already the app's own, just never taught. */}
+            group; these are already the app's own, just never taught.
+
+            Closed since 2026-09-18. The list grew from six terms to thirteen
+            when it became src/data/lexicon.ts, and this screen — which renders
+            all of them — went from 665 rendered words to 867 as a result
+            (docs/LOAD.md). A glossary is reference material: it belongs on the
+            screen, and it does not belong in the way of the argument the rest
+            of this page is making. It is also now shown *beside the words it
+            defines*, on the map, the read, the eleven and the profile, which
+            is where somebody actually wonders. */}
         <section className="mb-12">
           <h3 className="mb-2 text-xs font-medium uppercase tracking-[0.2em] text-muted">
             The words we use
@@ -294,20 +269,18 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
           <p className="mb-5 max-w-lg text-[0.95rem] leading-relaxed text-muted text-pretty">
             You’ll see these everywhere in here. They mean something specific.
           </p>
-          <dl className="space-y-3">
-            {lexicon.map((l, i) => (
-              <div
-                key={l.term}
-                className="animate-rise rounded-card border border-line bg-white/50 p-5"
-                style={{ animationDelay: `${i * 40}ms` }}
-              >
-                <dt className="font-display text-[1.1rem] font-medium text-ink">{l.term}</dt>
-                <dd className="mt-1 text-[0.92rem] leading-relaxed text-muted text-pretty">
-                  {l.body}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          <Disclose summary="Every word we use, defined" hint={`${LEXICON.length} of them`}>
+            <dl className="space-y-3.5">
+              {LEXICON.map((l) => (
+                <div key={l.term}>
+                  <dt className="font-display text-[1.1rem] font-medium text-ink">{l.term}</dt>
+                  <dd className="mt-1 text-[0.92rem] leading-relaxed text-muted text-pretty">
+                    {l.body}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Disclose>
         </section>
 
         <div className="flex flex-col items-center gap-3 text-center">
