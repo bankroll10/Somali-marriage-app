@@ -2,7 +2,8 @@ import pg from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { fixedClock } from '../shared/clock.ts'
 import type { Qty } from '../shared/types.ts'
-import { createApp } from '../netlify/lib/app.ts'
+import { createApp, zelleTerms } from '../netlify/lib/app.ts'
+import { fakeStripe } from './fakeStripe.ts'
 import { poolDb, type Db } from '../netlify/lib/db/client.ts'
 import { applyMigrations } from '../netlify/lib/db/migrate.ts'
 import { listProducts, reserve } from '../netlify/lib/inventory.ts'
@@ -35,7 +36,7 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
 
   it('twenty buyers on ten connections for three loaves: three win, no errors, ledger exact', async () => {
     const products = await listProducts(db)
-    const results = await Promise.all(Array.from({ length: 20 }, (_, i) => reserve(db, cart({ sourdough: 1, banana: 1 }, i), products, fixedClock(NOW))))
+    const results = await Promise.all(Array.from({ length: 20 }, (_, i) => reserve(db, cart({ sourdough: 1, banana: 1 }, i), products, fixedClock(NOW), zelleTerms(NOW))))
     expect(results.filter((r) => r.ok)).toHaveLength(3)
     expect(results.filter((r) => !r.ok && r.reason === 'sold_out')).toHaveLength(17)
     const rows = (await db.query('SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id', [WED])).rows
@@ -47,7 +48,7 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
   })
 
   it('a reservation waits for whoever holds the date, then proceeds', async () => {
-    const app = createApp({ db, clock: fixedClock(NOW) })
+    const app = createApp({ db, clock: fixedClock(NOW), gateway: fakeStripe().gateway })
     const holder = await pool.connect()
     await holder.query('BEGIN')
     await holder.query('INSERT INTO pickup_dates (date) VALUES ($1::date) ON CONFLICT DO NOTHING', [WED])
@@ -70,7 +71,7 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
 
   it('a client that dies mid-transaction leaves nothing behind', async () => {
     const products = await listProducts(db)
-    await reserve(db, cart({ sourdough: 1 }, 0), products, fixedClock(NOW))
+    await reserve(db, cart({ sourdough: 1 }, 0), products, fixedClock(NOW), zelleTerms(NOW))
     const dying = await pool.connect()
     await dying.query('BEGIN')
     await dying.query('SELECT date FROM pickup_dates WHERE date = $1::date FOR UPDATE', [WED])

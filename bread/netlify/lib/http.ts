@@ -19,6 +19,13 @@ export async function readJson<T>(req: Request, maxBytes = 8_000): Promise<T | R
   }
 }
 
+/** Where the site lives, for Stripe's return URLs: Netlify's URL when set, else the request's origin. */
+export function siteOrigin(req: Request): string {
+  const origin = new URL(req.url).origin
+  if (/^https?:\/\/(localhost|127\.0\.0\.1)/.test(origin)) return process.env.URL || origin
+  return origin
+}
+
 /** The one place environment is read, so tests can set it and docs can list it. */
 export const env = {
   get adminPassword() {

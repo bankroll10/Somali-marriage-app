@@ -19,5 +19,5 @@ export default async function handler(req: Request): Promise<Response> {
       return error('database_not_configured', 503)
     }
   }
-  return app.admin(req)
+  return app.cancelCheckout(req)
 }

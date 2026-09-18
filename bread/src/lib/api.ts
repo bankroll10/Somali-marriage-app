@@ -35,6 +35,9 @@ export const startCheckout = (req: CheckoutRequest) =>
 
 export const getOrder = (orderId: string) => call<OrderSummary>(`/api/order?order=${encodeURIComponent(orderId)}`)
 
+/** The customer backed out of Stripe's page: end the session there, then let the server release on Stripe's word. */
+export const cancelCheckout = (orderId: string) => call<{ state: string }>(`/api/cancel?order=${encodeURIComponent(orderId)}`, { method: 'POST' })
+
 const bearer = (password: string) => ({ authorization: `Bearer ${password}` })
 
 export const adminList = (password: string, range?: { from: string; to: string }) =>

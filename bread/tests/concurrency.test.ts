@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { fixedClock } from '../shared/clock.ts'
 import type { Qty } from '../shared/types.ts'
-import { createApp } from '../netlify/lib/app.ts'
+import { createApp, zelleTerms } from '../netlify/lib/app.ts'
+import { fakeStripe } from './fakeStripe.ts'
 import type { Db } from '../netlify/lib/db/client.ts'
 import { listProducts, reserve } from '../netlify/lib/inventory.ts'
 import { assertLedger, freshDb } from './db.ts'
@@ -27,7 +28,7 @@ const cart = (qty: Partial<Qty>, i: number) => ({ date: WED, qty: { sourdough: 0
 describe('concurrent purchases', () => {
   it('ten buyers for three loaves: exactly three win', async () => {
     const products = await listProducts(db)
-    const results = await Promise.all(Array.from({ length: 10 }, (_, i) => reserve(db, cart({ sourdough: 1, banana: 0 }, i), products, fixedClock(NOW))))
+    const results = await Promise.all(Array.from({ length: 10 }, (_, i) => reserve(db, cart({ sourdough: 1, banana: 0 }, i), products, fixedClock(NOW), zelleTerms(NOW))))
     expect(results.filter((r) => r.ok)).toHaveLength(3)
     expect(results.filter((r) => !r.ok && r.reason === 'sold_out')).toHaveLength(7)
     const row = (await db.query("SELECT committed FROM date_inventory WHERE date = $1::date AND product_id = 'sourdough'", [WED])).rows[0]
@@ -37,7 +38,7 @@ describe('concurrent purchases', () => {
 
   it('ten mixed carts: three whole carts win, and the plentiful product is never over-taken by the losers', async () => {
     const products = await listProducts(db)
-    const results = await Promise.all(Array.from({ length: 10 }, (_, i) => reserve(db, cart({ sourdough: 1, banana: 1 }, i), products, fixedClock(NOW))))
+    const results = await Promise.all(Array.from({ length: 10 }, (_, i) => reserve(db, cart({ sourdough: 1, banana: 1 }, i), products, fixedClock(NOW), zelleTerms(NOW))))
     expect(results.filter((r) => r.ok)).toHaveLength(3)
     const rows = (await db.query('SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id', [WED])).rows
     expect(rows).toEqual([
@@ -47,7 +48,7 @@ describe('concurrent purchases', () => {
   })
 
   it('through the HTTP handler, with the last loaf contested by carts of different sizes', async () => {
-    const app = createApp({ db, clock: fixedClock(NOW) })
+    const app = createApp({ db, clock: fixedClock(NOW), gateway: fakeStripe().gateway })
     const post = (body: unknown) => app.checkout(new Request('https://bread.example/api/checkout', { method: 'POST', body: JSON.stringify(body) }))
     const sizes = [2, 2, 1, 3, 1, 1, 2]
     const responses = await Promise.all(sizes.map((n, i) => post(cart({ sourdough: n }, i))))

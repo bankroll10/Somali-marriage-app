@@ -61,6 +61,20 @@ export const WEEKS_AHEAD = 4
 export const PAYMENT_HOLD_HOURS = 3
 
 /**
+ * Card checkout (Stripe-hosted). Stripe cannot make a session shorter than
+ * 30 minutes, and payment must be complete by the displayed ordering
+ * deadline, so card checkout must START at least this many minutes before
+ * the cutoff (the extra two absorb clock skew between us and Stripe). The
+ * session then expires at the cutoff or after SESSION_MINUTES, whichever is
+ * sooner, never below SESSION_MIN_MINUTES.
+ */
+export const CARD_CHECKOUT_LEAD_MINUTES = 32
+export const SESSION_MINUTES = 45
+export const SESSION_MIN_MINUTES = 31
+/** How long after a session's own expiry we wait before asking Stripe whether it really is dead. */
+export const STRIPE_HOLD_MARGIN_MINUTES = 10
+
+/**
  * Where customers send payment, and the name to expect it from. ZELLE_NAME is
  * still a placeholder — fill it in with her real name as it appears on Zelle
  * before this goes live, or every order page will show a fake one.

@@ -4,7 +4,7 @@ import { normalisePhone } from '../../shared/phone.ts'
 import type { DayAvailability, Qty } from '../../shared/types.ts'
 import { zeroQty } from '../../shared/types.ts'
 import { addDays, formatInstant, formatYmd, weekdayOf, ymdInZone } from '../../shared/zoned.ts'
-import { ApiError, getAvailability, startCheckout } from '../lib/api.ts'
+import { ApiError, cancelCheckout, getAvailability, startCheckout } from '../lib/api.ts'
 import { PICKUP_LINE, PICKUP_PREFERRED } from '../lib/format.ts'
 import { Button, Field, Notice, Page, Section, Spinner, Title, inputClass } from './ui.tsx'
 
@@ -14,8 +14,17 @@ const ERRORS: Record<string, string> = {
   sold_out: 'Sorry — that just sold out for the date you picked. The list below is fresh; choose another date.',
   blocked: 'That date is no longer available. Please pick another.',
   closed: 'Orders for that date have closed. Please pick another.',
+  closing_soon: 'Card payment for that date has closed — payment has to be complete by the deadline, and the payment page needs 30 minutes. Please pick another date.',
+  payments_not_configured: 'Card payment is not switched on yet. Please check back soon.',
+  payment_unavailable: 'Your bread is reserved, but the payment page could not be opened just now. Nothing was charged — tap Pay again in a moment.',
   offline: 'Could not reach the server. Check your connection and try again.',
   busy: 'Very busy right now — please try again in a moment.',
+}
+
+/** Stripe sends a customer who backs out of its page to /?canceled=<order id>. */
+function readCanceled(): string | null {
+  const id = new URLSearchParams(window.location.search).get('canceled')
+  return id && /^[0-9a-f-]{32,36}$/i.test(id) ? id : null
 }
 
 function weekLabel(date: string, today: string): string {
@@ -28,6 +37,7 @@ function weekLabel(date: string, today: string): string {
 }
 
 export default function Order() {
+  const [canceled] = useState(readCanceled)
   const [load, setLoad] = useState<Load>({ state: 'loading' })
   const [qty, setQty] = useState<Qty>(zeroQty)
   const [date, setDate] = useState<string | null>(null)
@@ -35,7 +45,9 @@ export default function Order() {
   const [phone, setPhone] = useState('')
   const [touched, setTouched] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [message, setMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(null)
+  const [message, setMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(
+    canceled ? { tone: 'info', text: 'No payment was made. Your reservation is being released — order again whenever you like.' } : null,
+  )
 
   // One key per distinct attempt: a retried request replays the same
   // reservation instead of making a second one, but editing the cart makes
@@ -58,7 +70,14 @@ export default function Order() {
   }
 
   useEffect(() => {
-    refresh()
+    if (canceled) {
+      window.history.replaceState(null, '', '/')
+      // Backing out is not proof the payment cannot still land: the server
+      // ends the session at Stripe and releases only on Stripe's word.
+      cancelCheckout(canceled).catch(() => {}).finally(refresh)
+    } else {
+      refresh()
+    }
     // Counts go stale while the tab is in the background; re-read them when
     // the customer comes back to it.
     const onVisible = () => {
@@ -70,7 +89,7 @@ export default function Order() {
       document.removeEventListener('visibilitychange', onVisible)
       window.removeEventListener('focus', onVisible)
     }
-  }, [])
+  }, [canceled])
 
   const days = load.state === 'ready' ? load.days : []
   // A chosen date that has since closed or been blocked is no choice at all.
@@ -131,19 +150,20 @@ export default function Order() {
     }
     try {
       const checkoutKey = keyFor(JSON.stringify({ date: selected.date, qty, name: name.trim(), phone }))
-      const { orderId } = await startCheckout({ date: selected.date, qty, name: name.trim(), phone, checkoutKey })
-      window.location.assign(`/thanks?order=${orderId}`)
+      const { orderId, url } = await startCheckout({ date: selected.date, qty, name: name.trim(), phone, checkoutKey })
+      // Stripe's hosted page takes the card; this site never sees it.
+      window.location.assign(url ?? `/thanks?order=${orderId}`)
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'offline'
-      setMessage({ tone: 'error', text: ERRORS[code] ?? 'Something went wrong. Please try again.' })
+      setMessage({ tone: 'error', text: ERRORS[code] ?? 'Something went wrong. Nothing was charged — please try again.' })
       setSubmitting(false)
-      if (code === 'sold_out' || code === 'blocked' || code === 'closed') refresh()
+      if (code === 'sold_out' || code === 'blocked' || code === 'closed' || code === 'closing_soon') refresh()
     }
   }
 
   return (
     <Page>
-      <Title kicker="Pre-order · pay by Zelle · pick up" sub={<>Baked to order. Pick up {PICKUP_LINE} on Mondays, Wednesdays and Thursdays — {PICKUP_PREFERRED}.</>}>
+      <Title kicker="Pre-order · pay now · pick up" sub={<>Baked to order. Pick up {PICKUP_LINE} on Mondays, Wednesdays and Thursdays — {PICKUP_PREFERRED}.</>}>
         {SHOP_NAME}
       </Title>
 
@@ -219,8 +239,9 @@ export default function Order() {
           </Field>
         </div>
         <p className="mt-4 text-[13px] leading-relaxed text-cocoa-soft">
-          Reserving holds your bread. You'll get her Zelle details on the next page — your bread is confirmed once
-          she's received your payment.
+          Tapping Pay holds your bread and opens a secure Stripe payment page for your card. Apple Pay or Google
+          Pay appear there on phones and browsers that support them. Your order is confirmed the moment the payment
+          goes through.
         </p>
       </Section>
 
@@ -231,7 +252,7 @@ export default function Order() {
             <p className="font-display text-[22px] font-semibold leading-tight text-cocoa">{formatMoney(total)}</p>
           </div>
           <Button onClick={reserve} disabled={submitting || load.state !== 'ready'} className="shrink-0 px-6">
-            {submitting ? 'Reserving…' : total > 0 ? `Reserve — ${formatMoney(total)}` : 'Reserve'}
+            {submitting ? 'Opening payment…' : total > 0 ? `Pay ${formatMoney(total)}` : 'Pay'}
           </Button>
         </div>
       </div>

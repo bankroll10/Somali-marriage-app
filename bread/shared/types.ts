@@ -30,8 +30,11 @@ export interface DayRecord {
  */
 export type OrderStatus = 'reserved' | 'paid' | 'expired' | 'cancelled'
 
+export type PaymentProvider = 'zelle' | 'stripe'
+
 export interface Order {
   id: string
+  provider: PaymentProvider
   date: string
   name: string
   /** Ten digits, as typed by a US customer with the formatting stripped. */
@@ -84,6 +87,8 @@ export interface CheckoutResponse {
   zelle: { name: string; handle: string }
   /** True when this request repeated an earlier one and no new bread was reserved. */
   replayed: boolean
+  /** Stripe's hosted payment page for this order. Absent for Zelle. */
+  url?: string
 }
 
 /** A product as the server sells it — the browser displays these, the server never trusts the browser's copy. */
@@ -104,12 +109,28 @@ export interface OrderSummary {
   qty: Qty
   amountCents: number
   status: OrderStatus
+  provider: PaymentProvider
+  /** For a card order that is still reserved: Stripe has not yet confirmed either way. */
+  checking: boolean
+  /** A payment arrived that needs her attention before the order can be confirmed. */
+  attention: boolean
   holdExpiresAt: string
   zelle: { name: string; handle: string }
 }
 
+export interface PaymentException {
+  id: number
+  orderId: string
+  sessionId: string | null
+  kind: string
+  detail: Record<string, unknown>
+  createdAt: string
+}
+
 export interface AdminOrder extends Order {
   shortId: string
+  /** Open payment exceptions on this order. */
+  exceptions: PaymentException[]
 }
 
 export interface AdminDay {
@@ -132,6 +153,7 @@ export type AdminAction =
   | { action: 'pickedUp'; orderId: string; pickedUp: boolean }
   | { action: 'markPaid'; orderId: string; force?: boolean }
   | { action: 'cancel'; orderId: string }
+  | { action: 'resolveException'; orderId: string; exceptionId: number }
 
 export function zeroQty(): Qty {
   return { sourdough: 0, banana: 0 }

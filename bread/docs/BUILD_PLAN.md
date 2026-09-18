@@ -31,9 +31,14 @@ from here.
   `hold_expires_at`, `checkout_key UNIQUE` (a browser-made v4 UUID per attempt; a retry replays),
   `forced`, `seq` for arrival order.
 - `order_items` — quantity and `unit_price_cents` **snapshotted** at reservation.
-- `payment_references` — `provider (zelle|stripe)`, `external_id`, `idempotency_key`, status
-  `pending | succeeded | failed | expired`, `amount_cents`, `confirmed_by`. Partial unique indexes: at
-  most one pending and one succeeded per order. `UNIQUE (provider, external_id)`.
+- `payment_references` — `provider (zelle|stripe)`, `external_id` (the Stripe session id),
+  `idempotency_key`, status `pending | succeeded | failed | expired`, `amount_cents`,
+  `confirmed_by`, `session_expires_at`, `payment_intent_id`, `last_checked_at`, `livemode`. Partial
+  unique indexes: at most one pending and one succeeded per order. `UNIQUE (provider, external_id)`.
+- `orders.provider` (`zelle | stripe`) — which lifecycle a reservation follows.
+- `payment_exceptions` — a Stripe payment that does not match what was sold, or arrived for stock
+  already released; stock is preserved until the owner resolves it.
+- `webhook_events` — a log of verified deliveries (idempotency does not depend on it).
 - `reservations` — a **view** over `orders WHERE status = 'reserved'`: the temporary reservation as
   its own entity, with no second table that could drift.
 
@@ -80,21 +85,82 @@ refs    pending ──▶ succeeded | failed | expired            ≤1 pending, 
 invariants  paid ⇔ ∃ succeeded ref · committed(d,p) = Σ qty of orders(d) in {reserved, paid} · committed ≤ capacity + overflow
 ```
 
-## Stripe contract (for the next stage; nothing here is built)
+## Stripe Checkout (built)
 
-- `reserve` also writes `payment_references(stripe, external_id NULL, idempotency_key = order id,
-  pending)`. **After commit**, the function creates a Checkout Session with that idempotency key,
-  `expires_at = hold_expires_at − 15 min`, `metadata.order_id`, then writes `external_id`.
-- Any failure or crash between the commit and that write leaves the order `reserved` with its
-  stock held. Recovery is not a lookup: the "pay" button re-issues the identical create with the
-  same idempotency key and Stripe replays the same session (24 h). A retry after a *failed* create
-  opens a new reference with key `<id>:2`; the partial index keeps one pending per order.
-- Hold expiry ≥ session expiry + margin, so stock is never released while a session can succeed.
-- Webhook `checkout.session.completed` → `markPaid(force = true)` (money was taken), deduplicated
-  by a `webhook_events(id PRIMARY KEY)` table; `checkout.session.expired` → reference `expired` +
-  `cancel`. Both are existing transitions.
-- Needs from her: a Stripe account, secret key and webhook signing secret in Netlify env, and the
-  ~2.9 % + 30 ¢ fee accepted.
+Facts this stage relies on, read from the Stripe SDK's embedded API reference (stripe 22.6.2,
+OpenAPI v2442; docs.stripe.com is unreachable from the build sandbox): a Checkout Session's
+`expires_at` must be 30 minutes to 24 hours after creation; `payment_method_types: ['card']`
+restricts the session to cards, with Apple Pay and Google Pay offered on that where the browser is
+eligible, and keeps every delayed-settlement method out; Checkout asks the customer for an email
+unless one is prefilled; phone collection is off unless requested; `sessions.expire()` succeeds
+only while the session is `open`, after which the customer cannot complete it;
+`client_reference_id` and `metadata` carry our order id; `webhooks.constructEventAsync(rawBody,
+signature, secret)` verifies deliveries.
+
+**Decisions.** Stripe-hosted Checkout; test mode throughout development; customers pay by card
+(wallets where eligible; no wallet button of our own); Zelle stays only as the admin's manual
+"Mark paid"; the strict deadline rule below. Apple Pay on Stripe-hosted Checkout needs no domain
+registration (it is Stripe's domain); it appears on Safari on iOS/macOS with a card in Wallet and
+the wallet enabled under Dashboard → Payment methods, and it cannot be forced.
+
+**Deadline rule — for Biz's confirmation before launch.** Payment must be complete by the
+displayed ordering deadline (48 elapsed hours before the 5 PM shift). Stripe cannot make a session
+shorter than 30 minutes, so **card checkout must start at least 32 minutes before the deadline**
+(`CARD_CHECKOUT_LEAD_MINUTES`; the extra two absorb clock skew), and the session is set to expire
+at the deadline or after 45 minutes, whichever is sooner (`SESSION_MINUTES`, floor
+`SESSION_MIN_MINUTES = 31`). Inside the last 32 minutes the date shows as closed and `checkout`
+answers `closing_soon`. No late order can be accepted, because Stripe itself refuses the session
+after its expiry. *Alternative not built:* a grace period in which a session started before the
+deadline runs its full 30 minutes, so a payment could land up to 30 minutes after the displayed
+deadline. Biz chose the strict rule; the grace period is one constant away if she prefers it.
+
+### Lifecycle (`netlify/lib/stripe/payments.ts`, gateway in `stripe/gateway.ts`)
+
+1. **checkout** — validate; `closing_soon` per the rule above; `reserve(provider: 'stripe')` writes
+   a pending `payment_references` row with `idempotency_key = order id`, `session_expires_at`, and
+   `hold_expires_at = session expiry + 10 min` (a hint of when to ask Stripe, never a release
+   time); commit. Then `ensureSession`: the Checkout Session is built **only from database rows**
+   (snapshotted `unit_price_cents`, stored expiry, order id) so every retry sends Stripe the same
+   create under the same key and gets the same session; `mode: 'payment'`,
+   `payment_method_types: ['card']`, `client_reference_id`, `metadata.order_id`,
+   `customer_creation: 'if_required'`, success `/thanks?order=<id>`, cancel `/?canceled=<id>`.
+   The session id is stored in `external_id`. A create failure leaves the order reserved with no
+   id (503 `payment_unavailable`); the customer's retry, a `checkout_key` replay or reconciliation
+   re-issues the same create.
+2. **Never released by time.** `sweep()`, the availability query and the order page all leave a
+   `provider = 'stripe'` reservation alone, however old. Release happens only in `releaseStripe`,
+   exactly once (guarded `UPDATE … WHERE status = 'reserved' AND provider = 'stripe'`), after Stripe
+   has shown the session `expired` (or `complete` but unpaid).
+3. **finalizePayment(session)** — the one way a card order becomes paid. Under the date lock and
+   the order row lock: already succeeded for this session → no-op. Verify `payment_status = paid`,
+   `mode = payment`, `livemode` matches the key in use, `currency = usd`, `amount_total =
+   total_cents`, `metadata.order_id` / `client_reference_id` = this order, and the stored session
+   id. Any failure → a `payment_exceptions` row, stock kept, reference left pending. Order
+   `reserved` → `paid`. Order `expired`/`cancelled` (released by a race) → units taken again, over
+   capacity if it must be, plus a `paid_after_release` exception. Order already `paid` another way
+   → `duplicate_payment` exception. Reference → `succeeded` with the payment intent id.
+4. **reconcileOrder** — retrieve the session (re-create under the same key if the id was never
+   stored): `complete`+`paid` → finalize; `expired` or `complete`+unpaid → release; `open` and not
+   yet past its time → leave it; `open` and past `hold_expires_at`, or asked to end it (customer
+   backed out, admin cancelled) → `expire()`, then **re-retrieve and believe only that**: a payment
+   that slipped in first is finalized, an expired session is released, anything else stays held
+   with an `expire_uncertain` exception. Stripe unreachable → nothing changes. Triggers: the
+   webhook, every poll of the customer's page, the cancel URL, admin page load (that date's stale
+   card orders), and `reconcile-stale` on a Netlify schedule every 10 minutes.
+5. **Webhook** — raw body via `req.text()`; signature verified; event id logged in
+   `webhook_events`; `checkout.session.completed` / `async_payment_succeeded` with
+   `payment_status = paid` → finalize from the event; anything else → reconcile with a fresh
+   retrieve. Duplicates, delays and reordering are safe because finalize and release are
+   status-guarded and exactly-once.
+6. **Admin** — cancelling or hand-confirming a card order still with Stripe ends its session and
+   settles it first; if the customer had paid, admin is told `already_paid`. Open exceptions are
+   listed under *Payments that need a look* with a resolve button; refunds are done in the Stripe
+   Dashboard.
+7. **Order page** — `/thanks?order=<uuid v4>` (122 random bits; no second token). Shows *checking
+   your payment* while the server verifies with Stripe on each poll (safe to refresh, capped, then
+   asks the customer to refresh), the confirmation (reference, items, quantities, total paid,
+   pickup date, place, "5–11 PM; after 9 PM preferred"), *expired*/*cancelled*, or *attention*
+   when an exception is open. The public summary carries no phone number.
 
 ## Tests (`tests/`)
 

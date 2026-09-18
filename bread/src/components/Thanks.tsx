@@ -3,14 +3,19 @@ import { PICKUP_PLACE, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/con
 import type { OrderSummary } from '../../shared/types.ts'
 import { formatInstant, formatYmd } from '../../shared/zoned.ts'
 import { ApiError, getOrder } from '../lib/api.ts'
-import { PICKUP_PREFERRED, PICKUP_WINDOW, describeQty } from '../lib/format.ts'
+import { PICKUP_WINDOW, describeQty } from '../lib/format.ts'
 import { Button, Notice, Page, Spinner, Title } from './ui.tsx'
 
-type State = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { kind: 'order'; order: OrderSummary }
+type State = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { kind: 'order'; order: OrderSummary; stalled?: boolean }
 
-/** How long to keep quietly checking whether she's marked the order paid, while this tab stays open. */
-const POLL_MS = (attempt: number) => (attempt < 12 ? 5_000 : 30_000) // ~1 min quick, then every 30s
-const MAX_POLLS = 200 // roughly the length of a hold window
+/**
+ * While a card payment is being verified, each poll is a server-side check
+ * with Stripe — refreshing this page is always safe and never doubles
+ * anything. Quick at first, then patient, then it asks the customer to
+ * refresh rather than polling forever.
+ */
+const POLL_MS = (attempt: number) => (attempt < 6 ? 2_000 : attempt < 18 ? 5_000 : 30_000)
+const MAX_POLLS = 40
 
 /** Where the order page sends the customer after reserving — /thanks?order=<id>. */
 export default function Thanks() {
@@ -27,7 +32,8 @@ export default function Thanks() {
         const order = await getOrder(orderId)
         if (cancelled) return
         setState({ kind: 'order', order })
-        if (order.status === 'reserved' && attempts < MAX_POLLS) timer = window.setTimeout(tick, POLL_MS(attempts++))
+        if (order.checking && attempts < MAX_POLLS) timer = window.setTimeout(tick, POLL_MS(attempts++))
+        else if (order.checking) setState({ kind: 'order', order, stalled: true })
       } catch (err) {
         if (cancelled) return
         if (err instanceof ApiError && err.status === 404) setState({ kind: 'missing' })
@@ -68,6 +74,53 @@ export default function Thanks() {
   }
 
   const { order } = state
+  if (order.attention) {
+    return (
+      <Page>
+        <Title kicker="Payment received — one check pending">We're looking at your payment</Title>
+        <Notice tone="warn">
+          Stripe reported your payment, but something about it needs a person to look before the order is confirmed.
+          Nothing more is needed from you; she has this flagged and will sort it out. Keep your order code{' '}
+          <span className="font-mono font-semibold">{order.shortId}</span> handy.
+        </Notice>
+        <div className="mt-6">
+          <Button variant="secondary" onClick={() => window.location.reload()}>
+            Check again
+          </Button>
+        </div>
+      </Page>
+    )
+  }
+  if (order.checking) {
+    return (
+      <Page>
+        <Title kicker="Checking your payment" sub="We're confirming with Stripe. This usually takes a few seconds.">
+          One moment…
+        </Title>
+        <div className="rounded-2xl border border-line bg-white p-5">
+          <Row label="Order">
+            <span className="font-mono text-[15px] font-semibold tracking-wider">{order.shortId}</span>
+          </Row>
+          <Row label="Bread">{describeQty(order.qty)}</Row>
+          <Row label="Pick up" last>
+            {formatYmd(order.date, { weekday: 'long', month: 'long', day: 'numeric' })}
+          </Row>
+        </div>
+        <p className="mt-4 text-[14px] leading-relaxed text-cocoa-soft">
+          {state.stalled
+            ? 'Still waiting on Stripe. It is safe to refresh this page — checking again never charges you twice. If you closed the payment page without paying, your bread is released automatically.'
+            : 'It is safe to refresh this page or close it and come back: nothing here can charge you twice.'}
+        </p>
+        {state.stalled && (
+          <div className="mt-6">
+            <Button variant="secondary" onClick={() => window.location.reload()}>
+              Check again
+            </Button>
+          </div>
+        )}
+      </Page>
+    )
+  }
   if (order.status === 'expired' || order.status === 'cancelled') {
     return (
       <Page>
@@ -76,8 +129,8 @@ export default function Thanks() {
         </Title>
         <Notice tone="info">
           {order.status === 'cancelled'
-            ? 'This reservation was cancelled, so the bread went back into the pool. If you did send a Zelle, she will still see it and can confirm it by hand.'
-            : "Your bread was held for a while, but no payment was confirmed in time, so it's been released back into the pool. If you'd still like it, please order again."}
+            ? 'This reservation was cancelled, so the bread went back into the pool. No payment was taken.'
+            : "The payment page closed without a payment, so the bread went back into the pool. Nothing was charged. If you'd still like it, please order again."}
         </Notice>
         <div className="mt-6">
           <Button onClick={() => window.location.assign('/')}>Order again</Button>
@@ -94,14 +147,14 @@ export default function Thanks() {
         kicker={paid ? 'Order confirmed' : 'Reserved — pay by Zelle'}
         sub={
           paid
-            ? `Thank you, ${firstName}. Your bread is reserved and paid for.`
+            ? `Thank you, ${firstName}. Your payment went through and your bread is reserved.`
             : `Send the Zelle below and your order confirms itself — this page updates on its own once she's marked it received.`
         }
       >
         {paid ? "You're all set" : "You're holding your bread"}
       </Title>
 
-      {!paid && (
+      {!paid && order.provider === 'zelle' && (
         <div className="mb-5 rounded-2xl border border-crust/30 bg-crust/5 p-5">
           <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-crust-dark">Send by Zelle</p>
           <p className="font-display text-[24px] font-semibold text-cocoa">{formatMoney(order.amountCents)}</p>
@@ -135,7 +188,7 @@ export default function Thanks() {
         <Row label="Pick up">
           <span className="font-semibold">{formatYmd(order.date, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
           <br />
-          {PICKUP_WINDOW} at {PICKUP_PLACE}, {PICKUP_PREFERRED}
+          {PICKUP_PLACE} · {PICKUP_WINDOW}; after 9 PM preferred
         </Row>
         <Row label={paid ? 'Paid' : 'Total'} last>
           <span className="font-semibold">{formatMoney(order.amountCents)}</span>
@@ -145,7 +198,7 @@ export default function Thanks() {
 
       <p className="mt-4 text-[14px] leading-relaxed text-cocoa-soft">
         {paid
-          ? "Give your name at the front desk when you come for it — screenshot this page if you like."
+          ? 'Give your name and order code at the front desk when you come for it — screenshot this page if you like. Stripe emails a receipt to the address you gave on the payment page.'
           : 'Keep this page open, or come back to it any time — it will show "Paid" once your Zelle is confirmed.'}
       </p>
 

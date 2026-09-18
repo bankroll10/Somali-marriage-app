@@ -9,6 +9,17 @@ import { Button, Field, Notice, Page, Spinner, Title, inputClass } from './ui.ts
 
 const KEY = 'bread-admin'
 
+const EXCEPTION_COPY: Record<string, string> = {
+  amount_mismatch: 'Stripe reports a different amount than this order. Stock is held until you decide.',
+  currency_mismatch: 'Stripe reports a payment in another currency.',
+  order_mismatch: 'The Stripe payment does not reference this order.',
+  mode_mismatch: 'The Stripe session was not a one-off payment.',
+  livemode_mismatch: 'A test-mode payment reached a live deploy, or the reverse.',
+  paid_after_release: 'This payment landed after the bread had been released — it was taken again, over capacity if needed.',
+  duplicate_payment: 'A card payment arrived for an order already marked paid another way. A refund is probably due.',
+  expire_uncertain: 'Stripe would not confirm this abandoned session is dead. The bread stays held; try again later.',
+}
+
 type Load = { state: 'idle' } | { state: 'loading' } | { state: 'error'; code: string } | { state: 'ready'; days: AdminDay[]; today: string; now: number }
 
 /** Her page. The password never leaves this tab's session storage. */
@@ -124,9 +135,22 @@ export default function Admin() {
     })
   }
 
-  /** She's seen the Zelle land. Confirming can change what's left to bake for the day, so it reloads the list. */
+  const [notice, setNotice] = useState<string | null>(null)
+
+  /** A card order still with Stripe is settled there first; these are the answers that can come back. */
+  function explain(err: unknown): boolean {
+    if (!(err instanceof ApiError)) return false
+    if (err.code === 'already_paid') setNotice('That customer had already paid by card — the order is now confirmed as paid.')
+    else if (err.code === 'payment_uncertain') setNotice('Stripe could not be reached or gave an unclear answer, so nothing was changed. The bread stays held; try again in a minute.')
+    else if (err.code === 'payments_not_configured') setNotice('Stripe is not configured on this deploy, so card orders cannot be settled from here.')
+    else return false
+    return true
+  }
+
+  /** She's seen the payment land (or is overriding). Confirming can change what's left to bake, so it reloads the list. */
   async function markPaid(order: AdminOrder, force = false) {
     setBusy(order.id)
+    setNotice(null)
     try {
       await adminAct(password, { action: 'markPaid', orderId: order.id, force })
       clearWarning(order.id)
@@ -135,6 +159,7 @@ export default function Admin() {
       if (err instanceof ApiError && err.code === 'would_exceed_capacity') {
         setOverCapacity((m) => ({ ...m, [order.id]: err.detail.remaining as Qty }))
       } else {
+        explain(err)
         refresh(password)
       }
     } finally {
@@ -144,9 +169,23 @@ export default function Admin() {
 
   async function cancelOrder(order: AdminOrder) {
     setBusy(order.id)
+    setNotice(null)
     try {
       await adminAct(password, { action: 'cancel', orderId: order.id })
       clearWarning(order.id)
+      await refresh(password)
+    } catch (err) {
+      explain(err)
+      refresh(password)
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function resolveException(order: AdminOrder, exceptionId: number) {
+    setBusy(order.id)
+    try {
+      await adminAct(password, { action: 'resolveException', orderId: order.id, exceptionId })
       await refresh(password)
     } catch {
       refresh(password)
@@ -239,6 +278,42 @@ export default function Admin() {
           Past ({past.length})
         </Button>
       </div>
+
+      {notice && (
+        <div className="mb-4">
+          <Notice tone="warn">{notice}</Notice>
+        </div>
+      )}
+      {(() => {
+        const flagged = load.days.flatMap((d) => d.orders.filter((o) => o.exceptions.length > 0).map((o) => ({ date: d.date, order: o })))
+        return flagged.length > 0 ? (
+          <section className="mb-5 rounded-2xl border border-berry/40 bg-berry/5 p-4">
+            <h2 className="text-[15px] font-semibold text-berry">Payments that need a look</h2>
+            <ul className="mt-2 space-y-3">
+              {flagged.map(({ date, order: o }) => (
+                <li key={o.id} className="text-[14px] text-cocoa">
+                  <p className="font-semibold">
+                    {o.name} <span className="font-mono text-[12px] text-cocoa-soft">{o.shortId}</span> · {formatYmd(date)} · {describeQty(o.qty)} · {formatMoney(o.amountCents)} ·{' '}
+                    <span className="uppercase">{o.status}</span>
+                  </p>
+                  {o.exceptions.map((x) => (
+                    <div key={x.id} className="mt-1 flex flex-wrap items-center gap-2">
+                      <span className="text-[13px]">
+                        {EXCEPTION_COPY[x.kind] ?? x.kind}
+                        {x.sessionId && <span className="ml-1 font-mono text-[11px] text-cocoa-soft">{x.sessionId}</span>}
+                      </span>
+                      <Button variant="ghost" className="min-h-9 px-2 text-[12px]" disabled={busy === o.id} onClick={() => resolveException(o, x.id)}>
+                        Mark resolved
+                      </Button>
+                    </div>
+                  ))}
+                </li>
+              ))}
+            </ul>
+            <p className="mt-2 text-[12px] text-cocoa-soft">Check the payment in the Stripe Dashboard first. Refunds are done there, not here.</p>
+          </section>
+        ) : null
+      })()}
 
       {shown.length === 0 && <Notice tone="info">{showPast ? 'No past pickup days with orders yet.' : 'No upcoming pickup days.'}</Notice>}
 
@@ -364,7 +439,8 @@ function PendingRow({
   onCancel: (o: AdminOrder) => void
 }) {
   const live = o.status === 'reserved'
-  const label = live ? 'awaiting zelle' : o.status === 'cancelled' ? 'cancelled' : 'hold lapsed'
+  const card = o.provider === 'stripe'
+  const label = live ? (card ? 'card · with stripe' : 'awaiting zelle') : o.status === 'cancelled' ? 'cancelled' : card ? 'payment page closed' : 'hold lapsed'
   return (
     <li className={`px-4 py-3 ${live ? '' : 'opacity-70'}`}>
       <div className="flex items-start gap-3">
@@ -383,7 +459,8 @@ function PendingRow({
           <p className={`text-[12px] font-semibold uppercase tracking-wide ${live ? 'text-amber-700' : 'text-cocoa-soft'}`}>{label}</p>
         </div>
       </div>
-      {!live && <p className="mt-1 text-[12px] text-cocoa-soft">Its bread went back into the pool. Mark paid only if her Zelle did arrive.</p>}
+      {!live && <p className="mt-1 text-[12px] text-cocoa-soft">Its bread went back into the pool. Mark paid only if the money did arrive.</p>}
+      {live && card && <p className="mt-1 text-[12px] text-cocoa-soft">The customer is on Stripe's page or has left it. Cancel ends that session at Stripe first; Mark paid is for cash at the desk.</p>}
       {warning ? (
         <div className="mt-2 rounded-xl bg-berry/10 p-3">
           <p className="text-[13px] text-berry">

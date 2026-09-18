@@ -1,6 +1,6 @@
-import { PAYMENT_HOLD_HOURS, PRODUCT_IDS, type ProductId } from '../../shared/config.ts'
+import { PRODUCT_IDS, type ProductId } from '../../shared/config.ts'
 import type { Clock } from '../../shared/clock.ts'
-import type { Order, Qty } from '../../shared/types.ts'
+import type { Order, PaymentProvider, Qty } from '../../shared/types.ts'
 import { zeroQty } from '../../shared/types.ts'
 import type { Db, Queryable } from './db/client.ts'
 import type { CleanCheckout } from './validate.ts'
@@ -15,9 +15,14 @@ import type { CleanCheckout } from './validate.ts'
  * committed and every exit from `reserved` happens inside one transaction
  * that first locks the date's pickup_dates row.
  *
- * Reads never lock and never write. A hold that has lapsed but not yet been
- * swept is *reported* as free and its order as expired; the sweep itself
+ * Reads never lock and never write. A Zelle hold that has lapsed but not yet
+ * been swept is *reported* as free and its order as expired; the sweep itself
  * runs on the next write to that date, under the lock.
+ *
+ * A Stripe-backed hold is never released by time — not by the sweep, not by
+ * the availability query, not by the order page. A Checkout Session can
+ * still complete until Stripe says otherwise, so those holds are released
+ * only by netlify/lib/stripe/payments.ts after confirming with Stripe.
  */
 
 // ── Rows ───────────────────────────────────────────────────────────────────
@@ -34,6 +39,7 @@ export interface ProductRow {
 
 interface OrderRow {
   id: string
+  provider: PaymentProvider
   date: string
   status: Order['status']
   customer_name: string
@@ -48,7 +54,7 @@ interface OrderRow {
 }
 
 const ORDER_SELECT = `
-  SELECT o.id, o.date::text AS date, o.status, o.customer_name, o.customer_phone, o.total_cents,
+  SELECT o.id, o.provider, o.date::text AS date, o.status, o.customer_name, o.customer_phone, o.total_cents,
          extract(epoch FROM o.hold_expires_at)::float8 * 1000 AS hold_expires_ms,
          extract(epoch FROM o.created_at)::float8 * 1000 AS created_ms,
          extract(epoch FROM o.paid_at)::float8 * 1000 AS paid_ms,
@@ -65,9 +71,10 @@ function toOrder(row: OrderRow, nowMs: number): Order {
   for (const { p, q } of JSON.parse(row.items) as { p: string; q: number }[]) {
     if ((PRODUCT_IDS as readonly string[]).includes(p)) qty[p as ProductId] = q
   }
-  const lapsed = row.status === 'reserved' && Math.round(row.hold_expires_ms) <= nowMs
+  const lapsed = row.provider === 'zelle' && row.status === 'reserved' && Math.round(row.hold_expires_ms) <= nowMs
   const order: Order = {
     id: row.id,
+    provider: row.provider,
     date: row.date,
     name: row.customer_name,
     phone: row.customer_phone,
@@ -86,7 +93,7 @@ function toOrder(row: OrderRow, nowMs: number): Order {
 }
 
 /** Thrown inside a transaction to roll it back and answer with a reason. */
-class Refusal<T> extends Error {
+export class Refusal<T> extends Error {
   readonly outcome: T
   constructor(outcome: T) {
     super('refused')
@@ -125,7 +132,7 @@ export async function stockFor(db: Queryable, dates: readonly string[], nowMs: n
           stale AS (
             SELECT o.date, oi.product_id, SUM(oi.quantity)::int AS units
             FROM orders o JOIN order_items oi ON oi.order_id = o.id
-            WHERE o.status = 'reserved' AND o.hold_expires_at <= $2::timestamptz
+            WHERE o.status = 'reserved' AND o.provider = 'zelle' AND o.hold_expires_at <= $2::timestamptz
               AND o.date IN (SELECT date FROM d)
             GROUP BY o.date, oi.product_id)
      SELECT d.date::text AS date, p.id AS product_id,
@@ -171,19 +178,19 @@ export async function paidUnits(db: Queryable, date: string): Promise<Qty> {
 
 // ── Inside a transaction, under the date lock ──────────────────────────────
 
-async function lockDate(tx: Queryable, date: string): Promise<{ blocked: boolean }> {
+export async function lockDate(tx: Queryable, date: string): Promise<{ blocked: boolean }> {
   await tx.query('INSERT INTO pickup_dates (date) VALUES ($1::date) ON CONFLICT (date) DO NOTHING', [date])
   const { rows } = await tx.query<{ blocked: boolean }>('SELECT (blocked_at IS NOT NULL) AS blocked FROM pickup_dates WHERE date = $1::date FOR UPDATE', [date])
   return rows[0]
 }
 
-/** Expire this date's lapsed holds and give their units back. Double-running is a no-op. */
-async function sweep(tx: Queryable, date: string, nowMs: number): Promise<void> {
+/** Expire this date's lapsed Zelle holds and give their units back. Double-running is a no-op. */
+export async function sweep(tx: Queryable, date: string, nowMs: number): Promise<void> {
   const now = new Date(nowMs).toISOString()
   await tx.query(
     `WITH e AS (
        UPDATE orders SET status = 'expired', ended_at = $2::timestamptz
-       WHERE date = $1::date AND status = 'reserved' AND hold_expires_at <= $2::timestamptz
+       WHERE date = $1::date AND status = 'reserved' AND provider = 'zelle' AND hold_expires_at <= $2::timestamptz
        RETURNING id),
      u AS (
        SELECT oi.product_id, SUM(oi.quantity)::int AS n FROM order_items oi
@@ -194,7 +201,7 @@ async function sweep(tx: Queryable, date: string, nowMs: number): Promise<void> 
   )
 }
 
-async function ensureInventory(tx: Queryable, date: string): Promise<void> {
+export async function ensureInventory(tx: Queryable, date: string): Promise<void> {
   await tx.query(
     `INSERT INTO date_inventory (date, product_id, capacity)
      SELECT $1::date, id, daily_capacity FROM products WHERE active
@@ -208,7 +215,7 @@ async function ensureInventory(tx: Queryable, date: string): Promise<void> {
  * this a no-op rather than an error when they are not; the CHECK constraint
  * behind it would refuse anyway.
  */
-async function take(tx: Queryable, date: string, productId: string, q: number, allowOverflow: boolean): Promise<boolean> {
+export async function take(tx: Queryable, date: string, productId: string, q: number, allowOverflow: boolean): Promise<boolean> {
   const { rows } = await tx.query(
     `UPDATE date_inventory SET committed = committed + $3
      WHERE date = $1::date AND product_id = $2 AND committed + $3 <= capacity ${allowOverflow ? '+ overflow' : ''}
@@ -218,7 +225,7 @@ async function take(tx: Queryable, date: string, productId: string, q: number, a
   return rows.length === 1
 }
 
-async function remainingNow(tx: Queryable, date: string, nowMs: number): Promise<Qty> {
+export async function remainingNow(tx: Queryable, date: string, nowMs: number): Promise<Qty> {
   return (await stockFor(tx, [date], nowMs)).get(date)?.remaining ?? zeroQty()
 }
 
@@ -237,7 +244,15 @@ export type ReserveOutcome =
  * be taken rolls the whole transaction back. A repeated request with the
  * same checkout key returns the order it already made.
  */
-export async function reserve(db: Db, input: CleanCheckout, products: readonly ProductRow[], clock: Clock): Promise<ReserveOutcome> {
+export interface HoldTerms {
+  provider: PaymentProvider
+  /** When the hold lapses (Zelle) or when to ask Stripe about it (Stripe). ISO. */
+  holdExpiresAt: string
+  /** Stripe only: when the Checkout Session will expire. ISO. */
+  sessionExpiresAt?: string
+}
+
+export async function reserve(db: Db, input: CleanCheckout, products: readonly ProductRow[], clock: Clock, terms: HoldTerms): Promise<ReserveOutcome> {
   const nowMs = clock.now()
   const now = new Date(nowMs).toISOString()
   const priceOf = new Map(products.map((p) => [p.id, p.price_cents]))
@@ -265,20 +280,29 @@ export async function reserve(db: Db, input: CleanCheckout, products: readonly P
 
       const id = crypto.randomUUID()
       const total = lines(input.qty).reduce((sum, l) => sum + l.q * (priceOf.get(l.id) ?? 0), 0)
-      const holdExpires = new Date(nowMs + PAYMENT_HOLD_HOURS * 3_600_000).toISOString()
       await tx.query(
-        `INSERT INTO orders (id, date, status, customer_name, customer_phone, total_cents, hold_expires_at, created_at, checkout_key)
-         VALUES ($1::uuid, $2::date, 'reserved', $3, $4, $5, $6::timestamptz, $7::timestamptz, $8::uuid)`,
-        [id, input.date, input.name, input.phone, total, holdExpires, now, input.checkoutKey],
+        `INSERT INTO orders (id, provider, date, status, customer_name, customer_phone, total_cents, hold_expires_at, created_at, checkout_key)
+         VALUES ($1::uuid, $9, $2::date, 'reserved', $3, $4, $5, $6::timestamptz, $7::timestamptz, $8::uuid)`,
+        [id, input.date, input.name, input.phone, total, terms.holdExpiresAt, now, input.checkoutKey, terms.provider],
       )
       for (const { id: productId, q } of lines(input.qty)) {
         await tx.query('INSERT INTO order_items (order_id, product_id, quantity, unit_price_cents) VALUES ($1::uuid, $2, $3, $4)', [id, productId, q, priceOf.get(productId)])
       }
-      await tx.query(
-        `INSERT INTO payment_references (order_id, provider, external_id, idempotency_key, status, amount_cents, created_at, updated_at)
-         VALUES ($1::uuid, 'zelle', $2, $2, 'pending', $3, $4::timestamptz, $4::timestamptz)`,
-        [id, `zelle:${id}`, total, now],
-      )
+      if (terms.provider === 'stripe') {
+        // The session id is filled in once Stripe has made it; the
+        // idempotency key is the order id, so a retried create is the same create.
+        await tx.query(
+          `INSERT INTO payment_references (order_id, provider, external_id, idempotency_key, status, amount_cents, session_expires_at, created_at, updated_at)
+           VALUES ($1::uuid, 'stripe', NULL, $2, 'pending', $3, $4::timestamptz, $5::timestamptz, $5::timestamptz)`,
+          [id, id, total, terms.sessionExpiresAt, now],
+        )
+      } else {
+        await tx.query(
+          `INSERT INTO payment_references (order_id, provider, external_id, idempotency_key, status, amount_cents, created_at, updated_at)
+           VALUES ($1::uuid, 'zelle', $2, $2, 'pending', $3, $4::timestamptz, $4::timestamptz)`,
+          [id, `zelle:${id}`, total, now],
+        )
+      }
       const order = await readOrder(tx, id, nowMs)
       return { ok: true, order: order!, replayed: false } satisfies ReserveOutcome
     })
@@ -339,9 +363,12 @@ export async function markPaid(db: Db, orderId: string, clock: Clock, force: boo
       }
 
       await tx.query('UPDATE orders SET status = $2, paid_at = $3::timestamptz, ended_at = NULL, forced = forced OR $4 WHERE id = $1::uuid', [orderId, 'paid', now, forced])
+      // A hand confirmation never claims a Stripe session was paid: an open
+      // Stripe reference is closed and a manual one recorded instead.
+      await tx.query("UPDATE payment_references SET status = 'expired', updated_at = $2::timestamptz WHERE order_id = $1::uuid AND provider = 'stripe' AND status = 'pending'", [orderId, now])
       const pending = await tx.query<{ id: number }>(
         `UPDATE payment_references SET status = 'succeeded', confirmed_by = $2, updated_at = $3::timestamptz
-         WHERE order_id = $1::uuid AND status = 'pending' RETURNING id`,
+         WHERE order_id = $1::uuid AND provider = 'zelle' AND status = 'pending' RETURNING id`,
         [orderId, by, now],
       )
       if (!pending.rows[0]) {
