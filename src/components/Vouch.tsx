@@ -44,7 +44,12 @@ export default function Vouch({ code, onDone }: Props) {
   }, [code])
 
   const options = relationshipOptions()
-  const ready = !!relationship && firstName.trim().length > 0 && sentence.trim().length > 0
+  // Two things, not three. A vouch means a named relative stands behind her, so
+  // who he is and what he is to her are the record; the sentence is his to add,
+  // not a toll gate. It was the only required composed prose in the product, on
+  // the one path where the person is doing somebody else a favour — usually a
+  // father, on a phone, because his daughter asked (docs/VALUE.md).
+  const ready = !!relationship && firstName.trim().length > 0
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()

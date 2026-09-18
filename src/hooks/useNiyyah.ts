@@ -12,7 +12,7 @@ import { ledger } from '../lib/ledger'
 import { rungsFrom } from '../lib/rungs'
 import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState } from '../lib/followup'
 import { buildRead } from '../lib/read'
-import { hasHomeFor, stageAfterInstrument } from '../lib/inferStage'
+import { countsAsArrival, hasHomeFor, marriedOpensEnding, stageAfterInstrument } from '../lib/inferStage'
 import { countryFor } from '../data/scenes'
 import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
@@ -118,6 +118,8 @@ export function useNiyyah(entry: Entry | null = null) {
   })
   /** The code in the link that opened the app, for the screen it opened. */
   const [entryCode] = useState<string | null>(entry?.code ?? null)
+  /** What kind of link opened the app, for the one place it changes behaviour. */
+  const [entryKind] = useState<EntryKind | null>(entry?.kind ?? null)
   /**
    * Who the tool path said the read is about (`/tools/is-he-serious` → a man).
    * Read.tsx presets the reader from it — the other side — and commits it to
@@ -275,10 +277,16 @@ export function useNiyyah(entry: Entry | null = null) {
   // countMe off this call site does not run, so the toggle is the mechanism
   // rather than a promise about one.
   const country = countryFor(identity)
+  // A family member who opened a vouch link is not a member and was never
+  // offered a conversation, so counting his device in `arrived` quietly moved
+  // the denominator of the one number this product keeps (src/lib/rungs.ts).
+  // He is skipped until this phone has a map of its own — at which point he is
+  // here for himself, and counts (docs/VALUE.md).
+  const vouchingRelative = !countsAsArrival(entryKind, completed || !!keptCode)
   useEffect(() => {
-    if (!trust.countMe) return
+    if (!trust.countMe || vouchingRelative) return
     void reportRungs(rungs, identity.scene, facts, identity.gender, country)
-  }, [rungs, trust.countMe, identity.scene, country, facts, identity.gender])
+  }, [rungs, trust.countMe, identity.scene, country, facts, identity.gender, vouchingRelative])
 
   // Has he answered the eleven she sent? Asked once per code, only until we
   // know — he answers on his own phone, and it has to reach hers without her
@@ -439,6 +447,13 @@ export function useNiyyah(entry: Entry | null = null) {
     // "I'm not talking to anyone" from talking or deciding is a courtship
     // ending; setStage has opened that screen, and it wins over the hook.
     if (next === 'preparing' && (wasIn === 'talking' || wasIn === 'deciding')) return
+    // The same rule for the other end of the story. setStage has already opened
+    // the ending for someone arriving married with no record of it, and it wins
+    // over the guide — otherwise `openGuide` below overwrote it, the stage's own
+    // screen was unreachable from here, and the first thing a married person met
+    // was an empty compose box they had to write into before the product would
+    // say anything (docs/AUDIT.md §6, measured in docs/VALUE.md).
+    if (next === 'married' && marriedOpensEnding(wasIn, !!ending)) return
     if (next === 'preparing') setScreen('hook')
     else if (next === 'talking') setScreen(read ? 'home' : 'read')
     else if (next === 'deciding') setScreen(beforeYes ? 'home' : 'beforeYes')

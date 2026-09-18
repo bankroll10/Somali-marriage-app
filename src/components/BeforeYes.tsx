@@ -71,6 +71,9 @@ export default function BeforeYes({
 
   const topics = beforeYesTopics(gender ?? 'woman')
   const pronoun = gender === 'man' ? 'her' : 'him'
+  // Before she has said which side she is on, the copy says "them" rather than
+  // guessing at a person it has not been told about.
+  const them = gender ? pronoun : 'them'
 
   function begin() {
     track('before_yes_started')
@@ -78,6 +81,22 @@ export default function BeforeYes({
     setPicked({})
     setIndex(0)
     setPhase('asking')
+  }
+
+  /**
+   * Start, and say who this is about in the same tap.
+   *
+   * This used to be a screen of its own, asked before the page had said what it
+   * was: one blocking decision spent with no reason yet to care. The read had
+   * already solved the same problem by carrying the side in its address
+   * (src/data/tools.ts) — the eleven's address has no side to carry, so it
+   * explains itself first and folds the question into starting, rather than
+   * guessing at anybody (docs/VALUE.md).
+   */
+  function startAbout(g: Gender) {
+    setGender(g)
+    onSetGender(g)
+    begin()
   }
 
   function choose(stateId: string) {
@@ -92,37 +111,6 @@ export default function BeforeYes({
     track('before_yes_completed', { open: built?.open.id, differ: built?.counts.differ })
     onSave({ at: new Date().toISOString(), answers: next })
     setPhase('result')
-  }
-
-  if (!gender) {
-    return (
-      <Shell onBack={onBack} title="Before you say yes">
-        <div className="py-10">
-          <h1 className="animate-rise font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
-            Before we start — who are you deciding about?
-          </h1>
-          <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
-            Only so the questions read properly. We never ask their name.
-          </p>
-          <div className="mt-7 flex flex-col gap-2.5">
-            {([{ id: 'woman' as Gender, label: 'A man' }, { id: 'man' as Gender, label: 'A woman' }]).map((opt, i) => (
-              <button
-                key={opt.id}
-                onClick={() => {
-                  setGender(opt.id)
-                  onSetGender(opt.id)
-                }}
-                style={{ animationDelay: `${i * 45}ms` }}
-                className="animate-rise flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-white/50 p-4 text-left text-[0.98rem] font-medium text-ink transition-all hover:border-forest/40 hover:bg-white"
-              >
-                {opt.label}
-                <ArrowRight className="h-4 w-4 flex-none text-gold" />
-              </button>
-            ))}
-          </div>
-        </div>
-      </Shell>
-    )
   }
 
   if (phase === 'intro') {
@@ -146,7 +134,7 @@ export default function BeforeYes({
               'This does not score anyone. It records which conversations have happened.',
               'We take no position on any of them — qabiil and a second wife included.',
               'You will leave with something you can actually say.',
-              `No account, no sign-in. Your answers stay on this phone unless you keep your map, or ask ${pronoun} to answer too.`,
+              `No account, no sign-in. Your answers stay on this phone unless you keep your map, or ask ${them} to answer too.`,
             ].map((line) => (
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>
             ))}
@@ -159,12 +147,28 @@ export default function BeforeYes({
               What leaves your phone, and what never does →
             </button>
           )}
-          <div className="mt-8">
-            <Button onClick={begin} className="group">
-              Start
-              <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-            </Button>
-          </div>
+          {gender ? (
+            <div className="mt-8">
+              <Button onClick={begin} className="group">
+                Start
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-8">
+              <p className="text-[0.88rem] text-muted text-pretty">
+                Who are you deciding about? Only so the questions read properly — we never ask their name.
+              </p>
+              <div className="mt-3 flex flex-col gap-2.5 sm:flex-row">
+                {([{ id: 'woman' as Gender, label: 'Start — about him' }, { id: 'man' as Gender, label: 'Start — about her' }]).map((opt) => (
+                  <Button key={opt.id} onClick={() => startAbout(opt.id)} className="group">
+                    {opt.label}
+                    <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
           <div className="mt-8">
             <InviteRow
               source="beforeYes"
@@ -197,7 +201,10 @@ export default function BeforeYes({
         <Result
           result={result}
           pronoun={pronoun}
-          gender={gender}
+          // The same default `topics` above reads under, so the result and its
+          // pronouns agree. Only reachable by resuming a saved eleven on a phone
+          // that never told us a side; starting always sets one.
+          gender={gender ?? 'woman'}
           picked={picked}
           hasMap={hasMap}
           couple={couple}
