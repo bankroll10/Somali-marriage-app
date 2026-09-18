@@ -9,6 +9,7 @@ import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../l
 import { instrumentLink } from '../lib/links'
 import { parseAge } from '../lib/age'
 import { shareOrCopy } from '../lib/share'
+import { contactProblem, looksReachable } from '../lib/contact'
 import { track } from '../lib/analytics'
 import { ArrowRight, CheckIcon, Spinner, fieldClass } from './ui'
 
@@ -63,6 +64,7 @@ interface Props {
 export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, onCountry, onReach, onAge, onHesitate, compact }: Props) {
   const configured = waitlistConfigured()
   const [contact, setContact] = useState('')
+  const [contactTouched, setContactTouched] = useState(false)
   // "Not now" — the one no this product records, as one word about the door.
   const [hesitating, setHesitating] = useState<'closed' | 'open' | 'said'>('closed')
   const [scene, setScene] = useState(joined?.scene ?? identity.scene ?? '')
@@ -213,7 +215,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!contact.trim() || !scene || !country || !identity.gender || !age || state === 'sending') return
+    if (!reachable || !scene || !country || !identity.gender || !age || state === 'sending') return
     setState('sending')
 
     // First the count — it needs a kept map, and it is the part that can fail.
@@ -255,7 +257,12 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
     onJoined({ contact: trimmed, scene, code: result.code, joinedAt: at })
   }
 
-  const disabled = !contact.trim() || !scene || !country || !identity.gender || !age || state === 'sending'
+  // `looksReachable`, not `trim()`: the way to reach her is the only thing this
+  // form collects, and an address with a typo in it used to be accepted and
+  // then echoed back to her as proof she was on the list (docs/NIELSEN.md N3).
+  const contactHint = contactTouched && contact.trim() ? contactProblem(contact) : null
+  const reachable = looksReachable(contact)
+  const disabled = !reachable || !scene || !country || !identity.gender || !age || state === 'sending'
 
   return (
     <div className={`rounded-card border border-gold/30 bg-gold/[0.07] ${compact ? 'px-5 py-5' : 'p-6'}`}>
@@ -355,10 +362,18 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             required
             value={contact}
             onChange={(e) => setContact(e.target.value)}
+            onBlur={() => setContactTouched(true)}
             placeholder="Email or phone"
             aria-label="Email or phone"
+            aria-describedby={contactHint ? 'cohort-contact-hint' : undefined}
             className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
           />
+          {/* Only once she has left the field, so it explains rather than nags. */}
+          {contactHint && (
+            <p id="cohort-contact-hint" role="status" className="-mt-1 text-[0.82rem] leading-snug text-clay text-pretty">
+              {contactHint}
+            </p>
+          )}
           <button
             type="submit"
             disabled={disabled}

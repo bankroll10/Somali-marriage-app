@@ -1243,3 +1243,39 @@ a permanent ending record, the guide's chat having no direct exit, and
 `Read.tsx`'s 21 interactive elements with no ARIA. The first four change flows
 the five sessions will observe.
 
+## The ten heuristics — the Nielsen pass, 2026-09-18
+
+Every flow walked at phone width with localStorage seeded, so the *returning*
+states could be reached. That is where the worst issue in any audit so far was
+hiding, and where none of the earlier passes had looked. `docs/NIELSEN.md` has
+all of it, graded on Nielsen's own 0–4 scale.
+
+**One severity 4.** Seed the state of a woman who has already sent the eleven,
+then open her own link — which is the first thing most people do after sending
+something. The product greeted her as him and, one tap later, had her answering
+the eleven as him. Her answers would have become his side, the joint sheet her
+answers against her own, and it could not be undone: the record goes joint and
+every later attempt returns 409. The device was already holding the code it
+sent and never looked at it. Now her own link says so, tells her whether he has
+answered, and offers no way to answer it. His phone is untouched.
+
+**Two severity 3s, both fixed.** He answers her eleven and nothing anywhere she
+looks says so — the hook has polled and recorded it since the two-sided eleven
+shipped, and its only reader was the analytics ladder, so the one outcome the
+instrument exists to produce was invisible on the only screen she returns to.
+Home's card now carries the news and opens the sheet. And the door accepted a
+contact nobody can reach: `sagal@gmial` passed a `trim()` check and was echoed
+back to her as proof she was on the list. The one thing that form collects is
+now checked in the terms she typed in.
+
+**One severity 3 named and held:** an abandoned read or eleven cannot be
+resumed, so a phone call at question nine costs all nine answers. The fix is
+written down; it is `docs/BETS.md` B6, and it changes the instruments the five
+sessions are about to observe, so it waits with every other instrument change.
+
+**Four of the ten heuristics came out strong** and are recorded as such: the
+match to the real world (the vocabulary is the community's own, at reading
+level 4.2–5.5), recognition over recall, error recovery (after yesterday), and
+status visibility everywhere except the one hole above. The severity 2 queue is
+at the end of the document, in order, and was deliberately not touched.
+

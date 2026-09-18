@@ -204,6 +204,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           hasRead={!!n.read}
           onOpenBeforeYes={() => n.setScreen('beforeYes')}
           hasBeforeYes={!!n.beforeYes}
+          coupleAnswered={!!n.couple?.answered}
           onOpenFamilies={() => n.setScreen('families')}
           onOpenEnding={() => n.setScreen('ending')}
           onPhilosophy={() => n.openPhilosophy('home')}
@@ -390,6 +391,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       return (
         <Couple
           code={n.entryCode}
+          // Her own link, opened on her own phone (docs/NIELSEN.md N1).
+          yours={n.couple?.code === n.entryCode}
           onAnswered={(states, g) => {
             n.setBeforeYes({ at: new Date().toISOString(), answers: states })
             n.setIdentity((prev) => ({ ...prev, gender: g }))

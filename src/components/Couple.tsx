@@ -10,6 +10,14 @@ import { ArrowRight, Button, Logo } from './ui'
 
 interface Props {
   code: string
+  /**
+   * True when this is the link *this device* sent — she has tapped her own
+   * link, which is the first thing most people do after sending one. Without
+   * it this screen greeted her as him and, one tap later, had her answering
+   * the eleven as him: her answers became his side, the joint sheet became her
+   * answers against her own, and it could not be undone (docs/NIELSEN.md N1).
+   */
+  yours?: boolean
   /** His eleven, kept on his own device as his own Before you say yes. */
   onAnswered: (states: Record<string, string>, gender: Gender) => void
   /**
@@ -36,7 +44,7 @@ type Phase = 'loading' | 'dead' | 'answered-already' | 'intro' | 'asking' | 'joi
  * things that make him a member: a read on her, and his own map. That is how
  * the scarce side of this marketplace arrives — through the side we already have.
  */
-export default function Couple({ code, onAnswered, onBegan, onRead, onBuildMap, onHome }: Props) {
+export default function Couple({ code, yours = false, onAnswered, onBegan, onRead, onBuildMap, onHome }: Props) {
   const [phase, setPhase] = useState<Phase>('loading')
   // The eleventh answer is a network write. Without this a second tap fired it
   // twice, the second came back 409, and the screen went blank (docs/NORMAN.md).
@@ -120,7 +128,31 @@ export default function Couple({ code, onAnswered, onBegan, onRead, onBuildMap, 
           </div>
         )}
 
-        {phase === 'intro' && (
+        {/* Her own link, and he has not answered yet. The joint case needs no
+            branch of its own: the server returns it as answered, and the sheet
+            below is the same one both of them see. */}
+        {yours && phase === 'intro' && (
+          <div className="py-12">
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">Your link</p>
+            <h1 className="animate-rise mt-3 font-display text-[1.8rem] font-medium leading-tight tracking-tight text-ink text-balance">
+              This is the link you sent.
+            </h1>
+            <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
+              It works — this is what {senderObj === 'her' ? 'he' : 'she'} sees when {senderObj === 'her' ? 'he' : 'she'} opens
+              it. {senderObj === 'her' ? 'He' : 'She'} has not answered yet. When {senderObj === 'her' ? 'he' : 'she'} does,
+              your space will say so, and you will both see where you match — never each other’s answers.
+            </p>
+            <p className="animate-rise mt-3 text-[0.92rem] leading-relaxed text-muted text-pretty">
+              Answering it here yourself would put your own answers on {senderObj === 'her' ? 'his' : 'her'} side of the
+              sheet, so this screen does not offer that.
+            </p>
+            <Button onClick={onHome} variant="outline" className="mt-7">
+              Back to your space
+            </Button>
+          </div>
+        )}
+
+        {!yours && phase === 'intro' && (
           <div className="py-10">
             <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">About two minutes</p>
             <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance">
