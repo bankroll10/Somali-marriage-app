@@ -1107,3 +1107,29 @@ number in.
 code, every strategy argument. The protocol forbids changing the map before
 ten sessions, and none have run.
 
+## The jobs — Jobs-to-be-Done, 2026-09-18
+
+Each of the four stages through the frame: what happened in her life, what she
+is trying to do, how she wants to feel, how she wants to be seen, what she
+uses instead, what stops her, what habit must go. Every claim about the person
+is a hypothesis and says so; the product's own vocabulary (the four moments,
+the five hardest parts, the six hesitations, the ten reasons a courtship ends)
+is the source, and `docs/GAPS.md` already classes nearly all of it ASSUMED.
+`docs/JOBS.md` is the sheet the five sessions read against.
+
+**What it finds.** The sharpest jobs are in *talking* ("is he serious, before I
+invest more") and *deciding* ("the eleven, before the families lock it"); both
+have a real situation, a real emotional stake and slower, more exposing
+alternatives. *Preparing* holds the category's biggest job, finding anyone
+serious at all, and the product cannot do it; what it offers there instead,
+the map and one step a week, answers a job no situation fires. *Married* is the
+company's job, honestly. Of twenty-two features: nine map to a clear job, five
+are thin, four are the company's, four have no job today (the ledger as social
+proof, the vouch, the door, Plus) — each waiting for an audience that does not
+exist. The best situation-to-job mapping in the product, the four moments, sits
+43 taps behind the front door.
+
+**Changed:** this entry, the README index, one paragraph in `docs/PROTOCOL.md`.
+No feature added, moved or removed; the thin and no-job rows are for the
+sessions to decide, not a build list.
+
