@@ -17,5 +17,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["netlify", "shared", "tests"]
+  "include": ["netlify", "shared", "tests", "scripts"]
 }

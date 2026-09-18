@@ -20,7 +20,15 @@ export interface DayRecord {
   orderIds: string[]
 }
 
-export type OrderStatus = 'pending' | 'paid' | 'expired'
+/**
+ * reserved: bread held, awaiting her confirmation of the Zelle.
+ * paid: confirmed; counts toward what she bakes.
+ * expired: the hold lapsed unconfirmed; units went back into the pool.
+ * cancelled: she cancelled the reservation herself.
+ * An expired or cancelled order can still become paid (a late Zelle) if the
+ * bread is still there, or if she chooses to bake extra.
+ */
+export type OrderStatus = 'reserved' | 'paid' | 'expired' | 'cancelled'
 
 export interface Order {
   id: string
@@ -36,6 +44,8 @@ export interface Order {
   holdExpiresAt: string
   paidAt?: string
   pickedUpAt?: string
+  /** She confirmed this past capacity and agreed to bake the extra. */
+  forced?: boolean
 }
 
 /** What the order page needs to know about one date. */
@@ -51,6 +61,7 @@ export interface DayAvailability {
 
 export interface AvailabilityResponse {
   now: string
+  products: PublicProduct[]
   days: DayAvailability[]
 }
 
@@ -59,6 +70,8 @@ export interface CheckoutRequest {
   qty: Partial<Qty>
   name: string
   phone: string
+  /** A v4 UUID the browser makes once per Reserve tap, so a retried request cannot reserve twice. */
+  checkoutKey: string
 }
 
 export interface CheckoutResponse {
@@ -69,6 +82,17 @@ export interface CheckoutResponse {
   amountCents: number
   holdExpiresAt: string
   zelle: { name: string; handle: string }
+  /** True when this request repeated an earlier one and no new bread was reserved. */
+  replayed: boolean
+}
+
+/** A product as the server sells it — the browser displays these, the server never trusts the browser's copy. */
+export interface PublicProduct {
+  id: ProductId
+  name: string
+  blurb: string
+  priceCents: number
+  capacityPerDay: number
 }
 
 /** The confirmation page's view of an order — no phone, nothing to leak. */
@@ -107,7 +131,7 @@ export type AdminAction =
   | { action: 'unblock'; date: string }
   | { action: 'pickedUp'; orderId: string; pickedUp: boolean }
   | { action: 'markPaid'; orderId: string; force?: boolean }
-  | { action: 'expireOrder'; orderId: string }
+  | { action: 'cancel'; orderId: string }
 
 export function zeroQty(): Qty {
   return { sourdough: 0, banana: 0 }

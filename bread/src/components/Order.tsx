@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { PICKUP_PLACE, PRODUCTS, SHOP_NAME, TIMEZONE, formatMoney, totalCents, type ProductId } from '../../shared/config.ts'
 import { normalisePhone } from '../../shared/phone.ts'
 import type { DayAvailability, Qty } from '../../shared/types.ts'
@@ -37,17 +37,39 @@ export default function Order() {
   const [submitting, setSubmitting] = useState(false)
   const [message, setMessage] = useState<{ tone: 'info' | 'error'; text: string } | null>(null)
 
-  async function refresh() {
+  // One key per distinct attempt: a retried request replays the same
+  // reservation instead of making a second one, but editing the cart makes
+  // it a new attempt with a new key.
+  const attempt = useRef<{ fingerprint: string; key: string } | null>(null)
+  function keyFor(fingerprint: string): string {
+    if (attempt.current?.fingerprint !== fingerprint) attempt.current = { fingerprint, key: crypto.randomUUID() }
+    return attempt.current.key
+  }
+
+  async function refresh(): Promise<DayAvailability[] | null> {
     try {
       const res = await getAvailability()
       setLoad({ state: 'ready', days: res.days, today: ymdInZone(Date.parse(res.now), TIMEZONE) })
+      return res.days
     } catch {
       setLoad({ state: 'error' })
+      return null
     }
   }
 
   useEffect(() => {
     refresh()
+    // Counts go stale while the tab is in the background; re-read them when
+    // the customer comes back to it.
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') refresh()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    return () => {
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
   }, [])
 
   const days = load.state === 'ready' ? load.days : []
@@ -97,8 +119,19 @@ export default function Order() {
     if (missing || !selected) return
     setSubmitting(true)
     setMessage(null)
+    // Last look before committing: if the date sold down while the customer
+    // was deciding, trim the cart and say so instead of failing at the server.
+    const fresh = await refresh()
+    const day = fresh?.find((d) => d.date === selected.date)
+    if (day && (!day.open || day.blocked || PRODUCTS.some((p) => qty[p.id] > day.remaining[p.id]))) {
+      choose(day)
+      if (!day.open || day.blocked) setMessage({ tone: 'error', text: ERRORS[day.blocked ? 'blocked' : 'closed'] })
+      setSubmitting(false)
+      return
+    }
     try {
-      const { orderId } = await startCheckout({ date: selected.date, qty, name: name.trim(), phone })
+      const checkoutKey = keyFor(JSON.stringify({ date: selected.date, qty, name: name.trim(), phone }))
+      const { orderId } = await startCheckout({ date: selected.date, qty, name: name.trim(), phone, checkoutKey })
       window.location.assign(`/thanks?order=${orderId}`)
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'offline'

@@ -145,7 +145,7 @@ export default function Admin() {
   async function cancelOrder(order: AdminOrder) {
     setBusy(order.id)
     try {
-      await adminAct(password, { action: 'expireOrder', orderId: order.id })
+      await adminAct(password, { action: 'cancel', orderId: order.id })
       clearWarning(order.id)
       await refresh(password)
     } catch {
@@ -315,10 +315,10 @@ function DayCard({
       {day.orders.length > 0 && (
         <ul className="divide-y divide-line border-t border-line">
           {day.orders.map((o) =>
-            o.status === 'pending' ? (
-              <PendingRow key={o.id} order={o} busy={busy === o.id} warning={overCapacity[o.id]} onMarkPaid={onMarkPaid} onCancel={onCancel} />
-            ) : (
+            o.status === 'paid' ? (
               <PaidRow key={o.id} order={o} busy={busy === o.id} onPicked={onPicked} />
+            ) : (
+              <PendingRow key={o.id} order={o} busy={busy === o.id} warning={overCapacity[o.id]} onMarkPaid={onMarkPaid} onCancel={onCancel} />
             ),
           )}
         </ul>
@@ -349,6 +349,7 @@ function PaidRow({ order: o, busy, onPicked }: { order: AdminOrder; busy: boolea
   )
 }
 
+/** Reserved and awaiting her Zelle — or lapsed / cancelled, still confirmable if the money did arrive. */
 function PendingRow({
   order: o,
   busy,
@@ -362,10 +363,12 @@ function PendingRow({
   onMarkPaid: (o: AdminOrder, force?: boolean) => void
   onCancel: (o: AdminOrder) => void
 }) {
+  const live = o.status === 'reserved'
+  const label = live ? 'awaiting zelle' : o.status === 'cancelled' ? 'cancelled' : 'hold lapsed'
   return (
-    <li className="px-4 py-3">
+    <li className={`px-4 py-3 ${live ? '' : 'opacity-70'}`}>
       <div className="flex items-start gap-3">
-        <span className="mt-1 size-5 shrink-0 rounded-full bg-amber-400" aria-hidden />
+        <span className={`mt-1 size-5 shrink-0 rounded-full ${live ? 'bg-amber-400' : 'bg-line'}`} aria-hidden />
         <div className="min-w-0 flex-1">
           <p className="text-[15px] font-semibold text-cocoa">
             {o.name} <span className="ml-1 font-mono text-[12px] font-medium text-cocoa-soft">{o.shortId}</span>
@@ -377,9 +380,10 @@ function PendingRow({
         </div>
         <div className="shrink-0 text-right">
           <p className="text-[15px] font-semibold text-cocoa">{formatMoney(o.amountCents)}</p>
-          <p className="text-[12px] font-semibold uppercase tracking-wide text-amber-700">awaiting zelle</p>
+          <p className={`text-[12px] font-semibold uppercase tracking-wide ${live ? 'text-amber-700' : 'text-cocoa-soft'}`}>{label}</p>
         </div>
       </div>
+      {!live && <p className="mt-1 text-[12px] text-cocoa-soft">Its bread went back into the pool. Mark paid only if her Zelle did arrive.</p>}
       {warning ? (
         <div className="mt-2 rounded-xl bg-berry/10 p-3">
           <p className="text-[13px] text-berry">
@@ -399,9 +403,11 @@ function PendingRow({
           <Button className="px-3 text-[13px]" disabled={busy} onClick={() => onMarkPaid(o)}>
             Mark paid
           </Button>
-          <Button variant="ghost" className="px-3 text-[13px]" disabled={busy} onClick={() => onCancel(o)}>
-            Cancel
-          </Button>
+          {live && (
+            <Button variant="ghost" className="px-3 text-[13px]" disabled={busy} onClick={() => onCancel(o)}>
+              Cancel
+            </Button>
+          )}
         </div>
       )}
     </li>

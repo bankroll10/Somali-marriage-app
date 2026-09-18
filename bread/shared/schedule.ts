@@ -21,9 +21,14 @@ export function cutoffFor(ymd: string): number {
   return pickupStart(ymd) - ORDER_CUTOFF_HOURS * 3_600_000
 }
 
+/** A pickup day inside the rolling window as of `nowMs`. Anything else is not a date customers can name. */
+export function isInWindow(ymd: string, nowMs: number, weeks = WEEKS_AHEAD): boolean {
+  return pickupDates(nowMs, weeks).includes(ymd)
+}
+
 /** A date customers may still order for, ignoring capacity and blocks. */
 export function isOrderable(ymd: string, nowMs: number): boolean {
-  return isPickupDay(ymd) && nowMs < cutoffFor(ymd)
+  return isInWindow(ymd, nowMs) && nowMs < cutoffFor(ymd)
 }
 
 /**

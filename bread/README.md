@@ -40,30 +40,37 @@ site and the server follow.
 
 ## How an order moves
 
-1. **Reserve.** `POST /api/checkout` checks the date is open and the
-   quantities fit, then writes a hold on that date's record for
-   `PAYMENT_HOLD_HOURS`. The write is conditional on the record not having
-   changed since it was read (Netlify Blobs' `onlyIfMatch`), so two customers
-   racing for the last loaf cannot both get it — one is told *sold out*
-   before either has sent a dollar.
-2. **Pay.** The customer sees her Zelle name, handle and the exact amount on
-   `/thanks`, with the order's short code as a memo so payments are easy to
-   match. She checks her phone during her shift.
-3. **Confirm.** She taps **Mark paid** in `/admin`. The hold becomes a sale,
-   and the customer's own `/thanks` tab (if still open) updates within
-   seconds. If she checks in after a hold has already lapsed, confirming is
-   still allowed as long as there's room; if it would push a product past its
-   daily capacity, she's shown a warning and has to explicitly confirm
-   anyway.
-4. **Lapse.** If nobody pays within the hold window, the reservation is
-   released automatically — no cron job or cleanup needed, the same
-   conditional-write logic simply stops counting an expired hold. The
-   customer's `/thanks` page reflects this as "expired" the next time it's
-   read, and she can also cancel a pending order herself from `/admin` at any
-   time (a no-show, or a customer who asked to).
+Everything below is a transaction against Postgres (Netlify DB in production,
+the same engine in-process for the tests). The full design, schema and state
+machine are in [`docs/BUILD_PLAN.md`](docs/BUILD_PLAN.md); what was verified
+is in [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md).
 
-Data lives in one Netlify Blobs store called `bread`: `day:YYYY-MM-DD`
-(holds, sales, blocked flag, paid order ids), and `order:<id>`.
+1. **Reserve.** `POST /api/checkout` validates everything on the server (a
+   pickup day inside the 4-week window, before the 48-hour cutoff, known
+   products, whole quantities within capacity, name, phone — browser prices
+   are never read), locks that date's row, and takes the whole cart with
+   guarded updates: if any line cannot be had, nothing is taken and the answer
+   is *sold out* with what is actually left. A `CHECK` constraint on the
+   inventory table makes overselling impossible whatever the application
+   does. The browser sends a one-time key with each attempt, so a retried
+   request returns the same order instead of reserving twice.
+2. **Pay.** The customer sees her Zelle name, handle and the exact amount on
+   `/thanks`, with the order's short code as a memo. She checks her phone
+   during her shift.
+3. **Confirm.** She taps **Mark paid** in `/admin`. The hold becomes a sale;
+   the customer's `/thanks` tab, if still open, updates within seconds. If
+   the hold had already lapsed and someone else took the bread, she is shown
+   the shortfall and can still confirm, which records the extra she has
+   agreed to bake for that date.
+4. **Lapse.** A hold nobody confirms within `PAYMENT_HOLD_HOURS` counts as
+   free from that moment (no job needs to run) and is expired on the next
+   write to that date. She can also cancel a reservation herself.
+
+Data lives in Postgres: `products`, `pickup_dates` (with date blocks),
+`date_inventory` (capacity and committed units per date and product),
+`orders`, `order_items` (price snapshots), `payment_references`, and a
+`reservations` view. Migrations live in `netlify/database/migrations/` and
+Netlify applies them on deploy.
 
 ### A trade-off worth knowing
 
@@ -107,9 +114,19 @@ A project named **bread-pickup** already exists on the team
 
    Trigger a deploy after saving — environment changes apply only to builds
    that start after them.
-4. Open the site, place a test order, and confirm `/admin` shows it as
+4. **The database provisions itself.** `@netlify/database` is a dependency,
+   so the first deploy creates a Postgres (Netlify DB, on Neon) for the site,
+   sets `NETLIFY_DB_URL`, and applies `netlify/database/migrations/`. Nothing
+   to paste. Two things to check in the Netlify UI after that deploy: that
+   the database appears under the site's **Database** section, and whether it
+   asks to be *claimed* to a Neon account — unclaimed Netlify DB databases
+   have had a 7-day expiry; claim it so the orders are not deleted.
+5. Open the site, place a test order, and confirm `/admin` shows it as
    awaiting Zelle. Tap **Mark paid** and confirm the customer-facing
    `/thanks` page updates.
+
+If Netlify DB is ever unsuitable, any Postgres works: set `DATABASE_URL` in
+Netlify, run `npm run db:migrate` against it once, and redeploy.
 
 Share the site's URL (or a QR code of it) at the front desk. `/admin` is only
 for her.
@@ -123,21 +140,25 @@ npm run verify     # typecheck + lint + tests — run before pushing
 npm run build      # what Netlify runs
 ```
 
-To run the functions and a sandboxed blob store locally, use the Netlify CLI:
-`npx netlify dev` with a `.env` copied from `.env.example`.
+To run the functions locally against a database, use the Netlify CLI:
+`npx netlify dev` with a `.env` copied from `.env.example` (it provisions a
+Netlify DB branch for you), or point `DATABASE_URL` at any Postgres and run
+`npm run db:migrate` first.
 
 ### Before changing dependencies
 
 The deploy runs `npm ci` on a clean clone. `package-lock.json` must be committed
 together with `package.json`, and `netlify.toml` sets `NPM_FLAGS=--include=dev`
-because every build tool here is a devDependency.
+because every build tool here is a devDependency. `@netlify/database` must stay
+a regular dependency: the functions import it at runtime.
 
 ## Tests
 
-`tests/` drives the real functions against an in-memory Netlify Blobs that
-honours etags, so the race that matters — ten people reserving three loaves at
-once — is exercised for real: exactly three get through. Marking an order
-paid (including a late confirmation after a hold has lapsed, and the
-capacity-exceeded warning), cancelling a reservation, the confirmation
-page's self-healing, the 48-hour cutoff and admin authentication are covered
-the same way.
+`npm test` drives the real HTTP handlers against a real Postgres running
+in-process (PGlite) that ran the real migration, with an injectable clock:
+concurrent buyers for the last loaf, mixed carts that roll back whole,
+independent dates, blocked dates, forged requests, retried requests, lapsed
+holds, late confirmations, the exact 48-hour cutoff on both sides of a
+daylight-saving change, and a recount of the inventory ledger after every
+test. `npm run test:pg` repeats the races on a real multi-connection Postgres
+(`TEST_DATABASE_URL`), where transactions genuinely overlap.

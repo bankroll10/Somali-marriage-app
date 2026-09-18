@@ -14,16 +14,20 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc -b",
-    "verify": "npm run typecheck && npm run lint && npm test"
+    "verify": "npm run typecheck && npm run lint && npm test",
+    "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "test:pg": "vitest run tests/contention.test.ts"
   },
   "dependencies": {
-    "@netlify/blobs": "^11.1.0",
+    "@netlify/database": "^2.0.1",
     "@tailwindcss/vite": "^4.3.1",
+    "@types/pg": "^8.23.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@netlify/functions": "^6.0.0",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",

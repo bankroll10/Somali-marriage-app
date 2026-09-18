@@ -27,7 +27,7 @@ export default function Thanks() {
         const order = await getOrder(orderId)
         if (cancelled) return
         setState({ kind: 'order', order })
-        if (order.status === 'pending' && attempts < MAX_POLLS) timer = window.setTimeout(tick, POLL_MS(attempts++))
+        if (order.status === 'reserved' && attempts < MAX_POLLS) timer = window.setTimeout(tick, POLL_MS(attempts++))
       } catch (err) {
         if (cancelled) return
         if (err instanceof ApiError && err.status === 404) setState({ kind: 'missing' })
@@ -68,13 +68,16 @@ export default function Thanks() {
   }
 
   const { order } = state
-  if (order.status === 'expired') {
+  if (order.status === 'expired' || order.status === 'cancelled') {
     return (
       <Page>
-        <Title kicker="Reservation lapsed">This hold has expired</Title>
+        <Title kicker={order.status === 'cancelled' ? 'Reservation cancelled' : 'Reservation lapsed'}>
+          {order.status === 'cancelled' ? 'This order was cancelled' : 'This hold has expired'}
+        </Title>
         <Notice tone="info">
-          Your bread was held for a while, but no payment was confirmed in time, so it's been released back into the
-          pool. If you'd still like it, please order again.
+          {order.status === 'cancelled'
+            ? 'This reservation was cancelled, so the bread went back into the pool. If you did send a Zelle, she will still see it and can confirm it by hand.'
+            : "Your bread was held for a while, but no payment was confirmed in time, so it's been released back into the pool. If you'd still like it, please order again."}
         </Notice>
         <div className="mt-6">
           <Button onClick={() => window.location.assign('/')}>Order again</Button>
