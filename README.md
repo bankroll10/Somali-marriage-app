@@ -59,6 +59,12 @@ discovery that is deliberately *not* a swipe deck.
   privacy shield for sisters, with a live trust score. Because in this community,
   women's trust determines whether the whole thing works.
 
+## Also in this repository
+
+`bread/` is a separate, self-contained app — a bread pre-order and prepay
+site deployed as its own Netlify site with base directory `bread`. It shares
+nothing with Niyyah but the repository. See `bread/README.md`.
+
 ## Architecture
 
 ```
