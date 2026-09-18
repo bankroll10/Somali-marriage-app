@@ -72,7 +72,11 @@ Data lives in one Netlify Blobs store called `bread`: `day:YYYY-MM-DD`
 
 ### 2. Netlify
 
-1. **Add new site → Import an existing project → this repository.**
+A project named **bread-pickup** already exists on the team
+(https://app.netlify.com/projects/bread-pickup) with nothing deployed to it.
+
+1. Open it → **Project configuration → Build & deploy → Link repository**, and
+   pick this repository and the branch to deploy from.
 2. Set **Base directory** to `bread`. The build command and publish directory
    come from `netlify.toml`.
 3. **Site configuration → Environment variables**, add:
