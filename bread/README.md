@@ -124,9 +124,11 @@ regular Postgres instead, reached over `DATABASE_URL` like any other Node
 app would. Its migrations live in `db/migrations/` (outside the path
 Netlify's build scans for its own feature) and `netlify.toml`'s build
 command runs `npm run db:migrate` before `npm run build`, so they still
-apply automatically on every deploy — no manual step, no Netlify plan
-requirement, and a deploy with no `DATABASE_URL` set skips migrating rather
-than failing (so a fresh site, or a preview deploy, still builds).
+apply automatically on every deploy — no manual step and no Netlify plan
+requirement. A local or preview build with no `DATABASE_URL` skips migrating
+rather than failing, so a fresh site still builds; a **production** build
+without one fails instead, because a production deploy that never migrated
+looks green and then answers 503 on every request.
 
 1. Create a free Postgres project — [neon.tech](https://neon.tech) is what
    this app was built and tested against (it's also what powers Netlify's
@@ -156,6 +158,14 @@ A project named **bread-pickup** already exists on the team
    | `STRIPE_SECRET_KEY` | from Stripe step 2 (test first, live at launch) |
    | `STRIPE_WEBHOOK_SECRET` | from Stripe step 3 |
    | `DATABASE_URL` | from the database step above |
+
+   Leave **"Contains secret values" unchecked** on `DATABASE_URL`. Netlify
+   hands secret-marked variables to the functions but withholds them from the
+   *build*, and the build is what applies the migrations — marked secret, the
+   schema is never created and the site answers 503 (this happened; see
+   `docs/BUILD_STATUS.md`). The trade-off is that anyone signed in to the
+   Netlify account can read them; nothing is bundled into the browser either
+   way.
 
    Trigger a deploy after saving — environment changes apply only to builds
    that start after them.

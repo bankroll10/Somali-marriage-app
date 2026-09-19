@@ -64,25 +64,52 @@ transactions, or the rest of the app changed. Confirmed after the fix, in this s
 - The bundled `admin.ts` function (esbuild, `--platform=node`, matching `netlify.toml`) answers a
   real request through the new `pg`-based client against a real Postgres (HTTP 200), and answers a
   clean 503 `database_not_configured` rather than crashing when `DATABASE_URL` is unset.
-- The whole automated suite (58 PGlite tests, 4 real-Postgres contention tests) still passes
+- The whole automated suite (60 PGlite tests, 4 real-Postgres contention tests) still passes
   unchanged, since `Db`/`Queryable` didn't change shape.
 
 **Follow-up, same day**: a real database (Neon, free tier) was created and its connection string
 supplied. Automatic migration-on-deploy was restored — not through Netlify's unavailable feature,
 but by putting `npm run db:migrate` in `netlify.toml`'s own build command, ahead of `npm run
 build`, running on Netlify's build machine (which has normal internet access, unlike this
-sandbox). `scripts/migrate.ts` now distinguishes "no `DATABASE_URL`" (skip, exit 0 — a deploy with
-no database configured still builds) from a real failure (fail the build, exit 1). Verified in
-this sandbox: the skip path, and — against a locally spun-up Postgres reached over plain TCP
-(standing in for the no-SSL, `isLocal` branch; a real managed Postgres exercises the TLS branch,
-still unverified from here for the reason above) — both the first successful run and a second,
-idempotent no-op run.
-**Not yet confirmed**: an actual deploy succeeding end-to-end against this fix, and a real managed
-Postgres (Neon recommended) with TLS — this sandbox's Postgres for testing doesn't speak TLS, so
-the code's "use TLS unless the host is literally localhost" branch was exercised structurally
-(proven to trigger, and separately proven to work with TLS off against localhost) but not against
-a real TLS-terminating provider. Needs `DATABASE_URL` from a real Neon/Supabase/etc. project,
-set in Netlify, followed by a redeploy.
+sandbox).
+
+Two further problems were real, and both were found only on the live site — neither could have
+been caught from here, and neither failed the deploy:
+
+**The site was building the wrong directory.** `bread-pickup.netlify.app` served the *Niyyah*
+app instead: same repository, different project. The deploy records settled it — the deploy that
+was live had shipped Niyyah's functions (`cohort`, `couple`, `guide`, `keep`, `progress`,
+`vouch`), an edge function and a header rule, none of which exist in `bread/`. The production
+branch was already correct; what was missing was the project's **Base directory**, so Netlify
+built the repository root. Setting it to `bread` fixed it, and the next deploy
+(`6aade145bef6985aa454e807`) shipped exactly the seven bread functions (`admin`, `availability`,
+`cancel`, `checkout`, `order`, `reconcile-stale`, `stripe-webhook`), the two redirects, no edge
+functions, and registered `reconcile-stale` on its ten-minute schedule.
+
+**Netlify hides "secret" environment variables from the build.** With the right app deployed, the
+order page still read *Could not load the pickup dates* — the UI's message for a failing
+`GET /api/availability`. `DATABASE_URL` and `STRIPE_SECRET_KEY` had been set marked *contains
+secret values*; Netlify exposes those to functions but withholds them from the build environment.
+So `npm run db:migrate`, the first half of the build command, saw no `DATABASE_URL`, printed its
+skip message, exited 0, and the deploy went green **against a database that had never been
+migrated**. Re-set without the secret flag, both variables now read back scoped to
+`builds, functions, post_processing, runtime`.
+
+That silent-success path is now closed: `scripts/migrate.ts` still skips (exit 0) with no
+`DATABASE_URL` on a local or preview build, but a **production** build (`CONTEXT=production`)
+without one prints why and exits 1, failing the deploy instead of shipping a site where every
+request answers 503. Covered by a test in `tests/deploy-layout.test.ts` that runs the script both
+ways. The trade-off accepted for the variables themselves: anyone already signed in to the Netlify
+account can read them in the dashboard. Neither is ever bundled into the browser.
+
+Verified in this sandbox: the skip path, the new production failure, and — against a locally
+spun-up Postgres reached over plain TCP (standing in for the no-SSL, `isLocal` branch) — both the
+first successful run and a second, idempotent no-op run.
+**Still not confirmed from here**: the TLS branch against a real managed Postgres. This sandbox's
+egress proxy blocks `*.neon.tech` and `*.netlify.app`, so the Neon handshake and the live
+`/api/availability` response can only be confirmed from the user's browser or the Netlify build
+log, not from here. An earlier claim in this session that the Neon connection had been tested from
+this sandbox was wrong — the attempt had been blocked by the proxy, not completed.
 
 ## Verified here (automated, Stripe faked)
 
@@ -93,7 +120,7 @@ real API's idempotency behaviour and session states. **None of it is a Stripe te
 | Check | Result |
 |---|---|
 | `npm run typecheck`, `npm run lint`, `npm run build` | pass (2 pre-existing lint warnings, unchanged) |
-| `npm test` on PGlite (Postgres 18 in-process), Stripe faked | **58 passed**, 4 skipped |
+| `npm test` on PGlite (Postgres 18 in-process), Stripe faked | **60 passed**, 4 skipped |
 | `npm run test:pg` on a real Postgres 16.13, 12 connections | **4 passed** |
 | `npm run db:migrate` (both migrations) against the real Postgres | applies, then "up to date" |
 | Root Niyyah suite, bread excluded | 227 passed |

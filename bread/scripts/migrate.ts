@@ -9,14 +9,27 @@ import { applyMigrations } from '../netlify/lib/db/migrate.ts'
  * automatically on deploy now that Netlify's own auto-provisioned database
  * isn't available on this account's plan — see docs/BUILD_STATUS.md.
  *
- * As a build step this must not fail a deploy that simply has no database
- * configured yet (a fresh site, or a preview deploy): that is a skip, not an
- * error. Anything else — a set DATABASE_URL that is wrong, or a migration
- * that fails to apply — fails loudly, because that deploy would otherwise
- * ship with the wrong schema.
+ * A build with no DATABASE_URL at all is a skip, not an error: a fresh site,
+ * a preview deploy or a local `npm run build` should still build. The one
+ * exception is a *production* build (Netlify sets CONTEXT=production), which
+ * must not go live announcing success against a database it never migrated —
+ * that failure is silent at deploy time and shows up only as every request
+ * answering 503. So there it fails the build instead. Anything else — a set
+ * DATABASE_URL that is wrong, or a migration that fails to apply — fails
+ * loudly everywhere, because that deploy would ship with the wrong schema.
  */
 const url = process.env.DATABASE_URL
 if (!url) {
+  if (process.env.CONTEXT === 'production') {
+    console.error(
+      '[bread] DATABASE_URL is not set in this production build.\n' +
+        '        Set it in Netlify (Site configuration -> Environment variables), and leave\n' +
+        '        "Contains secret values" UNCHECKED: Netlify withholds secret variables from\n' +
+        '        the build environment, so the schema would never be migrated and every\n' +
+        '        request would answer 503 on a deploy that otherwise looks successful.',
+    )
+    process.exit(1)
+  }
   console.log('[bread] DATABASE_URL is not set — skipping database migrations for this build.')
   process.exit(0)
 }

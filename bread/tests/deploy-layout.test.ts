@@ -1,3 +1,4 @@
+import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -33,6 +34,26 @@ describe('deploy layout', () => {
     expect(names.length).toBeGreaterThan(0)
     for (const name of names) expect(name).toMatch(/^\d+_[a-z0-9-]+$/)
     expect(names).toEqual([...names].sort())
+  })
+  it('a build with no database skips migrating, but a production build refuses to ship', () => {
+    const run = (env: Record<string, string>) =>
+      spawnSync(process.execPath, ['--experimental-strip-types', 'scripts/migrate.ts'], {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: { ...process.env, DATABASE_URL: undefined, CONTEXT: undefined, ...env } as NodeJS.ProcessEnv,
+      })
+
+    // A fresh site, a preview deploy or a local build: nothing to migrate against, still builds.
+    const preview = run({ CONTEXT: 'deploy-preview' })
+    expect(preview.status).toBe(0)
+    expect(preview.stdout).toContain('skipping database migrations')
+
+    // Production without a database migrates nothing and would answer 503 on every request.
+    // That must fail the build rather than deploy green. (Netlify hides "secret" variables
+    // from the build, which is exactly what this caught on the live site.)
+    const production = run({ CONTEXT: 'production' })
+    expect(production.status).toBe(1)
+    expect(production.stderr).toContain('DATABASE_URL is not set in this production build')
   })
   it('the products the site displays are the products the database sells', async () => {
     const { db } = await freshDb()

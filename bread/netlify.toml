@@ -1,8 +1,13 @@
 [build]
   # Apply any new database migration before building. This is a plain script
   # against DATABASE_URL, not Netlify's own database feature (unavailable on
-  # this account's plan — see docs/BUILD_STATUS.md); it skips cleanly with
-  # no DATABASE_URL set and fails the build if one is set but migrating fails.
+  # this account's plan — see docs/BUILD_STATUS.md). With no DATABASE_URL it
+  # skips cleanly on a local or preview build, but FAILS a production build:
+  # a production deploy that never migrated is broken at runtime and silent
+  # at deploy time. It also fails if DATABASE_URL is set and migrating fails.
+  # DATABASE_URL must not be marked "contains secret values" in Netlify —
+  # secret variables are withheld from the build, which reads to this script
+  # exactly like an unset one.
   command = "npm run db:migrate && npm run build"
   publish = "dist"
   functions = "netlify/functions"
