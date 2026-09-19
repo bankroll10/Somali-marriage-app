@@ -90,8 +90,12 @@ Run here on 2026-09-19 after the fixes.
 | `git log --all -S<secret>` for the Stripe key, webhook secret, Neon password | 0 commits, each |
 
 What the sandbox could **not** run: anything against `api.stripe.com`, the live site or Neon
-(egress refused). The CI workflow added at `.github/workflows/bread.yml` has therefore **not been
-seen to run**; its first run is on this push.
+(egress refused). After the push: the CI workflow at `.github/workflows/bread.yml` ran for the
+first time on commit `ea11892` and **passed** (both suites, Postgres 16 service); Netlify deploy
+`6aaecb53d999d60009fc64ad` built green in production context — which means `npm run db:migrate`
+applied `004_recovery` to Neon, since a failing migration fails the build — with 8 functions, 6
+header rules and the ten-minute schedule registered. The site itself was still not opened from
+here.
 
 ## Server-side checks, in one place
 

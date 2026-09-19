@@ -63,7 +63,7 @@ Zelle order. Proof: **129 tests on PGlite, 8 on Postgres 16 with twelve connecti
 Stripe SDK with a recording HTTP client, and a Chromium pass with the production CSP** — all in
 the report. New tooling: `npm run db:clear-orders -- --yes` to wipe test orders before launch,
 and a GitHub Actions workflow (`.github/workflows/bread.yml`) that runs both suites on every
-push touching `bread/` (its first run is this push; it has not been seen green yet).
+push touching `bread/` (first run on commit `ea11892`: green).
 
 ## Customer flow (2026-09-19)
 
