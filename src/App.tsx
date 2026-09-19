@@ -257,6 +257,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       return (
         <Trust
           identity={n.identity}
+          coupleCode={n.couple?.code ?? null}
           ledger={n.ledgerEntries}
           guideOnDevice={n.trust.guideOnDevice}
           onGuideOnDevice={(on) => n.setTrust((prev) => ({ ...prev, guideOnDevice: on }))}

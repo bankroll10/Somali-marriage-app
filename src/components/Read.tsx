@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import type { Gender, Identity, ReadRecord } from '../types'
 import { EXAMPLE_ANSWERS, readQuestions } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
@@ -74,6 +75,9 @@ export default function Read({
   const [phase, setPhase] = useState<Phase>('intro')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [index, setIndex] = useState(0)
+  // Answers from a run she was pulled out of. Read once, on the way in, and
+  // never mentioned anywhere else — see src/lib/draft.ts for why.
+  const [draft] = useState(() => loadDraft('read'))
 
   const questions = readQuestions(gender ?? 'woman')
   const subject = gender === 'man' ? 'her' : 'him'
@@ -87,8 +91,22 @@ export default function Read({
     // would have committed it — starting — never on page load.
     if (!identity.gender && gender) onSetGender(gender)
     onBegan()
+    // Starting is starting: a fresh run drops whatever the last one left.
+    clearDraft('read')
     setAnswers(fresh ? {} : (saved?.answers ?? {}))
     setIndex(0)
+    setPhase('asking')
+  }
+
+  /** Back in at the first question she never answered. */
+  function resume() {
+    if (!draft) return
+    track('read_started', { again: false })
+    if (!identity.gender && draft.gender) onSetGender(draft.gender)
+    setGender(draft.gender)
+    onBegan()
+    setAnswers(draft.answers)
+    setIndex(resumeIndex(readQuestions(draft.gender).map((q) => q.id), draft.answers))
     setPhase('asking')
   }
 
@@ -97,9 +115,12 @@ export default function Read({
     const next = { ...answers, [q.id]: optionId }
     setAnswers(next)
     if (index + 1 < questions.length) {
+      // Every answer, written down, so leaving costs nothing.
+      saveDraft('read', next, gender ?? 'woman')
       setIndex(index + 1)
       return
     }
+    clearDraft('read')
     const record: ReadRecord = { at: new Date().toISOString(), answers: next }
     const built = buildRead(next, gender ?? 'woman')
     track('read_completed', { band: built?.band, thin: built?.thin })
@@ -155,6 +176,29 @@ export default function Read({
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
             Is {they} serious?
           </h1>
+          {/* Where she left off, above the explanation she has already read —
+              she was one tap from the thing she came for, and the product used
+              to throw every answer away (docs/FOGG.md). Offered here and
+              nowhere else: no badge, no reminder, nothing that counts the
+              things anybody has not finished. */}
+          {draft && (
+            <div className="animate-rise mt-6 rounded-card border border-gold/30 bg-gold/[0.07] p-5">
+              <Button onClick={resume} className="group">
+                Pick up where you left off
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Button>
+              <p className="mt-2.5 text-[0.85rem] text-muted">
+                You answered {answeredOf(readQuestions(draft.gender).map((q) => q.id), draft.answers)} of{' '}
+                {readQuestions(draft.gender).length}.{' '}
+                <button
+                  onClick={() => begin(true)}
+                  className="font-medium text-forest underline-offset-4 hover:underline"
+                >
+                  Start again instead
+                </button>
+              </p>
+            </div>
+          )}
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
             Eleven questions about what {they} has actually <em>done</em> — not
             how you feel, and not what {they} has

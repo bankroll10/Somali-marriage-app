@@ -2,10 +2,17 @@ import { useState, type ReactNode } from 'react'
 import type { Identity } from '../types'
 import type { LedgerEntry } from '../lib/ledger'
 import { BackButton, CheckIcon, Disclose, LockGlyph, Logo } from './ui'
+import ReportConcern from './ReportConcern'
 import { CONTACT_EMAIL } from '../lib/site'
 
 interface Props {
   identity: Identity
+  /**
+   * The two-sided eleven she started, if any — the only place this product
+   * knows who somebody has been in touch with, and so the only thing a report
+   * can be filed against.
+   */
+  coupleCode?: string | null
   /** What she has actually done here — see src/lib/ledger.ts. */
   ledger: LedgerEntry[]
   guideOnDevice: boolean
@@ -29,7 +36,7 @@ interface Props {
  * (which cannot be tapped), the one control that does what it says, and the
  * exact account of where her answers live.
  */
-export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
+export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
   const isWoman = identity.gender === 'woman'
   const [forgetting, setForgetting] = useState<'idle' | 'sure' | 'working'>('idle')
   // What a failed server delete left behind, named rather than hidden.
@@ -456,6 +463,20 @@ export default function Trust({ identity, ledger, guideOnDevice, onGuideOnDevice
               reading a promise does not have to read to trust it, and must be
               able to find the moment she wants to hold us to it
               (docs/LOAD.md). Same words, on a row that says what they are. */}
+          {/* The route, on the screen that promises it.
+              This paragraph has said "you can report a concern about them"
+              since the safety function shipped, and this screen offered no way
+              to do it: the only one in the product was at the foot of the joint
+              sheet, four taps deep, reachable only after he had answered. A
+              person is most motivated to report weeks later, when something has
+              happened — and at that moment the prompt did not exist anywhere
+              she would look (docs/FOGG.md). */}
+          {coupleCode && (identity.gender === 'woman' || identity.gender === 'man') && (
+            <div className="mt-4 rounded-card border border-cream/20 bg-cream/10 p-4">
+              <ReportConcern code={coupleCode} side={identity.gender} />
+            </div>
+          )}
+
           <Disclose
             summary="Exactly what a report does"
             hint="And the honest limit"

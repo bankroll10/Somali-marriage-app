@@ -38,6 +38,9 @@ export const LOCAL_KEYS = [
   'niyyah.via.v1',
   'niyyah.waitlist.queue.v1',
   'niyyah.events.v1',
+  // A read or an eleven she was part-way through — see src/lib/draft.ts.
+  // Forget me promises the phone is cleared, and this is on the phone.
+  'niyyah.draft.v1',
 ]
 
 async function del(url: string): Promise<boolean> {

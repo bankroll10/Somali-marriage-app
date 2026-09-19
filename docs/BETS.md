@@ -78,11 +78,21 @@ map and never keeps it is invisible between two rungs that both exist. One enum
 value, one line in `rungsFrom`, one sentence on Trust.
 *Upside Med · Cost S · Free · Confidence High · Learning High.*
 
-**B6 · Resume a partial read.** `buildRead` returns null unless all eleven are
-answered, so a closed tab loses everything and the person starts over or never
-returns. A1's own "considered and declined" names this as a real product change
-deferred out of an instrumentation pass.
+**B6 · Resume a partial read. — BUILT 2026-09-19.** `buildRead` returns null
+unless all eleven are answered, so a closed tab lost everything and the person
+started over or never returned. A1's own "considered and declined" named this
+as a real product change deferred out of an instrumentation pass.
 *Upside Med · Cost M · Free · Confidence High · Learning Low.*
+
+Held three times — here, in `docs/NIELSEN.md` as a severity 3, and in
+`docs/LOAD.md` — each time with every other instrument change, until the five
+sessions. `docs/FOGG.md` is where that gate was re-examined and found not to
+apply: **a resume is invisible to an observed session by construction.** A
+person sitting with the founder does not abandon the read and come back next
+week, so it adds no question, changes no question, changes no order, and alters
+nothing a session can see. The gate was protecting the sessions from a change
+that cannot reach them. Built as `src/lib/draft.ts`, device-only and
+expiring — see `docs/FOGG.md` for the rules that keep it from becoming a nudge.
 
 **B7 · An age band on the door.** Deferred with a trigger in `docs/WEDGE.md`:
 the founder cannot tell whether the wedge held. It is also a sixth
@@ -175,7 +185,7 @@ door's whole argument. *Scored zero.*
 | 7 | B3 The door names the vouched | High | M | Free | Med | Med |
 | 8 | B9 The read's result offers the door | Med | S | Free | Med | Low |
 | 9 | B11 The ending's share carries the door | Med | S | Free | Med | Low |
-| 10 | B6 Resume a partial read | Med | M | Free | High | Low |
+| 10 | B6 Resume a partial read — **built 2026-09-19** | Med | M | Free | High | Low |
 | 11 | B7 An age band on the door | Med | S | Costly | Med | Med |
 | 12 | B12 The confirmation names the numbers | Low | S | Free | Med | Low |
 | 13 | B17 Block-before-introduction | High | M | Free | Low | Low |

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import type { Answers, CoupleState, Gender, Identity, ReadRecord } from '../types'
 import { BEFORE_YES_COUNT, STATES, beforeYesTopics } from '../data/beforeYes'
 import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/beforeYes'
@@ -68,6 +69,8 @@ export default function BeforeYes({
   const [phase, setPhase] = useState<Phase>('intro')
   const [picked, setPicked] = useState<Record<string, string>>({})
   const [index, setIndex] = useState(0)
+  // A run she was pulled out of. Read on the way in, and nowhere else.
+  const [draft] = useState(() => loadDraft('eleven'))
 
   const topics = beforeYesTopics(gender ?? 'woman')
   const pronoun = gender === 'man' ? 'her' : 'him'
@@ -78,8 +81,22 @@ export default function BeforeYes({
   function begin() {
     track('before_yes_started')
     onBegan()
+    // Starting is starting: a fresh run drops whatever the last one left.
+    clearDraft('eleven')
     setPicked({})
     setIndex(0)
+    setPhase('asking')
+  }
+
+  /** Back in at the first conversation she never answered for. */
+  function resume() {
+    if (!draft) return
+    track('before_yes_started')
+    setGender(draft.gender)
+    if (!identity.gender) onSetGender(draft.gender)
+    onBegan()
+    setPicked(draft.answers)
+    setIndex(resumeIndex(beforeYesTopics(draft.gender).map((t) => t.id), draft.answers))
     setPhase('asking')
   }
 
@@ -104,9 +121,12 @@ export default function BeforeYes({
     const next = { ...picked, [t.id]: stateId }
     setPicked(next)
     if (index + 1 < topics.length) {
+      // Every answer, written down, so leaving costs nothing.
+      saveDraft('eleven', next, gender ?? 'woman')
       setIndex(index + 1)
       return
     }
+    clearDraft('eleven')
     const built = buildBeforeYes(next, gender ?? 'woman')
     track('before_yes_completed', { open: built?.open.id, differ: built?.counts.differ })
     onSave({ at: new Date().toISOString(), answers: next })
@@ -122,6 +142,30 @@ export default function BeforeYes({
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
             {intro ?? 'The conversations most of us have too late.'}
           </h1>
+          {/* Where she left off, above the explanation she has already read.
+              It sat below it at first, which put it 910 px down a 860 px
+              screen — a returning person had to scroll past two hundred words
+              to get back to the thing she was four answers into. Offered here
+              and nowhere else: no badge, no reminder, nothing counting what
+              anyone has not finished (docs/FOGG.md). */}
+          {draft && (
+            <div className="animate-rise mt-6 rounded-card border border-gold/30 bg-gold/[0.07] p-5">
+              <Button onClick={resume} className="group">
+                Pick up where you left off
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Button>
+              <p className="mt-2.5 text-[0.85rem] text-muted">
+                You answered {answeredOf(beforeYesTopics(draft.gender).map((t) => t.id), draft.answers)} of{' '}
+                {beforeYesTopics(draft.gender).length}.{' '}
+                <button
+                  onClick={() => (gender ? begin() : startAbout(draft.gender))}
+                  className="font-medium text-forest underline-offset-4 hover:underline"
+                >
+                  Start again instead
+                </button>
+              </p>
+            </div>
+          )}
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
             {BEFORE_YES_COUNT === 11 ? 'Eleven' : String(BEFORE_YES_COUNT)} things that decide a Somali
             marriage and almost never get asked before the families are involved — where you’d live,
@@ -148,6 +192,7 @@ export default function BeforeYes({
             </button>
           )}
           {gender ? (
+
             <div className="mt-8">
               <Button onClick={begin} className="group">
                 Start

@@ -1326,3 +1326,61 @@ value screen in the product at ~928 words and it already had eight sections
 with real headings, so it got the glossary and no restructuring. The pull in a
 pass like this is to find something wrong with every screen in the brief; the
 measurement said this one was already right.
+
+---
+
+## The behaviour-model pass, 2026-09-19 (docs/FOGG.md)
+
+**Eight actions against B = MAP. Four were sound; four had a real defect, and
+all four are fixed.** The model was read in one direction only, deliberately:
+raising motivation is the expensive move and here it would also be the wrong
+one — these are decisions about marriage, and a product that made someone
+keener to send the eleven or involve their family would be doing harm. So the
+pass looked only for places where somebody had already decided and the product
+got in the way.
+
+**The headline is a gate that was re-examined and found not to apply.** A
+part-finished read or eleven lost every answer — `useState`, gone on leaving,
+silently, while the device had already recorded that she *began*. At question
+nine motivation is as high as it will ever be and ability drops to zero for a
+reason that has nothing to do with her. It has been named three times —
+`docs/BETS.md` B6, `docs/NIELSEN.md` severity 3, `docs/LOAD.md` — and held each
+time with every other instrument change until the five sessions. **A resume is
+invisible to an observed session by construction:** a person sitting with the
+founder does not abandon and come back next week. It adds no question, changes
+no question, changes no order. The gate was protecting the sessions from a
+change that cannot reach them, so it shipped.
+
+**The map result was asking for the expensive thing first.** The door — five
+required fields and a way to reach her — held the slot right after the reading,
+and *Keep this map*, which costs one tap and protects everything she just
+earned, sat nine hundred words below it. The cheap action that serves her was
+past the fold; the expensive one that serves us was at peak motivation. Order
+swapped.
+
+**Count me in switched off on five conditions and explained one of them.** It
+now names what is left and narrows as she fills it in.
+
+**Trust promised a report and offered no way to file one.** The only route was
+at the foot of the joint sheet, four taps deep, reachable only after he had
+answered — which is also the moment motivation is *lowest*, right after a good
+outcome. The route now sits under the paragraph that promises it.
+
+**One finding came from an action that scored well.** Forget me is sound on all
+three legs, and its promise is worth exactly as much as `LOCAL_KEYS` is
+complete — a hand-written list, checked by a test comparing it to a second
+hand-written list. Adding drafts added exactly the kind of key neither could
+notice, and the test would have stayed green while half-answered questions
+about somebody survived a Forget me. The test now reads `src/`.
+
+**On prompts arriving before motivation, this product came out clean** — one
+case, the report above. The door is gated on having a map; the follow-up waits
+three days, asks once and accepts "not yet"; the guide is never pushed. Worth
+recording rather than padding the section.
+
+**The line, and what enforces it.** No badge, no reminder, no count of
+unfinished things anywhere. Drafts expire after thirty days rather than being
+held as re-engagement material, and never leave the device.
+`tests/fogg.test.ts` fails if any file outside the two instruments imports the
+draft module — so "you have 1 unfinished read" cannot be added to Home without
+deleting a test that says why not.

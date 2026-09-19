@@ -98,8 +98,20 @@ describe('forget me', () => {
   })
 
   it('names every key the app writes', () => {
+    // The list itself; tests/fogg.test.ts is what proves it is complete, by
+    // reading src/ for every key the app actually writes. A hand-written list
+    // alone cannot do that, which is how `niyyah.draft.v1` would have been
+    // missed (docs/FOGG.md).
     expect(LOCAL_KEYS.sort()).toEqual(
-      ['niyyah.events.v1', 'niyyah.install.v1', 'niyyah.intake.v1', 'niyyah.keep.code.v1', 'niyyah.via.v1', 'niyyah.waitlist.queue.v1'].sort(),
+      [
+        'niyyah.draft.v1',
+        'niyyah.events.v1',
+        'niyyah.install.v1',
+        'niyyah.intake.v1',
+        'niyyah.keep.code.v1',
+        'niyyah.via.v1',
+        'niyyah.waitlist.queue.v1',
+      ].sort(),
     )
   })
 })
