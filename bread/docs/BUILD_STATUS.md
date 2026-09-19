@@ -227,28 +227,46 @@ downgraded it to unverified. `poolConfig()` in `netlify/lib/db/client.ts` now se
 the connection string — `verify-full` for a managed Postgres, off for localhost — and
 `tests/db-ssl.test.ts` asserts what `pg` *resolves*, not what we hand it.
 
+**4. Decline, then retry on the same session — passed (2026-09-19).** Ordered a banana bread on a
+date with all 4 free, paid with `4000 0000 0000 0002`. Stripe refused the card and kept the
+customer on its page. `/admin` then showed, with nothing else touched:
+
+- the order listed under that date as a card order, amber, not paid, with the copy *"The customer
+  is on Stripe's page or has left it"*;
+- **3 banana bread left, not 4** — the declined payment did **not** hand the bread back while a
+  customer was still standing at the till trying to buy it. This is the failure that oversells a
+  date, and it did not happen;
+- *To bake: nothing yet* — the bake list counts paid orders only, so a hold never puts flour on
+  her counter.
+
+Paying again with `4242 4242 4242 4242` on that same Stripe page then completed it, and `/admin`
+showed **the same order reference**, now paid, with the date **still reading 3 left** and *to
+bake: 1 banana bread*. So the retry reused one session and one order rather than creating a
+second, the hold converted into a sale rather than decrementing twice, and the bake list picked it
+up only once paid. A neighbouring Thursday stayed at its full 3 and 4 throughout, which is
+per-date capacity holding independently on live data.
+
 ### Not executed yet
 
-Run against the same site, Stripe Dashboard in test mode. Cases 6 and 7 need the Stripe CLI
+Run against the same site, Stripe Dashboard in test mode. Cases 5 and 6 need the Stripe CLI
 (`stripe listen`, `stripe events resend`) and are easier locally: copy `.env.example` to `.env`
 with the same four variables, `npm run db:migrate`, then `npx netlify dev`.
 
-1. **3-D Secure**: `4000 0025 0000 3155`, complete the challenge → paid.
-2. **Decline**: `4000 0000 0000 0002` → session stays open, order stays reserved and held in
-   `/admin`; then pay with 4242 on the same page → paid.
-3. **Duplicate submission**: double-tap Pay / reload the order page mid-submit → one order, one
+1. **Cancel URL**: tap back on Stripe's page → session shows expired in the Dashboard, bread
+   released. The complement of case 4: that proved stock is not released when it must not be,
+   this proves it *is* released when it should be, so capacity cannot leak.
+2. **Duplicate submission**: double-tap Pay / reload the order page mid-submit → one order, one
    session in the Dashboard, one charge.
+3. **3-D Secure**: `4000 0025 0000 3155`, complete the challenge → paid.
 4. **Abandoned session**: close Stripe's page; confirm the bread stays held; wait for
    `checkout.session.expired` (or `stripe trigger`) → released once; admin load and the scheduled
    function on an old session behave the same.
-5. **Cancel URL**: tap back on Stripe's page → session shows expired in the Dashboard, bread
-   released; pay from a stale tab is refused by Stripe.
-6. **Webhook down**: stop `stripe listen`, pay, restart → `/thanks` polling recovers the paid
+5. **Webhook down**: stop `stripe listen`, pay, restart → `/thanks` polling recovers the paid
    state; the replayed webhook is a no-op.
-7. **Delayed/repeated webhooks**: `stripe events resend <evt>` twice → no change.
-8. **Deadline**: with the clock 31 minutes before a date's cutoff, checkout answers
+6. **Delayed/repeated webhooks**: `stripe events resend <evt>` twice → no change.
+7. **Deadline**: with the clock 31 minutes before a date's cutoff, checkout answers
     `closing_soon`; at 33 minutes the session expires at the cutoff.
-9. **Apple Pay**: on Safari with a Wallet card, confirm the button appears on Stripe's page; note
+8. **Apple Pay**: on Safari with a Wallet card, confirm the button appears on Stripe's page; note
     the devices it did not appear on.
 
 Also untested: Netlify's scheduled-function runtime for `reconcile-stale` (the schedule is
@@ -260,8 +278,8 @@ account's plan, so the app no longer depends on it.
 
 ## Remaining before launch
 
-- **Finish the checklist above.** The success case passed against real Stripe; the decline, 3-D
-  Secure, duplicate, abandoned and cancel cases have not been run yet.
+- **Finish the checklist above.** Success, webhook delivery and decline-then-retry passed against
+  real Stripe. Cancel, duplicate submission, 3-D Secure, abandonment and Apple Pay have not run.
 - **Switch to live mode**: her live secret key *and* a second webhook endpoint created in live
   mode with its own signing secret. The test-mode `whsec_` will not verify live events.
 - Dashboard payment methods: cards plus Apple Pay / Google Pay on, every delayed-settlement
