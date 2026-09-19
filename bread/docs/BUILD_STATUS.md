@@ -182,36 +182,58 @@ migrated. After two silent misconfigurations, being able to read the live state 
 than masking values in a dashboard only the owner can open. `DATABASE_URL` has no choice in the
 matter: the build migrates with it. Nothing is bundled into the browser either way.
 
-## Not executed: real Stripe (needs a machine that can reach the site)
+## Against real Stripe (test mode)
 
-The following **have not been run against Stripe** in any mode. Credentials are no longer the
-blocker — they are set (above). What is missing is a machine that can reach the site: this sandbox
-is refused by its egress proxy for `api.stripe.com`, `*.neon.tech` and `*.netlify.app` alike, so
-every item below has to be done in a browser by someone who can open the live site, and the real
-results pasted back into this section with event ids from the Dashboard.
+The app has now taken a real card payment. Everything in the previous section ran against a fake
+gateway and is not a Stripe test; this section is only what was executed against Stripe itself.
 
-Run it against **https://bread-pickup.netlify.app** with Stripe's Dashboard in test mode. Cases 7
-and 8 need the Stripe CLI (`stripe listen`, `stripe events resend`) and are easier locally: copy
-`.env.example` to `.env` with the same four variables, `npm run db:migrate`, then `npx netlify dev`.
+None of it was run from this sandbox, which cannot reach `api.stripe.com`, `*.neon.tech` or
+`*.netlify.app` — its egress proxy refuses all three. Every result below was observed by the
+project owner in a browser against **https://bread-pickup.netlify.app** on deploy
+`6aadf52031905a0008e7f46d`, with Stripe in test mode; my own checks are limited to the Netlify
+deploy and environment APIs and the local suite.
 
-1. **Success**: order, pay with `4242 4242 4242 4242` → `/thanks` shows *checking* then *paid*;
-   `/admin` lists it paid; Dashboard amount equals the order total.
-2. **3-D Secure**: `4000 0025 0000 3155`, complete the challenge → paid.
-3. **Decline**: `4000 0000 0000 0002` → session stays open, order stays reserved and held in
+### Executed
+
+**1. Success — passed (2026-09-19).** Ordered, paid with `4242 4242 4242 4242`. `/thanks` showed
+*checking your payment* and then the confirmed order; `/admin` listed it paid and that date's
+remaining count had dropped by the quantity bought. So, end to end and for the first time: a
+Checkout Session created from the reservation's snapshotted prices, a real charge at Stripe,
+`finalizePayment` converting the hold into paid inventory, and the confirmation page refusing to
+claim anything the server had not verified.
+
+**Open question on that pass — which path confirmed it.** `app.ts:233-241` makes every `/thanks`
+poll a server-side `reconcileOrder`, so the order would have flipped to paid whether or not
+Stripe's webhook arrived. The customer-visible result is identical either way, so test 1 does not
+distinguish them. It matters only for a buyer who closes the tab immediately: with the webhook
+working the bread is settled at once, without it the hold stands until the ten-minute
+`reconcile-stale` run. Being resolved from the `stripe-webhook` function log in Netlify — an
+invocation with no `[bread] webhook: signature rejected` (`app.ts:257`) confirms the webhook path;
+that log line instead would mean the endpoint was created in live mode and the signing secret
+cannot verify test-mode events.
+
+### Not executed yet
+
+Run against the same site, Stripe Dashboard in test mode. Cases 6 and 7 need the Stripe CLI
+(`stripe listen`, `stripe events resend`) and are easier locally: copy `.env.example` to `.env`
+with the same four variables, `npm run db:migrate`, then `npx netlify dev`.
+
+1. **3-D Secure**: `4000 0025 0000 3155`, complete the challenge → paid.
+2. **Decline**: `4000 0000 0000 0002` → session stays open, order stays reserved and held in
    `/admin`; then pay with 4242 on the same page → paid.
-4. **Duplicate submission**: double-tap Pay / reload the order page mid-submit → one order, one
+3. **Duplicate submission**: double-tap Pay / reload the order page mid-submit → one order, one
    session in the Dashboard, one charge.
-5. **Abandoned session**: close Stripe's page; confirm the bread stays held; wait for
+4. **Abandoned session**: close Stripe's page; confirm the bread stays held; wait for
    `checkout.session.expired` (or `stripe trigger`) → released once; admin load and the scheduled
    function on an old session behave the same.
-6. **Cancel URL**: tap back on Stripe's page → session shows expired in the Dashboard, bread
+5. **Cancel URL**: tap back on Stripe's page → session shows expired in the Dashboard, bread
    released; pay from a stale tab is refused by Stripe.
-7. **Webhook down**: stop `stripe listen`, pay, restart → `/thanks` polling recovers the paid
+6. **Webhook down**: stop `stripe listen`, pay, restart → `/thanks` polling recovers the paid
    state; the replayed webhook is a no-op.
-8. **Delayed/repeated webhooks**: `stripe events resend <evt>` twice → no change.
-9. **Deadline**: with the clock 31 minutes before a date's cutoff, checkout answers
+7. **Delayed/repeated webhooks**: `stripe events resend <evt>` twice → no change.
+8. **Deadline**: with the clock 31 minutes before a date's cutoff, checkout answers
     `closing_soon`; at 33 minutes the session expires at the cutoff.
-10. **Apple Pay**: on Safari with a Wallet card, confirm the button appears on Stripe's page; note
+9. **Apple Pay**: on Safari with a Wallet card, confirm the button appears on Stripe's page; note
     the devices it did not appear on.
 
 Also untested: Netlify's scheduled-function runtime for `reconcile-stale` (the schedule is
@@ -223,7 +245,8 @@ account's plan, so the app no longer depends on it.
 
 ## Remaining before launch
 
-- **Run the checklist above.** Nothing in this app has yet exchanged a byte with Stripe.
+- **Finish the checklist above.** The success case passed against real Stripe; the decline, 3-D
+  Secure, duplicate, abandoned and cancel cases have not been run yet.
 - **Switch to live mode**: her live secret key *and* a second webhook endpoint created in live
   mode with its own signing secret. The test-mode `whsec_` will not verify live events.
 - Dashboard payment methods: cards plus Apple Pay / Google Pay on, every delayed-settlement
