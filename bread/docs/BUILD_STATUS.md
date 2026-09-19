@@ -67,6 +67,16 @@ transactions, or the rest of the app changed. Confirmed after the fix, in this s
 - The whole automated suite (58 PGlite tests, 4 real-Postgres contention tests) still passes
   unchanged, since `Db`/`Queryable` didn't change shape.
 
+**Follow-up, same day**: a real database (Neon, free tier) was created and its connection string
+supplied. Automatic migration-on-deploy was restored — not through Netlify's unavailable feature,
+but by putting `npm run db:migrate` in `netlify.toml`'s own build command, ahead of `npm run
+build`, running on Netlify's build machine (which has normal internet access, unlike this
+sandbox). `scripts/migrate.ts` now distinguishes "no `DATABASE_URL`" (skip, exit 0 — a deploy with
+no database configured still builds) from a real failure (fail the build, exit 1). Verified in
+this sandbox: the skip path, and — against a locally spun-up Postgres reached over plain TCP
+(standing in for the no-SSL, `isLocal` branch; a real managed Postgres exercises the TLS branch,
+still unverified from here for the reason above) — both the first successful run and a second,
+idempotent no-op run.
 **Not yet confirmed**: an actual deploy succeeding end-to-end against this fix, and a real managed
 Postgres (Neon recommended) with TLS — this sandbox's Postgres for testing doesn't speak TLS, so
 the code's "use TLS unless the host is literally localhost" branch was exercised structurally
@@ -149,8 +159,6 @@ account's plan, so the app no longer depends on it.
 
 ## Remaining before launch
 
-- A real `DATABASE_URL` (Neon/Supabase/etc.) set in Netlify and `npm run db:migrate` run against
-  it once — this is now what's blocking a working deploy; see "Deploy" above.
 - Her Stripe account, live keys and the webhook endpoint in Netlify; Dashboard wallet settings
   left on, delayed methods off.
 - Biz's confirmation of the 32-minute checkout-start rule (or a switch to the grace period).

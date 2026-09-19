@@ -77,10 +77,10 @@ Data lives in Postgres: `products`, `pickup_dates` (with date blocks),
 `orders`, `order_items` (price snapshots), `payment_references` (the Stripe
 session and payment intent per order), `payment_exceptions`,
 `webhook_events`, and a `reservations` view. Migrations live in
-`db/migrations/` and are applied by running `npm run db:migrate` (see
-"The database" below — Netlify's own auto-provisioned database isn't
-available on this account's plan, so this is a regular externally-hosted
-Postgres instead, and nothing applies migrations automatically on deploy).
+`db/migrations/` and are applied automatically on every deploy — not by
+Netlify's own database feature (unavailable on this account's plan; see "The
+database" below), but by `npm run db:migrate` running as the first step of
+the build itself, against any regular Postgres.
 
 ### What Stripe's page asks for
 
@@ -121,20 +121,24 @@ available on this account's plan — a deploy with a
 `netlify/database/migrations` directory present fails outright with
 `database feature not available for this account`. So this app uses a
 regular Postgres instead, reached over `DATABASE_URL` like any other Node
-app would, and its migrations live in `db/migrations/` (outside the path
-Netlify's build scans) and are applied by hand.
+app would. Its migrations live in `db/migrations/` (outside the path
+Netlify's build scans for its own feature) and `netlify.toml`'s build
+command runs `npm run db:migrate` before `npm run build`, so they still
+apply automatically on every deploy — no manual step, no Netlify plan
+requirement, and a deploy with no `DATABASE_URL` set skips migrating rather
+than failing (so a fresh site, or a preview deploy, still builds).
 
 1. Create a free Postgres project — [neon.tech](https://neon.tech) is what
    this app was built and tested against (it's also what powers Netlify's
    own database product); Supabase or Railway work the same way. Copy the
    **connection string** it gives you (starts `postgresql://…`).
-2. Put it in Netlify as `DATABASE_URL` (next step covers where).
-3. Apply the schema once, from a machine with that connection string:
+2. Put it in Netlify as `DATABASE_URL` (next step covers where); the next
+   deploy applies the schema on its own. To apply it by hand instead
+   (useful locally), from a machine with that connection string:
    ```bash
    DATABASE_URL='postgresql://…' npm run db:migrate
    ```
-   Run this again after any future migration file is added — nothing on
-   Netlify does it automatically.
+   Safe to re-run any time — it only applies migrations it hasn't seen.
 
 ### 3. Netlify
 

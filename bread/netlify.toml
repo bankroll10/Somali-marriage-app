@@ -1,5 +1,9 @@
 [build]
-  command = "npm run build"
+  # Apply any new database migration before building. This is a plain script
+  # against DATABASE_URL, not Netlify's own database feature (unavailable on
+  # this account's plan — see docs/BUILD_STATUS.md); it skips cleanly with
+  # no DATABASE_URL set and fails the build if one is set but migrating fails.
+  command = "npm run db:migrate && npm run build"
   publish = "dist"
   functions = "netlify/functions"
 
