@@ -66,13 +66,40 @@ let cached: Db | undefined
  * against Neon) need TLS; a plain "localhost" URL — local development only —
  * is the one case that doesn't.
  */
+/**
+ * How to open `url`, as `pg.Pool` wants it.
+ *
+ * SSL is decided entirely inside the connection string, because `pg` resolves
+ * it that way whatever we pass: ConnectionParameters does
+ * `Object.assign({}, config, parse(config.connectionString))`, so a `sslmode`
+ * in the URL silently overrides an `ssl` option given alongside it. Passing
+ * both is how you end up believing one thing and running another.
+ *
+ * A managed Postgres gets `sslmode=verify-full`: encrypted *and* the
+ * certificate checked against the CA store, so a machine in the middle cannot
+ * pose as the database. `pg` 8 already behaves that way for a plain
+ * `sslmode=require` — it says so in a warning on every cold start — but that
+ * is scheduled to change: in `pg` 9 / `pg-connection-string` 3, `require`
+ * takes libpq's weaker meaning of "encrypt, don't check who answered". Saying
+ * `verify-full` outright is identical today (both parse to the same options)
+ * and keeps the guarantee across that upgrade instead of quietly losing it.
+ *
+ * A local Postgres speaks no TLS at all, so SSL is off there.
+ */
+export function poolConfig(url: string): pg.PoolConfig {
+  if (/^postgres(ql)?:\/\/[^/]*@?(localhost|127\.0\.0\.1)[:/]/.test(url)) {
+    return { connectionString: url, ssl: false }
+  }
+  const parsed = new URL(url)
+  parsed.searchParams.set('sslmode', 'verify-full')
+  return { connectionString: parsed.toString() }
+}
+
 export function productionDb(): Db {
   if (!cached) {
     const connectionString = process.env.DATABASE_URL
     if (!connectionString) throw new Error('DATABASE_URL is not set')
-    const isLocal = /^postgres(ql)?:\/\/[^/]*@?(localhost|127\.0\.0\.1)[:/]/.test(connectionString)
-    const pool = new pg.Pool({ connectionString, ssl: isLocal ? undefined : { rejectUnauthorized: false } })
-    cached = poolDb(pool)
+    cached = poolDb(new pg.Pool(poolConfig(connectionString)))
   }
   return cached
 }

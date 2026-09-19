@@ -1,5 +1,5 @@
 import pg from 'pg'
-import { poolDb } from '../netlify/lib/db/client.ts'
+import { poolConfig, poolDb } from '../netlify/lib/db/client.ts'
 import { applyMigrations } from '../netlify/lib/db/migrate.ts'
 
 /**
@@ -34,8 +34,8 @@ if (!url) {
   process.exit(0)
 }
 
-const isLocal = /^postgres(ql)?:\/\/[^/]*@?(localhost|127\.0\.0\.1)[:/]/.test(url)
-const pool = new pg.Pool({ connectionString: url, ssl: isLocal ? undefined : { rejectUnauthorized: false } })
+// Same SSL rules as the functions use at runtime — see poolConfig.
+const pool = new pg.Pool(poolConfig(url))
 try {
   const ran = await applyMigrations(poolDb(pool))
   console.log(ran.length ? `[bread] migrations applied: ${ran.join(', ')}` : '[bread] migrations up to date')

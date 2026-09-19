@@ -202,15 +202,30 @@ Checkout Session created from the reservation's snapshotted prices, a real charg
 `finalizePayment` converting the hold into paid inventory, and the confirmation page refusing to
 claim anything the server had not verified.
 
-**Open question on that pass — which path confirmed it.** `app.ts:233-241` makes every `/thanks`
+**2. Webhook delivery — passed (2026-09-19).** The `stripe-webhook` function log in Netlify shows
+invocations after the signing secret was configured, matching the test order, and **no**
+`[bread] webhook: signature rejected` line. The success path logs nothing but its duration, so a
+quiet invocation is a verified signature and a 200. Stripe is genuinely reaching the endpoint and
+the test-mode secret matches, which settles the question below.
+
+**What that pass did not settle by itself.** `app.ts:233-241` makes every `/thanks`
 poll a server-side `reconcileOrder`, so the order would have flipped to paid whether or not
 Stripe's webhook arrived. The customer-visible result is identical either way, so test 1 does not
 distinguish them. It matters only for a buyer who closes the tab immediately: with the webhook
 working the bread is settled at once, without it the hold stands until the ten-minute
-`reconcile-stale` run. Being resolved from the `stripe-webhook` function log in Netlify — an
-invocation with no `[bread] webhook: signature rejected` (`app.ts:257`) confirms the webhook path;
-that log line instead would mean the endpoint was created in live mode and the signing secret
-cannot verify test-mode events.
+`reconcile-stale` run. Resolved by case 2 above: the webhook is arriving, so a paid order is
+settled immediately rather than waiting on the customer's page.
+
+**3. Database TLS — found and corrected (2026-09-19).** Reading that same function log turned up a
+warning on every cold start: `pg` announcing that `sslmode=require` is currently treated as
+`verify-full` and will stop being, in `pg` 9. Following it up showed the app had been passing
+`ssl: { rejectUnauthorized: false }` beside the connection string and that option was **never in
+effect** — `pg`'s ConnectionParameters does `Object.assign({}, config, parse(
+config.connectionString))`, so `sslmode` in the URL wins. The database connection was therefore
+fully verified, by accident rather than intent, and a later dependency bump would have silently
+downgraded it to unverified. `poolConfig()` in `netlify/lib/db/client.ts` now settles SSL inside
+the connection string — `verify-full` for a managed Postgres, off for localhost — and
+`tests/db-ssl.test.ts` asserts what `pg` *resolves*, not what we hand it.
 
 ### Not executed yet
 
