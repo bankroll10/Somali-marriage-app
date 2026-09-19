@@ -297,7 +297,7 @@ In order of how much of this file rests on each.
 
 | # | Assumption | Label | Cheapest test |
 |---|---|---|---|
-| 1 | Preparing men will be counted at all through a room post, at ≥ 1 per 2–3 women | HYPOTHESIS | `sidesByVia.man.{alumni,professional,mosque}` at two and eight weeks (`docs/WEDGE.md`'s pivot rule) |
+| 1 | Preparing men will be counted at all through a room post, at ≥ 1 per 2–3 women | HYPOTHESIS | `sidesByVia.man.{alumni,professional,mosque}` at two and eight weeks (`docs/WEDGE.md`'s pivot rule). The brace list is exhaustive on purpose: `press` is outside it, because this row is about a *room post* |
 | 2 | *q* — the share of eligible pairs where an introduction is welcome both ways — is ≥ 0.15 | HYPOTHESIS | The first twenty hand-made introductions, outcomes recorded |
 | 3 | Counted members are still there when offered someone — activity ≥ 70% | HYPOTHESIS | Response rate to the first twenty introduction mails within fourteen days |
 | 4 | The two coded gates are the right two; nobody refuses for a reason the gate could have caught | HYPOTHESIS | The "no" reasons from the first twenty, as a closed list |

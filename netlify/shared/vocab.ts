@@ -97,9 +97,12 @@ export const STAGES = new Set(['preparing', 'talking', 'deciding', 'married'])
  * into a community's chat rather than sent to one person: the kind of room,
  * never the room (docs/WEDGE.md). `alumni`, `professional` and `mosque` say
  * which kind of room, so the eight-week pivot rule can be read from the
- * readout — still never which room, never a person (docs/BOARD.md).
+ * readout — still never which room, never a person (docs/BOARD.md). `press`
+ * is not a room at all: a publication that printed the link, never which one,
+ * and deliberately outside the room kinds the pivot rule reads
+ * (src/lib/entry.ts, docs/WEDGE.md).
  */
-export const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family', 'married', 'group', 'alumni', 'professional', 'mosque'])
+export const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family', 'married', 'group', 'alumni', 'professional', 'mosque', 'press'])
 
 /** Must match `Dimension` in src/types.ts — the map's seven grounds. */
 export const DIMENSIONS = new Set(['intention', 'faith', 'family', 'vision', 'character', 'emotional', 'selfAwareness'])

@@ -206,7 +206,7 @@ one place to see them together.
 | The live guide (Claude, not the local voice) | Named by fewer than one in five people who reach an ending | `docs/EXPERIMENTS.md` A3 |
 | Family scripts as the path forward | No script confirmed as said by twenty people who built maps | `docs/EXPERIMENTS.md` A4 |
 | The family vouch as verification | Asks below one in four kept maps (the ask is the problem), or asks healthy but vouches below half (his screen is the problem) | `docs/EXPERIMENTS.md` A2 |
-| The wedge channel (alumni/professional group links, Minneapolis) | Fewer than twenty women counted, or fewer than five men arrived through a group link (`sidesByVia.man.group.arrived`), after eight weeks of the playbook — change channel first, city second | `docs/WEDGE.md` |
+| The wedge channel (alumni/professional group links, Minneapolis) | Fewer than twenty women counted, or fewer than five men arrived through a group link (`sidesByVia.man.group.arrived` — `press` is excluded, an article is not a room), after eight weeks of the playbook — change channel first, city second | `docs/WEDGE.md` |
 | Onboarding length (the thirteen-question map, the read, the eleven) | Completion under the thresholds in A1 — shorten, cut to one chapter, or fix the two-sided flow, by instrument | `docs/EXPERIMENTS.md` A1 |
 | Support as one founder inbox | More than a handful of emails in a week | `docs/TIME.md` |
 | The safety queue as one weekly `curl` | A second reader is needed, or a report waits more than a week | `docs/HARD.md`, `docs/TIME.md` |

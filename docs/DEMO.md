@@ -22,8 +22,10 @@ fresh tab; each survives a reload and previews as itself when pasted into a chat
 | `/guides/before-you-say-yes` | The eleven as a page to read and print — all eleven with their words, in a voice for two readers; no app runs on it |
 | `/guides/before-you-say-yes/sample` | Three of the eleven on one printed page — the attachable sample for institutions |
 
-Add `?via=group` (or `alumni`, `professional`, `mosque`) when posting into a room; the
-via is remembered and dropped from the bar. The older `?read`, `?eleven`, `?door` and
+Add `?via=group` (or `alumni`, `professional`, `mosque`) when posting into a room, and
+`?via=press` when a publication prints the link — an article is not a room, and the
+two are kept apart because the eight-week pivot rule reads only the room kinds
+(`docs/WEDGE.md`). The via is remembered and dropped from the bar. The older `?read`, `?eleven`, `?door` and
 `?families` links still work, and the bar follows to the tool's address once the side
 is known.
 
