@@ -246,15 +246,30 @@ second, the hold converted into a sale rather than decrementing twice, and the b
 up only once paid. A neighbouring Thursday stayed at its full 3 and 4 throughout, which is
 per-date capacity holding independently on live data.
 
+**5. Capacity held across separate browsers — passed (2026-09-19).** Two orders were started for
+Thursday Sep 24 from two different browsers, the second in a private window with no shared cookies
+or storage. The second browser's order page read *"Only 2 left for Thu, Sep 24"* — that date's
+capacity of 4 minus the two live holds — and `/admin` agreed: two reserved card orders, 2 left,
+nothing in the bake list. This is the requirement the whole app exists for, that two strangers on
+two devices cannot buy the same loaf, holding on live data rather than in the suite.
+
 ### Not executed yet
 
 Run against the same site, Stripe Dashboard in test mode. Cases 5 and 6 need the Stripe CLI
 (`stripe listen`, `stripe events resend`) and are easier locally: copy `.env.example` to `.env`
 with the same four variables, `npm run db:migrate`, then `npx netlify dev`.
 
-1. **Cancel URL**: tap back on Stripe's page → session shows expired in the Dashboard, bread
-   released. The complement of case 4: that proved stock is not released when it must not be,
-   this proves it *is* released when it should be, so capacity cannot leak.
+1. **Cancel URL**: use **Stripe's own back link on its page** → session shows expired in the
+   Dashboard, bread released. The complement of case 4: that proved stock is not released when it
+   must not be, this proves it *is* released when it should be, so capacity cannot leak.
+
+   The browser's back button is **not** this test, and neither is closing the tab. Only Stripe's
+   link navigates to `cancel_url` (`app.ts:112`, `/?canceled=<order id>`), which is the parameter
+   `Order.tsx:26` looks for before calling `cancelCheckout`. Going back through history lands on
+   `/` with no parameter, nothing fires, and the hold correctly stands — which already produced one
+   false negative when this was attempted. The confirmation that the path ran is the banner on the
+   order page: *"No payment was made. Your reservation is being released."* Without that banner,
+   the test did not happen.
 2. **Duplicate submission**: double-tap Pay / reload the order page mid-submit → one order, one
    session in the Dashboard, one charge.
 3. **3-D Secure**: `4000 0025 0000 3155`, complete the challenge → paid.
@@ -278,6 +293,9 @@ account's plan, so the app no longer depends on it.
 
 ## Remaining before launch
 
+- **Clear the test orders.** Testing has placed real rows on real pickup dates (Sep 21, 23 and 24
+  so far), which occupy capacity. Left in place, Biz opens with phantom sales and fewer loaves to
+  sell than she has. Delete them, or reset the database, before she takes a first customer.
 - **Finish the checklist above.** Success, webhook delivery and decline-then-retry passed against
   real Stripe. Cancel, duplicate submission, 3-D Secure, abandonment and Apple Pay have not run.
 - **Switch to live mode**: her live secret key *and* a second webhook endpoint created in live
