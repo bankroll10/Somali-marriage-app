@@ -171,11 +171,19 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>
               ))}
             </ul>
-            <div className="mt-8">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button onClick={() => { track('couple_started'); onBegan(); setPhase('asking') }} className="group">
                 Start
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </Button>
+              {/* Someone sent him this. Being able to say no to a stranger's
+                  link is the least this screen owes him. */}
+              <button
+                onClick={onHome}
+                className="px-2 py-2 text-[0.88rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+              >
+                What Niyyah is
+              </button>
             </div>
           </div>
         )}
@@ -235,6 +243,9 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
               Your answers are in. {sender} can see where the two of you stand — and neither of
               you sees the other’s answers, only where you match. Nothing more to do here.
             </p>
+            <Button onClick={onHome} variant="outline" className="mt-7">
+              What Niyyah is
+            </Button>
           </div>
         )}
 

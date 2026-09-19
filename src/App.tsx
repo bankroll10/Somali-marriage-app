@@ -401,14 +401,14 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onBegan={() => n.noteBegan('couple')}
           onRead={() => n.setScreen('read')}
           onBuildMap={n.beginMap}
-          onHome={() => n.setScreen('welcome')}
+          onHome={backHome}
         />
       )
 
     case 'vouch':
       // A family member arrived on her link. No identity, no account: one screen.
       if (!n.entryCode) return welcome
-      return <Vouch code={n.entryCode} onDone={() => n.setScreen('welcome')} />
+      return <Vouch code={n.entryCode} onDone={backHome} />
 
     case 'families':
       return <Families gender={n.identity.gender} stage={n.stage} onTaken={n.noteFamilyScript} onBack={backHome} />

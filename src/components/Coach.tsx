@@ -364,7 +364,12 @@ export default function Coach({
   return (
     <div className="flex h-dvh flex-col bg-cream">
       <header className="flex flex-none items-center gap-3 border-b border-line/70 bg-cream/85 px-5 py-3 backdrop-blur-md">
-        <BackButton onClick={() => setMode(null)} label="Switch guide" />
+        {/* A left chevron in a header is Back on every other screen here, and
+            this one switched voice instead — so the guide was the one screen
+            you could not leave in a tap. Switch keeps the pill beside the
+            label and the inline link under the routing note; this is the way
+            out (docs/PLACE.md). */}
+        <BackButton onClick={onBack} />
         <span
           className={`flex h-10 w-10 flex-none items-center justify-center rounded-2xl ${accentSoft[activeMode.accent]} ${accentText[activeMode.accent]}`}
         >
