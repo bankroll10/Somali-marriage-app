@@ -1034,7 +1034,9 @@ prints on one Letter page, which the walk measures.
 **Three: attribution cannot tell two placements apart, and stays that way.**
 The playbook wants a distinct identifier per placement and shows a UTM
 example. This product ignores UTM parameters: `entryFromUrl` reads only `via`
-from ten room kinds and `main.tsx` strips the rest before React mounts. So
+from a closed set of eleven ids — six kinds of link a person sends, four kinds
+of room, and since 2026-09-19 `press` for a publication that printed the link —
+and `main.tsx` strips the rest before React mounts. So
 Al-Ansar and ICSA both arrived as `mosque`. Splitting them would break the
 rule `src/lib/entry.ts` states — a link names the kind of room, never the room
 — and under the five-person floor the split cells would read `null` for months

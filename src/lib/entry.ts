@@ -25,6 +25,19 @@
  * (docs/BOARD.md). A kind of room is still not a person, and never which
  * room; added before the first post because it cannot be retrofitted.
  *
+ * `press` is the eleventh, and it is a third kind rather than a finer split of
+ * the second. The first six name a link one person sent another; the four
+ * above name a kind of room somebody posted into; `press` names a publication
+ * that printed the link — never which publication, exactly as a room kind
+ * never names the room. It exists because an article is not a room: nobody in
+ * it was asked by name, the readership is whatever the publication has, and it
+ * is read from anywhere in the world. Filed as `group` it would sit in the one
+ * cell docs/WEDGE.md's eight-week rule reads — `sidesByVia.man.group.arrived`
+ * — and the pivot on the wedge channel would be decided partly by strangers
+ * who never saw the wedge. Added on 2026-09-19 for the same reason as the
+ * three above and with the same urgency: an article link is minted once, into
+ * an archive, and there is no second chance to tag it (docs/ASSETS.md).
+ *
  * Since 2026-09-17 three of the instruments also have a path — `/tools/…`,
  * defined once in src/data/tools.ts — so that a link can be understood before
  * it is opened and survives a reload. A path is recognised here too, before
@@ -45,9 +58,9 @@ export type EntryKind = CodedKind | InstrumentKind
 // its literal kinds from drifting from the ones recognised here.
 TOOLS satisfies { kind: InstrumentKind }[]
 
-export type Via = 'words' | 'eleven' | 'couple' | 'door' | 'family' | 'married' | 'group' | 'alumni' | 'professional' | 'mosque'
+export type Via = 'words' | 'eleven' | 'couple' | 'door' | 'family' | 'married' | 'group' | 'alumni' | 'professional' | 'mosque' | 'press'
 /** Must match netlify/shared/vocab.ts VIAS. */
-export const VIAS: Via[] = ['words', 'eleven', 'couple', 'door', 'family', 'married', 'group', 'alumni', 'professional', 'mosque']
+export const VIAS: Via[] = ['words', 'eleven', 'couple', 'door', 'family', 'married', 'group', 'alumni', 'professional', 'mosque', 'press']
 
 export interface Entry {
   kind: EntryKind

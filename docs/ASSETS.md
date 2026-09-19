@@ -57,8 +57,54 @@ when the link is actually visible somewhere a stranger could find it.
 | 2026-09-17 | ICSA / Dar Al-Hijrah, Counseling & Family Services | phone, then email | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply | — |
 | 2026-09-17 | The Family & Youth Institute | contact form | N2 | `…/guides/before-you-say-yes?via=group` | sent, awaiting reply | — |
 | 2026-09-17 | Masjid Al-Israa, Fridley | email, nikah coordinator | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply | — |
+| 2026-09-18 | Abubakar As-Saddique Islamic Center, Minneapolis | email `aaic@abuubakar.org`, phone 612-871-8600 | **N2 + N2s attached**, N1c linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent | — |
+| 2026-09-19 | WardheerNews — editorial, worldwide Somali readership | email `admin@wardheernews.com` | **N1c** | `…/tools/before-you-say-yes?via=press` | inquiry drafted, not yet sent | — |
 
-**One difference between these four, worth remembering when the replies come
+**The 2026-09-19 entry, and what it shows next to the one above it.** The
+shortlist again called the interactive tool N2. This time the *destination* is
+right and only the label is wrong: a reader on a news site clicks through and
+does it themselves, so **N1c** — the interactive `/tools/…` — is the asset.
+Yesterday's Abubakar surface was a packet a coordinator hands to a couple, so
+**N2**, the printable `/guides/…`, was the asset there. Keep both rows: the
+pair is the argument that the choice is made by the *surface*, not by which
+asset is newest or which the shortlist named.
+
+Two more things about the WardheerNews entry:
+
+- **`press` did not exist until this pitch.** The ten vias were six kinds of
+  link a person sends and four kinds of room; an article is neither, and filed
+  as `group` it would have polluted the one cell the eight-week pivot rule
+  reads. `src/lib/entry.ts` says a via cannot be retrofitted, and an article
+  goes into an archive and stays there — so the id landed before the inquiry,
+  not before the draft.
+- **Exclusivity is a real constraint, not boilerplate.** WardheerNews accepts
+  articles "intended exclusively for its readers", stated on two of its pages.
+  The article must be newly written prose, **not** the text of
+  `/guides/before-you-say-yes` rearranged — that page is public, so a rewrite
+  of it is not exclusive, and a relationship with a publication that serves
+  Somali readers worldwide is worth more than one placement. Written down here
+  because this is the thing that gets lost between an accepted inquiry and a
+  draft three weeks later.
+
+**Two corrections made to the 2026-09-18 shortlist before it was logged**, both
+worth keeping because the same two mistakes will recur:
+
+1. **The proposed link carried no `?via=`.** Every earlier placement carries
+   one, and `via` is the *only* attribution this product records
+   (`src/lib/entry.ts`). The shortlist's own measurement plan asks for
+   Minneapolis-area activation to be tracked separately — without `?via=mosque`
+   that is not a harder measurement, it is an impossible one. A link sent
+   without it produces an arrival indistinguishable from a stranger typing the
+   domain.
+2. **The shortlist called the interactive tool N2.** In this ledger **N1c** is
+   the interactive eleven at `/tools/before-you-say-yes` and **N2** is the
+   printable one at `/guides/before-you-say-yes`. They are different assets for
+   different readers, and the proposed surface — "instructions provided to
+   couples applying for marriage services" — is a packet a coordinator hands
+   over, which is what N2 and the one-page N2s exist for. N1c is linked inside
+   N2, so sending N2 loses nothing and gains the printable route.
+
+**One difference between the first four, worth remembering when the replies come
 in.** The first three carried the link alone. Masjid Al-Israa also carried the
 one-page sample as a PDF attachment, the version with the marking boxes. If
 Al-Israa answers and the others do not, the attachment is the first thing to
@@ -82,13 +128,23 @@ posts intended to drive traffic.
 
 The playbook asks for a distinct identifier per placement and shows a UTM
 example. **This product ignores UTM parameters entirely.** `entryFromUrl`
-(`src/lib/entry.ts`) reads only `via`, from a closed set of ten room kinds,
+(`src/lib/entry.ts`) reads only `via`, from a closed set of eleven ids,
 and `src/main.tsx` strips the rest of the query before React mounts. So
 Al-Ansar and ICSA both arrive as `mosque` and the readout cannot separate
 them.
 
 **That stays.** `src/lib/entry.ts` states the rule it enforces: a link names
-the *kind* of room and never the room. And with the five-person floor
+the *kind* of room and never the room.
+
+**`press`, added 2026-09-19, is not an exception to that rule — it is a third
+kind.** `alumni`, `professional` and `mosque` were a finer split of one thing:
+rooms. A publication is not a finer room. Nobody in its readership was asked by
+name, the scale is whatever the publication has, and it is read from anywhere
+in the world. Two Somali news sites will both arrive as `press` and the readout
+will not separate them, exactly as two mosques both arrive as `mosque` — the
+rule is unchanged. What changes is that an article's readers no longer land in
+`group`, where the wedge's own eight-week test would have counted them
+(`docs/WEDGE.md`). And with the five-person floor
 (`netlify/shared/floor.ts`), per-placement cells would read `null` for months
 even if they existed — the split would cost the privacy rule and buy nothing.
 

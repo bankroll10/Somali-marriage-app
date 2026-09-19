@@ -212,7 +212,12 @@ nobody can marry someone met here before anything has opened.
   group link (`sidesByVia.man.group.arrived` — a man who came through
   someone's eleven is already talking to her and does not count,
   `docs/REDTEAM.md`), means change the channel first (mosque young-adult
-  circles), the city second (Columbus).
+  circles), the city second (Columbus). **`press` is excluded from that
+  cell too**, and for the same reason: a man who found the link in a news
+  article was never in a room, nobody asked him by name, and he may be on
+  another continent. An editorial placement can make the number look healthy
+  while the wedge itself is dead, which is the one way this rule could be
+  read wrong (`src/lib/entry.ts`, added 2026-09-19 before the first pitch).
 
 ## Deferred, with triggers
 
