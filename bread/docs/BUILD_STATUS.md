@@ -105,11 +105,17 @@ account can read them in the dashboard. Neither is ever bundled into the browser
 Verified in this sandbox: the skip path, the new production failure, and — against a locally
 spun-up Postgres reached over plain TCP (standing in for the no-SSL, `isLocal` branch) — both the
 first successful run and a second, idempotent no-op run.
-**Still not confirmed from here**: the TLS branch against a real managed Postgres. This sandbox's
-egress proxy blocks `*.neon.tech` and `*.netlify.app`, so the Neon handshake and the live
-`/api/availability` response can only be confirmed from the user's browser or the Netlify build
-log, not from here. An earlier claim in this session that the Neon connection had been tested from
-this sandbox was wrong — the attempt had been blocked by the proxy, not completed.
+**Now confirmed on the live site**: the TLS branch against a real managed Postgres works. Deploy
+`6aade3b0530b2d0007894144` (context `production`, commit `c37d477`) built green *with the new
+guard in place* — which it could not have done had `DATABASE_URL` been missing or had
+`applyMigrations` thrown — and the user then loaded `/api/availability`, which returned real JSON,
+and the order page, which rendered the Mon/Wed/Thu chips with per-product counts. So the build
+machine and the functions both reach Neon over TLS.
+
+Still not confirmed *from this sandbox*, and it never will be: the egress proxy blocks
+`*.neon.tech` and `*.netlify.app`, so every live check above is the user's browser, not mine. An
+earlier claim in this session that the Neon connection had been tested from here was wrong — that
+attempt had been blocked by the proxy, not completed.
 
 ## Verified here (automated, Stripe faked)
 
@@ -147,47 +153,85 @@ What the Stripe suite (`tests/stripe.test.ts`) proves about the app's side:
   had paid; a hand "Mark paid" on a card order closes its session and records a manual reference.
 - The inventory ledger recount holds after every test.
 
-## Not executed: real Stripe (needs credentials and a machine that can reach Stripe)
+## Configured on the live site (2026-09-19)
 
-The following **have not been run against Stripe** in any mode. Missing here: a Stripe test
-secret key and webhook signing secret, and network access to `api.stripe.com`. Run this on a
-laptop with her test keys and paste the results into this section (with event ids from the
-Dashboard):
+Everything the app needs at runtime is now set on the `bread-pickup` Netlify project, in **Stripe
+test mode**:
 
-1. `cp .env.example .env`; set `STRIPE_SECRET_KEY=sk_test_…`, `ADMIN_PASSWORD`, and `DATABASE_URL`
-   (a free Neon/Supabase project — see README). `npm run db:migrate` once.
-2. `stripe listen --forward-to localhost:8888/api/stripe-webhook`; put its `whsec_…` in `.env`;
-   `npx netlify dev`.
-3. **Success**: order, pay with `4242 4242 4242 4242` → `/thanks` shows *checking* then *paid*;
+| Variable | Read by | State |
+|---|---|---|
+| `DATABASE_URL` | the build (migrations) **and** the functions | Neon, pooled, TLS |
+| `STRIPE_SECRET_KEY` | functions only (`stripe/gateway.ts`) | `sk_test_…` |
+| `STRIPE_WEBHOOK_SECRET` | functions only (`stripe/gateway.ts`) | `whsec_…`, test mode |
+| `ADMIN_PASSWORD` | functions only (`lib/http.ts`) | set |
+
+Biz created the webhook endpoint herself at `https://bread-pickup.netlify.app/api/stripe-webhook`
+in test mode, subscribed to the `checkout.session.*` events. The handler ignores any event that
+carries no `checkout.session` object (`lib/app.ts:263`), so extra subscriptions are harmless
+no-ops that only add a row to `webhook_events`.
+
+**Test mode must match the key.** `gateway.ts:87` derives `livemode` from whether the secret key
+starts with `sk_live_`, and `payments.ts:157` refuses a session whose `livemode` disagrees. A
+live-mode signing secret would also fail signature verification outright. Going live therefore
+needs *both* a live key and a **second, live-mode webhook endpoint** with its own signing secret.
+
+**None of these variables is marked "contains secret values."** That is deliberate. Netlify's API
+returns nothing at all for secret-marked variables, and an unreadable configuration is exactly
+what made the previous outage invisible — the deploy went green while the database was never
+migrated. After two silent misconfigurations, being able to read the live state back is worth more
+than masking values in a dashboard only the owner can open. `DATABASE_URL` has no choice in the
+matter: the build migrates with it. Nothing is bundled into the browser either way.
+
+## Not executed: real Stripe (needs a machine that can reach the site)
+
+The following **have not been run against Stripe** in any mode. Credentials are no longer the
+blocker — they are set (above). What is missing is a machine that can reach the site: this sandbox
+is refused by its egress proxy for `api.stripe.com`, `*.neon.tech` and `*.netlify.app` alike, so
+every item below has to be done in a browser by someone who can open the live site, and the real
+results pasted back into this section with event ids from the Dashboard.
+
+Run it against **https://bread-pickup.netlify.app** with Stripe's Dashboard in test mode. Cases 7
+and 8 need the Stripe CLI (`stripe listen`, `stripe events resend`) and are easier locally: copy
+`.env.example` to `.env` with the same four variables, `npm run db:migrate`, then `npx netlify dev`.
+
+1. **Success**: order, pay with `4242 4242 4242 4242` → `/thanks` shows *checking* then *paid*;
    `/admin` lists it paid; Dashboard amount equals the order total.
-4. **3-D Secure**: `4000 0025 0000 3155`, complete the challenge → paid.
-5. **Decline**: `4000 0000 0000 0002` → session stays open, order stays reserved and held in
+2. **3-D Secure**: `4000 0025 0000 3155`, complete the challenge → paid.
+3. **Decline**: `4000 0000 0000 0002` → session stays open, order stays reserved and held in
    `/admin`; then pay with 4242 on the same page → paid.
-6. **Duplicate submission**: double-tap Pay / reload the order page mid-submit → one order, one
+4. **Duplicate submission**: double-tap Pay / reload the order page mid-submit → one order, one
    session in the Dashboard, one charge.
-7. **Abandoned session**: close Stripe's page; confirm the bread stays held; wait for
+5. **Abandoned session**: close Stripe's page; confirm the bread stays held; wait for
    `checkout.session.expired` (or `stripe trigger`) → released once; admin load and the scheduled
    function on an old session behave the same.
-8. **Cancel URL**: tap back on Stripe's page → session shows expired in the Dashboard, bread
+6. **Cancel URL**: tap back on Stripe's page → session shows expired in the Dashboard, bread
    released; pay from a stale tab is refused by Stripe.
-9. **Webhook down**: stop `stripe listen`, pay, restart → `/thanks` polling recovers the paid
+7. **Webhook down**: stop `stripe listen`, pay, restart → `/thanks` polling recovers the paid
    state; the replayed webhook is a no-op.
-10. **Delayed/repeated webhooks**: `stripe events resend <evt>` twice → no change.
-11. **Deadline**: with the clock 31 minutes before a date's cutoff, checkout answers
+8. **Delayed/repeated webhooks**: `stripe events resend <evt>` twice → no change.
+9. **Deadline**: with the clock 31 minutes before a date's cutoff, checkout answers
     `closing_soon`; at 33 minutes the session expires at the cutoff.
-12. **Apple Pay**: on Safari with a Wallet card, confirm the button appears on Stripe's page; note
+10. **Apple Pay**: on Safari with a Wallet card, confirm the button appears on Stripe's page; note
     the devices it did not appear on.
 
-Also untested from here: Netlify's scheduled-function runtime for `reconcile-stale`, a real TLS
-handshake against a managed Postgres (see "Deploy" above), and the pages against a live API (the
-previous stage's stubbed screenshots predate the new checking/attention states). Netlify DB
+Also untested: Netlify's scheduled-function runtime for `reconcile-stale` (the schedule is
+registered on the deploy, but no run has been observed doing work), and the `/thanks` and `/admin`
+pages against a live API — the previous stage's stubbed screenshots predate the new
+checking/attention states. Netlify DB
 provisioning/claim is no longer applicable — see "Deploy" above: it isn't available on this
 account's plan, so the app no longer depends on it.
 
 ## Remaining before launch
 
-- Her Stripe account, live keys and the webhook endpoint in Netlify; Dashboard wallet settings
-  left on, delayed methods off.
+- **Run the checklist above.** Nothing in this app has yet exchanged a byte with Stripe.
+- **Switch to live mode**: her live secret key *and* a second webhook endpoint created in live
+  mode with its own signing secret. The test-mode `whsec_` will not verify live events.
+- Dashboard payment methods: cards plus Apple Pay / Google Pay on, every delayed-settlement
+  method off.
 - Biz's confirmation of the 32-minute checkout-start rule (or a switch to the grace period).
 - `ZELLE_NAME` in `shared/config.ts` is still a placeholder (manual path only).
+- `ADMIN_PASSWORD` is currently a guessable phrase chosen by the owner. `lib/auth.ts` compares it
+  in constant time and `/admin` fails closed without it, but **there is no rate limiting** on
+  `/api/admin`, so that password is the only thing protecting customer names and phone numbers.
+  Worth either a high-entropy passphrase or an attempt limit before this handles real orders.
 - Refunds are done in the Stripe Dashboard; the app records the exception but has no refund action.

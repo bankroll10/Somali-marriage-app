@@ -111,6 +111,11 @@ its own.
 5. Put both values in Netlify (below), place a test order with card
    `4242 4242 4242 4242`, then swap to the live keys.
 
+Test mode and live mode are separate worlds: the signing secret from a
+test-mode endpoint cannot verify live events, and the code derives which mode
+it is in from the key prefix and refuses a session that disagrees. Going live
+means a live key **and** a second endpoint created in live mode.
+
 The manual path keeps her Zelle details in [`shared/config.ts`](shared/config.ts);
 `ZELLE_NAME` is still a placeholder there.
 
