@@ -43,7 +43,7 @@ export function BlockSheet({ day, busy, onBlock, onClose }: { day: AdminDay; bus
       </div>
       <div className="mt-4">
         <Field label="Why (optional)" hint="Only you see this.">
-          <input className={inputClass} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder="Out of town" />
+          {(a) => <input {...a} className={inputClass} value={reason} onChange={(e) => setReason(e.target.value)} maxLength={200} placeholder="Out of town" />}
         </Field>
       </div>
       <div className="mt-5 flex gap-2">
@@ -104,7 +104,7 @@ export function CancelPaidSheet({ order, busy, onConfirm, onClose }: { order: Ad
       </fieldset>
       <div className="mt-4">
         <Field label="Note (optional)">
-          <input className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder="Customer asked to cancel" />
+          {(a) => <input {...a} className={inputClass} value={note} onChange={(e) => setNote(e.target.value)} maxLength={300} placeholder="Customer asked to cancel" />}
         </Field>
       </div>
       {refunded && (

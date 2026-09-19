@@ -61,7 +61,7 @@ export default function SignIn({ reason, onSignedIn }: { reason: Reason; onSigne
         className="space-y-4"
       >
         <Field label="Admin password">
-          <input className={inputClass} type="password" autoComplete="current-password" value={typed} onChange={(e) => setTyped(e.target.value)} autoFocus disabled={busy} />
+          {(a) => <input {...a} className={inputClass} type="password" autoComplete="current-password" value={typed} onChange={(e) => setTyped(e.target.value)} autoFocus disabled={busy} />}
         </Field>
         <Button type="submit" disabled={!typed.trim() || busy}>
           {busy ? 'Signing in…' : 'Open orders'}

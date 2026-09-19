@@ -19,6 +19,17 @@ only once Stripe says the session can no longer complete.
 A manual "Mark paid" remains in `/admin` for a cash or Zelle exception; it is
 not the customer flow.
 
+## Her photos, her name
+
+The product cards show a drawn placeholder until real photos are in place, and
+say so in their alt text — nothing on the page claims the drawings are her
+bread. To use photos: put `sourdough.jpg` and `banana.jpg` (square-ish, at
+least 400 px) in `public/bread/` and set `image: '/bread/sourdough.jpg'` on
+each product in [`shared/config.ts`](shared/config.ts). The shop name,
+tagline, pickup place, the "pickup spot only" sentence and the site URL are
+all constants at the top of that file; the social preview image is
+`public/og.png` (1200×630) and the home-screen icon `public/apple-touch-icon.png`.
+
 ## The rules, in one file
 
 Prices, capacity, pickup days and hours, the 48-hour cutoff, the hold window,
@@ -35,11 +46,18 @@ site and the server follow.
 | A reservation holds bread for 3 hours awaiting Zelle | `PAYMENT_HOLD_HOURS` |
 | Her Zelle name and handle | `ZELLE_NAME` (**placeholder — still needs her name**), `ZELLE_HANDLE` (set to `(612) 703-8698`) |
 | Customers see the next 4 weeks | `WEEKS_AHEAD` |
+| Name, tagline, pickup place and the not-affiliated note | `SHOP_NAME`, `TAGLINE`, `PICKUP_PLACE`, `PICKUP_PLACE_WHERE`, `PICKUP_PLACE_NOTE` |
 | All times are Chicago time | `TIMEZONE` |
 
 ## Pages
 
-- `/` — the order page.
+- `/` — the order page: bread and quantities with prices → a pickup day that
+  can take the whole order → name and phone → review (full date, hours, the
+  after-9 preference, where, the deadline) → pay on Stripe's page. A day that
+  cannot take the cart is explained, with *Reduce to what fits* and *Choose
+  another day* as explicit choices; nothing is ever trimmed on its own. Sold
+  out means sold; bread that is merely being paid for by someone else says
+  so. What they chose survives Back from Stripe.
 - `/thanks?order=…` — "checking your payment" until Stripe confirms, then
   the confirmed order (reference, items, total paid, pickup date, place and
   hours). Every check is server-side; refreshing is always safe.

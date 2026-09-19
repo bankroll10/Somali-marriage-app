@@ -32,6 +32,42 @@ button {
   font: inherit;
 }
 
+/* Keyboard users see where they are; mouse and touch users are not shouted at. */
+:focus-visible {
+  outline: 3px solid var(--color-crust);
+  outline-offset: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+[role='radio']:focus-visible {
+  outline-offset: 3px;
+}
+
+/* Sits off-screen until a keyboard user tabs onto it. */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 8px;
+  z-index: 50;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--color-cocoa);
+  color: var(--color-cream);
+  font-weight: 600;
+}
+.skip-link:focus {
+  left: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-soft {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @keyframes pulse-soft {
   0%,
   100% {

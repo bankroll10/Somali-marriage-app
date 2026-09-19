@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { PICKUP_PLACE, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/config.ts'
+import { PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/config.ts'
 import type { OrderSummary } from '../../shared/types.ts'
-import { formatInstant, formatYmd } from '../../shared/zoned.ts'
+import { formatInstant, ymdInZone } from '../../shared/zoned.ts'
 import { ApiError, getOrder } from '../lib/api.ts'
-import { PICKUP_WINDOW, describeQty } from '../lib/format.ts'
+import { longDate } from '../lib/cart.ts'
+import { clearDraft } from '../lib/draft.ts'
+import { PICKUP_PREFERRED, PICKUP_WINDOW, describeQty } from '../lib/format.ts'
 import { Button, Notice, Page, Spinner, Title } from './ui.tsx'
 
 type State = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { kind: 'order'; order: OrderSummary; stalled?: boolean }
@@ -17,10 +19,19 @@ type State = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { k
 const POLL_MS = (attempt: number) => (attempt < 6 ? 2_000 : attempt < 18 ? 5_000 : 30_000)
 const MAX_POLLS = 40
 
+const Back = ({ label = 'Back to ordering', variant = 'secondary' }: { label?: string; variant?: 'primary' | 'secondary' }) => (
+  <div className="mt-8">
+    <Button variant={variant} onClick={() => window.location.assign('/')}>
+      {label}
+    </Button>
+  </div>
+)
+
 /** Where the order page sends the customer after reserving — /thanks?order=<id>. */
 export default function Thanks() {
   const [orderId] = useState(() => new URLSearchParams(window.location.search).get('order'))
   const [state, setState] = useState<State>(orderId ? { kind: 'loading' } : { kind: 'missing' })
+  const [today] = useState(() => ymdInZone(Date.now(), TIMEZONE))
 
   useEffect(() => {
     if (!orderId) return
@@ -32,6 +43,7 @@ export default function Thanks() {
         const order = await getOrder(orderId)
         if (cancelled) return
         setState({ kind: 'order', order })
+        if (order.status === 'paid') clearDraft() // the cart did its job
         if (order.checking && attempts < MAX_POLLS) timer = window.setTimeout(tick, POLL_MS(attempts++))
         else if (order.checking) setState({ kind: 'order', order, stalled: true })
       } catch (err) {
@@ -48,6 +60,11 @@ export default function Thanks() {
     }
   }, [orderId])
 
+  useEffect(() => {
+    const o = state.kind === 'order' ? state.order : null
+    document.title = o?.status === 'paid' ? `Order confirmed — ${SHOP_NAME}` : o?.checking ? `Checking your payment — ${SHOP_NAME}` : `Your order — ${SHOP_NAME}`
+  }, [state])
+
   if (state.kind === 'loading') {
     return (
       <Page>
@@ -59,33 +76,40 @@ export default function Thanks() {
     return (
       <Page>
         <Title>{state.kind === 'missing' ? 'No order to show' : 'Could not load your order'}</Title>
-        <Notice tone="info">
+        <Notice tone="info" role="status">
           {state.kind === 'missing'
             ? 'This link does not point at an order. If you just reserved, use the link the order page sent you to.'
-            : 'Could not reach the server just now. Reload in a moment.'}
+            : 'No connection to the server just now. Nothing is lost — reload in a moment.'}
         </Notice>
-        <div className="mt-6">
-          <Button variant="secondary" onClick={() => window.location.assign('/')}>
-            Back to ordering
-          </Button>
-        </div>
+        <Back />
       </Page>
     )
   }
 
   const { order } = state
+  const where = (
+    <>
+      {PICKUP_PLACE}, {PICKUP_PLACE_WHERE} · {PICKUP_WINDOW}, {PICKUP_PREFERRED}
+    </>
+  )
+
   if (order.attention) {
     return (
       <Page>
-        <Title kicker="Payment received — one check pending">We're looking at your payment</Title>
-        <Notice tone="warn">
+        <div aria-live="polite">
+          <Title kicker="Payment received — one check pending">We're looking at your payment</Title>
+        </div>
+        <Notice tone="warn" role="status">
           Stripe reported your payment, but something about it needs a person to look before the order is confirmed.
           Nothing more is needed from you; she has this flagged and will sort it out. Keep your order code{' '}
           <span className="font-mono font-semibold">{order.shortId}</span> handy.
         </Notice>
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => window.location.reload()}>
             Check again
+          </Button>
+          <Button variant="ghost" onClick={() => window.location.assign('/')}>
+            Back to ordering
           </Button>
         </div>
       </Page>
@@ -94,19 +118,21 @@ export default function Thanks() {
   if (order.checking) {
     return (
       <Page>
-        <Title kicker="Checking your payment" sub="We're confirming with Stripe. This usually takes a few seconds.">
-          One moment…
-        </Title>
+        <div aria-live="polite" aria-atomic="true">
+          <Title kicker="Checking your payment" sub="We're confirming with Stripe. This usually takes a few seconds.">
+            One moment…
+          </Title>
+        </div>
         <div className="rounded-2xl border border-line bg-white p-5">
           <Row label="Order">
             <span className="font-mono text-[15px] font-semibold tracking-wider">{order.shortId}</span>
           </Row>
           <Row label="Bread">{describeQty(order.qty)}</Row>
           <Row label="Pick up" last>
-            {formatYmd(order.date, { weekday: 'long', month: 'long', day: 'numeric' })}
+            {longDate(order.date, today, 'always')}
           </Row>
         </div>
-        <p className="mt-4 text-[14px] leading-relaxed text-cocoa-soft">
+        <p className="mt-4 text-[14px] leading-relaxed text-cocoa-soft" role="status">
           {state.stalled
             ? 'Still waiting on Stripe. It is safe to refresh this page — checking again never charges you twice. If you closed the payment page without paying, your bread is released automatically.'
             : 'It is safe to refresh this page or close it and come back: nothing here can charge you twice.'}
@@ -124,17 +150,18 @@ export default function Thanks() {
   if (order.status === 'expired' || order.status === 'cancelled') {
     return (
       <Page>
-        <Title kicker={order.status === 'cancelled' ? 'Reservation cancelled' : 'Reservation lapsed'}>
-          {order.status === 'cancelled' ? 'This order was cancelled' : 'This hold has expired'}
-        </Title>
-        <Notice tone="info">
+        <div aria-live="polite">
+          <Title kicker={order.status === 'cancelled' ? 'Reservation cancelled' : 'Reservation lapsed'}>
+            {order.status === 'cancelled' ? 'This order was cancelled' : 'This hold has expired'}
+          </Title>
+        </div>
+        <Notice tone="info" role="status">
           {order.status === 'cancelled'
             ? 'This reservation was cancelled, so the bread went back into the pool. No payment was taken.'
-            : "The payment page closed without a payment, so the bread went back into the pool. Nothing was charged. If you'd still like it, please order again."}
+            : 'The payment page closed without a payment, so the bread went back into the pool. Nothing was charged.'}{' '}
+          Your choices are still on the order page if you would like to try again.
         </Notice>
-        <div className="mt-6">
-          <Button onClick={() => window.location.assign('/')}>Order again</Button>
-        </div>
+        <Back label="Order again" variant="primary" />
       </Page>
     )
   }
@@ -143,16 +170,18 @@ export default function Thanks() {
   const paid = order.status === 'paid'
   return (
     <Page>
-      <Title
-        kicker={paid ? 'Order confirmed' : 'Reserved — pay by Zelle'}
-        sub={
-          paid
-            ? `Thank you, ${firstName}. Your payment went through and your bread is reserved.`
-            : `Send the Zelle below and your order confirms itself — this page updates on its own once she's marked it received.`
-        }
-      >
-        {paid ? "You're all set" : "You're holding your bread"}
-      </Title>
+      <div aria-live="polite" aria-atomic="true">
+        <Title
+          kicker={paid ? 'Order confirmed' : 'Reserved — pay by Zelle'}
+          sub={
+            paid
+              ? `Thank you, ${firstName}. Your payment went through and your bread is reserved.`
+              : `Send the Zelle below and your order confirms itself — this page updates on its own once she's marked it received.`
+          }
+        >
+          {paid ? "You're all set" : "You're holding your bread"}
+        </Title>
+      </div>
 
       {!paid && order.provider === 'zelle' && (
         <div className="mb-5 rounded-2xl border border-crust/30 bg-crust/5 p-5">
@@ -186,27 +215,24 @@ export default function Thanks() {
         </Row>
         <Row label="Bread">{describeQty(order.qty)}</Row>
         <Row label="Pick up">
-          <span className="font-semibold">{formatYmd(order.date, { weekday: 'long', month: 'long', day: 'numeric' })}</span>
+          <span className="font-semibold">{longDate(order.date, today, 'always')}</span>
           <br />
-          {PICKUP_PLACE} · {PICKUP_WINDOW}; after 9 PM preferred
+          {where}
         </Row>
         <Row label={paid ? 'Paid' : 'Total'} last>
           <span className="font-semibold">{formatMoney(order.amountCents)}</span>
           {paid && <span className="ml-2 rounded-full bg-sage/10 px-2 py-0.5 text-[12px] font-semibold text-sage">Paid</span>}
         </Row>
       </div>
+      <p className="mt-2 text-[12px] leading-relaxed text-cocoa-soft">{PICKUP_PLACE_NOTE}</p>
 
       <p className="mt-4 text-[14px] leading-relaxed text-cocoa-soft">
         {paid
-          ? 'Give your name and order code at the front desk when you come for it — screenshot this page if you like. Stripe emails a receipt to the address you gave on the payment page.'
+          ? `Give your name and order code at ${PICKUP_PLACE_WHERE} when you come for it — screenshot this page if you like. Stripe emails a receipt to the address you gave on the payment page.`
           : 'Keep this page open, or come back to it any time — it will show "Paid" once your Zelle is confirmed.'}
       </p>
 
-      <div className="mt-8">
-        <Button variant="secondary" onClick={() => window.location.assign('/')}>
-          Order more from {SHOP_NAME}
-        </Button>
-      </div>
+      <Back label={`Order more from ${SHOP_NAME}`} />
     </Page>
   )
 }

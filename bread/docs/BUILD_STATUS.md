@@ -39,6 +39,106 @@ there; this file is the current state.
 - Manual "Mark paid" (cash / Zelle) remains in admin and, on a card order, ends the Stripe session
   first; a card payment arriving afterwards is flagged as a duplicate, never double-counted.
 
+## Customer flow (this stage, 2026-09-19)
+
+The order and confirmation pages, refined on the backend that already works. The server changed
+in one additive way: `/api/availability` now carries `held` per day (units reserved by someone
+mid-payment — counts only), so the page can tell *sold out* from *none free right now*.
+
+### What was wrong, found by inspecting the built app at 390 px and 1280 px
+
+Picking a day with less stock than the cart **silently trimmed the cart** ("your order was
+adjusted"); a sold-out product read as "0 sourdough"; blocked and closed days said UNAVAILABLE /
+CLOSED with no reason; no date carried a year; the hours, after-9 preference, location and
+deadline were never gathered before Pay; the header implied Life Time hosts the shop; a failed
+availability request still let the steppers offer `capacityPerDay` as if it were stock; nothing
+survived Back from Stripe; no `:focus-visible`, no live regions, date chips were bare buttons;
+primary-button text (cream on crust) and kicker text were **3.3:1**, under the 4.5:1 minimum; no
+images, no `og:*`, no `apple-touch-icon`, no cache headers.
+
+### Built
+
+- **Four obvious steps** on one scrolling page: bread and quantities with prices shown up front →
+  a day → name and phone → review and pay. The sticky bar keeps a running total and reads
+  *Continue* (scrolling to the first incomplete step) until everything is complete, then *Pay $X*.
+- **The cart is never changed silently.** A day that cannot take the whole cart stays tappable
+  and opens an explanation — *Wednesday, September 23 can't take your whole order. It has only 1
+  banana bread free (you asked for 2). Nothing in your order has been changed.* — with **Reduce
+  to what fits** and **Choose another day**. Pay stays disabled until one is taken. If no day
+  can take the cart, the nearest days that could take a smaller order are offered, each as an
+  explicit button. A server `sold_out {remaining}` is treated as fresher data: the day is
+  updated locally and the same panel appears; the cart stays as it was.
+- **Sold vs held.** A product with nothing free and nothing held says *Sold out for Mon, Sep 21*;
+  with something held it says *None free right now — 2 being paid for. Check back in an hour.*
+  A day with nothing free says *Sold out* or *None free right now* accordingly. **A sold-out
+  product never disables the other one** — verified in the browser: sourdough's + disabled,
+  banana's enabled.
+- **Truthful availability.** Fetched on load, focus, visibility and once more before checkout;
+  *Availability updated N min ago · Refresh* is shown. A failed request shows *Couldn't check
+  what's available — no counts are shown until it works*, with retry — no days, no numbers.
+- **Dates in full**: chips keep weekday + short date; the selected day, the review and the
+  confirmation show *Monday, October 5, 2026*, *5 PM–11 PM (best after 9 PM)*, *at Life Time,
+  the front desk*, and *Order by Saturday, September 19 at 5:00 PM* (Chicago time; the year is
+  added once it differs from today's). *Life Time is the pickup spot only — this bread is not
+  sold by, or affiliated with, the gym* appears under the header, in the review, and on the
+  confirmation. All copy comes from `shared/config.ts`.
+- **Guest checkout, accessible**: `<label for>`, `aria-describedby` for hints and errors, errors
+  only after a submit attempt with the first invalid field focused, `type=tel inputmode=tel`
+  with the number formatted as typed, a skip link, a global `:focus-visible` ring, day chips as a
+  `radiogroup` with arrow-key movement and full-date `aria-label`s, an `aria-live` region for
+  notices and the fit panel, `role="alert"` on submit errors, `prefers-reduced-motion`
+  respected. Primary buttons and kicker text moved to `crust-dark` (5.3:1).
+- **Double submission**: an in-flight ref checked before any state change, the disabled button,
+  and the existing idempotent `checkoutKey`.
+- **What they chose survives**: quantities, day and name in `sessionStorage` (never the phone),
+  restored on Back from Stripe, on the cancel return and on reload; cleared once an order is
+  paid. The cancel return says so.
+- **Every failure has copy**: sold out, blocked, closed, closing soon, payments not configured,
+  payment page unavailable (bread held, same key on retry), busy, offline, each validation code;
+  decline stays on Stripe's page; pending confirmation is the polling page with a live region;
+  expired and cancelled say the cart is still on the order page.
+- **Visuals and brand**: placeholder illustrations in the site palette, labelled *Illustration —
+  replace with a photo of her bread*; `Product.image` slot and README instructions for her
+  photos; `TAGLINE`, `PICKUP_PLACE_WHERE`, `PICKUP_PLACE_NOTE`, `SITE_URL` in config; `og:*` and
+  `twitter:*` tags, a generated 1200×630 `og.png` and `apple-touch-icon.png`; per-page titles.
+- **Caching** (`netlify.toml`): `/` and `/index.html` `no-cache`; `/thanks*` and `/admin*`
+  `no-store`; `/assets/*` immutable; `nosniff`, `Referrer-Policy`, `X-Frame-Options: DENY`.
+  There is no service worker, so nothing can serve stale stock offline; every API response is
+  `no-store` — now asserted by a test.
+
+### Inspected (Playwright, Chromium, built bundle, API mocked to the real response shapes)
+
+The live site is unreachable from this sandbox, so the inspection ran against `vite preview` of
+the production build with `/api/*` answered by a stateful mock in the exact shapes the server
+returns (including a `sold_out` refusal that reduces that day's stock on the next read, as the
+real server does). Fifteen screenshots at 390×844 (2×, touch) and 1280×900, reviewed:
+
+| State | Result |
+|---|---|
+| Empty cart, phone and desktop | no horizontal overflow (0 px), no interactive target under 44 px |
+| Cart + fitting day → review | review card complete; sticky bar shows *Pay $13*; 0 px overflow |
+| Server `sold_out` after Pay | explanation shown; stepper counts still **2 · 1** — unchanged |
+| Cart + short day tapped | panel with the shortfall; *Reduce to what fits* changes 2 → 1 only on the tap |
+| Sold-out product on a day | sourdough + disabled, banana + enabled; chip labels carry full dates and states |
+| Availability request fails | no "left"/"free" text, no days rendered, retry offered |
+| Return from Stripe's cancel | 1 sourdough, Oct 7 and the name all still there |
+| Keyboard, desktop | Tab: skip link → steppers → day group → Refresh → fields → Continue; ← → move between selectable days; visible focus ring |
+| Thanks: checking / paid / expired | year on the date, location note, no overflow |
+| Metadata | 8 `og:` tags, 4 `twitter:` tags, apple-touch-icon |
+
+Font note: the sandbox has no network to Google Fonts, so the screenshots render in the fallback
+faces; on the live site Fraunces and Inter load as before.
+
+### Not inspected
+
+- The live site itself, in a real phone browser: fonts, the sticky bar over iOS Safari's toolbar
+  (`env(safe-area-inset-bottom)` is set), the `tel:` link, Apple Pay on Stripe's page, and the
+  full Back-from-Stripe round trip against the real cancel endpoint. That is the owner's
+  walk-through.
+- The `[[headers]]` rules — `vite preview` does not apply `netlify.toml`; confirm after deploy
+  with the browser's network panel (`/` → `no-cache`, `/assets/…` → `immutable`).
+- Her real photos: none exist yet; the placeholders are labelled as such.
+
 ## Admin (this stage, 2026-09-19)
 
 Her page during a shift, finished: one pickup date at a time, the next one first; what to bake;
@@ -214,7 +314,7 @@ real API's idempotency behaviour and session states. **None of it is a Stripe te
 | Check | Result |
 |---|---|
 | `npm run typecheck`, `npm run lint`, `npm run build` | pass (2 pre-existing lint warnings, unchanged) |
-| `npm test` on PGlite (Postgres 18 in-process), Stripe faked | **86 passed**, 5 skipped |
+| `npm test` on PGlite (Postgres 18 in-process), Stripe faked | **95 passed**, 5 skipped |
 | `npm run test:pg` on a real Postgres 16.13, 12 connections | **5 passed** |
 | `npm run db:migrate` (both migrations) against the real Postgres | applies, then "up to date" |
 | Root Niyyah suite, bread excluded | 227 passed |

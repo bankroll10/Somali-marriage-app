@@ -75,6 +75,33 @@ describe('availability', () => {
     expect(text).not.toMatch(/Amina|6125550199|checkout|customer|cs_test|"id":"[0-9a-f-]{36}"/)
   })
 
+  it('tells held stock from sold stock, in counts only', async () => {
+    const { orderId } = await (await buy({ qty: { sourdough: 2 } })).json() // on Stripe's page
+    const day = async () => (await (await get(app.availability, '/api/availability')).json()).days.find((d: { date: string }) => d.date === WED)
+    expect(await day()).toMatchObject({ remaining: { sourdough: 1, banana: 4 }, held: { sourdough: 2, banana: 0 } })
+    stripe.pay('cs_test_1')
+    await post(app.webhook, '/api/stripe-webhook', stripe.event('checkout.session.completed', 'cs_test_1').body, stripe.event('checkout.session.completed', 'cs_test_1').headers)
+    expect(await day()).toMatchObject({ remaining: { sourdough: 1, banana: 4 }, held: { sourdough: 0, banana: 0 } })
+    expect(await dbStatus(orderId)).toBe('paid')
+    // A Zelle hold counts while it lives and not once it has lapsed.
+    await zelle({ banana: 1 })
+    expect(await day()).toMatchObject({ remaining: { sourdough: 1, banana: 3 }, held: { sourdough: 0, banana: 1 } })
+    clock.advance((PAYMENT_HOLD_HOURS + 1) * HOUR)
+    expect(await day()).toMatchObject({ remaining: { sourdough: 1, banana: 4 }, held: { sourdough: 0, banana: 0 } })
+  })
+
+  it('never lets a browser or a shared cache keep stock or an order', async () => {
+    const { orderId } = await (await buy()).json()
+    for (const res of [
+      await get(app.availability, '/api/availability'),
+      await get(app.order, `/api/order?order=${orderId}`),
+      await buy({ qty: { sourdough: 9 } }),
+      await get(app.order, '/api/order?order=nope'),
+    ]) {
+      expect(res.headers.get('cache-control')).toBe('no-store')
+    }
+  })
+
   it('hides a product she stops selling', async () => {
     await db.query("UPDATE products SET active = false WHERE id = 'banana'")
     const body = await (await get(app.availability, '/api/availability')).json()

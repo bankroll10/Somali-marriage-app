@@ -36,6 +36,7 @@ import { env, error, json, readJson, siteOrigin } from './http.ts'
 import {
   cancel,
   cancelPaid,
+  heldFor,
   heldUnits,
   listProducts,
   markPaid,
@@ -188,7 +189,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
     if (req.method !== 'GET') return error('method_not_allowed', 405)
     const now = clock.now()
     const dates = pickupDates(now)
-    const [products, stock] = await Promise.all([listProducts(db), stockFor(db, dates, now)])
+    const [products, stock, held] = await Promise.all([listProducts(db), stockFor(db, dates, now), heldFor(db, dates, now)])
     const body: AvailabilityResponse = {
       now: new Date(now).toISOString(),
       products: products.filter((p) => p.active).map(publicProduct),
@@ -203,6 +204,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
           // 30 minutes, so the date closes to new checkouts a little early.
           open: now < cutoff - CARD_CHECKOUT_LEAD_MINUTES * MINUTE,
           remaining: s?.remaining ?? { sourdough: 0, banana: 0 },
+          held: held.get(date) ?? { sourdough: 0, banana: 0 },
         }
       }),
     }

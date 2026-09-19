@@ -204,6 +204,26 @@ export async function owedUnits(db: Queryable, date: string): Promise<Qty> {
   return sumUnits(rows)
 }
 
+/** Held units for many dates at one snapshot, for the public availability page. Counts only. */
+export async function heldFor(db: Queryable, dates: readonly string[], nowMs: number): Promise<Map<string, Qty>> {
+  const out = new Map<string, Qty>()
+  if (dates.length === 0) return out
+  const { rows } = await db.query<{ date: string; product_id: string; units: number }>(
+    `SELECT o.date::text AS date, oi.product_id, SUM(oi.quantity)::int AS units
+     FROM orders o JOIN order_items oi ON oi.order_id = o.id
+     WHERE o.status = 'reserved' AND (o.provider = 'stripe' OR o.hold_expires_at > $2::timestamptz)
+       AND o.date IN (SELECT unnest(string_to_array($1, ','))::date)
+     GROUP BY o.date, oi.product_id`,
+    [dates.join(','), new Date(nowMs).toISOString()],
+  )
+  for (const r of rows) {
+    const q = out.get(r.date) ?? zeroQty()
+    if ((PRODUCT_IDS as readonly string[]).includes(r.product_id)) q[r.product_id as ProductId] = r.units
+    out.set(r.date, q)
+  }
+  return out
+}
+
 /** Bread on hold for someone mid-payment: a live card session, or a Zelle hold that has not lapsed. */
 export async function heldUnits(db: Queryable, date: string, nowMs: number): Promise<Qty> {
   const { rows } = await db.query<{ product_id: string; units: number }>(

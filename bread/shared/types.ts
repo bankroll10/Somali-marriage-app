@@ -60,7 +60,10 @@ export interface DayAvailability {
   cutoffAt: string
   /** False once the cutoff has passed. */
   open: boolean
+  /** Free to order right now. */
   remaining: Qty
+  /** Reserved by someone mid-payment right now — not free, but not sold either. Counts only. */
+  held: Qty
 }
 
 export interface AvailabilityResponse {

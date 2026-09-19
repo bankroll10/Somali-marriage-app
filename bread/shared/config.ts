@@ -5,14 +5,31 @@
  */
 
 export const SHOP_NAME = 'Fresh Bread'
+/** One line under the name on the order page. */
+export const TAGLINE = 'Baked to order, paid up front, picked up on your way out.'
+/** Where the site lives — for social previews and absolute links. */
+export const SITE_URL = 'https://bread-pickup.netlify.app'
 
 /** Where customers collect. Shown on the order page and the confirmation. */
 export const PICKUP_PLACE = 'Life Time'
+/** Where inside the place to go. */
+export const PICKUP_PLACE_WHERE = 'the front desk'
+/**
+ * Life Time is only where the hand-over happens. Nothing on the site may
+ * suggest the gym runs, sells or endorses the bread; this sentence appears
+ * wherever the place is named prominently.
+ */
+export const PICKUP_PLACE_NOTE = `${PICKUP_PLACE} is the pickup spot only — this bread is not sold by, or affiliated with, the gym.`
 
 export type ProductId = 'sourdough' | 'banana'
 
 export interface Product {
   id: ProductId
+  /**
+   * A photo of her bread, as a path under public/ (e.g. '/bread/sourdough.jpg').
+   * Absent, the page shows a clearly-placeholder illustration and says so.
+   */
+  image?: string
   name: string
   blurb: string
   priceCents: number
