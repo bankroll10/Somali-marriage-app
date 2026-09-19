@@ -188,13 +188,15 @@ export default function Thanks() {
           <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-crust-dark">Send by Zelle</p>
           <p className="font-display text-[24px] font-semibold text-cocoa">{formatMoney(order.amountCents)}</p>
           <dl className="mt-3 space-y-1.5 text-[14px] text-cocoa">
-            <div className="flex gap-2">
-              <dt className="w-14 shrink-0 text-cocoa-soft">To</dt>
-              <dd className="font-medium">{order.zelle.name}</dd>
-            </div>
+            {order.zelle?.name && (
+              <div className="flex gap-2">
+                <dt className="w-14 shrink-0 text-cocoa-soft">To</dt>
+                <dd className="font-medium">{order.zelle.name}</dd>
+              </div>
+            )}
             <div className="flex gap-2">
               <dt className="w-14 shrink-0 text-cocoa-soft">At</dt>
-              <dd className="font-medium">{order.zelle.handle}</dd>
+              <dd className="font-medium">{order.zelle?.handle}</dd>
             </div>
             <div className="flex gap-2">
               <dt className="w-14 shrink-0 text-cocoa-soft">Memo</dt>
@@ -228,7 +230,7 @@ export default function Thanks() {
 
       <p className="mt-4 text-[14px] leading-relaxed text-cocoa-soft">
         {paid
-          ? `Give your name and order code at ${PICKUP_PLACE_WHERE} when you come for it — screenshot this page if you like. Stripe emails a receipt to the address you gave on the payment page.`
+          ? `This page is your confirmation — screenshot it if you like, and give your name and order code at ${PICKUP_PLACE_WHERE} when you come for it. If Stripe sends a receipt, it goes to the email you gave on the payment page.`
           : 'Keep this page open, or come back to it any time — it will show "Paid" once your Zelle is confirmed.'}
       </p>
 

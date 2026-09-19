@@ -46,6 +46,15 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "DENY"
+    # A year of HTTPS-only for browsers that have seen the site once. Netlify
+    # serves the site over HTTPS only, so there is nothing to lose by saying so.
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains"
+    # Scripts and API calls from this origin only; the two Google Fonts hosts
+    # for the type; nothing may frame the page. Inline styles are allowed
+    # because React sets a handful of style attributes (the print sheet, the
+    # safe-area padding); no inline script is, which is the part that matters.
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
 
 [[headers]]
   for = "/"

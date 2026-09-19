@@ -1,3 +1,4 @@
+import type { Clock } from '../shared/clock.ts'
 import type { CreateSessionParams, GatewayEvent, GatewayRefund, GatewaySession, StripeGateway } from '../netlify/lib/stripe/gateway.ts'
 
 /**
@@ -9,13 +10,15 @@ import type { CreateSessionParams, GatewayEvent, GatewayRefund, GatewaySession, 
  */
 export const WEBHOOK_SECRET = 'whsec_test'
 
-export function fakeStripe(livemode = false) {
+export function fakeStripe(livemode = false, clock?: Clock) {
   const sessions = new Map<string, GatewaySession>()
   const refunds = new Map<string, GatewayRefund[]>()
   const byKey = new Map<string, { id: string; params: string }>()
   const created: { key: string; params: CreateSessionParams }[] = []
   let n = 0
-  const state = { apiDown: false, createFails: false, expireRefuses: false, payDuringExpire: false }
+  const state = { apiDown: false, createFails: false, expireRefuses: false, payDuringExpire: false, loseCreateResponse: false }
+  /** How often each call reached "Stripe" — a budget the app must respect. */
+  const calls = { create: 0, retrieve: 0, expire: 0 }
 
   const get = (id: string) => {
     const s = sessions.get(id)
@@ -36,12 +39,20 @@ export function fakeStripe(livemode = false) {
   const gateway: StripeGateway = {
     livemode,
     async createSession(params, key) {
+      calls.create++
       if (state.apiDown || state.createFails) throw new Error('stripe unreachable')
       const canonical = JSON.stringify(params)
       const seen = byKey.get(key)
       if (seen) {
         if (seen.params !== canonical) throw Object.assign(new Error('Keys for idempotent requests can only be used with the same parameters'), { type: 'idempotency_error' })
         return { ...get(seen.id) }
+      }
+      // Stripe's rule: expires_at between 30 minutes and 24 hours from now.
+      if (clock) {
+        const ahead = params.expiresAt - Math.floor(clock.now() / 1000)
+        if (ahead < 30 * 60 || ahead > 24 * 3600) {
+          throw Object.assign(new Error(`Invalid integer: expires_at must be between 30 minutes and 24 hours in the future (was ${ahead}s)`), { type: 'StripeInvalidRequestError', code: 'parameter_invalid_integer' })
+        }
       }
       const id = `cs_test_${++n}`
       const session: GatewaySession = {
@@ -61,13 +72,17 @@ export function fakeStripe(livemode = false) {
       sessions.set(id, session)
       byKey.set(key, { id, params: canonical })
       created.push({ key, params })
+      // Stripe made it; the answer never reached us.
+      if (state.loseCreateResponse) throw new Error('socket hang up')
       return { ...session }
     },
     async retrieveSession(id) {
+      calls.retrieve++
       if (state.apiDown) throw new Error('stripe unreachable')
       return { ...get(id) }
     },
     async expireSession(id) {
+      calls.expire++
       if (state.apiDown) throw new Error('stripe unreachable')
       const s = get(id)
       if (state.payDuringExpire) {
@@ -100,6 +115,7 @@ export function fakeStripe(livemode = false) {
     refunds,
     created,
     state,
+    calls,
     pay,
     expire,
     /** A refund issued in the Dashboard against a paid session's payment. */

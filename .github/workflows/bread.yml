@@ -1,0 +1,47 @@
+# The bread shop's checks, on every push that touches it: typecheck, lint,
+# the PGlite suite (Stripe faked), and the multi-connection races on a real
+# Postgres. Nothing here reaches Stripe or the live site.
+name: bread
+
+on:
+  push:
+    paths:
+      - 'bread/**'
+      - '.github/workflows/bread.yml'
+  pull_request:
+    paths:
+      - 'bread/**'
+      - '.github/workflows/bread.yml'
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: bread
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: bread
+          POSTGRES_PASSWORD: bread
+          POSTGRES_DB: bread_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U bread"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: bread/package-lock.json
+      - run: npm ci
+      - run: npm run verify
+      - run: npm run test:pg
+        env:
+          TEST_DATABASE_URL: postgresql://bread:bread@localhost:5432/bread_test

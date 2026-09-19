@@ -1,0 +1,3 @@
+# A small pre-order shop for people who were given the link; nothing here is for indexing.
+User-agent: *
+Disallow: /

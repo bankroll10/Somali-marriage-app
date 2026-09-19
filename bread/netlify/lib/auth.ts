@@ -9,7 +9,9 @@ import type { Queryable } from './db/client.ts'
  * password. Tokens are HMAC-signed with a key derived from the password
  * itself, so there is no second secret to manage and changing the password
  * signs everyone out. Guessing is rate-limited in the database — per IP and
- * overall — because function instances share no memory.
+ * overall — because function instances share no memory. The overall cap is
+ * what stops a guesser with many addresses; it is high enough that five
+ * addresses cannot lock her out for a quarter of an hour on purpose.
  *
  * Chosen by the owner over a hosted identity provider for a shop of a
  * handful of customers; see docs/BUILD_STATUS.md.
@@ -18,7 +20,7 @@ import type { Queryable } from './db/client.ts'
 export const SESSION_DAYS = 30
 export const ATTEMPT_WINDOW_MINUTES = 15
 export const MAX_FAILURES_PER_IP = 5
-export const MAX_FAILURES_GLOBAL = 20
+export const MAX_FAILURES_GLOBAL = 50
 
 const TOKEN_VERSION = 'v1'
 const DAY = 86_400_000

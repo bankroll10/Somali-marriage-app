@@ -19,11 +19,14 @@ export async function readJson<T>(req: Request, maxBytes = 8_000): Promise<T | R
   }
 }
 
-/** Where the site lives, for Stripe's return URLs: Netlify's URL when set, else the request's origin. */
+/**
+ * Where the site lives, for Stripe's return URLs. Netlify's own URL
+ * variable when it is set — the request's Host is whatever the caller sent,
+ * and a return URL is not something to build from a header — else the
+ * request's origin, which is the case for tests and `netlify dev`.
+ */
 export function siteOrigin(req: Request): string {
-  const origin = new URL(req.url).origin
-  if (/^https?:\/\/(localhost|127\.0\.0\.1)/.test(origin)) return process.env.URL || origin
-  return origin
+  return process.env.URL || new URL(req.url).origin
 }
 
 /** The one place environment is read, so tests can set it and docs can list it. */

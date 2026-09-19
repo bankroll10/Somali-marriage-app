@@ -39,7 +39,33 @@ there; this file is the current state.
 - Manual "Mark paid" (cash / Zelle) remains in admin and, on a card order, ends the Stripe session
   first; a card payment arriving afterwards is flagged as a duplicate, never double-counted.
 
-## Customer flow (this stage, 2026-09-19)
+## Launch-readiness audit (this stage, 2026-09-19)
+
+The complete app audited as if the first customer were about to order, without relying on
+earlier claims: three adversarial reads (inventory and cutoffs, the payment lifecycle, security),
+then repairs, then proof. The report with every check as passed / fixed / unverified, the
+commands and results, the remaining setup and the recommendation is
+[`LAUNCH_READINESS.md`](LAUNCH_READINESS.md). **The recommendation is: not launch-ready until the
+short live walk-through there has been done and recorded.**
+
+What changed in the code, in one breath: the real admin password that had been committed in two
+tests is gone from the working tree and **rotated on Netlify**; a failed Stripe session create
+can no longer strand stock (`return_origin` fixed at reservation, a stale expiry recomputed under
+a fresh idempotency key, the hold released when the deadline is too near, an exception for her
+when recovery keeps failing, and admin cancel allowed on an order that never had a session);
+checkouts are limited per address (12 per 15 minutes, 4 live holds) inside the reservation
+transaction and to one live card hold per phone number; the customer's page asks Stripe at most
+once a second per order; the scheduled reconcile no longer lists order ids; every id is a strict
+v4 UUID; one `cardCheckoutOpen()` decides "open" everywhere; HSTS, CSP and `robots.txt`; the
+order page prices from the server; the cancel return asks the server before saying nothing was
+paid, and sends a customer whose payment landed to their confirmation; Zelle details only on a
+Zelle order. Proof: **129 tests on PGlite, 8 on Postgres 16 with twelve connections, the real
+Stripe SDK with a recording HTTP client, and a Chromium pass with the production CSP** — all in
+the report. New tooling: `npm run db:clear-orders -- --yes` to wipe test orders before launch,
+and a GitHub Actions workflow (`.github/workflows/bread.yml`) that runs both suites on every
+push touching `bread/` (its first run is this push; it has not been seen green yet).
+
+## Customer flow (2026-09-19)
 
 The order and confirmation pages, refined on the backend that already works. The server changed
 in one additive way: `/api/availability` now carries `held` per day (units reserved by someone
@@ -139,7 +165,7 @@ faces; on the live site Fraunces and Inter load as before.
   with the browser's network panel (`/` → `no-cache`, `/assets/…` → `immutable`).
 - Her real photos: none exist yet; the placeholders are labelled as such.
 
-## Admin (this stage, 2026-09-19)
+## Admin (2026-09-19)
 
 Her page during a shift, finished: one pickup date at a time, the next one first; what to bake;
 who is coming; what is paid, on hold and free; a printable list; and the three decisions that
@@ -160,8 +186,7 @@ attempt limit.** So `ADMIN_PASSWORD` stays, hardened:
   — no second secret, and changing the password signs every phone out). Every admin request
   carries the token; the password never travels again.
 - Failed attempts are counted in Postgres (`admin_sign_ins`), because function instances share
-  nothing: **5 failures per address or 20 overall in 15 minutes → 429** with the wait. One
-  address cannot lock the owner out; a distributed guesser is capped at about 80 tries an hour.
+  nothing: **5 failures per address or 50 overall in 15 minutes → 429** with the wait (the overall cap was 20 until the launch audit, which judged that a cheap way to lock her out). One address cannot lock the owner out; a distributed guesser is capped at 200 tries an hour.
   The address is Netlify's `context.ip`, not a header a caller could set.
 - Comparison is constant-time; a missing password locks everyone out (503), never in.
 
@@ -201,7 +226,7 @@ tell her. There is one actor, recorded as `admin`.
 | Check | Result |
 |---|---|
 | `npm run verify` — typecheck, lint, PGlite suite | see the table further down |
-| `tests/admin-auth.test.ts` | token opens the admin, the password itself does not; no/garbage/tampered/foreign-password tokens → 401; 30-day expiry → `session_expired`; unset password → 503 for both endpoints; **unauthorized callers cannot read orders (no names or phones in the body), mark pickup, block, cancel or sync** — verified against the rows afterwards; 5 wrong from one address → 429 while another address still gets in; 20 overall → 429 for a fresh address; the window passing lets the address back; unknown address is its own bucket; a day-old row is pruned |
+| `tests/admin-auth.test.ts` | token opens the admin, the password itself does not; no/garbage/tampered/foreign-password tokens → 401; 30-day expiry → `session_expired`; unset password → 503 for both endpoints; **unauthorized callers cannot read orders (no names or phones in the body), mark pickup, block, cancel or sync** — verified against the rows afterwards; 5 wrong from one address → 429 while another address still gets in; the overall cap (now 50) → 429 for a fresh address; the window passing lets the address back; unknown address is its own bucket; a day-old row is pruned |
 | `tests/admin.test.ts` | next pickup date first; capacity / paid / held / free / active checkouts per date; lapsed Zelle holds count as nothing; pending, expired and cancelled bread never on the bake list; **block** keeps paid owed and holds held, reports both, cancels and refunds nothing, refuses new orders, lets a held customer finish paying, records who and why, unblock reopens; pick-up on paid only and undoable; cancel-paid without restock keeps units committed, with restock frees them; restock on a blocked date and past cutoff both recorded and reported unsellable; partial then full refund mirrored with fulfilment and bread untouched; pending refunds kept apart; unknown payment ignored; manual sync, and Stripe-unreachable → nothing changed; Zelle orders have no link; the ledger recount holds after every test |
 | `tests/contention.test.ts` on Postgres 16, 12 connections | the four earlier races, plus: **a block waits behind a held date lock, lands after it, and the next reservation is refused** |
 | Rendered at 390 px (Playwright, API mocked) | sign-in, the day view, the block sheet, the cancel sheet, a blocked day, and the print sheet all lay out without horizontal scroll; screenshots reviewed |
@@ -481,20 +506,11 @@ account's plan, so the app no longer depends on it.
 
 ## Remaining before launch
 
-- **Clear the test orders.** Testing has placed real rows on real pickup dates (Sep 21, 23 and 24
-  so far), which occupy capacity. Left in place, Biz opens with phantom sales and fewer loaves to
-  sell than she has. Delete them, or reset the database, before she takes a first customer.
-- **Finish the checklist above.** Success, webhook delivery and decline-then-retry passed against
-  real Stripe. Cancel, duplicate submission, 3-D Secure, abandonment and Apple Pay have not run.
-- **Switch to live mode**: her live secret key *and* a second webhook endpoint created in live
-  mode with its own signing secret. The test-mode `whsec_` will not verify live events.
-- Dashboard payment methods: cards plus Apple Pay / Google Pay on, every delayed-settlement
-  method off.
-- Biz's confirmation of the 32-minute checkout-start rule (or a switch to the grace period).
-- `ZELLE_NAME` in `shared/config.ts` is still a placeholder (manual path only).
-- `ADMIN_PASSWORD` is a guessable phrase chosen by the owner; guessing is now rate-limited in the
-  database (see "Admin" above) and the password is sent once per month per phone. A stronger
-  phrase is still a one-variable change.
-- Add the refund events to Biz's webhook endpoint in Stripe (README, step 3) so refunds appear
-  without pressing "Check refund".
-- Refunds are done in the Stripe Dashboard; the app records the exception but has no refund action.
+The ordered list, with what each step is for, is in
+[`LAUNCH_READINESS.md`](LAUNCH_READINESS.md) under *Remaining before the first customer*. In
+short: hand Biz the rotated admin password; wipe the test orders (`npm run db:clear-orders --
+--yes`) once live-site testing is done; walk the changed paths once in test mode; switch to a live
+key and a live-mode webhook endpoint; set the Dashboard's payment methods and the receipt email;
+one small live payment, refunded; Biz's sign-off on the 32-minute rule. `ZELLE_NAME` is blank
+(the page shows the handle alone) and only matters for the manual path. Refunds are issued in
+the Stripe Dashboard; the app mirrors them and has no refund action of its own.

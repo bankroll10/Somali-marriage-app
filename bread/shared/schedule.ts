@@ -1,4 +1,5 @@
 import {
+  CARD_CHECKOUT_LEAD_MINUTES,
   ORDER_CUTOFF_HOURS,
   PICKUP_START_HOUR,
   PICKUP_WEEKDAYS,
@@ -19,6 +20,18 @@ export function pickupStart(ymd: string): number {
 /** The last instant an order may be placed for a pickup date. */
 export function cutoffFor(ymd: string): number {
   return pickupStart(ymd) - ORDER_CUTOFF_HOURS * 3_600_000
+}
+
+/**
+ * May a card checkout start for this date right now? Payment must land by
+ * the cutoff and Stripe cannot make a session shorter than 30 minutes, so
+ * the date closes to new card checkouts CARD_CHECKOUT_LEAD_MINUTES early.
+ * The one rule behind the availability list, the admin's "open" flag and
+ * the checkout's refusal, so no instant reads open in one place and closed
+ * in another.
+ */
+export function cardCheckoutOpen(ymd: string, nowMs: number): boolean {
+  return cutoffFor(ymd) - nowMs > CARD_CHECKOUT_LEAD_MINUTES * 60_000
 }
 
 /** A pickup day inside the rolling window as of `nowMs`. Anything else is not a date customers can name. */

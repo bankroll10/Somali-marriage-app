@@ -18,7 +18,7 @@ const NOW = Date.UTC(2026, 8, 18, 17)
 const MON = '2026-09-21'
 const MINUTE = 60_000
 const DAY = 86_400_000
-const ADMIN = 'Biz-operations'
+const ADMIN = 'test-admin-password'
 
 let db: Db
 let clock: FixedClock

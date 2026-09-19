@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, PRODUCTS, SHOP_NAME, TAGLINE, TIMEZONE, formatMoney, totalCents, type ProductId } from '../../shared/config.ts'
+import { PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, PRODUCTS, SHOP_NAME, TAGLINE, TIMEZONE, formatMoney, type ProductId } from '../../shared/config.ts'
 import { formatPhone, normalisePhone } from '../../shared/phone.ts'
-import type { DayAvailability, Qty } from '../../shared/types.ts'
+import type { DayAvailability, PublicProduct, Qty } from '../../shared/types.ts'
 import { addDays, formatYmd, weekdayOf, ymdInZone } from '../../shared/zoned.ts'
 import { ApiError, cancelCheckout, getAvailability, startCheckout } from '../lib/api.ts'
 import { ERROR_COPY, dayState, daysThatFit, deadlineCopy, fit, hasBread, linesCopy, longDate, productState, reduceToFit, selectable, shortCopy, type DayState, type Short } from '../lib/cart.ts'
@@ -10,15 +10,21 @@ import { PICKUP_PREFERRED, PICKUP_WINDOW } from '../lib/format.ts'
 import { ProductArt } from './art.tsx'
 import { Button, Field, Notice, Page, Section, Spinner, Title, inputClass } from './ui.tsx'
 
-type Load = { state: 'loading' } | { state: 'error'; code: string } | { state: 'ready'; days: DayAvailability[]; today: string; at: number }
+type Load = { state: 'loading' } | { state: 'error'; code: string } | { state: 'ready'; days: DayAvailability[]; products: PublicProduct[]; today: string; at: number }
 type Step = 'bread' | 'day' | 'details'
 type FitIssue = { date: string; short: Short[] }
+/** What became of the checkout the customer just backed out of — the server's word, never assumed. */
+type Canceled = { id: string; state: 'checking' | 'released' | 'unsure' }
 
 /** Stripe sends a customer who backs out of its page to /?canceled=<order id>. */
 function readCanceled(): string | null {
   const id = new URLSearchParams(window.location.search).get('canceled')
-  return id && /^[0-9a-f-]{32,36}$/i.test(id) ? id : null
+  return id && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) ? id : null
 }
+
+/** Until the server has answered, the prices and capacities are the configured ones; after, the server's. */
+const CONFIGURED: PublicProduct[] = PRODUCTS.map((p) => ({ id: p.id, name: p.name, blurb: p.blurb, priceCents: p.priceCents, capacityPerDay: p.capacityPerDay }))
+const imageOf = (id: ProductId) => PRODUCTS.find((p) => p.id === id)?.image
 
 function weekLabel(date: string, today: string): string {
   const monday = (d: string) => addDays(d, -((weekdayOf(d) + 6) % 7))
@@ -52,9 +58,8 @@ export default function Order() {
   const [touched, setTouched] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [fitIssue, setFitIssue] = useState<FitIssue | null>(null)
-  const [notice, setNotice] = useState<{ tone: 'info' | 'error' | 'warn'; text: string; alert?: boolean } | null>(
-    canceled ? { tone: 'info', text: 'No payment was made and your bread is being released. Your choices are still here — pay whenever you are ready.' } : null,
-  )
+  const [notice, setNotice] = useState<{ tone: 'info' | 'error' | 'warn'; text: string; alert?: boolean } | null>(null)
+  const [cancelled, setCancelled] = useState<Canceled | null>(canceled ? { id: canceled, state: 'checking' } : null)
   const [nowMs, setNowMs] = useState(() => Date.now())
   const [fallbackToday] = useState(() => ymdInZone(Date.now(), TIMEZONE))
   const inFlight = useRef(false)
@@ -76,7 +81,7 @@ export default function Order() {
       const res = await getAvailability()
       const at = Date.now()
       setNowMs(at)
-      setLoad({ state: 'ready', days: res.days, today: ymdInZone(Date.parse(res.now), TIMEZONE), at })
+      setLoad({ state: 'ready', days: res.days, products: res.products, today: ymdInZone(Date.parse(res.now), TIMEZONE), at })
       return res.days
     } catch (err) {
       // No counts are shown from a failed request: nothing is invented.
@@ -90,8 +95,19 @@ export default function Order() {
     if (canceled) {
       window.history.replaceState(null, '', '/')
       // Backing out is not proof the payment cannot still land: the server
-      // ends the session at Stripe and releases only on Stripe's word.
-      cancelCheckout(canceled).catch(() => {}).finally(refresh)
+      // ends the session at Stripe and releases only on Stripe's word — and
+      // if the payment had in fact gone through first, the customer is
+      // taken to their confirmed order rather than told nothing was paid.
+      cancelCheckout(canceled)
+        .then(({ state }) => {
+          if (state === 'paid') {
+            window.location.replace(`/thanks?order=${canceled}`)
+            return
+          }
+          setCancelled({ id: canceled, state: state === 'released' || state === 'not_reserved' || state === 'not_found' ? 'released' : 'unsure' })
+        })
+        .catch(() => setCancelled({ id: canceled, state: 'unsure' }))
+        .finally(refresh)
     } else {
       refresh()
     }
@@ -116,6 +132,7 @@ export default function Order() {
   }, [qty, date, name])
 
   const days = load.state === 'ready' ? load.days : NO_DAYS
+  const products = load.state === 'ready' ? load.products : CONFIGURED
   const today = load.state === 'ready' ? load.today : fallbackToday
   const selectedDay = days.find((d) => d.date === date) ?? null
   const selectedState: DayState | null = selectedDay ? dayState(selectedDay, qty) : null
@@ -126,7 +143,8 @@ export default function Order() {
   const bread = hasBread(qty)
   const nameOk = name.trim().length > 0
   const phoneOk = normalisePhone(phone) !== null
-  const total = totalCents(qty)
+  // Prices are the server's: what it will charge is what the page shows.
+  const total = products.reduce((sum, p) => sum + (qty[p.id] ?? 0) * p.priceCents, 0)
   const nextStep: Step | null = !bread ? 'bread' : !cartFits ? 'day' : !nameOk || !phoneOk ? 'details' : null
   const readyToPay = nextStep === null && load.state === 'ready' && !fitIssue && !submitting
 
@@ -165,6 +183,7 @@ export default function Order() {
   function chooseDay(d: DayAvailability) {
     setDate(d.date)
     setNotice((n) => (n?.tone === 'info' ? null : n))
+    setCancelled((c) => (c?.state === 'released' ? null : c))
   }
 
   function setLine(id: ProductId, n: number) {
@@ -245,6 +264,23 @@ export default function Order() {
       </p>
 
       <div aria-live="polite">
+        {cancelled && (
+          <div className="mb-5">
+            <Notice tone={cancelled.state === 'unsure' ? 'warn' : 'info'} role="status">
+              {cancelled.state === 'checking' && 'You left the payment page. Checking with Stripe whether anything was paid…'}
+              {cancelled.state === 'released' && 'No payment was made and your bread has been released. Your choices are still here — pay whenever you are ready.'}
+              {cancelled.state === 'unsure' && (
+                <>
+                  You left the payment page, and Stripe could not be reached to confirm what happened. If you did pay, your order page will show it:{' '}
+                  <a className="font-semibold underline underline-offset-2" href={`/thanks?order=${cancelled.id}`}>
+                    check my order
+                  </a>
+                  . If not, nothing was charged and the bread is released once Stripe confirms.
+                </>
+              )}
+            </Notice>
+          </div>
+        )}
         {notice && (
           <div className="mb-5">
             <Notice tone={notice.tone} role={notice.alert ? 'alert' : 'status'}>
@@ -258,14 +294,15 @@ export default function Order() {
       <div id="step-bread" className="scroll-mt-4">
         <Section step={1} title="Choose your bread">
           <ul className="space-y-3">
-            {PRODUCTS.map((p) => {
+            {products.map((p) => {
               const state = selectedDay && daySelectable ? productState(selectedDay, p.id, p.capacityPerDay) : null
               const free = selectedDay && daySelectable ? selectedDay.remaining[p.id] : p.capacityPerDay
               const max = Math.max(free, qty[p.id])
+              const image = imageOf(p.id)
               return (
                 <li key={p.id} className="flex items-center gap-3 rounded-2xl border border-line bg-white p-3">
-                  {p.image ? (
-                    <img src={p.image} alt={p.name} className="size-20 shrink-0 rounded-xl object-cover" />
+                  {image ? (
+                    <img src={image} alt={p.name} className="size-20 shrink-0 rounded-xl object-cover" />
                   ) : (
                     <ProductArt id={p.id} className="size-20 shrink-0 rounded-xl" />
                   )}
@@ -450,7 +487,7 @@ export default function Order() {
           ) : (
             <div className="rounded-2xl border border-line bg-white">
               <ul className="divide-y divide-line px-4">
-                {PRODUCTS.filter((p) => qty[p.id] > 0).map((p) => (
+                {products.filter((p) => qty[p.id] > 0).map((p) => (
                   <li key={p.id} className="flex items-baseline justify-between gap-3 py-3 text-[15px] text-cocoa">
                     <span>
                       {qty[p.id]} × {p.name} <span className="text-cocoa-soft">· {formatMoney(p.priceCents)} each</span>

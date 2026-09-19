@@ -92,12 +92,32 @@ export const SESSION_MIN_MINUTES = 31
 export const STRIPE_HOLD_MARGIN_MINUTES = 10
 
 /**
- * Where customers send payment, and the name to expect it from. ZELLE_NAME is
- * still a placeholder — fill it in with her real name as it appears on Zelle
- * before this goes live, or every order page will show a fake one.
+ * Where a Zelle payment goes, and the name to expect it from — the manual
+ * path only; customers pay by card. ZELLE_NAME is empty until she gives her
+ * name as it appears on Zelle: the page shows the handle alone rather than
+ * a placeholder, and nothing about Zelle is sent on a card order at all.
  */
-export const ZELLE_NAME = '<her name on Zelle>'
+export const ZELLE_NAME = ''
 export const ZELLE_HANDLE = '(612) 703-8698'
+
+/**
+ * Reservation abuse. A checkout is free and holds bread for up to
+ * SESSION_MINUTES + STRIPE_HOLD_MARGIN_MINUTES, so one client must not be
+ * able to hold the shop with requests alone. Per address, in the database
+ * (function instances share no memory): at most this many checkouts in the
+ * window, and at most this many card orders on hold at once. The numbers
+ * leave room for several customers behind one gym Wi-Fi address; they are
+ * a ceiling on abuse, not a guess at real traffic.
+ */
+export const CHECKOUT_WINDOW_MINUTES = 15
+export const MAX_CHECKOUTS_PER_IP = 12
+export const MAX_LIVE_HOLDS_PER_IP = 4
+/**
+ * A reserved card order is checked with Stripe at most this often from the
+ * customer's page: two polls a second apart share one answer, so a page
+ * being hammered cannot turn into a Stripe call per request.
+ */
+export const RECONCILE_MIN_INTERVAL_MS = 1_000
 
 /** What an order of these quantities costs. */
 export function totalCents(qty: Record<ProductId, number>): number {

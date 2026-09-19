@@ -1,6 +1,9 @@
 import {
-  CARD_CHECKOUT_LEAD_MINUTES,
+  CHECKOUT_WINDOW_MINUTES,
+  MAX_CHECKOUTS_PER_IP,
+  MAX_LIVE_HOLDS_PER_IP,
   PAYMENT_HOLD_HOURS,
+  RECONCILE_MIN_INTERVAL_MS,
   SESSION_MINUTES,
   SESSION_MIN_MINUTES,
   STRIPE_HOLD_MARGIN_MINUTES,
@@ -11,7 +14,7 @@ import {
   type ProductId,
 } from '../../shared/config.ts'
 import type { Clock } from '../../shared/clock.ts'
-import { cutoffFor, isPickupDay, pickupDates } from '../../shared/schedule.ts'
+import { cardCheckoutOpen, cutoffFor, isPickupDay, pickupDates } from '../../shared/schedule.ts'
 import type {
   AdminAction,
   AdminBlockResult,
@@ -50,19 +53,23 @@ import {
   stockFor,
   type HoldTerms,
   type ProductRow,
+  type ReserveLimits,
 } from './inventory.ts'
 import type { StripeGateway } from './stripe/gateway.ts'
 import {
   dashboardPaymentUrl,
   ensureSession,
   finalizePayment,
+  liveHoldsForPhone,
   orderForPaymentIntent,
   reconcileOrder,
+  sessionRecorded,
   staleStripeOrders,
   syncRefunds,
   type PaymentDeps,
+  type ReconcileState,
 } from './stripe/payments.ts'
-import { validateCheckout } from './validate.ts'
+import { UUID_V4, validateCheckout } from './validate.ts'
 
 /**
  * The HTTP layer, built once from a database, a clock and a payment gateway.
@@ -84,7 +91,6 @@ export type Handler = (req: Request) => Promise<Response>
 const ACTOR = 'admin'
 
 const ZELLE = { name: ZELLE_NAME, handle: ZELLE_HANDLE }
-const UUID_LOOSE = /^[0-9a-f-]{32,36}$/i
 const MINUTE = 60_000
 
 const publicProduct = (p: ProductRow): PublicProduct => ({
@@ -126,14 +132,10 @@ function guard<A extends unknown[]>(name: string, fn: (req: Request, ...args: A)
 
 export function createApp({ db, clock, gateway }: AppDeps) {
   const payments = (): PaymentDeps | null => (gateway ? { db, clock, gateway } : null)
-  const urlsFor = (req: Request, orderId: string) => {
-    const origin = siteOrigin(req)
-    return { successUrl: `${origin}/thanks?order=${orderId}`, cancelUrl: `${origin}/?canceled=${orderId}` }
-  }
 
   async function summarise(order: Order): Promise<OrderSummary> {
     const exceptions = await openExceptions(db, order.id)
-    return {
+    const out: OrderSummary = {
       id: order.id,
       shortId: shortId(order.id),
       date: order.date,
@@ -145,8 +147,9 @@ export function createApp({ db, clock, gateway }: AppDeps) {
       checking: order.provider === 'stripe' && order.status === 'reserved' && exceptions.length === 0,
       attention: exceptions.length > 0,
       holdExpiresAt: order.holdExpiresAt,
-      zelle: ZELLE,
     }
+    if (order.provider === 'zelle') out.zelle = ZELLE
+    return out
   }
 
   /** The Stripe payment behind each paid card order, so the page can link straight to it. */
@@ -200,9 +203,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
           date,
           blocked: s?.blocked ?? false,
           cutoffAt: new Date(cutoff).toISOString(),
-          // Card payment must be complete by the cutoff and Stripe needs its
-          // 30 minutes, so the date closes to new checkouts a little early.
-          open: now < cutoff - CARD_CHECKOUT_LEAD_MINUTES * MINUTE,
+          open: cardCheckoutOpen(date, now),
           remaining: s?.remaining ?? { sourdough: 0, banana: 0 },
           held: held.get(date) ?? { sourdough: 0, banana: 0 },
         }
@@ -212,7 +213,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
   })
 
   // ── POST /api/checkout ───────────────────────────────────────────────────
-  const checkout = guard('checkout', async (req) => {
+  const checkout = guard('checkout', async (req: Request, ip: string | null = null) => {
     if (req.method !== 'POST') return error('method_not_allowed', 405)
     const body = await readJson<Partial<CheckoutRequest>>(req)
     if (body instanceof Response) return body
@@ -227,17 +228,37 @@ export function createApp({ db, clock, gateway }: AppDeps) {
     // session shorter than 30 minutes, so inside the last half hour there is
     // no honest way to sell — the date is closed, and says so.
     const cutoff = cutoffFor(checked.value.date)
-    if (cutoff - now < CARD_CHECKOUT_LEAD_MINUTES * MINUTE) return error('closing_soon', 409, { cutoffAt: new Date(cutoff).toISOString() })
+    if (!cardCheckoutOpen(checked.value.date, now)) {
+      // A retry of an attempt that is still holding bread settles that hold
+      // (nothing can pay it in time) before the customer is told.
+      const { rows } = await db.query<{ id: string }>("SELECT id FROM orders WHERE checkout_key = $1::uuid AND status = 'reserved' AND provider = 'stripe'", [checked.value.checkoutKey])
+      if (rows[0]) await reconcileOrder(pay, rows[0].id)
+      return error('closing_soon', 409, { cutoffAt: new Date(cutoff).toISOString() })
+    }
+
+    // One live card hold per phone number. Starting again supersedes the
+    // last attempt: it is ended at Stripe first and released only on
+    // Stripe's word, so a customer who closed the payment page is not
+    // locked out by their own hold, and a second tab cannot double it. Not
+    // on a date she has closed: that checkout is refused as it stands.
+    const dateOpen = !((await stockFor(db, [checked.value.date], now)).get(checked.value.date)?.blocked ?? false)
+    if (dateOpen) for (const prior of await liveHoldsForPhone(db, checked.value.phone, checked.value.checkoutKey)) await reconcileOrder(pay, prior, { forceExpire: true })
+
     const sessionExpiresMs = Math.max(now + SESSION_MIN_MINUTES * MINUTE, Math.min(cutoff, now + SESSION_MINUTES * MINUTE))
     const terms: HoldTerms = {
       provider: 'stripe',
       sessionExpiresAt: new Date(sessionExpiresMs).toISOString(),
       holdExpiresAt: new Date(sessionExpiresMs + STRIPE_HOLD_MARGIN_MINUTES * MINUTE).toISOString(),
+      returnOrigin: siteOrigin(req),
     }
+    // A checkout is free and holds bread, so one address gets only so many.
+    const limits: ReserveLimits = { ip, windowMs: CHECKOUT_WINDOW_MINUTES * MINUTE, maxRecent: MAX_CHECKOUTS_PER_IP, maxHolds: MAX_LIVE_HOLDS_PER_IP }
 
-    const outcome = await reserve(db, checked.value, products, clock, terms)
+    const outcome = await reserve(db, checked.value, products, clock, terms, limits)
     if (!outcome.ok) {
-      return outcome.reason === 'sold_out' ? error('sold_out', 409, { remaining: outcome.remaining }) : error('blocked', 409)
+      if (outcome.reason === 'sold_out') return error('sold_out', 409, { remaining: outcome.remaining })
+      if (outcome.reason === 'too_many') return error('too_many_reservations', 429)
+      return error('blocked', 409)
     }
     const { order } = outcome
     const response: CheckoutResponse = {
@@ -247,13 +268,19 @@ export function createApp({ db, clock, gateway }: AppDeps) {
       qty: order.qty,
       amountCents: order.amountCents,
       holdExpiresAt: order.holdExpiresAt,
-      zelle: ZELLE,
       replayed: outcome.replayed,
     }
     // A replayed order that has already been decided is not sent back to Stripe.
     if (order.status !== 'reserved') return json(response)
-    const made = await ensureSession(pay, order.id, urlsFor(req, order.id))
+    const made = await ensureSession(pay, order.id)
     if (!made.ok) {
+      if (made.reason === 'too_late') {
+        // A retry so late that no session could end before the deadline:
+        // the hold is settled (released — nothing was ever handed out) and
+        // the date is closed to this customer as to everyone.
+        await reconcileOrder(pay, order.id)
+        return error('closing_soon', 409, { cutoffAt: new Date(cutoff).toISOString() })
+      }
       // The reservation stands; a retry re-issues the same create.
       return error('payment_unavailable', 503, { orderId: order.id })
     }
@@ -265,12 +292,12 @@ export function createApp({ db, clock, gateway }: AppDeps) {
   const cancelCheckout = guard('cancel', async (req) => {
     if (req.method !== 'POST') return error('method_not_allowed', 405)
     const id = new URL(req.url).searchParams.get('order') ?? ''
-    if (!UUID_LOOSE.test(id)) return error('bad_order', 400)
+    if (!UUID_V4.test(id)) return error('bad_order', 400)
     const pay = payments()
     if (!pay) return error('payments_not_configured', 503)
     // Backing out is not evidence: the session is ended at Stripe and only
     // then, on Stripe's word, is the bread released.
-    const state = await reconcileOrder(pay, id, { forceExpire: true, ...urlsFor(req, id) })
+    const state = await reconcileOrder(pay, id, { forceExpire: true })
     return json({ state })
   })
 
@@ -278,15 +305,16 @@ export function createApp({ db, clock, gateway }: AppDeps) {
   const order = guard('order', async (req) => {
     if (req.method !== 'GET') return error('method_not_allowed', 405)
     const id = new URL(req.url).searchParams.get('order') ?? ''
-    if (!UUID_LOOSE.test(id)) return error('bad_order', 400)
+    if (!UUID_V4.test(id)) return error('bad_order', 400)
     let found = await readOrder(db, id, clock.now())
     if (!found) return error('not_found', 404)
     if (found.provider === 'stripe' && found.status === 'reserved') {
       // Every poll of the page is a server-side check with Stripe. The page
-      // itself never gets to say the order is paid.
+      // itself never gets to say the order is paid. Polls a second apart
+      // share one answer, so the page cannot be used to hammer Stripe.
       const pay = payments()
       if (pay) {
-        await reconcileOrder(pay, id, urlsFor(req, id))
+        await reconcileOrder(pay, id, { maxAgeMs: RECONCILE_MIN_INTERVAL_MS })
         found = (await readOrder(db, id, clock.now())) ?? found
       }
     }
@@ -320,7 +348,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
         // Expired, failed, unpaid, or out of order: ask Stripe afresh rather
         // than act on a snapshot that may be stale.
         const orderId = event.session.metadata.order_id ?? event.session.clientReferenceId
-        if (orderId && UUID_LOOSE.test(orderId)) await reconcileOrder(pay, orderId, urlsFor(req, orderId))
+        if (orderId && UUID_V4.test(orderId)) await reconcileOrder(pay, orderId)
       }
     } else if (event.paymentIntentId && /^(charge\.|refund\.)/.test(event.type)) {
       // A refund (or a charge update) at Stripe: mirror it from a fresh
@@ -334,13 +362,18 @@ export function createApp({ db, clock, gateway }: AppDeps) {
   })
 
   // ── scheduled: reconcile whatever Stripe should have decided by now ─────
-  const reconcileStale = guard('reconcile', async (req) => {
+  const reconcileStale = guard('reconcile', async () => {
     const pay = payments()
-    if (!pay) return json({ reconciled: 0 })
+    if (!pay) return json({ reconciled: 0, states: {} })
     const ids = await staleStripeOrders(db, clock.now())
-    const results: Record<string, string> = {}
-    for (const id of ids) results[id] = await reconcileOrder(pay, id, urlsFor(req, id))
-    return json({ reconciled: ids.length, results })
+    // Counts by outcome only: order ids are the customer's key to their own
+    // order page, and this endpoint answers anyone.
+    const states: Partial<Record<ReconcileState, number>> = {}
+    for (const id of ids) {
+      const state = await reconcileOrder(pay, id)
+      states[state] = (states[state] ?? 0) + 1
+    }
+    return json({ reconciled: ids.length, states })
   })
 
   // ── POST /api/admin-session — the password, once, for a session ───────
@@ -371,7 +404,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
       date,
       blocked,
       cutoffAt: new Date(cutoff).toISOString(),
-      open: !blocked && now < cutoff - CARD_CHECKOUT_LEAD_MINUTES * MINUTE,
+      open: !blocked && cardCheckoutOpen(date, now),
       capacity: s?.capacity ?? { sourdough: 0, banana: 0 },
       toBake,
       held,
@@ -400,7 +433,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
       const dates: string[] = []
       for (let d = from; d <= to && dates.length < 120; d = addDays(d, 1)) if (isPickupDay(d)) dates.push(d)
       // Her page is one of the places abandoned sessions get settled.
-      if (pay) for (const id of await staleStripeOrders(db, now, dates)) await reconcileOrder(pay, id, urlsFor(req, id))
+      if (pay) for (const id of await staleStripeOrders(db, now, dates)) await reconcileOrder(pay, id)
       const days = await Promise.all(dates.map((d) => adminDay(d, now)))
       const body: AdminResponse = { now: new Date(now).toISOString(), today, nextPickupDate: pickupDates(now)[0], days }
       return json(body)
@@ -426,7 +459,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
       return json(result)
     }
     const orderId = (body as { orderId?: unknown }).orderId
-    if (typeof orderId !== 'string' || !UUID_LOOSE.test(orderId)) return error('bad_request', 400)
+    if (typeof orderId !== 'string' || !UUID_V4.test(orderId)) return error('bad_request', 400)
 
     if (body.action === 'pickedUp') {
       if (typeof body.pickedUp !== 'boolean') return error('bad_request', 400)
@@ -459,15 +492,19 @@ export function createApp({ db, clock, gateway }: AppDeps) {
 
     // A card order still reserved is decided by Stripe before she can touch
     // it: its session is ended and settled, and if the customer had in fact
-    // paid, that is what she is told.
+    // paid, that is what she is told. An order that never got a session at
+    // all has nothing at Stripe that could pay it, so she may act on it.
     const settleStripe = async (): Promise<Response | null> => {
       const current = await readOrder(db, orderId, now)
       if (!current) return error('not_found', 404)
       if (current.provider !== 'stripe' || current.status !== 'reserved') return null
       if (!pay) return error('payments_not_configured', 503)
-      const state = await reconcileOrder(pay, orderId, { forceExpire: true, ...urlsFor(req, orderId) })
+      const state = await reconcileOrder(pay, orderId, { forceExpire: true })
       if (state === 'paid') return error('already_paid', 409, { order: await adminOrder((await readOrder(db, orderId, now))!, now) })
-      if (state === 'unknown' || state === 'uncertain' || state === 'attention') return error('payment_uncertain', 409, { state })
+      if (state === 'unknown' || state === 'uncertain' || state === 'attention') {
+        if (!(await sessionRecorded(db, orderId))) return null
+        return error('payment_uncertain', 409, { state })
+      }
       return null
     }
 

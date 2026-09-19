@@ -20,7 +20,7 @@ const MON = '2026-09-21'
 const WED = '2026-09-23'
 const THU = '2026-09-24'
 const HOUR = 3_600_000
-const ADMIN = 'Biz-operations'
+const ADMIN = 'test-admin-password'
 
 let db: Db
 let clock: FixedClock
@@ -31,7 +31,7 @@ let asAdmin: Record<string, string>
 beforeEach(async () => {
   ;({ db } = await freshDb())
   clock = fixedClock(NOW)
-  stripe = fakeStripe()
+  stripe = fakeStripe(false, clock)
   app = createApp({ db, clock, gateway: stripe.gateway })
   process.env.ADMIN_PASSWORD = ADMIN
   asAdmin = await adminHeaders(app, ADMIN)
@@ -42,8 +42,10 @@ const post = (fn: (r: Request) => Promise<Response>, path: string, body: unknown
   fn(new Request(`https://bread.example${path}`, { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body), headers }))
 const get = (fn: (r: Request) => Promise<Response>, path: string, headers: Record<string, string> = {}) => fn(new Request(`https://bread.example${path}`, { headers }))
 const act = (body: unknown) => post(app.admin, '/api/admin', body, asAdmin)
+/** One phone number per named customer: a live card hold is one per number. */
+const phoneOf = (name: string) => `612555${String([...name].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 10_000, 7)).padStart(4, '0')}`
 const buy = (date = WED, qty: Partial<Qty> = { sourdough: 2, banana: 1 }, name = 'Amina Ali') =>
-  post(app.checkout, '/api/checkout', { date, qty, name, phone: '(612) 555-0199', checkoutKey: crypto.randomUUID() })
+  post(app.checkout, '/api/checkout', { date, qty, name, phone: phoneOf(name), checkoutKey: crypto.randomUUID() })
 const hook = (type: string, sessionId: string) => {
   const e = stripe.event(type, sessionId)
   return post(app.webhook, '/api/stripe-webhook', e.body, e.headers)

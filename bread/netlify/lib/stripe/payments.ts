@@ -1,9 +1,11 @@
-import { PICKUP_PLACE, STRIPE_HOLD_MARGIN_MINUTES } from '../../../shared/config.ts'
+import { PICKUP_PLACE, SESSION_MINUTES, SESSION_MIN_MINUTES, SITE_URL, STRIPE_HOLD_MARGIN_MINUTES } from '../../../shared/config.ts'
 import type { Clock } from '../../../shared/clock.ts'
+import { cardCheckoutOpen, cutoffFor } from '../../../shared/schedule.ts'
 import type { Order } from '../../../shared/types.ts'
 import { formatYmd } from '../../../shared/zoned.ts'
 import type { Db, Queryable } from '../db/client.ts'
 import { ensureInventory, lockDate, readOrder, sweep, take } from '../inventory.ts'
+import { UUID_V4 } from '../validate.ts'
 import { CURRENCY, type GatewaySession, type StripeGateway } from './gateway.ts'
 
 /**
@@ -37,18 +39,39 @@ interface StripeRef {
   status: string
   session_expires_ms: number
   amount_cents: number
+  idempotency_key: string
+  return_origin: string | null
+  last_checked_ms: number | null
 }
+
+const MINUTE = 60_000
 
 async function stripeRef(q: Queryable, orderId: string): Promise<StripeRef | null> {
   const { rows } = await q.query<StripeRef>(
-    `SELECT id, external_id, status, extract(epoch FROM session_expires_at)::float8 * 1000 AS session_expires_ms, amount_cents
+    `SELECT id, external_id, status, extract(epoch FROM session_expires_at)::float8 * 1000 AS session_expires_ms, amount_cents,
+            idempotency_key, return_origin, extract(epoch FROM last_checked_at)::float8 * 1000 AS last_checked_ms
      FROM payment_references WHERE order_id = $1::uuid AND provider = 'stripe' ORDER BY id DESC LIMIT 1`,
     [orderId],
   )
   return rows[0] ?? null
 }
 
-export type ExceptionKind = 'amount_mismatch' | 'currency_mismatch' | 'order_mismatch' | 'mode_mismatch' | 'livemode_mismatch' | 'paid_after_release' | 'duplicate_payment' | 'expire_uncertain'
+/** Is there a Checkout Session on record for this order's open reference? None means nobody was ever handed a payment page. */
+export async function sessionRecorded(q: Queryable, orderId: string): Promise<boolean> {
+  const ref = await stripeRef(q, orderId)
+  return Boolean(ref?.external_id)
+}
+
+export type ExceptionKind =
+  | 'amount_mismatch'
+  | 'currency_mismatch'
+  | 'order_mismatch'
+  | 'mode_mismatch'
+  | 'livemode_mismatch'
+  | 'paid_after_release'
+  | 'duplicate_payment'
+  | 'expire_uncertain'
+  | 'session_unrecoverable'
 
 /** One open exception per (order, session, kind); a repeat delivery does not pile up rows. */
 async function recordException(q: Queryable, orderId: string, sessionId: string | null, kind: ExceptionKind, detail: Record<string, unknown>, nowMs: number): Promise<void> {
@@ -68,18 +91,49 @@ async function recordException(q: Queryable, orderId: string, sessionId: string 
 
 // ── ensureSession ─────────────────────────────────────────────────────────
 
-export type SessionOutcome = { ok: true; session: GatewaySession } | { ok: false; reason: 'not_stripe' | 'not_found' | 'create_failed' }
+export type SessionOutcome = { ok: true; session: GatewaySession } | { ok: false; reason: 'not_stripe' | 'not_found' | 'create_failed' | 'too_late' }
+
+/** The site to send the customer back to when no request told us: Netlify's URL, else the configured one. */
+export function defaultOrigin(): string {
+  return process.env.URL || SITE_URL
+}
+
+export function returnUrls(origin: string, orderId: string): { successUrl: string; cancelUrl: string } {
+  return { successUrl: `${origin}/thanks?order=${orderId}`, cancelUrl: `${origin}/?canceled=${orderId}` }
+}
+
+/** The key after this one: <order id>, then <order id>:2, :3 … A changed create is a new key, never a reused one. */
+function nextKey(orderId: string, current: string): string {
+  const n = current === orderId ? 1 : Number(current.slice(orderId.length + 1)) || 1
+  return `${orderId}:${n + 1}`
+}
+
+/** Stripe's answer to "same key, different parameters", however the SDK spells it. */
+function isIdempotencyError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false
+  const e = err as { type?: unknown; rawType?: unknown }
+  return e.type === 'idempotency_error' || e.rawType === 'idempotency_error' || e.type === 'StripeIdempotencyError'
+}
 
 /**
  * The Checkout Session for a reserved card order. Built only from what the
- * database holds — snapshotted prices, the stored expiry — so a retry, a
- * replayed request or a recovery after a crash sends Stripe exactly the same
- * create under the same idempotency key, and Stripe hands back the same
- * session rather than a second one.
+ * database holds — snapshotted prices, the stored expiry, the origin the
+ * customer reserved from — so a retry, a replayed request or a recovery
+ * after a crash sends Stripe exactly the same create under the same
+ * idempotency key, whoever runs it, and Stripe hands back the same session
+ * rather than a second one.
+ *
+ * A create that never came back can be repeated for as long as its stored
+ * expiry is still one Stripe would accept (30 minutes out). After that the
+ * expiry is recomputed and the key moved on, both written down first, so
+ * the next attempt repeats *this* create rather than inventing a third. If
+ * the date's cutoff is too near for any session to be honest, the answer
+ * is `too_late` and the caller releases the hold.
  */
-export async function ensureSession(deps: PaymentDeps, orderId: string, urls: { successUrl: string; cancelUrl: string }): Promise<SessionOutcome> {
-  const { db, gateway } = deps
-  const order = await readOrder(db, orderId, deps.clock.now())
+export async function ensureSession(deps: PaymentDeps, orderId: string): Promise<SessionOutcome> {
+  const { db, gateway, clock } = deps
+  const nowMs = clock.now()
+  const order = await readOrder(db, orderId, nowMs)
   if (!order) return { ok: false, reason: 'not_found' }
   if (order.provider !== 'stripe') return { ok: false, reason: 'not_stripe' }
   const ref = await stripeRef(db, orderId)
@@ -94,34 +148,70 @@ export async function ensureSession(deps: PaymentDeps, orderId: string, urls: { 
     }
   }
 
+  let key = ref.idempotency_key
+  let expiresMs = ref.session_expires_ms
+  const stamp = new Date(nowMs).toISOString()
+  const rekey = async (next: string) => {
+    key = next
+    await db.query('UPDATE payment_references SET idempotency_key = $2, updated_at = $3::timestamptz WHERE id = $1 AND external_id IS NULL', [ref.id, key, stamp])
+  }
+  if (expiresMs - nowMs < SESSION_MIN_MINUTES * MINUTE) {
+    // Stripe refuses an expiry under 30 minutes out, so the stored one can
+    // no longer be created. A fresh expiry is a different create and needs
+    // a different key; both are persisted before the attempt.
+    if (!cardCheckoutOpen(order.date, nowMs)) return { ok: false, reason: 'too_late' }
+    expiresMs = Math.max(nowMs + SESSION_MIN_MINUTES * MINUTE, Math.min(cutoffFor(order.date), nowMs + SESSION_MINUTES * MINUTE))
+    await db.query('UPDATE payment_references SET session_expires_at = $2::timestamptz, updated_at = $3::timestamptz WHERE id = $1 AND external_id IS NULL', [ref.id, new Date(expiresMs).toISOString(), stamp])
+    await rekey(nextKey(orderId, key))
+  }
+
   const { rows: items } = await db.query<{ product_id: string; name: string; quantity: number; unit_price_cents: number }>(
     `SELECT oi.product_id, p.name, oi.quantity, oi.unit_price_cents FROM order_items oi JOIN products p ON p.id = oi.product_id
      WHERE oi.order_id = $1::uuid ORDER BY oi.product_id`,
     [orderId],
   )
-  const description = `Pickup ${formatYmd(order.date)}, 5–11 PM at ${PICKUP_PLACE}`
+  const params = {
+    orderId,
+    lines: items.map((i) => ({ name: i.name, unitAmountCents: i.unit_price_cents, quantity: i.quantity })),
+    expiresAt: Math.floor(expiresMs / 1000),
+    ...returnUrls(ref.return_origin ?? defaultOrigin(), orderId),
+    description: `Pickup ${formatYmd(order.date)}, 5–11 PM at ${PICKUP_PLACE}`,
+  }
   let session: GatewaySession
   try {
-    session = await gateway.createSession(
-      {
-        orderId,
-        lines: items.map((i) => ({ name: i.name, unitAmountCents: i.unit_price_cents, quantity: i.quantity })),
-        expiresAt: Math.floor(ref.session_expires_ms / 1000),
-        successUrl: urls.successUrl,
-        cancelUrl: urls.cancelUrl,
-        description,
-      },
-      orderId,
-    )
+    session = await gateway.createSession(params, key)
   } catch (err) {
-    console.error('[bread] stripe: create failed', err)
-    return { ok: false, reason: 'create_failed' }
+    if (!isIdempotencyError(err)) {
+      console.error('[bread] stripe: create failed', err)
+      return { ok: false, reason: 'create_failed' }
+    }
+    // The key was used by an earlier create we never heard back from, with
+    // parameters that differ from these. Once more, under a fresh key: that
+    // earlier session, if it exists, reached nobody and expires on its own.
+    console.warn('[bread] stripe: idempotency key reused with different parameters; moving to a fresh key')
+    await rekey(nextKey(orderId, key))
+    try {
+      session = await gateway.createSession(params, key)
+    } catch (again) {
+      console.error('[bread] stripe: create failed after re-keying', again)
+      return { ok: false, reason: 'create_failed' }
+    }
   }
   // Only ever fill an empty slot: two racing creates got the same session anyway.
-  await db.query(
-    "UPDATE payment_references SET external_id = $2, livemode = $3, updated_at = $4::timestamptz WHERE id = $1 AND external_id IS NULL",
-    [ref.id, session.id, session.livemode, new Date(deps.clock.now()).toISOString()],
-  )
+  await db.query('UPDATE payment_references SET external_id = $2, livemode = $3, updated_at = $4::timestamptz WHERE id = $1 AND external_id IS NULL', [
+    ref.id,
+    session.id,
+    session.livemode,
+    stamp,
+  ])
+  // The hold follows the session that now exists — never a session that
+  // failed to be made, so a stuck order stays visible to the scheduler.
+  await db.query("UPDATE orders SET hold_expires_at = GREATEST(hold_expires_at, $2::timestamptz) WHERE id = $1::uuid AND status = 'reserved'", [
+    orderId,
+    new Date(session.expiresAt * 1000 + STRIPE_HOLD_MARGIN_MINUTES * MINUTE).toISOString(),
+  ])
+  // A session the app had given up on and flagged is no longer a case for her.
+  await db.query("UPDATE payment_exceptions SET resolved_at = $2::timestamptz, resolved_by = 'system' WHERE order_id = $1::uuid AND kind = 'session_unrecoverable' AND resolved_at IS NULL", [orderId, stamp])
   return { ok: true, session }
 }
 
@@ -139,7 +229,7 @@ export async function finalizePayment(deps: PaymentDeps, session: GatewaySession
   const nowMs = clock.now()
   const now = new Date(nowMs).toISOString()
   const orderId = session.metadata.order_id ?? session.clientReferenceId ?? ''
-  const located = await db.query<{ date: string }>('SELECT date::text AS date FROM orders WHERE id = $1::uuid', [/^[0-9a-f-]{36}$/i.test(orderId) ? orderId : '00000000-0000-4000-8000-000000000000'])
+  const located = await db.query<{ date: string }>('SELECT date::text AS date FROM orders WHERE id = $1::uuid', [UUID_V4.test(orderId) ? orderId : '00000000-0000-4000-8000-000000000000'])
   if (!located.rows[0]) return { ok: false, reason: 'not_found' }
   const date = located.rows[0].date
 
@@ -242,8 +332,11 @@ export type ReconcileState = 'paid' | 'released' | 'open' | 'unknown' | 'uncerta
 export interface ReconcileOptions {
   /** Make the session unusable first (customer backed out, admin cancelled), then settle. */
   forceExpire?: boolean
-  successUrl?: string
-  cancelUrl?: string
+  /**
+   * Reuse an answer Stripe gave this recently (ms) instead of asking again:
+   * the customer's page polls, and two polls a second apart need one call.
+   */
+  maxAgeMs?: number
 }
 
 /**
@@ -252,6 +345,9 @@ export interface ReconcileOptions {
  * its time or we were told to end it, in which case expire it and look
  * again — Stripe's word after the expiry attempt, not ours, decides.
  * Stripe unreachable → nothing changes; the stock stays held.
+ *
+ * Every attempt stamps last_checked_at first, so the batch reconcile serves
+ * the least recently looked-at order next rather than the same stuck one.
  */
 export async function reconcileOrder(deps: PaymentDeps, orderId: string, opts: ReconcileOptions = {}): Promise<ReconcileState> {
   const { db, clock, gateway } = deps
@@ -262,20 +358,44 @@ export async function reconcileOrder(deps: PaymentDeps, orderId: string, opts: R
   if (order.status !== 'reserved') return order.status === 'paid' ? 'paid' : 'not_reserved'
   const ref = await stripeRef(db, orderId)
   if (!ref || ref.status !== 'pending') return 'not_reserved'
+  if (!opts.forceExpire && opts.maxAgeMs !== undefined) {
+    // One guarded update decides who asks: of a burst of polls, the first to
+    // stamp the row goes to Stripe and the rest share its answer.
+    const { rows } = await db.query<{ id: number }>(
+      'UPDATE payment_references SET last_checked_at = $2::timestamptz WHERE id = $1 AND (last_checked_at IS NULL OR last_checked_at <= $3::timestamptz) RETURNING id',
+      [ref.id, new Date(nowMs).toISOString(), new Date(nowMs - opts.maxAgeMs).toISOString()],
+    )
+    if (!rows[0]) return 'open'
+  } else {
+    await db.query('UPDATE payment_references SET last_checked_at = $2::timestamptz WHERE id = $1', [ref.id, new Date(nowMs).toISOString()])
+  }
 
   let session: GatewaySession
   if (!ref.external_id) {
     // The create never made it back to us (crash, timeout). Re-issuing it
-    // with the same idempotency key gives us the session Stripe already has.
-    const made = await ensureSession(deps, orderId, { successUrl: opts.successUrl ?? '', cancelUrl: opts.cancelUrl ?? '' })
-    if (!made.ok) return 'unknown'
+    // gives us the session Stripe already has, or a fresh one.
+    const made = await ensureSession(deps, orderId)
+    if (!made.ok) {
+      if (made.reason === 'too_late') {
+        // No session exists that anyone was given, and none can be made
+        // that would end before the deadline: the bread goes back.
+        await releaseStripe(deps, orderId, null)
+        return 'released'
+      }
+      if (nowMs >= Date.parse(order.holdExpiresAt)) {
+        // Past its time and still no session: this hold is not going to
+        // pay itself, and it is not going to sit silently on her stock.
+        await db.transaction((tx) => recordException(tx, orderId, null, 'session_unrecoverable', { reason: made.reason }, nowMs))
+        return 'attention'
+      }
+      return 'unknown'
+    }
     session = made.session
   } else {
     try {
       session = await gateway.retrieveSession(ref.external_id)
     } catch (err) {
       console.error('[bread] stripe: retrieve failed', err)
-      await db.query('UPDATE payment_references SET last_checked_at = $2::timestamptz WHERE id = $1', [ref.id, new Date(nowMs).toISOString()])
       return 'unknown'
     }
   }
@@ -295,11 +415,8 @@ export async function reconcileOrder(deps: PaymentDeps, orderId: string, opts: R
   const first = await apply(session)
   if (first !== 'open') return first
 
-  const pastHold = nowMs >= Date.parse(order.holdExpiresAt) || nowMs >= session.expiresAt * 1000 + STRIPE_HOLD_MARGIN_MINUTES * 60_000
-  if (!opts.forceExpire && !pastHold) {
-    await db.query('UPDATE payment_references SET last_checked_at = $2::timestamptz WHERE id = $1', [ref.id, new Date(nowMs).toISOString()])
-    return 'open'
-  }
+  const pastHold = nowMs >= Date.parse(order.holdExpiresAt) || nowMs >= session.expiresAt * 1000 + STRIPE_HOLD_MARGIN_MINUTES * MINUTE
+  if (!opts.forceExpire && !pastHold) return 'open'
 
   // End it, then believe only what Stripe shows afterwards: a payment that
   // slipped in first wins; an expired session is released; anything else is
@@ -324,13 +441,28 @@ export async function reconcileOrder(deps: PaymentDeps, orderId: string, opts: R
   return 'uncertain'
 }
 
-/** Reserved card orders whose session should be dead by now, for a batch reconcile. */
+/**
+ * Reserved card orders whose session should be dead by now, for a batch
+ * reconcile: the ones nobody has asked Stripe about for longest first, so
+ * one order Stripe keeps refusing to settle cannot starve the rest.
+ */
 export async function staleStripeOrders(db: Queryable, nowMs: number, dates?: readonly string[]): Promise<string[]> {
   const { rows } = await db.query<{ id: string }>(
-    `SELECT o.id FROM orders o WHERE o.provider = 'stripe' AND o.status = 'reserved' AND o.hold_expires_at <= $1::timestamptz
-       ${dates && dates.length > 0 ? 'AND o.date IN (SELECT unnest(string_to_array($2, \',\'))::date)' : ''}
-     ORDER BY o.hold_expires_at LIMIT 50`,
+    `SELECT o.id FROM orders o
+     LEFT JOIN payment_references pr ON pr.order_id = o.id AND pr.provider = 'stripe' AND pr.status = 'pending'
+     WHERE o.provider = 'stripe' AND o.status = 'reserved' AND o.hold_expires_at <= $1::timestamptz
+       ${dates && dates.length > 0 ? "AND o.date IN (SELECT unnest(string_to_array($2, ','))::date)" : ''}
+     ORDER BY pr.last_checked_at ASC NULLS FIRST, o.hold_expires_at LIMIT 50`,
     dates && dates.length > 0 ? [new Date(nowMs).toISOString(), dates.join(',')] : [new Date(nowMs).toISOString()],
+  )
+  return rows.map((r) => r.id)
+}
+
+/** Live card holds under this phone number, other than the attempt named — the ones a new checkout supersedes. */
+export async function liveHoldsForPhone(db: Queryable, phone: string, exceptCheckoutKey: string): Promise<string[]> {
+  const { rows } = await db.query<{ id: string }>(
+    "SELECT id FROM orders WHERE customer_phone = $1 AND status = 'reserved' AND provider = 'stripe' AND checkout_key IS DISTINCT FROM $2::uuid ORDER BY seq",
+    [phone, exceptCheckoutKey],
   )
   return rows.map((r) => r.id)
 }

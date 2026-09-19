@@ -7,6 +7,7 @@ import { fakeStripe } from './fakeStripe.ts'
 import { poolDb, type Db } from '../netlify/lib/db/client.ts'
 import { applyMigrations } from '../netlify/lib/db/migrate.ts'
 import { listProducts, reserve, setBlocked } from '../netlify/lib/inventory.ts'
+import { finalizePayment } from '../netlify/lib/stripe/payments.ts'
 import { assertLedger } from './db.ts'
 
 /**
@@ -48,7 +49,7 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
   })
 
   it('a reservation waits for whoever holds the date, then proceeds', async () => {
-    const app = createApp({ db, clock: fixedClock(NOW), gateway: fakeStripe().gateway })
+    const app = createApp({ db, clock: fixedClock(NOW), gateway: fakeStripe(false, fixedClock(NOW)).gateway })
     const holder = await pool.connect()
     await holder.query('BEGIN')
     await holder.query('INSERT INTO pickup_dates (date) VALUES ($1::date) ON CONFLICT DO NOTHING', [WED])
@@ -115,6 +116,67 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
     expect(affected).toEqual({ owed: [], holds: [] })
     const next = await reserve(db, cart({ sourdough: 1 }, 8), products, fixedClock(NOW), zelleTerms(NOW))
     expect(next).toEqual({ ok: false, reason: 'blocked' })
+    await assertLedger(db)
+  })
+
+  it('the webhook and the page delivering the same paid session on two connections at once: one conversion, one reference', async () => {
+    const clock = fixedClock(NOW)
+    const stripe = fakeStripe(false, clock)
+    const app = createApp({ db, clock, gateway: stripe.gateway })
+    const res = await app.checkout(new Request('https://bread.example/api/checkout', { method: 'POST', body: JSON.stringify(cart({ sourdough: 2, banana: 1 }, 1)) }), '203.0.113.1')
+    expect(res.status).toBe(200)
+    const { orderId } = await res.json()
+    const session = stripe.pay('cs_test_1')
+    const deps = { db, clock, gateway: stripe.gateway }
+    const outcomes = await Promise.all(Array.from({ length: 6 }, () => finalizePayment(deps, session)))
+    expect(outcomes.every((o) => o.ok)).toBe(true)
+    expect(outcomes.filter((o) => o.ok && !o.already)).toHaveLength(1)
+    expect(outcomes.filter((o) => o.ok && o.already)).toHaveLength(5)
+    expect((await db.query('SELECT status FROM orders WHERE id = $1::uuid', [orderId])).rows[0]).toEqual({ status: 'paid' })
+    expect((await db.query("SELECT count(*)::int AS n FROM payment_references WHERE order_id = $1::uuid AND status = 'succeeded'", [orderId])).rows[0]).toEqual({ n: 1 })
+    expect((await db.query('SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id', [WED])).rows).toEqual([
+      { product_id: 'banana', committed: 1 },
+      { product_id: 'sourdough', committed: 2 },
+    ])
+    await assertLedger(db)
+  })
+
+  it('the same phone number checking out on two connections at once ends with one hold, and the same key with one order', async () => {
+    const clock = fixedClock(NOW)
+    const stripe = fakeStripe(false, clock)
+    const app = createApp({ db, clock, gateway: stripe.gateway })
+    const send = (body: unknown, ip: string) => app.checkout(new Request('https://bread.example/api/checkout', { method: 'POST', body: JSON.stringify(body) }), ip)
+    const samePhone = { date: WED, qty: { sourdough: 1, banana: 0 }, name: 'Twice Tapped', phone: '6125550042' }
+    const [a, b] = await Promise.all([send({ ...samePhone, checkoutKey: crypto.randomUUID() }, '203.0.113.1'), send({ ...samePhone, checkoutKey: crypto.randomUUID() }, '203.0.113.1')])
+    expect([a.status, b.status]).toEqual([200, 200])
+    const [ja, jb] = await Promise.all([a.json(), b.json()])
+    expect(ja.orderId).toBe(jb.orderId)
+    expect([ja.replayed, jb.replayed].sort()).toEqual([false, true])
+    expect((await db.query("SELECT count(*)::int AS n FROM orders WHERE status = 'reserved'")).rows[0]).toEqual({ n: 1 })
+    expect(stripe.created).toHaveLength(1)
+
+    const key = crypto.randomUUID()
+    const twin = { date: WED, qty: { banana: 2, sourdough: 0 }, name: 'Double Click', phone: '6125550043', checkoutKey: key }
+    const [c, d] = await Promise.all([send(twin, '203.0.113.2'), send(twin, '203.0.113.2')])
+    const [jc, jd] = await Promise.all([c.json(), d.json()])
+    expect(jc.orderId).toBe(jd.orderId)
+    expect((await db.query('SELECT count(*)::int AS n FROM orders WHERE checkout_key = $1::uuid', [key])).rows[0]).toEqual({ n: 1 })
+    expect((await db.query("SELECT committed FROM date_inventory WHERE date = $1::date AND product_id = 'banana'", [WED])).rows[0]).toEqual({ committed: 2 })
+    expect(stripe.created).toHaveLength(2)
+    await assertLedger(db)
+  })
+
+  it('a burst of checkouts from one address cannot all slip under the hold cap', async () => {
+    const clock = fixedClock(NOW)
+    const stripe = fakeStripe(false, clock)
+    const app = createApp({ db, clock, gateway: stripe.gateway })
+    const dates = ['2026-09-21', '2026-09-23', '2026-09-24', '2026-09-28', '2026-09-30', '2026-10-01', '2026-10-05', '2026-10-07', '2026-10-08', '2026-10-12']
+    const results = await Promise.all(
+      dates.map((date, i) => app.checkout(new Request('https://bread.example/api/checkout', { method: 'POST', body: JSON.stringify({ ...cart({ banana: 1 }, i), date }) }), '203.0.113.99')),
+    )
+    expect(results.filter((r) => r.status === 200)).toHaveLength(4)
+    expect(results.filter((r) => r.status === 429)).toHaveLength(6)
+    expect((await db.query("SELECT count(*)::int AS n FROM orders WHERE status = 'reserved'")).rows[0]).toEqual({ n: 4 })
     await assertLedger(db)
   })
 })

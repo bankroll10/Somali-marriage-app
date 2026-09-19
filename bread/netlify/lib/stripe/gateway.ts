@@ -91,11 +91,16 @@ export function toGatewaySession(s: Stripe.Checkout.Session): GatewaySession {
   }
 }
 
-/** The real thing. Secret key and webhook secret come from the server environment only. */
-export function stripeGateway(secretKey: string, webhookSecret: string): StripeGateway {
-  const stripe = new Stripe(secretKey)
+/**
+ * The real thing. Secret key and webhook secret come from the server
+ * environment only. `options` lets a test hand the SDK an HTTP client that
+ * records what would have gone over the wire; production passes nothing.
+ */
+export function stripeGateway(secretKey: string, webhookSecret: string, options: Stripe.StripeConfig = {}): StripeGateway {
+  const stripe = new Stripe(secretKey, options)
   return {
-    livemode: secretKey.startsWith('sk_live_'),
+    // sk_live_ or a restricted rk_live_ key: either one talks to live mode.
+    livemode: secretKey.includes('_live_'),
     async createSession(p, idempotencyKey) {
       const session = await stripe.checkout.sessions.create(
         {

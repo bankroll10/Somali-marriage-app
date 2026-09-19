@@ -293,7 +293,21 @@ export async function remainingNow(tx: Queryable, date: string, nowMs: number): 
 export type ReserveOutcome =
   | { ok: true; order: Order; replayed: boolean }
   | { ok: false; reason: 'blocked' }
+  | { ok: false; reason: 'too_many' }
   | { ok: false; reason: 'sold_out'; remaining: Qty }
+
+/**
+ * How much one address may do: checkouts that made a reservation inside the
+ * window, and card orders it still has on hold. Checked and recorded under a
+ * lock on the address, inside the reservation's own transaction, so a burst
+ * of simultaneous requests cannot all slip under the count.
+ */
+export interface ReserveLimits {
+  ip: string | null
+  windowMs: number
+  maxRecent: number
+  maxHolds: number
+}
 
 /**
  * Reserve a whole cart for one date, or none of it.
@@ -309,21 +323,62 @@ export interface HoldTerms {
   holdExpiresAt: string
   /** Stripe only: when the Checkout Session will expire. ISO. */
   sessionExpiresAt?: string
+  /** Stripe only: the site to send the customer back to, fixed at reservation so any later re-create agrees. */
+  returnOrigin?: string
 }
 
-export async function reserve(db: Db, input: CleanCheckout, products: readonly ProductRow[], clock: Clock, terms: HoldTerms): Promise<ReserveOutcome> {
+/**
+ * Reserve a whole cart for one date, or none of it.
+ *
+ * Runs under a lock on the phone number and then the date lock, so competing
+ * carts are decided one at a time and one phone number holds at most one
+ * card order at a time: a second checkout from the same number while the
+ * first is still live gets the first back, never a second hold. (A new
+ * checkout that means to replace the old one ends the old one at Stripe
+ * before calling this — see app.ts.) A repeated request with the same
+ * checkout key returns the order it already made, blocked date or not.
+ */
+export async function reserve(db: Db, input: CleanCheckout, products: readonly ProductRow[], clock: Clock, terms: HoldTerms, limits?: ReserveLimits): Promise<ReserveOutcome> {
   const nowMs = clock.now()
   const now = new Date(nowMs).toISOString()
   const priceOf = new Map(products.map((p) => [p.id, p.price_cents]))
   try {
     return await db.transaction(async (tx) => {
+      // Address, then phone, then date: every writer that takes more than
+      // one of these takes them in this order, and every other writer takes
+      // the date alone, so nothing can wait on itself.
+      if (limits) await tx.query("SELECT pg_advisory_xact_lock(hashtext('ip:' || $1))", [limits.ip ?? ''])
+      await tx.query("SELECT pg_advisory_xact_lock(hashtext('phone:' || $1))", [input.phone])
       const { blocked } = await lockDate(tx, input.date)
-      if (blocked) throw new Refusal<ReserveOutcome>({ ok: false, reason: 'blocked' })
 
+      // A retry of an attempt already decided gets that decision, whatever
+      // has happened to the date since.
       const replay = await tx.query<{ id: string }>('SELECT id FROM orders WHERE checkout_key = $1::uuid', [input.checkoutKey])
       if (replay.rows[0]) {
         const order = await readOrder(tx, replay.rows[0].id, nowMs)
         throw new Refusal<ReserveOutcome>({ ok: true, order: order!, replayed: true })
+      }
+      if (blocked) throw new Refusal<ReserveOutcome>({ ok: false, reason: 'blocked' })
+
+      if (terms.provider === 'stripe') {
+        const holding = await tx.query<{ id: string }>(
+          "SELECT id FROM orders WHERE customer_phone = $1 AND status = 'reserved' AND provider = 'stripe' ORDER BY seq DESC LIMIT 1",
+          [input.phone],
+        )
+        if (holding.rows[0]) {
+          const order = await readOrder(tx, holding.rows[0].id, nowMs)
+          throw new Refusal<ReserveOutcome>({ ok: true, order: order!, replayed: true })
+        }
+      }
+      if (limits) {
+        const { rows } = await tx.query<{ recent: number; holding: number }>(
+          `SELECT count(*) FILTER (WHERE ca.at > $2::timestamptz)::int AS recent,
+                  count(DISTINCT o.id) FILTER (WHERE o.status = 'reserved' AND o.provider = 'stripe')::int AS holding
+           FROM checkout_attempts ca LEFT JOIN orders o ON o.id = ca.order_id
+           WHERE ca.ip IS NOT DISTINCT FROM $1`,
+          [limits.ip, new Date(nowMs - limits.windowMs).toISOString()],
+        )
+        if (rows[0].recent >= limits.maxRecent || rows[0].holding >= limits.maxHolds) throw new Refusal<ReserveOutcome>({ ok: false, reason: 'too_many' })
       }
 
       await sweep(tx, input.date, nowMs)
@@ -351,9 +406,9 @@ export async function reserve(db: Db, input: CleanCheckout, products: readonly P
         // The session id is filled in once Stripe has made it; the
         // idempotency key is the order id, so a retried create is the same create.
         await tx.query(
-          `INSERT INTO payment_references (order_id, provider, external_id, idempotency_key, status, amount_cents, session_expires_at, created_at, updated_at)
-           VALUES ($1::uuid, 'stripe', NULL, $2, 'pending', $3, $4::timestamptz, $5::timestamptz, $5::timestamptz)`,
-          [id, id, total, terms.sessionExpiresAt, now],
+          `INSERT INTO payment_references (order_id, provider, external_id, idempotency_key, status, amount_cents, session_expires_at, return_origin, created_at, updated_at)
+           VALUES ($1::uuid, 'stripe', NULL, $2, 'pending', $3, $4::timestamptz, $5, $6::timestamptz, $6::timestamptz)`,
+          [id, id, total, terms.sessionExpiresAt, terms.returnOrigin ?? null, now],
         )
       } else {
         await tx.query(
@@ -361,6 +416,10 @@ export async function reserve(db: Db, input: CleanCheckout, products: readonly P
            VALUES ($1::uuid, 'zelle', $2, $2, 'pending', $3, $4::timestamptz, $4::timestamptz)`,
           [id, `zelle:${id}`, total, now],
         )
+      }
+      if (limits) {
+        await tx.query('INSERT INTO checkout_attempts (at, ip, order_id) VALUES ($1::timestamptz, $2, $3::uuid)', [now, limits.ip, id])
+        await tx.query("DELETE FROM checkout_attempts WHERE at < $1::timestamptz - interval '1 day'", [now])
       }
       const order = await readOrder(tx, id, nowMs)
       return { ok: true, order: order!, replayed: false } satisfies ReserveOutcome

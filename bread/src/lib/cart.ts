@@ -109,6 +109,7 @@ export const ERROR_COPY: Record<string, string> = {
   payment_unavailable: 'Your bread is held for you, but the payment page could not be opened just now. Nothing was charged — tap Pay again in a moment.',
   offline: 'No connection. Nothing was charged — check your signal and try again.',
   busy: 'Very busy right now — please try again in a moment.',
+  too_many_reservations: 'Too many orders are being started from your connection right now. Nothing was charged — please wait a few minutes and try again.',
   unavailable: 'Something went wrong on our side. Nothing was charged — please try again.',
   bad_phone: 'Please enter a 10-digit US phone number.',
   bad_name: 'Please enter your name.',

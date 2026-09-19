@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { PAYMENT_HOLD_HOURS, ZELLE_HANDLE, ZELLE_NAME } from '../shared/config.ts'
+import { CHECKOUT_WINDOW_MINUTES, MAX_CHECKOUTS_PER_IP, PAYMENT_HOLD_HOURS, ZELLE_HANDLE } from '../shared/config.ts'
 import { fixedClock, type FixedClock } from '../shared/clock.ts'
 import type { Qty } from '../shared/types.ts'
 import { createApp, zelleTerms } from '../netlify/lib/app.ts'
@@ -31,7 +31,7 @@ let app: ReturnType<typeof createApp>
 beforeEach(async () => {
   ;({ db } = await freshDb())
   clock = fixedClock(NOW)
-  stripe = fakeStripe()
+  stripe = fakeStripe(false, clock)
   app = createApp({ db, clock, gateway: stripe.gateway })
   process.env.ADMIN_PASSWORD = ADMIN
   asAdmin = await adminHeaders(app, ADMIN)
@@ -45,6 +45,8 @@ const get = (fn: (r: Request) => Promise<Response>, path: string, headers: Recor
 type Buy = { date: string; qty: Partial<Record<'sourdough' | 'banana', number>>; name: string; phone: string; checkoutKey: string }
 const good = (): Buy => ({ date: WED, qty: { sourdough: 2, banana: 1 }, name: '  Amina   Ali ', phone: '(612) 555-0199', checkoutKey: crypto.randomUUID() })
 const buy = (over: Partial<Buy> & Record<string, unknown> = {}) => post(app.checkout, '/api/checkout', { ...good(), ...over })
+/** A different customer: a live card hold is one per phone number, so competing buyers need their own. */
+const someoneElse = (n: number) => ({ name: `Buyer ${n}`, phone: `61255501${String(n).padStart(2, '0')}` })
 let asAdmin: Record<string, string>
 const markPaid = (orderId: string, force = false) => post(app.admin, '/api/admin', { action: 'markPaid', orderId, force }, asAdmin)
 const cancel = (orderId: string) => post(app.admin, '/api/admin', { action: 'cancel', orderId }, asAdmin)
@@ -123,7 +125,6 @@ describe('checkout', () => {
       qty: { sourdough: 2, banana: 1 },
       amountCents: 1300,
       holdExpiresAt: expect.any(String),
-      zelle: { name: ZELLE_NAME, handle: ZELLE_HANDLE },
       replayed: false,
       url: 'https://checkout.stripe.com/c/pay/cs_test_1',
     })
@@ -192,34 +193,34 @@ describe('checkout', () => {
 
   it('says sold out once the date is spoken for, and blocked when she is away', async () => {
     expect((await buy({ qty: { sourdough: 3 } })).status).toBe(200)
-    const res = await buy({ qty: { sourdough: 1 } })
+    const res = await buy({ qty: { sourdough: 1 }, ...someoneElse(1) })
     expect(res.status).toBe(409)
     expect(await res.json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4 } })
-    expect((await buy({ qty: { banana: 4 } })).status).toBe(200)
-    expect(await (await buy({ qty: { banana: 1 } })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 0 } })
+    expect((await buy({ qty: { banana: 4 }, ...someoneElse(2) })).status).toBe(200)
+    expect(await (await buy({ qty: { banana: 1 }, ...someoneElse(3) })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 0 } })
     await post(app.admin, '/api/admin', { action: 'block', date: MON }, asAdmin)
-    const blocked = await buy({ date: MON })
+    const blocked = await buy({ date: MON, ...someoneElse(4) })
     expect(blocked.status).toBe(409)
     expect(await blocked.json()).toEqual({ error: 'blocked' })
   })
 
   it('reserves a mixed cart entirely or not at all', async () => {
     await buy({ qty: { sourdough: 3 } })
-    expect(await (await buy({ qty: { sourdough: 1, banana: 2 } })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4 } })
+    expect(await (await buy({ qty: { sourdough: 1, banana: 2 }, ...someoneElse(1) })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4 } })
     expect((await db.query("SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id", [WED])).rows).toEqual([
       { product_id: 'banana', committed: 0 },
       { product_id: 'sourdough', committed: 3 },
     ])
     expect((await db.query('SELECT count(*)::int AS n FROM orders')).rows[0]).toEqual({ n: 1 })
-    await buy({ qty: { banana: 4 } })
-    expect(await (await buy({ qty: { sourdough: 0, banana: 1 } })).json()).toMatchObject({ error: 'sold_out' })
+    await buy({ qty: { banana: 4 }, ...someoneElse(2) })
+    expect(await (await buy({ qty: { sourdough: 0, banana: 1 }, ...someoneElse(3) })).json()).toMatchObject({ error: 'sold_out' })
   })
 
   it('treats each date independently — a full Monday leaves Wednesday whole', async () => {
     await buy({ date: MON, qty: { sourdough: 3, banana: 4 } })
-    expect(await (await buy({ date: MON, qty: { sourdough: 1 } })).json()).toMatchObject({ error: 'sold_out' })
-    expect((await buy({ date: WED, qty: { sourdough: 3, banana: 4 } })).status).toBe(200)
-    expect((await buy({ date: THU, qty: { sourdough: 3, banana: 4 } })).status).toBe(200)
+    expect(await (await buy({ date: MON, qty: { sourdough: 1 }, ...someoneElse(1) })).json()).toMatchObject({ error: 'sold_out' })
+    expect((await buy({ date: WED, qty: { sourdough: 3, banana: 4 }, ...someoneElse(2) })).status).toBe(200)
+    expect((await buy({ date: THU, qty: { sourdough: 3, banana: 4 }, ...someoneElse(3) })).status).toBe(200)
     const avail = await (await get(app.availability, '/api/availability')).json()
     expect(avail.days.slice(0, 3).map((d: { remaining: unknown }) => d.remaining)).toEqual([
       { sourdough: 0, banana: 0 },
@@ -359,5 +360,86 @@ describe('order page', () => {
     expect(JSON.stringify(body)).not.toContain('6125550199')
     expect((await get(app.order, '/api/order?order=deadbeef-dead-4eef-8ead-beefdeadbeef')).status).toBe(404)
     expect((await get(app.order, '/api/order?order=../etc')).status).toBe(400)
+  })
+})
+
+describe('one live card hold per phone number', () => {
+  it('starting again supersedes the last attempt: ended at Stripe first, released on its word, then the new hold is taken', async () => {
+    const { orderId: first } = await (await buy({ qty: { sourdough: 3 } })).json()
+    const second = await (await buy({ qty: { sourdough: 1 }, checkoutKey: crypto.randomUUID() })).json()
+    expect(second).toMatchObject({ replayed: false, qty: { sourdough: 1, banana: 0 } })
+    expect(second.orderId).not.toBe(first)
+    expect(stripe.sessions.get('cs_test_1')?.status).toBe('expired')
+    expect(await dbStatus(first)).toBe('expired')
+    expect(await dbStatus(second.orderId)).toBe('reserved')
+    expect((await db.query("SELECT committed FROM date_inventory WHERE product_id = 'sourdough'")).rows[0]).toEqual({ committed: 1 })
+  })
+
+  it('while Stripe cannot be asked, the existing hold is what the customer gets back — never a second one, never a release', async () => {
+    const { orderId: first } = await (await buy({ qty: { sourdough: 3 } })).json()
+    stripe.state.apiDown = true
+    const res = await buy({ qty: { sourdough: 1 }, checkoutKey: crypto.randomUUID() })
+    expect(res.status).toBe(503)
+    expect(await res.json()).toEqual({ error: 'payment_unavailable', orderId: first })
+    expect(await dbStatus(first)).toBe('reserved')
+    expect((await db.query('SELECT count(*)::int AS n FROM orders')).rows[0]).toEqual({ n: 1 })
+    expect((await db.query("SELECT committed FROM date_inventory WHERE product_id = 'sourdough'")).rows[0]).toEqual({ committed: 3 })
+  })
+
+  it('a hold that was paid is not a hold: the same phone may order again', async () => {
+    const { orderId } = await (await buy({ qty: { sourdough: 1 } })).json()
+    stripe.pay('cs_test_1')
+    expect(await (await get(app.order, `/api/order?order=${orderId}`)).json()).toMatchObject({ status: 'paid' })
+    const next = await buy({ qty: { sourdough: 1 }, checkoutKey: crypto.randomUUID() })
+    expect(next.status).toBe(200)
+    expect((await next.json()).orderId).not.toBe(orderId)
+    expect(await dbStatus(orderId)).toBe('paid')
+  })
+
+  it('a retry on a date she has since blocked gets its own order back, and supersedes nothing', async () => {
+    const key = crypto.randomUUID()
+    const { orderId } = await (await buy({ date: MON, checkoutKey: key })).json()
+    await post(app.admin, '/api/admin', { action: 'block', date: MON }, asAdmin)
+    const again = await buy({ date: MON, checkoutKey: key })
+    expect(again.status).toBe(200)
+    expect(await again.json()).toMatchObject({ orderId, replayed: true, url: 'https://checkout.stripe.com/c/pay/cs_test_1' })
+    // And a *new* attempt on the blocked date does not cost this customer the hold they already have.
+    const fresh = await buy({ date: MON, checkoutKey: crypto.randomUUID() })
+    expect(await fresh.json()).toEqual({ error: 'blocked' })
+    expect(await dbStatus(orderId)).toBe('reserved')
+    expect(stripe.sessions.get('cs_test_1')?.status).toBe('open')
+  })
+})
+
+describe('checkouts per address', () => {
+  it('after the window’s worth of reservations from one address the next is refused, and the window passing lets it back', async () => {
+    const from = (ip: string, over: Partial<Buy> & Record<string, unknown> = {}) =>
+      app.checkout(new Request('https://bread.example/api/checkout', { method: 'POST', body: JSON.stringify({ ...good(), ...over }) }), ip)
+    const dates = (await (await get(app.availability, '/api/availability')).json()).days.map((d: { date: string }) => d.date) as string[]
+    let n = 0
+    // Each reservation is paid at once, so the live-hold cap never bites: this is the rate limit alone.
+    for (let i = 0; i < MAX_CHECKOUTS_PER_IP; i++) {
+      const res = await from('203.0.113.9', { date: dates[i % dates.length], qty: { banana: 1 }, ...someoneElse(++n) })
+      expect(res.status, `checkout ${i + 1}`).toBe(200)
+      stripe.pay(`cs_test_${i + 1}`)
+      await get(app.order, `/api/order?order=${(await res.json()).orderId}`)
+    }
+    const refused = await from('203.0.113.9', { qty: { banana: 1 }, ...someoneElse(++n) })
+    expect(refused.status).toBe(429)
+    expect(await refused.json()).toEqual({ error: 'too_many_reservations' })
+    expect((await from('203.0.113.10', { qty: { banana: 1 }, ...someoneElse(++n) })).status).toBe(200)
+    clock.advance(CHECKOUT_WINDOW_MINUTES * 60_000 + 1)
+    expect((await from('203.0.113.9', { qty: { banana: 1 }, ...someoneElse(++n) })).status).toBe(200)
+  })
+})
+
+describe('what a card order says about Zelle', () => {
+  it('nothing: Zelle details ride only on a Zelle order, and without a name only the handle is sent', async () => {
+    const { orderId } = await (await buy()).json()
+    const card = await (await get(app.order, `/api/order?order=${orderId}`)).json()
+    expect(card).not.toHaveProperty('zelle')
+    const { id } = await zelle({ sourdough: 1 })
+    const manual = await (await get(app.order, `/api/order?order=${id}`)).json()
+    expect(manual.zelle).toEqual({ name: '', handle: ZELLE_HANDLE })
   })
 })

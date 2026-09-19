@@ -44,7 +44,9 @@ site and the server follow.
 | 5–11 PM, "best after 9 PM" | `PICKUP_START_HOUR`, `PICKUP_END_HOUR`, `PICKUP_PREFERRED_AFTER_HOUR` |
 | Orders close 48 h before the shift starts on the pickup date | `ORDER_CUTOFF_HOURS` |
 | A reservation holds bread for 3 hours awaiting Zelle | `PAYMENT_HOLD_HOURS` |
-| Her Zelle name and handle | `ZELLE_NAME` (**placeholder — still needs her name**), `ZELLE_HANDLE` (set to `(612) 703-8698`) |
+| Her Zelle name and handle (manual path only) | `ZELLE_NAME` (blank until she gives it; the page then shows the handle alone), `ZELLE_HANDLE` (set to `(612) 703-8698`) |
+| Card checkout closes this many minutes before the deadline | `CARD_CHECKOUT_LEAD_MINUTES` (32: Stripe's page needs 30) |
+| Reservation limits per address, and how often the page may ask Stripe | `MAX_CHECKOUTS_PER_IP`, `MAX_LIVE_HOLDS_PER_IP`, `CHECKOUT_WINDOW_MINUTES`, `RECONCILE_MIN_INTERVAL_MS` |
 | Customers see the next 4 weeks | `WEEKS_AHEAD` |
 | Name, tagline, pickup place and the not-affiliated note | `SHOP_NAME`, `TAGLINE`, `PICKUP_PLACE`, `PICKUP_PLACE_WHERE`, `PICKUP_PLACE_NOTE` |
 | All times are Chicago time | `TIMEZONE` |
@@ -84,11 +86,16 @@ is in [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md).
 1. **Reserve.** `POST /api/checkout` validates everything on the server (a
    pickup day inside the 4-week window, before the deadline, known products,
    whole quantities within capacity, name, phone — browser prices are never
-   read), locks that date's row, and takes the whole cart with guarded
-   updates: if any line cannot be had, nothing is taken. A `CHECK` constraint
-   on the inventory table makes overselling impossible whatever the
-   application does. The browser sends a one-time key with each attempt, so a
-   retried request returns the same order and the same payment page.
+   read), locks the caller's address, then the phone number, then that
+   date's row, and takes the whole cart with guarded updates: if any line
+   cannot be had, nothing is taken. A `CHECK` constraint on the inventory
+   table makes overselling impossible whatever the application does. The
+   browser sends a one-time key with each attempt, so a retried request
+   returns the same order and the same payment page. One address may start
+   at most 12 checkouts in 15 minutes and hold at most 4 card orders at
+   once; one phone number holds one card order at a time — starting again
+   ends the previous attempt at Stripe first, so a customer who closed the
+   payment page is never locked out by their own hold.
 2. **Pay.** The server creates a Stripe Checkout Session from the reservation
    and the database's prices — cards only; wallets ride on that — under an
    idempotency key that is the order id, and sends the customer to it. The
@@ -105,7 +112,18 @@ is in [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md).
    the cancel link. Backing out ends the session at Stripe and the bread is
    released only on Stripe's word; abandoned sessions are settled the same
    way by the customer's page, by her admin page, by Stripe's expiry
-   webhook, and by a scheduled function every ten minutes.
+   webhook, and by a scheduled function every ten minutes. A session whose
+   create never came back is re-created from the database — same prices,
+   the origin the customer reserved from, a fresh expiry and key once the
+   old ones have gone stale — and if the deadline is by then too near for
+   any session, the hold is released; one that still cannot be made is
+   flagged for her.
+
+Before the first real customer, wipe whatever testing left on real dates:
+`DATABASE_URL=<the database> npm run db:clear-orders -- --yes` (refuses
+without the flag; keeps products, capacities and blocked dates). The state
+of the whole thing against launch is in
+[`docs/LAUNCH_READINESS.md`](docs/LAUNCH_READINESS.md).
 
 Data lives in Postgres: `products`, `pickup_dates` (with date blocks),
 `date_inventory` (capacity and committed units per date and product),

@@ -28,7 +28,8 @@ export interface CleanCheckout {
 
 export type Validation = { ok: true; value: CleanCheckout } | { ok: false; code: string; status: number }
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+/** A v4 UUID and nothing looser: order ids and checkout keys are made by crypto.randomUUID(), so anything else is not one of ours. */
+export const UUID_V4 = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 export function validateCheckout(body: Partial<CheckoutRequest> | null | undefined, products: SellableProduct[], nowMs: number): Validation {
   const fail = (code: string, status = 400): Validation => ({ ok: false, code, status })
@@ -64,7 +65,7 @@ export function validateCheckout(body: Partial<CheckoutRequest> | null | undefin
   if (!phone) return fail('bad_phone')
 
   const checkoutKey = typeof body.checkoutKey === 'string' ? body.checkoutKey.toLowerCase() : ''
-  if (!UUID.test(checkoutKey)) return fail('bad_key')
+  if (!UUID_V4.test(checkoutKey)) return fail('bad_key')
 
   return { ok: true, value: { date, qty, name, phone, checkoutKey } }
 }

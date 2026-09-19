@@ -88,8 +88,7 @@ export interface CheckoutResponse {
   qty: Qty
   amountCents: number
   holdExpiresAt: string
-  zelle: { name: string; handle: string }
-  /** True when this request repeated an earlier one and no new bread was reserved. */
+  /** True when this request repeated an earlier one and no new bread was reserved — or when this phone number already had a live hold, which is returned instead. */
   replayed: boolean
   /** Stripe's hosted payment page for this order. Absent for Zelle. */
   url?: string
@@ -119,7 +118,8 @@ export interface OrderSummary {
   /** A payment arrived that needs her attention before the order can be confirmed. */
   attention: boolean
   holdExpiresAt: string
-  zelle: { name: string; handle: string }
+  /** Where to send a Zelle payment. Only on a Zelle order; a card order carries nothing about Zelle. */
+  zelle?: { name: string; handle: string }
 }
 
 export interface PaymentException {
