@@ -1,4 +1,4 @@
-import type { CreateSessionParams, GatewayEvent, GatewaySession, StripeGateway } from '../netlify/lib/stripe/gateway.ts'
+import type { CreateSessionParams, GatewayEvent, GatewayRefund, GatewaySession, StripeGateway } from '../netlify/lib/stripe/gateway.ts'
 
 /**
  * Stripe, as far as this app can tell: a table of Checkout Sessions with
@@ -11,6 +11,7 @@ export const WEBHOOK_SECRET = 'whsec_test'
 
 export function fakeStripe(livemode = false) {
   const sessions = new Map<string, GatewaySession>()
+  const refunds = new Map<string, GatewayRefund[]>()
   const byKey = new Map<string, { id: string; params: string }>()
   const created: { key: string; params: CreateSessionParams }[] = []
   let n = 0
@@ -79,20 +80,38 @@ export function fakeStripe(livemode = false) {
     },
     async constructEvent(raw, signature) {
       if (signature !== `sig:${WEBHOOK_SECRET}`) throw new Error('No signatures found matching the expected signature for payload')
-      const body = JSON.parse(raw) as { id: string; type: string; livemode: boolean; session_id: string; snapshot?: GatewaySession }
-      const event: GatewayEvent = { id: body.id, type: body.type, livemode: body.livemode, session: body.snapshot ?? { ...get(body.session_id) } }
+      const body = JSON.parse(raw) as { id: string; type: string; livemode: boolean; session_id?: string; snapshot?: GatewaySession; payment_intent_id?: string }
+      const event: GatewayEvent = { id: body.id, type: body.type, livemode: body.livemode }
+      if (body.session_id) event.session = body.snapshot ?? { ...get(body.session_id) }
+      if (body.payment_intent_id) event.paymentIntentId = body.payment_intent_id
       return event
+    },
+    async listRefunds(paymentIntentId) {
+      if (state.apiDown) throw new Error('stripe unreachable')
+      return (refunds.get(paymentIntentId) ?? []).map((r) => ({ ...r }))
     },
   }
 
   let e = 0
+  let r = 0
   return {
     gateway,
     sessions,
+    refunds,
     created,
     state,
     pay,
     expire,
+    /** A refund issued in the Dashboard against a paid session's payment. */
+    refund(paymentIntentId: string, amountCents: number, status = 'succeeded'): GatewayRefund {
+      const one = { id: `re_${++r}`, amountCents, status }
+      refunds.set(paymentIntentId, [...(refunds.get(paymentIntentId) ?? []), one])
+      return one
+    },
+    /** A charge.* or refund.* webhook body, naming only the payment intent — the app must ask Stripe for the rest. */
+    refundEvent(type: string, paymentIntentId: string, id = `evt_${++e}`): { body: string; headers: Record<string, string> } {
+      return { body: JSON.stringify({ id, type, livemode, payment_intent_id: paymentIntentId }), headers: { 'stripe-signature': `sig:${WEBHOOK_SECRET}` } }
+    },
     /** A webhook body. `snapshot` lets a test deliver a stale picture of the session, as Stripe may. */
     event(type: string, sessionId: string, snapshot?: GatewaySession, id = `evt_${++e}`): { body: string; headers: Record<string, string> } {
       return { body: JSON.stringify({ id, type, livemode, session_id: sessionId, snapshot }), headers: { 'stripe-signature': `sig:${WEBHOOK_SECRET}` } }

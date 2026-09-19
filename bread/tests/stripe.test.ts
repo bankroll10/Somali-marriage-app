@@ -6,6 +6,7 @@ import { createApp } from '../netlify/lib/app.ts'
 import type { Db } from '../netlify/lib/db/client.ts'
 import { finalizePayment, reconcileOrder } from '../netlify/lib/stripe/payments.ts'
 import { assertLedger, freshDb } from './db.ts'
+import { adminHeaders } from './adminSession.ts'
 import { fakeStripe } from './fakeStripe.ts'
 
 /**
@@ -32,6 +33,7 @@ beforeEach(async () => {
   stripe = fakeStripe()
   app = createApp({ db, clock, gateway: stripe.gateway })
   process.env.ADMIN_PASSWORD = ADMIN
+  asAdmin = await adminHeaders(app, ADMIN)
 })
 afterEach(() => assertLedger(db))
 
@@ -39,7 +41,7 @@ const post = (fn: (r: Request) => Promise<Response>, path: string, body: unknown
   fn(new Request(`https://bread.example${path}`, { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body), headers }))
 const get = (fn: (r: Request) => Promise<Response>, path: string, headers: Record<string, string> = {}) =>
   fn(new Request(`https://bread.example${path}`, { headers }))
-const asAdmin = { authorization: `Bearer ${ADMIN}` }
+let asAdmin: Record<string, string>
 const buy = (over: Record<string, unknown> = {}) =>
   post(app.checkout, '/api/checkout', { date: WED, qty: { sourdough: 2, banana: 1 }, name: 'Amina Ali', phone: '6125550199', checkoutKey: crypto.randomUUID(), ...over })
 const hook = (type: string, sessionId: string, snapshot?: Parameters<typeof stripe.event>[2], id?: string) => {

@@ -1,6 +1,7 @@
 import { PRODUCT_IDS, type ProductId } from '../../shared/config.ts'
 import type { Clock } from '../../shared/clock.ts'
-import type { Order, PaymentProvider, Qty } from '../../shared/types.ts'
+import { cutoffFor } from '../../shared/schedule.ts'
+import type { Fulfillment, Order, PaymentProvider, Qty } from '../../shared/types.ts'
 import { zeroQty } from '../../shared/types.ts'
 import type { Db, Queryable } from './db/client.ts'
 import type { CleanCheckout } from './validate.ts'
@@ -9,8 +10,8 @@ import type { CleanCheckout } from './validate.ts'
  * The ordering rules, as transactions against Postgres.
  *
  * The invariant: for every (date, product), date_inventory.committed equals
- * the units of that date's orders that are reserved or paid, and never
- * exceeds capacity + overflow. The CHECK constraint enforces the second half
+ * the units of that date's orders that are reserved, or paid and not
+ * explicitly restocked, and never exceeds capacity + overflow. The CHECK constraint enforces the second half
  * whatever this code does; the first half holds because every change to
  * committed and every exit from `reserved` happens inside one transaction
  * that first locks the date's pickup_dates row.
@@ -50,6 +51,12 @@ interface OrderRow {
   paid_ms: number | null
   picked_up_ms: number | null
   forced: boolean
+  fulfillment: Fulfillment
+  fulfillment_note: string | null
+  fulfillment_changed_ms: number | null
+  restocked_ms: number | null
+  refunded_cents: number
+  refund_pending_cents: number
   items: string // json
 }
 
@@ -59,7 +66,11 @@ const ORDER_SELECT = `
          extract(epoch FROM o.created_at)::float8 * 1000 AS created_ms,
          extract(epoch FROM o.paid_at)::float8 * 1000 AS paid_ms,
          extract(epoch FROM o.picked_up_at)::float8 * 1000 AS picked_up_ms,
-         o.forced,
+         o.forced, o.fulfillment, o.fulfillment_note,
+         extract(epoch FROM o.fulfillment_changed_at)::float8 * 1000 AS fulfillment_changed_ms,
+         extract(epoch FROM o.restocked_at)::float8 * 1000 AS restocked_ms,
+         COALESCE((SELECT pr.refunded_cents FROM payment_references pr WHERE pr.order_id = o.id AND pr.status = 'succeeded' LIMIT 1), 0) AS refunded_cents,
+         COALESCE((SELECT pr.refund_pending_cents FROM payment_references pr WHERE pr.order_id = o.id AND pr.status = 'succeeded' LIMIT 1), 0) AS refund_pending_cents,
          COALESCE((SELECT json_agg(json_build_object('p', oi.product_id, 'q', oi.quantity))
                    FROM order_items oi WHERE oi.order_id = o.id), '[]')::text AS items
   FROM orders o`
@@ -85,10 +96,16 @@ function toOrder(row: OrderRow, nowMs: number): Order {
     status: lapsed ? 'expired' : row.status,
     createdAt: iso(row.created_ms)!,
     holdExpiresAt: iso(row.hold_expires_ms)!,
+    fulfillment: row.fulfillment,
+    refundedCents: row.refunded_cents,
+    refundPendingCents: row.refund_pending_cents,
   }
   if (row.paid_ms !== null) order.paidAt = iso(row.paid_ms)
   if (row.picked_up_ms !== null) order.pickedUpAt = iso(row.picked_up_ms)
   if (row.forced) order.forced = true
+  if (row.fulfillment_note) order.fulfillmentNote = row.fulfillment_note
+  if (row.fulfillment_changed_ms !== null) order.fulfillmentChangedAt = iso(row.fulfillment_changed_ms)
+  if (row.restocked_ms !== null) order.restockedAt = iso(row.restocked_ms)
   return order
 }
 
@@ -116,6 +133,8 @@ export async function listProducts(db: Queryable): Promise<ProductRow[]> {
 
 export interface DateStock {
   blocked: boolean
+  blockedReason: string | null
+  capacity: Qty
   remaining: Qty
 }
 
@@ -127,7 +146,7 @@ export interface DateStock {
 export async function stockFor(db: Queryable, dates: readonly string[], nowMs: number): Promise<Map<string, DateStock>> {
   const out = new Map<string, DateStock>()
   if (dates.length === 0) return out
-  const { rows } = await db.query<{ date: string; product_id: string; blocked: boolean; remaining: number }>(
+  const { rows } = await db.query<{ date: string; product_id: string; blocked: boolean; blocked_reason: string | null; capacity: number; remaining: number }>(
     `WITH d AS (SELECT unnest(string_to_array($1, ','))::date AS date),
           stale AS (
             SELECT o.date, oi.product_id, SUM(oi.quantity)::int AS units
@@ -137,6 +156,8 @@ export async function stockFor(db: Queryable, dates: readonly string[], nowMs: n
             GROUP BY o.date, oi.product_id)
      SELECT d.date::text AS date, p.id AS product_id,
             (pd.blocked_at IS NOT NULL) AS blocked,
+            CASE WHEN pd.blocked_at IS NOT NULL THEN pd.blocked_reason END AS blocked_reason,
+            COALESCE(di.capacity, p.daily_capacity)::int AS capacity,
             GREATEST(0, COALESCE(di.capacity, p.daily_capacity) - COALESCE(di.committed, 0) + COALESCE(s.units, 0))::int AS remaining
      FROM d CROSS JOIN products p
      LEFT JOIN pickup_dates pd ON pd.date = d.date
@@ -146,8 +167,11 @@ export async function stockFor(db: Queryable, dates: readonly string[], nowMs: n
     [dates.join(','), new Date(nowMs).toISOString()],
   )
   for (const r of rows) {
-    const entry = out.get(r.date) ?? { blocked: r.blocked, remaining: zeroQty() }
-    if ((PRODUCT_IDS as readonly string[]).includes(r.product_id)) entry.remaining[r.product_id as ProductId] = r.remaining
+    const entry = out.get(r.date) ?? { blocked: r.blocked, blockedReason: r.blocked_reason, capacity: zeroQty(), remaining: zeroQty() }
+    if ((PRODUCT_IDS as readonly string[]).includes(r.product_id)) {
+      entry.remaining[r.product_id as ProductId] = r.remaining
+      entry.capacity[r.product_id as ProductId] = r.capacity
+    }
     out.set(r.date, entry)
   }
   return out
@@ -164,16 +188,31 @@ export async function ordersForDate(db: Queryable, date: string, nowMs: number):
   return rows.map((r) => toOrder(r, nowMs))
 }
 
-/** Units she has actually been paid for, per product. */
-export async function paidUnits(db: Queryable, date: string): Promise<Qty> {
-  const { rows } = await db.query<{ product_id: string; units: number }>(
-    `SELECT oi.product_id, SUM(oi.quantity)::int AS units FROM orders o JOIN order_items oi ON oi.order_id = o.id
-     WHERE o.date = $1::date AND o.status = 'paid' GROUP BY oi.product_id`,
-    [date],
-  )
+function sumUnits(rows: { product_id: string; units: number }[]): Qty {
   const out = zeroQty()
   for (const r of rows) if ((PRODUCT_IDS as readonly string[]).includes(r.product_id)) out[r.product_id as ProductId] = r.units
   return out
+}
+
+/** Bread she owes: paid for and not fulfilment-cancelled. Nothing pending, failed or expired counts. */
+export async function owedUnits(db: Queryable, date: string): Promise<Qty> {
+  const { rows } = await db.query<{ product_id: string; units: number }>(
+    `SELECT oi.product_id, SUM(oi.quantity)::int AS units FROM orders o JOIN order_items oi ON oi.order_id = o.id
+     WHERE o.date = $1::date AND o.status = 'paid' AND o.fulfillment <> 'cancelled' GROUP BY oi.product_id`,
+    [date],
+  )
+  return sumUnits(rows)
+}
+
+/** Bread on hold for someone mid-payment: a live card session, or a Zelle hold that has not lapsed. */
+export async function heldUnits(db: Queryable, date: string, nowMs: number): Promise<Qty> {
+  const { rows } = await db.query<{ product_id: string; units: number }>(
+    `SELECT oi.product_id, SUM(oi.quantity)::int AS units FROM orders o JOIN order_items oi ON oi.order_id = o.id
+     WHERE o.date = $1::date AND o.status = 'reserved' AND (o.provider = 'stripe' OR o.hold_expires_at > $2::timestamptz)
+     GROUP BY oi.product_id`,
+    [date, new Date(nowMs).toISOString()],
+  )
+  return sumUnits(rows)
 }
 
 // ── Inside a transaction, under the date lock ──────────────────────────────
@@ -413,17 +452,117 @@ export async function cancel(db: Db, orderId: string, clock: Clock): Promise<Ord
   })
 }
 
-export async function setBlocked(db: Db, date: string, blocked: boolean, clock: Clock, reason?: string): Promise<void> {
-  const now = new Date(clock.now()).toISOString()
-  await db.query(
-    `INSERT INTO pickup_dates (date, blocked_at, blocked_reason) VALUES ($1::date, $2::timestamptz, $3)
-     ON CONFLICT (date) DO UPDATE SET blocked_at = EXCLUDED.blocked_at, blocked_reason = EXCLUDED.blocked_reason`,
-    [date, blocked ? now : null, blocked ? (reason ?? null) : null],
-  )
+export interface BlockOutcome {
+  /** Paid orders still owed on the date: they keep their bread. */
+  owed: Order[]
+  /** Reservations mid-payment on the date: they keep their hold. */
+  holds: Order[]
 }
 
-export async function setPickedUp(db: Db, orderId: string, pickedUp: boolean, clock: Clock): Promise<Order | null> {
+/**
+ * Close (or reopen) a date to new orders. Runs under the date lock, so it
+ * lands strictly before or strictly after any reservation in flight — never
+ * between that reservation's block check and its commit. Touches no order:
+ * what is already on the date is reported back so she can see it, and stays
+ * exactly as it was.
+ */
+export async function setBlocked(db: Db, date: string, blocked: boolean, clock: Clock, actor: string, reason?: string): Promise<BlockOutcome> {
   const nowMs = clock.now()
-  await db.query('UPDATE orders SET picked_up_at = $2::timestamptz WHERE id = $1::uuid', [orderId, pickedUp ? new Date(nowMs).toISOString() : null])
-  return readOrder(db, orderId, nowMs)
+  const now = new Date(nowMs).toISOString()
+  return db.transaction(async (tx) => {
+    await lockDate(tx, date)
+    await tx.query(
+      `UPDATE pickup_dates SET blocked_at = $2::timestamptz, blocked_reason = $3, blocked_by = $4 WHERE date = $1::date`,
+      [date, blocked ? now : null, blocked ? (reason?.trim() || null) : null, blocked ? actor : null],
+    )
+    const all = await ordersForDate(tx, date, nowMs)
+    return {
+      owed: all.filter((o) => o.status === 'paid' && o.fulfillment !== 'cancelled'),
+      holds: all.filter((o) => o.status === 'reserved'),
+    }
+  })
+}
+
+export type FulfilOutcome = { ok: true; order: Order } | { ok: false; reason: 'not_found' | 'not_paid' | 'already_cancelled' }
+
+/** Handed over (or not after all). Only a paid, uncancelled order can be picked up. */
+export async function setPickedUp(db: Db, orderId: string, pickedUp: boolean, clock: Clock, actor: string): Promise<FulfilOutcome> {
+  const nowMs = clock.now()
+  const now = new Date(nowMs).toISOString()
+  const located = await db.query<{ date: string }>('SELECT date::text AS date FROM orders WHERE id = $1::uuid', [orderId])
+  if (!located.rows[0]) return { ok: false, reason: 'not_found' }
+  const date = located.rows[0].date
+  try {
+    return await db.transaction(async (tx) => {
+      await lockDate(tx, date)
+      const { rows } = await tx.query<{ status: string; fulfillment: Fulfillment }>('SELECT status, fulfillment FROM orders WHERE id = $1::uuid FOR UPDATE', [orderId])
+      if (!rows[0]) throw new Refusal<FulfilOutcome>({ ok: false, reason: 'not_found' })
+      if (rows[0].status !== 'paid') throw new Refusal<FulfilOutcome>({ ok: false, reason: 'not_paid' })
+      if (rows[0].fulfillment === 'cancelled') throw new Refusal<FulfilOutcome>({ ok: false, reason: 'already_cancelled' })
+      await tx.query(
+        `UPDATE orders SET fulfillment = $2, picked_up_at = $3::timestamptz, fulfillment_changed_at = $4::timestamptz, fulfillment_changed_by = $5 WHERE id = $1::uuid`,
+        [orderId, pickedUp ? 'picked_up' : 'owed', pickedUp ? now : null, now, actor],
+      )
+      return { ok: true, order: (await readOrder(tx, orderId, nowMs))! } satisfies FulfilOutcome
+    })
+  } catch (err) {
+    if (err instanceof Refusal) return err.outcome as FulfilOutcome
+    throw err
+  }
+}
+
+export interface CancelPaidInput {
+  /** Return the units to the pool. False keeps them committed: she is not reselling them. */
+  restock: boolean
+  note?: string
+  actor: string
+}
+
+export type CancelPaidOutcome = { ok: true; order: Order; resellable: boolean } | { ok: false; reason: 'not_found' | 'not_paid' | 'already_cancelled' }
+
+/**
+ * Her decision that a paid customer will not be getting bread. This is a
+ * fulfilment change: the money is untouched here (a refund is issued in
+ * Stripe and mirrored separately) and the units come back into the pool only
+ * if she says so. Restocking on a blocked or closed date is allowed and
+ * recorded, but nothing can buy those units — `resellable` says which.
+ */
+export async function cancelPaid(db: Db, orderId: string, input: CancelPaidInput, clock: Clock): Promise<CancelPaidOutcome> {
+  const nowMs = clock.now()
+  const now = new Date(nowMs).toISOString()
+  const located = await db.query<{ date: string }>('SELECT date::text AS date FROM orders WHERE id = $1::uuid', [orderId])
+  if (!located.rows[0]) return { ok: false, reason: 'not_found' }
+  const date = located.rows[0].date
+  try {
+    return await db.transaction(async (tx) => {
+      const { blocked } = await lockDate(tx, date)
+      const { rows } = await tx.query<{ status: string; fulfillment: Fulfillment }>('SELECT status, fulfillment FROM orders WHERE id = $1::uuid FOR UPDATE', [orderId])
+      if (!rows[0]) throw new Refusal<CancelPaidOutcome>({ ok: false, reason: 'not_found' })
+      if (rows[0].status !== 'paid') throw new Refusal<CancelPaidOutcome>({ ok: false, reason: 'not_paid' })
+      if (rows[0].fulfillment === 'cancelled') throw new Refusal<CancelPaidOutcome>({ ok: false, reason: 'already_cancelled' })
+      await tx.query(
+        `UPDATE orders SET fulfillment = 'cancelled', picked_up_at = NULL, fulfillment_changed_at = $2::timestamptz, fulfillment_changed_by = $3, fulfillment_note = $4,
+                           restocked_at = CASE WHEN $5 THEN $2::timestamptz ELSE NULL END
+         WHERE id = $1::uuid`,
+        [orderId, now, input.actor, input.note?.trim() || null, input.restock],
+      )
+      if (input.restock) {
+        await tx.query(
+          `UPDATE date_inventory di SET committed = di.committed - oi.quantity
+           FROM order_items oi WHERE oi.order_id = $1::uuid AND di.date = $2::date AND di.product_id = oi.product_id`,
+          [orderId, date],
+        )
+      }
+      const resellable = !blocked && nowMs < cutoffFor(date)
+      return { ok: true, order: (await readOrder(tx, orderId, nowMs))!, resellable } satisfies CancelPaidOutcome
+    })
+  } catch (err) {
+    if (err instanceof Refusal) return err.outcome as CancelPaidOutcome
+    throw err
+  }
+}
+
+/** Could a restocked unit on this date be bought by anyone? Not on a blocked date, not after the cutoff. */
+export function resellable(date: string, blocked: boolean, nowMs: number): boolean {
+  return !blocked && nowMs < cutoffFor(date)
 }

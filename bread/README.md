@@ -43,7 +43,17 @@ site and the server follow.
 - `/thanks?order=…` — "checking your payment" until Stripe confirms, then
   the confirmed order (reference, items, total paid, pickup date, place and
   hours). Every check is server-side; refreshing is always safe.
-- `/admin` — her page. Asks for the admin password once per browser tab.
+- `/admin` — her page, one pickup date at a time, the next one first. Asks
+  for the admin password once per phone and stays signed in for a month; the
+  password itself is never sent again after that. Shows, per date, what to
+  bake (paid orders still owed — never holds, never cancelled orders), every
+  customer with a tappable phone number, what is paid / on hold / free of
+  capacity, and a printable list. From there she marks bread picked up,
+  blocks and unblocks dates (nothing on the date is cancelled or refunded —
+  it says who keeps their bread), and records that a paid customer will not
+  be getting bread, choosing whether the units go back on sale. Refunds are
+  issued in Stripe (one tap to the payment) and mirrored back onto the
+  order; a refund on its own never changes what she bakes.
 
 ## How an order moves
 
@@ -110,8 +120,9 @@ its own.
 3. **Developers → Webhooks → Add endpoint**: `https://<site>/api/stripe-webhook`,
    events `checkout.session.completed`, `checkout.session.expired`,
    `checkout.session.async_payment_succeeded`,
-   `checkout.session.async_payment_failed`. Copy the signing secret
-   (`whsec_…`).
+   `checkout.session.async_payment_failed`, and for refunds to show in her
+   admin, `charge.refunded`, `charge.refund.updated`, `refund.created`,
+   `refund.updated`, `refund.failed`. Copy the signing secret (`whsec_…`).
 4. **Settings → Payment methods**: leave cards on, Apple Pay and Google Pay
    on (they are by default), and every delayed method (bank debits, buy now
    pay later) off — the code also restricts sessions to cards.
@@ -166,7 +177,7 @@ A project named **bread-pickup** already exists on the team
 
    | Key | Value |
    |---|---|
-   | `ADMIN_PASSWORD` | a password only she knows |
+   | `ADMIN_PASSWORD` | a password only she knows; wrong guesses are rate-limited server-side |
    | `STRIPE_SECRET_KEY` | from Stripe step 2 (test first, live at launch) |
    | `STRIPE_WEBHOOK_SECRET` | from Stripe step 3 |
    | `DATABASE_URL` | from the database step above |

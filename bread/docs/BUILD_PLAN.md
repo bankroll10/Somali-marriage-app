@@ -77,11 +77,19 @@ has passed, and subtract their units from `committed`, in one statement. Running
 ## State machine
 
 ```
-orders  reserved ──sweep (next write to that date)──▶ expired ──markPaid, guarded | forced──▶ paid
+orders.status (the money and the reservation)
+        reserved ──sweep (next write to that date)──▶ expired ──markPaid, guarded | forced──▶ paid
         reserved ──admin cancel──▶ cancelled ──markPaid, guarded | forced──▶ paid
-        reserved ──markPaid──▶ paid                         paid is terminal; picked_up_at is a flag on it
+        reserved ──markPaid / finalizePayment──▶ paid       paid is terminal
+orders.fulfillment (the bread, once paid)
+        owed ──pickedUp──▶ picked_up ──undo──▶ owed
+        owed | picked_up ──cancelPaid {restock?}──▶ cancelled   restock ⇒ restocked_at set, units back in the pool
 refs    pending ──▶ succeeded | failed | expired            ≤1 pending, ≤1 succeeded per order
-invariants  paid ⇔ ∃ succeeded ref · committed(d,p) = Σ qty of orders(d) in {reserved, paid} · committed ≤ capacity + overflow
+        refunded_cents / refund_pending_cents mirror Stripe; they change no order state
+invariants  paid ⇔ ∃ succeeded ref
+            committed(d,p) = Σ qty of orders(d) where status='reserved' OR (status='paid' AND restocked_at IS NULL)
+            committed ≤ capacity + overflow
+            to bake(d) = Σ qty of orders(d) where status='paid' AND fulfillment≠'cancelled'
 ```
 
 ## Stripe Checkout (built)

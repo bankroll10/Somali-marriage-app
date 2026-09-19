@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import Admin from './components/Admin.tsx'
+import Admin from './components/admin/Admin.tsx'
 import Order from './components/Order.tsx'
 import Thanks from './components/Thanks.tsx'
 

@@ -6,6 +6,7 @@ import { createApp, zelleTerms } from '../netlify/lib/app.ts'
 import type { Db } from '../netlify/lib/db/client.ts'
 import { listProducts, reserve } from '../netlify/lib/inventory.ts'
 import { assertLedger, freshDb } from './db.ts'
+import { adminHeaders, signIn } from './adminSession.ts'
 import { fakeStripe } from './fakeStripe.ts'
 
 /**
@@ -33,6 +34,7 @@ beforeEach(async () => {
   stripe = fakeStripe()
   app = createApp({ db, clock, gateway: stripe.gateway })
   process.env.ADMIN_PASSWORD = ADMIN
+  asAdmin = await adminHeaders(app, ADMIN)
 })
 afterEach(() => assertLedger(db))
 
@@ -43,7 +45,7 @@ const get = (fn: (r: Request) => Promise<Response>, path: string, headers: Recor
 type Buy = { date: string; qty: Partial<Record<'sourdough' | 'banana', number>>; name: string; phone: string; checkoutKey: string }
 const good = (): Buy => ({ date: WED, qty: { sourdough: 2, banana: 1 }, name: '  Amina   Ali ', phone: '(612) 555-0199', checkoutKey: crypto.randomUUID() })
 const buy = (over: Partial<Buy> & Record<string, unknown> = {}) => post(app.checkout, '/api/checkout', { ...good(), ...over })
-const asAdmin = { authorization: `Bearer ${ADMIN}` }
+let asAdmin: Record<string, string>
 const markPaid = (orderId: string, force = false) => post(app.admin, '/api/admin', { action: 'markPaid', orderId, force }, asAdmin)
 const cancel = (orderId: string) => post(app.admin, '/api/admin', { action: 'cancel', orderId }, asAdmin)
 const dayOf = async (date: string) => (await (await get(app.admin, `/api/admin?from=${date}&to=${date}`, asAdmin)).json()).days[0]
@@ -268,12 +270,14 @@ describe('Zelle holds (the manual path)', () => {
 })
 
 describe('admin', () => {
-  it('is closed without a password configured, and to the wrong password', async () => {
+  it('is closed without a password configured, without a session, and to the password used as a token', async () => {
     delete process.env.ADMIN_PASSWORD
     expect((await get(app.admin, '/api/admin', asAdmin)).status).toBe(503)
+    expect((await signIn(app, ADMIN)).status).toBe(503)
     process.env.ADMIN_PASSWORD = ADMIN
     expect((await get(app.admin, '/api/admin')).status).toBe(401)
     expect((await get(app.admin, '/api/admin', { authorization: 'Bearer nope' })).status).toBe(401)
+    expect((await get(app.admin, '/api/admin', { authorization: `Bearer ${ADMIN}` })).status).toBe(401)
     expect((await get(app.admin, '/api/admin', asAdmin)).status).toBe(200)
   })
 
@@ -302,14 +306,14 @@ describe('admin', () => {
     const mon = body.days.find((d: { date: string }) => d.date === MON)
     expect(mon.orders.map((o: { status: string }) => o.status)).toEqual(['reserved'])
     const picked = await post(app.admin, '/api/admin', { action: 'pickedUp', orderId: a, pickedUp: true }, asAdmin)
-    expect((await picked.json()).pickedUpAt).toBe(new Date(NOW).toISOString())
+    expect(await picked.json()).toMatchObject({ pickedUpAt: new Date(NOW).toISOString(), fulfillment: 'picked_up', status: 'paid' })
   })
 
   it('blocks and unblocks a date; blocking keeps the orders already on it', async () => {
     const { id } = await zelle({ sourdough: 2, banana: 1 }, MON)
     await markPaid(id)
     const res = await post(app.admin, '/api/admin', { action: 'block', date: MON }, asAdmin)
-    expect(await res.json()).toMatchObject({ date: MON, blocked: true, toBake: { sourdough: 2, banana: 1 } })
+    expect(await res.json()).toMatchObject({ day: { date: MON, blocked: true, toBake: { sourdough: 2, banana: 1 } }, affected: { owed: [{ id }], holds: [] } })
     expect((await (await get(app.availability, '/api/availability')).json()).days[0]).toMatchObject({ date: MON, blocked: true })
     expect((await buy({ date: MON, qty: { banana: 1 } })).status).toBe(409)
     await post(app.admin, '/api/admin', { action: 'unblock', date: MON }, asAdmin)

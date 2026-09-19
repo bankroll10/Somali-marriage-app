@@ -14,9 +14,11 @@ import type { Clock } from '../../shared/clock.ts'
 import { cutoffFor, isPickupDay, pickupDates } from '../../shared/schedule.ts'
 import type {
   AdminAction,
+  AdminBlockResult,
   AdminDay,
   AdminOrder,
   AdminResponse,
+  AdminSession,
   AvailabilityResponse,
   CheckoutRequest,
   CheckoutResponse,
@@ -27,16 +29,20 @@ import type {
 } from '../../shared/types.ts'
 import { shortId } from '../../shared/types.ts'
 import { addDays, isYmd, ymdInZone } from '../../shared/zoned.ts'
-import { checkAdmin } from './auth.ts'
+import { recordAction } from './audit.ts'
+import { checkSession, issueSession, matches, recordAttempt, throttle } from './auth.ts'
 import { PG, pgCode, type Db, type Queryable } from './db/client.ts'
 import { env, error, json, readJson, siteOrigin } from './http.ts'
 import {
   cancel,
+  cancelPaid,
+  heldUnits,
   listProducts,
   markPaid,
   ordersForDate,
-  paidUnits,
+  owedUnits,
   readOrder,
+  resellable,
   reserve,
   setBlocked,
   setPickedUp,
@@ -45,7 +51,16 @@ import {
   type ProductRow,
 } from './inventory.ts'
 import type { StripeGateway } from './stripe/gateway.ts'
-import { ensureSession, finalizePayment, reconcileOrder, staleStripeOrders, type PaymentDeps } from './stripe/payments.ts'
+import {
+  dashboardPaymentUrl,
+  ensureSession,
+  finalizePayment,
+  orderForPaymentIntent,
+  reconcileOrder,
+  staleStripeOrders,
+  syncRefunds,
+  type PaymentDeps,
+} from './stripe/payments.ts'
 import { validateCheckout } from './validate.ts'
 
 /**
@@ -63,6 +78,9 @@ export interface AppDeps {
 }
 
 export type Handler = (req: Request) => Promise<Response>
+
+/** The single admin. There are no accounts to tell apart — see docs/BUILD_STATUS.md. */
+const ACTOR = 'admin'
 
 const ZELLE = { name: ZELLE_NAME, handle: ZELLE_HANDLE }
 const UUID_LOOSE = /^[0-9a-f-]{32,36}$/i
@@ -93,10 +111,10 @@ async function openExceptions(db: Queryable, orderId: string): Promise<PaymentEx
 }
 
 /** Turn a database failure into the right answer: a held lock is "busy", anything else is "unavailable". */
-function guard(name: string, fn: Handler): Handler {
-  return async (req) => {
+function guard<A extends unknown[]>(name: string, fn: (req: Request, ...args: A) => Promise<Response>): (req: Request, ...args: A) => Promise<Response> {
+  return async (req, ...args) => {
     try {
-      return await fn(req)
+      return await fn(req, ...args)
     } catch (err) {
       if (pgCode(err) === PG.lockNotAvailable) return error('busy', 503)
       console.error(`[bread] ${name} failed`, err)
@@ -130,8 +148,39 @@ export function createApp({ db, clock, gateway }: AppDeps) {
     }
   }
 
-  async function adminOrder(o: Order): Promise<AdminOrder> {
-    return { ...o, shortId: shortId(o.id), exceptions: await openExceptions(db, o.id) }
+  /** The Stripe payment behind each paid card order, so the page can link straight to it. */
+  async function stripeLinks(orderIds: readonly string[]): Promise<Map<string, string>> {
+    const out = new Map<string, string>()
+    if (orderIds.length === 0) return out
+    const { rows } = await db.query<{ order_id: string; payment_intent_id: string; livemode: boolean | null }>(
+      `SELECT order_id, payment_intent_id, livemode FROM payment_references
+       WHERE provider = 'stripe' AND payment_intent_id IS NOT NULL AND order_id IN (SELECT unnest(string_to_array($1, ','))::uuid)`,
+      [orderIds.join(',')],
+    )
+    for (const r of rows) out.set(r.order_id, dashboardPaymentUrl(r.payment_intent_id, r.livemode ?? gateway?.livemode ?? false))
+    return out
+  }
+
+  async function adminOrders(orders: readonly Order[], blocked: boolean, now: number): Promise<AdminOrder[]> {
+    const links = await stripeLinks(orders.map((o) => o.id))
+    return Promise.all(
+      orders.map(async (o) => {
+        const out: AdminOrder = {
+          ...o,
+          shortId: shortId(o.id),
+          exceptions: await openExceptions(db, o.id),
+          resellableIfRestocked: resellable(o.date, blocked, now),
+        }
+        const url = links.get(o.id)
+        if (url) out.stripeUrl = url
+        return out
+      }),
+    )
+  }
+
+  async function adminOrder(o: Order, now: number): Promise<AdminOrder> {
+    const stock = await stockFor(db, [o.date], now)
+    return (await adminOrders([o], stock.get(o.date)?.blocked ?? false, now))[0]
   }
 
   // ── GET /api/availability ────────────────────────────────────────────────
@@ -271,6 +320,12 @@ export function createApp({ db, clock, gateway }: AppDeps) {
         const orderId = event.session.metadata.order_id ?? event.session.clientReferenceId
         if (orderId && UUID_LOOSE.test(orderId)) await reconcileOrder(pay, orderId, urlsFor(req, orderId))
       }
+    } else if (event.paymentIntentId && /^(charge\.|refund\.)/.test(event.type)) {
+      // A refund (or a charge update) at Stripe: mirror it from a fresh
+      // list, never from the event. Inventory and fulfilment are untouched.
+      const orderId = await orderForPaymentIntent(db, event.paymentIntentId)
+      if (orderId) await syncRefunds(pay, orderId)
+      else console.warn('[bread] webhook: refund for a payment this app does not know', event.paymentIntentId)
     }
     await db.query('UPDATE webhook_events SET processed_at = $2::timestamptz WHERE id = $1', [event.id, now])
     return json({ received: true })
@@ -286,25 +341,52 @@ export function createApp({ db, clock, gateway }: AppDeps) {
     return json({ reconciled: ids.length, results })
   })
 
+  // ── POST /api/admin-session — the password, once, for a session ───────
+  const adminSignIn = guard('admin-session', async (req: Request, ip: string | null) => {
+    if (req.method !== 'POST') return error('method_not_allowed', 405)
+    const password = env.adminPassword
+    if (!password) return error('admin_not_configured', 503)
+    const now = clock.now()
+    const gate = await throttle(db, ip, now)
+    if (!gate.allowed) return error('too_many_attempts', 429, { retryAfterSeconds: gate.retryAfterSeconds })
+    const body = await readJson<{ password?: unknown }>(req)
+    if (body instanceof Response) return body
+    const supplied = typeof body.password === 'string' ? body.password : ''
+    const ok = supplied.length > 0 && matches(supplied, password)
+    await recordAttempt(db, ip, ok, now)
+    if (!ok) return error('unauthorized', 401)
+    const session: AdminSession = issueSession(password, now)
+    return json(session)
+  })
+
   // ── /api/admin ───────────────────────────────────────────────────────────
   async function adminDay(date: string, now: number): Promise<AdminDay> {
-    const [orders, toBake, stock] = await Promise.all([ordersForDate(db, date, now), paidUnits(db, date), stockFor(db, [date], now)])
+    const [orders, toBake, held, stock] = await Promise.all([ordersForDate(db, date, now), owedUnits(db, date), heldUnits(db, date, now), stockFor(db, [date], now)])
     const s = stock.get(date)
-    return {
+    const blocked = s?.blocked ?? false
+    const cutoff = cutoffFor(date)
+    const day: AdminDay = {
       date,
-      blocked: s?.blocked ?? false,
-      cutoffAt: new Date(cutoffFor(date)).toISOString(),
+      blocked,
+      cutoffAt: new Date(cutoff).toISOString(),
+      open: !blocked && now < cutoff - CARD_CHECKOUT_LEAD_MINUTES * MINUTE,
+      capacity: s?.capacity ?? { sourdough: 0, banana: 0 },
       toBake,
+      held,
       remaining: s?.remaining ?? { sourdough: 0, banana: 0 },
-      orders: await Promise.all(orders.map(adminOrder)),
+      activeCheckouts: orders.filter((o) => o.status === 'reserved').length,
+      orders: await adminOrders(orders, blocked, now),
     }
+    if (blocked && s?.blockedReason) day.blockedReason = s.blockedReason
+    return day
   }
 
   const admin = guard('admin', async (req) => {
-    const auth = checkAdmin(req, env.adminPassword)
-    if (auth === 'unconfigured') return error('admin_not_configured', 503)
-    if (auth === 'denied') return error('unauthorized', 401)
     const now = clock.now()
+    const auth = checkSession(req, env.adminPassword, now)
+    if (auth === 'unconfigured') return error('admin_not_configured', 503)
+    if (auth === 'expired') return error('session_expired', 401)
+    if (auth === 'denied') return error('unauthorized', 401)
     const pay = payments()
 
     if (req.method === 'GET') {
@@ -318,7 +400,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
       // Her page is one of the places abandoned sessions get settled.
       if (pay) for (const id of await staleStripeOrders(db, now, dates)) await reconcileOrder(pay, id, urlsFor(req, id))
       const days = await Promise.all(dates.map((d) => adminDay(d, now)))
-      const body: AdminResponse = { now: new Date(now).toISOString(), days }
+      const body: AdminResponse = { now: new Date(now).toISOString(), today, nextPickupDate: pickupDates(now)[0], days }
       return json(body)
     }
     if (req.method !== 'POST') return error('method_not_allowed', 405)
@@ -328,16 +410,49 @@ export function createApp({ db, clock, gateway }: AppDeps) {
 
     if (body.action === 'block' || body.action === 'unblock') {
       if (!isYmd(body.date)) return error('bad_date', 400)
-      await setBlocked(db, body.date, body.action === 'block', clock)
-      return json(await adminDay(body.date, now))
+      const reason = body.action === 'block' && typeof body.reason === 'string' ? body.reason.slice(0, 200) : undefined
+      // Under the date lock: strictly before or strictly after any
+      // reservation in flight. Nothing on the date is cancelled, refunded or
+      // released; what is there is reported back so she sees it.
+      const affected = await setBlocked(db, body.date, body.action === 'block', clock, ACTOR, reason)
+      await recordAction(db, { actor: ACTOR, action: body.action, date: body.date, detail: { reason: reason ?? null, owed: affected.owed.length, holds: affected.holds.length } }, now)
+      const day = await adminDay(body.date, now)
+      const result: AdminBlockResult = {
+        day,
+        affected: { owed: await adminOrders(affected.owed, day.blocked, now), holds: await adminOrders(affected.holds, day.blocked, now) },
+      }
+      return json(result)
     }
     const orderId = (body as { orderId?: unknown }).orderId
     if (typeof orderId !== 'string' || !UUID_LOOSE.test(orderId)) return error('bad_request', 400)
 
     if (body.action === 'pickedUp') {
       if (typeof body.pickedUp !== 'boolean') return error('bad_request', 400)
-      const updated = await setPickedUp(db, orderId, body.pickedUp, clock)
-      return updated ? json(await adminOrder(updated)) : error('not_found', 404)
+      const result = await setPickedUp(db, orderId, body.pickedUp, clock, ACTOR)
+      if (!result.ok) return result.reason === 'not_found' ? error('not_found', 404) : error(result.reason, 409)
+      await recordAction(db, { actor: ACTOR, action: 'pickedUp', orderId, date: result.order.date, detail: { pickedUp: body.pickedUp } }, now)
+      return json(await adminOrder(result.order, now))
+    }
+
+    if (body.action === 'cancelPaid') {
+      if (typeof body.restock !== 'boolean') return error('bad_request', 400)
+      const note = typeof body.note === 'string' ? body.note.slice(0, 300) : undefined
+      const result = await cancelPaid(db, orderId, { restock: body.restock, note, actor: ACTOR }, clock)
+      if (!result.ok) return result.reason === 'not_found' ? error('not_found', 404) : error(result.reason, 409)
+      await recordAction(db, { actor: ACTOR, action: 'cancelPaid', orderId, date: result.order.date, detail: { restock: body.restock, resellable: result.resellable, note: note ?? null } }, now)
+      return json({ order: await adminOrder(result.order, now), resellable: result.resellable })
+    }
+
+    if (body.action === 'syncRefund') {
+      if (!pay) return error('payments_not_configured', 503)
+      const synced = await syncRefunds(pay, orderId)
+      if (!synced.ok) {
+        if (synced.reason === 'not_found') return error('not_found', 404)
+        if (synced.reason === 'unreachable') return error('payment_uncertain', 409, { state: 'unknown' })
+        return error(synced.reason, 409)
+      }
+      const updated = await readOrder(db, orderId, now)
+      return updated ? json(await adminOrder(updated, now)) : error('not_found', 404)
     }
 
     // A card order still reserved is decided by Stripe before she can touch
@@ -349,7 +464,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
       if (current.provider !== 'stripe' || current.status !== 'reserved') return null
       if (!pay) return error('payments_not_configured', 503)
       const state = await reconcileOrder(pay, orderId, { forceExpire: true, ...urlsFor(req, orderId) })
-      if (state === 'paid') return error('already_paid', 409, { order: await adminOrder((await readOrder(db, orderId, now))!) })
+      if (state === 'paid') return error('already_paid', 409, { order: await adminOrder((await readOrder(db, orderId, now))!, now) })
       if (state === 'unknown' || state === 'uncertain' || state === 'attention') return error('payment_uncertain', 409, { state })
       return null
     }
@@ -357,17 +472,20 @@ export function createApp({ db, clock, gateway }: AppDeps) {
     if (body.action === 'markPaid') {
       const settled = await settleStripe()
       if (settled) return settled
-      const result = await markPaid(db, orderId, clock, body.force === true, 'admin')
+      const result = await markPaid(db, orderId, clock, body.force === true, ACTOR)
       if (!result.ok) {
         return result.reason === 'not_found' ? error('not_found', 404) : error('would_exceed_capacity', 409, { remaining: result.remaining })
       }
-      return json(await adminOrder(result.order))
+      await recordAction(db, { actor: ACTOR, action: 'markPaid', orderId, date: result.order.date, detail: { force: body.force === true } }, now)
+      return json(await adminOrder(result.order, now))
     }
     if (body.action === 'cancel') {
       const settled = await settleStripe()
       if (settled) return settled
       const updated = await cancel(db, orderId, clock)
-      return updated ? json(await adminOrder(updated)) : error('not_found', 404)
+      if (!updated) return error('not_found', 404)
+      await recordAction(db, { actor: ACTOR, action: 'cancel', orderId, date: updated.date }, now)
+      return json(await adminOrder(updated, now))
     }
     if (body.action === 'resolveException') {
       if (!Number.isInteger(body.exceptionId)) return error('bad_request', 400)
@@ -375,15 +493,17 @@ export function createApp({ db, clock, gateway }: AppDeps) {
         body.exceptionId,
         orderId,
         new Date(now).toISOString(),
-        'admin',
+        ACTOR,
       ])
       const updated = await readOrder(db, orderId, now)
-      return updated ? json(await adminOrder(updated)) : error('not_found', 404)
+      if (!updated) return error('not_found', 404)
+      await recordAction(db, { actor: ACTOR, action: 'resolveException', orderId, date: updated.date, detail: { exceptionId: body.exceptionId } }, now)
+      return json(await adminOrder(updated, now))
     }
     return error('bad_action', 400)
   })
 
-  return { availability, checkout, cancelCheckout, order, webhook, reconcileStale, admin }
+  return { availability, checkout, cancelCheckout, order, webhook, reconcileStale, admin, adminSignIn }
 }
 
 /** Hold terms for a Zelle order, kept for the manual path and the tests. */

@@ -39,6 +39,86 @@ there; this file is the current state.
 - Manual "Mark paid" (cash / Zelle) remains in admin and, on a card order, ends the Stripe session
   first; a card payment arriving afterwards is flagged as a duplicate, never double-counted.
 
+## Admin (this stage, 2026-09-19)
+
+Her page during a shift, finished: one pickup date at a time, the next one first; what to bake;
+who is coming; what is paid, on hold and free; a printable list; and the three decisions that
+were missing — block a date safely, mark bread handed over, and record that a paid customer will
+not be getting bread. Payment state and fulfilment state are now separate columns and never
+change together. Refunds are mirrored from Stripe and change neither.
+
+### The front door — a decision to record
+
+The brief asked for a maintained identity provider with named owner accounts and account
+recovery. I verified one would work (Clerk: hosted email-code sign-in, offline JWT verification
+against a public key, testable with a generated keypair) and put it to the owner. **He chose to
+keep the single password for a shop of five to ten customers, and asked for a server-side
+attempt limit.** So `ADMIN_PASSWORD` stays, hardened:
+
+- The password is sent once, to `POST /api/admin-session`, and exchanged for a signed 30-day
+  session token (`netlify/lib/auth.ts`: HMAC-SHA256 under a key HKDF-derived from the password
+  — no second secret, and changing the password signs every phone out). Every admin request
+  carries the token; the password never travels again.
+- Failed attempts are counted in Postgres (`admin_sign_ins`), because function instances share
+  nothing: **5 failures per address or 20 overall in 15 minutes → 429** with the wait. One
+  address cannot lock the owner out; a distributed guesser is capped at about 80 tries an hour.
+  The address is Netlify's `context.ip`, not a header a caller could set.
+- Comparison is constant-time; a missing password locks everyone out (503), never in.
+
+This is a deliberate deviation from the brief's "explicitly authorized owner accounts" and
+"account recovery" lines, at the owner's call. Recovery is: change the variable in Netlify and
+tell her. There is one actor, recorded as `admin`.
+
+### Built
+
+- **Schema** `db/migrations/003_admin`: `orders.fulfillment` (`owed | picked_up | cancelled`) with
+  who/when/note and `restocked_at`; `pickup_dates.blocked_by`; refund mirror columns on
+  `payment_references`; `admin_sign_ins`; `admin_actions` — every admin write is on the record.
+  Columns only; **no seed data of any kind**.
+- **Blocking is serialized with reservations.** `setBlocked` now runs under the per-date lock,
+  so it lands strictly before or after any checkout in flight, never between its block check and
+  its commit (the old version was a bare upsert). It touches no order and returns the paid orders
+  still owed and the checkouts in progress; the page shows both before she confirms and after.
+  A held customer can still finish paying on a blocked date. Nothing is cancelled, refunded or
+  released by a block.
+- **Bread to make** = paid and not fulfilment-cancelled (`owedUnits`). Held = live reservations.
+  Free = capacity minus both. Pending, expired and cancelled orders never count.
+- **Pick-up** only on a paid, uncancelled order, under the lock; undoable.
+- **Cancel a paid order** (`cancelPaid`): fulfilment → cancelled, with a note, and her explicit
+  restock choice. Restock returns the units and reports whether anyone can still buy them
+  (false on a blocked or closed date — recorded either way). No Stripe call, no refund.
+- **Refunds**: `charge.refunded`, `charge.refund.updated`, `refund.*` webhooks and a manual
+  "Check refund" both re-list refunds from Stripe (never the event snapshot) and mirror
+  succeeded / pending amounts. A one-tap link to the payment in the Stripe Dashboard, test or
+  live to match the key. A refund alone reopens no capacity.
+- **Page**: sign-in (wrong / locked out with minutes / not configured / offline), loading, empty
+  day, error with retry, session expired → back to sign-in, a date strip with Past, capacity
+  rows, chips for payment and fulfilment, `tel:` links, block and cancel confirmation sheets,
+  and a print stylesheet that sends only the day sheet to paper.
+
+### Demonstrated
+
+| Check | Result |
+|---|---|
+| `npm run verify` — typecheck, lint, PGlite suite | see the table further down |
+| `tests/admin-auth.test.ts` | token opens the admin, the password itself does not; no/garbage/tampered/foreign-password tokens → 401; 30-day expiry → `session_expired`; unset password → 503 for both endpoints; **unauthorized callers cannot read orders (no names or phones in the body), mark pickup, block, cancel or sync** — verified against the rows afterwards; 5 wrong from one address → 429 while another address still gets in; 20 overall → 429 for a fresh address; the window passing lets the address back; unknown address is its own bucket; a day-old row is pruned |
+| `tests/admin.test.ts` | next pickup date first; capacity / paid / held / free / active checkouts per date; lapsed Zelle holds count as nothing; pending, expired and cancelled bread never on the bake list; **block** keeps paid owed and holds held, reports both, cancels and refunds nothing, refuses new orders, lets a held customer finish paying, records who and why, unblock reopens; pick-up on paid only and undoable; cancel-paid without restock keeps units committed, with restock frees them; restock on a blocked date and past cutoff both recorded and reported unsellable; partial then full refund mirrored with fulfilment and bread untouched; pending refunds kept apart; unknown payment ignored; manual sync, and Stripe-unreachable → nothing changed; Zelle orders have no link; the ledger recount holds after every test |
+| `tests/contention.test.ts` on Postgres 16, 12 connections | the four earlier races, plus: **a block waits behind a held date lock, lands after it, and the next reservation is refused** |
+| Rendered at 390 px (Playwright, API mocked) | sign-in, the day view, the block sheet, the cancel sheet, a blocked day, and the print sheet all lay out without horizontal scroll; screenshots reviewed |
+
+### Not demonstrated
+
+- The page against the live API from a phone: sign-in with the real password, the lock-out
+  message, marking the test orders picked up, blocking Sep 24 and seeing the two held test
+  orders listed, printing. That is the owner's walk-through; nothing here was run on the live
+  site.
+- A real refund: refund the $3 test order in Stripe's test Dashboard via the link, confirm the
+  order shows *$3 refunded* and still *owed*, then *Cancel order… → put it back on sale* and see
+  free rise. The webhook endpoint Biz created was subscribed to `checkout.session.*` only — the
+  refund events need adding there (README, Stripe step 3) or the manual "Check refund" covers it.
+- Netlify's `context.ip` actually carrying the client address in production (the header fallback
+  is in place).
+
 ## Deploy (confirmed on a real Netlify deploy, 2026-09-19)
 
 **The deploy branch is production.** Netlify's `bread-pickup` project builds
@@ -72,7 +152,7 @@ transactions, or the rest of the app changed. Confirmed after the fix, in this s
 - The bundled `admin.ts` function (esbuild, `--platform=node`, matching `netlify.toml`) answers a
   real request through the new `pg`-based client against a real Postgres (HTTP 200), and answers a
   clean 503 `database_not_configured` rather than crashing when `DATABASE_URL` is unset.
-- The whole automated suite (60 PGlite tests, 4 real-Postgres contention tests) still passes
+- The whole automated suite (86 PGlite tests, 5 real-Postgres contention tests) still passes
   unchanged, since `Db`/`Queryable` didn't change shape.
 
 **Follow-up, same day**: a real database (Neon, free tier) was created and its connection string
@@ -134,8 +214,8 @@ real API's idempotency behaviour and session states. **None of it is a Stripe te
 | Check | Result |
 |---|---|
 | `npm run typecheck`, `npm run lint`, `npm run build` | pass (2 pre-existing lint warnings, unchanged) |
-| `npm test` on PGlite (Postgres 18 in-process), Stripe faked | **60 passed**, 4 skipped |
-| `npm run test:pg` on a real Postgres 16.13, 12 connections | **4 passed** |
+| `npm test` on PGlite (Postgres 18 in-process), Stripe faked | **86 passed**, 5 skipped |
+| `npm run test:pg` on a real Postgres 16.13, 12 connections | **5 passed** |
 | `npm run db:migrate` (both migrations) against the real Postgres | applies, then "up to date" |
 | Root Niyyah suite, bread excluded | 227 passed |
 
@@ -312,8 +392,9 @@ account's plan, so the app no longer depends on it.
   method off.
 - Biz's confirmation of the 32-minute checkout-start rule (or a switch to the grace period).
 - `ZELLE_NAME` in `shared/config.ts` is still a placeholder (manual path only).
-- `ADMIN_PASSWORD` is currently a guessable phrase chosen by the owner. `lib/auth.ts` compares it
-  in constant time and `/admin` fails closed without it, but **there is no rate limiting** on
-  `/api/admin`, so that password is the only thing protecting customer names and phone numbers.
-  Worth either a high-entropy passphrase or an attempt limit before this handles real orders.
+- `ADMIN_PASSWORD` is a guessable phrase chosen by the owner; guessing is now rate-limited in the
+  database (see "Admin" above) and the password is sent once per month per phone. A stronger
+  phrase is still a one-variable change.
+- Add the refund events to Biz's webhook endpoint in Stripe (README, step 3) so refunds appear
+  without pressing "Check refund".
 - Refunds are done in the Stripe Dashboard; the app records the exception but has no refund action.

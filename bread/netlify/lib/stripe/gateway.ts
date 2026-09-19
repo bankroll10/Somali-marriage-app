@@ -49,6 +49,15 @@ export interface GatewayEvent {
   livemode: boolean
   /** Present for checkout.session.* events. */
   session?: GatewaySession
+  /** Present for charge.* and refund.* events: the payment they concern. */
+  paymentIntentId?: string
+}
+
+/** A refund as Stripe reports it. status: pending | requires_action | succeeded | failed | canceled. */
+export interface GatewayRefund {
+  id: string
+  amountCents: number
+  status: string
 }
 
 export interface StripeGateway {
@@ -59,6 +68,8 @@ export interface StripeGateway {
   expireSession(id: string): Promise<GatewaySession>
   /** Verifies the signature against the raw body; throws when it does not match. */
   constructEvent(rawBody: string, signature: string): Promise<GatewayEvent>
+  /** Every refund against a payment, so the app mirrors what Stripe holds rather than an event's snapshot. */
+  listRefunds(paymentIntentId: string): Promise<GatewayRefund[]>
 }
 
 export const CURRENCY = 'usd'
@@ -117,13 +128,19 @@ export function stripeGateway(secretKey: string, webhookSecret: string): StripeG
     },
     async constructEvent(rawBody, signature) {
       const event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret)
-      const object = event.data.object as { object?: string }
-      return {
-        id: event.id,
-        type: event.type,
-        livemode: event.livemode,
-        session: object?.object === 'checkout.session' ? toGatewaySession(object as Stripe.Checkout.Session) : undefined,
+      const object = event.data.object as { object?: string; payment_intent?: string | { id: string } | null }
+      const out: GatewayEvent = { id: event.id, type: event.type, livemode: event.livemode }
+      if (object?.object === 'checkout.session') out.session = toGatewaySession(object as Stripe.Checkout.Session)
+      if (object?.object === 'charge' || object?.object === 'refund') {
+        const pi = object.payment_intent
+        if (typeof pi === 'string') out.paymentIntentId = pi
+        else if (pi?.id) out.paymentIntentId = pi.id
       }
+      return out
+    },
+    async listRefunds(paymentIntentId) {
+      const page = await stripe.refunds.list({ payment_intent: paymentIntentId, limit: 100 })
+      return page.data.map((r) => ({ id: r.id, amountCents: r.amount, status: r.status ?? 'pending' }))
     },
   }
 }

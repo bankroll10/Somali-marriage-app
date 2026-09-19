@@ -6,7 +6,7 @@ import { createApp, zelleTerms } from '../netlify/lib/app.ts'
 import { fakeStripe } from './fakeStripe.ts'
 import { poolDb, type Db } from '../netlify/lib/db/client.ts'
 import { applyMigrations } from '../netlify/lib/db/migrate.ts'
-import { listProducts, reserve } from '../netlify/lib/inventory.ts'
+import { listProducts, reserve, setBlocked } from '../netlify/lib/inventory.ts'
 import { assertLedger } from './db.ts'
 
 /**
@@ -92,5 +92,29 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
     await db.query('INSERT INTO pickup_dates (date) VALUES ($1::date)', [WED])
     await db.query("INSERT INTO date_inventory (date, product_id, capacity, committed) VALUES ($1::date, 'sourdough', 3, 3)", [WED])
     await expect(db.query("UPDATE date_inventory SET committed = committed + 1 WHERE date = $1::date AND product_id = 'sourdough'", [WED])).rejects.toMatchObject({ code: '23514' })
+  })
+
+  it('a block waits for whoever holds the date, then lands, and the next reservation is refused', async () => {
+    const products = await listProducts(db)
+    const holder = await pool.connect()
+    await holder.query('BEGIN')
+    await holder.query('INSERT INTO pickup_dates (date) VALUES ($1::date) ON CONFLICT DO NOTHING', [WED])
+    await holder.query('SELECT date FROM pickup_dates WHERE date = $1::date FOR UPDATE', [WED])
+
+    let settled = false
+    const attempt = setBlocked(db, WED, true, fixedClock(NOW), 'admin', 'closed').then((r) => {
+      settled = true
+      return r
+    })
+    await new Promise((r) => setTimeout(r, 300))
+    expect(settled).toBe(false) // strictly after whoever holds the date, never in the middle of them
+    await holder.query('COMMIT')
+    holder.release()
+    const affected = await attempt
+    expect(settled).toBe(true)
+    expect(affected).toEqual({ owed: [], holds: [] })
+    const next = await reserve(db, cart({ sourdough: 1 }, 8), products, fixedClock(NOW), zelleTerms(NOW))
+    expect(next).toEqual({ ok: false, reason: 'blocked' })
+    await assertLedger(db)
   })
 })

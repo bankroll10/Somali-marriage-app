@@ -1,4 +1,4 @@
-import type { AdminAction, AdminDay, AdminOrder, AdminResponse, AvailabilityResponse, CheckoutRequest, CheckoutResponse, OrderSummary } from '../../shared/types.ts'
+import type { AdminAction, AdminBlockResult, AdminOrder, AdminResponse, AdminSession, AvailabilityResponse, CheckoutRequest, CheckoutResponse, OrderSummary } from '../../shared/types.ts'
 
 export class ApiError extends Error {
   code: string
@@ -38,12 +38,15 @@ export const getOrder = (orderId: string) => call<OrderSummary>(`/api/order?orde
 /** The customer backed out of Stripe's page: end the session there, then let the server release on Stripe's word. */
 export const cancelCheckout = (orderId: string) => call<{ state: string }>(`/api/cancel?order=${encodeURIComponent(orderId)}`, { method: 'POST' })
 
-const bearer = (password: string) => ({ authorization: `Bearer ${password}` })
+/** The password, once, for a session token. Every other admin call carries the token, never the password. */
+export const adminSignIn = (password: string) => call<AdminSession>('/api/admin-session', { method: 'POST', body: JSON.stringify({ password }) })
 
-export const adminList = (password: string, range?: { from: string; to: string }) =>
-  call<AdminResponse>(`/api/admin${range ? `?from=${range.from}&to=${range.to}` : ''}`, { headers: bearer(password) })
+const bearer = (token: string) => ({ authorization: `Bearer ${token}` })
 
-type AdminActResult<A> = A extends { action: 'block' | 'unblock' } ? AdminDay : AdminOrder
+export const adminList = (token: string, range?: { from: string; to: string }) =>
+  call<AdminResponse>(`/api/admin${range ? `?from=${range.from}&to=${range.to}` : ''}`, { headers: bearer(token) })
 
-export const adminAct = <A extends AdminAction>(password: string, action: A) =>
-  call<AdminActResult<A>>('/api/admin', { method: 'POST', body: JSON.stringify(action), headers: bearer(password) })
+type AdminActResult<A> = A extends { action: 'block' | 'unblock' } ? AdminBlockResult : A extends { action: 'cancelPaid' } ? { order: AdminOrder; resellable: boolean } : AdminOrder
+
+export const adminAct = <A extends AdminAction>(token: string, action: A) =>
+  call<AdminActResult<A>>('/api/admin', { method: 'POST', body: JSON.stringify(action), headers: bearer(token) })

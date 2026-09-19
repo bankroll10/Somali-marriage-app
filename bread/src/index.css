@@ -44,3 +44,20 @@ button {
 .pulse-soft {
   animation: pulse-soft 1.4s ease-in-out infinite;
 }
+
+/* Her printable list: only the selected day's sheet goes to paper. */
+.print-only {
+  display: none;
+}
+@media print {
+  html {
+    background: #fff;
+    color: #000;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block;
+  }
+}

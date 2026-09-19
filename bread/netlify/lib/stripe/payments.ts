@@ -19,6 +19,10 @@ import { CURRENCY, type GatewaySession, type StripeGateway } from './gateway.ts'
  *   reconcileOrder  asks Stripe what really happened and applies it
  *
  * A success URL is never evidence. A timer is never evidence. Stripe is.
+ *
+ * syncRefunds is the fifth: what Stripe holds about refunds on a payment,
+ * mirrored onto the order's reference — and nothing else. A refund changes
+ * no inventory and no fulfilment; those are her separate decisions.
  */
 
 export interface PaymentDeps {
@@ -329,4 +333,59 @@ export async function staleStripeOrders(db: Queryable, nowMs: number, dates?: re
     dates && dates.length > 0 ? [new Date(nowMs).toISOString(), dates.join(',')] : [new Date(nowMs).toISOString()],
   )
   return rows.map((r) => r.id)
+}
+
+// ── syncRefunds ───────────────────────────────────────────────────────────
+
+export type RefundSync =
+  | { ok: true; refundedCents: number; refundPendingCents: number }
+  | { ok: false; reason: 'not_found' | 'not_stripe' | 'no_payment' | 'unreachable' }
+
+/**
+ * Mirror Stripe's refunds for this order's payment. Always from a fresh
+ * list, never from an event's snapshot, so out-of-order or repeated
+ * deliveries cannot roll the number back. Succeeded refunds and ones still
+ * in flight are kept apart. Touches nothing but the payment reference.
+ */
+export async function syncRefunds(deps: PaymentDeps, orderId: string): Promise<RefundSync> {
+  const { db, clock, gateway } = deps
+  const { rows } = await db.query<{ id: number; payment_intent_id: string | null }>(
+    "SELECT id, payment_intent_id FROM payment_references WHERE order_id = $1::uuid AND provider = 'stripe' AND status = 'succeeded' LIMIT 1",
+    [orderId],
+  )
+  const ref = rows[0]
+  if (!ref) {
+    const exists = await db.query<{ provider: string }>('SELECT provider FROM orders WHERE id = $1::uuid', [orderId])
+    if (!exists.rows[0]) return { ok: false, reason: 'not_found' }
+    return { ok: false, reason: exists.rows[0].provider === 'stripe' ? 'no_payment' : 'not_stripe' }
+  }
+  if (!ref.payment_intent_id) return { ok: false, reason: 'no_payment' }
+  let refunds
+  try {
+    refunds = await gateway.listRefunds(ref.payment_intent_id)
+  } catch (err) {
+    console.error('[bread] stripe: refunds list failed', err)
+    return { ok: false, reason: 'unreachable' }
+  }
+  const refundedCents = refunds.filter((r) => r.status === 'succeeded').reduce((s, r) => s + r.amountCents, 0)
+  const refundPendingCents = refunds.filter((r) => r.status === 'pending' || r.status === 'requires_action').reduce((s, r) => s + r.amountCents, 0)
+  const now = new Date(clock.now()).toISOString()
+  await db.query('UPDATE payment_references SET refunded_cents = $2, refund_pending_cents = $3, refund_checked_at = $4::timestamptz, updated_at = $4::timestamptz WHERE id = $1', [
+    ref.id,
+    refundedCents,
+    refundPendingCents,
+    now,
+  ])
+  return { ok: true, refundedCents, refundPendingCents }
+}
+
+/** The order a Stripe payment belongs to, for charge.* and refund.* events. */
+export async function orderForPaymentIntent(db: Queryable, paymentIntentId: string): Promise<string | null> {
+  const { rows } = await db.query<{ order_id: string }>("SELECT order_id FROM payment_references WHERE provider = 'stripe' AND payment_intent_id = $1 LIMIT 1", [paymentIntentId])
+  return rows[0]?.order_id ?? null
+}
+
+/** Where she refunds it: the payment in Stripe's Dashboard, test or live to match the key. */
+export function dashboardPaymentUrl(paymentIntentId: string, livemode: boolean): string {
+  return `https://dashboard.stripe.com/${livemode ? '' : 'test/'}payments/${paymentIntentId}`
 }

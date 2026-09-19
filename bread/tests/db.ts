@@ -46,12 +46,18 @@ export async function freshDb(): Promise<{ db: Db; pg: PGlite }> {
   return engine
 }
 
-/** The ledger must always equal a recount from the orders themselves. */
+/**
+ * The ledger must always equal a recount from the orders themselves: every
+ * live reservation, plus every paid order whose units she has not explicitly
+ * put back on sale (a fulfilment-cancelled order stays committed until she
+ * chooses to restock it).
+ */
 export async function assertLedger(db: Queryable): Promise<void> {
   const { rows } = await db.query<{ date: string; product_id: string; committed: number; capacity: number; overflow: number; actual: number }>(
     `SELECT di.date::text AS date, di.product_id, di.committed, di.capacity, di.overflow,
             COALESCE((SELECT SUM(oi.quantity) FROM orders o JOIN order_items oi ON oi.order_id = o.id
-                      WHERE o.date = di.date AND oi.product_id = di.product_id AND o.status IN ('reserved', 'paid')), 0)::int AS actual
+                      WHERE o.date = di.date AND oi.product_id = di.product_id
+                        AND (o.status = 'reserved' OR (o.status = 'paid' AND o.restocked_at IS NULL))), 0)::int AS actual
      FROM date_inventory di ORDER BY di.date, di.product_id`,
   )
   for (const r of rows) {
