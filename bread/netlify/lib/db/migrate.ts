@@ -4,14 +4,17 @@ import { fileURLToPath } from 'node:url'
 import type { Db } from './client.ts'
 
 /**
- * Applies netlify/database/migrations/<n>_<slug>/migration.sql in order,
- * recording each in schema_migrations. Netlify does this itself on deploy;
- * this runner exists for the tests (PGlite) and for `npm run db:migrate`
- * against a Postgres that is not Netlify DB. Production functions never
- * import it.
+ * Applies db/migrations/<n>_<slug>/migration.sql in order, recording each in
+ * schema_migrations. Nothing applies these automatically — Netlify's own
+ * auto-provisioned database (which would have applied a
+ * netlify/database/migrations directory on every deploy) isn't available on
+ * this account's plan, so the database is a regular externally-hosted
+ * Postgres and `npm run db:migrate` is run by hand, once per new migration.
+ * This runner is also what the tests apply to PGlite. Production functions
+ * never import it.
  */
 
-export const MIGRATIONS_DIR = fileURLToPath(new URL('../../database/migrations/', import.meta.url))
+export const MIGRATIONS_DIR = fileURLToPath(new URL('../../../db/migrations/', import.meta.url))
 
 export interface Migration {
   name: string

@@ -39,6 +39,41 @@ there; this file is the current state.
 - Manual "Mark paid" (cash / Zelle) remains in admin and, on a card order, ends the Stripe session
   first; a card payment arriving afterwards is flagged as a duplicate, never double-counted.
 
+## Deploy (confirmed on a real Netlify deploy, 2026-09-19)
+
+The first real deploy of this branch to the `bread-pickup` Netlify site failed:
+
+```
+API error on "createSiteDatabase"
+403 Forbidden — "database feature not available for this account"
+```
+
+This is Netlify's own zero-config auto-provisioned database (the thing `docs/BUILD_PLAN.md`
+previously flagged as *unverified* — now verified, and not available). Netlify's build scans for a
+`netlify/database/migrations` directory and, if present, tries to auto-provision a database for
+the site before it will build; this account's plan doesn't include that feature, so the build
+failed outright before the app code ever ran.
+
+**Fixed**: migrations moved to `db/migrations/` (outside the path Netlify's build scans), the
+`@netlify/database` dependency dropped, and `netlify/lib/db/client.ts` now opens a plain `pg` pool
+against `DATABASE_URL` — any Postgres, the same interface as before. Nothing about the schema,
+transactions, or the rest of the app changed. Confirmed after the fix, in this sandbox:
+
+- `npm run db:migrate` applies both migrations to a brand-new database, and is idempotent on a
+  second run — the same as it will behave against a fresh external Postgres.
+- The bundled `admin.ts` function (esbuild, `--platform=node`, matching `netlify.toml`) answers a
+  real request through the new `pg`-based client against a real Postgres (HTTP 200), and answers a
+  clean 503 `database_not_configured` rather than crashing when `DATABASE_URL` is unset.
+- The whole automated suite (58 PGlite tests, 4 real-Postgres contention tests) still passes
+  unchanged, since `Db`/`Queryable` didn't change shape.
+
+**Not yet confirmed**: an actual deploy succeeding end-to-end against this fix, and a real managed
+Postgres (Neon recommended) with TLS — this sandbox's Postgres for testing doesn't speak TLS, so
+the code's "use TLS unless the host is literally localhost" branch was exercised structurally
+(proven to trigger, and separately proven to work with TLS off against localhost) but not against
+a real TLS-terminating provider. Needs `DATABASE_URL` from a real Neon/Supabase/etc. project,
+set in Netlify, followed by a redeploy.
+
 ## Verified here (automated, Stripe faked)
 
 Run on 2026-09-18 in this sandbox. **Stripe's API is unreachable from here** (`api.stripe.com`
@@ -83,7 +118,7 @@ laptop with her test keys and paste the results into this section (with event id
 Dashboard):
 
 1. `cp .env.example .env`; set `STRIPE_SECRET_KEY=sk_test_…`, `ADMIN_PASSWORD`, and `DATABASE_URL`
-   (or `netlify dev` for a Netlify DB branch). `npm run db:migrate` if using your own Postgres.
+   (a free Neon/Supabase project — see README). `npm run db:migrate` once.
 2. `stripe listen --forward-to localhost:8888/api/stripe-webhook`; put its `whsec_…` in `.env`;
    `npx netlify dev`.
 3. **Success**: order, pay with `4242 4242 4242 4242` → `/thanks` shows *checking* then *paid*;
@@ -106,13 +141,16 @@ Dashboard):
 12. **Apple Pay**: on Safari with a Wallet card, confirm the button appears on Stripe's page; note
     the devices it did not appear on.
 
-Also untested from here, as before: Netlify DB provisioning/claim, automatic migrations on deploy,
-Netlify's bundler and scheduled-function runtime for `reconcile-stale`, Neon's pooler behaviour,
-and the pages against a live API (the previous stage's stubbed screenshots predate the new
-checking/attention states).
+Also untested from here: Netlify's scheduled-function runtime for `reconcile-stale`, a real TLS
+handshake against a managed Postgres (see "Deploy" above), and the pages against a live API (the
+previous stage's stubbed screenshots predate the new checking/attention states). Netlify DB
+provisioning/claim is no longer applicable — see "Deploy" above: it isn't available on this
+account's plan, so the app no longer depends on it.
 
 ## Remaining before launch
 
+- A real `DATABASE_URL` (Neon/Supabase/etc.) set in Netlify and `npm run db:migrate` run against
+  it once — this is now what's blocking a working deploy; see "Deploy" above.
 - Her Stripe account, live keys and the webhook endpoint in Netlify; Dashboard wallet settings
   left on, delayed methods off.
 - Biz's confirmation of the 32-minute checkout-start rule (or a switch to the grace period).

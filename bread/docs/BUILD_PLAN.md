@@ -8,9 +8,8 @@ from here.
 
 | Decision | Choice | Why |
 |---|---|---|
-| Payment | **Zelle, confirmed by hand** in `/admin`. No processor. | Her choice; no fee on a $3 loaf. Zelle has no merchant API, so the app can never *know* a payment landed. |
-| Stripe | **Not now**, but the schema and state machine are built so a Stripe stage adds a provider and a webhook, not tables. | See "Stripe contract" below. |
-| Database | **Netlify DB** (Postgres on Neon) via `@netlify/database`; any Postgres works through `DATABASE_URL`. | Provisioned on first deploy, migrations applied by Netlify. Fewest moving parts for her. |
+| Payment | **Stripe-hosted Checkout** (card, Apple Pay/Google Pay where eligible) is the customer flow. Zelle, confirmed by hand in `/admin`, remains as a manual fallback. | See "Stripe Checkout (built)" below for the full lifecycle. |
+| Database | **Any Postgres** via `DATABASE_URL` (this app is set up against a free Neon project). | Netlify also sells a zero-config auto-provisioned database, but it isn't available on this account's plan — a deploy fails outright if it detects `netlify/database/migrations`. Migrations live in `db/migrations/` instead and are applied by hand with `npm run db:migrate`. |
 | Tests | **PGlite** (Postgres 18, in-process) runs the real migration; a real multi-connection Postgres runs the contention suite when `TEST_DATABASE_URL` is set. | Same engine as production; nothing mocked below the SQL. |
 | Time | An injectable `Clock`; every rule takes `nowMs`. All wall-clock reasoning is `America/Chicago` on the server. The browser's clock decides nothing. | Cutoff, DST and hold-expiry tests pin exact instants. |
 | Cutoff | 48 **elapsed** hours before the 5 PM shift start on the pickup date. | The literal reading of "48 hours before". Across the Nov 1 fall-back this puts Monday's cutoff at 6 PM CDT on Saturday, not 5 PM; a test pins it. |
@@ -18,7 +17,7 @@ from here.
 | Window | Rolling 4 weeks of Mon/Wed/Thu from today in Chicago (`WEEKS_AHEAD`). | A date outside it is not a date the API accepts at all. |
 | Prices | `products` table is the authority; the UI's `PRODUCTS` copy is checked against the seed by a test. | The browser displays; the server decides. |
 
-## Schema (`netlify/database/migrations/001_initial/migration.sql`)
+## Schema (`db/migrations/001_initial/migration.sql`)
 
 - `products` — id, name, blurb, `price_cents > 0`, `daily_capacity >= 0`, active. Seeded: sourdough 500/3, banana 300/4.
 - `pickup_dates` — one row per date ever touched; `blocked_at` for date blocks. **The per-date lock row.**

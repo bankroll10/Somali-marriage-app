@@ -1,14 +1,17 @@
-import { getDatabase } from '@netlify/database'
+import pg from 'pg'
 import type { Pool, PoolClient } from 'pg'
 
 /**
  * The narrow surface the app needs from Postgres: parameterised queries and
  * a transaction that commits on success and rolls back on any throw.
  *
- * Production is Netlify DB (Postgres on Neon) through `@netlify/database`'s
- * pool. Tests are PGlite — the same Postgres, in-process — through the
- * adapter in tests/db.ts. Both satisfy this interface, so every query and
- * every transaction the app runs is the one the tests ran.
+ * Production is a regular Postgres — any provider — reached with `pg`'s own
+ * pool over DATABASE_URL. (Netlify also sells a zero-config, auto-provisioned
+ * database, but it isn't available on this account's plan, so this app
+ * doesn't depend on it — see db/migrations/README or BUILD_STATUS.) Tests
+ * are PGlite — the same Postgres, in-process — through the adapter in
+ * tests/db.ts. Both satisfy this interface, so every query and every
+ * transaction the app runs is the one the tests ran.
  */
 
 export interface QueryResult<R> {
@@ -57,15 +60,19 @@ export function poolDb(pool: Pool): Db {
 let cached: Db | undefined
 
 /**
- * The production database. `@netlify/database` reads NETLIFY_DB_URL, which
- * Netlify sets once the site's database exists; DATABASE_URL is honoured too
- * so any other Postgres can stand in.
+ * The production database: DATABASE_URL, whatever Postgres it points at.
+ * Throws when it's unset, which every function handler turns into a plain
+ * 503 rather than a crash. Managed Postgres providers (this app was set up
+ * against Neon) need TLS; a plain "localhost" URL — local development only —
+ * is the one case that doesn't.
  */
 export function productionDb(): Db {
   if (!cached) {
-    const override = process.env.NETLIFY_DB_URL ? undefined : process.env.DATABASE_URL
-    const database = getDatabase(override ? { connectionString: override } : {})
-    cached = poolDb(database.pool as unknown as Pool)
+    const connectionString = process.env.DATABASE_URL
+    if (!connectionString) throw new Error('DATABASE_URL is not set')
+    const isLocal = /^postgres(ql)?:\/\/[^/]*@?(localhost|127\.0\.0\.1)[:/]/.test(connectionString)
+    const pool = new pg.Pool({ connectionString, ssl: isLocal ? undefined : { rejectUnauthorized: false } })
+    cached = poolDb(pool)
   }
   return cached
 }

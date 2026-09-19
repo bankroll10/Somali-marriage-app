@@ -77,7 +77,10 @@ Data lives in Postgres: `products`, `pickup_dates` (with date blocks),
 `orders`, `order_items` (price snapshots), `payment_references` (the Stripe
 session and payment intent per order), `payment_exceptions`,
 `webhook_events`, and a `reservations` view. Migrations live in
-`netlify/database/migrations/` and Netlify applies them on deploy.
+`db/migrations/` and are applied by running `npm run db:migrate` (see
+"The database" below — Netlify's own auto-provisioned database isn't
+available on this account's plan, so this is a regular externally-hosted
+Postgres instead, and nothing applies migrations automatically on deploy).
 
 ### What Stripe's page asks for
 
@@ -111,38 +114,50 @@ its own.
 The manual path keeps her Zelle details in [`shared/config.ts`](shared/config.ts);
 `ZELLE_NAME` is still a placeholder there.
 
-### 2. Netlify
+### 2. The database
+
+Netlify sells a zero-config, auto-provisioned Postgres, but it isn't
+available on this account's plan — a deploy with a
+`netlify/database/migrations` directory present fails outright with
+`database feature not available for this account`. So this app uses a
+regular Postgres instead, reached over `DATABASE_URL` like any other Node
+app would, and its migrations live in `db/migrations/` (outside the path
+Netlify's build scans) and are applied by hand.
+
+1. Create a free Postgres project — [neon.tech](https://neon.tech) is what
+   this app was built and tested against (it's also what powers Netlify's
+   own database product); Supabase or Railway work the same way. Copy the
+   **connection string** it gives you (starts `postgresql://…`).
+2. Put it in Netlify as `DATABASE_URL` (next step covers where).
+3. Apply the schema once, from a machine with that connection string:
+   ```bash
+   DATABASE_URL='postgresql://…' npm run db:migrate
+   ```
+   Run this again after any future migration file is added — nothing on
+   Netlify does it automatically.
+
+### 3. Netlify
 
 A project named **bread-pickup** already exists on the team
-(https://app.netlify.com/projects/bread-pickup) with nothing deployed to it.
+(https://app.netlify.com/projects/bread-pickup).
 
-1. Open it → **Project configuration → Build & deploy → Link repository**, and
-   pick this repository and the branch to deploy from.
-2. Set **Base directory** to `bread`. The build command and publish directory
-   come from `netlify.toml`.
-3. **Site configuration → Environment variables**, add:
+1. If not already linked: open it → **Project configuration → Build & deploy
+   → Link repository**, and pick this repository and the branch to deploy
+   from, with **Base directory** set to `bread`.
+2. **Site configuration → Environment variables**, add:
 
    | Key | Value |
    |---|---|
    | `ADMIN_PASSWORD` | a password only she knows |
    | `STRIPE_SECRET_KEY` | from Stripe step 2 (test first, live at launch) |
    | `STRIPE_WEBHOOK_SECRET` | from Stripe step 3 |
+   | `DATABASE_URL` | from the database step above |
 
    Trigger a deploy after saving — environment changes apply only to builds
    that start after them.
-4. **The database provisions itself.** `@netlify/database` is a dependency,
-   so the first deploy creates a Postgres (Netlify DB, on Neon) for the site,
-   sets `NETLIFY_DB_URL`, and applies `netlify/database/migrations/`. Nothing
-   to paste. Two things to check in the Netlify UI after that deploy: that
-   the database appears under the site's **Database** section, and whether it
-   asks to be *claimed* to a Neon account — unclaimed Netlify DB databases
-   have had a 7-day expiry; claim it so the orders are not deleted.
-5. Open the site, place a test order with `4242 4242 4242 4242`, and confirm
+3. Open the site, place a test order with `4242 4242 4242 4242`, and confirm
    `/thanks` flips to paid and `/admin` lists it as paid. Then run the
    real-Stripe checklist in `docs/BUILD_STATUS.md`.
-
-If Netlify DB is ever unsuitable, any Postgres works: set `DATABASE_URL` in
-Netlify, run `npm run db:migrate` against it once, and redeploy.
 
 Share the site's URL (or a QR code of it) at the front desk. `/admin` is only
 for her.
@@ -165,8 +180,8 @@ Netlify DB branch for you), or point `DATABASE_URL` at any Postgres and run
 
 The deploy runs `npm ci` on a clean clone. `package-lock.json` must be committed
 together with `package.json`, and `netlify.toml` sets `NPM_FLAGS=--include=dev`
-because every build tool here is a devDependency. `@netlify/database` must stay
-a regular dependency: the functions import it at runtime.
+because every build tool here is a devDependency. `pg` and `stripe` must stay
+regular dependencies: the functions import them at runtime.
 
 ## Tests
 
