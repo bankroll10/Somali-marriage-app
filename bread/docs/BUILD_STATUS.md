@@ -59,8 +59,15 @@ Not done, and why: the deployed site cannot be reached from this sandbox, so `sm
 live key, no live webhook, no real payment or refund — those are Biz's and the owner's, with
 authorization, per the checklist. No custom domain exists. A permanent separate test
 environment (second Netlify site + Neon branch) needs dashboard actions and is optional. One
-finding worth money: the ten-minute schedule keeps Neon's compute awake about half the time,
-close to the Free plan's monthly compute allowance — the checklist gives the two ways out.
+finding worth money: the ten-minute schedule kept Neon's compute awake about half the time,
+close to the Free plan's monthly compute allowance — and exhausting it stops the database until
+the month turns over rather than billing anyone. **Resolved the same day** at the owner's
+direction (he wants no monthly bill): the schedule is now every 30 minutes, ~25–30 CU-hours
+against ~100. It costs nothing operationally, because Stripe's own `checkout.session.expired`
+webhook is what actually releases an abandoned hold and this job only ever touches holds already
+55 minutes old — the interval matters solely in the case where the webhook has also failed.
+Also confirmed that day: the shop's name is **Fresh Bread**, which is what the site already
+said, so no code changed.
 
 ## Launch-readiness audit (2026-09-19)
 
@@ -320,7 +327,7 @@ branch was already correct; what was missing was the project's **Base directory*
 built the repository root. Setting it to `bread` fixed it, and the next deploy
 (`6aade145bef6985aa454e807`) shipped exactly the seven bread functions (`admin`, `availability`,
 `cancel`, `checkout`, `order`, `reconcile-stale`, `stripe-webhook`), the two redirects, no edge
-functions, and registered `reconcile-stale` on its ten-minute schedule.
+functions, and registered `reconcile-stale` on its schedule.
 
 **Netlify hides "secret" environment variables from the build.** With the right app deployed, the
 order page still read *Could not load the pickup dates* — the UI's message for a failing
@@ -448,7 +455,7 @@ the test-mode secret matches, which settles the question below.
 poll a server-side `reconcileOrder`, so the order would have flipped to paid whether or not
 Stripe's webhook arrived. The customer-visible result is identical either way, so test 1 does not
 distinguish them. It matters only for a buyer who closes the tab immediately: with the webhook
-working the bread is settled at once, without it the hold stands until the ten-minute
+working the bread is settled at once, without it the hold stands until the scheduled
 `reconcile-stale` run. Resolved by case 2 above: the webhook is arriving, so a paid order is
 settled immediately rather than waiting on the customer's page.
 

@@ -137,7 +137,8 @@ describe('what the scripts would say', () => {
     expect(fails({ livemode: false })).toEqual(['Stripe in LIVE mode'])
     expect(fails({ testDataPresent: true })).toEqual(['no test data in the database'])
     expect(fails({ migrations: 4 })).toEqual(['database migrated to this code'])
-    expect(fails({ lastReconcileAt: new Date(NOW - 45 * MINUTE).toISOString() })).toEqual(['scheduled reconcile has run recently'])
+    expect(fails({ lastReconcileAt: new Date(NOW - 45 * MINUTE).toISOString() })).toEqual([]) // one missed half-hourly run is not a dead job
+    expect(fails({ lastReconcileAt: new Date(NOW - 90 * MINUTE).toISOString() })).toEqual(['scheduled reconcile has run recently'])
     expect(fails({ liveHolds: 2 })).toEqual(['no card holds in flight'])
     expect(fails({ adminConfigured: false })).toEqual(['admin password set'])
     expect(preflightChecks(null, 503, 5, NOW)).toEqual([{ name: 'health endpoint', ok: false, detail: 'HTTP 503' }])

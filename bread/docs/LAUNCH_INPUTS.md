@@ -2,12 +2,15 @@
 
 Everything else is done. Each item says what the site does *today* and where the answer goes.
 Nothing below has been invented; where the site shows a placeholder it is labelled one.
+Answered items stay in the table, marked **confirmed**, so the record of who decided what holds.
+
+The texts to send Biz for the items still open are in [`BIZ_MESSAGES.md`](BIZ_MESSAGES.md).
 
 ## Identity and place
 
 | Input | Today | Where it lands |
 |---|---|---|
-| **Business name** | "Fresh Bread" — a placeholder | `SHOP_NAME`, `TAGLINE` in `bread/shared/config.ts`; the `<title>`, `og:site_name` and `og:title` in `bread/index.html`; Stripe **statement descriptor** (what appears on the customer's card statement) in Stripe → Settings → Public details |
+| **Business name** | ✅ **Confirmed 2026-09-19: "Fresh Bread"** — already what the site shows everywhere, so no change was needed | Nothing left in the code. One action remains for Biz: type **Fresh Bread** as the **statement descriptor** during Stripe activation (what customers see on their bank statement) — it is in her text |
 | **Exact Life Time location and pickup instructions** | "Life Time — the front desk", 5–11 PM, best after 9 PM, and the sentence *Life Time is the pickup spot only — this bread is not sold by, or affiliated with, the gym.* The club's address is not shown anywhere. | `PICKUP_PLACE`, `PICKUP_PLACE_WHERE`, `PICKUP_PLACE_NOTE`, `PICKUP_START_HOUR`, `PICKUP_END_HOUR`, `PICKUP_PREFERRED_AFTER_HOUR` in `config.ts`. Confirm with the club that pickups at the front desk are acceptable to them. |
 | **Business contact for customers** | None shown. The confirmation page says a person will look at flagged payments, but gives no way to reach anyone. | A line on the order and confirmation pages (`Order.tsx`, `Thanks.tsx`) and in Stripe's receipt settings (support email / phone). Decide: email, phone, or neither. |
 | **Real bread photos** (optional) | Drawn placeholders, labelled as such | Two square photos ≥ 400 px into `bread/public/bread/`, then `image:` on each product in `config.ts` (README explains) |

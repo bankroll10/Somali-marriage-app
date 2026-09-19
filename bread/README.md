@@ -115,7 +115,8 @@ is in [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md).
    the cancel link. Backing out ends the session at Stripe and the bread is
    released only on Stripe's word; abandoned sessions are settled the same
    way by the customer's page, by her admin page, by Stripe's expiry
-   webhook, and by a scheduled function every ten minutes. A session whose
+   webhook, and — as a last resort — by a scheduled function every half
+   hour. A session whose
    create never came back is re-created from the database — same prices,
    the origin the customer reserved from, a fresh expiry and key once the
    old ones have gone stale — and if the deadline is by then too near for
@@ -128,7 +129,10 @@ is in [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md).
   phone numbers, pickups, blocking dates, refunds, flagged payments, help;
   backups, export and restore.
 - [`docs/LAUNCH_INPUTS.md`](docs/LAUNCH_INPUTS.md) — the decisions only she can
-  make (name, place, contact, terms, tax, allergens, photos, accounts).
+  make (place, contact, terms, tax, allergens, photos, accounts). The name is
+  settled: **Fresh Bread**.
+- [`docs/BIZ_MESSAGES.md`](docs/BIZ_MESSAGES.md) — plain-language texts to send
+  her, one thing at a time: activate Stripe, the five questions, the admin link.
 - [`docs/LAUNCH_CHECKLIST.md`](docs/LAUNCH_CHECKLIST.md) — dashboard actions,
   variable names, the webhook, Apple Pay, costs, the cutover and the rollback.
 - [`docs/LAUNCH_READINESS.md`](docs/LAUNCH_READINESS.md) — what was audited,

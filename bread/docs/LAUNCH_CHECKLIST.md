@@ -17,7 +17,7 @@ to it deploys).
 | Environment variables (names) | `DATABASE_URL`, `STRIPE_SECRET_KEY` (test), `STRIPE_WEBHOOK_SECRET` (test), `ADMIN_PASSWORD` — all contexts, all scopes | read back through Netlify's API |
 | Admin | one password, rotated 2026-09-19; 30-day sessions; 5 tries / address, 50 overall per 15 min | `tests/admin-auth.test.ts`; owner signed in on the live site earlier |
 | Stripe test webhook | endpoint `https://bread-pickup.netlify.app/api/stripe-webhook` created by Biz in **test** mode, `checkout.session.*` events | invocations seen in the function log on 2026-09-19 |
-| Scheduled reconcile | `reconcile-stale`, every 10 minutes, registered on each deploy | deploy record lists the schedule; **whether it runs and does work is now visible** at `/api/health` (`lastReconcileAt`) and on `/admin` ("Automatic check ran … ago") |
+| Scheduled reconcile | `reconcile-stale`, **every 30 minutes**, registered on each deploy | deploy record lists the schedule; **whether it runs and does work is now visible** at `/api/health` (`lastReconcileAt`) and on `/admin` ("Automatic check ran … ago") |
 | CI | GitHub Actions on every push to `bread/**`: typecheck, lint, both test suites (Postgres 16 service) | first run green |
 
 ### What could not be verified from the build sandbox
@@ -73,7 +73,8 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
 - Production branch `claude/bread-ordering-app-fujfkj`, base directory `bread` — **do not rename
   or delete that branch**.
 - Build command `npm run db:migrate && npm run build` (in `netlify.toml`); functions bundle with
-  esbuild; `reconcile-stale` is scheduled by the code (`*/10 * * * *`).
+  esbuild; `reconcile-stale` is scheduled by the code (`*/30 * * * *` — see the Neon row in
+  section 8 for why half-hourly and not more often).
 - Deploy previews and branch deploys: leave **off** (they would share the production database).
 - Optional, later — a permanent test copy: a second Netlify site linked to a `staging` branch,
   its own Neon branch as `DATABASE_URL`, test keys; not needed to launch.
@@ -106,7 +107,7 @@ Only with Biz's explicit go-ahead. Pick a moment with no customer mid-checkout (
 5. **Deploys → Trigger deploy → Deploy site.** Wait for *Published*.
 6. **Preflight**: `npm run launch:preflight -- https://bread-pickup.netlify.app` — every row
    must read PASS (live key, migrated, admin set, no test data, no holds, reconcile alive within
-   20 minutes; if it just deployed, wait ten minutes for the schedule and run it again).
+   70 minutes; if it just deployed, wait half an hour for the schedule and run it again).
 7. **Smoke**: `npm run smoke -- https://bread-pickup.netlify.app` — all PASS; with
    `ADMIN_PASSWORD` exported in your shell it also proves sign-in and the day list.
 8. **`/admin` on Biz's phone**: no TEST MODE notice; "Automatic check ran N min ago".
@@ -136,9 +137,9 @@ Only with Biz's explicit go-ahead. Pick a moment with no customer mid-checkout (
 Each is a minute. Test card `4242 4242 4242 4242`, any future date, any CVC.
 
 - [ ] `npm run smoke -- https://bread-pickup.netlify.app` — all PASS, "Stripe mode: TEST".
-- [ ] `/admin` shows the TEST MODE notice and "Automatic check ran N min ago" with N ≤ 10 —
+- [ ] `/admin` shows the TEST MODE notice and "Automatic check ran N min ago" with N ≤ 30 —
       this is the proof the scheduled function runs on Netlify (it never had been observed
-      doing work before).
+      doing work before). Straight after a deploy it may read "never"; wait half an hour.
 - [ ] Order, pay, land on `/thanks` → confirmed; `/admin` shows it paid; smoke now reports
       "Stripe webhook has reached the site".
 - [ ] Order, then use **Stripe's own back link** on its page → the front page says *checking…*
@@ -168,16 +169,16 @@ pricing trackers — the sandbox could not open netlify.com, neon.com or stripe.
 | Service | Plan in use | Price | Included | What this site uses | Watch |
 |---|---|---|---|---|---|
 | Netlify | Free (team `nf_team_dev`) | $0, no card on file | 300 credits/month ≈ 100 GB bandwidth, 300 build minutes, 125,000 function invocations, 10 GB storage | ~4,500 scheduled invocations/month + a few hundred customer requests; one build per push (~1 min) | Over the limit the site is **suspended for the rest of the month** until upgraded. Personal $9/mo, Pro $20/user/mo. Sources: [Netlify Free plan](https://www.netlify.com/blog/introducing-netlify-free-plan/), [pricing guides](https://toolchase.com/blog/netlify-pricing-guide/) |
-| Neon | Free | $0 | ~100 compute-hours/month at 0.25 CU minimum, 0.5 GB storage, 10 branches, 6-hour restore window; compute suspends after 5 idle minutes | **This is the one to watch.** The reconcile runs every 10 minutes and wakes the database, which then stays up 5 minutes → roughly half the month awake → about **90 CU-hours**, near the free allowance before any customer traffic. | If the Neon console shows compute hours nearing 100: either move to **Launch** (usage-based, on the order of **$5–15/month** for this load) or lengthen the schedule (`*/20 * * * *` in `netlify/functions/reconcile-stale.ts` roughly halves it; abandoned holds then settle within 20 minutes instead of 10). Sources: [Neon plans](https://neon.com/docs/introduction/plans), [Neon pricing](https://neon.com/pricing), [2026 breakdown](https://vela.run/articles/neon-serverless-postgres-pricing-2026/) |
+| Neon | Free | $0 | ~100 compute-hours/month at 0.25 CU minimum, 0.5 GB storage, 10 branches, 6-hour restore window; compute suspends after 5 idle minutes | **Settled 2026-09-19.** Every scheduled run wakes the database, which then stays up 5 minutes. At the original 10-minute schedule that was ~half the month awake, about **90 CU-hours** — close to the allowance before a single customer. The schedule is now **every 30 minutes**: ~25–30 CU-hours, a 3× margin. | Nothing to do. Look at the Neon console's usage page after two weeks to confirm the estimate against reality. If it ever does approach 100, the next step is **Launch** (usage-based, on the order of **$5–15/month** at this size) — not a smaller schedule, which is already as long as it should be. Sources: [Neon plans](https://neon.com/docs/introduction/plans), [Neon pricing](https://neon.com/pricing), [2026 breakdown](https://vela.run/articles/neon-serverless-postgres-pricing-2026/) |
 | GitHub | Free | $0 | Actions minutes for public repos are free | one ~3-minute run per push | — |
 | Domain (optional) | — | typically $10–20/year at a registrar | — | — | not chosen |
 | Stripe | Standard | **$0/month** | pay per transaction (next section) | — | — |
 
-Expected recurring cost at launch: **$0/month**, with Neon the first thing that could become
-$5–15/month. Neither Netlify nor Neon Free requires a card, so an overage stops service rather
-than billing — which for Neon would mean the site answering *Could not check what's available*
-until the month resets or the plan is upgraded. The owner should look at both dashboards'
-usage pages after the first two weeks.
+Expected recurring cost at launch: **$0/month**, and after the schedule change nothing is close
+to a limit. Neither Netlify nor Neon Free requires a card, so an overage stops service rather
+than billing — for Neon that would mean the site answering *Could not check what's available*
+until the month resets, which is exactly why the compute margin was widened rather than left to
+chance. The owner should still look at both dashboards' usage pages after the first two weeks.
 
 ### Payment processing (Stripe, per transaction — separate from the above)
 

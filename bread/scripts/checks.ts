@@ -23,6 +23,14 @@ export interface HealthLike {
 
 const minutesAgo = (iso: unknown, nowMs: number) => (typeof iso === 'string' ? Math.round((nowMs - Date.parse(iso)) / 60_000) : null)
 
+/**
+ * How long since the scheduled reconcile last finished before we call it
+ * dead. It runs every 30 minutes, so this allows one missed run and some
+ * slack — long enough not to cry wolf, short enough to catch a job that has
+ * genuinely stopped.
+ */
+export const RECONCILE_STALE_AFTER_MINUTES = 70
+
 /** Everything a launch needs the deployed site to say about itself. */
 export function preflightChecks(health: HealthLike | null, status: number, localMigrations: number, nowMs: number): Check[] {
   if (!health || status !== 200) return [{ name: 'health endpoint', ok: false, detail: `HTTP ${status}` }]
@@ -35,7 +43,7 @@ export function preflightChecks(health: HealthLike | null, status: number, local
     { name: 'admin password set', ok: health.adminConfigured === true, detail: health.adminConfigured === true ? 'ADMIN_PASSWORD present' : 'ADMIN_PASSWORD missing: the admin is locked' },
     { name: 'no test data in the database', ok: health.testDataPresent === false, detail: health.testDataPresent === false ? 'clean' : 'test-mode orders or payments present — run npm run db:clear-orders -- --yes' },
     { name: 'no card holds in flight', ok: health.liveHolds === 0, detail: `${String(health.liveHolds)} on hold` },
-    { name: 'scheduled reconcile has run recently', ok: ran !== null && ran <= 20, detail: ran === null ? 'never ran' : `${ran} min ago` },
+    { name: 'scheduled reconcile has run recently', ok: ran !== null && ran <= RECONCILE_STALE_AFTER_MINUTES, detail: ran === null ? 'never ran' : `${ran} min ago` },
   ]
 }
 
@@ -66,7 +74,7 @@ export function smokeChecks(r: SmokeInput, nowMs: number): Check[] {
     { name: 'database reachable and migrated', ok: typeof h?.migrations === 'number' && (h.migrations as number) >= 5, detail: `${String(h?.migrations)} migrations` },
     { name: 'Stripe mode', ok: typeof h?.livemode === 'boolean', detail: h?.livemode === true ? 'LIVE' : h?.livemode === false ? 'TEST (practice payments only)' : 'not configured' },
     { name: 'admin password configured', ok: h?.adminConfigured === true, detail: String(h?.adminConfigured) },
-    { name: 'scheduled reconcile is running', ok: ran !== null && ran <= 20, detail: ran === null ? 'has never run (wait ten minutes after the first deploy, then check again)' : `last run ${ran} min ago` },
+    { name: 'scheduled reconcile is running', ok: ran !== null && ran <= RECONCILE_STALE_AFTER_MINUTES, detail: ran === null ? 'has never run (wait half an hour after the first deploy, then check again)' : `last run ${ran} min ago` },
     { name: 'Stripe webhook has reached the site', ok: hooked !== null, detail: hooked === null ? 'no event received yet (make a test order to prove the endpoint)' : `last event ${hooked} min ago` },
     { name: 'GET /api/availability', ok: r.availability.status === 200 && Array.isArray(r.availability.body?.days) && Array.isArray(r.availability.body?.products), detail: `HTTP ${r.availability.status}, ${r.availability.body?.days?.length ?? 0} days, ${r.availability.body?.products?.length ?? 0} products` },
     { name: 'API answers are never cached', ok: r.availability.cacheControl === 'no-store', detail: String(r.availability.cacheControl) },

@@ -94,7 +94,7 @@ What the sandbox could **not** run: anything against `api.stripe.com`, the live 
 first time on commit `ea11892` and **passed** (both suites, Postgres 16 service); Netlify deploy
 `6aaecb53d999d60009fc64ad` built green in production context — which means `npm run db:migrate`
 applied `004_recovery` to Neon, since a failing migration fails the build — with 8 functions, 6
-header rules and the ten-minute schedule registered. The site itself was still not opened from
+header rules and the reconcile schedule registered. The site itself was still not opened from
 here.
 
 ## Server-side checks, in one place
@@ -115,8 +115,8 @@ here.
   per 15 min and 4 live holds / address, atomic under a lock; one live hold per phone; Stripe
   polls from the customer's page at most once a second per order. Residual: a determined
   attacker with many addresses can still hold bread for free for up to 55 minutes at a time —
-  the price of a free reservation; mitigated by the caps, the per-phone rule and the ten-minute
-  reconcile, not eliminated. Customers on Life Time's Wi-Fi share one address; the caps are set
+  the price of a free reservation; mitigated by the caps, the per-phone rule, Stripe's own
+  session expiry and the half-hourly reconcile, not eliminated. Customers on Life Time's Wi-Fi share one address; the caps are set
   so four of them can be mid-payment at once.
 - **Logs and caches**: function logs carry order ids and Stripe session ids on failures (needed to
   investigate), never names, phones or key material; `console.error` on database failures prints

@@ -153,7 +153,8 @@ deadline. Biz chose the strict rule; the grace period is one constant away if sh
    that slipped in first is finalized, an expired session is released, anything else stays held
    with an `expire_uncertain` exception. Stripe unreachable → nothing changes. Triggers: the
    webhook, every poll of the customer's page, the cancel URL, admin page load (that date's stale
-   card orders), and `reconcile-stale` on a Netlify schedule every 10 minutes.
+   card orders), and `reconcile-stale` on a Netlify schedule (as planned every 10 minutes; since
+   2026-09-19 every 30 — see BUILD_STATUS, the handoff stage).
 5. **Webhook** — raw body via `req.text()`; signature verified; event id logged in
    `webhook_events`; `checkout.session.completed` / `async_payment_succeeded` with
    `payment_status = paid` → finalize from the event; anything else → reconcile with a fresh
