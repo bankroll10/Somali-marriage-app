@@ -125,6 +125,15 @@ here.
   worker. The browser keeps quantities, date and name in `sessionStorage` — never the phone —
   and the admin token in `localStorage`.
 
+## Update, deployment preparation (later on 2026-09-19)
+
+The handoff stage added `GET /api/health`, a record of every scheduled reconcile run shown on
+`/admin` ("Automatic check ran … ago") and a TEST MODE notice there, `npm run smoke` and
+`npm run launch:preflight` so the *deployed* site can be checked without log access, a CSV
+export, and a guard that stops `db:clear-orders` from wiping real sales. The ordered launch
+procedure, cutover and rollback now live in [`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md); the
+list below is kept for the record.
+
 ## Remaining before the first customer
 
 In order. Items 1–3 are the owner's; 4–6 are Biz's in the Stripe Dashboard; 7–8 are checks.

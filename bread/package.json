@@ -17,6 +17,9 @@
     "verify": "npm run typecheck && npm run lint && npm test",
     "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
     "db:clear-orders": "node --experimental-strip-types scripts/clear-orders.ts",
+    "db:export": "node --experimental-strip-types scripts/export-orders.ts",
+    "smoke": "node --experimental-strip-types scripts/smoke.ts",
+    "launch:preflight": "node --experimental-strip-types scripts/launch-preflight.ts",
     "test:pg": "vitest run tests/contention.test.ts"
   },
   "dependencies": {

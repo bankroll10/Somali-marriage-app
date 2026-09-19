@@ -163,6 +163,15 @@ export interface AdminResponse {
   today: string
   nextPickupDate: string
   days: AdminDay[]
+  /** How the deployed site is running, so she can see it from her phone. */
+  ops: {
+    /** Stripe's mode: false = test mode (no real money), true = live, null = Stripe not configured. */
+    livemode: boolean | null
+    /** When the scheduled reconcile last finished; null if it has never run. */
+    lastReconcileAt: string | null
+    /** When Stripe last delivered a webhook; null if never. */
+    lastWebhookAt: string | null
+  }
 }
 
 /** What a block or unblock touched — nothing — and what it left on the date. */

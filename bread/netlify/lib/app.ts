@@ -36,6 +36,7 @@ import { recordAction } from './audit.ts'
 import { checkSession, issueSession, matches, recordAttempt, throttle } from './auth.ts'
 import { PG, pgCode, type Db, type Queryable } from './db/client.ts'
 import { env, error, json, readJson, siteOrigin } from './http.ts'
+import { healthReport, opsState, recordJobRun } from './ops.ts'
 import {
   cancel,
   cancelPaid,
@@ -363,17 +364,29 @@ export function createApp({ db, clock, gateway }: AppDeps) {
 
   // ── scheduled: reconcile whatever Stripe should have decided by now ─────
   const reconcileStale = guard('reconcile', async () => {
+    const started = clock.now()
     const pay = payments()
-    if (!pay) return json({ reconciled: 0, states: {} })
-    const ids = await staleStripeOrders(db, clock.now())
     // Counts by outcome only: order ids are the customer's key to their own
     // order page, and this endpoint answers anyone.
     const states: Partial<Record<ReconcileState, number>> = {}
-    for (const id of ids) {
-      const state = await reconcileOrder(pay, id)
-      states[state] = (states[state] ?? 0) + 1
+    let ids: string[] = []
+    if (pay) {
+      ids = await staleStripeOrders(db, started)
+      for (const id of ids) {
+        const state = await reconcileOrder(pay, id)
+        states[state] = (states[state] ?? 0) + 1
+      }
     }
-    return json({ reconciled: ids.length, states })
+    const result = { reconciled: ids.length, states }
+    // On the record, so the health endpoint and her page can show the job is alive.
+    await recordJobRun(db, 'reconcile-stale', result, started, clock.now())
+    return json(result)
+  })
+
+  // ── GET /api/health — is the deployed site wired up? Nothing about anyone. ─
+  const health = guard('health', async (req) => {
+    if (req.method !== 'GET') return error('method_not_allowed', 405)
+    return json(await healthReport(db, gateway, Boolean(env.adminPassword), clock.now()))
   })
 
   // ── POST /api/admin-session — the password, once, for a session ───────
@@ -435,7 +448,14 @@ export function createApp({ db, clock, gateway }: AppDeps) {
       // Her page is one of the places abandoned sessions get settled.
       if (pay) for (const id of await staleStripeOrders(db, now, dates)) await reconcileOrder(pay, id)
       const days = await Promise.all(dates.map((d) => adminDay(d, now)))
-      const body: AdminResponse = { now: new Date(now).toISOString(), today, nextPickupDate: pickupDates(now)[0], days }
+      const ops = await opsState(db, gateway)
+      const body: AdminResponse = {
+        now: new Date(now).toISOString(),
+        today,
+        nextPickupDate: pickupDates(now)[0],
+        days,
+        ops: { livemode: ops.livemode, lastReconcileAt: ops.lastReconcileAt, lastWebhookAt: ops.lastWebhookAt },
+      }
       return json(body)
     }
     if (req.method !== 'POST') return error('method_not_allowed', 405)
@@ -542,7 +562,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
     return error('bad_action', 400)
   })
 
-  return { availability, checkout, cancelCheckout, order, webhook, reconcileStale, admin, adminSignIn }
+  return { availability, checkout, cancelCheckout, order, webhook, reconcileStale, admin, adminSignIn, health }
 }
 
 /** Hold terms for a Zelle order, kept for the manual path and the tests. */

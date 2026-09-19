@@ -63,6 +63,9 @@ site and the server follow.
 - `/thanks?order=…` — "checking your payment" until Stripe confirms, then
   the confirmed order (reference, items, total paid, pickup date, place and
   hours). Every check is server-side; refreshing is always safe.
+- `/api/health` — how the deployed site is wired: database migrated, Stripe
+  mode, admin configured, when the scheduled reconcile last ran and the last
+  webhook arrived, whether test data is present. Nothing about any customer.
 - `/admin` — her page, one pickup date at a time, the next one first. Asks
   for the admin password once per phone and stays signed in for a month; the
   password itself is never sent again after that. Shows, per date, what to
@@ -119,11 +122,27 @@ is in [`docs/BUILD_STATUS.md`](docs/BUILD_STATUS.md).
    any session, the hold is released; one that still cannot be made is
    flagged for her.
 
-Before the first real customer, wipe whatever testing left on real dates:
-`DATABASE_URL=<the database> npm run db:clear-orders -- --yes` (refuses
-without the flag; keeps products, capacities and blocked dates). The state
-of the whole thing against launch is in
-[`docs/LAUNCH_READINESS.md`](docs/LAUNCH_READINESS.md).
+## Running it, launching it, handing it over
+
+- [`docs/OWNER_GUIDE.md`](docs/OWNER_GUIDE.md) — for Biz: sign in, what to bake,
+  phone numbers, pickups, blocking dates, refunds, flagged payments, help;
+  backups, export and restore.
+- [`docs/LAUNCH_INPUTS.md`](docs/LAUNCH_INPUTS.md) — the decisions only she can
+  make (name, place, contact, terms, tax, allergens, photos, accounts).
+- [`docs/LAUNCH_CHECKLIST.md`](docs/LAUNCH_CHECKLIST.md) — dashboard actions,
+  variable names, the webhook, Apple Pay, costs, the cutover and the rollback.
+- [`docs/LAUNCH_READINESS.md`](docs/LAUNCH_READINESS.md) — what was audited,
+  fixed and proven, and what is still unverified.
+
+Operating scripts (each needs only what it says):
+
+| Command | Needs | Does |
+|---|---|---|
+| `npm run smoke -- https://<site>` | nothing (`ADMIN_PASSWORD` in the shell adds a sign-in check) | proves the deployed site: health, availability, 404/400/401s, headers, scheduled job, webhook |
+| `npm run launch:preflight -- https://<site>` | nothing | go / no-go before the first real customer: live key, migrated, no test data, no holds |
+| `npm run db:export -- --from … --to …` | `DATABASE_URL` | her orders as CSV |
+| `npm run db:clear-orders -- --yes` | `DATABASE_URL` | wipes practice orders before launch; refuses while a real sale exists |
+| `GET /api/health` | — | the same facts as JSON, nothing about any customer |
 
 Data lives in Postgres: `products`, `pickup_dates` (with date blocks),
 `date_inventory` (capacity and committed units per date and product),

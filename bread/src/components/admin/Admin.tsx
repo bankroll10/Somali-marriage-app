@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { PRODUCTS, SHOP_NAME, TIMEZONE, formatMoney } from '../../../shared/config.ts'
-import type { AdminBlockResult, AdminDay, AdminOrder, AdminSession, Qty } from '../../../shared/types.ts'
+import type { AdminBlockResult, AdminDay, AdminOrder, AdminResponse, AdminSession, Qty } from '../../../shared/types.ts'
 import { addDays, formatYmd, ymdInZone } from '../../../shared/zoned.ts'
 import { ApiError, adminAct, adminList } from '../../lib/api.ts'
 import { describeQty } from '../../lib/format.ts'
@@ -20,12 +20,24 @@ const EXCEPTION_COPY: Record<string, string> = {
   paid_after_release: 'This payment landed after the bread had been released — it was taken again, over capacity if needed.',
   duplicate_payment: 'A card payment arrived for an order already marked paid another way. A refund is probably due.',
   expire_uncertain: 'Stripe would not confirm this abandoned session is dead. The bread stays held; try again later.',
+  session_unrecoverable: 'This customer never got a payment page (Stripe could not be reached) and the hold is past its time. Nothing at Stripe can pay it: Cancel it to free the bread, or wait for the next automatic try.',
+}
+
+/** "3 min ago", "2 h ago", "never". */
+function ago(iso: string | null, now: number): string {
+  if (!iso) return 'never'
+  const m = Math.max(0, Math.round((now - Date.parse(iso)) / 60_000))
+  if (m < 1) return 'just now'
+  if (m < 60) return `${m} min ago`
+  const h = Math.round(m / 60)
+  if (h < 48) return `${h} h ago`
+  return `${Math.round(h / 24)} days ago`
 }
 
 type Load =
   | { state: 'loading' }
   | { state: 'error'; code: string }
-  | { state: 'ready'; days: AdminDay[]; today: string; now: number; nextPickupDate: string }
+  | { state: 'ready'; days: AdminDay[]; today: string; now: number; nextPickupDate: string; ops: AdminResponse['ops'] }
 
 type Sheet = { kind: 'block'; date: string } | { kind: 'cancelPaid'; orderId: string } | null
 
@@ -58,7 +70,7 @@ export default function Admin() {
         const today = ymdInZone(Date.now(), TIMEZONE)
         const res = await adminList(tok, { from: addDays(today, -28), to: addDays(today, 42) })
         const serverNow = Date.parse(res.now)
-        setLoad({ state: 'ready', days: res.days, today: res.today, now: serverNow, nextPickupDate: res.nextPickupDate })
+        setLoad({ state: 'ready', days: res.days, today: res.today, now: serverNow, nextPickupDate: res.nextPickupDate, ops: res.ops })
         setSelected((cur) => cur ?? res.nextPickupDate)
       } catch (err) {
         const code = err instanceof ApiError ? err.code : 'offline'
@@ -284,6 +296,19 @@ export default function Admin() {
               </Button>
             </div>
           </div>
+
+          {load.ops.livemode !== true && (
+            <div className="mb-4">
+              <Notice tone="warn">
+                {load.ops.livemode === false
+                  ? 'TEST MODE — Stripe is on its test keys. Orders here are practice orders and no real money moves. Card 4242 4242 4242 4242 pays.'
+                  : 'Stripe is not configured on this site, so nobody can pay by card yet.'}
+              </Notice>
+            </div>
+          )}
+          <p className="mb-3 text-[12px] text-cocoa-soft" title="The site checks abandoned card sessions with Stripe every ten minutes on its own; Stripe also sends the site a message about each payment.">
+            Automatic check ran {ago(load.ops.lastReconcileAt, load.now)} · last message from Stripe {ago(load.ops.lastWebhookAt, load.now)}
+          </p>
 
           <div className="mb-3 flex gap-2">
             <Button variant={showPast ? 'secondary' : 'primary'} className="px-4" onClick={() => { setShowPast(false); setSelected(load.nextPickupDate) }}>

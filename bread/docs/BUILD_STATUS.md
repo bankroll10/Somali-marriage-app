@@ -39,7 +39,30 @@ there; this file is the current state.
 - Manual "Mark paid" (cash / Zelle) remains in admin and, on a card order, ends the Stripe session
   first; a card payment arriving afterwards is flagged as a duplicate, never double-counted.
 
-## Launch-readiness audit (this stage, 2026-09-19)
+## Deployment preparation and handoff (this stage, 2026-09-19)
+
+Everything reversible that a launch needs, on the existing hosting, without enabling live
+charging. Built: migration `005_ops` (`job_runs`), `netlify/lib/ops.ts`, **`GET /api/health`**
+(database migrated, Stripe mode, admin configured, last scheduled run, last webhook, test data
+present — no customer data), the scheduled `reconcile-stale` now records every run, `/admin`
+shows **TEST MODE** while Stripe is on test keys and "Automatic check ran N min ago · last
+message from Stripe N ago", `npm run smoke` (17 checks against a deployed site, no secrets),
+`npm run launch:preflight` (go / no-go: live key, migrated, no test data, no holds, job alive),
+`npm run db:export` (CSV), and `db:clear-orders` refuses while a live-mode sale exists. Proof:
+`tests/ops.test.ts` (6 tests) on PGlite, the script verdicts unit-tested as pure functions;
+135 tests green, 8 on Postgres 16. Written: `OWNER_GUIDE.md`, `LAUNCH_INPUTS.md`,
+`LAUNCH_CHECKLIST.md` (dashboard actions, variable names, the live webhook, Apple Pay, costs
+with sources, cutover, rollback).
+
+Not done, and why: the deployed site cannot be reached from this sandbox, so `smoke` and
+`preflight` were run only to show their unreachable-site behaviour; the owner runs them. No
+live key, no live webhook, no real payment or refund — those are Biz's and the owner's, with
+authorization, per the checklist. No custom domain exists. A permanent separate test
+environment (second Netlify site + Neon branch) needs dashboard actions and is optional. One
+finding worth money: the ten-minute schedule keeps Neon's compute awake about half the time,
+close to the Free plan's monthly compute allowance — the checklist gives the two ways out.
+
+## Launch-readiness audit (2026-09-19)
 
 The complete app audited as if the first customer were about to order, without relying on
 earlier claims: three adversarial reads (inventory and cutoffs, the payment lifecycle, security),
