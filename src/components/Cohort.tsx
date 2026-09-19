@@ -264,6 +264,32 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   const reachable = looksReachable(contact)
   const disabled = !reachable || !scene || !country || !identity.gender || !age || state === 'sending'
 
+  /**
+   * What is still missing, named.
+   *
+   * Count me in switches off on five separate conditions and, until now, said
+   * nothing about any of them except the contact field — so a person who had
+   * decided to join tapped a dead button and was told nothing at all. Under
+   * BJ Fogg's model that is the worst case in the product after the lost
+   * instrument answers: motivation is at its peak, the prompt has fired, and
+   * ability is zero for a reason she cannot see (docs/FOGG.md, docs/NIELSEN.md
+   * severity 2).
+   *
+   * This names what is left rather than marking fields red, because there are
+   * at most two and she is usually one tap from done. Not shown before she has
+   * touched anything — an empty form telling her five things are missing is a
+   * scolding, not help.
+   */
+  const missing = [
+    !identity.gender && 'whether you’re a woman or a man',
+    !scene && 'your city',
+    scene === 'other' && !country && 'which country you’re in',
+    !age && 'your age',
+    !contact.trim() && 'a way to reach you',
+  ].filter((m): m is string => !!m)
+  const touchedAnything = !!contact.trim() || !!scene || !!age || !!identity.gender
+  const stillNeeded = state === 'sending' || !touchedAnything || missing.length === 0 ? null : missing
+
   return (
     <div className={`rounded-card border border-gold/30 bg-gold/[0.07] ${compact ? 'px-5 py-5' : 'p-6'}`}>
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
@@ -374,6 +400,13 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           {contactHint && (
             <p id="cohort-contact-hint" role="status" className="-mt-1 text-[0.82rem] leading-snug text-clay text-pretty">
               {contactHint}
+            </p>
+          )}
+          {stillNeeded && (
+            <p role="status" className="-mt-1 text-[0.82rem] leading-snug text-muted text-pretty">
+              {stillNeeded.length === 1
+                ? `One thing left: ${stillNeeded[0]}.`
+                : `Still needed: ${stillNeeded.slice(0, -1).join(', ')} and ${stillNeeded[stillNeeded.length - 1]}.`}
             </p>
           )}
           <button

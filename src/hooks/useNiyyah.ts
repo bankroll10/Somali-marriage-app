@@ -19,6 +19,7 @@ import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
 import { factsFrom } from '../lib/facts'
 import { forgetMe, type Forgotten } from '../lib/forget'
+import { clearAllDrafts } from '../lib/draft'
 import { coupleReading, readCouple } from '../lib/couple'
 import type { Entry, EntryKind } from '../lib/entry'
 import type { ToolSide } from '../data/tools'
@@ -425,6 +426,8 @@ export function useNiyyah(entry: Entry | null = null) {
     // "Keep this map" re-keyed that code, overwriting the real map with the
     // empty one. Irreversibly, from one mis-tap (docs/NORMAN.md).
     forgetCode()
+    // A half-finished read from before the reset is not hers any more.
+    clearAllDrafts()
     track('onboarding_started')
     setIdentityNext('situation')
     setScreen('identity')

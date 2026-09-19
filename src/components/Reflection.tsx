@@ -258,6 +258,24 @@ export default function ReflectionView({
           </div>
         </Section>
 
+        {/* Everything above exists only in this browser — said the moment she
+            has read the thing she would lose, not nine hundred words later.
+
+            It used to sit second-to-last, below the mirror and the alignment,
+            while the door — five fields and a way to reach her — held this
+            slot. That is exactly inverted under BJ Fogg's model: the cheapest
+            action in the product, the one that costs one tap and protects what
+            she has just earned, was the one buried past the fold, and the
+            expensive ask that serves us was at peak motivation. Closing the tab
+            before scrolling cost her everything, silently (docs/FOGG.md).
+            Joining the cohort already keeps the map, so the card steps aside
+            once she's counted. */}
+        {!waitlist && (
+          <section className="mb-12">
+            <KeepMap onKept={onKept} />
+          </section>
+        )}
+
         {/* The ask, right where the map has just said something specific about
             her — before the long tail of sections she may never scroll to.
             Shown on every map view, not only first reveal, so skipping it once
@@ -418,16 +436,6 @@ export default function ReflectionView({
             <p className="text-[1.05rem] leading-relaxed text-cream/90 text-pretty">{r.alignment}</p>
           </div>
         </Section>
-
-        {/* Everything above exists only in this browser. Said here, after she has
-            read it, because that is the moment losing it would actually cost
-            something. Joining the cohort already keeps the map, so the card
-            steps aside once she's counted. */}
-        {!waitlist && (
-          <section className="mb-12">
-            <KeepMap onKept={onKept} />
-          </section>
-        )}
 
         {/* The words this screen is written in.
 
