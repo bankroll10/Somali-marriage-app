@@ -1,5 +1,12 @@
 # Fresh Bread — pre-order and pay for pickup
 
+> **Do not delete or rename the branch `claude/bread-ordering-app-fujfkj`.** It is the production
+> branch of the Netlify project `bread-pickup`: pushing to it *is* deploying her live storefront.
+> The name looks disposable and sits beside other `claude/*` branches in this repo, but deleting it
+> takes her shop offline. The tidier arrangement — merge `bread/` into `main`, then repoint
+> Netlify's production branch, in that order — was considered and deliberately not done; nothing
+> about the app requires it.
+
 Customers choose bread, a quantity and a pickup date, enter a name and phone
 number, and pay by card on Stripe's hosted page (Apple Pay or Google Pay
 where the device supports them). The order is confirmed the moment Stripe

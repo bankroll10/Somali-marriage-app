@@ -41,6 +41,14 @@ there; this file is the current state.
 
 ## Deploy (confirmed on a real Netlify deploy, 2026-09-19)
 
+**The deploy branch is production.** Netlify's `bread-pickup` project builds
+`claude/bread-ordering-app-fujfkj` with base directory `bread`, so every push to that branch
+deploys the live site — there is no merge step and `main` carries none of this. That branch must
+not be deleted or renamed before Netlify's production-branch setting is changed, however
+disposable its name looks next to the repo's other `claude/*` branches. Moving to `main` and
+repointing Netlify (in that order, or the site has no branch to build for a moment) is the tidier
+arrangement and was deliberately left undone.
+
 The first real deploy of this branch to the `bread-pickup` Netlify site failed:
 
 ```
