@@ -612,7 +612,7 @@ function Together({
         {!couple
           ? `Send ${pronoun} a link. ${he === 'he' ? 'He' : 'She'} answers the same eleven on ${he === 'he' ? 'his' : 'her'} own — no account, no name — and ${he} never sees your answers. Neither of you sees the other’s. You both see only where you match, and which conversation one of you thinks you’ve had that the other doesn’t.`
           : view === 'unreachable'
-            ? `That is us, not ${he} — the link is fine and your answers are safe. ${he === 'he' ? 'He' : 'She'} may well have answered. Try again in a moment.`
+            ? `That is us, not ${pronoun} — the link is fine and your answers are safe. ${he === 'he' ? 'He' : 'She'} may well have answered. Try again in a moment.`
             : `When ${he} does, you both see only where you match — and where one of you thinks a conversation happened and the other doesn’t. Send the link again if it got lost.`}
       </p>
       {view === 'unreachable' && (
