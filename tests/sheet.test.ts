@@ -15,6 +15,7 @@ import { describe, expect, it } from 'vitest'
 
 const HTML = readFileSync('public/niyyah-money-conversation-sheet.html', 'utf8')
 const TXT = readFileSync('public/niyyah-money-conversation-sheet.txt', 'utf8')
+const ONE_PAGE = readFileSync('public/niyyah-money-conversation-sheet-1page.html', 'utf8')
 const CATALOG = readFileSync('docs/ASSETS.md', 'utf8')
 
 const flat = (s: string) => s.replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim()
@@ -43,6 +44,29 @@ describe('it opens from disk, with the network off', () => {
       expect(HTML, forbidden).not.toContain(forbidden)
     }
     expect(HTML).toContain('Nothing on this page is saved or sent')
+  })
+
+  it('warns, on screen only, that a printed copy can clip a long typed answer', () => {
+    // No script is allowed to auto-grow a textarea for print, so the honest
+    // fix is telling the reader, not pretending the box will always be
+    // enough. Print never shows it — .screen-only is display:none there —
+    // because by then it's too late to matter.
+    expect(HTML).toContain('Print this and write on it')
+    expect(HTML).toContain('long answers may')
+    expect(HTML).toMatch(/screen-only[\s\S]*?\{\s*display: none;/)
+  })
+
+  it('points, in plain text, to the one-page twin — without adding a second link', () => {
+    expect(HTML).toContain('niyyah-money-conversation-sheet-1page.html')
+    // Named, not linked: still exactly one <a> on the page.
+    expect([...HTML.matchAll(/<a\s[^>]*href=/g)]).toHaveLength(1)
+  })
+})
+
+describe('it says what it is, on its own', () => {
+  it('carries "Niyyah" in its own <title>, so a printed or shared page identifies itself', () => {
+    const title = HTML.match(/<title>([^<]*)<\/title>/)?.[1]
+    expect(title).toContain('Niyyah')
   })
 })
 
@@ -117,7 +141,10 @@ describe('what it refuses to say', () => {
   })
 
   it('names no organisation but Niyyah, and quotes nobody', () => {
-    expect(BOTH.match(/Niyyah/g)).toHaveLength(2) // one in the HTML footer, one in the txt
+    // <title> (1), the footer's "Published by Niyyah" (1), one print-footer
+    // per section (4, so the name is on every printed page — see 'on paper'
+    // below), and the .txt footer (1).
+    expect(BOTH.match(/Niyyah/g)).toHaveLength(7)
     expect(BOTH).not.toMatch(/&quot;|“|”/)
   })
 
@@ -143,6 +170,15 @@ describe('the two versions ask the same twenty questions', () => {
       expect(text, name).toContain('v1.0 — 2026-09-20')
     }
   })
+
+  it('opens with the same lede in both, "numbers" not "involved"', () => {
+    // The founder's own correction: the families are involved either way —
+    // what this sheet is for is having the numbers settled before they are.
+    const lede = "A sheet for two adults considering marriage, to work through before the families discuss numbers. Each of you answers in your own column."
+    expect(flat(HTML)).toContain(lede)
+    expect(flat(TXT)).toContain(lede)
+    expect(flat(HTML)).not.toContain('families are involved')
+  })
 })
 
 describe('on paper', () => {
@@ -165,6 +201,23 @@ describe('on paper', () => {
     expect(PRINT).toMatch(/background: transparent/)
     expect(PRINT).toMatch(/min-height: 11\.5mm/)
     expect(PRINT).toMatch(/\.box textarea \{[^}]*min-height: 15mm/)
+  })
+
+  it('carries the name on every printed page, not only the last one', () => {
+    // Chrome (every engine, in fact) ignores @page margin-box content, so a
+    // running footer has to be a real element repeated in the flow — one per
+    // section, since each section is a page here. Plain text, not a link:
+    // the sheet's one clickable <a> stays the one in the real footer.
+    const footers = [...HTML.matchAll(/<p class="print-footer">([\s\S]*?)<\/p>/g)].map((m) => flat(m[1]))
+    expect(footers).toHaveLength(4)
+    for (const f of footers) {
+      expect(f).toContain('Niyyah — joinniyyah.com')
+      expect(f).toContain('v1.0 — 2026-09-20')
+    }
+    expect(PRINT).toMatch(/\.print-footer \{\s*display: block/)
+    expect(CSS).toMatch(/^\s*\.print-footer \{\s*display: none;/m)
+    // No extra <a>: repeating the name four times must not repeat the link.
+    expect([...HTML.matchAll(/<a\s[^>]*href=/g)]).toHaveLength(1)
   })
 })
 
@@ -205,13 +258,114 @@ describe('on a phone, and to a screen reader', () => {
   })
 })
 
-describe('the catalog knows it', () => {
-  // docs/ASSETS.md's own rule: an address not in the table as live and checked
-  // is not an address to put in a pitch. N3 sat there as proposed for three
-  // days; shipping it without moving the row is how a placeholder URL goes out.
+describe('the one-page variant', () => {
+  // Same twenty questions, same four subjects, same content rules — a
+  // second file rather than a mode of the first, because the print CSS
+  // that makes it one page (single ruled lines, two print columns) is a
+  // different document, not a toggle. Every content rule above is pinned
+  // against the four-page file only; the checks here are the ones that
+  // would actually differ if this file drifted from that one.
+  const O_QUESTIONS = [...ONE_PAGE.matchAll(/<p class="q"[^>]*>([\s\S]*?)<\/p>/g)].map((m) => flat(m[1]))
+  const O_CSS = ONE_PAGE.match(/<style>([\s\S]*?)<\/style>/)![1]
+  const O_PRINT = O_CSS.slice(O_CSS.indexOf('@media print'))
+
+  it('fetches nothing and saves nothing, the same as the four-page file', () => {
+    for (const forbidden of ['<script', '<iframe', '<img', '<link ', '@import', 'src=', 'localStorage', 'sessionStorage', '<form', 'action=', 'type="submit"']) {
+      expect(ONE_PAGE, forbidden).not.toContain(forbidden)
+    }
+    const anchors = [...ONE_PAGE.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
+    expect(anchors).toEqual(['https://joinniyyah.com/'])
+  })
+
+  it('carries "Niyyah" in its own <title>', () => {
+    const title = ONE_PAGE.match(/<title>([^<]*)<\/title>/)?.[1]
+    expect(title).toContain('Niyyah')
+  })
+
+  it('asks the same twenty questions, word for word, as the four-page file', () => {
+    expect(O_QUESTIONS).toHaveLength(20)
+    expect(O_QUESTIONS).toEqual(QUESTIONS)
+  })
+
+  it('gives every question a single ruled line per person, not a paragraph box', () => {
+    // The one real content-level difference from the full sheet: a
+    // <textarea> becomes an <input>. The agree/still-deciding boxes stay
+    // textareas, per the founder's brief ("keep the agree/still-deciding
+    // boxes").
+    expect([...ONE_PAGE.matchAll(/<div class="cols">[\s\S]*?<\/div>\s*<\/div>/g)]).toHaveLength(20)
+    expect(ONE_PAGE.match(/<input id="q\d[a-e]-[ab]" type="text"/g)).toHaveLength(40)
+    expect(ONE_PAGE).not.toMatch(/<textarea id="q\d/)
+    expect(ONE_PAGE.match(/<textarea id="s\d-(agree|open)"/g)).toHaveLength(8)
+  })
+
+  it('still labels every field for real, even with the visible label hidden', () => {
+    const fors = [...ONE_PAGE.matchAll(/<label for="([^"]+)"/g)].map((m) => m[1])
+    const ids = new Set([...ONE_PAGE.matchAll(/<(?:textarea|input)[^>]*\sid="([^"]+)"/g)].map((m) => m[1]))
+    expect(fors).toHaveLength(20 * 2 + 4 * 2 + 3)
+    for (const f of fors) expect(ids, f).toContain(f)
+    // Visually hidden via clip-to-1px, not display:none — the standard
+    // sr-only technique, so a screen reader still reads it.
+    const colsLabelRule = O_CSS.match(/\.cols label \{[\s\S]*?\}/)![0]
+    expect(colsLabelRule).toContain('clip: rect(0, 0, 0, 0)')
+    expect(colsLabelRule).not.toContain('display: none')
+  })
+
+  it('says the column order once instead of twenty times, and prints small', () => {
+    expect(ONE_PAGE).toContain("Each question below: Person A's line first, Person B's second.")
+    expect(ONE_PAGE.match(/class="legend"/g)).toHaveLength(1)
+  })
+
+  it('splits into two print columns instead of one page per subject', () => {
+    // The one page/four page split itself: no break-before here, and a
+    // real multi-column layout instead.
+    expect(O_PRINT).not.toMatch(/break-before: page/)
+    expect(O_PRINT).toMatch(/\.content \{[\s\S]*?columns: 2/)
+  })
+
+  it('keeps every print field at the 9pt floor the founder set for this variant', () => {
+    expect(O_PRINT).toMatch(/font-size: 9pt; \/\* the floor this variant was asked to keep \*\//)
+    // The bug this guards: a screen-only rule with higher specificity
+    // (`.cols input[type='text']`) silently overrode the print min-height
+    // once, because 1.9rem recomputes against print's 9pt root instead of
+    // being ignored outside its own media query. Any print min-height on an
+    // answer input has to be re-stated at equal-or-greater specificity
+    // inside @media print, not just on the bare element selector.
+    expect(O_PRINT).toMatch(/\.cols input\[type='text'\] \{\s*min-height: 3mm/)
+  })
+
+  it('carries the same footer, note and version line as the four-page file', () => {
+    const text = flat(ONE_PAGE)
+    expect(text).toContain('Published by Niyyah —')
+    expect(text).toContain('This sheet is for conversation. It is not religious or legal advice, and it is not a substitute for guidance from someone you trust.')
+    expect(text).toContain('v1.0 — 2026-09-20')
+  })
+
+  it('warns on screen that this version is short lines, and points to the other file', () => {
+    expect(ONE_PAGE).toContain('every answer is a single line')
+    expect(ONE_PAGE).toContain('use the four-page version instead')
+  })
+
+  it('still drops to one column below 700px, with no field under the 16px floor', () => {
+    expect(O_CSS).toContain('@media (max-width: 700px)')
+    expect(O_CSS.match(/font-size: 1rem; \/\* 16px floor/g)?.length).toBeGreaterThanOrEqual(2)
+  })
+})
+
+describe('the catalog knows both files', () => {
+  // docs/ASSETS.md's own rule: an address not in the table as live and
+  // checked is not an address to put in a pitch. N3 sat there as proposed
+  // for three days; shipping it without moving the row is how a
+  // placeholder URL goes out.
   it('carries N3 with the real path and a status that is not proposed', () => {
-    const row = CATALOG.split('\n').find((l) => l.startsWith('| **N3**'))!
+    const row = CATALOG.split('\n').find((l) => l.startsWith('| **N3**') && !l.startsWith('| **N3-1page**'))!
     expect(row).toContain('niyyah-money-conversation-sheet.html')
+    expect(row).not.toContain('niyyah-money-conversation-sheet-1page.html')
+    expect(row).not.toContain('proposed')
+  })
+
+  it('carries N3-1page as its own row, not folded into N3’s', () => {
+    const row = CATALOG.split('\n').find((l) => l.startsWith('| **N3-1page**'))!
+    expect(row).toContain('niyyah-money-conversation-sheet-1page.html')
     expect(row).not.toContain('proposed')
   })
 })

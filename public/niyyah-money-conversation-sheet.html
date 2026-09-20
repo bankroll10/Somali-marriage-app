@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>The money conversation — a sheet for two people</title>
+    <title>The money conversation — a sheet for two people, from Niyyah</title>
     <meta
       name="description"
       content="A printable sheet for two adults considering marriage: mahr, the wedding, existing debt and ongoing family obligations, kept apart on purpose."
@@ -214,6 +214,20 @@
         color: #4a564f;
       }
 
+      /*
+        Print-only, repeated at the foot of every section. Chrome (and every
+        other engine) ignores @page margin-box content, so there is no CSS way
+        to put a running footer in the paper margin itself — the only way to
+        get one on every printed page is to place a real element at the end of
+        every section, since each section is its own page. Screen never shows
+        it: the real footer already carries this, once, in the document flow.
+        Plain text, not a link — the sheet's one clickable link stays the one
+        in the footer below.
+      */
+      .print-footer {
+        display: none;
+      }
+
       /* One column on a phone, and nothing that scrolls sideways. */
       @media (max-width: 700px) {
         .cols,
@@ -280,8 +294,8 @@
           page and pushed the mahr agreement box onto a sheet of its own.
         */
         header {
-          padding-bottom: 4mm;
-          margin-bottom: 4mm;
+          padding-bottom: 3mm;
+          margin-bottom: 3mm;
         }
 
         .lede {
@@ -350,6 +364,15 @@
         .screen-only {
           display: none;
         }
+
+        .print-footer {
+          display: block;
+          margin-top: 2mm;
+          padding-top: 1mm;
+          border-top: 0.5pt solid #000;
+          font-size: 7pt;
+          color: #000;
+        }
       }
     </style>
   </head>
@@ -360,7 +383,7 @@
         <h1>The money conversation</h1>
         <p class="lede">
           A sheet for two adults considering marriage, to work through before the
-          families are involved. Each of you answers in your own column.
+          families discuss numbers. Each of you answers in your own column.
         </p>
         <p class="lede">
           The four subjects are kept apart on purpose. Mahr is not the wedding.
@@ -371,6 +394,15 @@
         <p class="note screen-only">
           Nothing on this page is saved or sent. What you type stays in this
           window until you close it, and there is nothing to submit.
+        </p>
+        <p class="note screen-only">
+          Print this and write on it — typing here is fine, but long answers may
+          be cut off when printed.
+        </p>
+        <p class="note screen-only">
+          This is the four-page version — a full page per subject, room to
+          write. For the same questions on a single printed page, use
+          niyyah-money-conversation-sheet-1page.html instead.
         </p>
 
         <div class="who">
@@ -439,6 +471,8 @@
           <div><label for="s1-agree">What we agree on</label><textarea id="s1-agree" rows="3" autocomplete="off"></textarea></div>
           <div><label for="s1-open">What we’re still deciding</label><textarea id="s1-open" rows="3" autocomplete="off"></textarea></div>
         </div>
+
+        <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
 
       <!-- 2 -->
@@ -492,6 +526,8 @@
           <div><label for="s2-agree">What we agree on</label><textarea id="s2-agree" rows="3" autocomplete="off"></textarea></div>
           <div><label for="s2-open">What we’re still deciding</label><textarea id="s2-open" rows="3" autocomplete="off"></textarea></div>
         </div>
+
+        <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
 
       <!-- 3 -->
@@ -544,6 +580,8 @@
           <div><label for="s3-agree">What we agree on</label><textarea id="s3-agree" rows="3" autocomplete="off"></textarea></div>
           <div><label for="s3-open">What we’re still deciding</label><textarea id="s3-open" rows="3" autocomplete="off"></textarea></div>
         </div>
+
+        <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
 
       <!-- 4 -->
@@ -597,6 +635,8 @@
           <div><label for="s4-agree">What we agree on</label><textarea id="s4-agree" rows="3" autocomplete="off"></textarea></div>
           <div><label for="s4-open">What we’re still deciding</label><textarea id="s4-open" rows="3" autocomplete="off"></textarea></div>
         </div>
+
+        <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
 
       <footer>
