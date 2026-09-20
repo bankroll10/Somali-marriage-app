@@ -69,3 +69,13 @@ describe('the screens a stranger arrives on', () => {
     expect([...coach.matchAll(/setMode\(null\)/g)].length).toBeGreaterThanOrEqual(2)
   })
 })
+
+describe('a question you can back out of', () => {
+  it('steps question one of his eleven back to what the screen just said', () => {
+    // Back rendered only from question two, so Start committed him to eleven
+    // questions about his own marriage with no way back to the explanation.
+    const couple = readFileSync(join(SRC, 'components/Couple.tsx'), 'utf8')
+    expect(couple).toMatch(/index > 0 \? setIndex\(index - 1\) : setPhase\('intro'\)/)
+    expect(couple).not.toMatch(/\{index > 0 && \(/)
+  })
+})

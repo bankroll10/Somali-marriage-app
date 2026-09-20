@@ -220,11 +220,16 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                     </button>
                   ))}
                 </div>
-                {index > 0 && (
-                  <button onClick={() => setIndex(index - 1)} className="mt-5 text-sm font-medium text-muted underline-offset-4 hover:underline">
-                    Back
-                  </button>
-                )}
+                {/* Back existed from question two, so tapping Start committed
+                    him to eleven questions with no way back to what the screen
+                    had just told him. Read.tsx steps back to its intro from
+                    question one; this now does the same (docs/PLACE.md). */}
+                <button
+                  onClick={() => (index > 0 ? setIndex(index - 1) : setPhase('intro'))}
+                  className="mt-5 text-sm font-medium text-muted underline-offset-4 hover:underline"
+                >
+                  Back
+                </button>
               </div>
             </div>
           )
