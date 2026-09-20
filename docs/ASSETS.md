@@ -39,11 +39,11 @@ in a pitch.
 | **N2** | The eleven, to read and print — all of them, in a voice for two readers | `https://joinniyyah.com/guides/before-you-say-yes` | **live and checked** | 2026-09-17 |
 | **N2s** | Three of the eleven, one Letter page — the sample that goes in a pitch | `https://joinniyyah.com/guides/before-you-say-yes/sample` | **live and checked** | 2026-09-17 |
 | **N0** | The door — the honest count, for someone looking rather than talking | `https://joinniyyah.com/?door` | advertised but not fully inspected | — |
-| **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet (four pages, room to write) | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **built, not yet checked** | — |
-| **N3-1page** | The money conversation, condensed — the same twenty questions on a single printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html` | **built, not yet checked** | — |
-| **N3-note** | A half-page note for whoever hands N3 or N3-1page to a couple: when, how, what happens to it after, and that a Somali version exists | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **built, not yet checked** | — |
-| **N3-so** | The money conversation, in Somali — the same twenty questions, four pages, founder-reviewed and approved | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.html` | **built, not yet checked** | — |
-| **N3-1page-so** | The money conversation in Somali, condensed to one printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.html` | **built, not yet checked** | — |
+| **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet (four pages, room to write) | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **live and checked** | 2026-09-20 |
+| **N3-1page** | The money conversation, condensed — the same twenty questions on a single printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html` | **live and checked** | 2026-09-20 |
+| **N3-note** | A half-page note for whoever hands N3 or N3-1page to a couple: when, how, what happens to it after, and that a Somali version exists | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **live and checked** | 2026-09-20 |
+| **N3-so** | The money conversation, in Somali — the same twenty questions, four pages, founder-reviewed and approved | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.html` | **live and checked** | 2026-09-20 |
+| **N3-1page-so** | The money conversation in Somali, condensed to one printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.html` | **live and checked** | 2026-09-20 |
 
 ### What each one is for
 
@@ -102,9 +102,9 @@ and `…-1page-so.html`, with a plain-text twin at `…-sheet-so.txt`. The
 translation's reference record — what each line says, the terminology
 decisions, why a given phrasing was chosen — lives at
 `internal/translations/money-conversation-sheet.so.md` for whoever edits
-it next. Built, but the same rule as every other row here applies: neither
-URL is "live and checked" until a person opens it on a session-less
-device.
+it next. Checked 2026-09-20, the same way as every other row here: a
+session-less `curl -sI`, 200 on both addresses, after the merge that put
+them on `main` reached Netlify.
 
 ## Placements — the ledger
 
