@@ -324,35 +324,61 @@ filenames in favor of two plain lines — a border and padding cost more room
 on paper than the grouping was worth once each filename already reads as
 distinct set off by `<code>`.
 
-## A Somali translation exists — and stays unpublished until reviewed
+## A Somali translation exists — two AI passes in, zero human ones
 
-`internal/translations/money-conversation-sheet.so-DRAFT.md` is a
-machine-drafted Somali translation of the money conversation's full content
-— header, all four subjects, all twenty questions, both box labels, the
-legend, the footer. It is not built from, and it is a source for a future
-`niyyah-money-conversation-sheet-so.html`, not a preview of one.
+`internal/translations/money-conversation-sheet.so-DRAFT.md` carries the
+money conversation's full content — header, all four subjects, all twenty
+questions, both box labels, the legend, the footer — through two AI passes,
+both on 2026-09-20, neither performed by a human or a native/fluent Somali
+speaker. **Pass 1** was the first machine-drafted translation. **Pass 2**
+was an AI editorial review of all 49 rows against the English source,
+proposing corrections. It is not built from, and it is a source for a
+future `niyyah-money-conversation-sheet-so.html`, not a preview of one.
 
-**It is deliberately not a public asset.** `internal/` sits outside Vite's
-`publicDir`, so nothing in it is ever copied to `dist` or served — verified
-directly, not assumed (`tests/somali-gate.test.ts`). The file itself opens
-with an unmissable banner: unreviewed, machine-drafted, do not publish, do
-not link. The product's own existing convention for this — the `approved`
-field on every line in `src/data/somali.ts`, and `docs/PROTOCOL.md`'s rule
-that a Somali sentence ships only after being read aloud to a Somali person
-of the target age — already says a wrong word in Somali is a worse failure
-than a wrong word in English. This draft has not cleared that bar, and nothing
-here claims it has: no row was added to `docs/ASSETS.md` for it, the same
-discipline that kept N3 itself off that table while it was still proposed.
+**Pass 2 caught real direction errors in Pass 1, not just phrasing.** Two
+findings mattered most: `q3a`'s and `s3-framing`'s debt questions had the
+direction backwards — Pass 1's construction read as money the reader
+*has*, not money the reader *owes* — and `q1e`'s "who speaks for you" read
+as who speaks *about* you rather than *on behalf of* you. Both are now
+corrected (`lagugu leeyahay` / `lagu leeyahay` for the debt direction,
+`Yaa magacaaga ku hadlaya` for representation). A third finding is a
+content-rule clarification rather than a translation fix: Pass 1's note on
+`q4b` tried to phrase the question to avoid inviting a numeric answer,
+reading the sheet's own "no figures" rule (`tests/sheet.test.ts`, which
+bans the sheet's *own prose* from stating a figure or benchmark) as if it
+also barred the *reader's answer* from containing one — which the English
+source itself never does (`q2d`, `q2e`, `q3b` all explicitly ask for
+amounts). That over-caution is withdrawn in Pass 2, translating each
+number-inviting question the same way its English original asks it.
 
-The draft's own front matter names four open questions for whoever reviews
-it — the register for "you" (singular vs. the plural/formal used for the
-two of them together), whether *mahr*/*nikah*/*walima* keep their English
-spelling or take a Somali one, whether any line reads as translated rather
-than spoken, and whether the no-figures/no-advice content rules survive
-translation as cleanly as they read in English. None of those are questions
-this session could answer on its own — they need a native or fluent Somali
-speaker, the same requirement every other Somali line in the product
-already has.
+**It is deliberately still not a public asset.** `internal/` sits outside
+Vite's `publicDir`, so nothing in it is ever copied to `dist` or served —
+verified directly after every build, not assumed
+(`tests/somali-gate.test.ts`). The file's banner records both passes and
+says, in words a skim can't miss, that **no human or native-speaker
+approval is recorded anywhere in it** — a status the file states about
+itself, not a claim this doc makes on its behalf. The product's own
+existing convention for this — the `approved` field on every line in
+`src/data/somali.ts`, and `docs/PROTOCOL.md`'s rule that a Somali sentence
+ships only after being read aloud to a Somali person of the target age —
+already says a wrong word in Somali is a worse failure than a wrong word
+in English. Two AI passes have not cleared that bar, and nothing here
+claims they have: no row was added to `docs/ASSETS.md` for a Somali sheet,
+the same discipline that kept N3 itself off that table while it was still
+proposed.
+
+Pass 2 resolved Pass 1's four open questions (person/number register,
+*mahr*/*nikah*/*walima* spelling, voice, and content-rule neutrality — see
+the draft's own "Decisions" section for each) but opened four narrower
+ones of its own — whether "at home or abroad" in `lede-2` means anywhere
+outside a specific home country, whether `q2c`'s "because of you" means
+guests from the reader's side specifically, whether `q3d`'s "stay yours"
+correctly avoids implying a change in legal ownership, and whether the
+debt-direction construction reads naturally in every sentence it was
+applied to, not just the one it's attested for. None of those, and nothing
+else in the file, is answered by an AI pass — they need a native or fluent
+Somali speaker, the same requirement every other Somali line in the
+product already has.
 
 ## Where the rest lives
 

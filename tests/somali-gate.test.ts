@@ -54,6 +54,17 @@ describe('the money conversation sheet’s Somali draft stays internal', () => {
     expect(draft).toMatch(/has \*\*not\*\* been checked/i)
   })
 
+  it('records an AI editorial pass accurately as AI work, not as human or native-speaker approval', () => {
+    // A second pass (an AI editorial review against the English source)
+    // landed the same day as the first draft. It reads more confident than
+    // a first draft, which is exactly why the gate has to say — in words a
+    // skim can't miss — that neither pass is the human review this still
+    // needs.
+    expect(draft).toMatch(/No human or native-speaker approval is[\s>]+recorded/i)
+    expect(draft).toContain('AI editorial review')
+    expect(draft).not.toMatch(/native.speaker[- ]approved/i)
+  })
+
   it('lives outside public/, where Vite’s publicDir can never pick it up and serve it', () => {
     expect(DRAFT_PATH.startsWith('internal/')).toBe(true)
     expect(DRAFT_PATH.startsWith('public/')).toBe(false)
