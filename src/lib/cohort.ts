@@ -1,5 +1,6 @@
 import type { Gender, Reach } from '../types'
 import { keepMap, rememberedCode } from './keep'
+import { send } from './net'
 
 /**
  * The founding cohort, from her side.
@@ -19,7 +20,6 @@ import { keepMap, rememberedCode } from './keep'
  */
 
 const ENDPOINT = '/.netlify/functions/cohort'
-const TIMEOUT_MS = 10_000
 
 /** Mirrors the function. Shown on the door, so it lives in one place. */
 export const COHORT_TARGET = 40
@@ -85,17 +85,6 @@ export interface JoinInput {
   age?: number
 }
 
-async function withTimeout(input: string, init: RequestInit = {}): Promise<Response | null> {
-  const abort = new AbortController()
-  const timer = setTimeout(() => abort.abort(), TIMEOUT_MS)
-  try {
-    return await fetch(input, { ...init, signal: abort.signal })
-  } catch {
-    return null
-  } finally {
-    clearTimeout(timer)
-  }
-}
 
 function asSide(x: unknown): SideCount | null {
   if (!x || typeof x !== 'object') return null
@@ -117,7 +106,7 @@ function asCount(x: unknown): CohortCount | null {
 export async function cohortCount(scene: string, country?: string): Promise<CohortCount | null> {
   const query = new URLSearchParams({ scene })
   if (country) query.set('country', country)
-  const res = await withTimeout(`${ENDPOINT}?${query.toString()}`)
+  const res = await send(`${ENDPOINT}?${query.toString()}`)
   if (!res?.ok) return null
   try {
     return asCount(await res.json())
@@ -126,8 +115,11 @@ export async function cohortCount(scene: string, country?: string): Promise<Coho
   }
 }
 
+/** What came back from a join: her code, the count after it, and whether the way to reach her was stored. */
+export type JoinResult = { code: string; contactStored: boolean } & CohortCount
+
 async function postJoin(code: string, input: JoinInput): Promise<Response | null> {
-  return withTimeout(ENDPOINT, {
+  return send(ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code, ...input }),
@@ -146,7 +138,7 @@ async function postJoin(code: string, input: JoinInput): Promise<Response | null
  * edited since was counted as it had been, not as it was. If the re-keep
  * fails she is still counted under the code she already has.
  */
-export async function joinCohort(input: JoinInput): Promise<({ code: string } & CohortCount) | null> {
+export async function joinCohort(input: JoinInput): Promise<JoinResult | null> {
   const { age, ...place } = input
   const patch = age === undefined ? undefined : { identity: { age } }
   let code = (await keepMap(patch)) ?? rememberedCode()
@@ -162,10 +154,15 @@ export async function joinCohort(input: JoinInput): Promise<({ code: string } & 
   }
   if (!res?.ok) return null
   try {
-    const body = (await res.json()) as { code?: string }
+    const body = (await res.json()) as { code?: string; contactStored?: boolean }
     const count = asCount(body)
     if (!count || typeof body.code !== 'string') return null
-    return { code: body.code, ...count }
+    // The server writes the way to reach her in a try of its own, so being
+    // counted cannot fail because the list did — and it used to answer 200
+    // either way, which meant she read "You're counted" with nothing able to
+    // reach her (docs/FAIL.md). An older server that does not send this is
+    // read as true, the behaviour before the field existed.
+    return { code: body.code, ...count, contactStored: body.contactStored !== false }
   } catch {
     return null
   }

@@ -1,6 +1,7 @@
 import { rememberedCode } from './keep'
 import { rememberedInstallId } from './progress'
 import { clearProgress, loadProgress } from './storage'
+import { send } from './net'
 
 /**
  * Forget me.
@@ -28,7 +29,6 @@ import { clearProgress, loadProgress } from './storage'
 const KEEP = '/.netlify/functions/keep'
 const PROGRESS = '/.netlify/functions/progress'
 const COUPLE = '/.netlify/functions/couple'
-const TIMEOUT_MS = 10_000
 
 /** Every key this app writes. Kept in one place so nothing is left behind. */
 export const LOCAL_KEYS = [
@@ -41,19 +41,14 @@ export const LOCAL_KEYS = [
   // A read or an eleven she was part-way through — see src/lib/draft.ts.
   // Forget me promises the phone is cleared, and this is on the phone.
   'niyyah.draft.v1',
+  // The coded link this device is part-way through — see src/lib/entry.ts.
+  'niyyah.entry.v1',
 ]
 
 async function del(url: string): Promise<boolean> {
-  const abort = new AbortController()
-  const timer = setTimeout(() => abort.abort(), TIMEOUT_MS)
-  try {
-    const res = await fetch(url, { method: 'DELETE', signal: abort.signal })
-    return res.ok || res.status === 404
-  } catch {
-    return false
-  } finally {
-    clearTimeout(timer)
-  }
+  const res = await send(url, { method: 'DELETE' })
+  // A 404 is success: there was nothing there to forget.
+  return !!res && (res.ok || res.status === 404)
 }
 
 export interface Forgotten {
@@ -77,6 +72,19 @@ export async function forgetMe(): Promise<Forgotten> {
     id ? del(`${PROGRESS}?id=${encodeURIComponent(id)}`) : Promise.resolve(true),
     pair ? del(`${COUPLE}?code=${encodeURIComponent(pair)}`) : Promise.resolve(true),
   ])
+  clearEverything()
+  return { map, progress, couple }
+}
+
+/**
+ * Take every key this app writes off this phone.
+ *
+ * Shared with the error screen's "Start completely fresh", which used to call
+ * `clearProgress` alone and leave the kept code behind — the exact
+ * irreversible-overwrite path `useNiyyah`'s own startFresh documents
+ * (docs/FAIL.md).
+ */
+export function clearEverything(): void {
   clearProgress()
   for (const key of LOCAL_KEYS) {
     try {
@@ -85,5 +93,4 @@ export async function forgetMe(): Promise<Forgotten> {
       /* storage refused; there is nothing more to do than try */
     }
   }
-  return { map, progress, couple }
 }

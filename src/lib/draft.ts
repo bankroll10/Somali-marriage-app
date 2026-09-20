@@ -40,7 +40,14 @@ export const STALE_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
 
 /** The two instruments a person can be dropped out of mid-way. */
-export type DraftKind = 'read' | 'eleven'
+/**
+ * 'couple' is his side of the eleven, on his own phone, from her link. It had
+ * no draft at all: every answer lived in React state until the eleventh, so a
+ * reload, a backgrounded tab or a lost connection cost him all of them — and
+ * the code went with them, because the query is stripped from the bar
+ * (docs/FAIL.md).
+ */
+export type DraftKind = 'read' | 'eleven' | 'couple'
 
 export interface Draft {
   /** Answers so far, by question id. */

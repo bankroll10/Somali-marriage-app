@@ -101,13 +101,16 @@ these live in the repository, and none should.
 | `COHORT_HOURLY_CAP` | Joins the door will count in one hour, from everyone. | `200`. See `docs/SCALE.md`. |
 | `KEEP_HOURLY_CAP` | Maps kept in one hour — the cheapest way to spend a free plan's storage, bounded. | `300` |
 | `VOUCH_HOURLY_CAP` | Vouch links minted and vouches given in one hour. | `100` |
-| `COUPLE_HOURLY_CAP` | Elevens *started* in one hour. His answer is never capped. | `200` |
+| `COUPLE_HOURLY_CAP` | Elevens *started* in one hour. | `200` |
 | `SAFETY_HOURLY_CAP` | Reports filed in one hour — a flood is the one way to bury a real one. | `30` |
 | `PROGRESS_HOURLY_CAP` | Rung reports in one hour — a loop of made-up install codes is the cheapest way to make the readout time out. | `1000` |
 | `RESTORE_HOURLY_CAP` | Maps **restored** in one hour. A six-character code is the sole authenticator for a map, so an unmetered read is an enumeration surface — see `docs/HARD.md`. | `600` |
 | `FORGET_HOURLY_CAP` | Maps **forgotten** in one hour. Possession of the code is the authority, so this one deletes across five stores. | `600` |
 | `COUPLE_READ_HOURLY_CAP` | Joint sheets read back in one hour. | `600` |
 | `DOOR_HOURLY_CAP` | Public door counts in one hour — the one open route that walks a whole prefix of the store on every call. | `600` |
+| `COUPLE_ANSWER_HOURLY_CAP` | His answers to the eleven, in one hour. This row said *"his answer is never capped"* until 2026-09-20; it has been capped since the write-paths pass, and three live knobs were undocumented (`docs/FAIL.md`). | `600` |
+| `COUPLE_FORGET_HOURLY_CAP` | Joint sheets deleted in one hour — forget me reaches this store too. | `600` |
+| `PROGRESS_FORGET_HOURLY_CAP` | Rung records deleted in one hour, the progress half of forget me. | `600` |
 
 Every `*_HOURLY_CAP` and `*_DAILY_CAP` is a circuit breaker, not a member
 limit: one counter per route per period, with no identity attached, refused

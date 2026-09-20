@@ -137,12 +137,22 @@ export default async function handler(req: Request) {
       // here. The couple record is deleted just above; a report left behind
       // points at a sheet that is gone, which is what the founder's queue
       // shows. Resolved stubs carry no code and nothing of hers, and stay.
-      if (coupleCode.length === CODE_LENGTH && ownSide) {
-        const { blobs } = await reports.list({ prefix: `${coupleCode}-${ownSide}-` })
-        for (const { key } of blobs) await reports.delete(key)
+      // When the side is unknown there is no safe prefix to delete under, so
+      // her reports stay — and this used to answer `{ forgotten: true }`
+      // anyway. Trust's promise must not be reported kept when part of it was
+      // skipped, so the one case that leaves her words behind says so
+      // (docs/FAIL.md).
+      let reportsTaken = true
+      if (coupleCode.length === CODE_LENGTH) {
+        if (ownSide) {
+          const { blobs } = await reports.list({ prefix: `${coupleCode}-${ownSide}-` })
+          for (const { key } of blobs) await reports.delete(key)
+        } else {
+          reportsTaken = false
+        }
       }
       await store.delete(code)
-      return Response.json({ forgotten: true })
+      return Response.json({ forgotten: true, reportsTaken })
     } catch (err) {
       console.error('[niyyah] keep: forget failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })

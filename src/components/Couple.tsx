@@ -1,15 +1,19 @@
 import { useEffect, useState } from 'react'
 import type { Gender } from '../types'
 import { STATES, beforeYesTopics } from '../data/beforeYes'
-import { answerCouple, coupleReading, readCouple, type CoupleView } from '../lib/couple'
+import { answerCouple, coupleReading, readCoupleDetail, type CoupleView } from '../lib/couple'
+import type { Why } from '../lib/net'
+import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
-import { ArrowRight, Button, Logo } from './ui'
+import { ArrowRight, Button, Logo , NotSaving, Spinner} from './ui'
 
 interface Props {
   code: string
+  /** False when this browser refuses to persist — the draft on this screen will not survive the tab. */
+  saveOk?: boolean
   /**
    * True when this is the link *this device* sent — she has tapped her own
    * link, which is the first thing most people do after sending one. Without
@@ -30,7 +34,7 @@ interface Props {
   onHome: () => void
 }
 
-type Phase = 'loading' | 'dead' | 'answered-already' | 'intro' | 'asking' | 'joint'
+type Phase = 'loading' | 'dead' | 'unreachable' | 'answered-already' | 'intro' | 'asking' | 'joint'
 
 /**
  * His screen.
@@ -44,21 +48,28 @@ type Phase = 'loading' | 'dead' | 'answered-already' | 'intro' | 'asking' | 'joi
  * things that make him a member: a read on her, and his own map. That is how
  * the scarce side of this marketplace arrives — through the side we already have.
  */
-export default function Couple({ code, yours = false, onAnswered, onBegan, onRead, onBuildMap, onHome }: Props) {
+export default function Couple({ code, yours = false, onAnswered, onBegan, onRead, onBuildMap, onHome, saveOk = true }: Props) {
   const [phase, setPhase] = useState<Phase>('loading')
   // The eleventh answer is a network write. Without this a second tap fired it
   // twice, the second came back 409, and the screen went blank (docs/NORMAN.md).
   const [sending, setSending] = useState(false)
   const [answerFor, setAnswerFor] = useState<Gender>('man')
-  const [picked, setPicked] = useState<Record<string, string>>({})
+  // Read once, on the way in. His answers used to live only here, so a reload
+  // or a backgrounded tab cost him all of them (docs/FAIL.md).
+  const [draft] = useState(() => loadDraft('couple'))
+  const [picked, setPicked] = useState<Record<string, string>>(() => draft?.answers ?? {})
   const [index, setIndex] = useState(0)
   const [view, setView] = useState<CoupleView | null>(null)
+  // Why the last send did not go — kept apart from the link being dead.
+  const [sendFailed, setSendFailed] = useState<Why | null>(null)
 
   useEffect(() => {
     let live = true
-    readCouple(code).then((v) => {
+    readCoupleDetail(code).then((v) => {
       if (!live) return
-      if (!v) setPhase('dead')
+      // Only the server actually saying there is nothing there makes a link
+      // dead. Everything else is us.
+      if (typeof v === 'string') setPhase(v === 'not-found' || v === 'expired' || v === 'not-a-code' ? 'dead' : 'unreachable')
       else if (v.status === 'joint') {
         setView(v)
         setPhase('answered-already')
@@ -83,6 +94,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
     const next = { ...picked, [t.id]: stateId }
     setPicked(next)
     if (index + 1 < topics.length) {
+      saveDraft('couple', next, answerFor)
       setIndex(index + 1)
       return
     }
@@ -93,10 +105,21 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
       setPhase('answered-already')
       return
     }
-    if (!result) {
-      setPhase('dead')
+    if (typeof result === 'string') {
+      // A timeout is not a dead link. This used to drop him on "This link
+      // isn't working — it may have expired, or been copied wrong" and throw
+      // away all eleven answers, on the eleventh tap, for a two-second blip
+      // on someone else's phone (docs/FAIL.md). His answers are still in
+      // `picked`; he stays exactly where he is and taps again.
+      if (result === 'not-found' || result === 'expired' || result === 'not-a-code') {
+        setPhase('dead')
+        return
+      }
+      setSendFailed(result)
       return
     }
+    setSendFailed(null)
+    clearDraft('couple')
     track('couple_answered')
     onAnswered(next, answerFor)
     setView(result)
@@ -112,7 +135,29 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
         </div>
       </header>
       <main className="mx-auto max-w-xl px-6">
+        {!saveOk && <NotSaving what="your answers" className="mt-6" />}
         {phase === 'loading' && <p className="py-16 text-center text-[0.95rem] text-muted">One moment.</p>}
+
+        {phase === 'unreachable' && (
+          <div className="py-12">
+            <h1 className="font-display text-[1.8rem] font-medium leading-tight tracking-tight text-ink text-balance">
+              We couldn’t open this just now.
+            </h1>
+            <p className="mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
+              That is us, not the link — it may be perfectly good. Nothing has been lost. Try again in a moment, and if
+              it keeps happening, ask {senderObj} to send it again.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Button onClick={() => window.location.reload()}>Try again</Button>
+              <button
+                onClick={onHome}
+                className="px-2 py-2 text-[0.88rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+              >
+                What Niyyah is
+              </button>
+            </div>
+          </div>
+        )}
 
         {phase === 'dead' && (
           <div className="py-12">
@@ -172,8 +217,17 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
               ))}
             </ul>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Button onClick={() => { track('couple_started'); onBegan(); setPhase('asking') }} className="group">
-                Start
+              <Button
+                onClick={() => {
+                  track('couple_started')
+                  onBegan()
+                  // Back to the first he has not answered, never a count.
+                  setIndex(resumeIndex(topics.map((t) => t.id), picked))
+                  setPhase('asking')
+                }}
+                className="group"
+              >
+                {answeredOf(topics.map((t) => t.id), picked) > 0 ? 'Pick up where you left off' : 'Start'}
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </Button>
               {/* Someone sent him this. Being able to say no to a stranger's
@@ -207,8 +261,15 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                     <button
                       key={s.id}
                       onClick={() => choose(s.id)}
+                      // `sending` guarded the eleventh answer and was never
+                      // rendered — no spinner, no disabled state — so the tap
+                      // that fires a ten-second network write looked exactly
+                      // like the ten before it. That missing feedback is what
+                      // produced the second tap the guard exists for
+                      // (docs/FAIL.md).
+                      disabled={sending}
                       style={{ animationDelay: `${i * 40}ms` }}
-                      className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 ${
+                      className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 disabled:opacity-60 ${
                         chosen === s.id ? 'border-forest bg-forest text-cream shadow-lift' : 'border-line bg-white/50 text-ink hover:border-forest/40 hover:bg-white'
                       }`}
                     >
@@ -220,6 +281,17 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                     </button>
                   ))}
                 </div>
+                {sending && (
+                  <p role="status" className="mt-5 flex items-center gap-2 text-[0.88rem] text-muted">
+                    <Spinner /> Sending your answers…
+                  </p>
+                )}
+                {sendFailed && (
+                  <p role="status" className="mt-4 text-[0.88rem] leading-relaxed text-clay text-pretty">
+                    That didn’t send — the link is fine and your answers are still here. Tap your answer again in a
+                    moment.
+                  </p>
+                )}
                 {/* Back existed from question two, so tapping Start committed
                     him to eleven questions with no way back to what the screen
                     had just told him. Read.tsx steps back to its intro from

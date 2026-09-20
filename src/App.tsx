@@ -29,6 +29,7 @@ import { READER_OF } from './data/tools'
 import { buildRead, readSummary } from './lib/read'
 import { beforeYesSummary, buildBeforeYes } from './lib/beforeYes'
 import { useNiyyah } from './hooks/useNiyyah'
+import { forgetEntry } from './lib/entry'
 
 export default function App({ entry = null }: { entry?: Entry | null }) {
   const n = useNiyyah(entry)
@@ -94,7 +95,12 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     const built = buildBeforeYes(n.beforeYes.answers, n.identity.gender ?? 'woman')
     return built ? beforeYesSummary(built) : undefined
   })()
-  const backHome = () => n.setScreen(n.hasHome ? 'home' : 'welcome')
+  const backHome = () => {
+    // Leaving a coded link is the moment it stops being the screen a reload
+    // should land on (src/lib/entry.ts).
+    forgetEntry()
+    n.setScreen(n.hasHome ? 'home' : 'welcome')
+  }
 
   const welcome = (
     <Welcome
@@ -349,6 +355,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     case 'read':
       return (
         <Read
+          saveOk={n.saveOk}
           identity={n.identity}
           saved={n.read}
           onSave={n.setRead}
@@ -368,6 +375,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     case 'beforeYes':
       return (
         <BeforeYes
+          saveOk={n.saveOk}
           identity={n.identity}
           answers={n.answers}
           saved={n.beforeYes}
@@ -391,6 +399,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       if (!n.entryCode) return welcome
       return (
         <Couple
+          saveOk={n.saveOk}
           code={n.entryCode}
           // Her own link, opened on her own phone (docs/NIELSEN.md N1).
           yours={n.couple?.code === n.entryCode}
@@ -408,7 +417,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     case 'vouch':
       // A family member arrived on her link. No identity, no account: one screen.
       if (!n.entryCode) return welcome
-      return <Vouch code={n.entryCode} onDone={backHome} />
+      return <Vouch saveOk={n.saveOk} code={n.entryCode} onDone={backHome} />
 
     case 'families':
       return <Families gender={n.identity.gender} stage={n.stage} onTaken={n.noteFamilyScript} onBack={backHome} />

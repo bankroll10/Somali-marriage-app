@@ -13,10 +13,12 @@ import ScriptCard from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
-import { ArrowRight, Button, Disclose, ScreenHeader, Words } from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, Words , NotSaving} from './ui'
 
 interface Props {
   identity: Identity
+  /** False when this browser refuses to persist — the draft on this screen will not survive the tab. */
+  saveOk?: boolean
   /** Her own map, so "your side" can be read back where it already knows it. */
   answers: Answers
   saved: ReadRecord | null
@@ -64,6 +66,7 @@ export default function BeforeYes({
   onCouple,
   onBack,
   onTrust,
+  saveOk = true,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender)
   const [phase, setPhase] = useState<Phase>('intro')
@@ -138,6 +141,7 @@ export default function BeforeYes({
     return (
       <Shell onBack={onBack} title="Before you say yes">
         <div className="py-9">
+{!saveOk && <NotSaving what="your answers" className="mb-6" />}
           <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">About two minutes</p>
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
             {intro ?? 'The conversations most of us have too late.'}
@@ -514,20 +518,31 @@ function Together({
   onCouple: (state: CoupleState) => void
 }) {
   const [state, setState] = useState<'idle' | 'sending' | 'error'>('idle')
-  const [view, setView] = useState<CoupleView | null>(null)
+  // 'asking' until the read lands. Null used to mean both "we have not looked
+  // yet or could not" and "he has not answered", so a 503 rendered "He hasn't
+  // answered yet" about a man who may have answered days ago (docs/FAIL.md).
+  const [view, setView] = useState<CoupleView | 'asking' | 'unreachable' | null>('asking')
   const [shared, setShared] = useState(false)
   const he = pronoun === 'him' ? 'he' : 'she'
 
+  // `tries` is in the deps so a retry actually re-runs: the old effect
+  // depended on [couple] alone, which never changes when a read fails, so one
+  // bad answer meant no further check for the rest of the session.
+  const [tries, setTries] = useState(0)
   useEffect(() => {
-    if (!couple) return
+    if (!couple) {
+      setView(null)
+      return
+    }
     let live = true
+    setView('asking')
     readCouple(couple.code).then((v) => {
-      if (live) setView(v)
+      if (live) setView(v ?? 'unreachable')
     })
     return () => {
       live = false
     }
-  }, [couple])
+  }, [couple, tries])
 
   async function share(code: string) {
     const result = await shareOrCopy(
@@ -556,7 +571,7 @@ function Together({
     void share(code)
   }
 
-  if (couple && view?.status === 'joint') {
+  if (couple && typeof view === 'object' && view?.status === 'joint') {
     const r = coupleReading(view.joint, gender)
     return (
       <div className="animate-rise mt-9 rounded-card border border-forest/25 bg-forest/[0.05] p-6">
@@ -582,16 +597,32 @@ function Together({
   return (
     <div className="animate-rise mt-9 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
-        {couple ? `Waiting for ${pronoun}` : `Ask ${pronoun} to do this too`}
+        {!couple ? `Ask ${pronoun} to do this too` : view === 'asking' ? 'Checking' : view === 'unreachable' ? 'Couldn’t check' : `Waiting for ${pronoun}`}
       </p>
       <p className="mt-2 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">
-        {couple ? `${he === 'he' ? 'He' : 'She'} hasn’t answered yet.` : 'See where the two of you actually stand.'}
+        {!couple
+          ? 'See where the two of you actually stand.'
+          : view === 'asking'
+            ? `Looking for ${pronoun === 'him' ? 'his' : 'her'} answers…`
+            : view === 'unreachable'
+              ? `We couldn’t check whether ${he} has answered.`
+              : `${he === 'he' ? 'He' : 'She'} hasn’t answered yet.`}
       </p>
       <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-        {couple
-          ? `When ${he} does, you both see only where you match — and where one of you thinks a conversation happened and the other doesn’t. Send the link again if it got lost.`
-          : `Send ${pronoun} a link. ${he === 'he' ? 'He' : 'She'} answers the same eleven on ${he === 'he' ? 'his' : 'her'} own — no account, no name — and ${he} never sees your answers. Neither of you sees the other’s. You both see only where you match, and which conversation one of you thinks you’ve had that the other doesn’t.`}
+        {!couple
+          ? `Send ${pronoun} a link. ${he === 'he' ? 'He' : 'She'} answers the same eleven on ${he === 'he' ? 'his' : 'her'} own — no account, no name — and ${he} never sees your answers. Neither of you sees the other’s. You both see only where you match, and which conversation one of you thinks you’ve had that the other doesn’t.`
+          : view === 'unreachable'
+            ? `That is us, not ${pronoun} — the link is fine and your answers are safe. ${he === 'he' ? 'He' : 'She'} may well have answered. Try again in a moment.`
+            : `When ${he} does, you both see only where you match — and where one of you thinks a conversation happened and the other doesn’t. Send the link again if it got lost.`}
       </p>
+      {view === 'unreachable' && (
+        <button
+          onClick={() => setTries((n) => n + 1)}
+          className="mt-3 inline-flex items-center gap-2 rounded-full border border-gold/40 px-4 py-2 text-[0.85rem] font-medium text-forest transition hover:bg-gold/[0.08]"
+        >
+          Check again
+        </button>
+      )}
       <button
         onClick={() => (couple ? share(couple.code) : ask())}
         disabled={state === 'sending'}

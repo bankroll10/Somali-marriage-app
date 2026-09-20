@@ -481,3 +481,27 @@ export function Words({ ids, className = '' }: { ids: TermId[]; className?: stri
     </Disclose>
   )
 }
+
+/**
+ * This browser is refusing to save anything.
+ *
+ * Private browsing, full storage, or a blocked origin. It used to appear on
+ * three screens of twenty-three — and not on the read, the eleven, the couple
+ * sheet or the vouch form, which are the four a stranger arrives on from
+ * somebody else's link and the only ones carrying a draft to lose
+ * (docs/FAIL.md).
+ *
+ * `what` names the thing at risk on this screen, because "your progress" means
+ * nothing to a man answering eleven questions about his own marriage.
+ */
+export function NotSaving({ what, className = '' }: { what: string; className?: string }) {
+  return (
+    <div role="status" className={`rounded-2xl border border-clay/40 bg-clay/[0.07] px-4 py-3 ${className}`}>
+      <p className="text-[0.84rem] leading-snug text-ink-soft text-pretty">
+        <span className="font-medium text-ink">This browser isn’t saving anything.</span> Private browsing or full
+        storage does that, so {what} will be gone when you close the tab. Finish in one sitting, or switch off private
+        browsing first.
+      </p>
+    </div>
+  )
+}

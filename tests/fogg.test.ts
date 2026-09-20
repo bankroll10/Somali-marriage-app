@@ -51,7 +51,7 @@ describe('a draft is an obstacle removed, not a hook', () => {
     // things they have not finished. That is the line this pass does not
     // cross: the draft exists so leaving costs nothing, never so that leaving
     // is punished (src/lib/draft.ts, docs/FOGG.md).
-    const ALLOWED = new Set(['lib/draft.ts', 'components/Read.tsx', 'components/BeforeYes.tsx', 'hooks/useNiyyah.ts'])
+    const ALLOWED = new Set(['lib/draft.ts', 'components/Read.tsx', 'components/BeforeYes.tsx', 'components/Couple.tsx', 'hooks/useNiyyah.ts'])
     const readers = sources()
       .filter(({ text }) => /from '\.\.?\/(lib\/)?draft'/.test(text))
       .map(({ file }) => file.replace(/\\/g, '/'))

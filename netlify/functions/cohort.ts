@@ -324,16 +324,22 @@ export default async function handler(req: Request) {
     // The way to reach her, to its own store. After the count, and in its own
     // try: being counted is what she asked for, and it must not fail because
     // the list did. Joining again with a new address replaces the old one.
+    let contactStored = true
     if (contact) {
       try {
         const reach: ContactRecord = { contact, scene, country, at: day() }
         await getStore('contacts').setJSON(code, stamp(reach))
       } catch (err) {
         console.error('[niyyah] cohort: contact write failed', err)
+        // Say so. Being counted still succeeded and must not be undone, but
+        // the response used to be identical either way, so she read "You're
+        // counted" with the way to reach her never written — and no readout
+        // could show it, because nothing returns this store (docs/FAIL.md).
+        contactStored = false
       }
     }
 
-    return Response.json({ code, ...(await countPool(store, country, scene)) })
+    return Response.json({ code, ...(await countPool(store, country, scene)), contactStored })
   } catch (err) {
     console.error('[niyyah] cohort: join failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })

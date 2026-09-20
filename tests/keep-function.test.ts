@@ -153,7 +153,7 @@ describe('keeping a map', () => {
 
     const res = await forget('ACDEFG')
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ forgotten: true })
+    expect(await res.json()).toEqual({ forgotten: true, reportsTaken: true })
     expect(stores.get('maps')!.has('ACDEFG')).toBe(false)
     expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
     expect([...stores.get('vouches')!.keys()]).toEqual([])
@@ -171,6 +171,25 @@ describe('keeping a map', () => {
     // Nothing left to forget.
     expect((await forget('ACDEFG')).status).toBe(404)
     expect((await get('ACDEFG')).status).toBe(404)
+  })
+
+  it('says so when it cannot take her reports, rather than reporting the promise kept', async () => {
+    // Reports are keyed by the side that filed them, so without a side there
+    // is no safe prefix to delete under — taking both would let a reported man
+    // erase the report about himself. The cascade skipped them and answered
+    // `{ forgotten: true }` anyway, which is Trust's promise reported kept
+    // when part of it was not (docs/FAIL.md).
+    seed('ACDEFG', { identity: { firstName: 'Sagal' }, couple: { code: 'HJKMNP', at: 'x' } })
+    memStore('couples'); memStore('vouches'); memStore('cohort'); memStore('contacts')
+    memStore('reports')
+    stores.get('reports')!.set('HJKMNP-woman-ACDEFG', JSON.stringify({ id: 'ACDEFG', code: 'HJKMNP', side: 'woman', reason: 'threats', at: 'd' }))
+
+    const res = await forget('ACDEFG')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ forgotten: true, reportsTaken: false })
+    // The phone and the map are gone either way; only the report stayed.
+    expect(stores.get('maps')!.has('ACDEFG')).toBe(false)
+    expect(stores.get('reports')!.has('HJKMNP-woman-ACDEFG')).toBe(true)
   })
 
   it('a man’s forget me leaves her report about him exactly where it was', async () => {

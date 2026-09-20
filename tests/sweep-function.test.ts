@@ -19,7 +19,15 @@ function memStore(name: string) {
       const v = m.get(key) ?? null
       return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
     },
-    set: async (key: string, value: string) => void m.set(key, value),
+    // Conditional options work here too: the real store returns { modified }
+    // from `set` exactly as it does from `setJSON`, and vouch.ts now claims
+    // `asked/<code>` with onlyIfNew so no token can outlive forget me.
+    set: async (key: string, value: string, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
+      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
+      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
+      m.set(key, value)
+      return { modified: true }
+    },
     setJSON: async (key: string, value: unknown) => void m.set(key, JSON.stringify(value)),
     delete: async (key: string) => void m.delete(key),
   }

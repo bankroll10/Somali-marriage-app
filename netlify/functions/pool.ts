@@ -196,9 +196,21 @@ async function health(cohort: Store, maps: Store, pool: Pool, contacts: Store, s
     members
       .filter((m) => !m.live)
       .map(async (m) => {
-        swept[m.side] += 1
-        if (!sweep) return
-        await cohort.delete(m.key).catch(() => {})
+        if (!sweep) {
+          // Counting what would go, having touched nothing.
+          swept[m.side] += 1
+          return
+        }
+        // Counted only once the member key is actually gone. It used to be
+        // incremented before any delete was attempted, and every delete here
+        // swallows its own failure — so the founder could be told N were
+        // swept, with `sweptForReal: true`, having removed nothing at all
+        // (docs/FAIL.md).
+        const gone = await cohort
+          .delete(m.key)
+          .then(() => true)
+          .catch(() => false)
+        if (gone) swept[m.side] += 1
         await cohort.delete(`index/${m.code}`).catch(() => {})
         if (m.expired) await maps.delete(m.code).catch(() => {})
         // The way to reach her lives exactly as long as her map. It used to

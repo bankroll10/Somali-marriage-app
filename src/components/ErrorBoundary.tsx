@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from 'react'
-import { clearProgress } from '../lib/storage'
+import { clearEverything } from '../lib/forget'
 
 interface Props {
   children: ReactNode
@@ -58,7 +58,15 @@ export default class ErrorBoundary extends Component<Props, State> {
             </button>
             <button
               onClick={() => {
-                clearProgress()
+                // Every key, not just the saved state. `clearProgress` leaves
+                // `niyyah.keep.code.v1` behind, and useNiyyah's own startFresh
+                // documents why that is a data-loss bug: KeepMap reads the code
+                // from storage on mount, shows "Your map is kept" under a code
+                // whose map is gone, and the next tap re-keys it — overwriting
+                // the real map with the empty one, irreversibly. This button is
+                // offered to someone already in a broken state, so it was the
+                // worst place left to still reach it (docs/FAIL.md).
+                clearEverything()
                 window.location.reload()
               }}
               className="text-sm text-cream/50 underline-offset-4 transition hover:text-cream hover:underline"

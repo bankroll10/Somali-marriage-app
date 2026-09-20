@@ -3,8 +3,8 @@ import type { Gender, Identity } from '../types'
 import { countryFor, getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
 import { hesitationOptions, type Hesitation } from '../data/hesitation'
-import { cohortCount, opensWhen, type CohortCount } from '../lib/cohort'
-import { DoorCount } from './Cohort'
+import { cohortCount, opensWhen } from '../lib/cohort'
+import { DoorCount, type CountState } from './Cohort'
 import { ArrowRight, ScreenHeader, fieldClass } from './ui'
 
 interface Props {
@@ -65,7 +65,7 @@ export default function Door({
 }: Props) {
   const [scene, setScene] = useState(identity.scene ?? '')
   const [namedCountry, setNamedCountry] = useState(identity.country ?? '')
-  const [count, setCount] = useState<CohortCount | null>(null)
+  const [count, setCount] = useState<CountState>('loading')
   const [hesitating, setHesitating] = useState<'closed' | 'open' | 'said'>('closed')
 
   const country = countryFor({ scene, country: identity.country }) ?? (scene === 'other' ? namedCountry : '')
@@ -74,8 +74,13 @@ export default function Door({
   useEffect(() => {
     if (!scene || !country) return
     let live = true
+    setCount('loading')
     cohortCount(scene, country).then((c) => {
-      if (live) setCount(c)
+      // 'loading' and 'unreachable' are different sentences: this screen is
+      // where a stranger from a mosque group lands, and it used to greet them
+      // with "The count isn't reachable right now" while it was reading it
+      // (docs/FAIL.md).
+      if (live) setCount(c ?? 'unreachable')
     })
     return () => {
       live = false
@@ -145,7 +150,7 @@ export default function Door({
                 value={scene}
                 onChange={(e) => {
                   setScene(e.target.value)
-                  setCount(null)
+                  setCount('loading')
                   if (e.target.value) onScene(e.target.value)
                 }}
                 aria-label="Your community"
@@ -164,7 +169,7 @@ export default function Door({
                 value={namedCountry}
                 onChange={(e) => {
                   setNamedCountry(e.target.value)
-                  setCount(null)
+                  setCount('loading')
                   if (e.target.value) onCountry(e.target.value)
                 }}
                 aria-label="Your country"

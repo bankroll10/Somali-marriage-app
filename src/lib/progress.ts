@@ -17,6 +17,7 @@ import { VIAS, type Via } from './entry'
 import type { Facts } from './facts'
 import type { Gender } from '../types'
 import { ALPHABET, CODE_LENGTH } from './code'
+import { send } from './net'
 
 const ENDPOINT = '/.netlify/functions/progress'
 const TIMEOUT_MS = 8_000
@@ -109,10 +110,9 @@ export async function reportRungs(
   // Sent on every report, not once: the first POST may fail offline, and the
   // server keeps the first via it was ever told, so repeating it changes nothing.
   const via = rememberedVia()
-  const abort = new AbortController()
-  const timer = setTimeout(() => abort.abort(), TIMEOUT_MS)
-  try {
-    await fetch(ENDPOINT, {
+  await send(
+    ENDPOINT,
+    {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -127,13 +127,12 @@ export async function reportRungs(
         ...(gender ? { gender } : {}),
         ...(some ? { facts: some } : {}),
       }),
-      signal: abort.signal,
-    })
-  } catch {
-    // Unreachable, offline, or blocked. Nothing here is worth a retry.
-  } finally {
-    clearTimeout(timer)
-  }
+    },
+    // Eight seconds, not ten: this is the one call nobody is waiting on, and
+    // it must never hold a page. Unreachable, offline or blocked, the result
+    // is discarded either way.
+    TIMEOUT_MS,
+  )
 }
 
 /** Test seam: forget what this tab has already sent. */

@@ -105,6 +105,7 @@ describe('forget me', () => {
     expect(LOCAL_KEYS.sort()).toEqual(
       [
         'niyyah.draft.v1',
+        'niyyah.entry.v1',
         'niyyah.events.v1',
         'niyyah.install.v1',
         'niyyah.intake.v1',
