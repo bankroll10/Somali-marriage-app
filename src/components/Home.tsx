@@ -179,7 +179,7 @@ export default function Home({
                 <span className="font-medium text-ink-soft">{scene.label}</span> · {scene.note}
               </>
             ) : (
-              'Welcome back to your space.'
+              'Welcome back.'
             )}
           </p>
         </section>
@@ -317,7 +317,7 @@ export default function Home({
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
                 {hasRead
                   ? 'Open it again, or take it fresh — things change, and so does what they’ve shown you.'
-                  : 'Ninety seconds on what they’ve actually done, and the one question to ask them next.'}
+ : 'Ninety seconds on what they’ve done, and the one question to ask them next.'}
               </span>
             </span>
             <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
@@ -356,7 +356,7 @@ export default function Home({
                   ? `${answerer} answered the eleven on ${answerer === 'He' ? 'his' : 'her'} own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
                   : hasBeforeYes
                     ? 'The conversations you’ve had, the ones you haven’t, and the one to open next.'
-                    : 'Eleven conversations that decide a Somali marriage — where you’d live, money home, a second wife — and which one to open this week.'}
+                    : 'Eleven conversations most couples have too late — where you’d live, money home, a second wife — and which one to open this week.'}
               </span>
             </span>
             <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${coupleAnswered ? 'text-gold' : 'text-forest'}`} />
@@ -428,10 +428,10 @@ export default function Home({
           </section>
         )}
 
-        {/* Your space */}
+        {/* The rest of Home: the guide, the map, the door. */}
         <section className="mt-10">
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">
-            Your space
+            Also here
           </p>
           <div className="grid gap-3.5">
             {/* Guide — free-form entry; the work card hands over specific topics. */}
@@ -529,7 +529,7 @@ export default function Home({
                 <span className="flex-1">
                   <span className="font-display text-[1.2rem] font-medium text-ink">Build your map</span>
                   <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                    Two minutes on what you actually need, and what you won’t compromise on. Your side of
+ Two minutes on what you need, and what you won’t compromise on. Your side of
                     every conversation gets clearer.
                   </span>
                 </span>
@@ -545,7 +545,7 @@ export default function Home({
             className="group inline-flex items-center gap-1.5 text-[0.85rem] text-muted transition-colors hover:text-ink"
           >
             <span>
-              <span className="font-medium text-ink-soft">Your space, your pace.</span> Why Niyyah
+              Why Niyyah
             </span>
             <ArrowRight className="h-3.5 w-3.5 text-gold transition-transform group-hover:translate-x-0.5" />
           </button>

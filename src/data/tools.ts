@@ -64,22 +64,22 @@ export const TOOLS: Tool[] = [
     slug: 'is-he-serious',
     kind: 'read',
     about: 'man',
-    title: 'Is he serious? — a ninety-second read on what he has actually done',
+ title: 'Is he serious? — a ninety-second read on what he has done',
     description:
-      'Eleven questions about behaviour, not promises — who knows you exist, what happens when you stop texting first, how he handles a hard conversation. One honest read, and the one question worth asking him next. No account. Nothing about him is asked by name.',
+      'Eleven questions about behaviour, not promises — who knows you exist, what happens when you stop texting first, how he handles a hard conversation. One read, and the one question worth asking him next. No account. Nothing about him is asked by name.',
     share:
-      'Talking to someone? This reads what he’s actually done — not what he says — in ninety seconds, and gives you the one question to ask him next. Built for us. No account.',
+ 'Talking to someone? This reads what he’s done — not what he says — in ninety seconds, and gives you the one question to ask him next. Built for us. No account.',
     via: 'words',
   },
   {
     slug: 'is-she-serious',
     kind: 'read',
     about: 'woman',
-    title: 'Is she serious? — a ninety-second read on what she has actually done',
+ title: 'Is she serious? — a ninety-second read on what she has done',
     description:
-      'Eleven questions about behaviour, not promises — who knows you exist, what happens when you stop texting first, how she handles a hard conversation. One honest read, and the one question worth asking her next. No account. Nothing about her is asked by name.',
+      'Eleven questions about behaviour, not promises — who knows you exist, what happens when you stop texting first, how she handles a hard conversation. One read, and the one question worth asking her next. No account. Nothing about her is asked by name.',
     share:
-      'Talking to someone? This reads what she’s actually done — not what she says — in ninety seconds, and gives you the one question to ask her next. Built for us. No account.',
+ 'Talking to someone? This reads what she’s done — not what she says — in ninety seconds, and gives you the one question to ask her next. Built for us. No account.',
     via: 'words',
   },
   {
@@ -87,7 +87,7 @@ export const TOOLS: Tool[] = [
     kind: 'eleven',
     title: 'Before you say yes — the eleven conversations to have first',
     description:
-      'The eleven things that decide a Somali marriage and almost never get asked before the families are involved — where you’d live, money sent home, hooyo in the house, a second wife. Two minutes to see which you two have had, and the words to open the one that matters. No account.',
+      'The eleven conversations Somali couples rarely have before the families are involved — where you’d live, money sent home, hooyo in the house, a second wife. Two minutes to see which you two have had, and the words to open the one that matters. No account.',
     share:
       'Before you say yes — the eleven conversations most of us have too late: where you’d live, money home, a second wife. This asks which ones you two have had, and gives you the words to open the one that matters. Two minutes. No account.',
     via: 'eleven',
@@ -151,7 +151,7 @@ export const GUIDE: Guide = {
   samplePath: '/guides/before-you-say-yes/sample',
   title: 'Before you say yes — the eleven conversations to have before the families do',
   description:
-    'The eleven things that decide a Somali marriage and almost never get asked before the families are involved — where you’d live, their family in your home, money sent home, children, deen day to day, the aroos and the mahr, qabiil, going back, a second wife, when the families disagree. Each one with why it matters, the words to open it, and what to listen for. Free, no account, nothing recorded. Made by Niyyah.',
+    'The eleven conversations Somali couples rarely have before the families are involved — where you’d live, their family in your home, money sent home, children, deen day to day, the aroos and the mahr, qabiil, going back, a second wife, when the families disagree. Each one with why it matters, the words to open it, and what to listen for. Free, no account, nothing recorded. Made by Niyyah.',
   sampleTitle: 'Before you say yes — three of the eleven conversations, a sample',
   sampleDescription:
     'Three of the eleven conversations to have before the families do — where you’d live, their family in your home, money sent home — each with why it matters, the words to open it, and what to listen for. A one-page sample of the full guide. Free, no account, nothing recorded. Made by Niyyah.',

@@ -38,9 +38,9 @@ export default function Families({ gender, stage, onTaken, onBack }: Props) {
             {intro ?? 'The words you’ll need.'}
           </h1>
           <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
-            In our families, this part is the whole road — and nobody hands you the sentences. These are
-            written to be said out loud by a real person, which is why they are a little long and a little
-            awkward. Real ones are. Change anything that isn’t you.
+            Nobody hands you these sentences. They are written to be said out loud by a real person,
+            which is why they are a little long and a little awkward. Real ones are. Change anything
+            that isn’t you.
           </p>
         </section>
 

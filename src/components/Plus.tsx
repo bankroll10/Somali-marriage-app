@@ -71,7 +71,7 @@ export default function Plus({ onBack }: Props) {
               what moves you.
             </p>
             <p className="mt-3 text-[0.88rem] leading-relaxed text-muted text-pretty">
-              There is no counter on the screen and no way to buy more. That is the whole point.
+              There is no counter on the screen and no way to buy more.
             </p>
           </div>
         </section>
@@ -105,7 +105,7 @@ export default function Plus({ onBack }: Props) {
         </section>
 
         <section className="mt-8 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">Founding members</p>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">The first year</p>
           <p className="mt-3 font-display text-[1.4rem] font-medium leading-snug tracking-tight text-ink text-balance">
             Your first year is on us.
           </p>

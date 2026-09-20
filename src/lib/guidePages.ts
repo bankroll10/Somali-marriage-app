@@ -205,7 +205,7 @@ function about(host: string, guide: Guide, sample = false): string {
     '<div class="about">',
     `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora, built by a Somali. This guide is free, needs no account, and nothing you read or decide here is recorded — opening this page counts nothing, anywhere.</p>`,
     `<p>There is also an <a href="${toolPath(guide.toolSlug)}" data-app>interactive version</a> at joinniyyah.com that asks which of the eleven you two have had and hands you the one to open first. It keeps your answers on your own phone unless you choose to send the two-sided sheet to your partner, who answers on theirs. The app also has a guide that uses an AI model; this page does not.</p>`,
-    `<p>The eleven include qabiil and a second wife, named as such. We take no position on any of them. Every conversation ends in words you can actually say.</p>`,
+ `<p>The eleven include qabiil and a second wife, named as such. We take no position on any of them. Every conversation ends in words you can say.</p>`,
     '</div>',
   ].join('\n')
     .replace('joinniyyah.com', host)
@@ -215,14 +215,14 @@ function preface(sample: boolean): string {
   if (sample) {
     return [
       '<div class="preface">',
-      '<p>The things that break Somali marriages are almost never the things the apps ask about — where you’ll live, money sent home, who is in the house. They get found out after the families are involved. These are three of the eleven, asked early. Read them separately first, then together; the words are for either of you to say.</p>',
+      '<p>What comes between Somali couples is rarely what the apps ask about — where you’ll live, money sent home, who is in the house. It gets found out after the families are involved. These are three of the eleven, asked early. Read them separately first, then together; the words are for either of you to say.</p>',
       '</div>',
     ].join('\n')
   }
   return [
     '<div class="preface">',
-    '<p>The things that actually break Somali marriages are almost never the things the apps ask about. They are where you’ll live and whether a mother is in the house, money sent home, whether she keeps working, what “practising” means on a Tuesday, qabiil at somebody’s table, a second wife. They get found out after the families are involved, when saying no has become expensive.</p>',
-    '<p>This is the list, asked early. Read it separately first, then together. For each one: why it is found out too late in our families, the words to open it — for either of you to say — and what to listen for in the answer. Nothing here scores anyone. It only asks whether the two of you have had the conversation.</p>',
+ '<p>What comes between Somali couples is rarely what the apps ask about. It is where you’ll live and whether a mother is in the house, money sent home, whether she keeps working, what “practising” means on a Tuesday, qabiil at somebody’s table, a second wife. They get found out after the families are involved, when saying no has become expensive.</p>',
+    '<p>This is the list, asked early. Read it separately first, then together. For each one: why it tends to be found out late, the words to open it — for either of you to say — and what to listen for in the answer. Nothing here scores anyone. It only asks whether the two of you have had the conversation.</p>',
     '</div>',
   ].join('\n')
 }

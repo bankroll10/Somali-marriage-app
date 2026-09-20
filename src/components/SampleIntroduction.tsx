@@ -158,8 +158,8 @@ export default function SampleIntroduction({
         <div className="mt-5 rounded-card border border-gold/30 bg-gold/[0.07] p-5">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">Sharpen this read</p>
           <p className="mt-2 text-[0.92rem] leading-relaxed text-muted text-pretty">
-            Three things about how you’d live. No other app reads on these — and they are what our
-            marriages actually break on. Optional; the reasons above change as you answer.
+            Three things about how you’d live. The apps do not ask about them, and couples find out
+            late. Optional; the reasons above change as you answer.
           </p>
           <div className="mt-4">
             <HowYoudLive answers={answers} onAnswer={onAnswer} />
@@ -183,8 +183,7 @@ export default function SampleIntroduction({
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
             Here you’d say yes, or no with a reason — one person at a time, and the
             next only after you’ve answered. A considered no is progress here, not
-            a swipe. If it were mutual, both of you would be told — your wali too, if
-            you want them there — and the rest would happen where it always has,
+            a swipe. If it were mutual, both of you would be told{identity.gender === 'woman' ? ' — your wali too, if you want them there —' : ','} and the rest would happen
             between the families, off this screen. No photos here, and no messaging.
             Nobody is on the other side of this sample, so the only honest next step
             is the one below.

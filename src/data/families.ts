@@ -50,6 +50,20 @@ const SCRIPTS: FamilyScript[] = [
     },
   },
   {
+    id: 'tell-family-online',
+    title: 'Telling your family you met her online',
+    when: 'Before they hear it from someone else.',
+    stages: ['talking', 'deciding'],
+    for: 'man',
+    script: {
+      why: 'They will find out. Better from you, with the whole picture, than from a cousin with none of it.',
+      words:
+        'Hooyo, Aabo — I want to tell you about someone, and I want you to hear it from me first. I met her online. I know that isn’t how you would have chosen. I’m serious, I want to do this properly, and I want to approach her family the right way. I’d like your help with that.',
+      tells:
+        'Say “I’d like your help” and mean it. Asked for their part, most parents give it. Presented with a decision, most look for the flaw in it.',
+    },
+  },
+  {
     id: 'first-with-hooyo',
     title: 'The first conversation with hooyo',
     when: 'Before the aunties have a version.',
@@ -59,7 +73,7 @@ const SCRIPTS: FamilyScript[] = [
       words:
         'Hooyo, I’ve been getting to know someone, and I want you to know before anyone else does. It’s early, I haven’t decided anything, and I’m not asking you to. I’m telling you because I want you in this from the start — and because I’ll need you when it’s time for the families to meet.',
       tells:
-        'Expect the questions to come fast, and to be about {his} family before they are about {him}. Answer what you know, say “I don’t know yet” to the rest, and let her keep the last sentence — the one about needing her — because it is true.',
+        'Expect the questions to come fast — who they are, who their people are — before anything about the person. Answer what you know, say “I don’t know yet” to the rest, and let her keep the last sentence, the one about needing her, because it is true.',
     },
   },
   {

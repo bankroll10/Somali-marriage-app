@@ -344,7 +344,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
             />
             {n.waitlist && (
               <Button onClick={n.enterHome} className="group mt-6">
-                Your space
+                Home
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </Button>
             )}
@@ -475,7 +475,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         <Philosophy
           onBack={() => n.setScreen(n.philosophyReturn)}
           onPrimary={fromWelcome ? n.startFresh : () => n.setScreen('home')}
-          primaryLabel={fromWelcome ? 'Begin your reflection' : 'Back to your space'}
+          primaryLabel={fromWelcome ? 'Begin your reflection' : 'Back home'}
         />
       )
     }

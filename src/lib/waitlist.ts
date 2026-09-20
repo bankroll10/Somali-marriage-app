@@ -58,6 +58,7 @@ export interface WaitlistEntry {
 
 import { CONTACT_EMAIL } from './site'
 import { send } from './net'
+import { getScene } from '../data/scenes'
 
 export { CONTACT_EMAIL }
 
@@ -172,9 +173,9 @@ export async function flushWaitlistQueue(): Promise<void> {
 
 /** The honest fallback when nothing is wired up yet. */
 export function mailtoFor(entry: Pick<WaitlistEntry, 'scene' | 'gender'>): string {
-  const subject = encodeURIComponent('Niyyah — I want in')
+  const subject = encodeURIComponent('Niyyah — count me in')
   const body = encodeURIComponent(
-    `Salaam,\n\nI'd like a place when Niyyah opens.\n\nCommunity: ${entry.scene ?? '—'}\n\n`,
+    `Salaam,\n\nPlease count me in when Niyyah opens.\n\nCity: ${(entry.scene && getScene(entry.scene)?.label) ?? entry.scene ?? '—'}\n\n`,
   )
   return `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`
 }

@@ -137,6 +137,6 @@ describe('the waitlist — the only line out of this app', () => {
   it('offers a mailto that still reaches a human', () => {
     const href = mailtoFor({ scene: 'twin-cities' })
     expect(href.startsWith('mailto:')).toBe(true)
-    expect(decodeURIComponent(href)).toContain('twin-cities')
+    expect(decodeURIComponent(href)).toContain(encodeURIComponent('Minneapolis')) // the city's name, not its id — the founder used to receive `twin-cities`
   })
 })

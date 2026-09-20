@@ -171,18 +171,16 @@ export default function BeforeYes({
             </div>
           )}
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-            {BEFORE_YES_COUNT === 11 ? 'Eleven' : String(BEFORE_YES_COUNT)} things that decide a Somali
-            marriage and almost never get asked before the families are involved — where you’d live,
-            money sent home, hooyo in the house, a second wife. For each one you say only whether the
+            {BEFORE_YES_COUNT === 11 ? 'Eleven' : String(BEFORE_YES_COUNT)} conversations couples rarely
+            have before the families are involved — where you’d live, money sent home, hooyo in the
+            house, a second wife. For each one you say only whether the
             two of you have talked about it. At the end you get the one to open this week, and the
             words.
           </p>
           <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
             {[
-              'This does not score anyone. It records which conversations have happened.',
-              'We take no position on any of them — qabiil and a second wife included.',
-              'You will leave with something you can actually say.',
-              `No account, no sign-in. Your answers stay on this phone unless you keep your map, or ask ${them} to answer too.`,
+              'This does not score anyone. It records which conversations have happened, and takes no position on any of them — qabiil and a second wife included.',
+              `No account. Your answers stay on this phone unless you keep your map, or ask ${them} to answer too.`,
             ].map((line) => (
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>
             ))}
@@ -398,7 +396,7 @@ function Result({
             <span className="flex-1">
               <span className="font-display text-[1.15rem] font-medium text-ink">Now your own map</span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                Two minutes on what you actually need. Your side of these conversations gets clearer.
+ Two minutes on what you need. Your side of these conversations gets clearer.
               </span>
             </span>
             <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
@@ -469,8 +467,7 @@ function Result({
       </div>
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
-        This records which conversations you have had. It takes no position on any of them, and it is
-        not a verdict on anyone. Your answers stay on this device.
+        Not a verdict on anyone. Your answers stay on this device.
       </p>
     </div>
   )
@@ -601,7 +598,7 @@ function Together({
       </p>
       <p className="mt-2 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">
         {!couple
-          ? 'See where the two of you actually stand.'
+ ? 'See where the two of you stand.'
           : view === 'asking'
             ? `Looking for ${pronoun === 'him' ? 'his' : 'her'} answers…`
             : view === 'unreachable'

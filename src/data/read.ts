@@ -145,7 +145,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
   {
     id: 'timeline',
     dimension: 'intent',
-    prompt: 'Has {he} given you a timeline you could actually hold {him} to?',
+ prompt: 'Has {he} given you a timeline you could hold {him} to?',
     options: [
       {
         id: 'dated',
@@ -287,7 +287,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     // read modesty as disinterest. Hearing nothing at all still counts — it
     // is just no longer the bottom of the scale.
     man: {
-      helper: 'Be honest. Some people never text first on purpose — what you are reading is whether you hear from her at all.',
+      helper: 'Be honest. Some people never text first, by habit — what you are reading is whether you hear from her at all.',
       options: {
         'day-two': { weight: 0.85 },
         eventually: { weight: 0.55 },
@@ -418,7 +418,7 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
       'Someone who has thought about it will tell you, even if the answer is “further out than you want”. Someone who has not will make the question itself feel unreasonable. Watch which one happens.',
   },
   family: {
-    why: 'In our families, this is not a formality — it is the whole road. Someone who intends to walk it has already thought about how.',
+    why: 'For most of us this step is not a formality. Someone who intends to take it has already thought about how.',
     words:
       'How would you want to approach my family? I would rather hear how you would do it than wonder whether you would.',
     tells:
@@ -432,11 +432,11 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
       'The reply matters less than the fortnight after it. Say it once, then stop starting, and watch what happens. That is your answer, and it does not require anyone to be honest with you.',
   },
   pressure: {
-    why: 'How someone handles you at your most inconvenient is the single best prediction of a marriage.',
+    why: 'How someone handles you at your most inconvenient is one of the clearest signs of what marriage to them would be.',
     words:
       'When I bring up something that is bothering me, I come away feeling like I have done something wrong. I do not think you mean it that way — but I need you to hear that it lands like that.',
     tells:
-      'Someone who can sit inside that without turning it around has just shown you the most important thing on this whole list. Someone who cannot has shown you that too.',
+      'Someone who can sit inside that without turning it around has just shown you more than the rest of this list can. Someone who cannot has shown you that too.',
   },
   early: {
     why: 'You are early. That is not a problem — it is the best time to ask, before either of you has spent months.',
@@ -459,7 +459,7 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
  */
 const SCRIPTS_MAN: Partial<Record<ReadDimension | 'early', Script>> = {
   family: {
-    why: 'In our families this is not a formality — it is the whole road, and your side walks it first. Asking how is not a delay; it is the step.',
+    why: 'This step is yours to take, and asking how is not a delay. It is the step.',
     words:
       'I would rather ask you than guess. How would you want me to approach your family — who should I speak to, and when would be the right time?',
     tells:

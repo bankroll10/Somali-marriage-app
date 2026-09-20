@@ -44,7 +44,7 @@ const STEPS: Record<Dimension, NextStep> = {
     frame:
       'Most family friction isn’t disagreement — it’s that no one has said the real thing out loud yet.',
     action:
-      'Tell one person in your family what you’re actually looking for, before they tell you what they want for you.',
+ 'Tell one person in your family what you’re looking for, before they tell you what they want for you.',
     done: 'You said the real thing to the people it’s hardest to say it to. That changes what gets brought to you.',
     mode: 'auntie',
   },
@@ -66,18 +66,18 @@ const STEPS: Record<Dimension, NextStep> = {
   },
   emotional: {
     frame:
-      'This is the ground that decides how a good match actually feels day to day. Walls and spirals both live here.',
+ 'How you handle a silence, or a closeness, decides how a good match feels day to day.',
     action:
       'Next time you want to go quiet on someone, say “I need a moment, I’m not disappearing” instead. Once is enough to prove it’s possible.',
-    done: 'You stayed in the room instead of going quiet. That’s the whole skill.',
+    done: 'You stayed in the room instead of going quiet. That is most of the skill.',
     mode: 'therapist',
   },
   selfAwareness: {
     frame:
-      'Self-awareness is the most attractive thing you can bring — and the hardest to grade yourself on.',
+      'Knowing yourself is the hardest thing to grade yourself on.',
     action:
       'Ask one person who loves you: “What’s the hardest part of being close to me?” Listen without defending. Just say thank you.',
-    done: 'You asked, and you didn’t defend. Most people never do.',
+    done: 'You asked, and you didn’t defend. Few people do.',
     mode: 'therapist',
   },
 }

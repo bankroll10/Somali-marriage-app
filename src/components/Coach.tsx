@@ -482,7 +482,7 @@ export default function Coach({
               stop, which a chat product never gives and a guide always should. */}
           {!thinking && committed && (
             <p className="animate-fade pl-12 text-[0.85rem] text-forest text-pretty">
-              Written down. In a few days, your space will ask how it went. Go say it.
+              Written down. In a few days, Home will ask how it went. Go say it.
             </p>
           )}
           {!thinking && !committed && closers.length > 0 && (
@@ -522,19 +522,19 @@ export default function Coach({
               </p>
               <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
                 Every conversation above stays yours to re-read. The guide’s budget
-                refills when something real moves: you take a read on him, you
-                go through the eleven, you answer “since last time” on your space,
+                refills when something real moves: you take a read on someone,
+                you go through the eleven, you answer “since last time” at home,
                 you say where you are now. Each one is more replies — and each one
                 is the thing the guide would have told you to do anyway.
               </p>
               <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-                There is nothing to buy here. That is deliberate.
+                There is nothing to buy here.
               </p>
               <button
                 onClick={onBack}
                 className="group mt-4 inline-flex items-center gap-1.5 rounded-full bg-forest px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:bg-forest-deep"
               >
-                Back to your space
+                Back home
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
@@ -566,7 +566,7 @@ export default function Coach({
         {locked ? (
           <div className="mx-auto max-w-xl px-5 py-4 text-center">
             <p className="text-[0.85rem] text-muted text-pretty">
-              Take a step on your space and the guide picks up where you left it.
+              Take a step on Home and the guide picks up where you left it.
             </p>
           </div>
         ) : (

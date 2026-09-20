@@ -132,8 +132,13 @@ survives in five UI sites — the Hook's CTA ("Build my readiness map"),
 Reflection's eyebrow, Philosophy, the Matchmaker's greeting, and the `ready`
 hook insight. The word frames the map as "am I ready" — the question the code
 ranks near the bottom. **Done:** "your map" in every place a member reads it.
-The emotional ground keeps "Emotional readiness" — there the word names a real
-thing she is being read on, not the frame around the whole instrument.
+~~The emotional ground keeps "Emotional readiness" — there the word names a real
+thing she is being read on, not the frame around the whole instrument.~~
+*2026-09-20, the voice pass (docs/VOICE.md): renamed "Steadiness", and
+"Self-awareness" to "Knowing yourself". What that ground reads is how she
+handles a silence and what she is still carrying — "readiness" named the frame
+after all, in the register of a workbook. The word is now gone from every
+label a member reads.*
 
 ### The Matchmaker voice presumed a marketplace — **re-aimed**
 

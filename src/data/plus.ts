@@ -77,7 +77,7 @@ export const paidLater: PaidLater[] = [
 
 export const promises: string[] = [
   'We never earn more because you are having a hard night. Nothing here is priced by the reply, the message, or the hour.',
-  'We are paid when you get somewhere, and never while you are stuck. If you stay single, we earn nothing from you — that is on purpose, and it is the whole design.',
+  'We are paid when you get somewhere, and never while you are stuck. If you stay single, we earn nothing from you.',
   'Nothing that protects you is ever paid, at any price.',
   'What we sell is bought once and ends on its own. There is no subscription to forget.',
   // Bounded 2026-09-12 (docs/BOARD.md, decision 0). It used to promise everyone

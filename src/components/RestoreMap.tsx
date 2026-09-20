@@ -46,8 +46,8 @@ export default function RestoreMap() {
   /** One sentence per reason, because the reasons want different things done. */
   const problem: Record<RestoreProblem, string> = {
     'not-a-code': `A code is ${CODE_LENGTH} characters, like ${EXAMPLE_CODE} — check for a missing one.`,
-    'not-found': 'No map is kept under that code. Check it against the one you saved — nothing here has been changed.',
-    expired: 'That code has lapsed. A kept map is held for a year after the last time it was kept, and this one is past that, so there is nothing left to bring back. Nothing on this phone has been changed.',
+    'not-found': 'No map is kept under that code. Check it against the one you saved.',
+    expired: 'That code has lapsed. A kept map is held for a year after the last time it was kept, and this one is past that, so there is nothing left to bring back.',
     unreachable: 'We could not reach the map just now — that is us, not your code. Nothing has been changed; try again in a moment.',
   }
 

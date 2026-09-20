@@ -101,7 +101,7 @@ export default function Door({
       <main className="mx-auto max-w-xl px-6">
         <div className="py-10">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
-            Founding cohort{place ? ` · ${other && country ? getCountry(country)?.label : place.label}` : ''}
+            {place ? (other && country ? getCountry(country)?.label : place.label) : 'The first cities'}
           </p>
           <h1 className="animate-rise mt-2.5 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
             Nobody is introduced to anyone until both sides are here.
@@ -197,7 +197,7 @@ export default function Door({
               words, in the order a person needs them. */}
           <p className="mt-3 text-[0.85rem] leading-relaxed text-muted text-pretty">
             {hasMap
-              ? 'Your map is already here — being counted is one step from your space.'
+              ? 'Your map is already here — being counted is one step from Home.'
               : 'Being counted takes three answers — your practice, children, and what you won’t compromise on — kept under a code with no name on it, your age, and a way to reach you. No photos, no account. The rest of your map can wait.'}
           </p>
           {!hasMap && (

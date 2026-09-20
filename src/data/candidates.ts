@@ -54,7 +54,7 @@ const men: Candidate[] = [
     bio: 'Praying my five, building a calm life, and trying to be the kind of man my future kids would be proud of.',
     prompts: [
       { q: 'A marriage I admire', a: 'My grandparents — sixty years, and he still lights up when she walks in. That patience is the goal.' },
-      { q: 'How I handle a disagreement', a: 'I cool down, then I come back and actually listen. Silence isn’t a punishment; it’s just me gathering myself.' },
+ { q: 'How I handle a disagreement', a: 'I cool down, then I come back and listen. Silence isn’t a punishment; it’s just me gathering myself.' },
     ],
   },
   {
@@ -97,7 +97,7 @@ const men: Candidate[] = [
     values: ['Taqwa', 'Depth', 'Kindness'],
     bio: 'I teach kids by day and study by night. Looking for a partner to grow with, in this life and hopefully the next.',
     prompts: [
-      { q: 'What I bring', a: 'Patience, a steady income, and a genuinely calm home. I don’t bring drama.' },
+ { q: 'What I bring', a: 'Patience, a steady income, and a calm home. I don’t bring drama.' },
       { q: 'A green flag in me', a: 'I’m close to my mother and I treat her well — ask her.' },
     ],
   },
@@ -230,7 +230,7 @@ const women: Candidate[] = [
     work: 'seasons',
     moneyHome: 'expected',
     values: ['Loyalty', 'Humor', 'Maturity'],
-    bio: 'I’ve done the inner work and I’m ready for something real. Looking for a steady, God-conscious man.',
+    bio: 'I know myself well enough now, and I’m ready for something real. Looking for a steady, God-conscious man.',
     prompts: [
       { q: 'A green flag in me', a: 'I say what I mean. You’ll never have to guess where you stand with me.' },
       { q: 'What I bring', a: 'A calm, loyal, funny home — and a partner who’ll always have your back.' },

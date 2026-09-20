@@ -48,20 +48,26 @@ export { ALL_AGREED, OWN_ANSWER_FIRST, TOPICS } from './eleven'
 export type { ElevenScript, Topic, YourSide } from './eleven'
 import { OWN_ANSWER_FIRST, TOPICS, type Topic } from './eleven'
 
-function resolve(topic: Topic, fix: (t: string) => string): Topic {
+function resolve(topic: Topic, fix: (t: string) => string, memberGender: Gender): Topic {
+  // A man's variant, where one exists, replaces the woman's before the
+  // pronouns are resolved — merged field by field, the way read.ts merges its
+  // own, so a variant never adds or removes a topic (src/data/eleven.ts).
+  const v = memberGender === 'man' ? topic.man : undefined
+  const script = { ...topic.script, ...v?.script }
+  const { man: _man, ...rest } = topic
   return {
-    ...topic,
-    label: fix(topic.label),
-    prompt: fix(topic.prompt),
-    why: fix(topic.why),
-    script: { why: fix(topic.script.why), words: fix(topic.script.words), tells: fix(topic.script.tells) },
+    ...rest,
+    label: fix(v?.label ?? topic.label),
+    prompt: fix(v?.prompt ?? topic.prompt),
+    why: fix(v?.why ?? topic.why),
+    script: { why: fix(script.why), words: fix(script.words), tells: fix(script.tells) },
   }
 }
 
-/** The topics, with pronouns resolved for who she is reading. */
+/** The topics, with pronouns resolved for whoever is reading. */
 export function beforeYesTopics(memberGender: Gender = 'woman'): Topic[] {
   const fix = speak(memberGender)
-  return TOPICS.map((t) => resolve(t, fix))
+  return TOPICS.map((t) => resolve(t, fix, memberGender))
 }
 
 export function ownAnswerFirst(memberGender: Gender = 'woman'): Script {

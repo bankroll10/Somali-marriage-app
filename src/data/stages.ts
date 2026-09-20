@@ -44,7 +44,7 @@ export const stages: StageDef[] = [
     situation: 'I’m not talking to anyone — I want to get ready',
     arrival: 'Then this is about you before it’s about anyone else. Two minutes, and you’ll know where you stand.',
     focus:
-      'Becoming clear about what you actually need — and becoming someone worth choosing. Everything after this is easier when this part is honest.',
+ 'Becoming clear about what you need — and becoming someone worth choosing. Everything after this is easier when this part is honest.',
     mode: 'brother',
     guideLine: 'You’re in the preparing stage — this is about you before it’s about anyone else.',
     next: {

@@ -99,7 +99,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
               Someone in your family is seeking marriage, and has asked you to vouch for them.
             </h1>
             <p className="animate-rise mt-4 text-[1rem] leading-relaxed text-ink-soft text-pretty">
-              Niyyah is a marriage platform built for the Somali diaspora. Before anyone here is introduced
+              Niyyah is built for Somali people seeking marriage. Before anyone here is introduced
               to anyone, we ask that a family member confirm two things: that this person is who they say
               they are, and that they are seeking marriage. That is all you are being asked. There is no
               account, and nothing more will be asked of you afterward.

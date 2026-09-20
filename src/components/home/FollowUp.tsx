@@ -81,7 +81,7 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
             </div>
             <p className="mt-3 text-[0.82rem] leading-snug text-muted text-pretty">
               Either way it goes into your sheet, so the list stays true to where you
-              actually are.
+ are.
             </p>
           </div>
         )}
@@ -135,7 +135,7 @@ export function FollowedThrough({ ask, onDone }: { ask: FollowUpAsk; onDone: () 
           You had it. That is the part most people never get to.
         </p>
         {ask.writesBack && (
-          <p className="mt-2 text-[0.9rem] leading-snug text-muted text-pretty">It’s in your sheet now, as it actually went.</p>
+ <p className="mt-2 text-[0.9rem] leading-snug text-muted text-pretty">It’s in your sheet now, as it went.</p>
         )}
         <p className="mt-3 text-[0.9rem] leading-snug text-ink-soft text-pretty">
           Someone you know is talking to someone. Send them the words you just used.

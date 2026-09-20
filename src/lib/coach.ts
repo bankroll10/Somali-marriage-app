@@ -67,13 +67,13 @@ function scoreIntent(intent: CoachIntent, message: string): number {
 function frameworkAnswer(ctx: CoachContext, modeId: ModeId): string {
   return `${getMode(modeId).fallback(ctx)}
 
-While you do, here’s the frame that almost never fails, whatever the situation:
+While you do, three things hold in almost every situation:
 
 • **Watch behaviour, not words.** Consistency over weeks tells the truth; a good speech tells you nothing.
 • **Apply the clarity test.** Do they move toward the future, family, and definition — or keep things comfortable and vague?
-• **Check your own peace.** If you have to shrink, over-explain, or manage your anxiety constantly, that’s data too.
+• **Notice what it costs you.** If you have to shrink, over-explain, or keep managing your own worry, that is part of the answer.
 
-Hold your situation against those three and it usually answers itself.`
+Put your situation against those three.`
 }
 
 /**

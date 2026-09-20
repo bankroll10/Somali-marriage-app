@@ -12,9 +12,17 @@
  * Every string here is written to one reader about the person they are
  * talking to, in pronoun tokens — {he}, {his}, {him} — resolved by
  * src/data/read.ts `speak()` for a woman or a man, and by the guide's neutral
- * voice for a couple reading together. Two lines name a side by role rather
- * than pronoun ("the labour lands on the wife"); they are the observation,
- * not a token, and they stay as written.
+ * voice for a couple reading together.
+ *
+ * Where the conversation itself changes side — who keeps working, who would
+ * take a second wife, whose family moves in — a token swap produces a
+ * different question, not the same one asked the other way round. A man
+ * reading a woman was handed "A second wife — what she believes about it for
+ * her own life" and a script asking her whether she would want one. Those
+ * topics carry a `man` variant, merged by `beforeYesTopics` the way read.ts
+ * merges its own. The base strings are the woman's, and the printed guide
+ * reads them through its neutral voice, so they must also hold for a couple
+ * reading together — no sentence here names a side by role (docs/VOICE.md).
  */
 
 /** A script: why this is the question, the words, and how to read the answer. Mirrors `Script` in read.ts. */
@@ -48,6 +56,8 @@ export interface Topic {
   why: string
   script: ElevenScript
   yourSide?: YourSide
+  /** A man's version, where the woman's would ask the wrong question the other way round. */
+  man?: { label?: string; prompt?: string; why?: string; script?: Partial<ElevenScript> }
 }
 
 export const TOPICS: Topic[] = [
@@ -56,7 +66,7 @@ export const TOPICS: Topic[] = [
     label: 'Where you’d live',
     prompt: 'Where you’d live — which city, and whether with {his} mother, near her, or on your own.',
     consequence: 0.95,
-    why: 'In our families this is rarely a two-person decision, and it is the one most often assumed rather than asked. One of you pictures {his} mother’s house; the other pictures a front door of your own. Two people can agree on everything else and still come apart on that in the first year.',
+    why: 'This is rarely decided by two people alone, and it is the one most often assumed rather than asked. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and still come apart on that in the first year.',
     script: {
       why: 'Nothing else on this list survives getting this one wrong, and nobody asks it until the lease is signed.',
       words:
@@ -70,7 +80,7 @@ export const TOPICS: Topic[] = [
         'with-family': 'You told your map you picture living with family — one household.',
         'near-family': 'You told your map you picture your own place, close to family.',
         separate: 'You told your map you picture your own place — your own city, if it comes to it.',
-        flexible: 'You told your map you are genuinely flexible on where you’d live.',
+ flexible: 'You told your map you are flexible on where you’d live.',
       },
     },
   },
@@ -79,7 +89,18 @@ export const TOPICS: Topic[] = [
     label: '{His} family in your home',
     prompt: '{His} family in your home — how much hosting, and whether a sister or {his} mother might live with you one day.',
     consequence: 0.8,
-    why: 'Hosting is honour in our culture, and it is also labour, and the labour lands on the wife. The difference between a family that visits and a family that moves in is one nobody names until the suitcase is in the hallway.',
+    why: 'Hosting is honour, and it is also labour, and somebody carries it. The difference between a family that visits and a family that moves in is one nobody names until the suitcase is in the hallway.',
+    man: {
+      label: 'Your family in your home',
+      prompt: 'Your family in your home — how much hosting, and whether your mother or a sister might live with you one day.',
+      script: {
+        why: 'You are not asking permission. You are finding out whether she has pictured your family in that house, or only agreed to the idea of them.',
+        words:
+          'I want to ask about my family and our home, so nothing surprises you later. Would you be alright with someone from my side living with us one day? And how much hosting feels right to you — I’d rather we plan for it than have you come to resent it.',
+        tells:
+          'Listen for whether she has pictured it, or only agreed to it. A quick yes with nothing behind it is the answer that comes back in year two. Answer the same questions yourself, out loud, before you leave the subject.',
+      },
+    },
     script: {
       why: 'You are not setting a rule. You are finding out whether {he} has pictured you in that house, or only {his} mother.',
       words:
@@ -93,7 +114,17 @@ export const TOPICS: Topic[] = [
     label: 'Whether you’d work',
     prompt: 'Work — whether you’d keep working after marriage and after children, and what {he} assumes about home.',
     consequence: 0.75,
-    why: 'Most of our men will say “of course” and mean it — until the first baby, when what they actually assumed surfaces. The question is not whether {he} minds you working. It is what {he} pictures happening at home while you do.',
+    why: '“Of course” is easy to say before the first baby, when what each of you assumed about home surfaces. The question is not whether one of you minds the other working. It is what each of you pictures happening at home while you both do.',
+    man: {
+      prompt: 'Work — whether she’d keep working after marriage and after children, and what you each assume about home.',
+      script: {
+        why: 'Her “of course” and yours are both the start of the answer, not the end of it.',
+        words:
+          'I want to be honest about something. I’d like to know what you picture about work after we’re married and after children — and I’ll tell you what I picture at home. Not in general, in practice: who does what when we’re both working?',
+        tells:
+          'Ask the second half — who does what at home — and answer it yourself first, plainly. If your own answer is a joke, that is the answer she will hear.',
+      },
+    },
     script: {
       why: '“Of course” is the start of the answer, not the end of it.',
       words:
@@ -116,9 +147,9 @@ export const TOPICS: Topic[] = [
     label: 'Money sent home',
     prompt: 'Money — who pays for what, and what each of you sends home to family every month.',
     consequence: 0.85,
-    why: 'Nearly every Somali household sends money home, and nearly every couple discovers the other’s obligations after marriage instead of before. It is not about generosity. It is two families’ expectations landing on one income, unspoken.',
+    why: 'Many of us send money home, and many couples find out each other’s obligations after the wedding instead of before. It is not about generosity. It is two families’ expectations landing on one income, unspoken.',
     script: {
-      why: 'Our parents never talked about money with us, which is exactly why you have to talk about it with {him}.',
+      why: 'Our parents rarely talked about money with us, which is why you have to talk about it with {him}.',
       words:
         'Can we talk about money plainly, the way our parents never did with us? What do you send home each month, and to whom? I’ll tell you mine. And once we’re married — do we decide that together, or is each of ours separate?',
       tells:
@@ -143,7 +174,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'Vagueness here is not romance. It is a decision being left to whoever pushes hardest later.',
       words:
-        'When you think about children — how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you actually picture, not what sounds right.',
+ 'When you think about children — how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right.',
       tells: 'Listen for whether {he} has pictures or only phrases. Pictures can be talked about. Phrases cannot.',
     },
     yourSide: {
@@ -161,7 +192,16 @@ export const TOPICS: Topic[] = [
     label: 'Deen, day to day',
     prompt: 'Deen, day to day — prayer at home, what “practising” means on an ordinary Tuesday, and what {he} expects of you.',
     consequence: 0.85,
-    why: 'Two people can both say “deen comes first” and mean completely different Tuesdays. One means fajr together; the other means Eid and Ramadan. And what {he} expects of you — hijab, mixed gatherings, music in the house — is something {he} has an opinion on, whether or not {he} has said it.',
+    why: 'Two people can both say “deen comes first” and mean completely different Tuesdays. One means fajr together; the other means Eid and Ramadan. And what each of you expects of the other — at home, in company, in what comes into the house — is something you each have an opinion on, whether or not you have said it.',
+    man: {
+      prompt: 'Deen, day to day — prayer at home, what “practising” means on an ordinary Tuesday, and what you each expect of the other.',
+      script: {
+        why: 'An expectation you assumed she would know is the one that becomes a fight in year two — and the same is true of hers.',
+        words:
+          'We both say deen matters. Can I ask what that looks like for you on a normal day — prayer, and what you’d want in the house and not in it? And I’ll say what I’d expect, including anything I might have assumed you’d know.',
+        tells: 'Say your half first, and say it plainly. Then note whether her answer is specific, and whether it is about the two of you rather than a list for you.',
+      },
+    },
     script: {
       why: 'An expectation {he} “assumed you’d know” is exactly the one that becomes a fight in year two.',
       words:
@@ -211,11 +251,11 @@ export const TOPICS: Topic[] = [
     label: 'Going back',
     prompt: 'Going back — whether {he} plans to move back one day, or spend long stretches away, and whether you would go.',
     consequence: 0.65,
-    why: '“One day I’ll go back” is something many of our men say and mean, and the wives find out what “one day” means when the ticket is booked. Whether you go with {him}, stay, or split the year is a marriage-shaped decision.',
+    why: '“One day I’ll go back” is something many of us say and mean, and the other person finds out what “one day” means when the ticket is booked. Whether you go together, one of you stays, or you split the year is a marriage-shaped decision.',
     script: {
       why: 'You need to know whether you are in {his} picture, and where.',
       words:
-        'Do you see yourself moving back one day — or spending months at a time there? I’m not asking you to decide now. I’m asking what you actually picture, because I need to know if I’m in that picture, and where.',
+ 'Do you see yourself moving back one day — or spending months at a time there? I’m not asking you to decide now. I’m asking what you picture, because I need to know if I’m in that picture, and where.',
       tells: 'Listen for whether you appear in the answer. “We’d figure it out” means you are not yet in the picture.',
     },
   },
@@ -224,7 +264,17 @@ export const TOPICS: Topic[] = [
     label: 'A second wife',
     prompt: 'A second wife — what {he} believes about it for {his} own life, and what {he} has said to you plainly.',
     consequence: 0.9,
-    why: 'It is asked far less often than it should be, because asking feels like an accusation. It isn’t. It is one of the few questions where the answer decides the shape of the rest of your life, and where “it is permitted” and “I would” are very different sentences.',
+    why: 'It is asked far less often than it should be, because asking feels like an accusation. It isn’t. It is one of the few questions where the answer shapes the rest of a life, and where “it is permitted” and “I would” are very different sentences.',
+    man: {
+      prompt: 'A second wife — what you believe about it for your own life, and whether you have said it to her plainly.',
+      script: {
+        why: 'She is more afraid to ask this than you are to answer it. Say it before she has to.',
+        words:
+          'I want to say something plainly, so you never have to ask it. Here is what I believe about a second wife — not what is permitted, but what I want for my own life. I’d rather you hear it from me now than wonder.',
+        tells:
+          'You are not listening for her reaction. You are checking that what you said was a sentence and not a lecture. If you found yourself explaining what is permitted, you have not answered yet.',
+      },
+    },
     script: {
       why: 'This is the question people are most afraid to ask and most relieved to have asked.',
       words:
@@ -238,13 +288,13 @@ export const TOPICS: Topic[] = [
     label: 'When the families disagree',
     prompt: 'When the families disagree — whose side, and how it gets settled between the two of you.',
     consequence: 0.8,
-    why: 'Every Somali marriage has two families in it, and at some point they will want different things. The marriage that survives is the one where the two of you decided, before it happened, that you are a team first.',
+    why: 'Two families will want different things at some point. The marriage that survives it is the one where the two of you decided, before it happened, that you are a team first.',
     script: {
       why: 'The word you are listening for is “we”.',
       words:
         'What happens when your family and mine want different things — about the wedding, about where we live, about anything? Between us, how do we decide? I want to be a team with you before we have to be.',
       tells:
-        'If the answer is about keeping {his} mother happy, or keeping yours quiet, the team is not yet {him} and you. That is fixable — but only if you both know it.',
+        'If the answer is about keeping one mother happy and the other quiet, the team is not yet the two of you. That is fixable — but only if you both know it.',
     },
     yourSide: {
       question: 'family-role',
@@ -265,7 +315,7 @@ export const TOPICS: Topic[] = [
 export const OWN_ANSWER_FIRST: ElevenScript = {
   why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is the most common state on this list, and the most fixable.',
   words:
-    'Before I raise this with you, I’m working out what I actually want here. Give me a week. Then I’ll tell you plainly, and I’ll want the same back.',
+ 'Before I raise this with you, I’m working out what I want here. Give me a week. Then I’ll tell you plainly, and I’ll want the same back.',
   tells:
     'Write your own answer down before you ask for {his}. Otherwise {his} becomes yours by default, and you find out in year three that it never was.',
 }
