@@ -292,11 +292,75 @@ for word — the test asserts it, so the two cannot drift. It exists because the
 most common way this gets shared is not a link or an attachment: it is someone
 pasting it into an email, a WhatsApp message or a forum post.
 
+## N3-note — a half-page for the person handing it over
+
+The pitch to a coordinator has always been "would your counsellors use
+this." That question has an easy yes hiding behind a harder one: *how* —
+when in a session, whether couples fill it together or apart, what happens
+to it afterward. Leaving that unanswered means the coordinator has to invent
+an answer before they can say yes, and an invented answer is a reason to
+wait rather than reply.
+
+`public/niyyah-money-conversation-sheet-facilitator-note.html` (N3-note)
+answers it directly, in three sections — when to hand it out, how it's meant
+to be used, what happens to it after — plus which of the two sheet lengths
+fits which moment. It is not a worksheet: nobody fills it in, so it carries
+none of the twenty-question content rules above, only the same no-network
+guarantee (no font, script, image or CDN link) and the same one-link rule as
+the two sheets it accompanies. A plain-text twin,
+`…-facilitator-note.txt`, exists for the same reason the sheet's does —
+pasting straight into a pitch email.
+
+**Built to half a page, and measured, not eyeballed.** Rendered against the
+built copy at US Letter and A4's real content boxes: **51% of a Letter
+page, 48% of A4**, both still one printed page. First draft came in at 88%
+— readable, but not something a coordinator could take in without turning
+the page, which was the whole point. Three rounds of cutting got there:
+tighter print-only margins and line-height (the pattern the two sheets
+already use, applied here for the first time since this file previously had
+no print-specific spacing at all), trimmed wording that said the same thing
+in fewer words, and dropping the bordered box around the two sheet
+filenames in favor of two plain lines — a border and padding cost more room
+on paper than the grouping was worth once each filename already reads as
+distinct set off by `<code>`.
+
+## A Somali translation exists — and stays unpublished until reviewed
+
+`internal/translations/money-conversation-sheet.so-DRAFT.md` is a
+machine-drafted Somali translation of the money conversation's full content
+— header, all four subjects, all twenty questions, both box labels, the
+legend, the footer. It is not built from, and it is a source for a future
+`niyyah-money-conversation-sheet-so.html`, not a preview of one.
+
+**It is deliberately not a public asset.** `internal/` sits outside Vite's
+`publicDir`, so nothing in it is ever copied to `dist` or served — verified
+directly, not assumed (`tests/somali-gate.test.ts`). The file itself opens
+with an unmissable banner: unreviewed, machine-drafted, do not publish, do
+not link. The product's own existing convention for this — the `approved`
+field on every line in `src/data/somali.ts`, and `docs/PROTOCOL.md`'s rule
+that a Somali sentence ships only after being read aloud to a Somali person
+of the target age — already says a wrong word in Somali is a worse failure
+than a wrong word in English. This draft has not cleared that bar, and nothing
+here claims it has: no row was added to `docs/ASSETS.md` for it, the same
+discipline that kept N3 itself off that table while it was still proposed.
+
+The draft's own front matter names four open questions for whoever reviews
+it — the register for "you" (singular vs. the plural/formal used for the
+two of them together), whether *mahr*/*nikah*/*walima* keep their English
+spelling or take a Somali one, whether any line reads as translated rather
+than spoken, and whether the no-figures/no-advice content rules survive
+translation as cleanly as they read in English. None of those are questions
+this session could answer on its own — they need a native or fluent Somali
+speaker, the same requirement every other Somali line in the product
+already has.
+
 ## Where the rest lives
 
-- The catalog row, the status, and the rule about when a URL may be called
-  live: `docs/ASSETS.md`.
+- The catalog rows, the statuses, and the rule about when a URL may be
+  called live: `docs/ASSETS.md`.
 - What the voice forbids: `docs/VOICE.md`.
 - The 16px floor and the rest of the mobile rules: `docs/MOBILE.md`.
 - The accessibility baseline the app holds to: `docs/ACCESS.md`.
-- The rules, as tests: `tests/sheet.test.ts`.
+- How a Somali line earns `approved: true`: `docs/PROTOCOL.md`,
+  `src/data/somali.ts`.
+- The rules, as tests: `tests/sheet.test.ts`, `tests/somali-gate.test.ts`.
