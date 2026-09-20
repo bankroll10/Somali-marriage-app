@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Gender, Stage } from '../../types'
 import { getStage, stages } from '../../data/stages'
-import { ArrowRight } from '../ui'
+import { ArrowRight, TextButton } from '../ui'
 
 interface Props {
   stage: Stage
@@ -48,19 +48,19 @@ export default function StageBand({ stage, onSetStage, onOpenRead, onOpenBeforeY
             Where you are · {st.label}
           </p>
           {open ? (
-            <button
+            <TextButton
               onClick={() => setOpen(false)}
-              className="text-[0.8rem] font-medium text-muted underline-offset-4 hover:underline"
+              className="text-[0.8rem] font-medium text-muted hover:underline"
             >
               Close
-            </button>
+            </TextButton>
           ) : (
-            <button
+            <TextButton
               onClick={() => setOpen(true)}
-              className="text-[0.8rem] font-medium text-forest underline-offset-4 hover:underline"
+              className="text-[0.8rem] font-medium text-forest hover:underline"
             >
               This changed
-            </button>
+            </TextButton>
           )}
         </div>
         <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">{st.focus}</p>

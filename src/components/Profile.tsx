@@ -11,7 +11,7 @@ import VouchRow from './VouchRow'
 import { parseAge } from '../lib/age'
 import type { LedgerEntry } from '../lib/ledger'
 import HowYoudLive from './HowYoudLive'
-import { CheckIcon, Disclose, ScreenHeader, ShieldGlyph, SparkGlyph, Words, fieldClass } from './ui'
+import { CheckIcon, Disclose, ScreenHeader, ShieldGlyph, SparkGlyph, TextButton, Words, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -235,12 +235,12 @@ export default function Profile({
                     {MIN_AGE}–{MAX_AGE}
                   </p>
                 </div>
-                <button
+                <TextButton
                   onClick={() => setDetailsOpen(false)}
-                  className="ml-auto pb-2.5 text-[0.85rem] font-medium text-forest underline-offset-4 hover:underline"
+                  className="ml-auto text-[0.85rem] font-medium text-forest hover:underline"
                 >
                   Done
-                </button>
+                </TextButton>
               </div>
               <p id="profile-scene-label" className="mb-2 mt-4 block text-sm font-medium text-ink-soft">
                 Where’s your community?
@@ -400,12 +400,12 @@ export default function Profile({
               ? 'What you won’t compromise on comes from your map.'
               : 'Build your map and what you won’t compromise on appears here.'}
           </p>
-          <button
+          <TextButton
             onClick={onRetake}
-            className="mt-2 text-[0.85rem] font-medium text-forest underline-offset-4 transition hover:underline"
+            className="mt-2 text-[0.85rem] font-medium text-forest hover:underline"
           >
             Something changed — answer again
-          </button>
+          </TextButton>
         </div>
       </main>
     </div>

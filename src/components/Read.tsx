@@ -7,7 +7,7 @@ import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
-import { ArrowRight, Button, Disclose, ScreenHeader, Words , NotSaving} from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, TextButton, Words , NotSaving} from './ui'
 
 interface Props {
   identity: Identity
@@ -232,12 +232,12 @@ export default function Read({
             ))}
           </ul>
           {onTrust && (
-            <button
+            <TextButton
               onClick={onTrust}
-              className="animate-rise mt-3 text-[0.85rem] font-medium text-forest underline-offset-4 hover:underline"
+              className="animate-rise mt-3 text-[0.85rem] font-medium text-forest hover:underline"
             >
               What leaves your phone, and what never does →
-            </button>
+            </TextButton>
           )}
 
           <div className="mt-8">
@@ -551,12 +551,12 @@ function Result({
 
           <InviteRow source="read" gender={subject === 'him' ? 'woman' : 'man'} />
 
-          <button
+          <TextButton
             onClick={onAgain}
-            className="mt-1 self-start text-[0.85rem] font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline"
+            className="mt-1 self-start text-[0.85rem] font-medium text-muted hover:text-ink hover:underline"
           >
             Take the read again
-          </button>
+          </TextButton>
           </div>
         </Disclose>
 

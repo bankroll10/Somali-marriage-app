@@ -4,7 +4,7 @@ import type { FollowUpAsk } from '../../lib/followup'
 import { shareOrCopy } from '../../lib/share'
 import { wordsMessage } from '../../lib/words'
 import ScriptCard from '../ScriptCard'
-import { ArrowRight, CheckIcon } from '../ui'
+import { ArrowRight, CheckIcon, TextButton } from '../ui'
 
 interface Props {
   ask: FollowUpAsk
@@ -153,9 +153,9 @@ export function FollowedThrough({ ask, onDone }: { ask: FollowUpAsk; onDone: () 
               'Send these words'
             )}
           </button>
-          <button onClick={onDone} className="text-[0.85rem] font-medium text-muted underline-offset-4 hover:underline">
+          <TextButton onClick={onDone} className="text-[0.85rem] font-medium text-muted hover:underline">
             Done
-          </button>
+          </TextButton>
         </div>
       </div>
     </section>

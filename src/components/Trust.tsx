@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import type { Identity } from '../types'
 import type { LedgerEntry } from '../lib/ledger'
-import { BackButton, CheckIcon, Disclose, LockGlyph, Logo } from './ui'
+import { BackButton, CheckIcon, Disclose, LockGlyph, Logo, TextButton } from './ui'
 import ReportConcern from './ReportConcern'
 import { CONTACT_EMAIL } from '../lib/site'
 import { speak } from '../data/read'
@@ -97,14 +97,16 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
             title="Keep the Guide on this device"
             desc="Your guide answers from your phone alone. Answers are shorter and less tailored, and nothing you write to it leaves — not your question, not your map."
             icon={<LockGlyph />}
-          >
-            <Toggle on={guideOnDevice} label="Keep the Guide on this device" onClick={() => onGuideOnDevice(!guideOnDevice)} />
-          </Control>
+            on={guideOnDevice}
+            onToggle={() => onGuideOnDevice(!guideOnDevice)}
+          />
 
           <Control
             title="Tell us which steps you reach"
             desc="Opening Niyyah is counted once. After that, each step above is counted the first time you reach it."
             icon={<LockGlyph />}
+            on={countMe}
+            onToggle={() => onCountMe(!countMe)}
             more={
               <>
                 <p className="text-[0.88rem] leading-snug text-muted text-pretty">
@@ -115,9 +117,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 </p>
               </>
             }
-          >
-            <Toggle on={countMe} label="Tell us which steps you reach" onClick={() => onCountMe(!countMe)} />
-          </Control>
+          />
         </div>
 
         {/* Where the data lives — the skeptic's first question, answered plainly.
@@ -406,9 +406,9 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 >
                   Yes, delete everything
                 </button>
-                <button onClick={() => setForgetting('idle')} className="text-[0.85rem] font-medium text-muted underline-offset-4 hover:underline">
+                <TextButton onClick={() => setForgetting('idle')} className="text-[0.85rem] font-medium text-muted hover:underline">
                   Keep it
-                </button>
+                </TextButton>
                 <span className="text-[0.82rem] text-muted">This cannot be undone.</span>
               </>
             )}
@@ -489,25 +489,38 @@ function Control({
   title,
   desc,
   icon,
-  children,
+  on,
+  onToggle,
   more,
 }: {
   title: string
   desc: string
   icon: ReactNode
-  children: ReactNode
+  on: boolean
+  onToggle: () => void
   more?: ReactNode
 }) {
   return (
     <div className="rounded-card border border-line bg-white/50">
-      <div className="flex items-start gap-4 p-5">
+      {/* The switch used to be the only clickable 28px in this row — its
+          own title and description, right beside it, did nothing. The
+          whole row is the control now; the visual switch (Toggle) is
+          decorative. */}
+      <button
+        onClick={onToggle}
+        role="switch"
+        aria-checked={on}
+        className="flex w-full items-start gap-4 p-5 text-left"
+      >
         <span className="flex h-11 w-11 flex-none items-center justify-center rounded-2xl bg-sand text-ink-soft">{icon}</span>
         <div className="min-w-0 flex-1">
           <h2 className="font-display text-[1.08rem] font-medium text-ink">{title}</h2>
           <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">{desc}</p>
         </div>
-        <div className="flex-none pt-0.5">{children}</div>
-      </div>
+        <div className="flex-none pt-0.5">
+          <Toggle on={on} />
+        </div>
+      </button>
       {more && (
         <div className="px-5 pb-4">
           <Disclose summary="What exactly is counted" className="bg-transparent" divided={false}>
@@ -519,16 +532,11 @@ function Control({
   )
 }
 
-function Toggle({ on, label, onClick }: { on: boolean; label: string; onClick: () => void }) {
+/** Purely decorative — the click handler and a11y role live on the row (Control) that wraps this. */
+function Toggle({ on }: { on: boolean }) {
   return (
-    <button
-      onClick={onClick}
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      className={`relative h-7 w-12 flex-none rounded-full transition-colors duration-200 ${on ? 'bg-forest' : 'bg-sand'}`}
-    >
+    <span aria-hidden className={`relative block h-7 w-12 flex-none rounded-full transition-colors duration-200 ${on ? 'bg-forest' : 'bg-sand'}`}>
       <span className={`absolute top-1 h-5 w-5 rounded-full bg-cream shadow transition-all duration-200 ${on ? 'left-6' : 'left-1'}`} />
-    </button>
+    </span>
   )
 }

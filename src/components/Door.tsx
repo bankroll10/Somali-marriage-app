@@ -5,7 +5,7 @@ import { countries, getCountry } from '../data/countries'
 import { hesitationOptions, type Hesitation } from '../data/hesitation'
 import { cohortCount, opensWhen } from '../lib/cohort'
 import { DoorCount, type CountState } from './Cohort'
-import { ArrowRight, ScreenHeader, fieldClass } from './ui'
+import { ArrowRight, ScreenHeader, TextButton, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -210,13 +210,13 @@ export default function Door({
           {/* The one no this product records — the same word, from the same
               list, as the door card on Home. docs/GAPS.md. */}
           {hesitating === 'closed' && (
-            <button
+            <TextButton
               type="button"
               onClick={() => setHesitating('open')}
-              className="mt-4 text-[0.82rem] font-medium text-muted underline-offset-4 hover:underline"
+              className="mt-4 text-[0.82rem] font-medium text-muted hover:underline"
             >
               Not now
-            </button>
+            </TextButton>
           )}
           {hesitating === 'open' && (
             <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
@@ -240,13 +240,13 @@ export default function Door({
                 One word reaches us — why the door was hard to walk through — under a random code this phone
                 made up for itself. Nothing else, and nothing about you.
               </p>
-              <button
+              <TextButton
                 type="button"
                 onClick={() => setHesitating('closed')}
-                className="mt-2 text-[0.8rem] font-medium text-muted underline-offset-4 hover:underline"
+                className="mt-2 text-[0.8rem] font-medium text-muted hover:underline"
               >
                 Skip
-              </button>
+              </TextButton>
             </div>
           )}
           {hesitating === 'said' && (

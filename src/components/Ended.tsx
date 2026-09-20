@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { EndedRecord, Identity } from '../types'
 import { endedReasons, type EndedReason } from '../data/ended'
-import { Logo } from './ui'
+import { Logo, TextButton } from './ui'
 
 interface Props {
   identity: Identity
@@ -53,9 +53,9 @@ export default function Ended({ identity, from, saved, onSave, onDone }: Props) 
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           <Logo className="text-ink" />
-          <button onClick={onDone} className="text-[0.85rem] font-medium text-muted underline-offset-4 hover:underline">
+          <TextButton onClick={onDone} className="text-[0.85rem] font-medium text-muted hover:underline">
             Skip
-          </button>
+          </TextButton>
         </div>
       </header>
 

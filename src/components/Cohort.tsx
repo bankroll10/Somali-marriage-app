@@ -11,7 +11,7 @@ import { parseAge } from '../lib/age'
 import { shareOrCopy } from '../lib/share'
 import { contactProblem, looksReachable } from '../lib/contact'
 import { track } from '../lib/analytics'
-import { ArrowRight, CheckIcon, Spinner, fieldClass } from './ui'
+import { ArrowRight, CheckIcon, Spinner, TextButton, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -533,13 +533,13 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           the door is where people stop, and until now it learned nothing from
           that. One word, about the door, from a list we wrote — docs/GAPS.md. */}
       {onHesitate && hesitating === 'closed' && (
-        <button
+        <TextButton
           type="button"
           onClick={() => setHesitating('open')}
-          className="mt-3 text-[0.82rem] font-medium text-muted underline-offset-4 hover:underline"
+          className="mt-3 text-[0.82rem] font-medium text-muted hover:underline"
         >
           Not now
-        </button>
+        </TextButton>
       )}
       {onHesitate && hesitating === 'open' && (
         <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
@@ -563,13 +563,13 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             One word reaches us — why the door was hard to walk through — under the same random code as
             your steps. Nothing else, and nothing about you.
           </p>
-          <button
+          <TextButton
             type="button"
             onClick={() => setHesitating('closed')}
-            className="mt-2 text-[0.8rem] font-medium text-muted underline-offset-4 hover:underline"
+            className="mt-2 text-[0.8rem] font-medium text-muted hover:underline"
           >
             Skip
-          </button>
+          </TextButton>
         </div>
       )}
       {hesitating === 'said' && (

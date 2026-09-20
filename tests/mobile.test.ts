@@ -92,6 +92,53 @@ describe('safe-area insets', () => {
   })
 })
 
+describe('tap targets', () => {
+  const ui = read('components/ui.tsx')
+
+  it('defines TextButton with a real min-height floor, sizing left to the caller', () => {
+    const m = ui.match(/export function TextButton\([^)]*\)\s*{[\s\S]*?^}/m)
+    expect(m, 'TextButton is missing from ui.tsx').toBeTruthy()
+    expect(m![0]).toMatch(/min-h-11/)
+  })
+
+  it('is used at every real text-link action found in the audit', () => {
+    const sites: [string, number][] = [
+      ['components/Door.tsx', 2],
+      ['components/Cohort.tsx', 2],
+      ['components/ReportConcern.tsx', 2],
+      ['components/Read.tsx', 2],
+      ['components/BeforeYes.tsx', 2],
+      ['components/Trust.tsx', 1],
+      ['components/Profile.tsx', 2],
+      ['components/Ended.tsx', 1],
+      ['components/Ending.tsx', 2],
+      ['components/home/FollowUp.tsx', 1],
+      ['components/home/StageBand.tsx', 2],
+      ['components/home/WorkCard.tsx', 2],
+      ['components/Vouch.tsx', 2],
+      ['components/Couple.tsx', 2],
+      ['components/Home.tsx', 2],
+      ['components/Coach.tsx', 1],
+    ]
+    for (const [file, min] of sites) {
+      const src = read(file)
+      expect(src, `${file} doesn't import TextButton`).toMatch(/\bTextButton\b/)
+      const uses = [...src.matchAll(/<TextButton\b/g)].length
+      expect(uses, `${file} has ${uses} TextButton uses, expected at least ${min}`).toBeGreaterThanOrEqual(min)
+    }
+  })
+
+  it('makes the whole privacy-toggle row the switch, not just the 28px track', () => {
+    const trust = read('components/Trust.tsx')
+    // Control is the row; it now owns role="switch" and the click handler.
+    expect(trust).toMatch(/role="switch"[\s\S]{0,80}className="flex w-full items-start/)
+    // Toggle is decorative only — no click handler, no switch role of its own.
+    const toggleFn = trust.match(/function Toggle\([^)]*\)\s*{[\s\S]*?^}/m)
+    expect(toggleFn, 'Toggle is missing from Trust.tsx').toBeTruthy()
+    expect(toggleFn![0]).not.toMatch(/onClick|role=/)
+  })
+})
+
 describe('the mobile-craft pass reads more than fifteen component files, so an empty result above means clean and not skipped', () => {
   it('sees the component directory', () => {
     const files = readdirSync(join(SRC, 'components')).filter((f) => f.endsWith('.tsx'))

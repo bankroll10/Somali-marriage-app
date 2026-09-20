@@ -8,7 +8,7 @@ import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
-import { ArrowRight, Button, Logo , NotSaving, Spinner} from './ui'
+import { ArrowRight, Button, Logo , NotSaving, Spinner, TextButton} from './ui'
 
 interface Props {
   code: string
@@ -149,12 +149,12 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <Button onClick={() => window.location.reload()}>Try again</Button>
-              <button
+              <TextButton
                 onClick={onHome}
-                className="px-2 py-2 text-[0.88rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+                className="text-[0.88rem] font-medium text-muted underline hover:text-ink"
               >
                 What Niyyah is
-              </button>
+              </TextButton>
             </div>
           </div>
         )}
@@ -232,12 +232,12 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
               </Button>
               {/* Someone sent him this. Being able to say no to a stranger's
                   link is the least this screen owes him. */}
-              <button
+              <TextButton
                 onClick={onHome}
-                className="px-2 py-2 text-[0.88rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+                className="text-[0.88rem] font-medium text-muted underline hover:text-ink"
               >
                 What Niyyah is
-              </button>
+              </TextButton>
             </div>
           </div>
         )}

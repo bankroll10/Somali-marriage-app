@@ -5,7 +5,7 @@ import { endingHeadline, marriedShares } from '../lib/ending'
 import { ADVICE_PLACEHOLDER, ADVICE_PROMPT, PAY_IT_FORWARD, endingQuestions } from '../data/ending'
 import { speak } from '../data/read'
 import { shareOrCopy } from '../lib/share'
-import { CheckIcon, Logo, fieldClass } from './ui'
+import { CheckIcon, Logo, TextButton, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -94,9 +94,9 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           <Logo className="text-ink" />
-          <button onClick={onBack} className="text-[0.85rem] font-medium text-muted underline-offset-4 hover:underline">
+          <TextButton onClick={onBack} className="text-[0.85rem] font-medium text-muted hover:underline">
             Close
-          </button>
+          </TextButton>
         </div>
       </header>
 
@@ -287,9 +287,9 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
         </section>
 
         <div className="mt-10 text-center">
-          <button onClick={onBack} className="text-[0.88rem] font-medium text-forest underline-offset-4 hover:underline">
+          <TextButton onClick={onBack} className="text-[0.88rem] font-medium text-forest hover:underline">
             Close
-          </button>
+          </TextButton>
         </div>
       </main>
     </div>

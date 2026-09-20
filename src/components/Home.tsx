@@ -16,6 +16,7 @@ import {
   LockGlyph,
   Logo,
   ArrowRight,
+  TextButton,
   fieldClass,
   PersonGlyph,
   SeedGlyph,
@@ -574,21 +575,21 @@ export default function Home({
                 >
                   Yes, start over
                 </button>
-                <button
+                <TextButton
                   onClick={() => setRestarting(false)}
-                  className="px-2 py-2 text-[0.85rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+                  className="text-[0.85rem] font-medium text-muted underline hover:text-ink"
                 >
                   Keep it
-                </button>
+                </TextButton>
               </div>
             </div>
           ) : (
-            <button
+            <TextButton
               onClick={() => setRestarting(true)}
-              className="px-3 py-2 text-[0.8rem] text-muted underline underline-offset-4 transition hover:text-ink"
+              className="text-[0.8rem] text-muted underline hover:text-ink"
             >
               Start over from the beginning
-            </button>
+            </TextButton>
           )}
         </div>
       </main>

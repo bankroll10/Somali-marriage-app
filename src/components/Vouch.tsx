@@ -3,7 +3,7 @@ import type { VouchState } from '../types'
 import { relationshipOptions } from '../data/vouch'
 import { readVouchDetail, sendVouch } from '../lib/vouch'
 import { track } from '../lib/analytics'
-import { ArrowRight, Button, Logo, fieldClass , NotSaving} from './ui'
+import { ArrowRight, Button, Logo, TextButton, fieldClass , NotSaving} from './ui'
 
 interface Props {
   code: string
@@ -157,13 +157,13 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
             {/* Vouching is a real commitment made on someone else's behalf.
                 The three phases after this one each offered a way out; the one
                 phase where a person might want to decline did not. */}
-            <button
+            <TextButton
               type="button"
               onClick={onDone}
-              className="mt-6 px-2 py-2 text-[0.88rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+              className="mt-6 text-[0.88rem] font-medium text-muted underline hover:text-ink"
             >
               What Niyyah is
-            </button>
+            </TextButton>
           </form>
         )}
 
@@ -206,9 +206,9 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button onClick={() => window.location.reload()}>Try again</Button>
-              <button onClick={onDone} className="px-2 py-2 text-sm font-medium text-muted underline underline-offset-4 transition hover:text-ink">
+              <TextButton onClick={onDone} className="text-sm font-medium text-muted underline hover:text-ink">
                 What Niyyah is
-              </button>
+              </TextButton>
             </div>
           </div>
         )}

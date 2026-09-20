@@ -16,6 +16,7 @@ import {
   ScreenHeader,
   SeedGlyph,
   SparkGlyph,
+  TextButton,
   TypingDots,
   fieldClass,
 } from './ui'
@@ -421,12 +422,12 @@ export default function Coach({
               guide is a pressure gauge, and the thing it sold was the guide
               without one. */}
         </div>
-        <button
+        <TextButton
           onClick={() => setMode(null)}
-          className="rounded-full border border-line px-3 py-1.5 text-[0.78rem] font-medium text-ink-soft transition hover:bg-sand"
+          className="rounded-full border border-line text-[0.78rem] font-medium text-ink-soft hover:bg-sand"
         >
           Switch
-        </button>
+        </TextButton>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto">

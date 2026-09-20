@@ -13,7 +13,7 @@ import ScriptCard from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
-import { ArrowRight, Button, Disclose, ScreenHeader, Words , NotSaving} from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, TextButton, Words , NotSaving} from './ui'
 
 interface Props {
   identity: Identity
@@ -186,12 +186,12 @@ export default function BeforeYes({
             ))}
           </ul>
           {onTrust && (
-            <button
+            <TextButton
               onClick={onTrust}
-              className="animate-rise mt-3 text-[0.85rem] font-medium text-forest underline-offset-4 hover:underline"
+              className="animate-rise mt-3 text-[0.85rem] font-medium text-forest hover:underline"
             >
               What leaves your phone, and what never does →
-            </button>
+            </TextButton>
           )}
           {gender ? (
 
@@ -456,9 +456,9 @@ function Result({
               body="Whose house, money home, a second wife — which ones they’ve had, and the words for the one that matters. No account."
             />
 
-            <button onClick={onAgain} className="mt-1 self-start text-[0.85rem] font-medium text-muted underline-offset-4 transition hover:text-ink hover:underline">
+            <TextButton onClick={onAgain} className="mt-1 self-start text-[0.85rem] font-medium text-muted hover:text-ink hover:underline">
               Go through it again
-            </button>
+            </TextButton>
           </div>
         </Disclose>
 

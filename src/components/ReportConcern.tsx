@@ -3,6 +3,7 @@ import type { Gender } from '../types'
 import { SAFETY_REASONS } from '../data/safety'
 import { sendReport } from '../lib/safety'
 import { track } from '../lib/analytics'
+import { TextButton } from './ui'
 
 interface Props {
   code: string
@@ -26,12 +27,12 @@ export default function ReportConcern({ code, side }: Props) {
 
   if (state === 'closed') {
     return (
-      <button
+      <TextButton
         onClick={() => setState('open')}
-        className="mt-6 text-[0.82rem] font-medium text-muted underline-offset-4 hover:underline"
+        className="mt-6 text-[0.82rem] font-medium text-muted hover:underline"
       >
         Something wrong? Report a concern.
-      </button>
+      </TextButton>
     )
   }
 
@@ -82,9 +83,9 @@ export default function ReportConcern({ code, side }: Props) {
         >
           Send
         </button>
-        <button onClick={() => setState('closed')} className="text-[0.85rem] font-medium text-muted underline-offset-4 hover:underline">
+        <TextButton onClick={() => setState('closed')} className="text-[0.85rem] font-medium text-muted hover:underline">
           Cancel
-        </button>
+        </TextButton>
         {state === 'error' && <span className="text-[0.82rem] text-clay">Didn’t send — try again.</span>}
       </div>
     </div>

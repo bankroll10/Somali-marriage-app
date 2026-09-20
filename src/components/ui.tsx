@@ -76,6 +76,27 @@ export function Button({ variant = 'primary', className = '', children, ...rest 
   )
 }
 
+/**
+ * A same-weight text action — "Skip", "Cancel", "Not now" — that shouldn't
+ * look like a Button. Every call site kept hand-rolling this as a bare
+ * underlined string with little or no padding, which is how ~26 of them
+ * across the app ended up 16-29px tall (docs/MOBILE.md), well under the
+ * touch-target floor docs/NORMAN.md already set for BackButton.
+ *
+ * This adds only the invisible tap-target floor. Text size, color and hover
+ * treatment all stay with the caller via `className`, on purpose — the
+ * ~26 sites span five different sizes and several colors today, and baking
+ * any of that in here would be the one thing this pass isn't meant to do:
+ * change how something looks.
+ */
+export function TextButton({ className = '', children, ...rest }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button {...rest} className={`inline-flex min-h-11 items-center px-2 underline-offset-4 transition ${className}`}>
+      {children}
+    </button>
+  )
+}
+
 /** Faint geometric backdrop behind hero moments — dots only, no blur blobs. */
 export function GeoBackdrop({ className = '' }: { className?: string }) {
   return (
