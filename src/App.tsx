@@ -1,28 +1,6 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef } from 'react'
 import { useFocusHeading } from './hooks/useFocusHeading'
 import Welcome from './components/Welcome'
-import IdentityStep from './components/Identity'
-import Situation from './components/Situation'
-import Hook from './components/Hook'
-import Intake from './components/Intake'
-import ReflectionView, { Generating } from './components/Reflection'
-import Home from './components/Home'
-import Coach from './components/Coach'
-import Trust from './components/Trust'
-import Philosophy from './components/Philosophy'
-import Profile from './components/Profile'
-import SampleIntroduction from './components/SampleIntroduction'
-import Read from './components/Read'
-import Door from './components/Door'
-import BeforeYes from './components/BeforeYes'
-import Families from './components/Families'
-import Couple from './components/Couple'
-import Vouch from './components/Vouch'
-import Plus from './components/Plus'
-import Ending from './components/Ending'
-import Ended from './components/Ended'
-import ShortMap from './components/ShortMap'
-import Cohort from './components/Cohort'
 import { ArrowRight, Button, ScreenHeader } from './components/ui'
 import type { Gender, Reach } from './types'
 import { pathFor, type Entry } from './lib/entry'
@@ -31,6 +9,48 @@ import { buildRead, readSummary } from './lib/read'
 import { beforeYesSummary, buildBeforeYes } from './lib/beforeYes'
 import { useNiyyah } from './hooks/useNiyyah'
 import { forgetEntry } from './lib/entry'
+
+// Welcome is the first thing almost everyone sees, so it (and the ui.tsx
+// primitives it already pulls in) stays in the eager bundle. Everything past
+// it is one screen at a time by construction (AppScreen's switch), and most
+// sessions never reach most of these — the Somali sheet, Trust, Philosophy,
+// Plus, the endings — so shipping all of them upfront was pure waste on the
+// one path every visit takes: it cost 611KB of initial JS to get her to a
+// screen that needs about half of that.
+//
+// The obvious next move — warm the other screens on idle, right after load,
+// so a later tap never waits on a chunk — was tried and measured out. Both a
+// single burst of 22 dynamic imports and a version staggered one-per-idle-
+// callback made first contentful paint ~12% slower under a throttled mobile
+// profile (Chromium, 4x CPU, 1.5 Mbps down): the imports fire the moment the
+// browser is idle, which under real throttling is also the moment it is
+// still finishing the paint this measured. Nothing here is on a path anyone
+// is actually waiting on — a lazy chunk is a few KB, fetched once, the first
+// time its screen is reached — so the fix is not fetching it before then.
+// See docs/PERFORMANCE.md.
+const IdentityStep = lazy(() => import('./components/Identity'))
+const Situation = lazy(() => import('./components/Situation'))
+const Hook = lazy(() => import('./components/Hook'))
+const Intake = lazy(() => import('./components/Intake'))
+const ReflectionView = lazy(() => import('./components/Reflection'))
+const Generating = lazy(() => import('./components/Reflection').then((m) => ({ default: m.Generating })))
+const Home = lazy(() => import('./components/Home'))
+const Coach = lazy(() => import('./components/Coach'))
+const Trust = lazy(() => import('./components/Trust'))
+const Philosophy = lazy(() => import('./components/Philosophy'))
+const Profile = lazy(() => import('./components/Profile'))
+const SampleIntroduction = lazy(() => import('./components/SampleIntroduction'))
+const Read = lazy(() => import('./components/Read'))
+const Door = lazy(() => import('./components/Door'))
+const BeforeYes = lazy(() => import('./components/BeforeYes'))
+const Families = lazy(() => import('./components/Families'))
+const Couple = lazy(() => import('./components/Couple'))
+const Vouch = lazy(() => import('./components/Vouch'))
+const Plus = lazy(() => import('./components/Plus'))
+const Ending = lazy(() => import('./components/Ending'))
+const Ended = lazy(() => import('./components/Ended'))
+const ShortMap = lazy(() => import('./components/ShortMap'))
+const Cohort = lazy(() => import('./components/Cohort'))
 
 export default function App({ entry = null }: { entry?: Entry | null }) {
   const n = useNiyyah(entry)
@@ -78,9 +98,16 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
   }, [n.screen, n.identity.gender, n.entryAbout])
 
   // Keyed by screen so every navigation gets one soft, uniform fade-in.
+  //
+  // The fallback only ever shows while a lazy screen's own chunk is still in
+  // flight — a first navigation to it on a slow connection. It matches the
+  // body background rather than showing a spinner: this is a hole in the
+  // page for a moment, not a wait worth announcing.
   return (
     <div key={n.screen} ref={screenRef} className="animate-screen">
-      <AppScreen n={n} />
+      <Suspense fallback={<div className="min-h-dvh bg-cream" />}>
+        <AppScreen n={n} />
+      </Suspense>
     </div>
   )
 }

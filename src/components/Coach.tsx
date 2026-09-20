@@ -228,6 +228,22 @@ export default function Coach({
     // What actually reached the screen. Needed because a mid-stream drop must
     // not cost her the words she already watched arrive.
     let streamedText = ''
+    // Network chunks off the guide's stream arrive far more often than a
+    // screen repaints — Anthropic's text deltas land several times a second,
+    // each one previously forcing a full setThreads + a re-parse of the whole
+    // answer so far in RichText (its markdown split runs over the entire
+    // accumulated text, not just what's new). Coalescing to one write per
+    // animation frame bounds that to the screen's own refresh rate instead of
+    // the network's, with no visible difference — a still-streaming reply
+    // reads the same either way, one frame late at most.
+    let rafId: number | null = null
+    let latestSoFar = ''
+    const flushPending = () => {
+      if (rafId === null) return
+      cancelAnimationFrame(rafId)
+      rafId = null
+      writeReply(latestSoFar)
+    }
 
     /**
      * Write the answer-so-far into the thread under a fixed id.
@@ -255,14 +271,20 @@ export default function Coach({
     // The thread so far, so the live guide picks up mid-conversation instead of
     // meeting them fresh on every message.
     const reply = await askCoach(trimmed, ctx, mode, threads[mode] ?? [], (soFar) => {
-      writeReply(soFar)
+      // `streamedText` stays exact on every chunk — only the render is
+      // deferred, never the record of what actually arrived.
       streamedText = soFar
+      latestSoFar = soFar
+      if (rafId === null) rafId = requestAnimationFrame(flushPending)
       if (!streamed) {
         streamed = true
         // The words are the thinking indicator now.
         setThinking(false)
       }
     })
+    // The stream is done (or died) — show exactly what arrived rather than
+    // whatever the last painted frame happened to catch.
+    flushPending()
 
     // Charged only for an answer from the guide. This comment has always said
     // so and the code did the opposite: askCoach cannot return null, so every
