@@ -498,9 +498,9 @@ export function NotSaving({ what, className = '' }: { what: string; className?: 
   return (
     <div role="status" className={`rounded-2xl border border-clay/40 bg-clay/[0.07] px-4 py-3 ${className}`}>
       <p className="text-[0.84rem] leading-snug text-ink-soft text-pretty">
-        <span className="font-medium text-ink">This browser isn’t saving anything.</span> Private browsing or full
-        storage does that, so {what} will be gone when you close the tab. Finish in one sitting, or switch off private
-        browsing first.
+        <span className="font-medium text-ink">This browser isn’t saving anything</span> — private browsing or full
+        storage does that — so {what} will be gone when you close the tab. Finish in one sitting, or switch off
+        private browsing first.
       </p>
     </div>
   )

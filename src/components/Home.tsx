@@ -179,7 +179,7 @@ export default function Home({
                 <span className="font-medium text-ink-soft">{scene.label}</span> · {scene.note}
               </>
             ) : (
-              'Welcome back to your space.'
+              'Welcome back.'
             )}
           </p>
         </section>
@@ -428,10 +428,10 @@ export default function Home({
           </section>
         )}
 
-        {/* Your space */}
+        {/* The rest of Home: the guide, the map, the door. */}
         <section className="mt-10">
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">
-            Your space
+            Also here
           </p>
           <div className="grid gap-3.5">
             {/* Guide — free-form entry; the work card hands over specific topics. */}
@@ -545,7 +545,7 @@ export default function Home({
             className="group inline-flex items-center gap-1.5 text-[0.85rem] text-muted transition-colors hover:text-ink"
           >
             <span>
-              <span className="font-medium text-ink-soft">Your space, your pace.</span> Why Niyyah
+              Why Niyyah
             </span>
             <ArrowRight className="h-3.5 w-3.5 text-gold transition-transform group-hover:translate-x-0.5" />
           </button>

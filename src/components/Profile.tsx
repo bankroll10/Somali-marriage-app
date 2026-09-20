@@ -79,7 +79,6 @@ export default function Profile({
   onRetake,
   onBack,
 }: Props) {
-  const name = identity.firstName?.trim()
   const scene = getScene(identity.scene)
   const country = getCountry(countryFor(identity))
   const done = ledger.filter((e) => e.done)
@@ -102,12 +101,12 @@ export default function Profile({
       <main className="mx-auto max-w-2xl px-6">
         <section className="py-8">
           <h1 className="animate-rise font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
-            {name ? `${name}, this is what will decide it.` : 'This is what will decide it.'}
+            Not a photo, not a bio, not a number.
           </h1>
           <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
-            Not a photo, not a bio, not a number. Nobody is introduced here yet. If a pool opens, who you
- meet would be decided by what you have done here, what you will not compromise on, and
-            how you would live. All of it is yours to do or not — and none of it can be tapped into being.
+            Nobody is introduced here yet. If a pool opens, who you meet would be decided by what you have
+            done here, what you will not compromise on, and how you would live. All of it is yours to do
+            or not.
           </p>
           {!saveOk && (
             <p className="mt-3 text-[0.85rem] font-medium text-clay text-pretty">
@@ -128,7 +127,7 @@ export default function Profile({
             <span className="block text-[0.95rem] font-medium text-ink">What you’ve done here</span>
             <span className="block text-[0.8rem] text-muted text-pretty">
               {done.length === 0
-                ? 'Nothing yet — and nothing here can be tapped into being.'
+                ? 'Nothing yet.'
                 : done.map((e) => e.label.toLowerCase()).join(' · ')}
             </span>
           </span>

@@ -63,16 +63,18 @@ describe('the lexicon', () => {
 describe('Trust keeps what it collapsed', () => {
   const trust = source.get('Trust.tsx') ?? ''
 
+  // The screen says "Six things can change that". These are the six.
+  const SIX = [
+    'Keeping your map',
+    'Asking to be counted',
+    'Asking {him} to do the eleven too',
+    'Asking your family to vouch',
+    'The steps you reach',
+    'The Guide',
+  ]
+
   it('still names all six exceptions it promises', () => {
-    // The screen says "Six things can change that". These are the six.
-    for (const summary of [
-      'Keeping your map',
-      'Asking to be counted',
-      'Asking {him} to do the eleven too',
-      'Asking your family to vouch',
-      'Being counted in the ladder',
-      'The Guide',
-    ]) {
+    for (const summary of SIX) {
       // Either form: a plain label, or one resolved through speak() for
       // whoever is reading — the pronoun in "Asking {him}" is theirs.
       const plain = trust.includes(`summary="${summary}"`)
@@ -97,18 +99,25 @@ describe('Trust keeps what it collapsed', () => {
     }
   })
 
-  it('carries at least as much prose as it did before it was collapsed', () => {
-    // 2,366 rendered words on 2026-09-18, measured in Chromium at 400px
-    // (docs/LOAD.md). Counted here on the JSX text, which is a different and
-    // rougher number — so the floor is deliberately well under it. It exists
-    // to catch a deletion, not to police an edit.
-    const prose = trust
-      .replace(/\/\*[\s\S]*?\*\//g, ' ')
-      .replace(/className=(\{`[^`]*`\}|"[^"]*"|\{[^}]*\})/g, ' ')
-      .replace(/<[^>]*>/g, ' ')
-      .split(/\s+/)
-      .filter(Boolean)
-    expect(prose.length).toBeGreaterThan(1800)
+  it('keeps a real account behind every one of the six rows', () => {
+    // Until 2026-09-20 this was a floor of 1,800 words on the whole file,
+    // set when the collapse promised "no word deleted" (docs/LOAD.md). The
+    // voice pass (docs/VOICE.md) cut what Trust said twice, so the floor
+    // moved to where the risk is: each of the six rows must still hold an
+    // account of its own, not a heading over nothing. Sixty words is under
+    // half of the shortest row today.
+    const rows = [...trust.matchAll(/<Disclose summary=(?:"([^"]*)"|\{fix\('([^']*)'\)\})[^>]*>([\s\S]*?)<\/Disclose>/g)]
+      .map(([, plain, spoken, inner]) => ({ summary: plain ?? spoken, inner }))
+      .filter(({ summary }) => SIX.includes(summary))
+    expect(rows.map((r) => r.summary).sort()).toEqual([...SIX].sort())
+    for (const { summary, inner } of rows) {
+      const words = inner
+        .replace(/className=(\{[^}]*\}|"[^"]*")/g, ' ')
+        .replace(/<[^>]*>/g, ' ')
+        .split(/\s+/)
+        .filter(Boolean)
+      expect(words.length, `"${summary}" has thinned to ${words.length} words`).toBeGreaterThan(60)
+    }
   })
 })
 

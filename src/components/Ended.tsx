@@ -104,8 +104,8 @@ export default function Ended({ identity, from, saved, onSave, onDone }: Props) 
           )}
 
           <p className="mt-5 text-[0.82rem] leading-relaxed text-muted text-pretty">
-            Nothing about {other} is recorded — no name, no number, nothing you wrote. If Count me is
-            on, this reaches us as one of ten words, and never reaches {other}.
+            Nothing about {other} is recorded — no name, no number, nothing you wrote. If you are telling
+            us which steps you reach, this reaches us as one of ten words, and never reaches {other}.
           </p>
         </section>
 

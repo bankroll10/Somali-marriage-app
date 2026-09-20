@@ -223,10 +223,8 @@ export default function Read({
 
           <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
             {[
-              'We never ask their name. Nothing here identifies anyone.',
-              'We will not tell you what kind of person they are. We have not met them.',
- 'You will get something you can say this week.',
-              'No account, no sign-in. Your answers stay on this phone unless you choose to keep your map.',
+              'We never ask their name, and we will not tell you what kind of person they are. We have not met them.',
+              'No account. Your answers stay on this phone unless you keep your map.',
             ].map((line) => (
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">
                 {line}

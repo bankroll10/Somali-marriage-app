@@ -197,7 +197,7 @@ export default function Door({
               words, in the order a person needs them. */}
           <p className="mt-3 text-[0.85rem] leading-relaxed text-muted text-pretty">
             {hasMap
-              ? 'Your map is already here — being counted is one step from your space.'
+              ? 'Your map is already here — being counted is one step from Home.'
               : 'Being counted takes three answers — your practice, children, and what you won’t compromise on — kept under a code with no name on it, your age, and a way to reach you. No photos, no account. The rest of your map can wait.'}
           </p>
           {!hasMap && (

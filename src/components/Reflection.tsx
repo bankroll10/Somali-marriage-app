@@ -169,7 +169,7 @@ export default function ReflectionView({
           {firstReveal ? (
             <Logo className="text-ink" />
           ) : (
-            <BackButton onClick={onContinue} label="Back to your space" />
+            <BackButton onClick={onContinue} label="Back home" />
           )}
           <span className="text-xs uppercase tracking-[0.2em] text-muted">Your map</span>
         </div>
@@ -197,8 +197,8 @@ export default function ReflectionView({
             </p>
             <p className="mt-3 max-w-md text-[0.92rem] leading-relaxed text-cream/60 text-pretty">
               {firstReveal
-                ? 'A starting point, not a verdict — and not a measure of you as a person. No one sees this but you.'
-                : 'What decides who you meet is what you’ve done here and what you won’t compromise on — never this reading. No one sees it but you.'}
+                ? 'A starting point, not a verdict, and not a measure of you as a person. No one sees this but you.'
+                : 'What decides who you meet is what you’ve done here and what you won’t compromise on, not this reading. No one sees it but you.'}
             </p>
           </div>
 
@@ -451,20 +451,19 @@ export default function ReflectionView({
         {/* Next: into your space — light card; the dark hero lives at the top now. */}
         <section className="mt-14 rounded-card border border-line bg-white/60 p-8 text-center">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold">
-            {firstReveal ? 'Now you’re not doing this alone' : 'Your space'}
+            {firstReveal ? 'Now you’re not doing this alone' : 'Home'}
           </p>
           <p className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance">
-            {firstReveal ? 'This is your foundation.' : 'Back to your space'}
+            {firstReveal ? 'This is your foundation.' : 'Back home'}
           </p>
           <p className="mx-auto mt-3 max-w-md text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
-            From here your map quietly powers everything — a guide for the real
-            moments, the work you take on, and — if a pool ever opens here —
-            introductions chosen by how your lives fit and what you won’t
-            compromise on. None exist yet.
+            From here your map is behind everything: the guide, the work you take
+            on, and — if a pool ever opens here — introductions chosen by how your
+            lives fit and what you won’t compromise on. None exist yet.
           </p>
           <div className="mt-7">
             <Button onClick={onContinue} className="group">
-              {firstReveal ? 'Enter your space' : 'Back to your space'}
+              {firstReveal ? 'Continue' : 'Back home'}
               <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
             </Button>
           </div>

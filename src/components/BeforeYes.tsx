@@ -179,10 +179,8 @@ export default function BeforeYes({
           </p>
           <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
             {[
-              'This does not score anyone. It records which conversations have happened.',
-              'We take no position on any of them — qabiil and a second wife included.',
- 'You will leave with something you can say.',
-              `No account, no sign-in. Your answers stay on this phone unless you keep your map, or ask ${them} to answer too.`,
+              'This does not score anyone. It records which conversations have happened, and takes no position on any of them — qabiil and a second wife included.',
+              `No account. Your answers stay on this phone unless you keep your map, or ask ${them} to answer too.`,
             ].map((line) => (
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>
             ))}
@@ -469,8 +467,7 @@ function Result({
       </div>
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
-        This records which conversations you have had. It takes no position on any of them, and it is
-        not a verdict on anyone. Your answers stay on this device.
+        Not a verdict on anyone. Your answers stay on this device.
       </p>
     </div>
   )

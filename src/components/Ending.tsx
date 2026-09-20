@@ -156,7 +156,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
             We mean it plainly. There is nothing left to finish, no streak to lose, nobody waiting, and
             nothing that will be charged. If the first year gets hard, the words for two families and
             the guide are here — and if they are not needed, better still. Barakallahu lakuma wa baraka
-            alaykuma wa jama’a baynakuma fi khayr.
+            alaykuma wa jama’a baynakuma fi khayr: may Allah bless you both, and join you in good.
           </p>
         </section>
 
@@ -222,8 +222,8 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
  Four questions, and then we stop. Nobody has ever told us what decides this, and
             without knowing we are guessing at what to build for the next person. Skip any of them.
-            With Count me on, the options you tap here reach us under the same random code as your
-            steps. The line you write below never does — it is yours.
+            If you are telling us which steps you reach, the options you tap here reach us under the same
+            random code as your steps. The line you write below never does — it is yours.
           </p>
 
           <div className="mt-6 flex flex-col gap-6">

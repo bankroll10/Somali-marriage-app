@@ -38,7 +38,7 @@ export default function ReportConcern({ code, side }: Props) {
   if (state === 'sent') {
     return (
       <p className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty">
-        Sent. It reaches the founder and no one else — not the other person, and nothing that counts. She reads these weekly, and what she does about it is written down.
+        Sent. Only the founder reads this, weekly, and what she does about it is written down.
       </p>
     )
   }
@@ -67,7 +67,7 @@ export default function ReportConcern({ code, side }: Props) {
         className="mt-3 w-full resize-none rounded-xl border border-line bg-white p-3 text-[0.88rem] text-ink placeholder:text-muted"
       />
       <p className="mt-2 text-[0.78rem] leading-relaxed text-muted text-pretty">
-        This reaches the founder only — never the other person, never a count, and never anything the app learns from.
+        This reaches the founder only — not the other person, and not anything the app counts or learns from.
       </p>
       <div className="mt-3 flex items-center gap-3">
         <button

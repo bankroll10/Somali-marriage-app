@@ -185,14 +185,14 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
               It works — this is what {senderObj === 'her' ? 'he' : 'she'} sees when {senderObj === 'her' ? 'he' : 'she'} opens
               it. {senderObj === 'her' ? 'He' : 'She'} has not answered yet. When {senderObj === 'her' ? 'he' : 'she'} does,
-              your space will say so, and you will both see where you match — never each other’s answers.
+              Home will say so, and you will both see where you match — not each other’s answers.
             </p>
             <p className="animate-rise mt-3 text-[0.92rem] leading-relaxed text-muted text-pretty">
               Answering it here yourself would put your own answers on {senderObj === 'her' ? 'his' : 'her'} side of the
               sheet, so this screen does not offer that.
             </p>
             <Button onClick={onHome} variant="outline" className="mt-7">
-              Back to your space
+              Back home
             </Button>
           </div>
         )}

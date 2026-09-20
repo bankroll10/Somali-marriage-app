@@ -482,7 +482,7 @@ export default function Coach({
               stop, which a chat product never gives and a guide always should. */}
           {!thinking && committed && (
             <p className="animate-fade pl-12 text-[0.85rem] text-forest text-pretty">
-              Written down. In a few days, your space will ask how it went. Go say it.
+              Written down. In a few days, Home will ask how it went. Go say it.
             </p>
           )}
           {!thinking && !committed && closers.length > 0 && (
@@ -534,7 +534,7 @@ export default function Coach({
                 onClick={onBack}
                 className="group mt-4 inline-flex items-center gap-1.5 rounded-full bg-forest px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:bg-forest-deep"
               >
-                Back to your space
+                Back home
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </button>
             </div>
@@ -566,7 +566,7 @@ export default function Coach({
         {locked ? (
           <div className="mx-auto max-w-xl px-5 py-4 text-center">
             <p className="text-[0.85rem] text-muted text-pretty">
-              Take a step on your space and the guide picks up where you left it.
+              Take a step on Home and the guide picks up where you left it.
             </p>
           </div>
         ) : (

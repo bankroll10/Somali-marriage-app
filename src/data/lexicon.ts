@@ -75,7 +75,7 @@ export const LEXICON: Term[] = [
   },
   {
     id: 'space',
-    term: 'Your space',
+    term: 'Home',
     body: 'Where you land when something happens: what happened, what you are working on, and where you are. Not a feed, and not a reason to come back.',
   },
   {
