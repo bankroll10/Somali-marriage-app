@@ -1,0 +1,652 @@
+<!doctype html>
+<html lang="so">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sheekada lacagta — xaashi loogu talagalay laba qof, oo ay soo saartay Niyyah</title>
+    <meta
+      name="description"
+      content="Xaashi la daabaci karo oo loogu talagalay laba qof oo guur ka fikirayaa: meherka, arooska, deymaha hore iyo waajibaadka joogtada ah ee qoyska, oo si ula kac ah loo kala saaray."
+    />
+    <!--
+      Self-contained on purpose. No fonts, no scripts, no images, no CDN, no
+      analytics — one file that opens from a USB stick, an email attachment or
+      a printer's desktop with the network off. Nothing here is saved or sent.
+    -->
+    <style>
+      :root {
+        --ink: #16271f;
+        --body: #24312b;
+        --rule: #9aa39d;
+        --page: #fdfcf9;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; }
+
+      body {
+        margin: 0;
+        padding: 2rem 1rem 3rem;
+        background: var(--page);
+        color: var(--body);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      .sheet {
+        max-width: 46rem;
+        margin: 0 auto;
+      }
+
+      h1, h2, h3 {
+        font-family: Georgia, 'Times New Roman', 'Liberation Serif', serif;
+        color: var(--ink);
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      h1 {
+        font-size: 1.7rem;
+        margin: 0 0 0.5rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+        margin: 0 0 0.35rem;
+      }
+
+      h3 {
+        font-size: 1rem;
+        margin: 0 0 0.6rem;
+      }
+
+      .lede {
+        margin: 0 0 0.75rem;
+        max-width: 38rem;
+      }
+
+      .note {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #4a564f;
+        max-width: 38rem;
+      }
+
+      header {
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+
+      /* Who is filling which column. Names, not roles. */
+      .who {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+        margin: 1.25rem 0 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .who > div {
+        flex: 1 1 12rem;
+        min-width: 0;
+      }
+
+      .who label {
+        display: block;
+      }
+
+      label {
+        display: block;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #4a564f;
+        margin-bottom: 0.25rem;
+      }
+
+      input[type='text'],
+      input[type='date'] {
+        width: 100%;
+        font: inherit;
+        font-size: 1rem; /* 16px floor: stops a phone browser zooming on focus */
+        color: var(--body);
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 0.25rem;
+        padding: 0.4rem 0.5rem;
+        min-height: 2.5rem;
+      }
+
+      section {
+        margin: 0 0 2.5rem;
+      }
+
+      .framing {
+        margin: 0 0 1.25rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid var(--rule);
+        max-width: 40rem;
+      }
+
+      ol.qs {
+        list-style: decimal;
+        margin: 0;
+        padding: 0 0 0 1.4rem;
+      }
+
+      ol.qs > li {
+        margin: 0 0 1.5rem;
+        padding: 0;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .q {
+        margin: 0 0 0.6rem;
+        color: var(--ink);
+      }
+
+      .cols {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .cols > div {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      textarea {
+        display: block;
+        width: 100%;
+        font: inherit;
+        font-size: 1rem; /* 16px floor, same reason as above */
+        line-height: 1.6;
+        color: var(--body);
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 0.25rem;
+        padding: 0.4rem 0.5rem;
+        resize: vertical;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+
+      .box {
+        margin-top: 1.5rem;
+        border: 2px solid var(--ink);
+        border-radius: 0.35rem;
+        padding: 1rem;
+        display: flex;
+        gap: 1rem;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .box > div {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      footer {
+        border-top: 2px solid var(--ink);
+        padding-top: 1rem;
+        max-width: 40rem;
+      }
+
+      footer p {
+        margin: 0 0 0.4rem;
+        font-size: 0.9rem;
+      }
+
+      footer a {
+        color: var(--ink);
+      }
+
+      .version {
+        color: #4a564f;
+      }
+
+      /*
+        Print-only, repeated at the foot of every section. Chrome (and every
+        other engine) ignores @page margin-box content, so there is no CSS way
+        to put a running footer in the paper margin itself — the only way to
+        get one on every printed page is to place a real element at the end of
+        every section, since each section is its own page. Screen never shows
+        it: the real footer already carries this, once, in the document flow.
+        Plain text, not a link — the sheet's one clickable link stays the one
+        in the footer below.
+      */
+      .print-footer {
+        display: none;
+      }
+
+      /* One column on a phone, and nothing that scrolls sideways. */
+      @media (max-width: 700px) {
+        .cols,
+        .box {
+          display: block;
+        }
+
+        .cols > div + div,
+        .box > div + div {
+          margin-top: 0.85rem;
+        }
+      }
+
+      @media print {
+        /*
+          No `size` is declared: the sheet is laid out inside A4's narrower
+          width and US Letter's shorter height, so whichever paper the printer
+          is holding, nothing is clipped and nothing reflows.
+        */
+        @page {
+          margin: 14mm;
+        }
+
+        html,
+        body {
+          background: #fff;
+          color: #000;
+          font-size: 10pt;
+          padding: 0;
+        }
+
+        .sheet {
+          max-width: none;
+        }
+
+        h1,
+        h2,
+        h3,
+        .q,
+        footer a {
+          color: #000;
+        }
+
+        .note,
+        label,
+        .version {
+          color: #000;
+        }
+
+        /* Each subject starts its own page — the separation is the point. */
+        section + section {
+          break-before: page;
+          page-break-before: always;
+        }
+
+        section {
+          margin-bottom: 0;
+        }
+
+        /*
+          Tightened only for paper. The header plus the first subject has to
+          clear US Letter's 712pt content box, which is the shorter of the two
+          papers; at the screen's spacing it overflowed by about a tenth of a
+          page and pushed the mahr agreement box onto a sheet of its own.
+        */
+        header {
+          padding-bottom: 2mm;
+          margin-bottom: 2mm;
+        }
+
+        .lede {
+          margin-bottom: 1.5mm;
+          line-height: 1.22;
+        }
+
+        .who {
+          margin-top: 2mm;
+        }
+
+        /* A name and a date need a line, not the box an answer needs. */
+        .who input {
+          min-height: 6.5mm;
+          height: 6.5mm;
+        }
+
+        label {
+          font-size: 8pt;
+          margin-bottom: 1mm;
+        }
+
+        h2 {
+          margin-bottom: 1mm;
+        }
+
+        .framing {
+          margin-bottom: 2mm;
+          padding-bottom: 1.5mm;
+          line-height: 1.2;
+        }
+
+        .box {
+          margin-top: 3mm;
+          padding: 2.5mm;
+        }
+
+        /* Lines to write on, not fills to soak up toner. */
+        input[type='text'],
+        input[type='date'],
+        textarea {
+          background: transparent;
+          border: 1pt solid #000;
+          border-radius: 0;
+          min-height: 11.5mm;
+          height: 11.5mm;
+        }
+
+        /* The resize handle is a screen-only affordance — printed, it's a
+           diagonal mark in the corner of every answer box with nothing to
+           grab. */
+        textarea {
+          resize: none;
+        }
+
+        textarea::-webkit-resizer {
+          display: none;
+        }
+
+        .box textarea {
+          min-height: 15mm;
+          height: 15mm;
+        }
+
+        ol.qs > li {
+          margin-bottom: 1.5mm;
+        }
+
+        .q {
+          margin-bottom: 0.7mm;
+          line-height: 1.2;
+        }
+
+        footer {
+          break-before: auto;
+          margin-top: 5mm;
+        }
+
+        .screen-only {
+          display: none;
+        }
+
+        .print-footer {
+          display: block;
+          margin-top: 2mm;
+          padding-top: 1mm;
+          border-top: 0.5pt solid #000;
+          font-size: 7pt;
+          color: #000;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="sheet">
+      <header>
+        <h1>Sheekada lacagta</h1>
+        <p class="lede">
+          Waa xaashi loogu talagalay laba qof oo qaangaar ah oo ka fikiraya inay is guursadaan. Wada buuxiya ka hor inta aysan qoysasku ka wada hadlin lacagta. Qof walba ha ku jawaabo tiirka u gaarka ah.
+        </p>
+        <p class="lede">
+          Afartan arrimood si gaar ah ayaa loo kala saaray. Meherka, kharashka arooska iyo deymaha hore ee midkiin ama labadiinnaba lagu leeyahay waa arrimo kala duwan. Lacagta bil kasta akoonnadiinna ka baxda ee aad u dirtaan dad ku nool halkan ama dibadda iyaduna waa arrin gaar ah.
+        </p>
+        <p class="note screen-only">
+          Waxa aad boggan ku qortaan lama kaydiyo, lamana diro. Qoraalkiinnu wuxuu ku sii jiraa daaqaddan ilaa aad xirtaan. Wax aad gudbisaan ma jiraan.
+        </p>
+        <p class="note screen-only">
+          Daabaca xaashidan oo gacanta ku buuxiya. Halkan sidoo kale waad ku qori kartaan, laakiin jawaabaha dhaadheer waxaa laga yaabaa inaysan si buuxda uga muuqan marka la daabaco.
+        </p>
+        <p class="note screen-only">
+          Kani waa nooska afar-bog ah — bog buuxa oo mawduuc kasta, meel aad wax
+          ku qori kartaan. Su'aalaha isku mid ah oo hal bog ah, isticmaal
+          niyyah-money-conversation-sheet-1page-so.html.
+        </p>
+
+        <div class="who">
+          <div>
+            <label for="name-a">Qofka A</label>
+            <input id="name-a" type="text" autocomplete="off" />
+          </div>
+          <div>
+            <label for="name-b">Qofka B</label>
+            <input id="name-b" type="text" autocomplete="off" />
+          </div>
+          <div>
+            <label for="sheet-date">Taariikhda</label>
+            <input id="sheet-date" type="text" autocomplete="off" />
+          </div>
+        </div>
+      </header>
+
+      <!-- 1 -->
+      <section aria-labelledby="s1-h">
+        <h2 id="s1-h">1. Meherka</h2>
+        <p class="framing">
+          Qaybtani waxay ku saabsan tahay meherka oo keliya: waxa qofkiin kasta filayo iyo cidda arrintaas ilaa hadda loo sheegay.
+        </p>
+
+        <ol class="qs">
+          <li>
+            <p class="q" id="q1a">Maxaad filaysaa inuu meherku noqdo? Ku sharax erayadaada, adigoo sheegaya qaabka aad filayso inuu noqdo.</p>
+            <div class="cols">
+              <div><label for="q1a-a">Qofka A</label><textarea id="q1a-a" rows="2" aria-describedby="q1a" autocomplete="off"></textarea></div>
+              <div><label for="q1a-b">Qofka B</label><textarea id="q1a-b" rows="2" aria-describedby="q1a" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q1b">Yaad ilaa hadda u sheegtay waxa aad filayso: qofka aad guurka ka wada fikiraysaan, qoyskaaga ama cid kale?</p>
+            <div class="cols">
+              <div><label for="q1b-a">Qofka A</label><textarea id="q1b-a" rows="2" aria-describedby="q1b" autocomplete="off"></textarea></div>
+              <div><label for="q1b-b">Qofka B</label><textarea id="q1b-b" rows="2" aria-describedby="q1b" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q1c">Intee ka mid ah meherka ayaad filaysaa in la bixiyo marka nikaaxu dhacayo, inteese dib loo dhigo?</p>
+            <div class="cols">
+              <div><label for="q1c-a">Qofka A</label><textarea id="q1c-a" rows="2" aria-describedby="q1c" autocomplete="off"></textarea></div>
+              <div><label for="q1c-b">Qofka B</label><textarea id="q1c-b" rows="2" aria-describedby="q1c" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q1d">Haddii qoyskaagu soo jeediyo wax ka duwan waxa aad hadda qortay, maxaad jeclaan lahayd in marka xigta la sameeyo?</p>
+            <div class="cols">
+              <div><label for="q1d-a">Qofka A</label><textarea id="q1d-a" rows="2" aria-describedby="q1d" autocomplete="off"></textarea></div>
+              <div><label for="q1d-b">Qofka B</label><textarea id="q1d-b" rows="2" aria-describedby="q1d" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q1e">Yaa magacaaga ku hadlaya marka wada hadalkaasi dhacayo, mase ka codsatay arrintaas?</p>
+            <div class="cols">
+              <div><label for="q1e-a">Qofka A</label><textarea id="q1e-a" rows="2" aria-describedby="q1e" autocomplete="off"></textarea></div>
+              <div><label for="q1e-b">Qofka B</label><textarea id="q1e-b" rows="2" aria-describedby="q1e" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="box">
+          <div><label for="s1-agree">Waxa aynu isku raacsan nahay</label><textarea id="s1-agree" rows="3" autocomplete="off"></textarea></div>
+          <div><label for="s1-open">Waxa aynaan weli go'aan ka gaarin</label><textarea id="s1-open" rows="3" autocomplete="off"></textarea></div>
+        </div>
+
+        <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
+      </section>
+
+      <!-- 2 -->
+      <section aria-labelledby="s2-h">
+        <h2 id="s2-h">2. Arooska: kharashaadka hal mar ku baxa</h2>
+        <p class="framing">
+          Qaybtani waxay ku saabsan tahay kharashaadka hal mar ku baxa arooska laftiisa: nikaaxa, waliimada iyo wax kasta oo kale oo labada dhinac midkood ka filayo munaasabadahaas. Meherka si gaar ah ayaa looga hadlayaa.
+        </p>
+
+        <ol class="qs">
+          <li>
+            <p class="q" id="q2a">Qaybahee ka mid ah kharashka arooska ayaad filaysaa inaad adigu bixiso?</p>
+            <div class="cols">
+              <div><label for="q2a-a">Qofka A</label><textarea id="q2a-a" rows="2" aria-describedby="q2a" autocomplete="off"></textarea></div>
+              <div><label for="q2a-b">Qofka B</label><textarea id="q2a-b" rows="2" aria-describedby="q2a" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q2b">Qaybahee ayaad filaysaa in cid kale bixiso, mase weydiisatay?</p>
+            <div class="cols">
+              <div><label for="q2b-a">Qofka A</label><textarea id="q2b-a" rows="2" aria-describedby="q2b" autocomplete="off"></textarea></div>
+              <div><label for="q2b-b">Qofka B</label><textarea id="q2b-b" rows="2" aria-describedby="q2b" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q2c">Martida arooska iman lahayd, immisa ayaa dhinacaaga ka imanaysa?</p>
+            <div class="cols">
+              <div><label for="q2c-a">Qofka A</label><textarea id="q2c-a" rows="2" aria-describedby="q2c" autocomplete="off"></textarea></div>
+              <div><label for="q2c-b">Qofka B</label><textarea id="q2c-b" rows="2" aria-describedby="q2c" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q2d">Waa immisa lacagta ugu badan ee aad diyaar u tahay inaad guud ahaan ku bixiso arooska? Qor xadka aad adigu dejisatay; ha qorin qiyaasta kharashka arooska.</p>
+            <div class="cols">
+              <div><label for="q2d-a">Qofka A</label><textarea id="q2d-a" rows="2" aria-describedby="q2d" autocomplete="off"></textarea></div>
+              <div><label for="q2d-b">Qofka B</label><textarea id="q2d-b" rows="2" aria-describedby="q2d" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q2e">Haddii kharashku dhaafo xadkaas, maxaad marka hore ka dhimi lahayd, maxaadse ugu dambayn ka dhimi lahayd?</p>
+            <div class="cols">
+              <div><label for="q2e-a">Qofka A</label><textarea id="q2e-a" rows="2" aria-describedby="q2e" autocomplete="off"></textarea></div>
+              <div><label for="q2e-b">Qofka B</label><textarea id="q2e-b" rows="2" aria-describedby="q2e" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="box">
+          <div><label for="s2-agree">Waxa aynu isku raacsan nahay</label><textarea id="s2-agree" rows="3" autocomplete="off"></textarea></div>
+          <div><label for="s2-open">Waxa aynaan weli go'aan ka gaarin</label><textarea id="s2-open" rows="3" autocomplete="off"></textarea></div>
+        </div>
+
+        <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
+      </section>
+
+      <!-- 3 -->
+      <section aria-labelledby="s3-h">
+        <h2 id="s3-h">3. Deymaha hore ee midkiin ama labadiinnaba lagu leeyahay</h2>
+        <p class="framing">
+          Qaybtani waxay ku saabsan tahay deymaha midkiin ama labadiinnaba weli lagu leeyahay ee jiray ka hor intaan wax go'aan ah laga gaarin guurkan.
+        </p>
+
+        <ol class="qs">
+          <li>
+            <p class="q" id="q3a">Waa maxay deymaha hadda lagugu leeyahay, yaase kugu leh? Ku dar deyn kasta oo ku qoran magaca qof kale.</p>
+            <div class="cols">
+              <div><label for="q3a-a">Qofka A</label><textarea id="q3a-a" rows="2" aria-describedby="q3a" autocomplete="off"></textarea></div>
+              <div><label for="q3a-b">Qofka B</label><textarea id="q3a-b" rows="2" aria-describedby="q3a" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q3b">Immisa ayaad bil kasta ka bixisaa deyntaas, intee waqti ah ayaase ka harsan bixinteeda?</p>
+            <div class="cols">
+              <div><label for="q3b-a">Qofka A</label><textarea id="q3b-a" rows="2" aria-describedby="q3b" autocomplete="off"></textarea></div>
+              <div><label for="q3b-b">Qofka B</label><textarea id="q3b-b" rows="2" aria-describedby="q3b" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q3c">Yaa hadda ka warqaba deyntaas: qofka aad guurka ka wada fikiraysaan, qoyskaaga ama qoyska qofkaas?</p>
+            <div class="cols">
+              <div><label for="q3c-a">Qofka A</label><textarea id="q3c-a" rows="2" aria-describedby="q3c" autocomplete="off"></textarea></div>
+              <div><label for="q3c-b">Qofka B</label><textarea id="q3c-b" rows="2" aria-describedby="q3c" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q3d">Guurka ka dib, ma filaysaa inaad deyntan adigu keliya sii maareyso, mise inaad labadiinnu wada maareysaan?</p>
+            <div class="cols">
+              <div><label for="q3d-a">Qofka A</label><textarea id="q3d-a" rows="2" aria-describedby="q3d" autocomplete="off"></textarea></div>
+              <div><label for="q3d-b">Qofka B</label><textarea id="q3d-b" rows="2" aria-describedby="q3d" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q3e">Ma jiraan arrimo ku saabsan deyntan oo aad jeclaan lahayd in la xalliyo ka hor nikaaxa, halkii laga xallin lahaa ka dib?</p>
+            <div class="cols">
+              <div><label for="q3e-a">Qofka A</label><textarea id="q3e-a" rows="2" aria-describedby="q3e" autocomplete="off"></textarea></div>
+              <div><label for="q3e-b">Qofka B</label><textarea id="q3e-b" rows="2" aria-describedby="q3e" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="box">
+          <div><label for="s3-agree">Waxa aynu isku raacsan nahay</label><textarea id="s3-agree" rows="3" autocomplete="off"></textarea></div>
+          <div><label for="s3-open">Waxa aynaan weli go'aan ka gaarin</label><textarea id="s3-open" rows="3" autocomplete="off"></textarea></div>
+        </div>
+
+        <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
+      </section>
+
+      <!-- 4 -->
+      <section aria-labelledby="s4-h">
+        <h2 id="s4-h">4. Waajibaadka dhaqaale ee joogtada ah ee qoyska</h2>
+        <p class="framing">
+          Qaybtani waxay ku saabsan tahay lacagta si joogto ah uga baxda akoonnadiinna ee aad u dirtaan dad kale oo aan labadiinna ahayn: waalidiin, walaalo iyo qaraabo ku nool halkan ama dibadda.
+        </p>
+
+        <ol class="qs">
+          <li>
+            <p class="q" id="q4a">Yaad hadda lacag u dirtaa, intee jeerna ayaad u dirtaa?</p>
+            <div class="cols">
+              <div><label for="q4a-a">Qofka A</label><textarea id="q4a-a" rows="2" aria-describedby="q4a" autocomplete="off"></textarea></div>
+              <div><label for="q4a-b">Qofka B</label><textarea id="q4a-b" rows="2" aria-describedby="q4a" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q4b">Wadarta lacagta aad dirto waa immisa marka loo eego dakhligaaga?</p>
+            <div class="cols">
+              <div><label for="q4b-a">Qofka A</label><textarea id="q4b-a" rows="2" aria-describedby="q4b" autocomplete="off"></textarea></div>
+              <div><label for="q4b-b">Qofka B</label><textarea id="q4b-b" rows="2" aria-describedby="q4b" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q4c">Qaddarkaasi ma go'an yahay, mise wuu is beddelaa marka wax dhacaan?</p>
+            <div class="cols">
+              <div><label for="q4c-a">Qofka A</label><textarea id="q4c-a" rows="2" aria-describedby="q4c" autocomplete="off"></textarea></div>
+              <div><label for="q4c-b">Qofka B</label><textarea id="q4c-b" rows="2" aria-describedby="q4c" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q4d">Yaa og inta lacag ah ee aad dirto: qofka aad guurka ka wada fikiraysaan, qoyskaaga ama dadka aad lacagta u dirto?</p>
+            <div class="cols">
+              <div><label for="q4d-a">Qofka A</label><textarea id="q4d-a" rows="2" aria-describedby="q4d" autocomplete="off"></textarea></div>
+              <div><label for="q4d-b">Qofka B</label><textarea id="q4d-b" rows="2" aria-describedby="q4d" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q4e">Guurka ka dib, ma filaysaa in lacagta aad dirto ay sidii hore ahaan doonto, kordhi doonto, mise yaraan doonto? Haddii adiga iyo qofka aad guurka ka wada fikiraysaan aad dirtaan lacag kala badan, sidee ayaad rabtaa in arrintaas loo maareeyo?</p>
+            <div class="cols">
+              <div><label for="q4e-a">Qofka A</label><textarea id="q4e-a" rows="2" aria-describedby="q4e" autocomplete="off"></textarea></div>
+              <div><label for="q4e-b">Qofka B</label><textarea id="q4e-b" rows="2" aria-describedby="q4e" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="box">
+          <div><label for="s4-agree">Waxa aynu isku raacsan nahay</label><textarea id="s4-agree" rows="3" autocomplete="off"></textarea></div>
+          <div><label for="s4-open">Waxa aynaan weli go'aan ka gaarin</label><textarea id="s4-open" rows="3" autocomplete="off"></textarea></div>
+        </div>
+
+        <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
+      </section>
+
+      <footer>
+        <p>Waxaa daabacay Niyyah — <a href="https://joinniyyah.com/">joinniyyah.com</a></p>
+        <p>
+          Xaashidan waxaa loogu talagalay wada hadal. Ma aha talo diini ah ama sharci ah, mana beddelayso talada qof aad ku kalsoon tahay.
+        </p>
+        <p class="version">v1.0 — 2026-09-20</p>
+      </footer>
+    </main>
+  </body>
+</html>

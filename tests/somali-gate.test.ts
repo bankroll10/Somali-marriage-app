@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { SOMALI, somali } from '../src/data/somali'
 
@@ -37,55 +37,60 @@ describe('the Somali gate', () => {
   })
 })
 
-describe('the money conversation sheet’s Somali draft stays internal', () => {
-  // The same gate as above, for a document instead of a code flag: a
-  // machine-drafted Somali translation of N3 exists (internal/translations),
-  // and nothing here promotes it to a reader until a native speaker has
-  // reviewed it. Three separate failure modes, three separate checks — a
-  // fix to one doesn't quietly cover for the other two.
-  const DRAFT_PATH = 'internal/translations/money-conversation-sheet.so-DRAFT.md'
-  const draft = readFileSync(DRAFT_PATH, 'utf8')
+describe('the money conversation sheet’s Somali translation', () => {
+  // internal/translations holds the reference record — what each line says
+  // and why — for the approved Somali sheet. The founder reviewed and
+  // approved it directly (2026-09-20); this describe block checks the
+  // record is accurate and that the built files it describes actually
+  // exist, rather than checking for an absence.
+  const REF_PATH = 'internal/translations/money-conversation-sheet.so.md'
+  const ref = readFileSync(REF_PATH, 'utf8')
 
-  it('the draft says plainly, at the top, that it is unreviewed and must not be published', () => {
-    expect(draft).toMatch(/^# UNREVIEWED/)
-    expect(draft).toContain('DO NOT PUBLISH')
-    expect(draft).toContain('DO NOT LINK')
-    expect(draft).toMatch(/machine-drafted/i)
-    expect(draft).toMatch(/has \*\*not\*\* been checked/i)
+  it('records that the founder reviewed and approved it, plainly, at the top', () => {
+    expect(ref).toMatch(/^# Somali translation/)
+    expect(ref).toMatch(/Reviewed and approved by the founder/)
   })
 
-  it('records an AI editorial pass accurately as AI work, not as human or native-speaker approval', () => {
-    // A second pass (an AI editorial review against the English source)
-    // landed the same day as the first draft. It reads more confident than
-    // a first draft, which is exactly why the gate has to say — in words a
-    // skim can't miss — that neither pass is the human review this still
-    // needs.
-    expect(draft).toMatch(/No human or native-speaker approval is[\s>]+recorded/i)
-    expect(draft).toContain('AI editorial review')
-    expect(draft).not.toMatch(/native.speaker[- ]approved/i)
-  })
-
-  it('lives outside public/, where Vite’s publicDir can never pick it up and serve it', () => {
-    expect(DRAFT_PATH.startsWith('internal/')).toBe(true)
-    expect(DRAFT_PATH.startsWith('public/')).toBe(false)
+  it('the reference record itself still lives outside public/, where Vite’s publicDir can’t serve it', () => {
+    // The built HTML is the public artifact; this table is documentation
+    // about it, same as docs/SHEET.md is for the English sheet — it isn't
+    // meant to be served on its own either way.
+    expect(REF_PATH.startsWith('internal/')).toBe(true)
+    expect(REF_PATH.startsWith('public/')).toBe(false)
     const vite = readFileSync('vite.config.ts', 'utf8')
-    // No override pointing publicDir somewhere that would sweep internal/ in,
-    // and no reference to the internal/ tree at all.
     expect(vite).not.toContain('publicDir')
     expect(vite).not.toContain('internal/')
   })
 
-  it('has not been promoted: no public Somali sheet file, and no catalog row for one', () => {
-    const publicFiles = readdirSync('public')
-    expect(publicFiles.some((f) => /-so\.html$/.test(f) || /-so\.txt$/.test(f))).toBe(false)
-    expect(existsSync('public/niyyah-money-conversation-sheet-so.html')).toBe(false)
+  it('carries all 49 approved rows, one ID each, no duplicates or gaps', () => {
+    const ID = /^(title|h1|lede-1|lede-2|note-1|note-2|who-a|who-b|who-date|s[1-4]-h|s[1-4]-framing|q[1-4][a-e]|s[1-4]-agree|s[1-4]-open|legend|footer-pub|footer-note|version)$/
+    const ids = [...ref.matchAll(/^\| ([a-z0-9-]+) \|/gm)].map((m) => m[1]).filter((id) => ID.test(id))
+    expect(ids).toHaveLength(49)
+    expect(new Set(ids).size).toBe(49)
+  })
 
-    // docs/ASSETS.md's own rule: a URL goes in the catalog only once a
-    // person has opened it with no session. A Somali sheet has never been
-    // built, so it must not have a row yet either — the same discipline
-    // that stopped N3 itself from shipping before its gate opened.
+  it('has been built: the public Somali files exist, and are readable text', () => {
+    for (const f of [
+      'public/niyyah-money-conversation-sheet-so.html',
+      'public/niyyah-money-conversation-sheet-1page-so.html',
+      'public/niyyah-money-conversation-sheet-so.txt',
+    ]) {
+      expect(existsSync(f), f).toBe(true)
+    }
+  })
+
+  it('has a catalog row for each built file — docs/ASSETS.md’s own rule for a real asset', () => {
     const catalog = readFileSync('docs/ASSETS.md', 'utf8')
-    expect(catalog.toLowerCase()).not.toMatch(/n3-so\b/)
-    expect(catalog).not.toContain('niyyah-money-conversation-sheet-so')
+    expect(catalog).toContain('N3-so')
+    expect(catalog).toContain('niyyah-money-conversation-sheet-so.html')
+    expect(catalog).toContain('N3-1page-so')
+    expect(catalog).toContain('niyyah-money-conversation-sheet-1page-so.html')
+    // Still not claimed as live and checked — docs/ASSETS.md's rule (a
+    // person has to open it on a session-less device first) applies here
+    // exactly as it does to every other asset in the table.
+    const n3so = catalog.split('\n').find((l) => l.startsWith('| **N3-so**'))!
+    const n3p1so = catalog.split('\n').find((l) => l.startsWith('| **N3-1page-so**'))!
+    expect(n3so).not.toMatch(/live and checked/)
+    expect(n3p1so).not.toMatch(/live and checked/)
   })
 })

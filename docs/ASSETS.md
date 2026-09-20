@@ -42,6 +42,8 @@ in a pitch.
 | **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet (four pages, room to write) | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **built, not yet checked** | — |
 | **N3-1page** | The money conversation, condensed — the same twenty questions on a single printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html` | **built, not yet checked** | — |
 | **N3-note** | A half-page note for whoever hands N3 or N3-1page to a couple: when, how, what happens to it after | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **built, not yet checked** | — |
+| **N3-so** | The money conversation, in Somali — the same twenty questions, four pages, founder-reviewed and approved | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.html` | **built, not yet checked** | — |
+| **N3-1page-so** | The money conversation in Somali, condensed to one printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.html` | **built, not yet checked** | — |
 
 ### What each one is for
 
@@ -91,6 +93,18 @@ page on paper (measured: ~51% of a Letter page, ~48% of A4, both still one
 page), so it can be read in full without turning it over. Same rules as N3
 and N3-1page: no font, script or network call, exactly one link, and a plain-
 text twin (`…-facilitator-note.txt`) for pasting straight into a pitch email.
+
+**N3-so and N3-1page-so are the Somali translation, reviewed and approved
+by the founder.** Same twenty questions, same four subjects, same content
+rules, same technical guarantees (no network call, one link, nothing
+saved) as N3 and N3-1page — `public/niyyah-money-conversation-sheet-so.html`
+and `…-1page-so.html`, with a plain-text twin at `…-sheet-so.txt`. The
+translation's reference record — what each line says, the terminology
+decisions, why a given phrasing was chosen — lives at
+`internal/translations/money-conversation-sheet.so.md` for whoever edits
+it next. Built, but the same rule as every other row here applies: neither
+URL is "live and checked" until a person opens it on a session-less
+device.
 
 ## Placements — the ledger
 

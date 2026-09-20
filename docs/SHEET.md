@@ -324,61 +324,51 @@ filenames in favor of two plain lines — a border and padding cost more room
 on paper than the grouping was worth once each filename already reads as
 distinct set off by `<code>`.
 
-## A Somali translation exists — two AI passes in, zero human ones
+## N3-so and N3-1page-so — the Somali translation, reviewed and approved
 
-`internal/translations/money-conversation-sheet.so-DRAFT.md` carries the
-money conversation's full content — header, all four subjects, all twenty
-questions, both box labels, the legend, the footer — through two AI passes,
-both on 2026-09-20, neither performed by a human or a native/fluent Somali
-speaker. **Pass 1** was the first machine-drafted translation. **Pass 2**
-was an AI editorial review of all 49 rows against the English source,
-proposing corrections. It is not built from, and it is a source for a
-future `niyyah-money-conversation-sheet-so.html`, not a preview of one.
+`public/niyyah-money-conversation-sheet-so.html` and
+`…-1page-so.html` carry the money conversation sheet's full content —
+header, all four subjects, all twenty questions, both box labels, the
+legend, the footer — in Somali, reviewed and approved by the founder
+(2026-09-20). Same content rules as the English sheets, same technical
+guarantees: no font, script, image or network call; exactly one link; no
+storage, no form. `internal/translations/money-conversation-sheet.so.md`
+holds the reference record — what each line says and why a given phrasing
+was chosen, terminology decisions, the debt-direction fix — for whoever
+edits the Somali sheet next; it lives outside `public/` because it's
+documentation about the sheet, not the sheet itself, the same relationship
+`docs/SHEET.md` has to the English one.
 
-**Pass 2 caught real direction errors in Pass 1, not just phrasing.** Two
-findings mattered most: `q3a`'s and `s3-framing`'s debt questions had the
-direction backwards — Pass 1's construction read as money the reader
-*has*, not money the reader *owes* — and `q1e`'s "who speaks for you" read
-as who speaks *about* you rather than *on behalf of* you. Both are now
-corrected (`lagugu leeyahay` / `lagu leeyahay` for the debt direction,
-`Yaa magacaaga ku hadlaya` for representation). A third finding is a
-content-rule clarification rather than a translation fix: Pass 1's note on
-`q4b` tried to phrase the question to avoid inviting a numeric answer,
-reading the sheet's own "no figures" rule (`tests/sheet.test.ts`, which
-bans the sheet's *own prose* from stating a figure or benchmark) as if it
-also barred the *reader's answer* from containing one — which the English
-source itself never does (`q2d`, `q2e`, `q3b` all explicitly ask for
-amounts). That over-caution is withdrawn in Pass 2, translating each
-number-inviting question the same way its English original asks it.
+**Fitting the translation onto the same page counts took real
+retuning.** Somali runs measurably longer than the English it translates,
+and the print spacing tuned for English text didn't carry over: the
+four-page file's header-plus-first-subject came in 60px over Letter's
+budget, and the one-page file overflowed by 83px on Letter before any
+trimming. Both were re-tuned by the same measure-and-render method as the
+English files — real PDF renders, not CSS estimates — landing at **4/4
+pages** for the four-page file and **1/1** for the one-page file on both
+Letter and A4, with the one-page file's bottom slack at 3.79mm on Letter
+(within the same ~5mm target the English one-page file uses). The
+one-page file's agree/still-deciding box labels use the full approved
+Somali phrasing (not shortened, unlike the English file's "Agreed"/"Still
+deciding") — the two Somali phrases happen to be close enough in length to
+each other that they wrap to the same number of lines and stay aligned
+without needing an invented short form.
 
-**It is deliberately still not a public asset.** `internal/` sits outside
-Vite's `publicDir`, so nothing in it is ever copied to `dist` or served —
-verified directly after every build, not assumed
-(`tests/somali-gate.test.ts`). The file's banner records both passes and
-says, in words a skim can't miss, that **no human or native-speaker
-approval is recorded anywhere in it** — a status the file states about
-itself, not a claim this doc makes on its behalf. The product's own
-existing convention for this — the `approved` field on every line in
-`src/data/somali.ts`, and `docs/PROTOCOL.md`'s rule that a Somali sentence
-ships only after being read aloud to a Somali person of the target age —
-already says a wrong word in Somali is a worse failure than a wrong word
-in English. Two AI passes have not cleared that bar, and nothing here
-claims they have: no row was added to `docs/ASSETS.md` for a Somali sheet,
-the same discipline that kept N3 itself off that table while it was still
-proposed.
+**Two lines exist only in the built HTML, not in the approved 49 rows** —
+the four-page file's cross-reference to the one-page file, and the
+one-page file's own "this is the one-page version" note. Both are purely
+operational (which file to use), translated directly during the build
+rather than routed through the approved table, since neither existed in
+this form when the 49 rows were reviewed. Noted in
+`internal/translations/money-conversation-sheet.so.md` for anyone who
+revisits the file.
 
-Pass 2 resolved Pass 1's four open questions (person/number register,
-*mahr*/*nikah*/*walima* spelling, voice, and content-rule neutrality — see
-the draft's own "Decisions" section for each) but opened four narrower
-ones of its own — whether "at home or abroad" in `lede-2` means anywhere
-outside a specific home country, whether `q2c`'s "because of you" means
-guests from the reader's side specifically, whether `q3d`'s "stay yours"
-correctly avoids implying a change in legal ownership, and whether the
-debt-direction construction reads naturally in every sentence it was
-applied to, not just the one it's attested for. None of those, and nothing
-else in the file, is answered by an AI pass — they need a native or fluent
-Somali speaker, the same requirement every other Somali line in the
-product already has.
+`docs/ASSETS.md` carries N3-so and N3-1page-so at the same `built, not yet
+checked` status as every other asset in the family — approved language is
+not the same thing as a URL a founder has actually opened on a
+session-less device, and the catalog's rule doesn't bend for this one
+either.
 
 ## Where the rest lives
 
