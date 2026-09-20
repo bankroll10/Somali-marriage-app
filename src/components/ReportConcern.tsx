@@ -38,7 +38,7 @@ export default function ReportConcern({ code, side }: Props) {
 
   if (state === 'sent') {
     return (
-      <p className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty">
+      <p role="status" className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty">
         Sent. Only the founder reads this, weekly, and what she does about it is written down.
       </p>
     )
@@ -95,7 +95,7 @@ export default function ReportConcern({ code, side }: Props) {
         <TextButton onClick={() => setState('closed')} className="text-[0.85rem] font-medium text-muted hover:underline">
           Cancel
         </TextButton>
-        {state === 'error' && <span className="text-[0.82rem] text-clay">Didn’t send — try again.</span>}
+        {state === 'error' && <span role="status" className="text-[0.82rem] text-clay">Didn’t send — try again.</span>}
       </div>
     </div>
   )

@@ -21,9 +21,14 @@ const componentFiles = () =>
 
 describe('structure — every screen has a heading, and focus follows it', () => {
   it('gives App.tsx a mechanism that moves focus to the new screen\'s heading', () => {
-    const app = read('App.tsx')
-    expect(app).toMatch(/querySelector<HTMLElement>\('h1, h2'\)/)
-    expect(app).toMatch(/\.focus\(\{ preventScroll: true \}\)/)
+    const hook = read('hooks/useFocusHeading.ts')
+    expect(hook).toMatch(/querySelector<HTMLElement>\('h1, h2'\)/)
+    expect(hook).toMatch(/\.focus\(\{ preventScroll: true \}\)/)
+    expect(read('App.tsx')).toMatch(/useFocusHeading\(screenRef, n\.screen\)/)
+  })
+
+  it('gives Vouch.tsx the same fix locally, since its phases are local state App.tsx\'s screen-swap effect never sees', () => {
+    expect(read('components/Vouch.tsx')).toMatch(/useFocusHeading\(mainRef, phase\)/)
   })
 
   it('gives every previously headingless screen a real h1 or h2', () => {
@@ -127,6 +132,48 @@ describe('selection state — a screen reader has to be told what is chosen, not
 
   it('gives QuestionCard\'s multi-select a checkbox role, since it genuinely allows more than one', () => {
     expect(read('components/QuestionCard.tsx')).toContain("role={kind === 'radio' ? 'radio' : 'checkbox'}")
+  })
+})
+
+describe('live-region announcements — a silent text swap is a silent success or failure', () => {
+  it('announces the five clipboard/share confirmations that previously swapped text with no live region', () => {
+    for (const file of [
+      'components/VouchRow.tsx',
+      'components/InviteRow.tsx',
+      'components/home/FollowUp.tsx',
+      'components/Ending.tsx',
+    ] as const) {
+      const src = read(file)
+      expect(src, `${file} doesn't import Announce`).toMatch(/\bAnnounce\b/)
+      expect(src, `${file} doesn't render <Announce`).toContain('<Announce message=')
+    }
+    // Ending has two separate confirmations (keep, and the two shares).
+    expect([...read('components/Ending.tsx').matchAll(/<Announce message=/g)].length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('gives every comparable submit-error message role="status", matching its sibling elsewhere in the app', () => {
+    for (const [file, needle] of [
+      ['components/Cohort.tsx', "role=\"status\" className=\"text-[0.85rem] text-clay text-pretty\">\n              That didn"],
+      ['components/BeforeYes.tsx', 'role="status" className="mt-3 text-[0.85rem] text-clay text-pretty"'],
+      ['components/Vouch.tsx', 'role="status" className="mt-3 text-[0.85rem] text-clay"'],
+      ['components/ReportConcern.tsx', 'role="status" className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty"'],
+      ['components/ReportConcern.tsx', 'role="status" className="text-[0.82rem] text-clay"'],
+    ] as const) {
+      expect(read(file), `${file} is missing ${needle.slice(0, 40)}`).toContain(needle)
+    }
+  })
+})
+
+describe('form validation — the error text has to reach the field, not just the screen', () => {
+  it('marks Cohort\'s contact field aria-invalid when its own hint is showing', () => {
+    expect(read('components/Cohort.tsx')).toMatch(/aria-invalid=\{!!contactHint\}/)
+  })
+
+  it('gives RestoreMap\'s code field an id-linked error and aria-invalid, not just a visible message', () => {
+    const src = read('components/RestoreMap.tsx')
+    expect(src).toContain('id="restore-code-status"')
+    expect(src).toMatch(/aria-describedby=\{state !== 'idle' && state !== 'checking' \? 'restore-code-status' : undefined\}/)
+    expect(src).toMatch(/aria-invalid=\{state !== 'idle' && state !== 'checking'\}/)
   })
 })
 

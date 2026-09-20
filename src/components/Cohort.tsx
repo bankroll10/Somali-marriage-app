@@ -464,6 +464,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             placeholder="Email or phone"
             aria-label="Email or phone"
             aria-describedby={contactHint ? 'cohort-contact-hint' : undefined}
+            aria-invalid={!!contactHint}
             enterKeyHint="done"
             className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
           />
@@ -497,7 +498,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             )}
           </button>
           {state === 'error' && (
-            <p className="text-[0.85rem] text-clay text-pretty">
+            <p role="status" className="text-[0.85rem] text-clay text-pretty">
               That didn’t go through — nothing is lost, your map is still here. Try
               again in a moment, or email {CONTACT_EMAIL}.
             </p>

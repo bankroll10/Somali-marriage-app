@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useFocusHeading } from './hooks/useFocusHeading'
 import Welcome from './components/Welcome'
 import IdentityStep from './components/Identity'
 import Situation from './components/Situation'
@@ -55,21 +56,9 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
   // screen-reader user is told nothing changed unless focus moves — it
   // otherwise stays wherever it was, on a now-unmounted element, defaulting
   // to <body> (docs/ACCESS.md). Every screen has exactly one h1 (or, failing
-  // that, its topmost heading), so that is what receives focus. tabIndex=-1
-  // makes an otherwise-inert heading a valid, one-time focus target without
-  // adding it to the tab order.
+  // that, its topmost heading), so that is what receives focus.
   const screenRef = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    const heading = screenRef.current?.querySelector<HTMLElement>('h1, h2')
-    if (!heading) return
-    const hadTabIndex = heading.hasAttribute('tabindex')
-    if (!hadTabIndex) heading.setAttribute('tabindex', '-1')
-    heading.focus({ preventScroll: true })
-    if (!hadTabIndex) {
-      const clear = () => heading.removeAttribute('tabindex')
-      heading.addEventListener('blur', clear, { once: true })
-    }
-  }, [n.screen])
+  useFocusHeading(screenRef, n.screen)
 
   // The address bar follows the two tools that have an address of their own
   // (src/data/tools.ts), and nothing else. Always replaceState, never push: no

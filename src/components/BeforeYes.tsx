@@ -631,7 +631,7 @@ function Together({
         {state !== 'sending' && <ArrowRight className="transition-transform group-hover:translate-x-0.5" />}
       </button>
       {state === 'error' && (
-        <p className="mt-3 text-[0.85rem] text-clay text-pretty">That didn’t go through — nothing is lost. Try again in a moment.</p>
+        <p role="status" className="mt-3 text-[0.85rem] text-clay text-pretty">That didn’t go through — nothing is lost. Try again in a moment.</p>
       )}
       <p className="mt-3 text-[0.78rem] leading-relaxed text-muted text-pretty">
         Your eleven answers go to our server under a code with no name on it, and are frozen the moment {he} answers. The link lasts ninety days.
