@@ -13,10 +13,12 @@ import ScriptCard from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
-import { ArrowRight, Button, Disclose, ScreenHeader, Words } from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, Words , NotSaving} from './ui'
 
 interface Props {
   identity: Identity
+  /** False when this browser refuses to persist — the draft on this screen will not survive the tab. */
+  saveOk?: boolean
   /** Her own map, so "your side" can be read back where it already knows it. */
   answers: Answers
   saved: ReadRecord | null
@@ -64,6 +66,7 @@ export default function BeforeYes({
   onCouple,
   onBack,
   onTrust,
+  saveOk = true,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender)
   const [phase, setPhase] = useState<Phase>('intro')
@@ -138,6 +141,7 @@ export default function BeforeYes({
     return (
       <Shell onBack={onBack} title="Before you say yes">
         <div className="py-9">
+{!saveOk && <NotSaving what="your answers" className="mb-6" />}
           <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">About two minutes</p>
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
             {intro ?? 'The conversations most of us have too late.'}

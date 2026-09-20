@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
-import { entryFromUrl, type Entry } from './lib/entry.ts'
+import { entryFromUrl, rememberEntry, rememberedEntry, type Entry } from './lib/entry.ts'
 import { restoreMap } from './lib/keep.ts'
 import { rememberVia } from './lib/progress.ts'
 import { saveProgress } from './lib/storage.ts'
@@ -31,10 +31,15 @@ import { saveProgress } from './lib/storage.ts'
  */
 async function resolveEntry(): Promise<Entry | null> {
   const entry = entryFromUrl(window.location.search, window.location.pathname)
-  if (!entry) return null
+  // No link in the bar: this may be a reload of one. The held entry is the
+  // couple or vouch screen this device was part-way through.
+  if (!entry) return rememberedEntry()
   // Before the query is stripped, and to its own key — storage the app reads
   // on mount is untouched.
   if (entry.via) rememberVia(entry.via)
+  // A coded link survives the strip, so a reload lands back on the screen it
+  // opened rather than on the marketing page (src/lib/entry.ts).
+  rememberEntry(entry)
   if (entry.kind === 'map' && entry.code) {
     const snapshot = await restoreMap(entry.code)
     if (snapshot) saveProgress(snapshot)

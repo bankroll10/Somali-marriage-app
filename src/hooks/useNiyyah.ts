@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import { allQuestions, totalQuestions } from '../data/intake'
 import { todayKey } from '../lib/dates'
 import { track } from '../lib/analytics'
@@ -260,6 +260,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // False when the browser refuses to persist (private mode, full quota). The
   // UI must say so — a silent failure costs the user their whole reflection.
   const [saveOk, setSaveOk] = useState(true)
+  /** True once forget me has run: this phone is not written to again. */
+  const forgotten = useRef(false)
 
   // A signup stranded by a bad connection is a real person lost — retry once
   // per load until the server takes it.
@@ -338,6 +340,15 @@ export function useNiyyah(entry: Entry | null = null) {
 
   // ── Persistence (debounced — the age field saves per keystroke otherwise)
   useEffect(() => {
+    // Nothing is written back after forget me.
+    //
+    // On the partial-failure path the page is deliberately not replaced, so
+    // this hook stays mounted holding every value that was just erased — and
+    // the next change to any of these twenty dependencies wrote all of it
+    // back to niyyah.intake.v1. The local half of "forget me" was undone by
+    // the app's own autosave, on exactly the path where the server half had
+    // already failed (docs/FAIL.md).
+    if (forgotten.current) return
     const t = window.setTimeout(
       () =>
         setSaveOk(
@@ -468,6 +479,8 @@ export function useNiyyah(entry: Entry | null = null) {
    */
   async function forgetEverything(): Promise<Forgotten> {
     track('forgotten')
+    // Set before the awaits, so nothing persisted in between survives either.
+    forgotten.current = true
     const result = await forgetMe()
     // The phone is wiped either way. The page is only replaced when every
     // server delete actually landed: this used to discard the result and

@@ -108,11 +108,20 @@ export async function keepMap(patch?: KeepPatch): Promise<string | null> {
   let res = await put(rememberedCode())
   // Her remembered code points at nothing — the map lapsed, or was forgotten
   // from another device. The server no longer creates a map under a code it
-  // did not mint (netlify/functions/keep.ts), so forget the code and keep
-  // fresh: she gets a new one, and nobody else's map is ever written over.
+  // did not mint (netlify/functions/keep.ts), so keep fresh: she gets a new
+  // one, and nobody else's map is ever written over.
+  //
+  // The old code is dropped only once the new one is in hand. `forgetCode()`
+  // used to commit first, so a second attempt that timed out left the device
+  // with no code at all while the screen said "nothing is lost" — and if the
+  // 404 had been transient, the map it pointed at was still there and no
+  // longer reachable (docs/FAIL.md).
   if (res?.status === 404 && rememberedCode()) {
-    forgetCode()
-    res = await put(null)
+    const replacement = await put(null)
+    if (replacement?.ok) {
+      forgetCode()
+      res = replacement
+    }
   }
   if (!res?.ok) return null
 

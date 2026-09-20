@@ -128,3 +128,64 @@ export function pathFor(screen: string, reader: ToolSide | undefined, current: s
   }
   return toolFromPath(current) ? '/' : undefined
 }
+
+/**
+ * The coded link this device is part-way through, held across a reload.
+ *
+ * `main.tsx` strips the query before React mounts, so the code lived only in
+ * React state — and `App.tsx` falls back to Welcome when it is missing. A man
+ * who backgrounded the tab mid-eleven, or whose phone reloaded it, came back
+ * to a marketing page with his answers gone and no way to reach the sheet
+ * again: the link was no longer in the bar, and it was on her phone, not his.
+ * The same for a relative on a vouch link (docs/FAIL.md).
+ *
+ * Only `couple` and `vouch` are held. `map` needs no screen, and the
+ * instruments already survive by their own path or their draft.
+ */
+const ENTRY_KEY = 'niyyah.entry.v1'
+
+/** How long a held entry is worth resuming. A link is a moment, not a home. */
+const ENTRY_TTL_MS = 24 * 60 * 60 * 1000
+
+type HeldEntry = { kind: 'couple' | 'vouch'; code: string; at: number }
+
+export function rememberEntry(entry: Entry): void {
+  if (entry.kind !== 'couple' && entry.kind !== 'vouch') return
+  if (!entry.code) return
+  try {
+    const held: HeldEntry = { kind: entry.kind, code: entry.code, at: Date.now() }
+    localStorage.setItem(ENTRY_KEY, JSON.stringify(held))
+  } catch {
+    /* storage refused — the reload simply behaves as it did before this existed */
+  }
+}
+
+/** The held entry, if there is one and it is still fresh. Stale ones clear themselves. */
+export function rememberedEntry(now: number = Date.now()): Entry | null {
+  try {
+    const raw = localStorage.getItem(ENTRY_KEY)
+    if (!raw) return null
+    const held = JSON.parse(raw) as Partial<HeldEntry>
+    const fresh =
+      (held.kind === 'couple' || held.kind === 'vouch') &&
+      typeof held.code === 'string' &&
+      typeof held.at === 'number' &&
+      now - held.at < ENTRY_TTL_MS
+    if (!fresh) {
+      forgetEntry()
+      return null
+    }
+    return { kind: held.kind as 'couple' | 'vouch', code: held.code as string }
+  } catch {
+    return null
+  }
+}
+
+/** Done with it — she left the screen, or it was answered. */
+export function forgetEntry(): void {
+  try {
+    localStorage.removeItem(ENTRY_KEY)
+  } catch {
+    /* nothing to forget */
+  }
+}

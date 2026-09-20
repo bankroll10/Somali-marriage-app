@@ -3,10 +3,12 @@ import type { VouchState } from '../types'
 import { relationshipOptions } from '../data/vouch'
 import { readVouchDetail, sendVouch } from '../lib/vouch'
 import { track } from '../lib/analytics'
-import { ArrowRight, Button, Logo, fieldClass } from './ui'
+import { ArrowRight, Button, Logo, fieldClass , NotSaving} from './ui'
 
 interface Props {
   code: string
+  /** False when this browser refuses to persist — the draft on this screen will not survive the tab. */
+  saveOk?: boolean
   onDone: () => void
 }
 
@@ -20,7 +22,7 @@ type Phase = 'loading' | 'form' | 'sending' | 'done' | 'already' | 'dead' | 'gon
  * nothing more will ever be asked of him. It claims nothing about Niyyah beyond
  * what is true, and it never asks for an account.
  */
-export default function Vouch({ code, onDone }: Props) {
+export default function Vouch({ code, onDone, saveOk = true }: Props) {
   const [phase, setPhase] = useState<Phase>('loading')
   const [existing, setExisting] = useState<VouchState | null>(null)
   const [relationship, setRelationship] = useState('')
@@ -87,6 +89,7 @@ export default function Vouch({ code, onDone }: Props) {
         </div>
       </header>
       <main className="mx-auto max-w-xl px-6">
+        {!saveOk && <NotSaving what="what you type here" className="mt-6" />}
         {phase === 'loading' && <p className="py-16 text-center text-[0.95rem] text-muted">One moment.</p>}
 
         {(phase === 'form' || phase === 'sending' || phase === 'error') && (

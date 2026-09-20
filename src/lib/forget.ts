@@ -41,6 +41,8 @@ export const LOCAL_KEYS = [
   // A read or an eleven she was part-way through — see src/lib/draft.ts.
   // Forget me promises the phone is cleared, and this is on the phone.
   'niyyah.draft.v1',
+  // The coded link this device is part-way through — see src/lib/entry.ts.
+  'niyyah.entry.v1',
 ]
 
 async function del(url: string): Promise<boolean> {
@@ -70,6 +72,19 @@ export async function forgetMe(): Promise<Forgotten> {
     id ? del(`${PROGRESS}?id=${encodeURIComponent(id)}`) : Promise.resolve(true),
     pair ? del(`${COUPLE}?code=${encodeURIComponent(pair)}`) : Promise.resolve(true),
   ])
+  clearEverything()
+  return { map, progress, couple }
+}
+
+/**
+ * Take every key this app writes off this phone.
+ *
+ * Shared with the error screen's "Start completely fresh", which used to call
+ * `clearProgress` alone and leave the kept code behind — the exact
+ * irreversible-overwrite path `useNiyyah`'s own startFresh documents
+ * (docs/FAIL.md).
+ */
+export function clearEverything(): void {
   clearProgress()
   for (const key of LOCAL_KEYS) {
     try {
@@ -78,5 +93,4 @@ export async function forgetMe(): Promise<Forgotten> {
       /* storage refused; there is nothing more to do than try */
     }
   }
-  return { map, progress, couple }
 }

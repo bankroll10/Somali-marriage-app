@@ -193,16 +193,29 @@ export default function Coach({
   // conversation stays readable, and the wall renders under the last answer
   // rather than over it. It points at what refills the budget, not at a price.
   const locked = repliesLeft <= 0
+  // An answer that stopped part-way through, and whether the last answer came
+  // from the guide at all. Both were invisible: nine distinct failures — no
+  // key, a 429, the cap, a safety decline, an outage — all rendered the same
+  // canned answer in the same bubble with the same glyph (docs/FAIL.md).
+  const [cutOff, setCutOff] = useState(false)
+  // True for the whole exchange, streaming included — unlike `thinking`.
+  const [busy, setBusy] = useState(false)
+  const [reachedGuide, setReachedGuide] = useState(true)
 
   async function send(text: string) {
     const trimmed = text.trim()
-    if (!trimmed || thinking || !mode || locked) return
+    // `thinking` goes false on the first streamed chunk — the words become the
+    // indicator — so gating on it left the whole reply sendable: two streams,
+    // two charges, and the second asked without the first's context
+    // (docs/FAIL.md).
+    if (!trimmed || thinking || busy || !mode || locked) return
     const userMsg: CoachMessage = { id: nextId(), role: 'user', text: trimmed }
     setThreads((prev) => ({ ...prev, [mode]: [...(prev[mode] ?? []), userMsg] }))
     setInput('')
     setClosers([])
     setCommitted(false)
     lastAsked.current = trimmed
+    setBusy(true)
     setThinking(true)
     // The answer is written into the thread as it arrives, under an id fixed
     // now, so every chunk updates the same bubble rather than appending a new
@@ -210,6 +223,9 @@ export default function Coach({
     // wall of text; this way her first sentence is on screen in about one.
     const replyId = nextId()
     let streamed = false
+    // What actually reached the screen. Needed because a mid-stream drop must
+    // not cost her the words she already watched arrive.
+    let streamedText = ''
 
     /**
      * Write the answer-so-far into the thread under a fixed id.
@@ -238,6 +254,7 @@ export default function Coach({
     // meeting them fresh on every message.
     const reply = await askCoach(trimmed, ctx, mode, threads[mode] ?? [], (soFar) => {
       writeReply(soFar)
+      streamedText = soFar
       if (!streamed) {
         streamed = true
         // The words are the thinking indicator now.
@@ -245,16 +262,35 @@ export default function Coach({
       }
     })
 
-    // Charged only once an answer actually exists. Spending up front billed the
-    // member for replies that failed or fell back — three taps of a fallback
-    // used to cost three of the twenty free replies.
-    onSpendReply()
+    // Charged only for an answer from the guide. This comment has always said
+    // so and the code did the opposite: askCoach cannot return null, so every
+    // fallback spent a reply too, and three taps during an outage cost three
+    // of the twenty and then showed her the wall (docs/FAIL.md).
+    if (reply.live) onSpendReply()
+
+    // Words that arrived are never replaced by words that did not.
+    //
+    // A reply that streamed and then lost the connection used to be
+    // overwritten wholesale by the canned framework: she watched a real,
+    // tailored answer being typed out and then saw it vanish under three
+    // generic bullets. Whatever reached her stays, and the screen says it was
+    // cut off rather than pretending it ended there.
+    if (!reply.live && streamed && streamedText.trim()) {
+      setCutOff(true)
+      setClosers([])
+      setThinking(false)
+      setBusy(false)
+      return
+    }
+    setCutOff(false)
     // Settles the final text. If nothing streamed — the offline voice, or a live
     // call that failed before its first word — this is the bubble's first and
     // only appearance, which the same helper handles.
     writeReply(reply.text)
     setClosers(reply.closers)
+    setReachedGuide(reply.live)
     setThinking(false)
+    setBusy(false)
   }
 
   // ── Mode picker ────────────────────────────────────────────────────────────
@@ -419,6 +455,28 @@ export default function Coach({
           ))}
           {thinking && <Thinking glyph={activeMode.glyph} accent={activeMode.accent} />}
 
+          {/* An answer that stopped part-way through says so, instead of
+              looking like the whole thing. Her words are still above this. */}
+          {cutOff && !thinking && (
+            <div role="status" className="animate-fade rounded-2xl border border-clay/40 bg-clay/[0.06] px-4 py-3">
+              <p className="text-[0.88rem] leading-relaxed text-ink-soft text-pretty">
+                <span className="font-medium text-ink">That answer was cut off.</span> The connection went before it
+                finished — what is above is real, and there is no more of it. Ask again and it picks up from here.
+              </p>
+            </div>
+          )}
+
+          {/* Nine different failures used to arrive as the same canned answer
+              in the same bubble, with nothing to tell her the guide was never
+              reached (docs/FAIL.md). It costs no reply, and the words are
+              still worth reading, so this is a note rather than an error. */}
+          {!reachedGuide && !cutOff && !thinking && !onDeviceOnly && (
+            <p role="status" className="animate-fade px-1 text-[0.82rem] leading-relaxed text-muted text-pretty">
+              We couldn’t reach the guide just now, so that answer came from this phone. It cost you nothing. Ask again
+              in a moment for the fuller one.
+            </p>
+          )}
+
           {/* Under the reply: closers, not extenders. A commitment writes the
               words down as a follow-up; "enough for tonight" is permission to
               stop, which a chat product never gives and a guide always should. */}
@@ -538,7 +596,7 @@ export default function Coach({
           />
           <button
             type="submit"
-            disabled={!input.trim() || thinking}
+            disabled={!input.trim() || thinking || busy}
             aria-label="Send"
             className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-forest text-cream transition-all hover:bg-forest-deep disabled:opacity-30"
           >

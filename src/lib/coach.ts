@@ -107,6 +107,17 @@ export type Closer =
 export interface CoachReply {
   text: string
   closers: Closer[]
+  /**
+   * True when this came from the guide itself rather than the offline voice.
+   *
+   * The caller needs it for two reasons the caller cannot work out alone. A
+   * reply that streamed real words and then lost the connection must not have
+   * those words replaced by the canned framework — she watched a tailored
+   * answer being typed and then saw it vanish. And a fallback must not cost
+   * one of her replies: the comment at the charge site says it already does
+   * not, and until now it did (docs/FAIL.md).
+   */
+  live: boolean
 }
 
 const CLOSE: Closer = { kind: 'close', label: 'That’s enough for tonight' }
@@ -227,7 +238,7 @@ export async function askCoach(
   // own latency is the considered pause, so there is no artificial wait here.
   if (!ctx.onDeviceOnly) {
     const live = await askLiveGuide(message, ctx, modeId, history, onChunk)
-    if (live) return { text: live, closers: closersFor(live) }
+    if (live) return { text: live, closers: closersFor(live), live: true }
   }
 
   // A short, considered pause — a guide thinks before speaking.
@@ -244,7 +255,7 @@ export async function askCoach(
   }
   if (best && bestScore > 0) {
     const text = best.respond(ctx)
-    return { text, closers: closersFor(text) }
+    return { text, closers: closersFor(text), live: false }
   }
 
   // Every unmatched question gets the framework, whatever its length.
@@ -262,6 +273,7 @@ export async function askCoach(
   return {
     text,
     closers: closersFor(text, [{ kind: 'ask', text: 'Here’s the specific part…', label: 'Here’s the specific part…' }]),
+    live: false,
   }
 }
 

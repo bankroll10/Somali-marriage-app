@@ -7,10 +7,12 @@ import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
-import { ArrowRight, Button, Disclose, ScreenHeader, Words } from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, Words , NotSaving} from './ui'
 
 interface Props {
   identity: Identity
+  /** False when this browser refuses to persist — the draft on this screen will not survive the tab. */
+  saveOk?: boolean
   /** Her last read, if she has taken one — offered rather than reopened. */
   saved: ReadRecord | null
   onSave: (record: ReadRecord) => void
@@ -68,6 +70,7 @@ export default function Read({
   onOpenBeforeYes,
   onBack,
   onTrust,
+  saveOk = true,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender ?? presetGender)
   // The address guessed who she is. Say so, and let her correct it in one tap.
@@ -170,6 +173,7 @@ export default function Read({
     return (
       <Shell onBack={onBack} title="A read on someone">
         <div className="py-9">
+{!saveOk && <NotSaving what="your answers" className="mb-6" />}
           <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
             About ninety seconds
           </p>
