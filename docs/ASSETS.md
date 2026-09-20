@@ -21,6 +21,14 @@ and whoever does it puts their finding in the row. Everything else is a claim.
 Statuses, from the playbook: **live and checked** · **live with a blocker** ·
 **advertised but not fully inspected** · **proposed** · **retired**.
 
+One status added here, 2026-09-20: **built, not yet checked**. The playbook's
+list jumps from *proposed* straight to statuses that assume a public address,
+and every asset in fact spends time between the two — written and merged, live
+at a real URL, opened by nobody without a session. N3 was the first asset to
+sit there long enough to need a word for it. It is not a softer *live and
+checked*: the rule above is unchanged, and an asset in this state does not go
+in a pitch.
+
 ## The assets
 
 | ID | What it is | URL | Status | Last checked |
@@ -31,7 +39,7 @@ Statuses, from the playbook: **live and checked** · **live with a blocker** ·
 | **N2** | The eleven, to read and print — all of them, in a voice for two readers | `https://joinniyyah.com/guides/before-you-say-yes` | **live and checked** | 2026-09-17 |
 | **N2s** | Three of the eleven, one Letter page — the sample that goes in a pitch | `https://joinniyyah.com/guides/before-you-say-yes/sample` | **live and checked** | 2026-09-17 |
 | **N0** | The door — the honest count, for someone looking rather than talking | `https://joinniyyah.com/?door` | advertised but not fully inspected | — |
-| **N3** | Mahr, wedding and family-support worksheet | — | **proposed** | — |
+| **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **built, not yet checked** | — |
 
 ### What each one is for
 
@@ -41,10 +49,23 @@ Statuses, from the playbook: **live and checked** · **live with a blocker** ·
 | N1c | "We are getting serious and I do not know what we have not discussed." | A Somali adult deciding about a specific person | Which of the eleven they have had, and which is open | The one to open this week, and the words — or send the two-sided sheet to their partner |
 | N2 | "What should a couple actually talk about before the families get involved?" | A couple, or one half of one; and the coordinator or counsellor handing it to them | All eleven, each with why it is found out too late, the words, and what to listen for | Read it separately, then together; the interactive version is linked |
 | N2s | The same, at a glance, on one page that can be printed and reviewed in two minutes | A reviewer at a mosque, a counselling service or a resource list | Three conversations, with marking space | The full guide |
-| N3 | "What do we each expect about mahr, the wedding, and money to relatives?" | A couple approaching the nikah | Not built. A worksheet separating amounts from expectations, with no prescribed mahr | — |
+| N3 | "What do we each expect about mahr, the wedding, and money to relatives?" | Two adults deciding about each other, before the families are involved; and the coordinator who hands it to them | Twenty questions across four subjects kept strictly apart, answered in two columns, with what they agree on and what is still open written down | Their own answers, side by side — nothing prescribed, nothing scored |
 
-**N3 is deliberately not built.** The playbook gates it on demand, and nothing
-has asked for it yet. It ships when a coordinator or a couple asks, not before.
+**N3 was gated on demand, and the demand arrived.** The rule written here on
+2026-09-17 was that it ships when a coordinator or a couple asks, not before.
+The founder's distribution watch kept returning mahr-guide openings — the same
+request from different directions — and that is the ask the gate named. Built
+2026-09-20; see `docs/SHEET.md` for what it does and does not say.
+
+It is a static file, not a route: `public/niyyah-money-conversation-sheet.html`,
+served straight from `dist` ahead of the SPA rewrite, with a plain-text twin at
+`…-sheet.txt` for pasting into an email or a post. It loads no font, no script
+and no image, so it opens from an attachment or a USB stick with the network
+off — which is the form a coordinator actually forwards. Unlike N1c and N2 it
+carries **no link into the app** beyond the one footer address, and records
+nothing: no `via`, no storage, no form. That is deliberate. On this subject a
+sheet that measured its reader would be the wrong object, and the attribution
+we would gain is worth less than the page being obviously inert.
 
 ## Placements — the ledger
 
