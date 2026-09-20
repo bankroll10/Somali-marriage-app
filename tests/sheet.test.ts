@@ -16,6 +16,8 @@ import { describe, expect, it } from 'vitest'
 const HTML = readFileSync('public/niyyah-money-conversation-sheet.html', 'utf8')
 const TXT = readFileSync('public/niyyah-money-conversation-sheet.txt', 'utf8')
 const ONE_PAGE = readFileSync('public/niyyah-money-conversation-sheet-1page.html', 'utf8')
+const NOTE = readFileSync('public/niyyah-money-conversation-sheet-facilitator-note.html', 'utf8')
+const NOTE_TXT = readFileSync('public/niyyah-money-conversation-sheet-facilitator-note.txt', 'utf8')
 const CATALOG = readFileSync('docs/ASSETS.md', 'utf8')
 
 const flat = (s: string) => s.replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim()
@@ -392,7 +394,60 @@ describe('the one-page variant', () => {
   })
 })
 
-describe('the catalog knows both files', () => {
+describe('the facilitator note', () => {
+  // N3-note. Not a worksheet — nobody fills it in — so it carries none of
+  // the twenty-question content rules above. What it needs instead: the
+  // same no-network guarantee as the two sheets, and the three things a
+  // coordinator actually asked "how" about.
+
+  it('fetches nothing and saves nothing, the same as the two sheets', () => {
+    for (const forbidden of ['<script', '<iframe', '<img', '<link ', '@import', 'src=', 'localStorage', 'sessionStorage', '<form', 'action=', 'type="submit"']) {
+      expect(NOTE, forbidden).not.toContain(forbidden)
+    }
+    const anchors = [...NOTE.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
+    expect(anchors).toEqual(['https://joinniyyah.com/'])
+    const urls = NOTE.match(/https?:\/\/[^\s"'<>)]+/g) ?? []
+    expect(urls).toEqual(['https://joinniyyah.com/'])
+  })
+
+  it('carries "Niyyah" in its own <title>', () => {
+    const title = NOTE.match(/<title>([^<]*)<\/title>/)?.[1]
+    expect(title).toContain('Niyyah')
+  })
+
+  it('answers the three questions a coordinator actually asked', () => {
+    const text = flat(NOTE)
+    // When.
+    expect(text).toMatch(/When to hand it out/)
+    // How — separately, then compared.
+    expect(text).toContain('fills their own column separately')
+    expect(text).toMatch(/compare afterward, together/)
+    // What happens to it after.
+    expect(text).toContain('Nobody collects it')
+  })
+
+  it('names both sheet files by their real filename, not a paraphrase', () => {
+    expect(NOTE).toContain('niyyah-money-conversation-sheet-1page.html')
+    expect(NOTE).toContain('niyyah-money-conversation-sheet.html')
+  })
+
+  it('carries the same footer and version line as the two sheets', () => {
+    const text = flat(NOTE)
+    expect(text).toContain('Published by Niyyah —')
+    expect(text).toContain('v1.0 — 2026-09-20')
+  })
+
+  it('has a plain-text twin that says the same three things', () => {
+    // The .txt uses all-caps section headers, same convention as the two
+    // sheets' own plain-text twins — the body sentences match case for case.
+    for (const phrase of ['WHEN TO HAND IT OUT', 'fills their own column separately', 'compare afterward, together', 'Nobody collects it', 'Published by Niyyah —']) {
+      expect(NOTE_TXT, phrase).toContain(phrase)
+    }
+    expect(NOTE_TXT.match(/https?:\/\/[^\s]+/g)).toEqual(['https://joinniyyah.com/'])
+  })
+})
+
+describe('the catalog knows all three files', () => {
   // docs/ASSETS.md's own rule: an address not in the table as live and
   // checked is not an address to put in a pitch. N3 sat there as proposed
   // for three days; shipping it without moving the row is how a
@@ -407,6 +462,12 @@ describe('the catalog knows both files', () => {
   it('carries N3-1page as its own row, not folded into N3’s', () => {
     const row = CATALOG.split('\n').find((l) => l.startsWith('| **N3-1page**'))!
     expect(row).toContain('niyyah-money-conversation-sheet-1page.html')
+    expect(row).not.toContain('proposed')
+  })
+
+  it('carries N3-note as its own row', () => {
+    const row = CATALOG.split('\n').find((l) => l.startsWith('| **N3-note**'))!
+    expect(row).toContain('niyyah-money-conversation-sheet-facilitator-note.html')
     expect(row).not.toContain('proposed')
   })
 })

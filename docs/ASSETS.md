@@ -41,6 +41,7 @@ in a pitch.
 | **N0** | The door — the honest count, for someone looking rather than talking | `https://joinniyyah.com/?door` | advertised but not fully inspected | — |
 | **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet (four pages, room to write) | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **built, not yet checked** | — |
 | **N3-1page** | The money conversation, condensed — the same twenty questions on a single printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html` | **built, not yet checked** | — |
+| **N3-note** | A half-page note for whoever hands N3 or N3-1page to a couple: when, how, what happens to it after | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **built, not yet checked** | — |
 
 ### What each one is for
 
@@ -51,6 +52,7 @@ in a pitch.
 | N2 | "What should a couple actually talk about before the families get involved?" | A couple, or one half of one; and the coordinator or counsellor handing it to them | All eleven, each with why it is found out too late, the words, and what to listen for | Read it separately, then together; the interactive version is linked |
 | N2s | The same, at a glance, on one page that can be printed and reviewed in two minutes | A reviewer at a mosque, a counselling service or a resource list | Three conversations, with marking space | The full guide |
 | N3 | "What do we each expect about mahr, the wedding, and money to relatives?" | Two adults deciding about each other, before the families are involved; and the coordinator who hands it to them | Twenty questions across four subjects kept strictly apart, answered in two columns, with what they agree on and what is still open written down | Their own answers, side by side — nothing prescribed, nothing scored |
+| N3-note | "Would your counsellors use this?" is easy to ask; "how" is the harder question a coordinator actually needs answered | The coordinator or counsellor deciding whether to hand N3 or N3-1page to anyone | When to hand it out, that each person fills separately before comparing, and that nobody collects it after | Attach it alongside whichever length of N3 fits the moment |
 
 **N3 was gated on demand, and the demand arrived.** The rule written here on
 2026-09-17 was that it ships when a coordinator or a couple asks, not before.
@@ -79,6 +81,16 @@ estimated from the CSS — `docs/SHEET.md` has the numbers). It exists because
 "print this and hand it over" and "sit down and actually write" are two
 different asks, and the four-page sheet only serves the second one. Handing
 someone the wrong length is its own failure mode.
+
+**A third file, `public/niyyah-money-conversation-sheet-facilitator-note.html`
+(N3-note), answers the harder half of the pitch.** The ask to a coordinator
+was always "would your counsellors use this" — this note answers *how*: when
+in a session to hand it out, that each person fills their own column
+separately before comparing, and that nobody collects it afterward. Half a
+page on paper (measured: ~51% of a Letter page, ~48% of A4, both still one
+page), so it can be read in full without turning it over. Same rules as N3
+and N3-1page: no font, script or network call, exactly one link, and a plain-
+text twin (`…-facilitator-note.txt`) for pasting straight into a pitch email.
 
 ## Placements — the ledger
 

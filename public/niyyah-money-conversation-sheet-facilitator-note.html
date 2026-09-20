@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Handing out the money conversation — a note for facilitators, from Niyyah</title>
+    <meta
+      name="description"
+      content="A half-page note for whoever hands the money conversation sheet to a couple: when to give it out, how it's meant to be used, and what happens to it afterward."
+    />
+    <!--
+      Self-contained on purpose, same as the two sheets this accompanies. No
+      fonts, no scripts, no images, no CDN, no analytics — one file that opens
+      from an attachment or a printer's desktop with the network off.
+    -->
+    <style>
+      :root {
+        --ink: #16271f;
+        --body: #24312b;
+        --rule: #9aa39d;
+        --page: #fdfcf9;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; }
+
+      body {
+        margin: 0;
+        padding: 2rem 1rem 3rem;
+        background: var(--page);
+        color: var(--body);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      .sheet {
+        max-width: 38rem;
+        margin: 0 auto;
+      }
+
+      h1, h2 {
+        font-family: Georgia, 'Times New Roman', 'Liberation Serif', serif;
+        color: var(--ink);
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin: 0 0 0.5rem;
+      }
+
+      h2 {
+        font-size: 1rem;
+        margin: 1.25rem 0 0.4rem;
+      }
+
+      header {
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 1rem;
+        margin-bottom: 1.25rem;
+      }
+
+      p {
+        margin: 0 0 0.75rem;
+      }
+
+      .lede {
+        max-width: 34rem;
+      }
+
+      ul {
+        margin: 0 0 0.75rem;
+        padding-left: 1.2rem;
+      }
+
+      li {
+        margin: 0 0 0.5rem;
+      }
+
+      li:last-child {
+        margin-bottom: 0;
+      }
+
+      strong {
+        color: var(--ink);
+      }
+
+      .files {
+        margin-top: 0.25rem;
+        padding: 0.85rem 1rem;
+        border: 1px solid var(--rule);
+        border-radius: 0.4rem;
+        background: #fff;
+      }
+
+      .files p {
+        margin: 0 0 0.5rem;
+      }
+
+      .files p:last-child {
+        margin-bottom: 0;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.85em;
+        background: rgba(22, 39, 31, 0.06);
+        padding: 0.05em 0.3em;
+        border-radius: 0.25em;
+      }
+
+      footer {
+        border-top: 2px solid var(--ink);
+        padding-top: 1rem;
+        margin-top: 1.5rem;
+        max-width: 34rem;
+      }
+
+      footer p {
+        margin: 0 0 0.4rem;
+        font-size: 0.9rem;
+      }
+
+      footer a {
+        color: var(--ink);
+      }
+
+      .version {
+        color: #4a564f;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+
+      @media print {
+        /*
+          No `size` is declared, same reason as the two sheets: laid out
+          inside A4's narrower width and US Letter's shorter height, so
+          whichever paper the printer is holding, nothing clips.
+        */
+        @page {
+          margin: 14mm;
+        }
+
+        html,
+        body {
+          background: #fff;
+          color: #000;
+          font-size: 9.5pt;
+          line-height: 1.22;
+          padding: 0;
+        }
+
+        .sheet {
+          max-width: none;
+        }
+
+        h1,
+        h2,
+        strong,
+        footer a {
+          color: #000;
+        }
+
+        .version {
+          color: #000;
+        }
+
+        /*
+          Half a page is the target — this note rides along in a packet with
+          the sheet itself, and a coordinator should be able to read the
+          whole thing without turning it over. Every margin and gap below is
+          tightened for paper only; the screen spacing above is untouched.
+        */
+        header {
+          padding-bottom: 2mm;
+          margin-bottom: 2mm;
+        }
+
+        h1 {
+          font-size: 12.5pt;
+          margin-bottom: 1mm;
+        }
+
+        h2 {
+          font-size: 9.5pt;
+          margin: 2mm 0 1mm;
+        }
+
+        p {
+          margin-bottom: 1.5mm;
+        }
+
+        ul {
+          margin-bottom: 1.5mm;
+        }
+
+        li {
+          margin-bottom: 0.8mm;
+        }
+
+        /* No box on paper: the border and padding cost more room than the
+           visual grouping is worth once the sheet's filename is already
+           set off by <code>. */
+        .files {
+          background: transparent;
+          border: none;
+          padding: 0;
+        }
+
+        .files p {
+          margin-bottom: 0.8mm;
+        }
+
+        code {
+          background: transparent;
+        }
+
+        footer {
+          margin-top: 2mm;
+          padding-top: 1.5mm;
+        }
+
+        footer p {
+          margin-bottom: 0.8mm;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="sheet">
+      <header>
+        <h1>Handing this to a couple</h1>
+        <p class="lede">
+          A note for whoever gives out the money conversation sheet — a
+          coordinator, a counsellor, an imam, anyone running a session where
+          it might come up. The sheet is twenty questions across four
+          subjects — mahr, the wedding, existing debt, money sent to
+          relatives — that two people fill in on their own, then compare.
+        </p>
+      </header>
+
+      <h2>When to hand it out</h2>
+      <ul>
+        <li>At the start of a session, before the couple talks with you — so
+          they arrive having already thought it through.</li>
+        <li>To a couple who's getting serious, to take home and come back
+          to.</li>
+        <li>Left in a stack at check-in. This note is the only explanation it
+          needs.</li>
+      </ul>
+
+      <h2>How it's meant to be used</h2>
+      <ul>
+        <li><strong>Each person fills their own column separately</strong> —
+          not side by side. The point is what each of them actually thinks
+          before the other's answer shapes it.</li>
+        <li><strong>They compare afterward, together</strong>, and mark what
+          they agree on and what's still open in the box at the end of each
+          subject.</li>
+      </ul>
+
+      <h2>What happens to it after</h2>
+      <p>
+        <strong>Nobody collects it.</strong> Not turned in, not read by a
+        counsellor or coordinator, not recorded anywhere by Niyyah or by you.
+        It leaves with the couple.
+      </p>
+
+      <h2>Which version to use</h2>
+      <div class="files">
+        <p><code>niyyah-money-conversation-sheet-1page.html</code> — one
+          page, short answer lines. A stack at check-in, or a quick look.</p>
+        <p><code>niyyah-money-conversation-sheet.html</code> — four pages,
+          room to actually write. Once a couple wants to sit down with it.</p>
+      </div>
+
+      <footer>
+        <p>Published by Niyyah — <a href="https://joinniyyah.com/">joinniyyah.com</a></p>
+        <p>
+          This note is for whoever hands the sheet out. It is not religious
+          or legal advice, and it is not a substitute for guidance from
+          someone you trust.
+        </p>
+        <p class="version">v1.0 — 2026-09-20</p>
+      </footer>
+    </main>
+  </body>
+</html>
