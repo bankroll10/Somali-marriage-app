@@ -5,7 +5,7 @@ import { endingHeadline, marriedShares } from '../lib/ending'
 import { ADVICE_PLACEHOLDER, ADVICE_PROMPT, PAY_IT_FORWARD, endingQuestions } from '../data/ending'
 import { speak } from '../data/read'
 import { shareOrCopy } from '../lib/share'
-import { CheckIcon, Logo, TextButton, fieldClass } from './ui'
+import { Announce, CheckIcon, Logo, TextButton, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -131,6 +131,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
               </p>
             )}
 
+            <Announce message={copied ? 'Copied — paste it somewhere you keep things.' : ''} />
             <button
               onClick={keep}
               className="mt-7 inline-flex items-center gap-2 rounded-full border border-cream/30 px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:bg-cream/10"
@@ -162,7 +163,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
 
         {/* The one thing only a married person can say. */}
         <section className="mt-5 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
             Before you go, if you want to
           </p>
           <p className="mt-2.5 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">
@@ -177,6 +178,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
             is a thing a married {gender === 'man' ? 'man' : 'woman'} can say to anyone — a cousin, a
             friend, the one at the wedding who is where you were.
           </p>
+          <Announce message={shared ? 'Copied to send.' : ''} />
           <button
             onClick={() => tell('eleven')}
             className="mt-4 inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-[0.9rem] font-medium text-cream transition hover:bg-forest-deep"

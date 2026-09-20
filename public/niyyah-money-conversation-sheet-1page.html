@@ -1,0 +1,731 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The money conversation — a sheet for two people, from Niyyah (one page)</title>
+    <meta
+      name="description"
+      content="A one-page printable sheet for two adults considering marriage: mahr, the wedding, existing debt and ongoing family obligations, kept apart on purpose."
+    />
+    <!--
+      Self-contained on purpose. No fonts, no scripts, no images, no CDN, no
+      analytics — one file that opens from a USB stick, an email attachment or
+      a printer's desktop with the network off. Nothing here is saved or sent.
+
+      This is the condensed twin of niyyah-money-conversation-sheet.html. Same
+      twenty questions, same four subjects, same content rules — laid out to
+      print on a single Letter or A4 page instead of four. To fit, every
+      per-question answer becomes a single ruled line instead of a paragraph
+      box, and print splits the page into two columns. Choose this one to hand
+      someone who wants the whole conversation at a glance; choose the other
+      one for room to actually write.
+    -->
+    <style>
+      :root {
+        --ink: #16271f;
+        --body: #24312b;
+        --rule: #9aa39d;
+        --page: #fdfcf9;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; }
+
+      body {
+        margin: 0;
+        padding: 2rem 1rem 3rem;
+        background: var(--page);
+        color: var(--body);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      .sheet {
+        max-width: 50rem;
+        margin: 0 auto;
+      }
+
+      h1, h2, h3 {
+        font-family: Georgia, 'Times New Roman', 'Liberation Serif', serif;
+        color: var(--ink);
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      h1 {
+        font-size: 1.6rem;
+        margin: 0 0 0.5rem;
+      }
+
+      h2 {
+        font-size: 1.1rem;
+        margin: 0 0 0.3rem;
+      }
+
+      .lede {
+        margin: 0 0 0.65rem;
+        max-width: 40rem;
+      }
+
+      .note {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #4a564f;
+        max-width: 40rem;
+      }
+
+      header {
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 1.1rem;
+        margin-bottom: 1.25rem;
+      }
+
+      /* Who is filling which column. Names, not roles. */
+      .who {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.65rem 1.25rem;
+        margin: 1rem 0 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .who > div {
+        flex: 1 1 10rem;
+        min-width: 0;
+      }
+
+      .who label {
+        display: block;
+      }
+
+      label {
+        display: block;
+        font-size: 0.75rem;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        color: #4a564f;
+        margin-bottom: 0.2rem;
+      }
+
+      /*
+        Per-question labels ("Person A"/"Person B") are real <label for> —
+        every field still has one, so a screen reader still says exactly
+        whose answer this is — but not shown twenty times over on a page
+        whose whole point is density. The one-line legend in the header
+        below says the order once, visually, for sighted readers on paper.
+        The name/date fields above, and the two agree/still-deciding labels
+        below, stay visible — there are only a few of those.
+      */
+      .cols label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .legend {
+        margin: 0.5rem 0 0;
+        font-size: 0.8rem;
+        color: #4a564f;
+      }
+
+      input[type='text'],
+      input[type='date'] {
+        width: 100%;
+        font: inherit;
+        font-size: 1rem; /* 16px floor: stops a phone browser zooming on focus */
+        color: var(--body);
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 0.2rem;
+        padding: 0.3rem 0.45rem;
+        min-height: 2.25rem;
+      }
+
+      /* The whole four-subject body, so print can split it into two columns
+         without disturbing the header or footer. */
+      .content {
+        display: block;
+      }
+
+      section {
+        margin: 0 0 1.5rem;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .framing {
+        margin: 0 0 0.6rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--rule);
+        max-width: 40rem;
+      }
+
+      ol.qs {
+        list-style: decimal;
+        margin: 0;
+        padding: 0 0 0 1.2rem;
+      }
+
+      ol.qs > li {
+        margin: 0 0 0.55rem;
+        padding: 0;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .q {
+        margin: 0 0 0.25rem;
+        color: var(--ink);
+        font-size: 0.92rem;
+      }
+
+      .cols {
+        display: flex;
+        gap: 0.6rem;
+      }
+
+      .cols > div {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      /* The single ruled line each answer gets in this variant — an input,
+         not a textarea, because the point of this file is one line per
+         person, not a paragraph. The full-paragraph version is the other
+         file. */
+      .cols input[type='text'] {
+        min-height: 1.9rem;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+
+      .box {
+        margin-top: 0.75rem;
+        border: 2px solid var(--ink);
+        border-radius: 0.3rem;
+        padding: 0.6rem;
+        display: flex;
+        gap: 0.6rem;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .box > div {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      textarea {
+        display: block;
+        width: 100%;
+        font: inherit;
+        font-size: 1rem; /* 16px floor, same reason as the input fields above */
+        line-height: 1.5;
+        color: var(--body);
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 0.2rem;
+        padding: 0.3rem 0.45rem;
+        resize: vertical;
+      }
+
+      footer {
+        border-top: 2px solid var(--ink);
+        padding-top: 1rem;
+        max-width: 40rem;
+      }
+
+      footer p {
+        margin: 0 0 0.4rem;
+        font-size: 0.9rem;
+      }
+
+      footer a {
+        color: var(--ink);
+      }
+
+      .version {
+        color: #4a564f;
+      }
+
+      /* One column on a phone, and nothing that scrolls sideways. */
+      @media (max-width: 700px) {
+        .cols,
+        .box {
+          display: block;
+        }
+
+        .cols > div + div,
+        .box > div + div {
+          margin-top: 0.6rem;
+        }
+      }
+
+      @media print {
+        /*
+          No `size` is declared: the sheet is laid out inside A4's narrower
+          width and US Letter's shorter height, so whichever paper the printer
+          is holding, nothing is clipped and nothing reflows.
+        */
+        @page {
+          margin: 8mm;
+        }
+
+        html,
+        body {
+          background: #fff;
+          color: #000;
+          font-size: 9pt; /* the floor this variant was asked to keep */
+          padding: 0;
+        }
+
+        .sheet {
+          max-width: none;
+        }
+
+        h1,
+        h2,
+        .q,
+        footer a {
+          color: #000;
+        }
+
+        .note,
+        label,
+        .version {
+          color: #000;
+        }
+
+        h1 {
+          font-size: 13pt;
+          margin-bottom: 1.5mm;
+        }
+
+        .lede {
+          margin-bottom: 1mm;
+          line-height: 1.15;
+          font-size: 9pt;
+        }
+
+        header {
+          padding-bottom: 1mm;
+          margin-bottom: 1mm;
+        }
+
+        .who {
+          margin-top: 1mm;
+        }
+
+        .who input {
+          min-height: 5mm;
+          height: 5mm;
+        }
+
+        label {
+          font-size: 9pt;
+          margin-bottom: 0.5mm;
+        }
+
+        .legend {
+          font-size: 8pt;
+          margin: 1mm 0 0;
+        }
+
+        /*
+          The one departure from the full-length sheet: everything from the
+          first subject to the last is split into two print columns, so
+          twenty questions across four subjects fit one page instead of
+          spilling past it. A section can still end mid-column and continue
+          at the top of the next — that is fine on a single page, because
+          nothing here depends on a subject starting flush at a page edge the
+          way the four-page version does.
+        */
+        .content {
+          columns: 2;
+          column-gap: 6mm;
+          column-rule: 0.5pt solid var(--rule);
+        }
+
+        ol.qs {
+          padding-left: 1rem;
+        }
+
+        h2 {
+          font-size: 10pt;
+          margin-bottom: 0.3mm;
+        }
+
+        section {
+          margin-bottom: 1mm;
+        }
+
+        .framing {
+          font-size: 9pt;
+          line-height: 1;
+          margin-bottom: 0.5mm;
+          padding-bottom: 0.3mm;
+        }
+
+        .q {
+          font-size: 9pt;
+          line-height: 1;
+          margin-bottom: 0.3mm;
+        }
+
+        ol.qs > li {
+          margin-bottom: 0.4mm;
+        }
+
+        /*
+          Lines to write on, not fills to soak up toner. `.cols input` needs
+          its own rule here, not just the bare `input[type='text']` above —
+          the screen rule `.cols input[type='text'] { min-height: 1.9rem }`
+          outranks it by specificity, and 1.9rem recomputes against this
+          block's 9pt root font-size (≈23px) rather than being ignored, so
+          without this the print rows come out nearly 3× too tall.
+        */
+        input[type='text'],
+        input[type='date'],
+        textarea {
+          background: transparent;
+          border-bottom: 0.75pt solid #000;
+          border-top: none;
+          border-left: none;
+          border-right: none;
+          border-radius: 0;
+          min-height: 5.9mm;
+          height: 5.9mm;
+          padding: 0 0.5mm;
+          font-size: 9pt;
+        }
+
+        .cols input[type='text'] {
+          min-height: 5.9mm;
+          height: 5.9mm;
+        }
+
+        /* The resize handle is a screen-only affordance — printed, it's a
+           diagonal mark in the corner of every answer box with nothing to
+           grab. */
+        textarea {
+          resize: none;
+        }
+
+        textarea::-webkit-resizer {
+          display: none;
+        }
+
+        .box {
+          margin-top: 0.3mm;
+          padding: 0.6mm 1.2mm;
+          border-width: 1pt;
+        }
+
+        .box label {
+          font-size: 9pt;
+          margin-bottom: 0.2mm;
+        }
+
+        .box textarea {
+          border: none;
+          border-bottom: 0.75pt solid #000;
+          min-height: 6.9mm;
+          height: 6.9mm;
+          line-height: 1.05;
+        }
+
+        footer {
+          margin-top: 1mm;
+          padding-top: 1mm;
+        }
+
+        footer p {
+          font-size: 9pt;
+          margin-bottom: 0.6mm;
+        }
+
+        .screen-only {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="sheet">
+      <header>
+        <h1>The money conversation</h1>
+        <p class="lede">
+          A sheet for two adults considering marriage, to work through before the
+          families discuss numbers. Each of you answers in your own column.
+        </p>
+        <p class="lede">
+          The four subjects are kept apart on purpose. Mahr is not the wedding.
+          The wedding is not what either of you already owes. And none of the
+          three is the money that leaves your account every month for people at
+          home or abroad.
+        </p>
+        <p class="note screen-only">
+          Nothing on this page is saved or sent. What you type stays in this
+          window until you close it, and there is nothing to submit.
+        </p>
+        <p class="note screen-only">
+          This is the one-page version — every answer is a single line. Print
+          this and write on it; long answers may be cut off when printed. For
+          more room to write, use the four-page version instead.
+        </p>
+
+        <div class="who">
+          <div>
+            <label for="name-a">Person A</label>
+            <input id="name-a" type="text" autocomplete="off" />
+          </div>
+          <div>
+            <label for="name-b">Person B</label>
+            <input id="name-b" type="text" autocomplete="off" />
+          </div>
+          <div>
+            <label for="sheet-date">Date</label>
+            <input id="sheet-date" type="text" autocomplete="off" />
+          </div>
+        </div>
+
+        <p class="legend">Each question below: Person A on the left, Person B on the right.</p>
+      </header>
+
+      <div class="content">
+        <!-- 1 -->
+        <section aria-labelledby="s1-h">
+          <h2 id="s1-h">1. Mahr</h2>
+          <p class="framing">
+            This section is about mahr only — what each of you expects, and who has
+            heard that expectation so far.
+          </p>
+
+          <ol class="qs">
+            <li>
+              <p class="q" id="q1a">What do you expect the mahr to be? Write it in your own words, in whatever form you expect it.</p>
+              <div class="cols">
+                <div><label for="q1a-a">Person A</label><input id="q1a-a" type="text" aria-describedby="q1a" autocomplete="off" /></div>
+                <div><label for="q1a-b">Person B</label><input id="q1a-b" type="text" aria-describedby="q1a" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q1b">Who have you said that to so far — your partner, your own family, anyone else?</p>
+              <div class="cols">
+                <div><label for="q1b-a">Person A</label><input id="q1b-a" type="text" aria-describedby="q1b" autocomplete="off" /></div>
+                <div><label for="q1b-b">Person B</label><input id="q1b-b" type="text" aria-describedby="q1b" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q1c">How much of it do you expect at the nikah, and how much deferred?</p>
+              <div class="cols">
+                <div><label for="q1c-a">Person A</label><input id="q1c-a" type="text" aria-describedby="q1c" autocomplete="off" /></div>
+                <div><label for="q1c-b">Person B</label><input id="q1c-b" type="text" aria-describedby="q1c" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q1d">If your family names something different from what you just wrote, what would you want to happen next?</p>
+              <div class="cols">
+                <div><label for="q1d-a">Person A</label><input id="q1d-a" type="text" aria-describedby="q1d" autocomplete="off" /></div>
+                <div><label for="q1d-b">Person B</label><input id="q1d-b" type="text" aria-describedby="q1d" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q1e">Who speaks for you when that conversation happens, and have you asked them?</p>
+              <div class="cols">
+                <div><label for="q1e-a">Person A</label><input id="q1e-a" type="text" aria-describedby="q1e" autocomplete="off" /></div>
+                <div><label for="q1e-b">Person B</label><input id="q1e-b" type="text" aria-describedby="q1e" autocomplete="off" /></div>
+              </div>
+            </li>
+          </ol>
+
+          <div class="box">
+            <div><label for="s1-agree">Agreed</label><textarea id="s1-agree" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s1-open">Still deciding</label><textarea id="s1-open" rows="2" autocomplete="off"></textarea></div>
+          </div>
+        </section>
+
+        <!-- 2 -->
+        <section aria-labelledby="s2-h">
+          <h2 id="s2-h">2. The wedding — one-time expenses</h2>
+          <p class="framing">
+            This section is about the one-time cost of the wedding itself — the
+            nikah, the walima, and whatever either side expects around them. It is
+            separate from mahr.
+          </p>
+
+          <ol class="qs">
+            <li>
+              <p class="q" id="q2a">Which parts of the wedding do you expect to pay for yourself?</p>
+              <div class="cols">
+                <div><label for="q2a-a">Person A</label><input id="q2a-a" type="text" aria-describedby="q2a" autocomplete="off" /></div>
+                <div><label for="q2a-b">Person B</label><input id="q2a-b" type="text" aria-describedby="q2a" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q2b">Which parts do you expect someone else to pay for, and have you asked them?</p>
+              <div class="cols">
+                <div><label for="q2b-a">Person A</label><input id="q2b-a" type="text" aria-describedby="q2b" autocomplete="off" /></div>
+                <div><label for="q2b-b">Person B</label><input id="q2b-b" type="text" aria-describedby="q2b" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q2c">Of the people who would be there, how many are there because of you?</p>
+              <div class="cols">
+                <div><label for="q2c-a">Person A</label><input id="q2c-a" type="text" aria-describedby="q2c" autocomplete="off" /></div>
+                <div><label for="q2c-b">Person B</label><input id="q2c-b" type="text" aria-describedby="q2c" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q2d">What is the most you are willing to spend in total? Write your own ceiling, not a guess at what it will cost.</p>
+              <div class="cols">
+                <div><label for="q2d-a">Person A</label><input id="q2d-a" type="text" aria-describedby="q2d" autocomplete="off" /></div>
+                <div><label for="q2d-b">Person B</label><input id="q2d-b" type="text" aria-describedby="q2d" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q2e">If the cost goes past that ceiling, what is the first thing you would cut — and what would you cut last?</p>
+              <div class="cols">
+                <div><label for="q2e-a">Person A</label><input id="q2e-a" type="text" aria-describedby="q2e" autocomplete="off" /></div>
+                <div><label for="q2e-b">Person B</label><input id="q2e-b" type="text" aria-describedby="q2e" autocomplete="off" /></div>
+              </div>
+            </li>
+          </ol>
+
+          <div class="box">
+            <div><label for="s2-agree">Agreed</label><textarea id="s2-agree" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s2-open">Still deciding</label><textarea id="s2-open" rows="2" autocomplete="off"></textarea></div>
+          </div>
+        </section>
+
+        <!-- 3 -->
+        <section aria-labelledby="s3-h">
+          <h2 id="s3-h">3. Debt either of you already carries</h2>
+          <p class="framing">
+            This section is about money either of you already owes, from before
+            anything about this marriage was decided.
+          </p>
+
+          <ol class="qs">
+            <li>
+              <p class="q" id="q3a">What do you owe right now, and to whom? Include anything that has someone else’s name on it.</p>
+              <div class="cols">
+                <div><label for="q3a-a">Person A</label><input id="q3a-a" type="text" aria-describedby="q3a" autocomplete="off" /></div>
+                <div><label for="q3a-b">Person B</label><input id="q3a-b" type="text" aria-describedby="q3a" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q3b">What are you paying toward it each month, and how long is left?</p>
+              <div class="cols">
+                <div><label for="q3b-a">Person A</label><input id="q3b-a" type="text" aria-describedby="q3b" autocomplete="off" /></div>
+                <div><label for="q3b-b">Person B</label><input id="q3b-b" type="text" aria-describedby="q3b" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q3c">Who already knows about it — your partner, your own family, your partner’s family?</p>
+              <div class="cols">
+                <div><label for="q3c-a">Person A</label><input id="q3c-a" type="text" aria-describedby="q3c" autocomplete="off" /></div>
+                <div><label for="q3c-b">Person B</label><input id="q3c-b" type="text" aria-describedby="q3c" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q3d">After the marriage, do you expect this to stay yours, or to be something you both handle?</p>
+              <div class="cols">
+                <div><label for="q3d-a">Person A</label><input id="q3d-a" type="text" aria-describedby="q3d" autocomplete="off" /></div>
+                <div><label for="q3d-b">Person B</label><input id="q3d-b" type="text" aria-describedby="q3d" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q3e">Is there anything here you would want settled before the nikah rather than after?</p>
+              <div class="cols">
+                <div><label for="q3e-a">Person A</label><input id="q3e-a" type="text" aria-describedby="q3e" autocomplete="off" /></div>
+                <div><label for="q3e-b">Person B</label><input id="q3e-b" type="text" aria-describedby="q3e" autocomplete="off" /></div>
+              </div>
+            </li>
+          </ol>
+
+          <div class="box">
+            <div><label for="s3-agree">Agreed</label><textarea id="s3-agree" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s3-open">Still deciding</label><textarea id="s3-open" rows="2" autocomplete="off"></textarea></div>
+          </div>
+        </section>
+
+        <!-- 4 -->
+        <section aria-labelledby="s4-h">
+          <h2 id="s4-h">4. Ongoing obligations to family</h2>
+          <p class="framing">
+            This section is about money that leaves your account regularly for
+            people outside this marriage — parents, siblings, relatives here or
+            abroad.
+          </p>
+
+          <ol class="qs">
+            <li>
+              <p class="q" id="q4a">Who do you send money to now, and how often?</p>
+              <div class="cols">
+                <div><label for="q4a-a">Person A</label><input id="q4a-a" type="text" aria-describedby="q4a" autocomplete="off" /></div>
+                <div><label for="q4a-b">Person B</label><input id="q4a-b" type="text" aria-describedby="q4a" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q4b">What does that come to, against what you earn?</p>
+              <div class="cols">
+                <div><label for="q4b-a">Person A</label><input id="q4b-a" type="text" aria-describedby="q4b" autocomplete="off" /></div>
+                <div><label for="q4b-b">Person B</label><input id="q4b-b" type="text" aria-describedby="q4b" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q4c">Is the amount fixed, or does it change when something happens?</p>
+              <div class="cols">
+                <div><label for="q4c-a">Person A</label><input id="q4c-a" type="text" aria-describedby="q4c" autocomplete="off" /></div>
+                <div><label for="q4c-b">Person B</label><input id="q4c-b" type="text" aria-describedby="q4c" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q4d">Who knows what you send — your partner, your own family, the people you send it to?</p>
+              <div class="cols">
+                <div><label for="q4d-a">Person A</label><input id="q4d-a" type="text" aria-describedby="q4d" autocomplete="off" /></div>
+                <div><label for="q4d-b">Person B</label><input id="q4d-b" type="text" aria-describedby="q4d" autocomplete="off" /></div>
+              </div>
+            </li>
+            <li>
+              <p class="q" id="q4e">After the marriage, do you expect this to stay the same, go up, or come down — and if yours and your partner’s are different sizes, how do you want that handled?</p>
+              <div class="cols">
+                <div><label for="q4e-a">Person A</label><input id="q4e-a" type="text" aria-describedby="q4e" autocomplete="off" /></div>
+                <div><label for="q4e-b">Person B</label><input id="q4e-b" type="text" aria-describedby="q4e" autocomplete="off" /></div>
+              </div>
+            </li>
+          </ol>
+
+          <div class="box">
+            <div><label for="s4-agree">Agreed</label><textarea id="s4-agree" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s4-open">Still deciding</label><textarea id="s4-open" rows="2" autocomplete="off"></textarea></div>
+          </div>
+        </section>
+      </div>
+
+      <footer>
+        <p>Published by Niyyah — <a href="https://joinniyyah.com/">joinniyyah.com</a></p>
+        <p>
+          This sheet is for conversation. It is not religious or legal advice,
+          and it is not a substitute for guidance from someone you trust.
+        </p>
+        <p class="version">v1.0 — 2026-09-20</p>
+      </footer>
+    </main>
+  </body>
+</html>

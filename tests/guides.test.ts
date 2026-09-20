@@ -68,7 +68,7 @@ describe('the full guide', () => {
 
   it('carries the approved Somali line, and no unapproved one', () => {
     expect(SOMALI['beforeYes.intro'].approved).toBe(true)
-    expect(SOMALI['beforeYes.intro'].text.startsWith(SOMALI_INTRO)).toBe(true)
+    expect(SOMALI['beforeYes.intro'].somali).toBe(SOMALI_INTRO)
     expect(full).toContain(`lang="so">${SOMALI_INTRO}`)
     expect(full).toContain('The important conversations, before the families have them for you.')
   })

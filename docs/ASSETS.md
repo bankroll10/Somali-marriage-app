@@ -21,6 +21,14 @@ and whoever does it puts their finding in the row. Everything else is a claim.
 Statuses, from the playbook: **live and checked** · **live with a blocker** ·
 **advertised but not fully inspected** · **proposed** · **retired**.
 
+One status added here, 2026-09-20: **built, not yet checked**. The playbook's
+list jumps from *proposed* straight to statuses that assume a public address,
+and every asset in fact spends time between the two — written and merged, live
+at a real URL, opened by nobody without a session. N3 was the first asset to
+sit there long enough to need a word for it. It is not a softer *live and
+checked*: the rule above is unchanged, and an asset in this state does not go
+in a pitch.
+
 ## The assets
 
 | ID | What it is | URL | Status | Last checked |
@@ -31,7 +39,11 @@ Statuses, from the playbook: **live and checked** · **live with a blocker** ·
 | **N2** | The eleven, to read and print — all of them, in a voice for two readers | `https://joinniyyah.com/guides/before-you-say-yes` | **live and checked** | 2026-09-17 |
 | **N2s** | Three of the eleven, one Letter page — the sample that goes in a pitch | `https://joinniyyah.com/guides/before-you-say-yes/sample` | **live and checked** | 2026-09-17 |
 | **N0** | The door — the honest count, for someone looking rather than talking | `https://joinniyyah.com/?door` | advertised but not fully inspected | — |
-| **N3** | Mahr, wedding and family-support worksheet | — | **proposed** | — |
+| **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet (four pages, room to write) | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **built, not yet checked** | — |
+| **N3-1page** | The money conversation, condensed — the same twenty questions on a single printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html` | **built, not yet checked** | — |
+| **N3-note** | A half-page note for whoever hands N3 or N3-1page to a couple: when, how, what happens to it after, and that a Somali version exists | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **built, not yet checked** | — |
+| **N3-so** | The money conversation, in Somali — the same twenty questions, four pages, founder-reviewed and approved | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.html` | **built, not yet checked** | — |
+| **N3-1page-so** | The money conversation in Somali, condensed to one printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.html` | **built, not yet checked** | — |
 
 ### What each one is for
 
@@ -41,10 +53,58 @@ Statuses, from the playbook: **live and checked** · **live with a blocker** ·
 | N1c | "We are getting serious and I do not know what we have not discussed." | A Somali adult deciding about a specific person | Which of the eleven they have had, and which is open | The one to open this week, and the words — or send the two-sided sheet to their partner |
 | N2 | "What should a couple actually talk about before the families get involved?" | A couple, or one half of one; and the coordinator or counsellor handing it to them | All eleven, each with why it is found out too late, the words, and what to listen for | Read it separately, then together; the interactive version is linked |
 | N2s | The same, at a glance, on one page that can be printed and reviewed in two minutes | A reviewer at a mosque, a counselling service or a resource list | Three conversations, with marking space | The full guide |
-| N3 | "What do we each expect about mahr, the wedding, and money to relatives?" | A couple approaching the nikah | Not built. A worksheet separating amounts from expectations, with no prescribed mahr | — |
+| N3 | "What do we each expect about mahr, the wedding, and money to relatives?" | Two adults deciding about each other, before the families are involved; and the coordinator who hands it to them | Twenty questions across four subjects kept strictly apart, answered in two columns, with what they agree on and what is still open written down | Their own answers, side by side — nothing prescribed, nothing scored |
+| N3-note | "Would your counsellors use this?" is easy to ask; "how" is the harder question a coordinator actually needs answered | The coordinator or counsellor deciding whether to hand N3 or N3-1page to anyone | When to hand it out, that each person fills separately before comparing, and that nobody collects it after | Attach it alongside whichever length of N3 fits the moment |
 
-**N3 is deliberately not built.** The playbook gates it on demand, and nothing
-has asked for it yet. It ships when a coordinator or a couple asks, not before.
+**N3 was gated on demand, and the demand arrived.** The rule written here on
+2026-09-17 was that it ships when a coordinator or a couple asks, not before.
+The founder's distribution watch kept returning mahr-guide openings — the same
+request from different directions — and that is the ask the gate named. Built
+2026-09-20; see `docs/SHEET.md` for what it does and does not say.
+
+It is a static file, not a route: `public/niyyah-money-conversation-sheet.html`,
+served straight from `dist` ahead of the SPA rewrite, with a plain-text twin at
+`…-sheet.txt` for pasting into an email or a post. It loads no font, no script
+and no image, so it opens from an attachment or a USB stick with the network
+off — which is the form a coordinator actually forwards. Unlike N1c and N2 it
+carries **no link into the app** beyond the one footer address, and records
+nothing: no `via`, no storage, no form. That is deliberate. On this subject a
+sheet that measured its reader would be the wrong object, and the attribution
+we would gain is worth less than the page being obviously inert.
+
+**A second, one-page version exists for the same URL family:**
+`public/niyyah-money-conversation-sheet-1page.html`, at
+`https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html`, same
+status. Same twenty questions, same four subjects, same content rules — every
+per-question answer is a single ruled line instead of a paragraph box, and
+print splits into two columns, to fit US Letter and A4 on one printed page
+instead of four (verified by rendering both to PDF with headless Chrome, not
+estimated from the CSS — `docs/SHEET.md` has the numbers). It exists because
+"print this and hand it over" and "sit down and actually write" are two
+different asks, and the four-page sheet only serves the second one. Handing
+someone the wrong length is its own failure mode.
+
+**A third file, `public/niyyah-money-conversation-sheet-facilitator-note.html`
+(N3-note), answers the harder half of the pitch.** The ask to a coordinator
+was always "would your counsellors use this" — this note answers *how*: when
+in a session to hand it out, that each person fills their own column
+separately before comparing, and that nobody collects it afterward. Half a
+page on paper (measured: ~51% of a Letter page, ~48% of A4, both still one
+page), so it can be read in full without turning it over. Same rules as N3
+and N3-1page: no font, script or network call, exactly one link, and a plain-
+text twin (`…-facilitator-note.txt`) for pasting straight into a pitch email.
+
+**N3-so and N3-1page-so are the Somali translation, reviewed and approved
+by the founder.** Same twenty questions, same four subjects, same content
+rules, same technical guarantees (no network call, one link, nothing
+saved) as N3 and N3-1page — `public/niyyah-money-conversation-sheet-so.html`
+and `…-1page-so.html`, with a plain-text twin at `…-sheet-so.txt`. The
+translation's reference record — what each line says, the terminology
+decisions, why a given phrasing was chosen — lives at
+`internal/translations/money-conversation-sheet.so.md` for whoever edits
+it next. Built, but the same rule as every other row here applies: neither
+URL is "live and checked" until a person opens it on a session-less
+device.
 
 ## Placements — the ledger
 

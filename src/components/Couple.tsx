@@ -178,7 +178,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             below is the same one both of them see. */}
         {yours && phase === 'intro' && (
           <div className="py-12">
-            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">Your link</p>
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Your link</p>
             <h1 className="animate-rise mt-3 font-display text-[1.8rem] font-medium leading-tight tracking-tight text-ink text-balance">
               This is the link you sent.
             </h1>
@@ -199,7 +199,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
 
         {!yours && phase === 'intro' && (
           <div className="py-10">
-            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">About two minutes</p>
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">About two minutes</p>
             <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance">
               {sender}’s asked you to do this too.
             </h1>
@@ -251,7 +251,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 <div className="h-full rounded-full bg-forest transition-all duration-500" style={{ width: `${((index + 1) / topics.length) * 100}%` }} />
               </div>
               <div key={t.id} className="animate-rise py-8">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">{t.label}</p>
+                <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">{t.label}</p>
                 <h2 className="mt-2 font-display text-[1.5rem] font-medium leading-snug tracking-tight text-ink text-balance">
                   Have the two of you talked about this?
                 </h2>
@@ -312,7 +312,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             all before (docs/NORMAN.md). */}
         {phase === 'answered-already' && view?.status !== 'joint' && (
           <div className="py-16">
-            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">Already answered</p>
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Already answered</p>
             <h1 className="animate-rise mt-3 font-display text-[1.7rem] font-medium leading-snug tracking-tight text-ink text-balance">
               This one has been answered.
             </h1>
@@ -330,7 +330,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
           const r = coupleReading(view.joint, answerFor)
           return (
             <div className="py-8">
-              <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
+              <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
                 {phase === 'answered-already' ? 'This one has been answered' : 'Where the two of you stand'}
               </p>
               <h1 className="animate-rise mt-3 font-display text-[1.85rem] font-medium leading-tight tracking-tight text-ink text-balance">{r.headline}</h1>
@@ -356,7 +356,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                     <span className="font-display text-[1.15rem] font-medium text-ink">Your own map</span>
  <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">Two minutes on what you need. Nothing here is shared with anyone.</span>
                   </span>
-                  <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight className="flex-none text-gold-ink transition-transform group-hover:translate-x-0.5" />
                 </button>
                 {/* Couples tell couples. He has just done the thing; the friend
                     who is about to get engaged is the person he would tell. */}

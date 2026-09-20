@@ -55,7 +55,7 @@ export default function WorkCard({
 
   return (
     <section className="animate-rise mt-10">
-      <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">Your work</p>
+      <h2 className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">Your work</h2>
       <div className="relative overflow-hidden rounded-card bg-forest-deep p-7 text-cream">
         <div className="bg-geo pointer-events-none absolute inset-0 opacity-30" aria-hidden />
         <div className="relative">
@@ -116,14 +116,14 @@ export default function WorkCard({
           <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 border-t border-cream/10 pt-1.5">
             <TextButton
               onClick={onOpenMap}
-              className="text-[0.8rem] text-cream/50 hover:text-cream/80 hover:underline"
+              className="text-[0.8rem] text-cream/60 hover:text-cream/80 hover:underline"
             >
               {steps.some((s) => s.done) ? 'See everything you’ve done' : 'Where this comes from'}
             </TextButton>
             {!finishedToday && (
               <TextButton
                 onClick={swapGround}
-                className="text-[0.8rem] text-cream/40 hover:text-cream/70 hover:underline"
+                className="text-[0.8rem] text-cream/55 hover:text-cream/70 hover:underline"
               >
                 Not this one
               </TextButton>

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { Gender } from '../types'
 import { inviteLink, inviteText, type InviteSource } from '../data/invite'
 import { shareOrCopy } from '../lib/share'
-import { CheckIcon } from './ui'
+import { Announce, CheckIcon } from './ui'
 
 interface Props {
   source: InviteSource
@@ -44,6 +44,7 @@ export default function InviteRow({
       onClick={invite}
       className="flex w-full items-center gap-3 rounded-card border border-line bg-white/60 px-5 py-4 text-left transition-colors hover:border-forest/40"
     >
+      <Announce message={copied ? 'Copied.' : ''} />
       <span className="flex-1">
         <span className="block text-[0.95rem] font-medium text-ink">{title}</span>
         <span className="mt-0.5 block text-[0.8rem] text-muted text-pretty">{line}</span>

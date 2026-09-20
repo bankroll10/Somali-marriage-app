@@ -61,7 +61,7 @@ export default function Ended({ identity, from, saved, onSave, onDone }: Props) 
 
       <main className="mx-auto max-w-2xl px-6">
         <section className="animate-rise mt-8">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold-ink">
             {from === 'deciding' ? 'You were deciding' : 'You were getting to know someone'}
           </p>
           <h1 className="mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">

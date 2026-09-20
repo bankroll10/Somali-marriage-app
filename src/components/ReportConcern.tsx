@@ -38,7 +38,7 @@ export default function ReportConcern({ code, side }: Props) {
 
   if (state === 'sent') {
     return (
-      <p className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty">
+      <p role="status" className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty">
         Sent. Only the founder reads this, weekly, and what she does about it is written down.
       </p>
     )
@@ -46,11 +46,13 @@ export default function ReportConcern({ code, side }: Props) {
 
   return (
     <div className="mt-6 rounded-card border border-line bg-white/60 p-5">
-      <p className="text-[0.92rem] font-medium text-ink">What happened?</p>
-      <div className="mt-3 flex flex-col gap-2">
+      <p id="report-reason-label" className="text-[0.92rem] font-medium text-ink">What happened?</p>
+      <div role="radiogroup" aria-labelledby="report-reason-label" className="mt-3 flex flex-col gap-2">
         {SAFETY_REASONS.map((r) => (
           <button
             key={r.id}
+            role="radio"
+            aria-checked={reason === r.id}
             onClick={() => setReason(r.id)}
             className={`rounded-xl border px-3.5 py-2.5 text-left text-[0.88rem] leading-snug transition ${
               reason === r.id ? 'border-clay bg-clay/10 text-ink' : 'border-line text-ink-soft hover:border-clay/40'
@@ -61,6 +63,7 @@ export default function ReportConcern({ code, side }: Props) {
         ))}
       </div>
       <textarea
+        aria-label="Anything else it helps to know"
         value={details}
         onChange={(e) => setDetails(e.target.value.slice(0, 500))}
         placeholder="Anything else it helps to know (optional)"
@@ -92,7 +95,7 @@ export default function ReportConcern({ code, side }: Props) {
         <TextButton onClick={() => setState('closed')} className="text-[0.85rem] font-medium text-muted hover:underline">
           Cancel
         </TextButton>
-        {state === 'error' && <span className="text-[0.82rem] text-clay">Didn’t send — try again.</span>}
+        {state === 'error' && <span role="status" className="text-[0.82rem] text-clay">Didn’t send — try again.</span>}
       </div>
     </div>
   )

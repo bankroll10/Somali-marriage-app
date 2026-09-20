@@ -20,8 +20,8 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
       <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-safe-6">
         <BackButton onClick={onBack} className="self-start" />
 
-        <div className="flex flex-1 flex-col justify-center py-10">
-          <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
+        <main className="flex flex-1 flex-col justify-center py-10">
+          <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
             First, the basics
           </p>
           <h1 className="animate-rise mt-4 font-display text-[2.3rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.7rem]">
@@ -32,13 +32,16 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
           </p>
 
           {/* Gender — the one required choice, so it comes first. */}
-          <div className="animate-rise mt-9 grid gap-3 sm:grid-cols-2" style={{ animationDelay: '60ms' }}>
+          <p id="identity-gender-label" className="sr-only">You are</p>
+          <div role="radiogroup" aria-labelledby="identity-gender-label" className="animate-rise mt-9 grid gap-3 sm:grid-cols-2" style={{ animationDelay: '60ms' }}>
             {options.map((opt) => {
               const selected = identity.gender === opt.gender
               return (
                 <button
                   key={opt.gender}
                   type="button"
+                  role="radio"
+                  aria-checked={selected}
                   onClick={() => onChange({ ...identity, gender: opt.gender })}
                   className={`rounded-card border p-5 text-left transition-all duration-200 ${
                     selected
@@ -129,7 +132,7 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
           <p className="animate-fade mt-4 text-xs text-muted" style={{ animationDelay: '240ms' }}>
             Nothing you share here is visible to anyone — no profile exists until you choose.
           </p>
-        </div>
+        </main>
       </div>
     </div>
   )

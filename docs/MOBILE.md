@@ -74,7 +74,9 @@ again-buttons), `Trust` (Keep it), `Profile` (close, Retake, See more),
 `Home` (cancel/Restart), `Coach` (Switch voice). The recognized chip
 selectors (scene, relationship, hesitation-reason, stage, multi-select)
 were left alone — they're single-tap selection controls the audit
-correctly didn't flag.
+correctly didn't flag. *Confirmed 2026-09-20 (docs/ACCESS.md): they clear
+WCAG 2.5.8's actual 24px AA minimum on their own; the 44px floor here was
+craft, not a compliance requirement.*
 
 Trust's `Toggle` was worse than undersized: its 28px track was the *only*
 clickable element in its row, and the title and description beside it —

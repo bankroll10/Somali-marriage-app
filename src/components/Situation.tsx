@@ -47,10 +47,10 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
       <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-safe-6">
         <BackButton onClick={chosen ? () => setChosen(null) : onBack} className="self-start" />
 
-        <div className="flex flex-1 flex-col justify-center py-10">
+        <main className="flex flex-1 flex-col justify-center py-10">
           {!st ? (
             <>
-              <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">Where you are</p>
+              <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Where you are</p>
               <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
                 What’s happening right now?
               </h1>
@@ -66,21 +66,23 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
                     className="animate-rise flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-white/50 p-4 text-left text-[0.98rem] font-medium text-ink transition-all duration-200 hover:border-forest/40 hover:bg-white"
                   >
                     {s.situation}
-                    <ArrowRight className="h-4 w-4 flex-none text-gold" />
+                    <ArrowRight className="h-4 w-4 flex-none text-gold-ink" />
                   </button>
                 ))}
               </div>
             </>
           ) : (
             <div className="animate-rise">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold">Where you are</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Where you are</p>
               <h1 className="mt-4 font-display text-[1.7rem] font-medium leading-snug tracking-tight text-ink text-balance">
                 {st.situation}.
               </h1>
 
               <div className="mt-6 rounded-card border border-gold/25 bg-gold/[0.07] p-6">
                 {somaliLine && (
-                  <p className="mb-2 font-display text-[1.1rem] font-medium text-ink text-pretty">{somaliLine}</p>
+                  <p className="mb-2 font-display text-[1.1rem] font-medium text-ink text-pretty">
+                    <span lang="so">{somaliLine.somali}</span> {somaliLine.english}
+                  </p>
                 )}
                 <p className="text-[1.05rem] leading-relaxed text-ink-soft text-pretty">{say(st.arrival)}</p>
               </div>
@@ -88,10 +90,10 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
               {/* One tap, optional: the city. It is a belonging signal, not a form
                   field — the note under each is the point. */}
               <div className="mt-7">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+                <p id="situation-scene-label" className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
                   Where are you? <span className="normal-case tracking-normal">(optional)</span>
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div role="group" aria-labelledby="situation-scene-label" className="mt-3 flex flex-wrap gap-2">
                   {scenes.map((sc) => {
                     const on = identity.scene === sc.id
                     return (
@@ -111,10 +113,10 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
                     own. One more tap, and she is counted with her country. */}
                 {identity.scene === 'other' && (
                   <div className="mt-5">
-                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+                    <p id="situation-country-label" className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
                       Somewhere else in… <span className="normal-case tracking-normal">(optional)</span>
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div role="group" aria-labelledby="situation-country-label" className="mt-3 flex flex-wrap gap-2">
                       {countries.map((c) => {
                         const on = identity.country === c.id
                         return (
@@ -137,10 +139,10 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
                     means her city. See src/data/reach.ts. */}
                 {identity.scene && (
                   <div className="mt-5">
-                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+                    <p id="situation-reach-label" className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
                       How far would you go for the right person? <span className="normal-case tracking-normal">(optional)</span>
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div role="group" aria-labelledby="situation-reach-label" className="mt-3 flex flex-wrap gap-2">
                       {reachOptions(within).map((r) => {
                         const on = identity.reach === r.id
                         return (
@@ -174,7 +176,7 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
               </button>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   )

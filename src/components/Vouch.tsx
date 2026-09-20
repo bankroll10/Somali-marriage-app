@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useFocusHeading } from '../hooks/useFocusHeading'
 import type { VouchState } from '../types'
 import { relationshipOptions } from '../data/vouch'
 import { readVouchDetail, sendVouch } from '../lib/vouch'
@@ -24,6 +25,11 @@ type Phase = 'loading' | 'form' | 'sending' | 'done' | 'already' | 'dead' | 'gon
  */
 export default function Vouch({ code, onDone, saveOk = true }: Props) {
   const [phase, setPhase] = useState<Phase>('loading')
+  // Vouch's phases are local state, not a screen change App.tsx's own
+  // screen-swap effect can see — so a submit succeeding or failing swaps in
+  // a whole new h1 that nothing announces or focuses on its own.
+  const mainRef = useRef<HTMLElement>(null)
+  useFocusHeading(mainRef, phase)
   const [existing, setExisting] = useState<VouchState | null>(null)
   const [relationship, setRelationship] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -88,13 +94,13 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
           <span className="text-xs uppercase tracking-[0.2em] text-muted">A family request</span>
         </div>
       </header>
-      <main className="mx-auto max-w-xl px-6">
+      <main ref={mainRef} className="mx-auto max-w-xl px-6">
         {!saveOk && <NotSaving what="what you type here" className="mt-6" />}
         {phase === 'loading' && <p className="py-16 text-center text-[0.95rem] text-muted">One moment.</p>}
 
         {(phase === 'form' || phase === 'sending' || phase === 'error') && (
           <form onSubmit={submit} className="py-10">
-            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">From someone who trusts you</p>
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">From someone who trusts you</p>
             <h1 className="animate-rise mt-4 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
               Someone in your family is seeking marriage, and has asked you to vouch for them.
             </h1>
@@ -149,7 +155,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
                 {phase !== 'sending' && <ArrowRight className="transition-transform group-hover:translate-x-0.5" />}
               </Button>
             </div>
-            {phase === 'error' && <p className="mt-3 text-[0.85rem] text-clay">That didn’t go through. Please try again in a moment.</p>}
+            {phase === 'error' && <p role="status" className="mt-3 text-[0.85rem] text-clay">That didn’t go through. Please try again in a moment.</p>}
             <p className="mt-5 text-[0.8rem] leading-relaxed text-muted text-pretty">
               They will see your first name and that you are {relationship ? options.find((r) => r.id === relationship)?.label.toLowerCase() : 'family'}. Your
               sentence and your number are seen only by the founder of Niyyah, and by nobody they are ever introduced to.
@@ -169,7 +175,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
 
         {phase === 'done' && result && (
           <div className="py-12">
-            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">Thank you</p>
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Thank you</p>
             <h1 className="animate-rise mt-4 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
               They are vouched for.
             </h1>

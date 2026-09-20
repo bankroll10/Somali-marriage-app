@@ -30,7 +30,7 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (!this.state.error) return this.props.children
 
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center bg-forest-deep px-6 text-center text-cream">
+      <div role="alert" className="flex min-h-dvh flex-col items-center justify-center bg-forest-deep px-6 text-center text-cream">
         <div className="bg-geo pointer-events-none absolute inset-0 opacity-40" aria-hidden />
         <div className="relative max-w-sm">
           <svg width="44" height="44" viewBox="0 0 64 64" fill="none" className="mx-auto" aria-hidden>

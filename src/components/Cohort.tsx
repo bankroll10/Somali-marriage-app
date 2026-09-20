@@ -356,7 +356,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
 
   return (
     <div className={`rounded-card border border-gold/30 bg-gold/[0.07] ${compact ? 'px-5 py-5' : 'p-6'}`}>
-      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
         {place ? (other && country ? getCountry(country)?.label : place.label) : 'The first cities'}
       </p>
       <p
@@ -464,6 +464,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             placeholder="Email or phone"
             aria-label="Email or phone"
             aria-describedby={contactHint ? 'cohort-contact-hint' : undefined}
+            aria-invalid={!!contactHint}
             enterKeyHint="done"
             className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
           />
@@ -497,7 +498,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             )}
           </button>
           {state === 'error' && (
-            <p className="text-[0.85rem] text-clay text-pretty">
+            <p role="status" className="text-[0.85rem] text-clay text-pretty">
               That didn’t go through — nothing is lost, your map is still here. Try
               again in a moment, or email {CONTACT_EMAIL}.
             </p>
@@ -550,8 +551,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
       )}
       {onHesitate && hesitating === 'open' && (
         <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
-          <p className="text-[0.9rem] font-medium text-ink">That’s fine. Would you tell us why, in a word?</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <p id="cohort-hesitation-label" className="text-[0.9rem] font-medium text-ink">That’s fine. Would you tell us why, in a word?</p>
+          <div role="group" aria-labelledby="cohort-hesitation-label" className="mt-3 flex flex-wrap gap-2">
             {hesitationOptions.map((h) => (
               <button
                 key={h.id}

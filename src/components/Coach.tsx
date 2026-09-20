@@ -5,6 +5,7 @@ import { askCoach, type Closer } from '../lib/coach'
 import { shareOrCopy } from '../lib/share'
 import { wordsMessage } from '../lib/words'
 import { nextId } from '../lib/id'
+import { scrollBehavior } from '../lib/motion'
 import {
   ArrowRight,
   BackButton,
@@ -69,7 +70,7 @@ interface Props {
 
 // Accents stay inside the brand palette — no foreign hues.
 const accentText: Record<string, string> = {
-  gold: 'text-gold',
+  gold: 'text-gold-ink',
   forest: 'text-forest',
   clay: 'text-clay',
   sky: 'text-forest-soft',
@@ -140,7 +141,7 @@ export default function Coach({
     const container = scrollRef.current
     if (!container) return
     const toBottom = () =>
-      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
+      container.scrollTo({ top: container.scrollHeight, behavior: scrollBehavior() })
 
     if (thinking || !lastId || lastRole !== 'coach') {
       toBottom()
@@ -154,7 +155,7 @@ export default function Coach({
     // Measured against the live boxes rather than offsetTop, which depends on
     // which ancestor happens to be positioned.
     const delta = el.getBoundingClientRect().top - container.getBoundingClientRect().top
-    container.scrollTo({ top: Math.max(0, container.scrollTop + delta - 12), behavior: 'smooth' })
+    container.scrollTo({ top: Math.max(0, container.scrollTop + delta - 12), behavior: scrollBehavior() })
     // Deps are the identity of the last turn, not the array: `messages` is
     // rebuilt on every render, so depending on it re-ran this constantly.
   }, [lastId, lastRole, thinking])
@@ -303,8 +304,8 @@ export default function Coach({
           <p className="font-display text-[1.05rem] font-medium text-ink">Your guide</p>
         </ScreenHeader>
 
-        <div className="mx-auto max-w-2xl px-5 py-9">
-          <p className="animate-fade text-xs font-medium uppercase tracking-[0.22em] text-gold">
+        <main className="mx-auto max-w-2xl px-5 py-9">
+          <p className="animate-fade text-xs font-medium uppercase tracking-[0.22em] text-gold-ink">
             Your guide
           </p>
           <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
@@ -343,7 +344,7 @@ export default function Coach({
                   <span className="flex items-center gap-2">
                     <span className="font-display text-[1.15rem] font-medium text-ink">{m.label}</span>
                     {m.id === recommended && (
-                      <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-wide text-gold">
+                      <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-wide text-gold-ink">
                         For you
                       </span>
                     )}
@@ -392,7 +393,7 @@ export default function Coach({
                 ))}
             </div>
           </Disclose>
-        </div>
+        </main>
       </div>
     )
   }
@@ -413,9 +414,9 @@ export default function Coach({
           <ModeGlyph id={activeMode.glyph} />
         </span>
         <div className="flex-1">
-          <p className="font-display text-[1.05rem] font-medium leading-tight text-ink">
+          <h1 className="font-display text-[1.05rem] font-medium leading-tight text-ink">
             {activeMode.label}
-          </p>
+          </h1>
           <p className="text-[0.78rem] text-muted">{activeMode.tagline} · private</p>
           {/* No counter here. One used to appear from halfway — "6 replies left
               this month" — and open the subscription screen. A counter on a
@@ -430,7 +431,7 @@ export default function Coach({
         </TextButton>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} role="main" className="flex-1 overflow-y-auto">
         <div
           role="log"
           aria-live="polite"
@@ -515,7 +516,7 @@ export default function Coach({
               a sheet over the top of it. Whatever she came here for, she keeps. */}
           {locked && (
             <div className="animate-rise mt-2 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
                 The guide has said what it can, for now
               </p>
               <p className="mt-2.5 font-display text-[1.3rem] font-medium leading-snug tracking-tight text-ink text-balance">
@@ -579,6 +580,7 @@ export default function Coach({
           className="mx-auto flex max-w-xl items-end gap-2.5 px-5 pt-4 pb-safe-bar"
         >
           <textarea
+            aria-label={`Tell your ${activeMode.label.toLowerCase()} what's going on`}
             enterKeyHint="send"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -682,7 +684,7 @@ function GuideWords({ text }: { text: string }) {
   return (
     <>
       <div className="mt-2 rounded-xl border border-gold/30 bg-gold/[0.08] p-3.5">
-        <p className="text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-gold">
+        <p className="text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-gold-ink">
           Words you could use
         </p>
         <p className="mt-1.5 font-display text-[1.02rem] leading-relaxed text-ink">“{script}”</p>

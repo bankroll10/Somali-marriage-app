@@ -26,10 +26,10 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
       <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-safe-6">
         <BackButton onClick={onBack} className="self-start" />
 
-        <div className="flex flex-1 flex-col justify-center py-10">
+        <main className="flex flex-1 flex-col justify-center py-10">
           {!chosen ? (
             <>
-              <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
+              <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
                 Before anything else
               </p>
               <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
@@ -48,7 +48,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
                     className="animate-rise flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-white/50 p-4 text-left text-[0.98rem] font-medium text-ink transition-all duration-200 hover:border-forest/40 hover:bg-white"
                   >
                     {opt.label}
-                    <ArrowRight className="h-4 w-4 flex-none text-gold" />
+                    <ArrowRight className="h-4 w-4 flex-none text-gold-ink" />
                   </button>
                 ))}
               </div>
@@ -62,7 +62,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
             </>
           ) : (
             <div className="animate-rise">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold">
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
                 The honest answer
               </p>
               <h1 className="mt-4 font-display text-[1.7rem] font-medium leading-snug tracking-tight text-ink text-balance">
@@ -108,7 +108,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
               </button>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   )

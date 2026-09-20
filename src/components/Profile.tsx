@@ -328,7 +328,7 @@ export default function Profile({
             onClick={onOpenSample}
             className="group mt-5 flex w-full items-center gap-3 rounded-card border border-line bg-white/60 px-5 py-4 text-left transition-colors hover:border-forest/40"
           >
-            <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gold/15 text-gold">
+            <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gold/15 text-gold-ink">
               <SparkGlyph />
             </span>
             <span className="flex-1">
@@ -360,7 +360,7 @@ export default function Profile({
               onClick={onOpenPlus}
               className="group flex w-full items-center gap-3 rounded-card border border-line bg-white/60 px-5 py-4 text-left transition-colors hover:border-forest/40"
             >
-              <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gold/15 text-gold">
+              <span className="flex h-9 w-9 flex-none items-center justify-center rounded-xl bg-gold/15 text-gold-ink">
                 <CheckIcon size={15} />
               </span>
               <span className="flex-1">

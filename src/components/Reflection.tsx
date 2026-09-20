@@ -36,6 +36,11 @@ export function Generating() {
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center bg-forest-deep px-6 text-center text-cream">
+      {/* The visible line above changes every 750ms (key={stage}) and remounts
+          each time, which would steal focus right back out from under a
+          screen-reader user every three-quarters of a second if it carried
+          the heading — so the heading is this stable, hidden one instead. */}
+      <h1 className="sr-only">Building your map</h1>
       <div className="bg-geo absolute inset-0 opacity-40" aria-hidden />
       <div className="relative">
         <div className="mx-auto mb-8 h-14 w-14">
@@ -308,7 +313,7 @@ export default function ReflectionView({
             map — the reason it's an instrument and not a verdict. */}
         <Section title="Where to put your effort">
           <div className="rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
               {finishedToday
                 ? `Done today · ${r.dimensions.find((d) => d.dimension === finishedToday.dimension)?.label}`
                 : groundLabel}
@@ -450,7 +455,7 @@ export default function ReflectionView({
 
         {/* Next: into your space — light card; the dark hero lives at the top now. */}
         <section className="mt-14 rounded-card border border-line bg-white/60 p-8 text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold-ink">
             {firstReveal ? 'Now you’re not doing this alone' : 'Home'}
           </p>
           <p className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance">

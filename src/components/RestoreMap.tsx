@@ -88,6 +88,8 @@ export default function RestoreMap() {
           inputMode="text"
           maxLength={CODE_LENGTH}
           enterKeyHint="done"
+          aria-invalid={state !== 'idle' && state !== 'checking'}
+          aria-describedby={state !== 'idle' && state !== 'checking' ? 'restore-code-status' : undefined}
           className={`w-full bg-cream/10 px-4 py-2.5 text-[1rem] tracking-[0.2em] text-cream placeholder:text-cream/30 ${fieldClass}`}
         />
         <button
@@ -105,7 +107,7 @@ export default function RestoreMap() {
         </button>
       </div>
       {state !== 'idle' && state !== 'checking' && (
-        <p role="status" className="mt-2 text-[0.85rem] leading-snug text-gold-soft text-pretty">
+        <p id="restore-code-status" role="status" className="mt-2 text-[0.85rem] leading-snug text-gold-soft text-pretty">
           {problem[state]}
         </p>
       )}
