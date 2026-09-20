@@ -146,6 +146,16 @@ export default function Vouch({ code, onDone }: Props) {
               They will see your first name and that you are {relationship ? options.find((r) => r.id === relationship)?.label.toLowerCase() : 'family'}. Your
               sentence and your number are seen only by the founder of Niyyah, and by nobody they are ever introduced to.
             </p>
+            {/* Vouching is a real commitment made on someone else's behalf.
+                The three phases after this one each offered a way out; the one
+                phase where a person might want to decline did not. */}
+            <button
+              type="button"
+              onClick={onDone}
+              className="mt-6 px-2 py-2 text-[0.88rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+            >
+              What Niyyah is
+            </button>
           </form>
         )}
 

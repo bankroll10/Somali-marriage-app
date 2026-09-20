@@ -248,6 +248,19 @@ experiment, or a subtraction. **No new features.**
 | **9** | **The first-year sheet** — the eleven's engine over a second topic list | Solution | O10, and the married stage's only real job | The first marriage |
 | **10** | **Your record**; **real backend** | Solution | O4.3; none | A member asking; ~50k keys |
 
+**Item 4 gained a second half, 2026-09-20.** `docs/PLACE.md` audited all 24
+destinations against the stranger's five questions — where am I, what can I do,
+why, how do I go back, what happens afterward — and found Home's hierarchy is
+this repository's feature list rather than the person's journey: `read` reachable
+from three controls on Home alone, `coach` from two, and a section headed "Your
+space" holding four unrelated features. The restructure is designed there and
+held here, with the `door`/`count` merge and one-label-per-destination, because
+`docs/LOAD.md:204` holds Home's controls for the sessions and this item already
+commits to not moving the front door on inference. The seven *bugs* that audit
+found — four phases with no way out, two backs landing somewhere other than
+where the person came from — were fixed at once under `docs/PROTOCOL.md`'s bug
+rule, which requires it before the next session.
+
 **What changed from the roadmap this replaces.** Old items 0–2 survive as 0, 2
 and 6. Old items 3–7 survive as 7–10, in order, all still pool-gated. Two
 items are new *in kind and not in code*: subtraction (item 3), which no
