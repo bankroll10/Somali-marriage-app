@@ -206,6 +206,22 @@ describe('text wrapping — a variable label beside a fixed-shape badge', () => 
   })
 })
 
+describe('viewport meta and browser chrome', () => {
+  const html = readFileSync(join(import.meta.dirname, '..', 'index.html'), 'utf8')
+
+  it('no longer blocks pinch-zoom, now that every field clears the 16px floor', () => {
+    const viewport = html.match(/<meta\s+name="viewport"\s+content="([^"]*)"/)
+    expect(viewport, 'no viewport meta tag').toBeTruthy()
+    expect(viewport![1]).not.toMatch(/maximum-scale/)
+    expect(viewport![1]).toMatch(/viewport-fit=cover/)
+  })
+
+  it('tints the OS chrome the same forest color under system dark mode, not a mismatched default', () => {
+    expect([...html.matchAll(/<meta name="theme-color"/g)].length).toBe(2)
+    expect(html).toMatch(/media="\(prefers-color-scheme: dark\)"/)
+  })
+})
+
 describe('the mobile-craft pass reads more than fifteen component files, so an empty result above means clean and not skipped', () => {
   it('sees the component directory', () => {
     const files = readdirSync(join(SRC, 'components')).filter((f) => f.endsWith('.tsx'))
