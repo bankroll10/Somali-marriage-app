@@ -1,6 +1,7 @@
 import { rememberedCode } from './keep'
 import { rememberedInstallId } from './progress'
 import { clearProgress, loadProgress } from './storage'
+import { send } from './net'
 
 /**
  * Forget me.
@@ -28,7 +29,6 @@ import { clearProgress, loadProgress } from './storage'
 const KEEP = '/.netlify/functions/keep'
 const PROGRESS = '/.netlify/functions/progress'
 const COUPLE = '/.netlify/functions/couple'
-const TIMEOUT_MS = 10_000
 
 /** Every key this app writes. Kept in one place so nothing is left behind. */
 export const LOCAL_KEYS = [
@@ -44,16 +44,9 @@ export const LOCAL_KEYS = [
 ]
 
 async function del(url: string): Promise<boolean> {
-  const abort = new AbortController()
-  const timer = setTimeout(() => abort.abort(), TIMEOUT_MS)
-  try {
-    const res = await fetch(url, { method: 'DELETE', signal: abort.signal })
-    return res.ok || res.status === 404
-  } catch {
-    return false
-  } finally {
-    clearTimeout(timer)
-  }
+  const res = await send(url, { method: 'DELETE' })
+  // A 404 is success: there was nothing there to forget.
+  return !!res && (res.ok || res.status === 404)
 }
 
 export interface Forgotten {

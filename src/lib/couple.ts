@@ -1,6 +1,7 @@
 import type { Gender } from '../types'
 import type { Script } from '../data/read'
 import { ALL_AGREED, beforeYesTopics, type Topic } from '../data/beforeYes'
+import { send } from './net'
 
 /**
  * The client half of netlify/functions/couple.ts.
@@ -11,25 +12,13 @@ import { ALL_AGREED, beforeYesTopics, type Topic } from '../data/beforeYes'
  */
 
 const ENDPOINT = '/.netlify/functions/couple'
-const TIMEOUT_MS = 10_000
 
 export type Joint = 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
 export type CoupleView = { status: 'open'; answerFor: Gender } | { status: 'joint'; joint: Record<string, Joint> }
 
-async function withTimeout(input: string, init: RequestInit = {}): Promise<Response | null> {
-  const abort = new AbortController()
-  const timer = setTimeout(() => abort.abort(), TIMEOUT_MS)
-  try {
-    return await fetch(input, { ...init, signal: abort.signal })
-  } catch {
-    return null
-  } finally {
-    clearTimeout(timer)
-  }
-}
 
 const post = (body: unknown) =>
-  withTimeout(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  send(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 
 /** She starts it with her eleven. Returns the code the pair lives under. */
 export async function createCouple(states: Record<string, string>, gender: Gender, code?: string): Promise<string | null> {
@@ -53,7 +42,7 @@ export async function answerCouple(code: string, states: Record<string, string>)
 
 /** What either of them may see. Null when the link is dead. */
 export async function readCouple(code: string): Promise<CoupleView | null> {
-  const res = await withTimeout(`${ENDPOINT}?code=${encodeURIComponent(code)}`)
+  const res = await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`)
   if (!res?.ok) return null
   return parseView(res)
 }

@@ -1,23 +1,12 @@
 import type { VouchState } from '../types'
+import { send } from './net'
 
 /**
  * The client half of netlify/functions/vouch.ts. Nothing here ever handles the
  * sentence or the phone after they are sent — the server never returns them.
  */
 const ENDPOINT = '/.netlify/functions/vouch'
-const TIMEOUT_MS = 10_000
 
-async function withTimeout(input: string, init: RequestInit = {}): Promise<Response | null> {
-  const abort = new AbortController()
-  const timer = setTimeout(() => abort.abort(), TIMEOUT_MS)
-  try {
-    return await fetch(input, { ...init, signal: abort.signal })
-  } catch {
-    return null
-  } finally {
-    clearTimeout(timer)
-  }
-}
 
 function asVouch(x: unknown): VouchState | null {
   if (!x || typeof x !== 'object') return null
@@ -37,7 +26,7 @@ export type VouchResult = VouchState | 'already' | 'no_map' | null
 
 /** A family member vouches. Once. */
 export async function sendVouch(code: string, input: VouchInput): Promise<VouchResult> {
-  const res = await withTimeout(ENDPOINT, {
+  const res = await send(ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ code, ...input }),
@@ -55,7 +44,7 @@ export async function sendVouch(code: string, input: VouchInput): Promise<VouchR
 
 /** Has anyone vouched for this code? Relationship and first name, or null. */
 export async function readVouch(code: string): Promise<VouchState | null> {
-  const res = await withTimeout(`${ENDPOINT}?code=${encodeURIComponent(code)}`)
+  const res = await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`)
   if (!res?.ok) return null
   try {
     return asVouch(await res.json())
@@ -69,7 +58,7 @@ export async function readVouch(code: string): Promise<VouchState | null> {
  * which also opens her map; the token opens nothing but the vouch screen.
  */
 export async function askVouch(code: string): Promise<string | null> {
-  const res = await withTimeout(ENDPOINT, {
+  const res = await send(ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ side: 'ask', code }),

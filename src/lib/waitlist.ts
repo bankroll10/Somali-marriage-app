@@ -57,6 +57,7 @@ export interface WaitlistEntry {
 }
 
 import { CONTACT_EMAIL } from './site'
+import { send } from './net'
 
 export { CONTACT_EMAIL }
 
@@ -99,16 +100,14 @@ async function post(entry: WaitlistEntry): Promise<boolean> {
 
   const url = import.meta.env.VITE_WAITLIST_URL as string | undefined
   if (!url) return false
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(entry),
-    })
-    return res.ok
-  } catch {
-    return false
-  }
+  // Through `send`, which carries the clock these two posts did not have: a
+  // hung form post left "Counting you in…" spinning with nothing to stop it.
+  const res = await send(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify(entry),
+  })
+  return !!res?.ok
 }
 
 async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<boolean> {
@@ -121,16 +120,12 @@ async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<bo
   if (entry.gender) body.set('gender', entry.gender)
   if (entry.hardestPart) body.set('hardest_part', entry.hardestPart)
   body.set('at', entry.at)
-  try {
-    const res = await fetch(NETLIFY_FORM_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body.toString(),
-    })
-    return res.ok
-  } catch {
-    return false
-  }
+  const res = await send(NETLIFY_FORM_ENDPOINT, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString(),
+  })
+  return !!res?.ok
 }
 
 function readQueue(): WaitlistEntry[] {

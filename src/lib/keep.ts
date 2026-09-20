@@ -1,6 +1,7 @@
 import { loadProgress, type PersistedState } from './storage'
 import type { Identity, WaitlistState } from '../types'
 import { CODE_LENGTH, cleanCode } from './code'
+import { send } from './net'
 
 /**
  * Keeping a map somewhere it can survive a lost phone.
@@ -16,7 +17,6 @@ import { CODE_LENGTH, cleanCode } from './code'
  */
 
 const ENDPOINT = '/.netlify/functions/keep'
-const TIMEOUT_MS = 10_000
 
 /**
  * What leaves the device under "Keep this map". Everything the app needs to
@@ -74,17 +74,6 @@ export function forgetCode() {
   }
 }
 
-async function withTimeout(input: string, init: RequestInit): Promise<Response | null> {
-  const abort = new AbortController()
-  const timer = setTimeout(() => abort.abort(), TIMEOUT_MS)
-  try {
-    return await fetch(input, { ...init, signal: abort.signal })
-  } catch {
-    return null
-  } finally {
-    clearTimeout(timer)
-  }
-}
 
 /** Something to lay over what the device holds before it is sent — see `keepMap`. */
 export interface KeepPatch {
@@ -109,21 +98,21 @@ export async function keepMap(patch?: KeepPatch): Promise<string | null> {
   const snapshot = patch?.identity ? { ...state, identity: { ...state.identity, ...patch.identity } } : state
   const body = keptSnapshot(snapshot)
 
-  const send = (code: string | null) =>
-    withTimeout(ENDPOINT, {
+  const put = (code: string | null) =>
+    send(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ snapshot: body, code: code ?? undefined }),
     })
 
-  let res = await send(rememberedCode())
+  let res = await put(rememberedCode())
   // Her remembered code points at nothing — the map lapsed, or was forgotten
   // from another device. The server no longer creates a map under a code it
   // did not mint (netlify/functions/keep.ts), so forget the code and keep
   // fresh: she gets a new one, and nobody else's map is ever written over.
   if (res?.status === 404 && rememberedCode()) {
     forgetCode()
-    res = await send(null)
+    res = await put(null)
   }
   if (!res?.ok) return null
 
@@ -152,7 +141,7 @@ export async function restoreDetail(code: string): Promise<PersistedState | Rest
   const clean = cleanCode(code)
   if (clean.length !== CODE_LENGTH) return 'not-a-code'
 
-  const res = await withTimeout(`${ENDPOINT}?code=${encodeURIComponent(clean)}`, { method: 'GET' })
+  const res = await send(`${ENDPOINT}?code=${encodeURIComponent(clean)}`, { method: 'GET' })
   // No response at all: timed out, offline, or blocked. Her code may be perfect.
   if (!res) return 'unreachable'
   if (!res.ok) {
