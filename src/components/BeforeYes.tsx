@@ -144,7 +144,13 @@ export default function BeforeYes({
 {!saveOk && <NotSaving what="your answers" className="mb-6" />}
           <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">About two minutes</p>
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
-            {intro ?? 'The conversations most of us have too late.'}
+            {intro ? (
+              <>
+                <span lang="so">{intro.somali}</span> {intro.english}
+              </>
+            ) : (
+              'The conversations most of us have too late.'
+            )}
           </h1>
           {/* Where she left off, above the explanation she has already read.
               It sat below it at first, which put it 910 px down a 860 px

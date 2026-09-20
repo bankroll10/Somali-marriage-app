@@ -284,6 +284,22 @@ describe('reduced motion — a JS scrollTo is not CSS, and nothing gated it befo
   })
 })
 
+describe('lang — a Somali sentence needs lang="so", or a screen reader pronounces it as English', () => {
+  it('splits every Somali line into its own field, separate from the English gloss', () => {
+    const somali = read('data/somali.ts')
+    expect(somali).toMatch(/somali:\s*string/)
+    expect(somali).toMatch(/english:\s*string/)
+    expect(somali).not.toMatch(/\btext:\s*string/)
+  })
+
+  it('wraps the Somali span lang="so" at all three render sites, and keeps the English gloss outside it', () => {
+    for (const file of ['components/Situation.tsx', 'components/BeforeYes.tsx', 'components/Families.tsx'] as const) {
+      const src = read(file)
+      expect(src, `${file} doesn't mark its Somali span lang="so"`).toMatch(/<span lang="so">\{[a-zA-Z.]+\}<\/span>/)
+    }
+  })
+})
+
 describe('the a11y pass reads more than fifteen component files, so an empty result above means clean and not skipped', () => {
   it('sees the component directory', () => {
     expect(componentFiles().length).toBeGreaterThan(15)

@@ -80,7 +80,9 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
 
               <div className="mt-6 rounded-card border border-gold/25 bg-gold/[0.07] p-6">
                 {somaliLine && (
-                  <p className="mb-2 font-display text-[1.1rem] font-medium text-ink text-pretty">{somaliLine}</p>
+                  <p className="mb-2 font-display text-[1.1rem] font-medium text-ink text-pretty">
+                    <span lang="so">{somaliLine.somali}</span> {somaliLine.english}
+                  </p>
                 )}
                 <p className="text-[1.05rem] leading-relaxed text-ink-soft text-pretty">{say(st.arrival)}</p>
               </div>

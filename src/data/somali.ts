@@ -18,34 +18,41 @@
  * Loanwords inside English lines — hooyo, wali, mahr, qabiil, dugsi, aroos —
  * are not gated; they are the vocabulary of the diaspora, not sentences.
  *
+ * `somali` and `english` are two fields, not one string with a full stop
+ * between them (2026-09-20, docs/ACCESS.md) — so a caller can mark the
+ * Somali sentence `lang="so"` without also marking its own English gloss,
+ * which a screen reader would otherwise try to pronounce as Somali. The
+ * pairing itself is unchanged: every approved line still carries both.
+ *
  * Rules, enforced by tests/somali-gate.test.ts:
  *   - one entry per line;
  *   - every unapproved line carries `// VERIFY`;
  *   - no approved line carries `// VERIFY`;
- *   - every Somali sentence is followed by its English, so an unread line is
- *     never a wall.
+ *   - every line has both a Somali sentence and an English gloss, so an
+ *     unread line is never a wall.
  */
 
 export interface SomaliLine {
-  text: string
+  somali: string
+  english: string
   approved: boolean
 }
 
 export const SOMALI: Record<string, SomaliLine> = {
-  'auntie.opener': { text: 'Kaalay, gabadhaydaay. Sit with your auntie a moment.', approved: false }, // VERIFY — read aloud by a woman from the audience first
-  'brother.opener': { text: 'Waqtigaaga ha lumin, walaal. Don’t waste your time on someone who won’t say what they want.', approved: true },
-  'map.warmest': { text: 'Way kuu suurtagal tahay. This is possible for you — and you are closer than you think.', approved: true },
-  'situation.preparing': { text: 'Marka hore is diyaari. Get yourself ready first; the rest follows.', approved: true },
-  'situation.talking': { text: 'Hadalku waa bilow. Talking is a beginning, not a promise.', approved: true },
-  'situation.deciding': { text: 'Labada reer ayaa arrinta ku soo biiraya. The two families are becoming involved — be ready for them.', approved: true },
-  'situation.married': { text: 'Guurku wuxuu u baahan yahay dadaal. Marriage takes effort from both of you.', approved: true },
-  'beforeYes.intro': { text: 'Wada hadallada muhiimka ah. The important conversations, before the families have them for you.', approved: true },
-  'families.intro': { text: 'Erayada aad u baahan tahay. The words you will need.', approved: true },
-  'read.eyebrow': { text: 'Waxa uu ku tusay. What he has shown you.', approved: true },
+  'auntie.opener': { somali: 'Kaalay, gabadhaydaay.', english: 'Sit with your auntie a moment.', approved: false }, // VERIFY — read aloud by a woman from the audience first
+  'brother.opener': { somali: 'Waqtigaaga ha lumin, walaal.', english: 'Don’t waste your time on someone who won’t say what they want.', approved: true },
+  'map.warmest': { somali: 'Way kuu suurtagal tahay.', english: 'This is possible for you — and you are closer than you think.', approved: true },
+  'situation.preparing': { somali: 'Marka hore is diyaari.', english: 'Get yourself ready first; the rest follows.', approved: true },
+  'situation.talking': { somali: 'Hadalku waa bilow.', english: 'Talking is a beginning, not a promise.', approved: true },
+  'situation.deciding': { somali: 'Labada reer ayaa arrinta ku soo biiraya.', english: 'The two families are becoming involved — be ready for them.', approved: true },
+  'situation.married': { somali: 'Guurku wuxuu u baahan yahay dadaal.', english: 'Marriage takes effort from both of you.', approved: true },
+  'beforeYes.intro': { somali: 'Wada hadallada muhiimka ah.', english: 'The important conversations, before the families have them for you.', approved: true },
+  'families.intro': { somali: 'Erayada aad u baahan tahay.', english: 'The words you will need.', approved: true },
+  'read.eyebrow': { somali: 'Waxa uu ku tusay.', english: 'What he has shown you.', approved: true },
 }
 
 /** The approved line for a key, or null — callers fall back to English. */
-export function somali(key: string): string | null {
+export function somali(key: string): SomaliLine | null {
   const line = SOMALI[key]
-  return line?.approved ? line.text : null
+  return line?.approved ? line : null
 }

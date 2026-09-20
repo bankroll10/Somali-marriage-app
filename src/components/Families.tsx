@@ -35,7 +35,13 @@ export default function Families({ gender, stage, onTaken, onBack }: Props) {
         <section className="py-8">
           <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Word for word</p>
           <h1 className="animate-rise mt-3 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
-            {intro ?? 'The words you’ll need.'}
+            {intro ? (
+              <>
+                <span lang="so">{intro.somali}</span> {intro.english}
+              </>
+            ) : (
+              'The words you’ll need.'
+            )}
           </h1>
           <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
             Nobody hands you these sentences. They are written to be said out loud by a real person,

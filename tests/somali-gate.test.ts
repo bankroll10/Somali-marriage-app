@@ -20,16 +20,19 @@ describe('the Somali gate', () => {
   it('never lets an approved line keep its VERIFY marker', () => {
     for (const line of entries.filter((l) => l.includes('approved: true'))) expect(line).not.toContain('VERIFY')
   })
-  it('returns nothing for an unapproved line, and the text for an approved one', () => {
+  it('returns nothing for an unapproved line, and the line for an approved one', () => {
     for (const [key, line] of Object.entries(SOMALI)) {
-      expect(somali(key)).toBe(line.approved ? line.text : null)
+      expect(somali(key)).toEqual(line.approved ? line : null)
     }
     expect(somali('nope')).toBeNull()
   })
-  it('pairs every Somali sentence with English, so an unread line is never a wall', () => {
-    for (const [key, { text }] of Object.entries(SOMALI)) {
-      // A gloss follows the Somali: a full stop, then at least one English clause.
-      expect(text, key).toMatch(/\.\s+[A-Z][^.]{10,}/)
+  it('pairs every Somali sentence with its own English gloss, as two fields, so an unread line is never a wall', () => {
+    // Two fields rather than one string with a full stop between them
+    // (docs/ACCESS.md) — so a caller can mark just the Somali span lang="so"
+    // without a screen reader trying to pronounce the English as Somali too.
+    for (const [key, { somali: line, english }] of Object.entries(SOMALI)) {
+      expect(line.length, key).toBeGreaterThan(3)
+      expect(english, key).toMatch(/^[A-Z][^.]{10,}/)
     }
   })
 })
