@@ -10,7 +10,7 @@ interface Props {
 export default function QuestionCard({ question, value, onChange }: Props) {
   return (
     <div>
-      <h2 className="font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.9rem]">
+      <h2 id={`question-${question.id}`} className="font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.9rem]">
         {question.prompt}
       </h2>
       {question.helper && (
@@ -56,6 +56,8 @@ function OptionRow({
   return (
     <button
       type="button"
+      role={kind === 'radio' ? 'radio' : 'checkbox'}
+      aria-checked={selected}
       onClick={onClick}
       disabled={disabled}
       style={{ animationDelay: `${index * 45}ms` }}
@@ -106,7 +108,7 @@ function SingleChoice({
   onChange: (v: AnswerValue) => void
 }) {
   return (
-    <div className="flex flex-col gap-2.5">
+    <div role="radiogroup" aria-labelledby={`question-${question.id}`} className="flex flex-col gap-2.5">
       {question.options?.map((opt, i) => (
         <OptionRow
           key={opt.id}
@@ -142,7 +144,7 @@ function MultiChoice({
   }
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div role="group" aria-labelledby={`question-${question.id}`} className="flex flex-col gap-2.5">
       {question.options?.map((opt, i) => {
         const selected = value.includes(opt.id)
         const disabled = !selected && atMax
@@ -228,6 +230,7 @@ function TextAnswer({
   return (
     <div className="animate-rise">
       <textarea
+        aria-labelledby={`question-${question.id}`}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={question.placeholder}

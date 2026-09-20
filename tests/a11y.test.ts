@@ -78,6 +78,58 @@ describe('list semantics', () => {
   })
 })
 
+describe('names — the three fields that had only a placeholder', () => {
+  it('gives Coach\'s and ReportConcern\'s textareas an accessible name', () => {
+    expect(read('components/Coach.tsx')).toMatch(/aria-label=\{`Tell your \$\{activeMode\.label\.toLowerCase\(\)\} what's going on`\}/)
+    expect(read('components/ReportConcern.tsx')).toContain('aria-label="Anything else it helps to know"')
+  })
+
+  it('labels the intake\'s free-text answer from its own visible question prompt', () => {
+    const src = read('components/QuestionCard.tsx')
+    expect(src).toMatch(/id=\{`question-\$\{question\.id\}`\}/)
+    expect(src).toMatch(/aria-labelledby=\{`question-\$\{question\.id\}`\}/)
+  })
+})
+
+describe('group semantics — a picker\'s buttons need a name for the group, not just each other', () => {
+  it('wraps every previously-ungrouped chip picker in role="group" with aria-labelledby', () => {
+    for (const [file, count] of [
+      ['components/Situation.tsx', 3],
+      ['components/Door.tsx', 2],
+      ['components/Cohort.tsx', 1],
+    ] as const) {
+      const hits = [...read(file).matchAll(/role="(?:group|radiogroup)" aria-labelledby=/g)].length
+      expect(hits, `${file} has ${hits} grouped pickers, expected at least ${count}`).toBeGreaterThanOrEqual(count)
+    }
+  })
+
+  it('gives Identity\'s gender chooser a group label, even though it has no visible one', () => {
+    expect(read('components/Identity.tsx')).toContain('id="identity-gender-label"')
+  })
+})
+
+describe('selection state — a screen reader has to be told what is chosen, not just shown', () => {
+  it('gives every single-select "big card" component a role and aria-checked, not just a color change', () => {
+    for (const file of [
+      'components/Read.tsx',
+      'components/BeforeYes.tsx',
+      'components/Identity.tsx',
+      'components/ReportConcern.tsx',
+    ] as const) {
+      const src = read(file)
+      expect(src, `${file} is missing role="radio"`).toContain('role="radio"')
+      expect(src, `${file} is missing aria-checked`).toMatch(/aria-checked=/)
+    }
+    // QuestionCard's OptionRow backs both a single-select and a genuine
+    // multi-select, so its role is computed per kind rather than a literal.
+    expect(read('components/QuestionCard.tsx')).toMatch(/aria-checked=\{selected\}/)
+  })
+
+  it('gives QuestionCard\'s multi-select a checkbox role, since it genuinely allows more than one', () => {
+    expect(read('components/QuestionCard.tsx')).toContain("role={kind === 'radio' ? 'radio' : 'checkbox'}")
+  })
+})
+
 describe('the a11y pass reads more than fifteen component files, so an empty result above means clean and not skipped', () => {
   it('sees the component directory', () => {
     expect(componentFiles().length).toBeGreaterThan(15)

@@ -275,7 +275,7 @@ export default function BeforeYes({
       </div>
       <div key={t.id} className="animate-rise py-8">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">{t.label}</p>
-        <h2 className="mt-2 font-display text-[1.5rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.75rem]">
+        <h2 id={`before-yes-q-${t.id}`} className="mt-2 font-display text-[1.5rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.75rem]">
           Have the two of you talked about this?
         </h2>
         <p className="mt-2.5 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">{t.prompt}</p>
@@ -285,10 +285,12 @@ export default function BeforeYes({
             {side}
           </p>
         )}
-        <div className="mt-6 flex flex-col gap-2.5">
+        <div role="radiogroup" aria-labelledby={`before-yes-q-${t.id}`} className="mt-6 flex flex-col gap-2.5">
           {STATES.map((s, i) => (
             <button
               key={s.id}
+              role="radio"
+              aria-checked={chosen === s.id}
               onClick={() => choose(s.id)}
               style={{ animationDelay: `${i * 40}ms` }}
               className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 ${

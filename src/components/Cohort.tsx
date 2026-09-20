@@ -550,8 +550,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
       )}
       {onHesitate && hesitating === 'open' && (
         <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
-          <p className="text-[0.9rem] font-medium text-ink">That’s fine. Would you tell us why, in a word?</p>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <p id="cohort-hesitation-label" className="text-[0.9rem] font-medium text-ink">That’s fine. Would you tell us why, in a word?</p>
+          <div role="group" aria-labelledby="cohort-hesitation-label" className="mt-3 flex flex-wrap gap-2">
             {hesitationOptions.map((h) => (
               <button
                 key={h.id}

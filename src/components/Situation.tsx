@@ -88,10 +88,10 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
               {/* One tap, optional: the city. It is a belonging signal, not a form
                   field — the note under each is the point. */}
               <div className="mt-7">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+                <p id="situation-scene-label" className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
                   Where are you? <span className="normal-case tracking-normal">(optional)</span>
                 </p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div role="group" aria-labelledby="situation-scene-label" className="mt-3 flex flex-wrap gap-2">
                   {scenes.map((sc) => {
                     const on = identity.scene === sc.id
                     return (
@@ -111,10 +111,10 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
                     own. One more tap, and she is counted with her country. */}
                 {identity.scene === 'other' && (
                   <div className="mt-5">
-                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+                    <p id="situation-country-label" className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
                       Somewhere else in… <span className="normal-case tracking-normal">(optional)</span>
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div role="group" aria-labelledby="situation-country-label" className="mt-3 flex flex-wrap gap-2">
                       {countries.map((c) => {
                         const on = identity.country === c.id
                         return (
@@ -137,10 +137,10 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
                     means her city. See src/data/reach.ts. */}
                 {identity.scene && (
                   <div className="mt-5">
-                    <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+                    <p id="situation-reach-label" className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
                       How far would you go for the right person? <span className="normal-case tracking-normal">(optional)</span>
                     </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div role="group" aria-labelledby="situation-reach-label" className="mt-3 flex flex-wrap gap-2">
                       {reachOptions(within).map((r) => {
                         const on = identity.reach === r.id
                         return (

@@ -579,6 +579,7 @@ export default function Coach({
           className="mx-auto flex max-w-xl items-end gap-2.5 px-5 pt-4 pb-safe-bar"
         >
           <textarea
+            aria-label={`Tell your ${activeMode.label.toLowerCase()} what's going on`}
             enterKeyHint="send"
             value={input}
             onChange={(e) => setInput(e.target.value)}

@@ -32,13 +32,16 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
           </p>
 
           {/* Gender — the one required choice, so it comes first. */}
-          <div className="animate-rise mt-9 grid gap-3 sm:grid-cols-2" style={{ animationDelay: '60ms' }}>
+          <p id="identity-gender-label" className="sr-only">You are</p>
+          <div role="radiogroup" aria-labelledby="identity-gender-label" className="animate-rise mt-9 grid gap-3 sm:grid-cols-2" style={{ animationDelay: '60ms' }}>
             {options.map((opt) => {
               const selected = identity.gender === opt.gender
               return (
                 <button
                   key={opt.gender}
                   type="button"
+                  role="radio"
+                  aria-checked={selected}
                   onClick={() => onChange({ ...identity, gender: opt.gender })}
                   className={`rounded-card border p-5 text-left transition-all duration-200 ${
                     selected

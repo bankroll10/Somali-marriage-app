@@ -309,16 +309,18 @@ export default function Read({
       </div>
 
       <div key={q.id} className="animate-rise py-8">
-        <h2 className="font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.85rem]">
+        <h2 id={`read-q-${q.id}`} className="font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.85rem]">
           {q.prompt}
         </h2>
         {q.helper && (
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-muted text-pretty">{q.helper}</p>
         )}
-        <div className="mt-7 flex flex-col gap-2.5">
+        <div role="radiogroup" aria-labelledby={`read-q-${q.id}`} className="mt-7 flex flex-col gap-2.5">
           {q.options.map((opt, i) => (
             <button
               key={opt.id}
+              role="radio"
+              aria-checked={chosen === opt.id}
               onClick={() => choose(opt.id)}
               style={{ animationDelay: `${i * 40}ms` }}
               className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 ${

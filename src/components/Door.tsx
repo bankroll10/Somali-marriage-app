@@ -125,8 +125,8 @@ export default function Door({
           <div className="mt-6 space-y-2.5">
             {!identity.gender && (
               <div>
-                <p className="mb-2 text-[0.85rem] text-muted">You are…</p>
-                <div className="grid grid-cols-2 gap-2.5">
+                <p id="door-gender-label" className="mb-2 text-[0.85rem] text-muted">You are…</p>
+                <div role="group" aria-labelledby="door-gender-label" className="grid grid-cols-2 gap-2.5">
                   {(
                     [
                       { id: 'woman', label: 'A woman' },
@@ -220,8 +220,8 @@ export default function Door({
           )}
           {hesitating === 'open' && (
             <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
-              <p className="text-[0.9rem] font-medium text-ink">That’s fine. Would you tell us why, in a word?</p>
-              <div className="mt-3 flex flex-wrap gap-2">
+              <p id="door-hesitation-label" className="text-[0.9rem] font-medium text-ink">That’s fine. Would you tell us why, in a word?</p>
+              <div role="group" aria-labelledby="door-hesitation-label" className="mt-3 flex flex-wrap gap-2">
                 {hesitationOptions.map((h) => (
                   <button
                     key={h.id}
