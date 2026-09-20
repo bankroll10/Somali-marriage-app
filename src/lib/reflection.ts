@@ -44,8 +44,8 @@ const DIMENSION_LABELS: Record<Dimension, string> = {
   family: 'Family',
   vision: 'Vision',
   character: 'Character',
-  emotional: 'Emotional readiness',
-  selfAwareness: 'Self-awareness',
+  emotional: 'Steadiness',
+  selfAwareness: 'Knowing yourself',
 }
 
 const DIMENSION_ORDER: Dimension[] = [
@@ -229,17 +229,17 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       const att = a('attachment')
       const lean =
         att === 'anxious'
-          ? ' Your heart leans anxious, so silence will feel like danger before it is danger — reach for your salah, a walk, a friend, before you reach for the phone.'
+          ? ' When someone goes quiet you worry first, so a silence will feel worse than it is. Reach for your salah, a walk, a friend, before you reach for the phone.'
           : att === 'avoidant'
-            ? ' You lean toward pulling back to protect your independence. Naming it out loud — "I need a moment, I am not disappearing" — is what keeps that instinct from reading as rejection.'
+            ? ' When someone gets close you pull back. Saying so — "I need a moment, I am not disappearing" — is what keeps that from reading as rejection.'
             : att === 'secure'
-              ? ' You meet closeness steadily, which is a real gift to whoever you choose.'
-              : ' Your heart moves differently depending on the person, which means the person matters more than the pattern.'
-      if (h === 'healed') return `You have done the work and you are at peace with it.${lean}`
-      if (h === 'healing') return `You are still healing and you know it — which is the part most people skip.${lean}`
+              ? ' You stay steady when someone goes quiet, and that is worth a lot to whoever you choose.'
+              : ' For you it depends on the person, which means the person matters more than the pattern.'
+      if (h === 'healed') return `What is behind you is behind you, and you said so.${lean}`
+      if (h === 'healing') return `Something is still with you, and you know it. Knowing is most of it.${lean}`
       if (h === 'fresh')
-        return `Something recent still aches, and you said so plainly.${lean} Move gently. The right person will not need you to be finished.`
-      return `You have not looked closely at what you might still be carrying.${lean} That is worth an honest hour with yourself before it becomes someone else's to discover.`
+        return `Something recent still hurts, and you said so plainly.${lean} Move gently. The right person will not need you to be finished.`
+      return `You have not looked closely at what you might still be carrying.${lean} Worth an hour on your own before someone else finds it first.`
     }
 
     case 'selfAwareness': {
@@ -255,7 +255,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
         case 'settling':
           return `You have settled before and you do not want to again.${named} Your non-negotiables below are not too much to ask. Hold them.`
         case 'none':
-          return `You have already done real work on yourself.${named} Stay honest as new things surface — they will, and that is not a failure.`
+          return `You have already changed the pattern you had.${named} Stay honest as new things surface — they will.`
         default:
           return `Knowing yourself is the ground everything else stands on.${named}`
       }
@@ -329,7 +329,7 @@ function growthNote(answers: Answers): string {
     'family|settling':
       'You said the pressure from family is the hardest part, and that you have settled before. Nobody settles in a vacuum. Your non-negotiables below exist precisely so that a decision made under that weight is still your own.',
     'ready|none':
-      'You are asking whether you are even ready, and you have already done real work on yourself. Notice the contradiction: people who have not done the work almost never ask that question.',
+      'You are asking whether you are ready, and you have already changed the pattern you had. People who have not usually do not ask.',
     'finding|settling':
       'You said the hardest part is finding anyone serious at all, and that you have settled before. Scarcity is what makes settling feel reasonable. A thin room is a reason to wait, not a reason to lower the bar.',
   }
@@ -343,7 +343,7 @@ function growthNote(answers: Answers): string {
       'You guard yourself closely. Real intimacy will ask you to lower the wall a little earlier than feels comfortable — gently, and with someone who earns it.',
     settling:
       'You have settled before. Your non-negotiables below are not too much to ask — hold them.',
-    none: 'You have already done meaningful work on yourself. Stay honest as new things surface.',
+    none: 'You have already changed the pattern you had. Stay honest as new things surface.',
   }
 
   let base =
@@ -354,7 +354,7 @@ function growthNote(answers: Answers): string {
   if (working) {
     base += ` In your own words, you’re still learning to ${working
       .replace(/^I'?m still learning to\s*/i, '')
-      .replace(/\.$/, '')}. That honesty is exactly what a good marriage is built on.`
+      .replace(/\.$/, '')}.`
   }
   return base
 }

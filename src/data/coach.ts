@@ -221,7 +221,7 @@ const therapist: GuidanceMode = {
   greeting: (ctx) =>
     `Take a breath with me, ${name(ctx) || 'friend'}. You don’t have to perform here.
 
-This is a space to slow down and understand what’s happening inside you — the overthinking, the spirals, the pull-aways — without judgement. What you feel makes sense. Let’s look at it gently. What’s coming up for you?`,
+Here you can slow down and look at what is going on in you — the overthinking, the spirals, the pulling away — without being judged for it. What’s going on?`,
   starters: [
     { label: 'I can’t stop overthinking his replies', prompt: 'I can’t stop overthinking every reply he sends. Help me.' },
     { label: 'I think I’m anxiously attached', prompt: 'I think I have anxious attachment. What does that mean for me?' },
@@ -240,7 +240,7 @@ Try separating *fact* from *story*. On one side: what happened (“he replied af
           const map: Record<string, string> = { consistency: 'consistency', directness: 'directness', gentleness: 'gentleness', reassurance: 'reassurance', space: 'respected space', 'follow-through': 'follow-through' }
           const names = cs.map((id) => map[String(id)]).filter(Boolean).slice(0, 2)
           return names.length ? ` And remember what you told your map: ${names.join(' and ')} are what make you feel safe. Measure this person against that — not against your anxiety.` : ''
-        })()} You’re not responsible for controlling his feelings — only for honouring your own.`,
+        })()} You are not in charge of his feelings, only of how you act on yours.`,
     },
     {
       keywords: ['anxious', 'anxiously attached', 'attachment', 'reassurance', 'needy', 'clingy', 'fear of losing'],
@@ -251,15 +251,15 @@ Try separating *fact* from *story*. On one side: what happened (“he replied af
           : `An anxious lean means closeness can trigger a fear of losing it — so you seek reassurance, and silence feels like danger.`
         return `${intro}
 
-The work isn’t to never feel anxious — it’s to not *act* from the panic. When the wave comes: name it (“this is the fear, not the truth”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. Over time the silence stops feeling like danger.`
+The aim is not to stop feeling anxious. It is to not *act* from it. When the wave comes: name it (“this is the fear, not the truth”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. Over time the silence stops feeling like danger.`
       },
     },
     {
       keywords: ['pull away', 'pull back', 'go cold', 'avoidant', 'distance', 'shut down', 'walls', 'guarded', 'independent'],
       respond: () =>
-        `That pulling-away is protective, not cruel. When closeness rises, some part of you braces for being hurt or engulfed — so you create distance to feel safe again.
+        `Pulling away is protection, not cruelty. When someone gets close, part of you braces for being hurt or crowded, so you make distance to feel safe again.
 
-The gentle work is to *notice the urge before you act on it*. When you feel the wall going up, try naming it instead of vanishing: “I’m feeling the need for space.” That one sentence keeps the connection alive while you breathe. The right person can hold your need for space without taking it as rejection — but they can only do that if you tell them, rather than disappear.`,
+The skill is to *notice the urge before you act on it*. When you feel the wall going up, try naming it instead of vanishing: “I’m feeling the need for space.” That one sentence keeps the connection alive while you breathe. The right person can hold your need for space without taking it as rejection — but they can only do that if you tell them, rather than disappear.`,
     },
     {
       keywords: ['calm', 'spiralling now', 'panic', 'anxiety', 'cant breathe', 'overwhelmed', 'right now', 'help me'],
@@ -270,18 +270,18 @@ The gentle work is to *notice the urge before you act on it*. When you feel the 
 • Breathe out longer than you breathe in — four counts in, six counts out, a few times.
 • Put the phone down. You don’t have to reply to anything in this state.
 
-Your body is in alarm, and alarms pass. You are safe in this moment. When the wave settles, *then* we can think clearly. Stay with me — what does your body feel like right now?`,
+This passes. Nothing needs deciding while it is here. When it settles, we can think. Stay with me — what is happening right now?`,
     },
     {
       keywords: ['healing', 'past', 'heartbreak', 'ex', 'baggage', 'trauma', 'hurt before'],
       respond: () =>
-        `Healing isn’t arriving perfect — it’s arriving *aware*. The fact that you’re asking means you’re already further along than you think.
+        `Nobody arrives finished. Arriving *aware* is enough, and asking is part of it.
 
-What matters is that your past doesn’t silently run the present. Notice when an old wound gets triggered by a new person who hasn’t earned that reaction. You can carry tenderness and still move forward, as long as you’re honest with yourself about what’s yours to heal. Be patient with you. You’re doing the brave thing.`,
+What matters is that your past doesn’t silently run the present. Notice when an old hurt is set off by a new person who has not earned that reaction. You can carry tenderness and still move forward, as long as you are honest about what is yours to carry. Be patient with yourself.`,
     },
   ],
   fallback: (ctx) =>
-    `Whatever it is, ${name(ctx) || 'friend'}, you can put it down here. Tell me what you’re feeling and what triggered it — we’ll make sense of it together, slowly.`,
+    `Whatever it is, ${name(ctx) || 'friend'}, you can put it down here. Tell me what you’re feeling and what set it off, and we’ll make sense of it slowly.`,
 }
 
 // ── Islamic Values ───────────────────────────────────────────────────────────
@@ -298,7 +298,7 @@ const islamic: GuidanceMode = {
 Let’s anchor this in what our deen teaches — that marriage is half of faith, built on intention, modesty, and mercy. I can help you walk this path with dignity. (For formal rulings, always return to a trusted scholar.) What’s on your heart?`,
   starters: [
     { label: 'How do we get to know each other halal?', prompt: 'How do two people get to know each other for marriage in a halal way?' },
-    { label: 'How do I keep boundaries while talking?', prompt: 'How do I keep good boundaries while we’re getting to know each other?' },
+    { label: 'How do I keep my limits while we talk?', prompt: 'How do I keep my limits while we’re getting to know each other?' },
     { label: 'What makes a marriage blessed?', prompt: 'What makes a marriage blessed in Islam?' },
     { label: 'How involved should family be?', prompt: 'How involved should family and the wali be in Islam?' },
   ],
@@ -314,12 +314,12 @@ A few anchors:
 • Keep conversation purposeful and respectful, not flirtatious or late-night secrecy.
 • Involve the wali as it gets serious.
 
-The goal isn’t suspicion — it’s dignity. You can be warm and still be honourable.`,
+The point is dignity, not suspicion. You can be warm and still be honourable.`,
     },
     {
       keywords: ['boundaries', 'modesty', 'haram', 'too far', 'flirt', 'physical', 'hijab', 'lower gaze', 'guard'],
       respond: () =>
-        `Boundaries aren’t coldness — they’re how you honour both souls before a contract binds you. They protect the very love you’re hoping to build.
+        `Limits are not coldness. They are adab — how you honour both of you before a contract binds you — and they protect what you are hoping to build.
 
 Practically: keep conversation in daylight and with purpose, avoid being alone together, and don’t let things drift into the physical or the flirtatious. If you feel things slipping, that’s your signal to bring in family and move toward making it real — nikah — rather than lingering in a grey zone. Modesty here is a gift you give your future marriage, not a punishment.`,
     },

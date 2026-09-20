@@ -424,7 +424,7 @@ export default function ReflectionView({
         )}
 
         {/* Honest mirror */}
-        <Section title="The honest mirror">
+        <Section title="What you said about yourself">
           <div className="rounded-card border border-line bg-white/60 p-6">
             <p className="text-[1.02rem] leading-relaxed text-ink-soft text-pretty">{r.growthNote}</p>
           </div>

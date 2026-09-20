@@ -233,9 +233,9 @@ export const chapters: Chapter[] = [
   {
     id: 'heart',
     kicker: '03 · Heart',
-    title: 'Heart & honest mirror',
+    title: 'Heart',
     intro:
- 'The hardest part, and the one the apps skip. Not who you want, but how your heart works, and what you are still becoming. This stays private to you.',
+ 'The hardest part, and the one the apps skip. Not who you want, but how you handle closeness, and what you are still working on. This stays private to you.',
     questions: [
       {
         id: 'conflict',
@@ -255,25 +255,25 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'emotional',
         prompt: 'Is something from the past still with you?',
-        helper: 'There’s no shame here. Marriage goes better when we arrive whole, not perfect.',
+        helper: 'Any answer is fine. Better said now than found out later.',
         options: [
-          { id: 'healed', label: 'I’ve done the work and feel at peace', tags: ['At peace'], weight: 1 },
-          { id: 'healing', label: 'I’m healing, and aware of it', tags: ['Self-aware'], weight: 0.8 },
-          { id: 'fresh', label: 'Honestly, something recent still aches', tags: ['Tender'], weight: 0.5 },
-          { id: 'unsure', label: 'I’m not sure — I haven’t looked closely', tags: ['Unexamined'], weight: 0.55 },
+          { id: 'healed', label: 'It’s behind me, and I’m at peace with it', tags: ['At peace'], weight: 1 },
+          { id: 'healing', label: 'It’s still with me, and I know it', tags: ['Self-aware'], weight: 0.8 },
+          { id: 'fresh', label: 'Something recent still hurts', tags: ['Tender'], weight: 0.5 },
+          { id: 'unsure', label: 'I haven’t looked closely', tags: ['Not looked yet'], weight: 0.55 },
         ],
       },
       {
         id: 'attachment',
         type: 'single',
         dimension: 'emotional',
-        prompt: 'When you care about someone, how does your heart tend to move?',
-        helper: 'Plainly — most of us lean one way, and it helps to know which.',
+        prompt: 'When someone you care about goes quiet, what do you do?',
+        helper: 'Most of us lean one way. It helps to know which.',
         options: [
-          { id: 'secure', label: 'Steady — I can stay calm and trust', tags: ['Secure'], weight: 1 },
-          { id: 'anxious', label: 'I worry, overthink, need reassurance', tags: ['Anxious lean'], weight: 0.65 },
-          { id: 'avoidant', label: 'I pull back and protect my independence', tags: ['Guarded lean'], weight: 0.65 },
-          { id: 'mixed', label: 'A bit of both, depending on the person', tags: ['Mixed'], weight: 0.75 },
+          { id: 'secure', label: 'I stay steady and wait', tags: ['Steady'], weight: 1 },
+          { id: 'anxious', label: 'I worry, reread, and want to hear from them', tags: ['Worries first'], weight: 0.65 },
+          { id: 'avoidant', label: 'I pull back and get on with my own things', tags: ['Pulls back'], weight: 0.65 },
+          { id: 'mixed', label: 'It depends on the person', tags: ['Depends on the person'], weight: 0.75 },
         ],
       },
       {
@@ -281,7 +281,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'selfAwareness',
         prompt: 'Looking back, what pattern do you want to leave behind?',
-        helper: 'We all have one. Naming it is the beginning of changing it.',
+        helper: 'Most of us have one. Naming it is a start.',
         // Naming a live pattern is honest but the work is still ahead, so these
         // sit below "already done that work". They used to all weigh 0.9-1.0,
         // which pinned self-awareness at 90-100 for every single user — the one
@@ -292,7 +292,7 @@ export const chapters: Chapter[] = [
           { id: 'rushing', label: 'Rushing in before I really know someone', tags: ['Pattern: pace'], weight: 0.65 },
           { id: 'walls', label: 'Keeping my walls up, staying guarded', tags: ['Pattern: guardedness'], weight: 0.65 },
           { id: 'settling', label: 'Settling for less than I deserve', tags: ['Pattern: self-worth'], weight: 0.65 },
-          { id: 'none', label: 'I’ve done real work on myself already', tags: ['Self-aware'], weight: 1 },
+          { id: 'none', label: 'I’ve already changed the one I had', tags: ['Self-aware'], weight: 1 },
         ],
       },
       {
@@ -300,7 +300,7 @@ export const chapters: Chapter[] = [
         type: 'text',
         dimension: 'selfAwareness',
         prompt: 'In your own words — what are you still working on in yourself?',
-        helper: 'A sentence is enough, and you can skip it. Self-awareness is the most attractive quality there is.',
+        helper: 'A sentence is enough, and you can skip it.',
         placeholder: "I'm still learning to…",
         optional: true,
       },
