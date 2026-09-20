@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The money conversation — a sheet for two people</title>
+    <meta
+      name="description"
+      content="A printable sheet for two adults considering marriage: mahr, the wedding, existing debt and ongoing family obligations, kept apart on purpose."
+    />
+    <!--
+      Self-contained on purpose. No fonts, no scripts, no images, no CDN, no
+      analytics — one file that opens from a USB stick, an email attachment or
+      a printer's desktop with the network off. Nothing here is saved or sent.
+    -->
+    <style>
+      :root {
+        --ink: #16271f;
+        --body: #24312b;
+        --rule: #9aa39d;
+        --page: #fdfcf9;
+      }
+
+      * { box-sizing: border-box; }
+
+      html { -webkit-text-size-adjust: 100%; }
+
+      body {
+        margin: 0;
+        padding: 2rem 1rem 3rem;
+        background: var(--page);
+        color: var(--body);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      .sheet {
+        max-width: 46rem;
+        margin: 0 auto;
+      }
+
+      h1, h2, h3 {
+        font-family: Georgia, 'Times New Roman', 'Liberation Serif', serif;
+        color: var(--ink);
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      h1 {
+        font-size: 1.7rem;
+        margin: 0 0 0.5rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+        margin: 0 0 0.35rem;
+      }
+
+      h3 {
+        font-size: 1rem;
+        margin: 0 0 0.6rem;
+      }
+
+      .lede {
+        margin: 0 0 0.75rem;
+        max-width: 38rem;
+      }
+
+      .note {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #4a564f;
+        max-width: 38rem;
+      }
+
+      header {
+        border-bottom: 2px solid var(--ink);
+        padding-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
+      }
+
+      /* Who is filling which column. Names, not roles. */
+      .who {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem 1.5rem;
+        margin: 1.25rem 0 0;
+        padding: 0;
+        border: 0;
+      }
+
+      .who > div {
+        flex: 1 1 12rem;
+        min-width: 0;
+      }
+
+      .who label {
+        display: block;
+      }
+
+      label {
+        display: block;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #4a564f;
+        margin-bottom: 0.25rem;
+      }
+
+      input[type='text'],
+      input[type='date'] {
+        width: 100%;
+        font: inherit;
+        font-size: 1rem; /* 16px floor: stops a phone browser zooming on focus */
+        color: var(--body);
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 0.25rem;
+        padding: 0.4rem 0.5rem;
+        min-height: 2.5rem;
+      }
+
+      section {
+        margin: 0 0 2.5rem;
+      }
+
+      .framing {
+        margin: 0 0 1.25rem;
+        padding-bottom: 0.85rem;
+        border-bottom: 1px solid var(--rule);
+        max-width: 40rem;
+      }
+
+      ol.qs {
+        list-style: decimal;
+        margin: 0;
+        padding: 0 0 0 1.4rem;
+      }
+
+      ol.qs > li {
+        margin: 0 0 1.5rem;
+        padding: 0;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .q {
+        margin: 0 0 0.6rem;
+        color: var(--ink);
+      }
+
+      .cols {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .cols > div {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      textarea {
+        display: block;
+        width: 100%;
+        font: inherit;
+        font-size: 1rem; /* 16px floor, same reason as above */
+        line-height: 1.6;
+        color: var(--body);
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 0.25rem;
+        padding: 0.4rem 0.5rem;
+        resize: vertical;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--ink);
+        outline-offset: 2px;
+      }
+
+      .box {
+        margin-top: 1.5rem;
+        border: 2px solid var(--ink);
+        border-radius: 0.35rem;
+        padding: 1rem;
+        display: flex;
+        gap: 1rem;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
+      .box > div {
+        flex: 1 1 0;
+        min-width: 0;
+      }
+
+      footer {
+        border-top: 2px solid var(--ink);
+        padding-top: 1rem;
+        max-width: 40rem;
+      }
+
+      footer p {
+        margin: 0 0 0.4rem;
+        font-size: 0.9rem;
+      }
+
+      footer a {
+        color: var(--ink);
+      }
+
+      .version {
+        color: #4a564f;
+      }
+
+      /* One column on a phone, and nothing that scrolls sideways. */
+      @media (max-width: 700px) {
+        .cols,
+        .box {
+          display: block;
+        }
+
+        .cols > div + div,
+        .box > div + div {
+          margin-top: 0.85rem;
+        }
+      }
+
+      @media print {
+        /*
+          No `size` is declared: the sheet is laid out inside A4's narrower
+          width and US Letter's shorter height, so whichever paper the printer
+          is holding, nothing is clipped and nothing reflows.
+        */
+        @page {
+          margin: 14mm;
+        }
+
+        html,
+        body {
+          background: #fff;
+          color: #000;
+          font-size: 10.5pt;
+          padding: 0;
+        }
+
+        .sheet {
+          max-width: none;
+        }
+
+        h1,
+        h2,
+        h3,
+        .q,
+        footer a {
+          color: #000;
+        }
+
+        .note,
+        label,
+        .version {
+          color: #000;
+        }
+
+        /* Each subject starts its own page — the separation is the point. */
+        section + section {
+          break-before: page;
+          page-break-before: always;
+        }
+
+        section {
+          margin-bottom: 0;
+        }
+
+        /*
+          Tightened only for paper. The header plus the first subject has to
+          clear US Letter's 712pt content box, which is the shorter of the two
+          papers; at the screen's spacing it overflowed by about a tenth of a
+          page and pushed the mahr agreement box onto a sheet of its own.
+        */
+        header {
+          padding-bottom: 4mm;
+          margin-bottom: 4mm;
+        }
+
+        .lede {
+          margin-bottom: 2mm;
+          line-height: 1.35;
+        }
+
+        .who {
+          margin-top: 3mm;
+        }
+
+        /* A name and a date need a line, not the box an answer needs. */
+        .who input {
+          min-height: 8mm;
+          height: 8mm;
+        }
+
+        label {
+          font-size: 8pt;
+          margin-bottom: 1mm;
+        }
+
+        h2 {
+          margin-bottom: 1.5mm;
+        }
+
+        .framing {
+          margin-bottom: 3mm;
+          padding-bottom: 2mm;
+        }
+
+        .box {
+          margin-top: 4mm;
+          padding: 3mm;
+        }
+
+        /* Lines to write on, not fills to soak up toner. */
+        input[type='text'],
+        input[type='date'],
+        textarea {
+          background: transparent;
+          border: 1pt solid #000;
+          border-radius: 0;
+          min-height: 11.5mm;
+          height: 11.5mm;
+        }
+
+        .box textarea {
+          min-height: 15mm;
+          height: 15mm;
+        }
+
+        ol.qs > li {
+          margin-bottom: 2mm;
+        }
+
+        .q {
+          margin-bottom: 1mm;
+        }
+
+        footer {
+          break-before: auto;
+          margin-top: 8mm;
+        }
+
+        .screen-only {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="sheet">
+      <header>
+        <h1>The money conversation</h1>
+        <p class="lede">
+          A sheet for two adults considering marriage, to work through before the
+          families are involved. Each of you answers in your own column.
+        </p>
+        <p class="lede">
+          The four subjects are kept apart on purpose. Mahr is not the wedding.
+          The wedding is not what either of you already owes. And none of the
+          three is the money that leaves your account every month for people at
+          home or abroad.
+        </p>
+        <p class="note screen-only">
+          Nothing on this page is saved or sent. What you type stays in this
+          window until you close it, and there is nothing to submit.
+        </p>
+
+        <div class="who">
+          <div>
+            <label for="name-a">Person A</label>
+            <input id="name-a" type="text" autocomplete="off" />
+          </div>
+          <div>
+            <label for="name-b">Person B</label>
+            <input id="name-b" type="text" autocomplete="off" />
+          </div>
+          <div>
+            <label for="sheet-date">Date</label>
+            <input id="sheet-date" type="text" autocomplete="off" />
+          </div>
+        </div>
+      </header>
+
+      <!-- 1 -->
+      <section aria-labelledby="s1-h">
+        <h2 id="s1-h">1. Mahr</h2>
+        <p class="framing">
+          This section is about mahr only — what each of you expects, and who has
+          heard that expectation so far.
+        </p>
+
+        <ol class="qs">
+          <li>
+            <p class="q" id="q1a">What do you expect the mahr to be? Write it in your own words, in whatever form you expect it.</p>
+            <div class="cols">
+              <div><label for="q1a-a">Person A</label><textarea id="q1a-a" rows="2" aria-describedby="q1a" autocomplete="off"></textarea></div>
+              <div><label for="q1a-b">Person B</label><textarea id="q1a-b" rows="2" aria-describedby="q1a" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q1b">Who have you said that to so far — your partner, your own family, anyone else?</p>
+            <div class="cols">
+              <div><label for="q1b-a">Person A</label><textarea id="q1b-a" rows="2" aria-describedby="q1b" autocomplete="off"></textarea></div>
+              <div><label for="q1b-b">Person B</label><textarea id="q1b-b" rows="2" aria-describedby="q1b" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q1c">How much of it do you expect at the nikah, and how much deferred?</p>
+            <div class="cols">
+              <div><label for="q1c-a">Person A</label><textarea id="q1c-a" rows="2" aria-describedby="q1c" autocomplete="off"></textarea></div>
+              <div><label for="q1c-b">Person B</label><textarea id="q1c-b" rows="2" aria-describedby="q1c" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q1d">If your family names something different from what you just wrote, what would you want to happen next?</p>
+            <div class="cols">
+              <div><label for="q1d-a">Person A</label><textarea id="q1d-a" rows="2" aria-describedby="q1d" autocomplete="off"></textarea></div>
+              <div><label for="q1d-b">Person B</label><textarea id="q1d-b" rows="2" aria-describedby="q1d" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q1e">Who speaks for you when that conversation happens, and have you asked them?</p>
+            <div class="cols">
+              <div><label for="q1e-a">Person A</label><textarea id="q1e-a" rows="2" aria-describedby="q1e" autocomplete="off"></textarea></div>
+              <div><label for="q1e-b">Person B</label><textarea id="q1e-b" rows="2" aria-describedby="q1e" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="box">
+          <div><label for="s1-agree">What we agree on</label><textarea id="s1-agree" rows="3" autocomplete="off"></textarea></div>
+          <div><label for="s1-open">What we’re still deciding</label><textarea id="s1-open" rows="3" autocomplete="off"></textarea></div>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section aria-labelledby="s2-h">
+        <h2 id="s2-h">2. The wedding — one-time expenses</h2>
+        <p class="framing">
+          This section is about the one-time cost of the wedding itself — the
+          nikah, the walima, and whatever either side expects around them. It is
+          separate from mahr.
+        </p>
+
+        <ol class="qs">
+          <li>
+            <p class="q" id="q2a">Which parts of the wedding do you expect to pay for yourself?</p>
+            <div class="cols">
+              <div><label for="q2a-a">Person A</label><textarea id="q2a-a" rows="2" aria-describedby="q2a" autocomplete="off"></textarea></div>
+              <div><label for="q2a-b">Person B</label><textarea id="q2a-b" rows="2" aria-describedby="q2a" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q2b">Which parts do you expect someone else to pay for, and have you asked them?</p>
+            <div class="cols">
+              <div><label for="q2b-a">Person A</label><textarea id="q2b-a" rows="2" aria-describedby="q2b" autocomplete="off"></textarea></div>
+              <div><label for="q2b-b">Person B</label><textarea id="q2b-b" rows="2" aria-describedby="q2b" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q2c">Of the people who would be there, how many are there because of you?</p>
+            <div class="cols">
+              <div><label for="q2c-a">Person A</label><textarea id="q2c-a" rows="2" aria-describedby="q2c" autocomplete="off"></textarea></div>
+              <div><label for="q2c-b">Person B</label><textarea id="q2c-b" rows="2" aria-describedby="q2c" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q2d">What is the most you are willing to spend in total? Write your own ceiling, not a guess at what it will cost.</p>
+            <div class="cols">
+              <div><label for="q2d-a">Person A</label><textarea id="q2d-a" rows="2" aria-describedby="q2d" autocomplete="off"></textarea></div>
+              <div><label for="q2d-b">Person B</label><textarea id="q2d-b" rows="2" aria-describedby="q2d" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q2e">If the cost goes past that ceiling, what is the first thing you would cut — and what would you cut last?</p>
+            <div class="cols">
+              <div><label for="q2e-a">Person A</label><textarea id="q2e-a" rows="2" aria-describedby="q2e" autocomplete="off"></textarea></div>
+              <div><label for="q2e-b">Person B</label><textarea id="q2e-b" rows="2" aria-describedby="q2e" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="box">
+          <div><label for="s2-agree">What we agree on</label><textarea id="s2-agree" rows="3" autocomplete="off"></textarea></div>
+          <div><label for="s2-open">What we’re still deciding</label><textarea id="s2-open" rows="3" autocomplete="off"></textarea></div>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section aria-labelledby="s3-h">
+        <h2 id="s3-h">3. Debt either of you already carries</h2>
+        <p class="framing">
+          This section is about money either of you already owes, from before
+          anything about this marriage was decided.
+        </p>
+
+        <ol class="qs">
+          <li>
+            <p class="q" id="q3a">What do you owe right now, and to whom? Include anything that has someone else’s name on it.</p>
+            <div class="cols">
+              <div><label for="q3a-a">Person A</label><textarea id="q3a-a" rows="2" aria-describedby="q3a" autocomplete="off"></textarea></div>
+              <div><label for="q3a-b">Person B</label><textarea id="q3a-b" rows="2" aria-describedby="q3a" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q3b">What are you paying toward it each month, and how long is left?</p>
+            <div class="cols">
+              <div><label for="q3b-a">Person A</label><textarea id="q3b-a" rows="2" aria-describedby="q3b" autocomplete="off"></textarea></div>
+              <div><label for="q3b-b">Person B</label><textarea id="q3b-b" rows="2" aria-describedby="q3b" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q3c">Who already knows about it — your partner, your own family, your partner’s family?</p>
+            <div class="cols">
+              <div><label for="q3c-a">Person A</label><textarea id="q3c-a" rows="2" aria-describedby="q3c" autocomplete="off"></textarea></div>
+              <div><label for="q3c-b">Person B</label><textarea id="q3c-b" rows="2" aria-describedby="q3c" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q3d">After the marriage, do you expect this to stay yours, or to be something you both handle?</p>
+            <div class="cols">
+              <div><label for="q3d-a">Person A</label><textarea id="q3d-a" rows="2" aria-describedby="q3d" autocomplete="off"></textarea></div>
+              <div><label for="q3d-b">Person B</label><textarea id="q3d-b" rows="2" aria-describedby="q3d" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q3e">Is there anything here you would want settled before the nikah rather than after?</p>
+            <div class="cols">
+              <div><label for="q3e-a">Person A</label><textarea id="q3e-a" rows="2" aria-describedby="q3e" autocomplete="off"></textarea></div>
+              <div><label for="q3e-b">Person B</label><textarea id="q3e-b" rows="2" aria-describedby="q3e" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="box">
+          <div><label for="s3-agree">What we agree on</label><textarea id="s3-agree" rows="3" autocomplete="off"></textarea></div>
+          <div><label for="s3-open">What we’re still deciding</label><textarea id="s3-open" rows="3" autocomplete="off"></textarea></div>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section aria-labelledby="s4-h">
+        <h2 id="s4-h">4. Ongoing obligations to family</h2>
+        <p class="framing">
+          This section is about money that leaves your account regularly for
+          people outside this marriage — parents, siblings, relatives here or
+          abroad.
+        </p>
+
+        <ol class="qs">
+          <li>
+            <p class="q" id="q4a">Who do you send money to now, and how often?</p>
+            <div class="cols">
+              <div><label for="q4a-a">Person A</label><textarea id="q4a-a" rows="2" aria-describedby="q4a" autocomplete="off"></textarea></div>
+              <div><label for="q4a-b">Person B</label><textarea id="q4a-b" rows="2" aria-describedby="q4a" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q4b">What does that come to, against what you earn?</p>
+            <div class="cols">
+              <div><label for="q4b-a">Person A</label><textarea id="q4b-a" rows="2" aria-describedby="q4b" autocomplete="off"></textarea></div>
+              <div><label for="q4b-b">Person B</label><textarea id="q4b-b" rows="2" aria-describedby="q4b" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q4c">Is the amount fixed, or does it change when something happens?</p>
+            <div class="cols">
+              <div><label for="q4c-a">Person A</label><textarea id="q4c-a" rows="2" aria-describedby="q4c" autocomplete="off"></textarea></div>
+              <div><label for="q4c-b">Person B</label><textarea id="q4c-b" rows="2" aria-describedby="q4c" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q4d">Who knows what you send — your partner, your own family, the people you send it to?</p>
+            <div class="cols">
+              <div><label for="q4d-a">Person A</label><textarea id="q4d-a" rows="2" aria-describedby="q4d" autocomplete="off"></textarea></div>
+              <div><label for="q4d-b">Person B</label><textarea id="q4d-b" rows="2" aria-describedby="q4d" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+          <li>
+            <p class="q" id="q4e">After the marriage, do you expect this to stay the same, go up, or come down — and if yours and your partner’s are different sizes, how do you want that handled?</p>
+            <div class="cols">
+              <div><label for="q4e-a">Person A</label><textarea id="q4e-a" rows="2" aria-describedby="q4e" autocomplete="off"></textarea></div>
+              <div><label for="q4e-b">Person B</label><textarea id="q4e-b" rows="2" aria-describedby="q4e" autocomplete="off"></textarea></div>
+            </div>
+          </li>
+        </ol>
+
+        <div class="box">
+          <div><label for="s4-agree">What we agree on</label><textarea id="s4-agree" rows="3" autocomplete="off"></textarea></div>
+          <div><label for="s4-open">What we’re still deciding</label><textarea id="s4-open" rows="3" autocomplete="off"></textarea></div>
+        </div>
+      </section>
+
+      <footer>
+        <p>Published by Niyyah — <a href="https://joinniyyah.com/">joinniyyah.com</a></p>
+        <p>
+          This sheet is for conversation. It is not religious or legal advice,
+          and it is not a substitute for guidance from someone you trust.
+        </p>
+        <p class="version">v1.0 — 2026-09-20</p>
+      </footer>
+    </main>
+  </body>
+</html>
