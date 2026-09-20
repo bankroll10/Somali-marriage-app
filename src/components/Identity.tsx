@@ -20,7 +20,7 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
       <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-safe-6">
         <BackButton onClick={onBack} className="self-start" />
 
-        <div className="flex flex-1 flex-col justify-center py-10">
+        <main className="flex flex-1 flex-col justify-center py-10">
           <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
             First, the basics
           </p>
@@ -129,7 +129,7 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
           <p className="animate-fade mt-4 text-xs text-muted" style={{ animationDelay: '240ms' }}>
             Nothing you share here is visible to anyone — no profile exists until you choose.
           </p>
-        </div>
+        </main>
       </div>
     </div>
   )

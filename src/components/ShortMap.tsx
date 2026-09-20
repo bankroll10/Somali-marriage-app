@@ -33,7 +33,7 @@ export default function ShortMap({ answers, gender, onAnswer, onDone, onBack }: 
   return (
     <div className="min-h-dvh bg-cream pb-28">
       <ScreenHeader onBack={() => (index === 0 ? onBack() : setIndex(index - 1))} sticky>
-        <span className="font-display text-[1.05rem] font-medium text-ink">Being counted</span>
+        <h1 className="font-display text-[1.05rem] font-medium text-ink">Being counted</h1>
       </ScreenHeader>
       <main className="mx-auto max-w-xl px-6">
         <div className="py-8">

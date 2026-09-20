@@ -27,9 +27,9 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
   return (
     <section className="animate-rise mt-8">
       <div className="rounded-card border border-gold/30 bg-gold/[0.07] p-5">
-        <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+        <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
           Since last time
-        </p>
+        </h2>
         <p className="mt-2 font-display text-[1.15rem] font-medium leading-snug text-ink text-pretty">
           {ask.question}
         </p>

@@ -36,6 +36,11 @@ export function Generating() {
 
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center bg-forest-deep px-6 text-center text-cream">
+      {/* The visible line above changes every 750ms (key={stage}) and remounts
+          each time, which would steal focus right back out from under a
+          screen-reader user every three-quarters of a second if it carried
+          the heading — so the heading is this stable, hidden one instead. */}
+      <h1 className="sr-only">Building your map</h1>
       <div className="bg-geo absolute inset-0 opacity-40" aria-hidden />
       <div className="relative">
         <div className="mx-auto mb-8 h-14 w-14">

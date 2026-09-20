@@ -261,9 +261,9 @@ function ChapterInsight({
               strokeLinejoin="round"
             />
           </svg>
-          <p className="text-[0.82rem] font-semibold uppercase tracking-[0.16em] text-gold">
+          <h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.16em] text-gold">
             What this tells us
-          </p>
+          </h2>
         </div>
         <p className="mt-4 font-display text-[1.35rem] font-medium leading-snug tracking-tight text-ink text-pretty">
           {insight}

@@ -303,7 +303,7 @@ export default function Coach({
           <p className="font-display text-[1.05rem] font-medium text-ink">Your guide</p>
         </ScreenHeader>
 
-        <div className="mx-auto max-w-2xl px-5 py-9">
+        <main className="mx-auto max-w-2xl px-5 py-9">
           <p className="animate-fade text-xs font-medium uppercase tracking-[0.22em] text-gold">
             Your guide
           </p>
@@ -392,7 +392,7 @@ export default function Coach({
                 ))}
             </div>
           </Disclose>
-        </div>
+        </main>
       </div>
     )
   }
@@ -413,9 +413,9 @@ export default function Coach({
           <ModeGlyph id={activeMode.glyph} />
         </span>
         <div className="flex-1">
-          <p className="font-display text-[1.05rem] font-medium leading-tight text-ink">
+          <h1 className="font-display text-[1.05rem] font-medium leading-tight text-ink">
             {activeMode.label}
-          </p>
+          </h1>
           <p className="text-[0.78rem] text-muted">{activeMode.tagline} · private</p>
           {/* No counter here. One used to appear from halfway — "6 replies left
               this month" — and open the subscription screen. A counter on a
@@ -430,7 +430,7 @@ export default function Coach({
         </TextButton>
       </header>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+      <div ref={scrollRef} role="main" className="flex-1 overflow-y-auto">
         <div
           role="log"
           aria-live="polite"

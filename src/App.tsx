@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import Welcome from './components/Welcome'
 import IdentityStep from './components/Identity'
 import Situation from './components/Situation'
@@ -51,6 +51,26 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
     window.scrollTo(0, 0)
   }, [n.screen])
 
+  // A sighted user sees the whole new screen at once; a keyboard or
+  // screen-reader user is told nothing changed unless focus moves — it
+  // otherwise stays wherever it was, on a now-unmounted element, defaulting
+  // to <body> (docs/ACCESS.md). Every screen has exactly one h1 (or, failing
+  // that, its topmost heading), so that is what receives focus. tabIndex=-1
+  // makes an otherwise-inert heading a valid, one-time focus target without
+  // adding it to the tab order.
+  const screenRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const heading = screenRef.current?.querySelector<HTMLElement>('h1, h2')
+    if (!heading) return
+    const hadTabIndex = heading.hasAttribute('tabindex')
+    if (!hadTabIndex) heading.setAttribute('tabindex', '-1')
+    heading.focus({ preventScroll: true })
+    if (!hadTabIndex) {
+      const clear = () => heading.removeAttribute('tabindex')
+      heading.addEventListener('blur', clear, { once: true })
+    }
+  }, [n.screen])
+
   // The address bar follows the two tools that have an address of their own
   // (src/data/tools.ts), and nothing else. Always replaceState, never push: no
   // history is manufactured, so Back behaves as it always has, and an eleven-
@@ -70,7 +90,7 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
 
   // Keyed by screen so every navigation gets one soft, uniform fade-in.
   return (
-    <div key={n.screen} className="animate-screen">
+    <div key={n.screen} ref={screenRef} className="animate-screen">
       <AppScreen n={n} />
     </div>
   )

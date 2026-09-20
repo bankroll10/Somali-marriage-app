@@ -134,9 +134,9 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
           <h3 className="mb-5 text-xs font-medium uppercase tracking-[0.2em] text-muted">
             Five bridges we hold
           </h3>
-          <div className="space-y-3">
+          <ul className="space-y-3">
             {bridges.map((b, i) => (
-              <div
+              <li
                 key={b.left}
                 className="animate-rise rounded-card border border-line bg-white/50 p-5"
                 style={{ animationDelay: `${i * 50}ms` }}
@@ -162,9 +162,9 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
                   <span>{b.right}</span>
                 </div>
                 <p className="mt-2 text-[0.92rem] leading-relaxed text-muted text-pretty">{b.body}</p>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
         {/* Learn to choose */}
@@ -180,9 +180,9 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
             them. Everything here, from your map to your guide, teaches
             the same four things.
           </p>
-          <div className="mt-6 space-y-4">
+          <ul className="mt-6 space-y-4">
             {principles.map((p, i) => (
-              <div key={p.title} className="flex gap-3.5">
+              <li key={p.title} className="flex gap-3.5">
                 <span className="font-display text-[1.1rem] font-medium text-gold-soft tabular-nums">
                   {i + 1}
                 </span>
@@ -192,9 +192,9 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
                     {p.body}
                   </p>
                 </div>
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         </section>
 
         {/* What we will not do.

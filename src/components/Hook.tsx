@@ -26,7 +26,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
       <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-safe-6">
         <BackButton onClick={onBack} className="self-start" />
 
-        <div className="flex flex-1 flex-col justify-center py-10">
+        <main className="flex flex-1 flex-col justify-center py-10">
           {!chosen ? (
             <>
               <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
@@ -108,7 +108,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
               </button>
             </div>
           )}
-        </div>
+        </main>
       </div>
     </div>
   )

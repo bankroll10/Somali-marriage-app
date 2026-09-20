@@ -55,7 +55,7 @@ export default function WorkCard({
 
   return (
     <section className="animate-rise mt-10">
-      <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">Your work</p>
+      <h2 className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">Your work</h2>
       <div className="relative overflow-hidden rounded-card bg-forest-deep p-7 text-cream">
         <div className="bg-geo pointer-events-none absolute inset-0 opacity-30" aria-hidden />
         <div className="relative">
