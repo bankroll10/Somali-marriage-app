@@ -126,13 +126,13 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
 
             <div className="mt-6">
               <label htmlFor="vouch-name" className="block text-[0.92rem] font-medium text-ink">Your first name</label>
-              <input id="vouch-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={40} autoComplete="given-name" className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`} />
+              <input id="vouch-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={40} autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`} />
             </div>
 
             <div className="mt-6">
               <label htmlFor="vouch-sentence" className="block text-[0.92rem] font-medium text-ink">One sentence about them</label>
               <p className="mt-0.5 text-[0.82rem] text-muted">Only the founder reads this. It is never shown to anyone they meet.</p>
-              <textarea id="vouch-sentence" value={sentence} onChange={(e) => setSentence(e.target.value)} maxLength={280} rows={3} placeholder="e.g. She is my sister, and she means this." className={`mt-2 w-full resize-none bg-white/70 px-4 py-3 text-[1rem] leading-relaxed ${fieldClass}`} />
+              <textarea id="vouch-sentence" value={sentence} onChange={(e) => setSentence(e.target.value)} maxLength={280} rows={3} placeholder="e.g. She is my sister, and she means this." enterKeyHint="next" className={`mt-2 max-h-40 w-full resize-none bg-white/70 px-4 py-3 text-[1rem] leading-relaxed ${fieldClass}`} />
             </div>
 
             <div className="mt-6">
@@ -140,7 +140,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
                 Your phone <span className="font-normal text-muted">(optional)</span>
               </label>
               <p className="mt-0.5 text-[0.82rem] text-muted">So the founder can confirm it is really you. Never shared, never shown.</p>
-              <input id="vouch-phone" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={40} inputMode="tel" autoComplete="tel" className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`} />
+              <input id="vouch-phone" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={40} inputMode="tel" autoComplete="tel" enterKeyHint="done" className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`} />
             </div>
 
             <div className="mt-8">

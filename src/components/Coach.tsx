@@ -579,6 +579,7 @@ export default function Coach({
           className="mx-auto flex max-w-xl items-end gap-2.5 px-5 pt-4 pb-safe-bar"
         >
           <textarea
+            enterKeyHint="send"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {

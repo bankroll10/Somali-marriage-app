@@ -267,7 +267,8 @@ export default function Home({
                 rows={1}
                 placeholder="Say it in one line…"
                 aria-label="Tell your guide what happened"
-                className={`max-h-28 min-h-[2.75rem] flex-1 resize-none bg-cream/60 px-3.5 py-2.5 text-[0.98rem] leading-relaxed ${fieldClass}`}
+                enterKeyHint="send"
+                className={`max-h-28 min-h-[2.75rem] flex-1 resize-none bg-cream/60 px-3.5 py-2.5 text-[1rem] leading-relaxed ${fieldClass}`}
               />
               <button
                 type="submit"

@@ -3,7 +3,7 @@ import type { Gender } from '../types'
 import { SAFETY_REASONS } from '../data/safety'
 import { sendReport } from '../lib/safety'
 import { track } from '../lib/analytics'
-import { TextButton } from './ui'
+import { Spinner, TextButton } from './ui'
 
 interface Props {
   code: string
@@ -65,7 +65,7 @@ export default function ReportConcern({ code, side }: Props) {
         onChange={(e) => setDetails(e.target.value.slice(0, 500))}
         placeholder="Anything else it helps to know (optional)"
         rows={3}
-        className="mt-3 w-full resize-none rounded-xl border border-line bg-white p-3 text-[0.88rem] text-ink placeholder:text-muted"
+        className="mt-3 max-h-40 w-full resize-none rounded-xl border border-line bg-white p-3 text-[1rem] text-ink placeholder:text-muted"
       />
       <p className="mt-2 text-[0.78rem] leading-relaxed text-muted text-pretty">
         This reaches the founder only — not the other person, and not anything the app counts or learns from.
@@ -79,9 +79,15 @@ export default function ReportConcern({ code, side }: Props) {
             if (result === 'sent') track('safety_reported')
             setState(result === 'sent' ? 'sent' : 'error')
           }}
-          className="rounded-full bg-clay px-5 py-2.5 text-[0.85rem] font-medium text-cream transition hover:opacity-90 disabled:opacity-40"
+          className="inline-flex items-center gap-2 rounded-full bg-clay px-5 py-2.5 text-[0.85rem] font-medium text-cream transition hover:opacity-90 disabled:opacity-40"
         >
-          Send
+          {state === 'sending' ? (
+            <>
+              <Spinner /> Sending…
+            </>
+          ) : (
+            'Send'
+          )}
         </button>
         <TextButton onClick={() => setState('closed')} className="text-[0.85rem] font-medium text-muted hover:underline">
           Cancel

@@ -139,6 +139,58 @@ describe('tap targets', () => {
   })
 })
 
+describe('forms — the 16px floor, so a phone does not zoom in on focus', () => {
+  it('renders no input, select or textarea under 1rem', () => {
+    // iOS Safari zooms the viewport on focus into any field under 16px.
+    // Every field in the app was already meant to share fieldClass, so the
+    // bug was always a text-size class living beside it, not a field
+    // without one — this greps for exactly that shape.
+    const files = readdirSync(join(SRC, 'components'), { recursive: true, encoding: 'utf8' }).filter(
+      (f): f is string => typeof f === 'string' && f.endsWith('.tsx'),
+    )
+    const under16 = /text-\[0\.(?:[1-8]\d?|9[0-9])rem\][^`]*\$\{fieldClass\}|\$\{fieldClass\}[^`]*text-\[0\.(?:[1-8]\d?|9[0-9])rem\]/
+    for (const f of files) {
+      const src = read(`components/${f}`)
+      expect(src, `${f} has a field under 1rem`).not.toMatch(under16)
+    }
+  })
+
+  it("Cohort's contact field no longer forces the @ keyboard for a field that also takes a phone number", () => {
+    expect(read('components/Cohort.tsx')).not.toContain('inputMode="email"')
+  })
+
+  it('sets enterKeyHint on the three forms with more than one field', () => {
+    for (const file of ['components/Cohort.tsx', 'components/Vouch.tsx', 'components/RestoreMap.tsx'] as const) {
+      expect(read(file), `${file} sets no enterKeyHint`).toMatch(/enterKeyHint=/)
+    }
+  })
+})
+
+describe('textareas cap unbounded growth', () => {
+  it('gives the four textareas that grew without a limit a max-h, matching the pattern Coach/Home already used', () => {
+    for (const [file, needle] of [
+      ['components/Vouch.tsx', 'max-h-40'],
+      ['components/QuestionCard.tsx', 'max-h-64'],
+      ['components/Ending.tsx', 'max-h-40'],
+      ['components/ReportConcern.tsx', 'max-h-40'],
+    ] as const) {
+      expect(read(file), `${file} is missing ${needle}`).toContain(needle)
+    }
+  })
+})
+
+describe('loading states — the one silent button the audit found', () => {
+  it('gives ReportConcern a Spinner and a label change while sending, matching KeepMap/Cohort', () => {
+    const src = read('components/ReportConcern.tsx')
+    expect(src).toMatch(/Spinner/)
+    expect(src).toMatch(/Sending…/)
+  })
+
+  it('gives RestoreMap a text label beside its spinner, matching KeepMap', () => {
+    expect(read('components/RestoreMap.tsx')).toMatch(/Checking…/)
+  })
+})
+
 describe('the mobile-craft pass reads more than fifteen component files, so an empty result above means clean and not skipped', () => {
   it('sees the component directory', () => {
     const files = readdirSync(join(SRC, 'components')).filter((f) => f.endsWith('.tsx'))

@@ -232,7 +232,7 @@ function TextAnswer({
         onChange={(e) => onChange(e.target.value)}
         placeholder={question.placeholder}
         rows={5}
-        className={`w-full resize-none p-4 text-[1rem] leading-relaxed ${fieldClass}`}
+        className={`max-h-64 w-full resize-none p-4 text-[1rem] leading-relaxed ${fieldClass}`}
       />
       {question.optional && (
         <p className="mt-2 text-xs text-muted">Optional — but worth it.</p>

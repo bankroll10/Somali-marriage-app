@@ -395,7 +395,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
                 if (e.target.value) onScene?.(e.target.value)
               }}
               aria-label="Your community"
-              className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+              enterKeyHint="next"
+              className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
             >
               <option value="">Where are you?</option>
               {scenes.map((s) => (
@@ -414,7 +415,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
                 if (e.target.value) onCountry?.(e.target.value)
               }}
               aria-label="Your country"
-              className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+              enterKeyHint="next"
+              className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
             >
               <option value="">Somewhere else in…</option>
               {countries.map((c) => (
@@ -439,7 +441,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
                 placeholder="Your age"
                 aria-label="Your age"
                 aria-describedby="cohort-age-hint"
-                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+                enterKeyHint="next"
+                className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
               />
               <p id="cohort-age-hint" className="mt-1.5 text-[0.78rem] leading-relaxed text-muted text-pretty">
                 {MIN_AGE}–{MAX_AGE}. An introduction cannot be made without it. It goes into your kept map, never onto
@@ -449,7 +452,10 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           )}
           <input
             type="text"
-            inputMode="email"
+            // No single inputMode serves both an email and a phone number,
+            // which this field explicitly accepts either of — "text" gives
+            // the full default keyboard rather than biasing toward @.
+            inputMode="text"
             autoComplete="email"
             required
             value={contact}
@@ -458,7 +464,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             placeholder="Email or phone"
             aria-label="Email or phone"
             aria-describedby={contactHint ? 'cohort-contact-hint' : undefined}
-            className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+            enterKeyHint="done"
+            className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
           />
           {/* Only once she has left the field, so it explains rather than nags. */}
           {contactHint && (

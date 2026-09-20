@@ -154,7 +154,7 @@ export default function Door({
                   if (e.target.value) onScene(e.target.value)
                 }}
                 aria-label="Your community"
-                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+                className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
               >
                 <option value="">Where are you?</option>
                 {scenes.map((s) => (
@@ -173,7 +173,7 @@ export default function Door({
                   if (e.target.value) onCountry(e.target.value)
                 }}
                 aria-label="Your country"
-                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+                className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
               >
                 <option value="">Somewhere else in…</option>
                 {countries.map((c) => (

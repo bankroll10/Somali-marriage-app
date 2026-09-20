@@ -73,6 +73,7 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
               onChange={(e) => onChange({ ...identity, firstName: e.target.value })}
               placeholder="Your first name"
               autoComplete="given-name"
+              autoCapitalize="words"
               className={`w-full px-4 py-3.5 text-[1rem] ${fieldClass}`}
             />
           </div>

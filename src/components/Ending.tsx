@@ -273,7 +273,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
                 value={answers.advice ?? ''}
                 onChange={(e) => put({ advice: e.target.value })}
                 placeholder={ADVICE_PLACEHOLDER}
-                className={`mt-3 w-full resize-none bg-white/70 p-3.5 text-[0.98rem] leading-relaxed ${fieldClass}`}
+                className={`mt-3 max-h-40 w-full resize-none bg-white/70 p-3.5 text-[1rem] leading-relaxed ${fieldClass}`}
               />
             </div>
           </div>
