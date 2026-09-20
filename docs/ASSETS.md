@@ -39,7 +39,8 @@ in a pitch.
 | **N2** | The eleven, to read and print — all of them, in a voice for two readers | `https://joinniyyah.com/guides/before-you-say-yes` | **live and checked** | 2026-09-17 |
 | **N2s** | Three of the eleven, one Letter page — the sample that goes in a pitch | `https://joinniyyah.com/guides/before-you-say-yes/sample` | **live and checked** | 2026-09-17 |
 | **N0** | The door — the honest count, for someone looking rather than talking | `https://joinniyyah.com/?door` | advertised but not fully inspected | — |
-| **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **built, not yet checked** | — |
+| **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet (four pages, room to write) | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **built, not yet checked** | — |
+| **N3-1page** | The money conversation, condensed — the same twenty questions on a single printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html` | **built, not yet checked** | — |
 
 ### What each one is for
 
@@ -66,6 +67,18 @@ carries **no link into the app** beyond the one footer address, and records
 nothing: no `via`, no storage, no form. That is deliberate. On this subject a
 sheet that measured its reader would be the wrong object, and the attribution
 we would gain is worth less than the page being obviously inert.
+
+**A second, one-page version exists for the same URL family:**
+`public/niyyah-money-conversation-sheet-1page.html`, at
+`https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html`, same
+status. Same twenty questions, same four subjects, same content rules — every
+per-question answer is a single ruled line instead of a paragraph box, and
+print splits into two columns, to fit US Letter and A4 on one printed page
+instead of four (verified by rendering both to PDF with headless Chrome, not
+estimated from the CSS — `docs/SHEET.md` has the numbers). It exists because
+"print this and hand it over" and "sit down and actually write" are two
+different asks, and the four-page sheet only serves the second one. Handing
+someone the wrong length is its own failure mode.
 
 ## Placements — the ledger
 

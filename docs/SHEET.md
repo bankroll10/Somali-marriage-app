@@ -1,10 +1,15 @@
 # The money conversation — what N3 says, and what it refuses to say
 
-> `public/niyyah-money-conversation-sheet.html`, with a plain-text twin at
-> `…-sheet.txt`. One file, no fonts, no scripts, no images, no network. Opens
-> from an attachment, a USB stick or a printer's desktop with the wifi off.
+> Three files: `public/niyyah-money-conversation-sheet.html` (four printed
+> pages, room to write), `…-sheet-1page.html` (the same twenty questions,
+> condensed onto one printed page), and a plain-text twin at `…-sheet.txt`.
+> No fonts, no scripts, no images, no network in any of them. Each opens from
+> an attachment, a USB stick or a printer's desktop with the wifi off.
 >
-> Built 2026-09-20. The catalog row is in `docs/ASSETS.md` under **N3**.
+> Built 2026-09-20. The one-page variant and this doc's print numbers were
+> added the same day, after a founder review asked for both lengths side by
+> side rather than a single choice between them. Catalog rows are in
+> `docs/ASSETS.md` under **N3** and **N3-1page**.
 
 ## Why now, and not on 2026-09-17
 
@@ -121,19 +126,22 @@ per-question margins, the label size and the header's name fields brought the
 first page to 908px, inside Letter with about 40px to spare, and every subject
 now ends on its own page.
 
-**This is four printed pages, not two.** The brief asked for a two-page
-maximum *and* for page breaks between sections *and* for answer lines tall
-enough to write on. Those three cannot all hold: four subjects with a forced
-break between them is four pages before a single line is drawn, and squeezing
-twenty two-column answers onto two pages leaves lines nobody can write in. The
-two constraints that are concrete and testable won. A coordinator handing over
-one subject per page is also the better object — it can be filled in across
-four sittings, which is how this conversation actually happens.
+**The full sheet is four printed pages, not two.** The original brief asked
+for a two-page maximum *and* for page breaks between sections *and* for
+answer lines tall enough to write on. Those three cannot all hold in one
+document: four subjects with a forced break between them is four pages
+before a single line is drawn, and squeezing twenty two-column answers onto
+two pages leaves lines nobody can write in. Rather than pick one constraint
+to break, this file keeps all three and a second file — below — carries the
+one-page version instead. A coordinator handing over one subject per page is
+also the better object for the four-page file specifically: it can be filled
+in across four sittings, which is how this conversation actually happens.
 
 ## Verified
 
 Chromium, from `file://` against the built `dist` copy, so the check is the
-same one a coordinator's machine performs on an attachment:
+same one a coordinator's machine performs on an attachment. Page counts are
+real PDF renders via headless Chrome, not read off the CSS.
 
 | What | Result |
 |---|---|
@@ -145,6 +153,8 @@ same one a coordinator's machine performs on an attachment:
 | Print media | `background: rgb(255,255,255)`, `color: rgb(0,0,0)`, fields fully transparent. |
 | Fields | 51, every one with a non-empty `<label for>`. |
 | Links | One, `https://joinniyyah.com/`. Scripts: zero. Forms and buttons: zero. |
+| `<title>` | Contains "Niyyah", so a printed page or a shared tab identifies itself on its own. |
+| Print-footer | `Niyyah — joinniyyah.com · v1.0 — 2026-09-20`, once per section, plain text — not a second link. |
 | Typed and reloaded | The text is gone; `localStorage` and `sessionStorage` both empty. |
 
 **One caveat worth knowing before it surprises anyone.** The four-page result
@@ -154,6 +164,65 @@ push it to five pages — that is the browser doing what it was told, not the
 sheet being wrong. Rendering it with margins applied twice (14mm from the
 print API *on top of* the sheet's own 14mm) produced eight pages on A4, which
 is the shape of that mistake if it ever shows up in a bug report.
+
+## The one-page variant
+
+`niyyah-money-conversation-sheet-1page.html` carries the identical twenty
+questions — pinned equal to the full sheet's, word for word, by
+`tests/sheet.test.ts` — laid out to print on a single Letter or A4 page. Same
+four subjects, same content rules, same footer, same one link. Three real
+differences from the full sheet, each one measured rather than assumed:
+
+- **Every per-question answer is a single ruled line (`<input>`), not a
+  paragraph box (`<textarea>`).** That is the one content-shape change the
+  founder's brief allowed ("shrink the write-in areas to single ruled lines
+  as needed"). The agree/still-deciding boxes at the end of each subject stay
+  textareas, per the same brief ("keep the agree/still-deciding boxes").
+- **The per-question "Person A" / "Person B" labels are real `<label for>`
+  elements, visually hidden** (the standard clip-to-1px technique, not
+  `display:none`, so a screen reader still reads them) rather than printed
+  twenty times over. A single legend line in the header — "Each question
+  below: Person A's line first, Person B's second." — says the order once
+  for a sighted reader on paper. This traded a repeated visual cue for
+  roughly 200px of vertical room across the page; without it, the layout
+  did not fit even after every other cut below.
+- **Print splits into two columns** (`columns: 2`) instead of one page per
+  subject, with `break-inside: avoid` on every question and box so nothing
+  splits mid-item across the column break.
+
+**Getting from two pages to one took an actual bug fix partway through, not
+just smaller numbers.** After the first round of trimming (hiding the
+repeated per-question labels, ≈450px saved) stopped producing the expected
+drop, measurement found why: a screen-only rule, `.cols input[type='text']
+{ min-height: 1.9rem }`, has higher CSS specificity than the bare
+`input[type='text']` rule this file's `@media print` block used to shrink
+answer rows — so the print override silently lost the cascade, and Chrome
+kept every answer row at its rem-based screen height. Worse, because the
+print block also sets the page's root `font-size` to 9pt, `1.9rem`
+recomputed to about 23px *inside* print instead of being ignored there, so
+the rows stayed almost three times too tall with no visible reason why in
+the CSS being edited (≈95px reclaimed per row once fixed, ×20 rows, the
+single largest cut). The fix restates the same selector, `.cols
+input[type='text']`, inside `@media print` at matching specificity so
+source order decides it correctly. `tests/sheet.test.ts` pins the fixed rule
+directly so this cannot silently regress.
+
+Four rounds of measure-and-trim in total — driven by a script that sums the
+real rendered height of every question, label row, framing sentence and box
+rather than guessing from the CSS, re-run after each change — took the total
+content height from 2217px (two pages on Letter, before any of this) to
+1369px (one page on both, confirmed by an actual PDF render each time).
+
+## Two files, and no attempt to pick one
+
+Nothing here recommends the four-page sheet over the one-page sheet or the
+reverse — they serve different moments. The four-page file is for a couple
+who has decided to sit down and actually write; the one-page file is for
+someone who wants to see, or hand over, the whole conversation at a glance
+before that sitting happens. Handing someone the wrong length for what
+they're about to do is its own small failure, so each file names the other
+by filename, on screen only, in plain text — not a second `<a>`; the one
+link both sheets carry stays the one into joinniyyah.com.
 
 ## On a phone, and to a screen reader
 
