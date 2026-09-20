@@ -155,6 +155,7 @@ real PDF renders via headless Chrome, not read off the CSS.
 | Links | One, `https://joinniyyah.com/`. Scripts: zero. Forms and buttons: zero. |
 | `<title>` | Contains "Niyyah", so a printed page or a shared tab identifies itself on its own. |
 | Print-footer | `Niyyah — joinniyyah.com · v1.0 — 2026-09-20`, once per section, plain text — not a second link. |
+| Print resize handle | Computed `resize: none` in print media; `::-webkit-resizer` hidden. |
 | Typed and reloaded | The text is gone; `localStorage` and `sessionStorage` both empty. |
 
 **One caveat worth knowing before it surprises anyone.** The four-page result
@@ -182,10 +183,12 @@ differences from the full sheet, each one measured rather than assumed:
   elements, visually hidden** (the standard clip-to-1px technique, not
   `display:none`, so a screen reader still reads them) rather than printed
   twenty times over. A single legend line in the header — "Each question
-  below: Person A's line first, Person B's second." — says the order once
-  for a sighted reader on paper. This traded a repeated visual cue for
-  roughly 200px of vertical room across the page; without it, the layout
-  did not fit even after every other cut below.
+  below: Person A on the left, Person B on the right." — says the order once
+  for a sighted reader on paper. (First worded "first"/"second", describing a
+  stacked reading order; corrected to "left"/"right" once printed, since the
+  two columns sit side by side on paper, not one after the other.) This
+  traded a repeated visual cue for roughly 200px of vertical room across the
+  page; without it, the layout did not fit even after every other cut below.
 - **Print splits into two columns** (`columns: 2`) instead of one page per
   subject, with `break-inside: avoid` on every question and box so nothing
   splits mid-item across the column break.
@@ -212,6 +215,54 @@ real rendered height of every question, label row, framing sentence and box
 rather than guessing from the CSS, re-run after each change — took the total
 content height from 2217px (two pages on Letter, before any of this) to
 1369px (one page on both, confirmed by an actual PDF render each time).
+
+**A second pass spent that fit's leftover room on the lines themselves.**
+Fitting one page and being usable on that page are different goals, and the
+first pass only solved the first one: at 3mm per question line and 4mm per
+agree/still-deciding line, Letter's printed page ended about 23mm above the
+bottom margin — room going unused while every line was too short to
+comfortably write on. The fix is the opposite of the first pass: grow the
+same rules back up, watching the same measurement (now the *gap* between the
+last thing on the page and the bottom margin, not the total content height)
+so the page stays at one without leaving slack unspent.
+
+That relationship is not linear. `column-fill: balance` (the default, used
+here) periodically shifts where content splits between the two print
+columns as row heights grow, so a given increase in per-row height sometimes
+barely moves the bottom edge and sometimes moves it a lot — measured, once,
+going from 3mm rows to 4.5mm (+1.5mm) only closed 3mm of the 23mm gap, but
+the very next +1.5mm step (4.5mm → 6mm) closed nearly 17mm on its own and
+came within a hair of pushing the file to two pages. Landed at **5.9mm per
+question line and 6.9mm per agree/still-deciding line**, found by testing
+each step against an actual PDF render rather than assuming the previous
+step's ratio would hold for the next one:
+
+| Paper | Bottom slack | Page count |
+|---|---|---|
+| US Letter (the shorter paper) | **4.47mm** | 1 |
+| A4 (the taller paper) | 22.07mm | 1 |
+
+A4 keeps a wide margin on purpose — Letter is the binding constraint, and the
+brief asked to fill *it* to within ~5mm, not to make both papers equally
+tight. Overshooting Letter even slightly risks a second page; this stayed on
+the safe side of the target rather than exactly on it.
+
+**Two more fixes rode along in the same pass, both applying to both files:**
+
+- **Textareas no longer print their resize handle.** The diagonal drag
+  corner is a screen-only affordance; printed, it showed as a stray mark in
+  the corner of every answer box with nothing to grab. `resize: none` plus
+  hiding `::-webkit-resizer` in `@media print` removes it without touching
+  the on-screen behavior, where the handle is still real and still useful.
+- **The agree/still-deciding boxes' labels were misaligned in the one-page
+  file specifically.** "What we're still deciding" wrapped to two lines in
+  this file's narrower print column while "What we agree on" stayed on one,
+  so the second rule sat visibly lower than the first. Shortened to
+  **"Agreed"** and **"Still deciding"** — both now render at the same
+  height, and both rules start at the same y-coordinate, confirmed directly
+  rather than assumed from the text being shorter. (The four-page file's
+  labels are untouched; its print column is wide enough that neither ever
+  wrapped.)
 
 ## Two files, and no attempt to pick one
 

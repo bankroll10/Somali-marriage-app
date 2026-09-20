@@ -203,6 +203,11 @@ describe('on paper', () => {
     expect(PRINT).toMatch(/\.box textarea \{[^}]*min-height: 15mm/)
   })
 
+  it('draws no resize handle — a diagonal mark in the corner with nothing to grab on paper', () => {
+    expect(PRINT).toMatch(/textarea \{\s*resize: none;/)
+    expect(PRINT).toMatch(/textarea::-webkit-resizer \{\s*display: none;/)
+  })
+
   it('carries the name on every printed page, not only the last one', () => {
     // Chrome (every engine, in fact) ignores @page margin-box content, so a
     // running footer has to be a real element repeated in the flow — one per
@@ -311,8 +316,27 @@ describe('the one-page variant', () => {
   })
 
   it('says the column order once instead of twenty times, and prints small', () => {
-    expect(ONE_PAGE).toContain("Each question below: Person A's line first, Person B's second.")
+    // "First/second" described a stacked, single-column reading order; on
+    // paper the two columns sit side by side, so the legend says left/right
+    // instead — what the founder actually sees on the printed page.
+    expect(ONE_PAGE).toContain('Each question below: Person A on the left, Person B on the right.')
+    expect(ONE_PAGE).not.toContain('line first')
     expect(ONE_PAGE.match(/class="legend"/g)).toHaveLength(1)
+  })
+
+  it('gives the agree/still-deciding boxes labels short enough to stay on one line', () => {
+    // "What we agree on" / "What we're still deciding" (the four-page
+    // file's labels) wrapped the second one to two lines in this file's
+    // narrower print column, which dropped its rule below the first one.
+    // Shortened labels keep both on one line and both rules aligned —
+    // verified in Chromium: both labels render at the same height and both
+    // textareas' top edge lands at the same y (docs/SHEET.md).
+    for (const n of [1, 2, 3, 4]) {
+      expect(ONE_PAGE).toContain(`<label for="s${n}-agree">Agreed</label>`)
+      expect(ONE_PAGE).toContain(`<label for="s${n}-open">Still deciding</label>`)
+    }
+    expect(ONE_PAGE).not.toContain('What we agree on')
+    expect(ONE_PAGE).not.toContain('still deciding</label>')
   })
 
   it('splits into two print columns instead of one page per subject', () => {
@@ -329,8 +353,25 @@ describe('the one-page variant', () => {
     // once, because 1.9rem recomputes against print's 9pt root instead of
     // being ignored outside its own media query. Any print min-height on an
     // answer input has to be re-stated at equal-or-greater specificity
-    // inside @media print, not just on the bare element selector.
-    expect(O_PRINT).toMatch(/\.cols input\[type='text'\] \{\s*min-height: 3mm/)
+    // inside @media print, not just on the bare element selector. The exact
+    // height has grown since (docs/SHEET.md — measured bottom slack, not a
+    // round number); what this guards is the override existing at all.
+    expect(O_PRINT).toMatch(/\.cols input\[type='text'\] \{\s*min-height: 5\.9mm/)
+  })
+
+  it('spends the printed page’s bottom slack on taller write-in lines', () => {
+    // 3mm/4mm (the first cut, purely for one-page-ness) was too short to
+    // write on. Grown until Letter's measured bottom slack — the printed
+    // page height minus everything actually on it — came down to ~5mm,
+    // verified by rendering, not by reading these numbers back out of the
+    // CSS (docs/SHEET.md has the measurement).
+    expect(O_PRINT).toMatch(/min-height: 5\.9mm;\s*height: 5\.9mm;/)
+    expect(O_PRINT).toMatch(/\.box textarea \{[^}]*min-height: 6\.9mm/)
+  })
+
+  it('draws no resize handle in print, the same guard as the four-page file', () => {
+    expect(O_PRINT).toMatch(/textarea \{\s*resize: none;/)
+    expect(O_PRINT).toMatch(/textarea::-webkit-resizer \{\s*display: none;/)
   })
 
   it('carries the same footer, note and version line as the four-page file', () => {

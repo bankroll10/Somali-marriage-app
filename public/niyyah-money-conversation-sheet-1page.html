@@ -406,15 +406,26 @@
           border-left: none;
           border-right: none;
           border-radius: 0;
-          min-height: 3mm;
-          height: 3mm;
+          min-height: 5.9mm;
+          height: 5.9mm;
           padding: 0 0.5mm;
           font-size: 9pt;
         }
 
         .cols input[type='text'] {
-          min-height: 3mm;
-          height: 3mm;
+          min-height: 5.9mm;
+          height: 5.9mm;
+        }
+
+        /* The resize handle is a screen-only affordance — printed, it's a
+           diagonal mark in the corner of every answer box with nothing to
+           grab. */
+        textarea {
+          resize: none;
+        }
+
+        textarea::-webkit-resizer {
+          display: none;
         }
 
         .box {
@@ -431,8 +442,8 @@
         .box textarea {
           border: none;
           border-bottom: 0.75pt solid #000;
-          min-height: 4mm;
-          height: 4mm;
+          min-height: 6.9mm;
+          height: 6.9mm;
           line-height: 1.05;
         }
 
@@ -492,7 +503,7 @@
           </div>
         </div>
 
-        <p class="legend">Each question below: Person A's line first, Person B's second.</p>
+        <p class="legend">Each question below: Person A on the left, Person B on the right.</p>
       </header>
 
       <div class="content">
@@ -543,8 +554,8 @@
           </ol>
 
           <div class="box">
-            <div><label for="s1-agree">What we agree on</label><textarea id="s1-agree" rows="2" autocomplete="off"></textarea></div>
-            <div><label for="s1-open">What we’re still deciding</label><textarea id="s1-open" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s1-agree">Agreed</label><textarea id="s1-agree" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s1-open">Still deciding</label><textarea id="s1-open" rows="2" autocomplete="off"></textarea></div>
           </div>
         </section>
 
@@ -596,8 +607,8 @@
           </ol>
 
           <div class="box">
-            <div><label for="s2-agree">What we agree on</label><textarea id="s2-agree" rows="2" autocomplete="off"></textarea></div>
-            <div><label for="s2-open">What we’re still deciding</label><textarea id="s2-open" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s2-agree">Agreed</label><textarea id="s2-agree" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s2-open">Still deciding</label><textarea id="s2-open" rows="2" autocomplete="off"></textarea></div>
           </div>
         </section>
 
@@ -648,8 +659,8 @@
           </ol>
 
           <div class="box">
-            <div><label for="s3-agree">What we agree on</label><textarea id="s3-agree" rows="2" autocomplete="off"></textarea></div>
-            <div><label for="s3-open">What we’re still deciding</label><textarea id="s3-open" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s3-agree">Agreed</label><textarea id="s3-agree" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s3-open">Still deciding</label><textarea id="s3-open" rows="2" autocomplete="off"></textarea></div>
           </div>
         </section>
 
@@ -701,8 +712,8 @@
           </ol>
 
           <div class="box">
-            <div><label for="s4-agree">What we agree on</label><textarea id="s4-agree" rows="2" autocomplete="off"></textarea></div>
-            <div><label for="s4-open">What we’re still deciding</label><textarea id="s4-open" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s4-agree">Agreed</label><textarea id="s4-agree" rows="2" autocomplete="off"></textarea></div>
+            <div><label for="s4-open">Still deciding</label><textarea id="s4-open" rows="2" autocomplete="off"></textarea></div>
           </div>
         </section>
       </div>

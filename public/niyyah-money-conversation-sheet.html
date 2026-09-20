@@ -343,6 +343,17 @@
           height: 11.5mm;
         }
 
+        /* The resize handle is a screen-only affordance — printed, it's a
+           diagonal mark in the corner of every answer box with nothing to
+           grab. */
+        textarea {
+          resize: none;
+        }
+
+        textarea::-webkit-resizer {
+          display: none;
+        }
+
         .box textarea {
           min-height: 15mm;
           height: 15mm;
