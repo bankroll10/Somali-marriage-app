@@ -44,6 +44,11 @@ const BANNED: [RegExp, string][] = [
   [/\bI want in\b/i, 'scarcity language put in her mouth'],
   [/\bsituationship/i, 'internet'],
   [/decides? a Somali marriage/i, 'docs/PROTOCOL.md:386 — the example of an exaggerated claim'],
+  [/\bthe whole road\b/i, 'a sweeping claim about every family, made four times'],
+  [/\bsingle (best|most)\b/i, 'a verdict from eleven taps'],
+  [/\bno other app\b/i, 'a claim about every other app'],
+  [/\bload-bearing\b/i, 'jargon'],
+  [/\bI’ve seen a hundred\b/i, 'the auntie claiming a record she does not have'],
 ]
 
 /** Lines that keep a banned word, each with the reason it earns its place. */
@@ -104,6 +109,26 @@ describe('the voice', () => {
       })
     }
     expect(hits, `\n${hits.length} lines say something the voice does not:\n\n${hits.join('\n')}\n`).toEqual([])
+  })
+
+  it('says none of them across a line break either', () => {
+    // JSX wraps prose at the column, so "decide a Somali\n marriage" passes the
+    // line scan. Read each file again with its comment lines out and its
+    // whitespace folded, for the phrases that have a space in them.
+    const multiword = BANNED.filter(([re]) => / /.test(re.source))
+    const hits: string[] = []
+    for (const { file, lines } of files()) {
+      const skip = commentLines(lines)
+      const text = lines
+        .filter((line, i) => !skip.has(i) && !ALLOWED.some(([re]) => re.test(line)))
+        .join(' ')
+        .replace(/\s+/g, ' ')
+      for (const [re, why] of multiword) {
+        const m = text.match(re)
+        if (m) hits.push(`${file}  ${why}\n      …${text.slice(Math.max(0, m.index! - 40), m.index! + 60)}…`)
+      }
+    }
+    expect(hits, `\n${hits.length} files say something the voice does not, across a line break:\n\n${hits.join('\n')}\n`).toEqual([])
   })
 
   it('reads more than forty files, so an empty result means clean and not skipped', () => {

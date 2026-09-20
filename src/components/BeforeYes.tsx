@@ -171,9 +171,9 @@ export default function BeforeYes({
             </div>
           )}
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-            {BEFORE_YES_COUNT === 11 ? 'Eleven' : String(BEFORE_YES_COUNT)} things that decide a Somali
-            marriage and almost never get asked before the families are involved — where you’d live,
-            money sent home, hooyo in the house, a second wife. For each one you say only whether the
+            {BEFORE_YES_COUNT === 11 ? 'Eleven' : String(BEFORE_YES_COUNT)} conversations couples rarely
+            have before the families are involved — where you’d live, money sent home, hooyo in the
+            house, a second wife. For each one you say only whether the
             two of you have talked about it. At the end you get the one to open this week, and the
             words.
           </p>

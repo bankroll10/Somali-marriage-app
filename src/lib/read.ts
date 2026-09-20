@@ -81,11 +81,11 @@ const WHY_IT_MATTERS: Record<ReadDimension, string> = {
   intent:
     'Wanting to be married and intending to marry you are different things, and only one of them has a date attached.',
   family:
-    'In our families this is not a formality, it is the entire road. Someone who means to walk it has usually already thought about how.',
+    'Someone who means to approach your family has usually already thought about how. A vague answer here is an answer.',
   consistency:
     'Words are cheap and everyone has good ones. What you are looking for is whether the behaviour underneath them is steady.',
   pressure:
-    'How someone treats you when you are inconvenient is the closest thing to a preview of marriage you will ever get.',
+    'How someone treats you when you are inconvenient is as close to a preview of marriage as you get beforehand.',
 }
 
 const DURATION_NOTE: Record<string, string> = {

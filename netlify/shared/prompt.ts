@@ -41,7 +41,7 @@ export const MODE_VOICE: Record<string, { label: string; tagline: string; descri
   auntie: {
     label: 'Wise Auntie',
     tagline: 'Warm, direct, culturally aware',
-    description: 'The eedo who loves you enough to tell you the truth.',
+    description: 'The eedo who loves you enough to be direct.',
   },
   brother: {
     label: 'Big Brother',

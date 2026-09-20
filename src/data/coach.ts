@@ -89,14 +89,14 @@ const auntie: GuidanceMode = {
   id: 'auntie',
   label: 'Wise Auntie',
   tagline: 'Warm, direct, culturally aware',
-  description: 'The eedo who loves you enough to tell you the truth.',
+  description: 'The eedo who loves you enough to be direct.',
   glyph: 'seed',
   accent: 'gold',
   recommendedFor: 'woman',
   greeting: (ctx) =>
     `Kaalay, ${name(ctx) || 'my dear'}. Sit with your auntie a moment.
 
-I’ve seen a hundred of these stories, and I love you too much to let you waste your time or your heart. Tell me what’s happening — the real thing, not the polished version. I won’t judge you.`,
+I love you too much to let you waste your time or your heart. Tell me what’s happening — the real thing, not the polished version. I won’t judge you.`,
   starters: [
     { label: 'Is he serious, or just passing time?', prompt: 'Auntie, is he serious about me or just passing time?' },
     { label: 'He only texts me late at night', prompt: 'He only texts me late at night. What does that mean?' },
@@ -116,21 +116,21 @@ Watch his feet, not his mouth — does he show up consistently? Does he want to 
       respond: () =>
         `Hmm. Let your auntie be honest with you: a man who only appears after midnight is not courting you — he is comforting himself. Good intentions keep daytime hours.
 
-You are not a secret. You are not a midnight habit. If he cannot text you at noon, plan to meet your family, and speak about marriage in daylight, he is not the one. Don’t argue with this. Just watch what he does next.`,
+You are not a secret. You are not a midnight habit. If he cannot text you at noon, plan to meet your family, and speak about marriage in daylight, that is your answer. Watch what he does next.`,
     },
     {
       keywords: ['family', 'wali', 'parents', 'mother', 'father', 'brother', 'scare him', 'tell my'],
       respond: () =>
-        `That instinct is the right one, and not everyone has it. Family is not the obstacle — family is the proof. A man worth having *expects* them.
+        `That instinct is the right one, and not everyone has it. A man worth having *expects* your family.
 
-Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then watch his face. If it scares him off, walaal, he was hiding something, and you just saved yourself two wasted years. Your people protect you. Let them.`,
+Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then watch his face. If it scares him off, walaal, he was hiding something, and you just saved yourself time. Your people protect you. Let them.`,
     },
     {
       keywords: ['settling', 'too picky', 'standards', 'unrealistic', 'expecting too much', 'should i lower'],
       respond: (ctx) => {
         const nn = ownNonNegotiables(ctx)
         const yours = nn.length
-          ? `You already told me your non-negotiables: ${nn.join(', ')}. That list is your iron — I checked it, and there is nothing unreasonable on it.`
+          ? `You already told me your non-negotiables: ${nn.join(', ')}. Hold that list like iron.`
           : `Standards are about *character* — honesty, kindness, deen, how he treats his mother. Hold those like iron; never lower them.`
         return `Listen to me. There is a difference between standards and a wish-list. ${yours}
 
@@ -139,7 +139,7 @@ The wish-list — the height, the salary, the perfect family — soften that. No
     },
   ],
   fallback: (ctx) =>
-    `Come, ${name(ctx) || 'my dear'}, tell your auntie properly — what did he say, what did you feel, what are you afraid of? Give me the real story and I’ll give you the truth, the way only someone who loves you will.`,
+    `Come, ${name(ctx) || 'my dear'}, tell your auntie properly — what did he say, what did you feel, what are you afraid of? Give me the real story and I’ll tell you what I see, the way someone who loves you does.`,
 }
 
 // ── Big Brother ──────────────────────────────────────────────────────────────

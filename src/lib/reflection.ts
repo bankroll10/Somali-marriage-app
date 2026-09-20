@@ -244,7 +244,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
 
     case 'selfAwareness': {
       const own = (answers['working-on'] as string | undefined)?.trim()
-      const named = own ? ' And you wrote down what you are still working on, unprompted — that is the single most attractive thing on this whole map.' : ''
+      const named = own ? ' And you wrote down what you are still working on, unprompted.' : ''
       switch (a('pattern')) {
         case 'unavailable':
           return `You see your pull toward people who cannot fully show up.${named} Let availability, not chemistry, be the first filter — it is the cheapest test there is.`

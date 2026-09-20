@@ -235,7 +235,7 @@ export const chapters: Chapter[] = [
     kicker: '03 · Heart',
     title: 'Heart & honest mirror',
     intro:
- 'The hardest and most important part — and the one no other app asks. Not who you want, but how your heart works, and what you are still becoming. This stays private to you.',
+ 'The hardest part, and the one the apps skip. Not who you want, but how your heart works, and what you are still becoming. This stays private to you.',
     questions: [
       {
         id: 'conflict',

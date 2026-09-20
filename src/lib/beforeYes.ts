@@ -119,9 +119,9 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
   // ── Headline: about the conversations, never about him ───────────────────
   let headline: string
   if (allAgreed) headline = 'You two have done the work most couples never do.'
-  else if (loadBearingDiffer.length >= 2) headline = 'More than one load-bearing conversation doesn’t line up yet.'
+  else if (loadBearingDiffer.length >= 2) headline = 'More than one of the heavier conversations doesn’t line up yet.'
   else if (loadBearingDiffer.length === 1) headline = 'One conversation is carrying more weight than the rest.'
-  else if (counts.differ > 0) headline = 'You mostly agree — and where you don’t, it isn’t the load-bearing ones.'
+  else if (counts.differ > 0) headline = 'You mostly agree — and where you don’t, it isn’t the ones that carry the most weight.'
   else headline = 'Nothing is broken. Several things are unasked.'
 
   // ── Summary: her counts in words, then why the open one matters ──────────

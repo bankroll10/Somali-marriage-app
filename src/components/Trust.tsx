@@ -55,11 +55,8 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
 
       <main className="mx-auto max-w-2xl px-6">
         <section className="py-10">
-          <p className="animate-fade text-xs font-medium uppercase tracking-[0.22em] text-gold">
-            What you’ve done here
-          </p>
-          <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
-            This is what a serious person looks like here.
+          <h1 className="animate-rise font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
+            What you have done here.
           </h1>
           <p className="animate-rise mt-4 max-w-lg text-[1.04rem] leading-relaxed text-ink-soft text-pretty">
  Not a badge you tap. The things you have done — each costs a

@@ -206,7 +206,7 @@ export default function Read({
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
  Eleven questions about what {they} has <em>done</em> — not
             how you feel, and not what {they} has
-            promised. At the end you get an honest read and the one question worth
+            promised. At the end you get a read and the one question worth
             asking {subject} next, word for word.
           </p>
           {guessed && (
