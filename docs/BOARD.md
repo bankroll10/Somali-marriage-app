@@ -1384,3 +1384,51 @@ held as re-engagement material, and never leave the device.
 `tests/fogg.test.ts` fails if any file outside the two instruments imports the
 draft module — so "you have 1 unfinished read" cannot be added to Home without
 deleting a test that says why not.
+
+---
+
+## The information architecture pass, 2026-09-20 (docs/PLACE.md)
+
+**Every defect this pass fixed is on a screen reached from someone else's
+phone.** Nine audits have walked Niyyah from its own front door, where every
+path is one a member chose. Nobody walked in as the man sent an eleven link or
+the aunt asked to vouch — and between them those two screens had **four phases
+with no way out at all**, including a vouch form that asks a relative for their
+name, a sentence about a family member and their phone number and then offers
+them nothing but submit.
+
+**The sharpest one is a button that lied.** A woman who opens her own eleven
+link on her own phone — to check the link works, which is what that screen is
+*for* — read **"Back to your space"** and landed on the marketing front door.
+`src/App.tsx` hand-wrote `setScreen('welcome')` two lines away from `backHome`,
+which has always been `hasHome ? 'home' : 'welcome'`. The vouch exit had the
+same hard-coding. Both are one word now.
+
+**The guide was the one screen you could not leave in a tap.** Its header
+chevron switched voice — the third control doing so, beside the pill and the
+inline link — while the screen offered no way out. It is Back now; Switch keeps
+its other two.
+
+**One was found by tapping, not by reading.** `Couple.tsx` rendered Back only
+from question two, so Start committed a man to eleven questions about his own
+marriage with no route back to the explanation. `Read.tsx` has stepped question
+one back to its intro all along.
+
+**The decision this pass rests on:** `docs/PROTOCOL.md` already sorts these.
+Its bug list names *"a tap that does the wrong thing"* and *"a back button that
+lands somewhere other than where they came from"*, and requires them fixed
+before the next session. Its confusion rule — *"changed only if two or more
+people hit the same one"* — governs the vocabulary half of the brief, so the
+seven comprehension failures found (chief among them: **"counted" means three
+different things in live UI** and the lexicon defines only one of them) are
+written down as predictions the sessions count, not changed on one reader's
+inference. And the restructure the brief asks for — Home by journey rather
+than feature, one label per destination, `door` and `count` merged — is
+designed in full and held, because `docs/LOAD.md` holds Home's controls for
+the five sessions and `docs/TREE.md` item 4 wants the sessions watched for
+exactly that question.
+
+**Changed:** `App.tsx`, `Couple.tsx`, `Vouch.tsx`, `Coach.tsx`, a new
+`tests/wayout.test.ts`, `docs/PLACE.md`, this entry, the README index, a
+cross-reference in `docs/TREE.md` item 4, and the WardheerNews row in
+`docs/ASSETS.md` moved to sent. No screen was added, removed or renamed.
