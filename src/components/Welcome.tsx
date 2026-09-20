@@ -54,9 +54,9 @@ export default function Welcome({
             style={{ animationDelay: '80ms' }}
           >
             Say what’s happening — getting ready, talking to someone, deciding
-            with the families — and we start there. A read on what he has actually
-            done. The eleven conversations most of us have too late. Or two
-            minutes on where you stand, and one honest thing to do about it.
+            with the families — and we start there. A read on what they have done.
+            The eleven conversations most of us have too late. Or two minutes on
+            where you stand, and one thing to do about it.
           </p>
 
           {/* The lead used to promise the map — "thirteen questions, about two
@@ -188,15 +188,15 @@ export default function Welcome({
               Start with a read on them instead.
             </p>
             <p className="mt-2 text-[0.9rem] leading-relaxed text-cream/60 text-pretty">
-              Eleven questions about what they have actually done. You get an
-              honest read and the one question worth asking them next — no
-              account, no intake first.
+              Eleven questions about what they have done. You get a read, and
+              the one question worth asking them next — no account, no intake
+              first.
             </p>
             <button
               onClick={onRead}
               className="group mt-4 inline-flex items-center gap-2 rounded-full border border-cream/30 px-5 py-2.5 text-[0.9rem] font-medium text-cream transition hover:bg-cream/10"
             >
-              Is he serious?
+              Talking to someone? Get a read.
               <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
             </button>
           </div>

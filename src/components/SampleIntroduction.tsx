@@ -183,8 +183,7 @@ export default function SampleIntroduction({
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
             Here you’d say yes, or no with a reason — one person at a time, and the
             next only after you’ve answered. A considered no is progress here, not
-            a swipe. If it were mutual, both of you would be told — your wali too, if
-            you want them there — and the rest would happen where it always has,
+            a swipe. If it were mutual, both of you would be told{identity.gender === 'woman' ? ' — your wali too, if you want them there —' : ','} and the rest would happen
             between the families, off this screen. No photos here, and no messaging.
             Nobody is on the other side of this sample, so the only honest next step
             is the one below.

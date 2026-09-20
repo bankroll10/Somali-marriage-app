@@ -11,6 +11,7 @@ import type {
 import { buildBeforeYes } from './beforeYes'
 import { conversationsHad } from './followup'
 import { relationshipLabel } from '../data/vouch'
+import { speak } from '../data/read'
 import { countryFor, getScene } from '../data/scenes'
 import { getCountry } from '../data/countries'
 import { instrumentLink } from './links'
@@ -112,10 +113,12 @@ export function buildEnding(i: EndingInput, today: string): Ending {
     })
   }
 
-  // The read — what he had actually shown her, before anyone was sure.
+  // The read — what the other person had shown, before anyone was sure. Said
+  // from whichever side is reading: a married man used to read "what he had
+  // done" about himself (docs/VOICE.md).
   if (i.read) {
     lines.push({
-      text: 'You took a read on what he had actually done, rather than what he said.',
+      text: speak(i.gender)('You took a read on what {he} had done, rather than what {he} said.'),
       at: day(i.read.at),
     })
   }
@@ -133,9 +136,11 @@ export function buildEnding(i: EndingInput, today: string): Ending {
 
   if (i.couple) {
     lines.push({
-      text: i.couple.answered
-        ? 'You asked him to answer the same eleven on his own phone, and he did.'
-        : 'You asked him to answer the same eleven on his own phone.',
+      text: speak(i.gender)(
+        i.couple.answered
+          ? 'You asked {him} to answer the same eleven on {his} own phone, and {he} did.'
+          : 'You asked {him} to answer the same eleven on {his} own phone.',
+      ),
       at: day(i.couple.at),
     })
   }

@@ -174,8 +174,8 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
             {didEleven
               ? '“Before we said yes, we had these eleven conversations”'
               : '“There are eleven conversations most of us have too late”'}{' '}
-            is a thing a married {gender === 'man' ? 'man' : 'woman'} can say to anyone — a sister, a
-            cousin, the one at the wedding who is where you were.
+            is a thing a married {gender === 'man' ? 'man' : 'woman'} can say to anyone — a cousin, a
+            friend, the one at the wedding who is where you were.
           </p>
           <button
             onClick={() => tell('eleven')}

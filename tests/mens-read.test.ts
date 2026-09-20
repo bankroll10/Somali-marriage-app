@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Gender } from '../src/types'
 import { familyScripts, familyScriptsLine } from '../src/data/families'
 import { readQuestions, scriptFor } from '../src/data/read'
+import { beforeYesTopics } from '../src/data/beforeYes'
 import { buildRead, readSummary, type ReadResult } from '../src/lib/read'
 
 /**
@@ -176,5 +177,48 @@ describe('the questions a man is asked', () => {
     expect(opt(his, 'secret', 'explicit').weight).toBeGreaterThan(0)
     expect(opt(hers, 'initiative', 'silence').weight).toBe(0)
     expect(opt(hers, 'secret', 'explicit').weight).toBe(0)
+  })
+})
+
+describe('the eleven speak to whoever is reading them', () => {
+  // The read had this test; the eleven did not, and a man reading a woman
+  // was handed "A second wife — what she believes about it for her own life"
+  // and a script asking her whether she would want one. A token swap turns
+  // some of these into a different question, so those topics carry a man's
+  // variant (src/data/eleven.ts). "near her" is his mother, on both sides.
+  const WRONG_SIDE: Record<Gender, RegExp> = {
+    man: /\b(he|him|his|himself)\b/i,
+    woman: /\b(she|hers|herself)\b|\bher\b(?! mother| side)/i,
+  }
+  for (const gender of ['woman', 'man'] as Gender[]) {
+    it(`names only the right side in every topic, read by a ${gender}`, () => {
+      for (const t of beforeYesTopics(gender)) {
+        const text = [t.label, t.prompt, t.why, t.script.why, t.script.words, t.script.tells]
+          .join('\n')
+          .replace(/near her/g, '')
+        expect(text, `${t.id} for a ${gender}`).not.toMatch(WRONG_SIDE[gender])
+        expect(text, `${t.id} leaves a token`).not.toMatch(/\{/)
+      }
+    })
+  }
+
+  it('asks a man about a second wife as the one who would take one', () => {
+    const his = beforeYesTopics('man').find((t) => t.id === 'second-wife')!
+    expect(his.prompt).toMatch(/what you believe/i)
+    expect(his.script.words).toMatch(/what I want for my own life/i)
+    const hers = beforeYesTopics('woman').find((t) => t.id === 'second-wife')!
+    expect(hers.script.words).toMatch(/whether you’d ever want that/i)
+  })
+
+  it('gives a man as many family scripts as a woman, including telling his own', () => {
+    // He had four to her five, and no way to say the hardest sentence of them:
+    // that he met her online.
+    const hers = familyScripts('woman').map((s) => s.id)
+    const his = familyScripts('man').map((s) => s.id)
+    expect(his).toHaveLength(hers.length)
+    expect(his).toContain('tell-family-online')
+    expect(his).not.toContain('tell-wali-online')
+    expect(hers).toContain('tell-wali-online')
+    expect(hers).not.toContain('tell-family-online')
   })
 })

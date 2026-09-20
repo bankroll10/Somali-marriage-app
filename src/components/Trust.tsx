@@ -4,6 +4,7 @@ import type { LedgerEntry } from '../lib/ledger'
 import { BackButton, CheckIcon, Disclose, LockGlyph, Logo } from './ui'
 import ReportConcern from './ReportConcern'
 import { CONTACT_EMAIL } from '../lib/site'
+import { speak } from '../data/read'
 
 interface Props {
   identity: Identity
@@ -37,7 +38,7 @@ interface Props {
  * exact account of where her answers live.
  */
 export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
-  const isWoman = identity.gender === 'woman'
+  const fix = speak(identity.gender)
   const [forgetting, setForgetting] = useState<'idle' | 'sure' | 'working'>('idle')
   // What a failed server delete left behind, named rather than hidden.
   const [stillHeld, setStillHeld] = useState<string[]>([])
@@ -65,7 +66,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
             little time and a little honesty, and none can be faked. If a pool ever
             opens here, this is what would decide who you meet, and who meets you —
             and nothing is deciding it yet.
-            {isWoman ? ' Sister, every one of these is yours to do or not.' : ''}
+            {' '}Every one of these is yours to do or not.
           </p>
 
           {/* The ledger. Facts, in order; no number anywhere. */}
@@ -243,22 +244,22 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               </p>
             </Disclose>
 
-            <Disclose summary="Asking him to do the eleven too" hint="Only where you match comes back">
+            <Disclose summary={fix('Asking {him} to do the eleven too')} hint="Only where you match comes back">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
-                If you send him the link, your eleven answers go to our server under a
-                code with no name on it, and his go there when he answers. The server
-                sends back only where you match — never your sheet to him, never his
-                to you. From your own answer you can still tell whether he thinks a
-                conversation happened; that is the point, and he can tell the same
-                about you.
+                {fix(`If you send {him} the link, your eleven answers go to our server under a
+                code with no name on it, and {his} go there when {he} answers. The server
+                sends back only where you match — never your sheet to {him}, never {his}
+                to you. From your own answer you can still tell whether {he} thinks a
+                conversation happened; that is the point, and {he} can tell the same
+                about you.`)}
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                Your answers are frozen the moment he answers, his after
-                once, and the whole thing expires after ninety days. Once he has
+                {fix(`Your answers are frozen the moment {he} answers, {his} after
+                once, and the whole thing expires after ninety days. Once {he} has
                 answered, your pair is also added to a count of how pairs come out on
                 each of the eleven — both agree, neither has raised it, one thinks it
                 was talked about — with no code and no side attached, so we can learn
-                which conversations couples here most often miss.
+                which conversations couples here most often miss.`)}
               </p>
             </Disclose>
 
@@ -284,7 +285,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 While <span className="font-medium text-ink">Count me</span> is on, each
                 time you first reach one of the steps above — you said what was
                 happening, you built a map, you kept it, you took a read, you went through the
-                eleven, you asked him, he answered, you had the conversation, your
+                eleven, {fix('you asked {him}, {he} answered')}, you had the conversation, your
                 family vouched, you were counted, you’re deciding, you’re married —
                 that step and the date reach us, along with your city if you gave
                 one, and whether you said you are a woman or a man — so we can
@@ -302,12 +303,12 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 and what here you used.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                If something you were in ends and you say
-                so, it also says that it ended, whether you were getting to know him
+                {fix(`If something you were in ends and you say
+                so, it also says that it ended, whether you were getting to know {him}
                 or deciding, and — only if you tap one — what decided it: a
-                non-negotiable and which, one of the eleven and which, what his read
-                had found thin, your family, his, timing, distance, he stopped, you
-                did, or something you’d rather not say.
+                non-negotiable and which, one of the eleven and which, what {his} read
+                had found thin, your family, {his}, timing, distance, {he} stopped, you
+                did, or something you’d rather not say.`)}
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 If you reach the door and
@@ -328,7 +329,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 once: never how far you got, never how long you spent, never how
                 many times you came back. Never an answer in your words, never the line you write
                 for the next person, never a word the guide said or you said to it,
-                and never a name — his, yours or your family’s.
+                and never a name — {fix('{his}')}, yours or your family’s.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 If you opened Niyyah
@@ -379,7 +380,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
           <h2 className="font-display text-[1.08rem] font-medium text-ink">Forget me</h2>
           <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
             Deletes your kept map, your family’s vouch and the link they used, your
-            place on the door, the eleven you sent him, and the count of your steps
+            place on the door, {fix('the eleven you sent {him}')}, and the count of your steps
             — then clears this phone. Your email or phone goes with the rest of it,
             from the store we hold. If you come back after this, you start as a stranger.
           </p>
@@ -392,7 +393,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
             className="mt-3"
           >
             <p className="text-[0.88rem] leading-snug text-muted text-pretty">
-              One thing stays: if he answered your eleven,
+              {fix('One thing stays: if {he} answered your eleven,')}
               your pair was already added to a count of how pairs come out, and that
               count carries no code, so it cannot be found again — not by us, not by
               you.

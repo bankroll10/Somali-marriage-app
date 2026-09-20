@@ -147,6 +147,7 @@ export const JOINTS = new Set(['both-agree', 'both-not-talked', 'one-thinks-talk
 /** Must match src/data/families.ts. */
 export const FAMILY_SCRIPT_IDS = new Set([
   'tell-wali-online',
+  'tell-family-online',
   'first-with-hooyo',
   'send-his-people',
   'approach-her-family',

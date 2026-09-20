@@ -68,12 +68,16 @@ describe('Trust keeps what it collapsed', () => {
     for (const summary of [
       'Keeping your map',
       'Joining the founding cohort',
-      'Asking him to do the eleven too',
+      'Asking {him} to do the eleven too',
       'Asking your family to vouch',
       'Being counted in the ladder',
       'The Guide',
     ]) {
-      expect(trust, `Trust no longer discloses "${summary}"`).toContain(`summary="${summary}"`)
+      // Either form: a plain label, or one resolved through speak() for
+      // whoever is reading — the pronoun in "Asking {him}" is theirs.
+      const plain = trust.includes(`summary="${summary}"`)
+      const spoken = trust.includes(`summary={fix('${summary}')}`)
+      expect(plain || spoken, `Trust no longer discloses "${summary}"`).toBe(true)
     }
   })
 

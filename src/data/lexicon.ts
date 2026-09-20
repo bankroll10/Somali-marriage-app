@@ -81,7 +81,7 @@ export const LEXICON: Term[] = [
   {
     id: 'read',
     term: 'A read',
-    body: 'Eleven questions about what someone has actually done, not what they promise. It reads him, never you — and we never ask his name.',
+    body: 'Eleven questions about what someone has done, not what they promise. It reads them, not you, and it never asks their name.',
   },
   {
     id: 'eleven',

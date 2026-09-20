@@ -54,7 +54,7 @@ describe('how you chose', () => {
     const text = buildEnding(full, TODAY).lines.map((l) => l.text).join(' ')
     expect(text).toContain('Building your foundation')
     expect(text).toContain('Grounded and ready')
-    expect(text).toMatch(/read on what he had actually done/)
+    expect(text).toMatch(/read on what he had done/)
     expect(text).toMatch(/eleven conversations before you said yes/)
     expect(text).toMatch(/his own phone, and he did/)
     expect(text).toContain('Your father, Abdi, vouched for you.')

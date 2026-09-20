@@ -522,8 +522,8 @@ export default function Coach({
               </p>
               <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
                 Every conversation above stays yours to re-read. The guide’s budget
-                refills when something real moves: you take a read on him, you
-                go through the eleven, you answer “since last time” on your space,
+                refills when something real moves: you take a read on someone,
+                you go through the eleven, you answer “since last time” at home,
                 you say where you are now. Each one is more replies — and each one
                 is the thing the guide would have told you to do anyway.
               </p>
