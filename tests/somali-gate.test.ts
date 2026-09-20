@@ -79,18 +79,22 @@ describe('the money conversation sheet’s Somali translation', () => {
     }
   })
 
-  it('has a catalog row for each built file — docs/ASSETS.md’s own rule for a real asset', () => {
+  it('has a catalog row for each built file, marked live only after a real session-less check', () => {
     const catalog = readFileSync('docs/ASSETS.md', 'utf8')
     expect(catalog).toContain('N3-so')
     expect(catalog).toContain('niyyah-money-conversation-sheet-so.html')
     expect(catalog).toContain('N3-1page-so')
     expect(catalog).toContain('niyyah-money-conversation-sheet-1page-so.html')
-    // Still not claimed as live and checked — docs/ASSETS.md's rule (a
-    // person has to open it on a session-less device first) applies here
-    // exactly as it does to every other asset in the table.
+    // Merged to main 2026-09-20 and checked the same day — a session-less
+    // curl -sI, 200 on both addresses — so docs/ASSETS.md's rule (a person
+    // has to open it on a session-less device first) is satisfied, not
+    // skipped. A row claiming "live and checked" with no date beside it
+    // would still be the wrong thing to pin here.
     const n3so = catalog.split('\n').find((l) => l.startsWith('| **N3-so**'))!
     const n3p1so = catalog.split('\n').find((l) => l.startsWith('| **N3-1page-so**'))!
-    expect(n3so).not.toMatch(/live and checked/)
-    expect(n3p1so).not.toMatch(/live and checked/)
+    expect(n3so).toMatch(/live and checked/)
+    expect(n3so).toMatch(/2026-09-20/)
+    expect(n3p1so).toMatch(/live and checked/)
+    expect(n3p1so).toMatch(/2026-09-20/)
   })
 })
