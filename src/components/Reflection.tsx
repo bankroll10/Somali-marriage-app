@@ -249,7 +249,7 @@ export default function ReflectionView({
             {r.dimensions.map((d, i) => (
               <div key={d.dimension} className="animate-rise" style={{ animationDelay: `${i * 60}ms` }}>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-display text-[1.05rem] font-medium text-ink">{d.label}</span>
+                  <span className="min-w-0 flex-1 font-display text-[1.05rem] font-medium text-ink">{d.label}</span>
                   <StateTag state={d.state} />
                 </div>
                 <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">{d.note}</p>

@@ -424,7 +424,7 @@ function Result({
               key={d.dimension}
               className="flex items-center justify-between gap-4 border-b border-line py-2.5 last:border-b-0"
             >
-              <span className="text-[0.95rem] text-ink-soft">{d.label}</span>
+              <span className="min-w-0 flex-1 text-[0.95rem] text-ink-soft">{d.label}</span>
               <StateTag state={d.state} />
             </li>
           ))}

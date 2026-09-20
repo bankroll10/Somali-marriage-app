@@ -191,6 +191,21 @@ describe('loading states — the one silent button the audit found', () => {
   })
 })
 
+describe('text wrapping — a variable label beside a fixed-shape badge', () => {
+  it('gives Read and Reflection\'s StateTag rows a wrap boundary on the label, like Disclose already has', () => {
+    for (const file of ['components/Read.tsx', 'components/Reflection.tsx'] as const) {
+      const src = read(file)
+      const line = src.split('\n').find((l) => l.includes('{d.label}'))
+      expect(line, `${file} has no {d.label} line`).toMatch(/min-w-0 flex-1/)
+    }
+  })
+
+  it('wraps Coach\'s quick-reply chip label so a long one can\'t push the arrow onto its own line', () => {
+    const src = read('components/Coach.tsx')
+    expect(src).toMatch(/<span className="min-w-0 flex-1 text-left">\{s\.label\}<\/span>/)
+  })
+})
+
 describe('the mobile-craft pass reads more than fifteen component files, so an empty result above means clean and not skipped', () => {
   it('sees the component directory', () => {
     const files = readdirSync(join(SRC, 'components')).filter((f) => f.endsWith('.tsx'))

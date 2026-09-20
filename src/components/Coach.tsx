@@ -553,8 +553,8 @@ export default function Coach({
                     onClick={() => send(s.prompt)}
                     className="group flex items-center justify-between gap-3 rounded-2xl border border-line bg-white/60 px-4 py-3 text-left text-[0.95rem] font-medium text-ink transition-all hover:border-forest/40 hover:bg-white"
                   >
-                    {s.label}
-                    <span className={`${accentText[activeMode.accent]} transition-transform group-hover:translate-x-0.5`}>→</span>
+                    <span className="min-w-0 flex-1 text-left">{s.label}</span>
+                    <span className={`flex-none ${accentText[activeMode.accent]} transition-transform group-hover:translate-x-0.5`}>→</span>
                   </button>
                 ))}
               </div>
