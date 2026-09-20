@@ -104,7 +104,9 @@ describe('joining', () => {
       hook: 'serious',
       ledger: ['map', 'kept'],
     })
-    expect(result).toEqual({ code: 'ACDEFG', here: { women: 1, men: 0 }, across: { women: 12, men: 4 }, target: 40 })
+    // `contactStored` rides along: an older server that does not send it is
+    // read as true, which is what the join did before the field existed.
+    expect(result).toEqual({ code: 'ACDEFG', here: { women: 1, men: 0 }, across: { women: 12, men: 4 }, target: 40, contactStored: true })
     expect(calls[0].url).toContain('/keep')
     expect(calls[1].url).toContain('/cohort')
     expect(calls[1].body).toMatchObject({
@@ -220,5 +222,28 @@ describe('the map is current when she is counted', () => {
     const result = await joinCohort({ scene: 'twin-cities', gender: 'woman' })
     expect(result?.code).toBe('ACDEFG')
     expect(cohortBody.code).toBe('ACDEFG')
+  })
+})
+
+describe('the way to reach her', () => {
+  it('reports it when the server counted her but could not write the contact', async () => {
+    // Being counted succeeds in its own right and must not be undone, so the
+    // server answers 200 — but it used to answer identically whether the
+    // contacts store took her address or threw, and the card said "You're
+    // counted ... kept apart from it for the day that changes" either way
+    // (docs/FAIL.md).
+    saveProgress(state)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) =>
+        url.endsWith('/keep')
+          ? json({ code: 'ACDEFG' })
+          : json({ code: 'ACDEFG', ...served, here: { women: 1, men: 0 }, contactStored: false }),
+      ),
+    )
+    const result = await joinCohort({ scene: 'twin-cities', gender: 'woman', country: 'us', reach: 'city', ledger: [] })
+    expect(result?.contactStored).toBe(false)
+    // She is still counted; that half worked.
+    expect(result?.code).toBe('ACDEFG')
   })
 })

@@ -1,5 +1,5 @@
 import type { VouchState } from '../types'
-import { send } from './net'
+import { send, whyOf, type Why } from './net'
 
 /**
  * The client half of netlify/functions/vouch.ts. Nothing here ever handles the
@@ -39,6 +39,29 @@ export async function sendVouch(code: string, input: VouchInput): Promise<VouchR
     return asVouch(await res.json())
   } catch {
     return null
+  }
+}
+
+/**
+ * The same read, saying why nothing came back.
+ *
+ * 'none' is the ordinary answer — nobody has vouched yet — and it is the one
+ * that should open the form. Everything else must not: a server that could not
+ * be reached used to land here as "no vouch yet" and render the form, so a
+ * father filled in his name, a sentence about his daughter and his phone
+ * number before finding out (docs/FAIL.md).
+ */
+export async function readVouchDetail(code: string): Promise<VouchState | 'none' | Why> {
+  const res = await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`)
+  // A 404 here is the server saying either "no vouch" or "no map"; it does not
+  // separate them, and the form is the right answer to both — sendVouch says
+  // which if the map is the problem.
+  if (res?.status === 404) return 'none'
+  if (!res?.ok) return whyOf(res)
+  try {
+    return asVouch(await res.json()) ?? 'none'
+  } catch {
+    return 'garbled'
   }
 }
 

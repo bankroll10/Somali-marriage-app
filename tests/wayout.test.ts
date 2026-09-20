@@ -37,15 +37,18 @@ describe('the screens a stranger arrives on', () => {
   })
 
   it('offer a way out of every phase, including the ones that ask for something', () => {
-    // Couple: dead · yours-intro · his-intro · answered-already · joint.
-    // Vouch: form · done · already · dead. Every branch that renders an <h1>
-    // also renders an exit, so none of them is terminal.
+    // Couple: dead · unreachable · yours-intro · his-intro · answered-already
+    // · joint. Vouch: form · done · already · dead · gone · unreachable.
+    // Every branch that renders an <h1> also renders an exit, so none of them
+    // is terminal. Both counts rose in the failure-state pass, when a dead
+    // link stopped standing in for a dead connection and for a map that had
+    // lapsed (docs/FAIL.md) — this guard catching that is it doing its job.
     const couple = read('components/Couple.tsx')
     const vouch = read('components/Vouch.tsx')
 
     // The prop, the destructure, and one call per phase that can strand you.
-    expect([...couple.matchAll(/onHome/g)]).toHaveLength(6)
-    expect([...vouch.matchAll(/onDone/g)]).toHaveLength(6)
+    expect([...couple.matchAll(/onHome/g)]).toHaveLength(7)
+    expect([...vouch.matchAll(/onDone/g)]).toHaveLength(8)
 
     // The two that had no control at all: his intro, beside Start, and the
     // answered-already branch that came back without a joint sheet.

@@ -1,7 +1,7 @@
 import type { Gender } from '../types'
 import type { Script } from '../data/read'
 import { ALL_AGREED, beforeYesTopics, type Topic } from '../data/beforeYes'
-import { send } from './net'
+import { send, whyOf, type Why } from './net'
 
 /**
  * The client half of netlify/functions/couple.ts.
@@ -32,19 +32,35 @@ export async function createCouple(states: Record<string, string>, gender: Gende
   }
 }
 
-/** He answers, once. Returns the joint view, or null. 'answered' when it was already done. */
-export async function answerCouple(code: string, states: Record<string, string>): Promise<CoupleView | 'answered' | null> {
+/**
+ * He answers, once. The joint view, 'answered' when it was already done, or
+ * why it did not go.
+ *
+ * The reason matters more here than anywhere else in the product. This is the
+ * eleventh tap of eleven, and a null used to send him to a screen reading
+ * "This link isn't working — it may have expired, or been copied wrong",
+ * throwing away every answer he had just given. A timeout is not a dead link,
+ * and his answers are worth more than the round trip (docs/FAIL.md).
+ */
+export async function answerCouple(code: string, states: Record<string, string>): Promise<CoupleView | 'answered' | Why> {
   const res = await post({ side: 'second', code, states })
   if (res?.status === 409) return 'answered'
-  if (!res?.ok) return null
-  return parseView(res)
+  if (!res?.ok) return whyOf(res)
+  return (await parseView(res)) ?? 'garbled'
 }
 
-/** What either of them may see. Null when the link is dead. */
+/** What either of them may see. Null when it could not be read, for any reason. */
 export async function readCouple(code: string): Promise<CoupleView | null> {
   const res = await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`)
   if (!res?.ok) return null
   return parseView(res)
+}
+
+/** The same, saying why — so a dead link and a dead connection read differently. */
+export async function readCoupleDetail(code: string): Promise<CoupleView | Why> {
+  const res = await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`)
+  if (!res?.ok) return whyOf(res)
+  return (await parseView(res)) ?? 'garbled'
 }
 
 async function parseView(res: Response): Promise<CoupleView | null> {

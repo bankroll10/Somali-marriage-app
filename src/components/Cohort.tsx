@@ -61,6 +61,9 @@ interface Props {
  * nobody else does. The count is a sentence, not two progress bars: there is
  * nothing here to come back and watch.
  */
+/** The count, or what is happening instead of it. */
+export type CountState = CohortCount | 'loading' | 'unreachable'
+
 export default function Cohort({ identity, hookId, ledger, joined, onJoined, onScene, onCountry, onReach, onAge, onHesitate, compact }: Props) {
   const configured = waitlistConfigured()
   const [contact, setContact] = useState('')
@@ -79,8 +82,14 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   const [askAge] = useState(!identity.age)
   const [ageText, setAgeText] = useState('')
   const age = identity.age ?? parseAge(ageText)
-  const [count, setCount] = useState<CohortCount | null>(null)
+  // Three states, not two. `null` used to mean both "still asking" and
+  // "could not be read", so a working request rendered "The count isn't
+  // reachable right now" for its whole in-flight window — up to ten seconds
+  // of a sentence that was not true (docs/FAIL.md).
+  const [count, setCount] = useState<CountState>('loading')
   const [state, setState] = useState<'idle' | 'sending' | 'error'>('idle')
+  const [travelling, setTravelling] = useState(false)
+  const [travelFailed, setTravelFailed] = useState(false)
 
   const country = countryFor({ scene, country: identity.country }) ?? (scene === 'other' ? namedCountry : '')
   const reach: Reach = identity.reach ?? (travelled ? 'country' : 'city')
@@ -90,8 +99,9 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   useEffect(() => {
     if (!scene || !country) return
     let live = true
+    setCount('loading')
     cohortCount(scene, country).then((c) => {
-      if (live) setCount(c)
+      if (live) setCount(c ?? 'unreachable')
     })
     return () => {
       live = false
@@ -140,22 +150,47 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   // One tap: she would travel within her country. If she is already counted,
   // her entry is replaced so the door moves now rather than on her next join.
   async function travel() {
+    if (travelling) return
+    if (!joined || !identity.gender || !country) {
+      // Nothing to send yet — the reach travels with her next join.
+      setTravelled(true)
+      onReach?.('country')
+      return
+    }
+    setTravelling(true)
+    const result = await joinCohort({ scene, gender: identity.gender, hook: hookId, ledger, country, reach: 'country', age: identity.age })
+    setTravelling(false)
+    // `setTravelled(true)` used to run first, which unmounted this button —
+    // so a failed write left her reach changed on the device, the door
+    // unchanged on the server, no message, and nothing left to retry with
+    // (docs/FAIL.md). The optimism now waits for the answer.
+    if (!result) {
+      setTravelFailed(true)
+      return
+    }
+    setTravelFailed(false)
     setTravelled(true)
     onReach?.('country')
-    if (joined && identity.gender && country) {
-      const result = await joinCohort({ scene, gender: identity.gender, hook: hookId, ledger, country, reach: 'country', age: identity.age })
-      if (result) setCount(result)
-    }
+    setCount(result)
   }
 
   const travelAsk =
     country && reach === 'city' ? (
-      <button
-        onClick={travel}
-        className="mt-3 inline-flex items-center gap-2 rounded-full border border-gold/40 px-4 py-2 text-[0.85rem] font-medium text-forest transition hover:bg-gold/[0.08]"
-      >
-        I’d travel within {within}
-      </button>
+      <div className="mt-3">
+        <button
+          onClick={travel}
+          disabled={travelling}
+          className="inline-flex items-center gap-2 rounded-full border border-gold/40 px-4 py-2 text-[0.85rem] font-medium text-forest transition hover:bg-gold/[0.08] disabled:opacity-50"
+        >
+          {travelling ? <Spinner /> : null}
+          {travelling ? 'Saying so…' : `I’d travel within ${within}`}
+        </button>
+        {travelFailed && (
+          <p role="status" className="mt-2 text-[0.82rem] leading-snug text-clay text-pretty">
+            That didn’t reach the door — nothing has changed, and you are still counted where you were. Try again in a moment.
+          </p>
+        )}
+      </div>
     ) : null
 
   if (joined) {
@@ -166,10 +201,28 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
         </p>
         <p className="mt-3 text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
           <DoorCount count={count} city={city} within={within} other={other} /> Nobody in {pool} is introduced to anyone
-          yet — the count above is what exists. Your map is counted, and{' '}
-          <span className="font-medium text-ink">{joined.contact || 'the address you gave'}</span>{' '}
-          is kept apart from it for the day that changes, and reaches nobody else. When it changes, this screen will say so.
+          yet — the count above is what exists. Your map is counted
+          {joined.contactHeld === false ? (
+            '.'
+          ) : (
+            <>
+              , and{' '}
+              <span className="font-medium text-ink">{joined.contact || 'the address you gave'}</span>{' '}
+              is kept apart from it for the day that changes, and reaches nobody else. When it changes, this screen will
+              say so.
+            </>
+          )}
         </p>
+        {joined.contactHeld === false && (
+          <p role="status" className="mt-2.5 text-[0.9rem] leading-relaxed text-clay text-pretty">
+            The way to reach you did not save — you are counted, but we could not write it down. Nothing is lost on this
+            phone. Join again in a moment, or write to{' '}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium underline underline-offset-4">
+              {CONTACT_EMAIL}
+            </a>{' '}
+            and it goes on by hand.
+          </p>
+        )}
         {travelAsk}
         {joined.code && (
           <p className="mt-2 text-[0.85rem] leading-relaxed text-muted text-pretty">
@@ -254,7 +307,18 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
       at,
     })
     track('cohort_joined', { scene, queued: sent === 'queued', unconfigured: sent === 'unconfigured' })
-    onJoined({ contact: trimmed, scene, code: result.code, joinedAt: at })
+    // `sent` used to go to `track()` and nowhere else, so onJoined fired
+    // identically whether the form took her contact, queued it, or was never
+    // configured — and the card said "You're counted" either way. Our own
+    // store is the one that matters; the form is a copy. She is told the
+    // truth when neither of them has it (docs/FAIL.md).
+    onJoined({
+      contact: trimmed,
+      scene,
+      code: result.code,
+      joinedAt: at,
+      contactHeld: result.contactStored || sent === 'joined',
+    })
   }
 
   // `looksReachable`, not `trim()`: the way to reach her is the only thing this
@@ -327,7 +391,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
               value={scene}
               onChange={(e) => {
                 setScene(e.target.value)
-                setCount(null)
+                setCount('loading')
                 if (e.target.value) onScene?.(e.target.value)
               }}
               aria-label="Your community"
@@ -346,7 +410,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
               value={namedCountry}
               onChange={(e) => {
                 setNamedCountry(e.target.value)
-                setCount(null)
+                setCount('loading')
                 if (e.target.value) onCountry?.(e.target.value)
               }}
               aria-label="Your country"
@@ -542,8 +606,13 @@ function people(n: SideCount): string {
  * in a city of nine: the people in her country who would travel to her.
  * Shared with the `/?door` screen, so the number reads the same everywhere.
  */
-export function DoorCount({ count, city, within, other }: { count: CohortCount | null; city: string; within: string; other: boolean }) {
-  if (!count) return <span>The count isn’t reachable right now.</span>
+export function DoorCount({ count, city, within, other }: { count: CountState; city: string; within: string; other: boolean }) {
+  // Asking is not the same as failing to ask, and the screen must not say the
+  // second while it is doing the first (docs/FAIL.md).
+  if (count === 'loading') return <span className="text-muted">Reading the count…</span>
+  if (count === 'unreachable' || !count) {
+    return <span>The count isn’t reachable just now — that is us, not you. It will be here next time.</span>
+  }
   return (
     <span>
       {count.here ? (

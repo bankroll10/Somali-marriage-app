@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { Gender } from '../types'
 import { STATES, beforeYesTopics } from '../data/beforeYes'
-import { answerCouple, coupleReading, readCouple, type CoupleView } from '../lib/couple'
+import { answerCouple, coupleReading, readCoupleDetail, type CoupleView } from '../lib/couple'
+import type { Why } from '../lib/net'
 import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import InviteRow from './InviteRow'
@@ -30,7 +31,7 @@ interface Props {
   onHome: () => void
 }
 
-type Phase = 'loading' | 'dead' | 'answered-already' | 'intro' | 'asking' | 'joint'
+type Phase = 'loading' | 'dead' | 'unreachable' | 'answered-already' | 'intro' | 'asking' | 'joint'
 
 /**
  * His screen.
@@ -53,12 +54,16 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
   const [picked, setPicked] = useState<Record<string, string>>({})
   const [index, setIndex] = useState(0)
   const [view, setView] = useState<CoupleView | null>(null)
+  // Why the last send did not go — kept apart from the link being dead.
+  const [sendFailed, setSendFailed] = useState<Why | null>(null)
 
   useEffect(() => {
     let live = true
-    readCouple(code).then((v) => {
+    readCoupleDetail(code).then((v) => {
       if (!live) return
-      if (!v) setPhase('dead')
+      // Only the server actually saying there is nothing there makes a link
+      // dead. Everything else is us.
+      if (typeof v === 'string') setPhase(v === 'not-found' || v === 'expired' || v === 'not-a-code' ? 'dead' : 'unreachable')
       else if (v.status === 'joint') {
         setView(v)
         setPhase('answered-already')
@@ -93,10 +98,20 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
       setPhase('answered-already')
       return
     }
-    if (!result) {
-      setPhase('dead')
+    if (typeof result === 'string') {
+      // A timeout is not a dead link. This used to drop him on "This link
+      // isn't working — it may have expired, or been copied wrong" and throw
+      // away all eleven answers, on the eleventh tap, for a two-second blip
+      // on someone else's phone (docs/FAIL.md). His answers are still in
+      // `picked`; he stays exactly where he is and taps again.
+      if (result === 'not-found' || result === 'expired' || result === 'not-a-code') {
+        setPhase('dead')
+        return
+      }
+      setSendFailed(result)
       return
     }
+    setSendFailed(null)
     track('couple_answered')
     onAnswered(next, answerFor)
     setView(result)
@@ -113,6 +128,27 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
       </header>
       <main className="mx-auto max-w-xl px-6">
         {phase === 'loading' && <p className="py-16 text-center text-[0.95rem] text-muted">One moment.</p>}
+
+        {phase === 'unreachable' && (
+          <div className="py-12">
+            <h1 className="font-display text-[1.8rem] font-medium leading-tight tracking-tight text-ink text-balance">
+              We couldn’t open this just now.
+            </h1>
+            <p className="mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
+              That is us, not the link — it may be perfectly good. Nothing has been lost. Try again in a moment, and if
+              it keeps happening, ask {senderObj} to send it again.
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Button onClick={() => window.location.reload()}>Try again</Button>
+              <button
+                onClick={onHome}
+                className="px-2 py-2 text-[0.88rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+              >
+                What Niyyah is
+              </button>
+            </div>
+          </div>
+        )}
 
         {phase === 'dead' && (
           <div className="py-12">
@@ -220,6 +256,12 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                     </button>
                   ))}
                 </div>
+                {sendFailed && (
+                  <p role="status" className="mt-4 text-[0.88rem] leading-relaxed text-clay text-pretty">
+                    That didn’t send — the link is fine and your answers are still here. Tap your answer again in a
+                    moment.
+                  </p>
+                )}
                 {/* Back existed from question two, so tapping Start committed
                     him to eleven questions with no way back to what the screen
                     had just told him. Read.tsx steps back to its intro from

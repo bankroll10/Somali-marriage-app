@@ -80,6 +80,20 @@ export type Screen =
 
 const SAVE_DEBOUNCE_MS = 250
 
+/**
+ * A check that could not be made is retried — once, after a pause, and then
+ * left alone.
+ *
+ * Both of these answer a question about someone else: has he answered the
+ * eleven, has her family vouched. A failed check used to end the matter for
+ * the session, because neither effect's deps changed when the read failed. A
+ * retry is not a poll: two attempts, twenty seconds apart, and then silence
+ * until she opens the app again (docs/FAIL.md, and docs/FOGG.md's line on
+ * re-engagement).
+ */
+const RECHECK_TRIES = 1
+const RECHECK_MS = 20_000
+
 /** The screens Trust can be opened from, and returns to. */
 type TrustReturn = 'profile' | 'read' | 'beforeYes'
 
@@ -292,11 +306,24 @@ export function useNiyyah(entry: Entry | null = null) {
   // Has he answered the eleven she sent? Asked once per code, only until we
   // know — he answers on his own phone, and it has to reach hers without her
   // having to go looking.
+  const [coupleTries, setCoupleTries] = useState(0)
   useEffect(() => {
     if (!couple || couple.answered) return
     let live = true
+    let timer = 0
     readCouple(couple.code).then((v) => {
-      if (!live || v?.status !== 'joint') return
+      if (!live) return
+      // No answer at all — offline, a blip, a cap. Not "he hasn't answered":
+      // the deps were `[couple, identity.gender]` and neither changes on a
+      // failure, so one bad read meant her device stopped looking for the
+      // rest of the session, and the follow-up the whole pair loop hangs on
+      // was never written (docs/FAIL.md). One more attempt, later — a check,
+      // not a poll.
+      if (!v) {
+        if (coupleTries < RECHECK_TRIES) timer = window.setTimeout(() => setCoupleTries((n) => n + 1), RECHECK_MS)
+        return
+      }
+      if (v.status !== 'joint') return
       setCouple((prev) => (prev ? { ...prev, answered: new Date().toISOString() } : prev))
       // The one the two of them should open together is the one to ask about
       // in a few days — this is where the pair's follow-through comes from.
@@ -305,8 +332,9 @@ export function useNiyyah(entry: Entry | null = null) {
     })
     return () => {
       live = false
+      if (timer) window.clearTimeout(timer)
     }
-  }, [couple, identity.gender])
+  }, [couple, identity.gender, coupleTries])
 
   // ── Persistence (debounced — the age field saves per keystroke otherwise)
   useEffect(() => {
@@ -767,16 +795,28 @@ export function useNiyyah(entry: Entry | null = null) {
   // Has a family member vouched since she last opened the app? Asked once per
   // kept code, only until we know — a vouch given on someone else's phone has
   // to reach hers without her having to go looking for it.
+  const [vouchTries, setVouchTries] = useState(0)
   useEffect(() => {
     if (!keptCode || vouch) return
     let live = true
+    let timer = 0
     readVouch(keptCode).then((v) => {
-      if (live && v) setVouch(v)
+      if (!live) return
+      // `if (live && v)` swallowed the difference between "nobody has vouched"
+      // and "we could not ask", and `vouch` stays null on a failure, so the
+      // deps never changed and it never looked again. Her father vouched on
+      // his phone and her screen kept asking her to ask him (docs/FAIL.md).
+      if (!v) {
+        if (vouchTries < RECHECK_TRIES) timer = window.setTimeout(() => setVouchTries((n) => n + 1), RECHECK_MS)
+        return
+      }
+      setVouch(v)
     })
     return () => {
       live = false
+      if (timer) window.clearTimeout(timer)
     }
-  }, [keptCode, vouch])
+  }, [keptCode, vouch, vouchTries])
 
   /** Counted — and the map was kept on the way, so the ledger learns the code. */
   function joinedCohort(state: WaitlistState) {

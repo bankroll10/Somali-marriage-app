@@ -242,6 +242,18 @@ export interface WaitlistState {
   /** The code her kept map lives under, so the founder can link the two. */
   code?: string
   joinedAt: string
+  /**
+   * False when neither store took the way to reach her — our own contacts
+   * store threw, and the founder's form was unreachable too, so the entry is
+   * sitting in a local queue nobody has read.
+   *
+   * She was still counted: that part succeeded, and undoing it would be worse.
+   * But the card used to say "kept apart from it for the day that changes"
+   * regardless, which was the product telling her it could reach her when
+   * nothing could (docs/FAIL.md). Absent on entries written before this
+   * existed, and read as true — the old behaviour.
+   */
+  contactHeld?: boolean
 }
 
 /**

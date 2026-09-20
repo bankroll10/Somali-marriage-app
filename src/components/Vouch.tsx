@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { VouchState } from '../types'
 import { relationshipOptions } from '../data/vouch'
-import { readVouch, sendVouch } from '../lib/vouch'
+import { readVouchDetail, sendVouch } from '../lib/vouch'
 import { track } from '../lib/analytics'
 import { ArrowRight, Button, Logo, fieldClass } from './ui'
 
@@ -10,7 +10,7 @@ interface Props {
   onDone: () => void
 }
 
-type Phase = 'loading' | 'form' | 'sending' | 'done' | 'already' | 'dead' | 'error'
+type Phase = 'loading' | 'form' | 'sending' | 'done' | 'already' | 'dead' | 'gone' | 'unreachable' | 'error'
 
 /**
  * The family member's screen.
@@ -31,12 +31,14 @@ export default function Vouch({ code, onDone }: Props) {
 
   useEffect(() => {
     let live = true
-    readVouch(code).then((v) => {
+    readVouchDetail(code).then((v) => {
       if (!live) return
-      if (v) {
-        setExisting(v)
-        setPhase('already')
-      } else setPhase('form')
+      // A server we could not reach used to land here as "no vouch yet" and
+      // open the form (docs/FAIL.md).
+      if (v === 'none') return setPhase('form')
+      if (typeof v === 'string') return setPhase(v === 'not-a-code' ? 'dead' : 'unreachable')
+      setExisting(v)
+      setPhase('already')
     })
     return () => {
       live = false
@@ -61,7 +63,10 @@ export default function Vouch({ code, onDone }: Props) {
       return
     }
     if (r === 'no_map') {
-      setPhase('dead')
+      // The link was copied perfectly. Her map is what is gone — lapsed, or
+      // forgotten from her own phone — and telling him to check his typing
+      // sent him back for a link that would never work (docs/FAIL.md).
+      setPhase('gone')
       return
     }
     if (!r) {
@@ -181,6 +186,39 @@ export default function Vouch({ code, onDone }: Props) {
             </h1>
             <p className="animate-rise mt-4 text-[1rem] leading-relaxed text-ink-soft text-pretty">
               {existing ? `${existing.firstName} has already done this.` : 'This has already been done.'} One vouch is all that is asked. Thank you.
+            </p>
+            <button onClick={onDone} className="mt-8 text-sm font-medium text-forest underline-offset-4 hover:underline">
+              What Niyyah is
+            </button>
+          </div>
+        )}
+
+        {phase === 'unreachable' && (
+          <div className="py-12">
+            <h1 className="animate-rise font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
+              We couldn’t open this just now.
+            </h1>
+            <p className="animate-rise mt-4 text-[1rem] leading-relaxed text-ink-soft text-pretty">
+              That is us, not the link. Nothing has been asked of you yet. Try again in a moment.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Button onClick={() => window.location.reload()}>Try again</Button>
+              <button onClick={onDone} className="px-2 py-2 text-sm font-medium text-muted underline underline-offset-4 transition hover:text-ink">
+                What Niyyah is
+              </button>
+            </div>
+          </div>
+        )}
+
+        {phase === 'gone' && (
+          <div className="py-12">
+            <h1 className="animate-rise font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
+              There is nothing left to vouch for.
+            </h1>
+            <p className="animate-rise mt-4 text-[1rem] leading-relaxed text-ink-soft text-pretty">
+              You copied the link correctly — it is the map behind it that is gone. They either cleared everything from
+              their phone, or it lapsed after a year untouched. Nothing you typed was sent anywhere. If they still want
+              a vouch, they can ask again and send a new link.
             </p>
             <button onClick={onDone} className="mt-8 text-sm font-medium text-forest underline-offset-4 hover:underline">
               What Niyyah is

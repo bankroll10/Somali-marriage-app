@@ -115,6 +115,9 @@ export async function cohortCount(scene: string, country?: string): Promise<Coho
   }
 }
 
+/** What came back from a join: her code, the count after it, and whether the way to reach her was stored. */
+export type JoinResult = { code: string; contactStored: boolean } & CohortCount
+
 async function postJoin(code: string, input: JoinInput): Promise<Response | null> {
   return send(ENDPOINT, {
     method: 'POST',
@@ -135,7 +138,7 @@ async function postJoin(code: string, input: JoinInput): Promise<Response | null
  * edited since was counted as it had been, not as it was. If the re-keep
  * fails she is still counted under the code she already has.
  */
-export async function joinCohort(input: JoinInput): Promise<({ code: string } & CohortCount) | null> {
+export async function joinCohort(input: JoinInput): Promise<JoinResult | null> {
   const { age, ...place } = input
   const patch = age === undefined ? undefined : { identity: { age } }
   let code = (await keepMap(patch)) ?? rememberedCode()
@@ -151,10 +154,15 @@ export async function joinCohort(input: JoinInput): Promise<({ code: string } & 
   }
   if (!res?.ok) return null
   try {
-    const body = (await res.json()) as { code?: string }
+    const body = (await res.json()) as { code?: string; contactStored?: boolean }
     const count = asCount(body)
     if (!count || typeof body.code !== 'string') return null
-    return { code: body.code, ...count }
+    // The server writes the way to reach her in a try of its own, so being
+    // counted cannot fail because the list did — and it used to answer 200
+    // either way, which meant she read "You're counted" with nothing able to
+    // reach her (docs/FAIL.md). An older server that does not send this is
+    // read as true, the behaviour before the field existed.
+    return { code: body.code, ...count, contactStored: body.contactStored !== false }
   } catch {
     return null
   }
