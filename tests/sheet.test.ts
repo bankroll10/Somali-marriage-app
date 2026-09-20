@@ -441,11 +441,13 @@ describe('the facilitator note', () => {
 
   it('links each of the four sheet files by their real, relative filename', () => {
     const anchors = [...NOTE.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
+    // One page before four pages, in the Somali pair as in the English
+    // pair above it — the order the labels now claim.
     expect(anchors).toEqual([
       'niyyah-money-conversation-sheet-1page.html',
       'niyyah-money-conversation-sheet.html',
-      'niyyah-money-conversation-sheet-so.html',
       'niyyah-money-conversation-sheet-1page-so.html',
+      'niyyah-money-conversation-sheet-so.html',
       'https://joinniyyah.com/',
     ])
     for (const href of anchors.filter((h) => h !== 'https://joinniyyah.com/')) {
@@ -474,11 +476,23 @@ describe('the facilitator note', () => {
     expect(NOTE).toContain('niyyah-money-conversation-sheet.html')
   })
 
-  it('tells a coordinator the Somali versions exist, so they know to ask', () => {
+  it('tells a coordinator the Somali versions exist, and which is which', () => {
+    // Both Somali files were once named by an elided "…-so.html" /
+    // "…-1page-so.html", listed four-page-first while the English pair
+    // above them ran one-page-first. The hrefs were right; the labels
+    // read backwards. Full filenames, and the page count said in words.
     expect(NOTE).toMatch(/Somali/)
-    expect(NOTE).toContain('…-so.html')
-    expect(NOTE).toContain('…-1page-so.html')
-    expect(NOTE_TXT).toMatch(/Somali/)
+    expect(NOTE).not.toContain('…-so.html')
+    expect(NOTE).not.toContain('…-1page-so.html')
+    expect(NOTE).toContain('niyyah-money-conversation-sheet-1page-so.html')
+    expect(NOTE).toContain('niyyah-money-conversation-sheet-so.html')
+    for (const doc of [NOTE, NOTE_TXT]) {
+      // flat(): the .txt wraps mid-phrase at 78 columns, so the sentence
+      // only exists as one string once the line breaks are collapsed.
+      expect(flat(doc)).toMatch(/Somali/)
+      expect(flat(doc)).toMatch(/for the one-page version/)
+      expect(flat(doc)).toMatch(/for the four-page/)
+    }
   })
 
   it('carries the same footer and version line as the two sheets', () => {
@@ -494,6 +508,76 @@ describe('the facilitator note', () => {
       expect(NOTE_TXT, phrase).toContain(phrase)
     }
     expect(NOTE_TXT.match(/https?:\/\/[^\s]+/g)).toEqual(['https://joinniyyah.com/'])
+  })
+})
+
+describe('the link graph across the whole N3 family', () => {
+  // Checked as a graph, not as five separate string matches, because the
+  // failure this guards is always a mismatch *between* two files: a link
+  // whose label says one thing and whose href opens another, or two links
+  // in a section quietly sharing a target. Both still return 200, so
+  // nothing downstream notices.
+  const FOUR_EN = 'niyyah-money-conversation-sheet.html'
+  const ONE_EN = 'niyyah-money-conversation-sheet-1page.html'
+  const FOUR_SO = 'niyyah-money-conversation-sheet-so.html'
+  const ONE_SO = 'niyyah-money-conversation-sheet-1page-so.html'
+
+  const SO_HTML = readFileSync(`public/${FOUR_SO}`, 'utf8')
+  const ONE_SO_HTML = readFileSync(`public/${ONE_SO}`, 'utf8')
+
+  /** Every link on the page that points at another file here, label included. */
+  const rel = (doc: string) =>
+    [...doc.matchAll(/<a\s[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)]
+      .map((m) => ({ href: m[1], text: m[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() }))
+      .filter((l) => !/^https?:/.test(l.href))
+
+  const SHEETS = [
+    [FOUR_EN, HTML, [ONE_EN, FOUR_SO]],
+    [ONE_EN, ONE_PAGE, [FOUR_EN, ONE_SO]],
+    [FOUR_SO, SO_HTML, [ONE_SO, FOUR_EN]],
+    [ONE_SO, ONE_SO_HTML, [FOUR_SO, ONE_EN]],
+  ] as const
+
+  it('every sheet page links to exactly its two counterparts, and never to itself', () => {
+    for (const [name, doc, targets] of SHEETS) {
+      const hrefs = rel(doc).map((l) => l.href)
+      expect(hrefs, name).toEqual([...targets])
+      expect(new Set(hrefs).size, name).toBe(hrefs.length)
+      expect(hrefs, name).not.toContain(name)
+    }
+  })
+
+  it('the length link keeps the language, and the language link keeps the length', () => {
+    // One link per axis. Crossing both at once — a four-page English sheet
+    // offering the *one-page* Somali — is the silent mis-wiring that a
+    // per-file string check would sail straight past.
+    const isSomali = (f: string) => f.endsWith('-so.html')
+    const isOnePage = (f: string) => f.includes('-1page')
+    for (const [self, doc] of SHEETS) {
+      const [lengthLink, languageLink] = rel(doc).map((l) => l.href)
+      expect(isSomali(lengthLink), `${self}: length link changed language`).toBe(isSomali(self))
+      expect(isOnePage(lengthLink), `${self}: length link did not change length`).toBe(!isOnePage(self))
+      expect(isSomali(languageLink), `${self}: language link did not change language`).toBe(!isSomali(self))
+      expect(isOnePage(languageLink), `${self}: language link changed length`).toBe(isOnePage(self))
+    }
+  })
+
+  it('the facilitator note links all four sheets, each label naming the file it opens', () => {
+    const links = rel(NOTE)
+    expect(links.map((l) => l.href)).toEqual([ONE_EN, FOUR_EN, ONE_SO, FOUR_SO])
+    expect(new Set(links.map((l) => l.href)).size).toBe(4)
+    // The label *is* the filename in this section, so a label pointing at
+    // the wrong file is mechanically detectable rather than a reading job.
+    for (const l of links) expect(l.text, `label "${l.text}" opens ${l.href}`).toBe(l.href)
+  })
+
+  it('every href in the family is a bare relative filename, resolving beside the page', () => {
+    for (const [name, doc] of [...SHEETS.map(([n, d]) => [n, d] as const), ['the note', NOTE] as const]) {
+      for (const l of rel(doc)) {
+        expect(l.href, `${name}: ${l.href}`).not.toMatch(/^https?:|^\/|^\.\.\//)
+        expect(l.href, `${name}: ${l.href}`).toMatch(/^niyyah-money-conversation-sheet[a-z0-9-]*\.html$/)
+      }
+    }
   })
 })
 
