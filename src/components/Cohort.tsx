@@ -356,7 +356,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
 
   return (
     <div className={`rounded-card border border-gold/30 bg-gold/[0.07] ${compact ? 'px-5 py-5' : 'p-6'}`}>
-      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
         {place ? (other && country ? getCountry(country)?.label : place.label) : 'The first cities'}
       </p>
       <p

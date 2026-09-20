@@ -44,7 +44,7 @@ export default function ShortMap({ answers, gender, onAnswer, onDone, onBack }: 
               of it.
             </p>
           )}
-          <p className="mb-6 text-xs font-medium uppercase tracking-[0.22em] text-gold">
+          <p className="mb-6 text-xs font-medium uppercase tracking-[0.22em] text-gold-ink">
             {index + 1} of {questions.length}
           </p>
           <div key={q.id} className="animate-fade">

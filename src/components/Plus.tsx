@@ -83,7 +83,7 @@ export default function Plus({ onBack }: Props) {
           <div className="space-y-3">
             {paidLater.map((item) => (
               <div key={item.title} className="flex items-start gap-3.5 rounded-card border border-line bg-white/60 p-5">
-                <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-gold/15 text-gold">
+                <span className="mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full bg-gold/15 text-gold-ink">
                   <CheckIcon size={14} />
                 </span>
                 <div>
@@ -105,7 +105,7 @@ export default function Plus({ onBack }: Props) {
         </section>
 
         <section className="mt-8 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">The first year</p>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">The first year</p>
           <p className="mt-3 font-display text-[1.4rem] font-medium leading-snug tracking-tight text-ink text-balance">
             Your first year is on us.
           </p>

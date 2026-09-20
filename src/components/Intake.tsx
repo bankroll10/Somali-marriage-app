@@ -200,7 +200,7 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
           <ChapterIntro key={current.chapter.id} chapter={current.chapter} onContinue={() => setShowIntro(false)} />
         ) : (
           <div key={current.q.id} className="animate-fade">
-            <p className="mb-6 text-xs font-medium uppercase tracking-[0.22em] text-gold">
+            <p className="mb-6 text-xs font-medium uppercase tracking-[0.22em] text-gold-ink">
               {current.chapter.kicker}
             </p>
             <QuestionCard
@@ -247,7 +247,7 @@ function ChapterInsight({
 }) {
   return (
     <div className="animate-rise flex min-h-[60dvh] flex-col justify-center">
-      <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold">
+      <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
         {chapter.kicker} · complete
       </p>
       <div className="mt-6 rounded-card border border-gold/25 bg-gold/[0.07] p-6">
@@ -261,7 +261,7 @@ function ChapterInsight({
               strokeLinejoin="round"
             />
           </svg>
-          <h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.16em] text-gold">
+          <h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.16em] text-gold-ink">
             What this tells us
           </h2>
         </div>
@@ -294,7 +294,7 @@ function ChapterInsight({
 function ChapterIntro({ chapter, onContinue }: { chapter: Chapter; onContinue: () => void }) {
   return (
     <div className="animate-rise flex min-h-[60dvh] flex-col justify-center">
-      <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold">{chapter.kicker}</p>
+      <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">{chapter.kicker}</p>
       <h2 className="mt-4 font-display text-[2.3rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.7rem]">
         {chapter.title}
       </h2>

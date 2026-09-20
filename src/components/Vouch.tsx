@@ -100,7 +100,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
 
         {(phase === 'form' || phase === 'sending' || phase === 'error') && (
           <form onSubmit={submit} className="py-10">
-            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">From someone who trusts you</p>
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">From someone who trusts you</p>
             <h1 className="animate-rise mt-4 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
               Someone in your family is seeking marriage, and has asked you to vouch for them.
             </h1>
@@ -175,7 +175,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
 
         {phase === 'done' && result && (
           <div className="py-12">
-            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">Thank you</p>
+            <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Thank you</p>
             <h1 className="animate-rise mt-4 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
               They are vouched for.
             </h1>

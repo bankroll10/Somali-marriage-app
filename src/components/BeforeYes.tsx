@@ -142,7 +142,7 @@ export default function BeforeYes({
       <Shell onBack={onBack} title="Before you say yes">
         <div className="py-9">
 {!saveOk && <NotSaving what="your answers" className="mb-6" />}
-          <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">About two minutes</p>
+          <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">About two minutes</p>
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
             {intro ?? 'The conversations most of us have too late.'}
           </h1>
@@ -274,7 +274,7 @@ export default function BeforeYes({
         <div className="h-full rounded-full bg-forest transition-all duration-500" style={{ width: `${((index + 1) / topics.length) * 100}%` }} />
       </div>
       <div key={t.id} className="animate-rise py-8">
-        <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">{t.label}</p>
+        <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">{t.label}</p>
         <h2 id={`before-yes-q-${t.id}`} className="mt-2 font-display text-[1.5rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.75rem]">
           Have the two of you talked about this?
         </h2>
@@ -366,7 +366,7 @@ function Result({
 
   return (
     <div className="py-8">
-      <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">The conversations you have had</p>
+      <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">The conversations you have had</p>
       <h1 className="animate-rise mt-3 font-display text-[1.85rem] font-medium leading-tight tracking-tight text-ink text-balance">
         {result.headline}
       </h1>
@@ -401,7 +401,7 @@ function Result({
  Two minutes on what you need. Your side of these conversations gets clearer.
               </span>
             </span>
-            <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight className="flex-none text-gold-ink transition-transform group-hover:translate-x-0.5" />
           </button>
         ) : (
           <button
@@ -595,7 +595,7 @@ function Together({
 
   return (
     <div className="animate-rise mt-9 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+      <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
         {!couple ? `Ask ${pronoun} to do this too` : view === 'asking' ? 'Checking' : view === 'unreachable' ? 'Couldn’t check' : `Waiting for ${pronoun}`}
       </p>
       <p className="mt-2 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">

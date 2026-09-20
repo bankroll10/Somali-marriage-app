@@ -36,7 +36,7 @@ describe('structure — every screen has a heading, and focus follows it', () =>
       ['components/ShortMap.tsx', '<h1 className="font-display text-[1.05rem] font-medium text-ink">Being counted</h1>'],
       ['components/Coach.tsx', '<h1 className="font-display text-[1.05rem] font-medium leading-tight text-ink">'],
       ['components/Reflection.tsx', '<h1 className="sr-only">Building your map</h1>'],
-      ['components/Intake.tsx', '<h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.16em] text-gold">'],
+      ['components/Intake.tsx', '<h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.16em] text-gold-ink">'],
     ] as const) {
       expect(read(file), `${file} is missing its heading`).toContain(needle)
     }
@@ -174,6 +174,93 @@ describe('form validation — the error text has to reach the field, not just th
     expect(src).toContain('id="restore-code-status"')
     expect(src).toMatch(/aria-describedby=\{state !== 'idle' && state !== 'checking' \? 'restore-code-status' : undefined\}/)
     expect(src).toMatch(/aria-invalid=\{state !== 'idle' && state !== 'checking'\}/)
+  })
+})
+
+describe('contrast — computed, not eyeballed', () => {
+  // WCAG relative luminance and contrast ratio, computed from the real
+  // tokens in src/index.css — not estimated. A future edit to any of these
+  // hex values re-runs this arithmetic, so a color can't drift back under
+  // the line without this test catching it.
+  function relLum(hex: string): number {
+    const n = hex.replace('#', '')
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255)
+    const lin = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4)
+    return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b)
+  }
+  function ratio(a: string, b: string): number {
+    const [l1, l2] = [relLum(a), relLum(b)].sort((x, y) => y - x)
+    return (l1 + 0.05) / (l2 + 0.05)
+  }
+
+  const CREAM = '#f7f2e8'
+  const FOREST_DEEP = '#16271f'
+
+  it('reads the live token values out of index.css, so this test can\'t silently drift from the real palette', () => {
+    const css = read('index.css')
+    for (const token of ['--color-muted: #706d65', '--color-clay: #9b5d46', '--color-gold-ink: #85682e', '--color-line-strong: #9a8150']) {
+      expect(css, `index.css no longer defines ${token}`).toContain(token)
+    }
+  })
+
+  it('passes WCAG AA (4.5:1) for the four text colors that were failing on cream', () => {
+    expect(ratio('#706d65', CREAM)).toBeGreaterThanOrEqual(4.5) // muted
+    expect(ratio('#9b5d46', CREAM)).toBeGreaterThanOrEqual(4.5) // clay
+    expect(ratio('#85682e', CREAM)).toBeGreaterThanOrEqual(4.5) // gold-ink
+  })
+
+  it('passes WCAG AA non-text contrast (3:1) for the field border', () => {
+    expect(ratio('#9a8150', CREAM)).toBeGreaterThanOrEqual(3.0) // line-strong
+  })
+
+  it('still passes on forest-deep for the colors that were never the problem', () => {
+    expect(ratio('#c19a4b', FOREST_DEEP)).toBeGreaterThanOrEqual(4.5) // gold, unchanged
+    expect(ratio('#d9c189', FOREST_DEEP)).toBeGreaterThanOrEqual(4.5) // gold-soft, unchanged
+  })
+
+  it('uses border-line-strong and a full-opacity placeholder in fieldClass, not the originals that failed', () => {
+    const field = read('components/ui.tsx').match(/export const fieldClass =\s*\n\s*'([^']*)'/)
+    expect(field, 'fieldClass definition not found').toBeTruthy()
+    expect(field![1]).toContain('border-line-strong')
+    expect(field![1]).toContain('placeholder:text-muted')
+    expect(field![1]).not.toContain('placeholder:text-muted/')
+  })
+})
+
+describe('gold on a light background is gold-ink, not gold', () => {
+  it('uses gold-ink wherever a kicker label sits on cream or a light card, and leaves the dark-hero sites alone', () => {
+    // The dark surfaces where plain gold/gold-soft already pass and must
+    // stay unchanged: Welcome and Philosophy's dark heroes, ScriptCard (a
+    // forest-deep card throughout), RestoreMap (rendered inside Welcome's
+    // hero), Trust's "Our promise" section (bg-forest), and the two dark
+    // hero sections each in Ending/Home/Reflection.
+    const darkSitesKeepPlainGold: [string, string][] = [
+      ['components/Welcome.tsx', 'text-gold-soft'],
+      ['components/ScriptCard.tsx', 'text-gold-soft'],
+      ['components/RestoreMap.tsx', 'text-gold-soft'],
+      ['components/Trust.tsx', 'text-gold-soft'],
+    ]
+    for (const [file, needle] of darkSitesKeepPlainGold) {
+      expect(read(file), `${file} lost its plain ${needle}`).toContain(needle)
+    }
+    // A sample of the light-background sites that had to move.
+    const lightSitesUseGoldInk: [string, string][] = [
+      ['components/BeforeYes.tsx', 'text-gold-ink'],
+      ['components/Read.tsx', 'text-gold-ink'],
+      ['components/Situation.tsx', 'text-gold-ink'],
+      ['components/home/StageBand.tsx', 'text-gold-ink'],
+      ['components/home/FollowUp.tsx', 'text-gold-ink'],
+      ['components/Intake.tsx', 'text-gold-ink'],
+    ]
+    for (const [file, needle] of lightSitesUseGoldInk) {
+      expect(read(file), `${file} is missing ${needle}`).toContain(needle)
+    }
+  })
+
+  it('never doubles the suffix (the regex-ordering bug this pass found and fixed)', () => {
+    for (const f of componentFiles()) {
+      expect(read(`components/${f}`), `${f} has a doubled gold-ink suffix`).not.toMatch(/gold-ink-ink/)
+    }
   })
 })
 

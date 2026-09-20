@@ -45,7 +45,7 @@ export function Logo({
  * `outline-none` is gone so the global rule still applies where this does not.
  */
 export const fieldClass =
-  'rounded-2xl border border-line bg-white/60 text-ink placeholder:text-muted/60 focus:border-forest focus:ring-2 focus:ring-forest/40'
+  'rounded-2xl border border-line-strong bg-white/60 text-ink placeholder:text-muted focus:border-forest focus:ring-2 focus:ring-forest/40'
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'primary' | 'onDark' | 'soft' | 'outline'

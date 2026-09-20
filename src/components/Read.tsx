@@ -159,7 +159,7 @@ export default function Read({
                 className="animate-rise flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-white/50 p-4 text-left text-[0.98rem] font-medium text-ink transition-all hover:border-forest/40 hover:bg-white"
               >
                 {opt.label}
-                <ArrowRight className="h-4 w-4 flex-none text-gold" />
+                <ArrowRight className="h-4 w-4 flex-none text-gold-ink" />
               </button>
             ))}
           </div>
@@ -174,7 +174,7 @@ export default function Read({
       <Shell onBack={onBack} title="A read on someone">
         <div className="py-9">
 {!saveOk && <NotSaving what="your answers" className="mb-6" />}
-          <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
+          <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
             About ninety seconds
           </p>
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
@@ -397,7 +397,7 @@ function Result({
   const they = subject === 'him' ? 'he' : 'she'
   return (
     <div className="py-8">
-      <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
+      <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
         What {they} has shown you
       </p>
       <h1 className="animate-rise mt-3 font-display text-[1.85rem] font-medium leading-tight tracking-tight text-ink text-balance">
@@ -547,7 +547,7 @@ function Result({
                   will not compromise on. It makes every read after this one sharper.
                 </span>
               </span>
-              <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
+              <ArrowRight className="flex-none text-gold-ink transition-transform group-hover:translate-x-0.5" />
             </button>
           )}
 
@@ -590,7 +590,7 @@ function Example({ gender, subject }: { gender: Gender; subject: string }) {
   return (
     <Disclose summary="See an example result" hint="What you get at the end" className="animate-fade mt-8">
       <div>
-        <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold-ink">
           An example, not a verdict
         </p>
         <p className="mt-1 text-[0.85rem] leading-snug text-muted text-pretty">
@@ -628,7 +628,7 @@ function Example({ gender, subject }: { gender: Gender; subject: string }) {
 function StateTag({ state }: { state: DimensionState }) {
   const map: Record<DimensionState, { label: string; className: string }> = {
     shown: { label: 'Shown', className: 'bg-forest/10 text-forest' },
-    partly: { label: 'Partly', className: 'bg-gold/15 text-gold' },
+    partly: { label: 'Partly', className: 'bg-gold/15 text-gold-ink' },
     'not-yet': { label: 'Not yet', className: 'bg-clay/10 text-clay' },
   }
   const { label, className } = map[state]

@@ -69,7 +69,7 @@ interface Props {
 
 // Accents stay inside the brand palette — no foreign hues.
 const accentText: Record<string, string> = {
-  gold: 'text-gold',
+  gold: 'text-gold-ink',
   forest: 'text-forest',
   clay: 'text-clay',
   sky: 'text-forest-soft',
@@ -304,7 +304,7 @@ export default function Coach({
         </ScreenHeader>
 
         <main className="mx-auto max-w-2xl px-5 py-9">
-          <p className="animate-fade text-xs font-medium uppercase tracking-[0.22em] text-gold">
+          <p className="animate-fade text-xs font-medium uppercase tracking-[0.22em] text-gold-ink">
             Your guide
           </p>
           <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
@@ -343,7 +343,7 @@ export default function Coach({
                   <span className="flex items-center gap-2">
                     <span className="font-display text-[1.15rem] font-medium text-ink">{m.label}</span>
                     {m.id === recommended && (
-                      <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-wide text-gold">
+                      <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[0.62rem] font-semibold uppercase tracking-wide text-gold-ink">
                         For you
                       </span>
                     )}
@@ -515,7 +515,7 @@ export default function Coach({
               a sheet over the top of it. Whatever she came here for, she keeps. */}
           {locked && (
             <div className="animate-rise mt-2 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
                 The guide has said what it can, for now
               </p>
               <p className="mt-2.5 font-display text-[1.3rem] font-medium leading-snug tracking-tight text-ink text-balance">
@@ -683,7 +683,7 @@ function GuideWords({ text }: { text: string }) {
   return (
     <>
       <div className="mt-2 rounded-xl border border-gold/30 bg-gold/[0.08] p-3.5">
-        <p className="text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-gold">
+        <p className="text-[0.78rem] font-semibold uppercase tracking-[0.14em] text-gold-ink">
           Words you could use
         </p>
         <p className="mt-1.5 font-display text-[1.02rem] leading-relaxed text-ink">“{script}”</p>

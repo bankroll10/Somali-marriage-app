@@ -148,7 +148,7 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
                     height="20"
                     viewBox="0 0 24 24"
                     fill="none"
-                    className="flex-none text-gold"
+                    className="flex-none text-gold-ink"
                     aria-hidden
                   >
                     <path
@@ -169,7 +169,7 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
 
         {/* Learn to choose */}
         <section className="mb-12 rounded-card bg-forest p-7 text-cream sm:p-8">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-soft">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">
             The real product
           </p>
           <h3 className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-tight text-balance">
@@ -183,7 +183,7 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
           <ul className="mt-6 space-y-4">
             {principles.map((p, i) => (
               <li key={p.title} className="flex gap-3.5">
-                <span className="font-display text-[1.1rem] font-medium text-gold-soft tabular-nums">
+                <span className="font-display text-[1.1rem] font-medium text-gold-ink tabular-nums">
                   {i + 1}
                 </span>
                 <div>
@@ -205,7 +205,7 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
             else here rests on. It sat in muted small print under a list of
             profiles. It belongs stated, in our own voice, without apology. */}
         <section className="mb-12 rounded-card border border-gold/30 bg-gold/[0.07] p-7 sm:p-8">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">
             What we won’t do
           </p>
           <h3 className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance">

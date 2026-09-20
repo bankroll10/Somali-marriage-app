@@ -21,7 +21,7 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
         <BackButton onClick={onBack} className="self-start" />
 
         <main className="flex flex-1 flex-col justify-center py-10">
-          <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">
+          <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
             First, the basics
           </p>
           <h1 className="animate-rise mt-4 font-display text-[2.3rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.7rem]">

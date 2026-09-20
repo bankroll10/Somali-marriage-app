@@ -44,7 +44,7 @@ export default function StageBand({ stage, onSetStage, onOpenRead, onOpenBeforeY
     <section className="animate-rise mt-8">
       <div className="rounded-card border border-line bg-white/60 p-5">
         <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+          <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
             Where you are · {st.label}
           </h2>
           {open ? (

@@ -80,7 +80,7 @@ export default function SampleIntroduction({
 
       <main className="mx-auto max-w-2xl px-6">
         <section className="py-6">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold">
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">
             A sample — not a real member
           </p>
           <h1 className="mt-2 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
@@ -114,13 +114,13 @@ export default function SampleIntroduction({
             {/* No vouch pill here, ever: a vouch badge on an invented person was
                 the only vouch badge in the product, on the one person who has
                 none (docs/BOARD.md). */}
-            <p className="mt-1 text-[0.78rem] font-medium uppercase tracking-[0.14em] text-gold">Sample</p>
+            <p className="mt-1 text-[0.78rem] font-medium uppercase tracking-[0.14em] text-gold-ink">Sample</p>
           </div>
         </div>
 
         {/* The part that is real: her map, read against someone. */}
         <div className="mt-6 rounded-card bg-forest p-6 text-cream">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold-soft">Why your lives would fit</p>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold-ink">Why your lives would fit</p>
           {align.reasons.length > 0 ? (
             <ul className="mt-3 space-y-1.5">
               {align.reasons.map((r) => (
@@ -137,12 +137,12 @@ export default function SampleIntroduction({
           )}
           {align.differs && (
             <div className="mt-4 border-t border-cream/15 pt-4">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">Where you differ</p>
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">Where you differ</p>
               <p className="mt-1.5 text-[0.95rem] text-cream/85">{align.differs}</p>
             </div>
           )}
           <div className="mt-4 border-t border-cream/15 pt-4">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">The first thing to ask</p>
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">The first thing to ask</p>
             <p className="mt-1.5 text-[0.95rem] leading-relaxed text-cream/85 text-pretty">{align.ask}</p>
           </div>
           <p className="mt-4 text-[0.82rem] leading-relaxed text-cream/60 text-pretty">
@@ -156,7 +156,7 @@ export default function SampleIntroduction({
             intake, because here an answer changes the reasons above as she
             taps — value she can see, in the moment she gives it. */}
         <div className="mt-5 rounded-card border border-gold/30 bg-gold/[0.07] p-5">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">Sharpen this read</p>
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">Sharpen this read</p>
           <p className="mt-2 text-[0.92rem] leading-relaxed text-muted text-pretty">
             Three things about how you’d live. The apps do not ask about them, and couples find out
             late. Optional; the reasons above change as you answer.

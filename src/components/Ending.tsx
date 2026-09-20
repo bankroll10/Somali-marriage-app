@@ -163,7 +163,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
 
         {/* The one thing only a married person can say. */}
         <section className="mt-5 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
             Before you go, if you want to
           </p>
           <p className="mt-2.5 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">

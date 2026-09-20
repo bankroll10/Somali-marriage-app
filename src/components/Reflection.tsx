@@ -313,7 +313,7 @@ export default function ReflectionView({
             map — the reason it's an instrument and not a verdict. */}
         <Section title="Where to put your effort">
           <div className="rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
               {finishedToday
                 ? `Done today · ${r.dimensions.find((d) => d.dimension === finishedToday.dimension)?.label}`
                 : groundLabel}
@@ -455,7 +455,7 @@ export default function ReflectionView({
 
         {/* Next: into your space — light card; the dark hero lives at the top now. */}
         <section className="mt-14 rounded-card border border-line bg-white/60 p-8 text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold-ink">
             {firstReveal ? 'Now you’re not doing this alone' : 'Home'}
           </p>
           <p className="mt-3 font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance">

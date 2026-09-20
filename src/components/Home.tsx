@@ -337,12 +337,12 @@ export default function Home({
                 : 'border-forest/25 bg-forest/[0.05] hover:bg-forest/[0.09]'
             }`}
           >
-            <GlyphTile className={coupleAnswered ? 'bg-gold/15 text-gold' : 'bg-forest/10 text-forest'}>
+            <GlyphTile className={coupleAnswered ? 'bg-gold/15 text-gold-ink' : 'bg-forest/10 text-forest'}>
               <CompassGlyph />
             </GlyphTile>
             <span className="flex-1">
               {coupleAnswered && (
-                <span className="mb-1 block text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
+                <span className="mb-1 block text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
                   {answerer} answered
                 </span>
               )}
@@ -361,7 +361,7 @@ export default function Home({
                     : 'Eleven conversations most couples have too late — where you’d live, money home, a second wife — and which one to open this week.'}
               </span>
             </span>
-            <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${coupleAnswered ? 'text-gold' : 'text-forest'}`} />
+            <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${coupleAnswered ? 'text-gold-ink' : 'text-forest'}`} />
           </button>
         )}
 
@@ -407,7 +407,7 @@ export default function Home({
         {staleRead && (
           <section className="animate-rise mt-8">
             <div className="rounded-card border border-gold/30 bg-gold/[0.07] p-5">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">Since your read</p>
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">Since your read</p>
               <p className="mt-2 font-display text-[1.15rem] font-medium leading-snug text-ink text-pretty">
                 It’s been about a month. Has anything changed in what {identity.gender === 'man' ? 'she' : 'he'} has
                 shown you?
@@ -525,7 +525,7 @@ export default function Home({
                 onClick={onOpenMap}
                 className="group flex items-center gap-4 rounded-card border border-gold/30 bg-gold/[0.07] p-5 text-left transition-all hover:-translate-y-0.5"
               >
-                <GlyphTile className="bg-gold/15 text-gold">
+                <GlyphTile className="bg-gold/15 text-gold-ink">
                   <CompassGlyph />
                 </GlyphTile>
                 <span className="flex-1">
@@ -535,7 +535,7 @@ export default function Home({
                     every conversation gets clearer.
                   </span>
                 </span>
-                <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="flex-none text-gold-ink transition-transform group-hover:translate-x-0.5" />
               </button>
             ) : null}
           </div>
@@ -549,7 +549,7 @@ export default function Home({
             <span>
               Why Niyyah
             </span>
-            <ArrowRight className="h-3.5 w-3.5 text-gold transition-transform group-hover:translate-x-0.5" />
+            <ArrowRight className="h-3.5 w-3.5 text-gold-ink transition-transform group-hover:translate-x-0.5" />
           </button>
           {/* The same destruction Trust guards behind two taps and a warning was
               one tap here, on the faintest text on the screen, directly under

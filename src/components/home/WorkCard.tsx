@@ -116,14 +116,14 @@ export default function WorkCard({
           <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 border-t border-cream/10 pt-1.5">
             <TextButton
               onClick={onOpenMap}
-              className="text-[0.8rem] text-cream/50 hover:text-cream/80 hover:underline"
+              className="text-[0.8rem] text-cream/60 hover:text-cream/80 hover:underline"
             >
               {steps.some((s) => s.done) ? 'See everything you’ve done' : 'Where this comes from'}
             </TextButton>
             {!finishedToday && (
               <TextButton
                 onClick={swapGround}
-                className="text-[0.8rem] text-cream/40 hover:text-cream/70 hover:underline"
+                className="text-[0.8rem] text-cream/55 hover:text-cream/70 hover:underline"
               >
                 Not this one
               </TextButton>

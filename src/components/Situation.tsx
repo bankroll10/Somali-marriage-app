@@ -50,7 +50,7 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
         <main className="flex flex-1 flex-col justify-center py-10">
           {!st ? (
             <>
-              <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold">Where you are</p>
+              <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Where you are</p>
               <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
                 What’s happening right now?
               </h1>
@@ -66,14 +66,14 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
                     className="animate-rise flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-white/50 p-4 text-left text-[0.98rem] font-medium text-ink transition-all duration-200 hover:border-forest/40 hover:bg-white"
                   >
                     {s.situation}
-                    <ArrowRight className="h-4 w-4 flex-none text-gold" />
+                    <ArrowRight className="h-4 w-4 flex-none text-gold-ink" />
                   </button>
                 ))}
               </div>
             </>
           ) : (
             <div className="animate-rise">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold">Where you are</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Where you are</p>
               <h1 className="mt-4 font-display text-[1.7rem] font-medium leading-snug tracking-tight text-ink text-balance">
                 {st.situation}.
               </h1>
