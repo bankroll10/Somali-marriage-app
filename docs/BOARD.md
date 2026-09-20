@@ -1432,3 +1432,59 @@ exactly that question.
 `tests/wayout.test.ts`, `docs/PLACE.md`, this entry, the README index, a
 cross-reference in `docs/TREE.md` item 4, and the WardheerNews row in
 `docs/ASSETS.md` moved to sent. No screen was added, removed or renamed.
+
+---
+
+## The failure-state pass, 2026-09-20 (docs/FAIL.md)
+
+**The product was lying to people, in seven places, and none of them were
+malicious.** They were all the same mistake: every call to the server
+collapsed a timeout, an offline phone, a 404, a lapsed record, a 409 and a 503
+into one `null`, and a screen holding a `null` cannot say anything true. It
+guesses — telling a man on the eleventh tap of eleven that the link someone
+sent him *"isn't working, it may have expired, or been copied wrong"*, and
+throwing away all his answers — or it says nothing, telling a woman *"He hasn't
+answered yet"* about a man who answered days ago, on a check that then never
+ran again for the rest of her session.
+
+**The repository already knew.** `restoreDetail` is the one honest failure
+surface in the product, and its own docblock calls the collapse the bug it was
+written to fix — three lines above `restoreMap`, which throws the distinction
+away again. So this started in `src/lib/net.ts` rather than in the copy.
+
+**Two of them were the product taking credit for work it had not done.**
+*"You're counted"* was shown whether the founder's form took her contact,
+queued it in localStorage, or was never configured, because the delivery result
+went to `track()` and nowhere else — while the server returned 200 with live
+pool numbers whether its own contact write succeeded or threw. And forget me
+answered `{ forgotten: true }` when it had skipped her reports.
+
+**The worst single defect was in the guide.** A reply that streamed real,
+tailored words and then lost the connection had those words **replaced** by
+the canned three-bullet fallback: she watched an answer being typed out and
+then saw it vanish. Beneath it, `onSpendReply()` was unconditional against a
+comment claiming it was not, so three taps during an outage cost three of her
+twenty replies and then showed her the wall.
+
+**Three were not user-visible at all.** The rate limiter opened its blob store
+outside its `try` while seven callers await it outside theirs, so a Blobs
+hiccup was a platform 500 across every capped endpoint at once — the exact
+failure that file says a limiter must never cause. The couple sheet's first
+side wrote unconditionally with no creator check, so anyone holding the six
+characters she texted him could replace her answers or destroy his. And a vouch
+token written before the key that names it survived forget me and still
+resolved to her code.
+
+**Changed:** a new `src/lib/net.ts` and the five copied `withTimeout`s it
+replaces (both waitlist posts had none at all), `Cohort`/`Door`/`BeforeYes`/
+`Couple`/`Vouch`/`Coach`/`ErrorBoundary`, the couple, vouch, keep, cohort, pool,
+progress and limit functions, `useNiyyah`, a held entry so a coded link
+survives a reload, his side of the eleven in the draft store, the storage
+warning on the four screens a stranger arrives on, `tests/fail.test.ts`,
+`docs/FAIL.md`, this entry, the README index, and three undocumented cap knobs
+in `docs/DEPLOY.md` — where one row still claimed his answer was never capped.
+
+**Left named, not fixed:** server-side timeouts (there are none anywhere in
+`netlify/`, and none on the Anthropic SDK — `docs/SCALE.md` ties it to a paid
+plan), the silent redirects to Welcome, and a re-opened read that carries no
+date.
