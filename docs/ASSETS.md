@@ -41,7 +41,7 @@ in a pitch.
 | **N0** | The door — the honest count, for someone looking rather than talking | `https://joinniyyah.com/?door` | advertised but not fully inspected | — |
 | **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet (four pages, room to write) | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **built, not yet checked** | — |
 | **N3-1page** | The money conversation, condensed — the same twenty questions on a single printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html` | **built, not yet checked** | — |
-| **N3-note** | A half-page note for whoever hands N3 or N3-1page to a couple: when, how, what happens to it after | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **built, not yet checked** | — |
+| **N3-note** | A half-page note for whoever hands N3 or N3-1page to a couple: when, how, what happens to it after, and that a Somali version exists | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **built, not yet checked** | — |
 | **N3-so** | The money conversation, in Somali — the same twenty questions, four pages, founder-reviewed and approved | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.html` | **built, not yet checked** | — |
 | **N3-1page-so** | The money conversation in Somali, condensed to one printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.html` | **built, not yet checked** | — |
 

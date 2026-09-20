@@ -431,6 +431,13 @@ describe('the facilitator note', () => {
     expect(NOTE).toContain('niyyah-money-conversation-sheet.html')
   })
 
+  it('tells a coordinator the Somali versions exist, so they know to ask', () => {
+    expect(NOTE).toMatch(/Somali/)
+    expect(NOTE).toContain('…-so.html')
+    expect(NOTE).toContain('…-1page-so.html')
+    expect(NOTE_TXT).toMatch(/Somali/)
+  })
+
   it('carries the same footer and version line as the two sheets', () => {
     const text = flat(NOTE)
     expect(text).toContain('Published by Niyyah —')
