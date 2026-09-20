@@ -5,6 +5,7 @@ import { askCoach, type Closer } from '../lib/coach'
 import { shareOrCopy } from '../lib/share'
 import { wordsMessage } from '../lib/words'
 import { nextId } from '../lib/id'
+import { scrollBehavior } from '../lib/motion'
 import {
   ArrowRight,
   BackButton,
@@ -140,7 +141,7 @@ export default function Coach({
     const container = scrollRef.current
     if (!container) return
     const toBottom = () =>
-      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' })
+      container.scrollTo({ top: container.scrollHeight, behavior: scrollBehavior() })
 
     if (thinking || !lastId || lastRole !== 'coach') {
       toBottom()
@@ -154,7 +155,7 @@ export default function Coach({
     // Measured against the live boxes rather than offsetTop, which depends on
     // which ancestor happens to be positioned.
     const delta = el.getBoundingClientRect().top - container.getBoundingClientRect().top
-    container.scrollTo({ top: Math.max(0, container.scrollTop + delta - 12), behavior: 'smooth' })
+    container.scrollTo({ top: Math.max(0, container.scrollTop + delta - 12), behavior: scrollBehavior() })
     // Deps are the identity of the last turn, not the array: `messages` is
     // rebuilt on every render, so depending on it re-ran this constantly.
   }, [lastId, lastRole, thinking])

@@ -264,6 +264,26 @@ describe('gold on a light background is gold-ink, not gold', () => {
   })
 })
 
+describe('reduced motion — a JS scrollTo is not CSS, and nothing gated it before', () => {
+  it('defines scrollBehavior(), reading prefers-reduced-motion', () => {
+    const motion = read('lib/motion.ts')
+    expect(motion).toContain("matchMedia('(prefers-reduced-motion: reduce)')")
+    expect(motion).toMatch(/export function scrollBehavior/)
+  })
+
+  it('every smooth-scroll call in the app goes through scrollBehavior(), not a literal \'smooth\'', () => {
+    for (const file of ['components/Intake.tsx', 'components/Coach.tsx'] as const) {
+      const src = read(file)
+      expect(src, `${file} still has a literal 'smooth'`).not.toMatch(/behavior:\s*'smooth'/)
+      expect(src, `${file} doesn't call scrollBehavior()`).toMatch(/behavior:\s*scrollBehavior\(\)/)
+    }
+    // Intake has three call sites (each chapter transition), Coach has two
+    // (scroll to bottom, scroll to a finished reply).
+    expect([...read('components/Intake.tsx').matchAll(/scrollBehavior\(\)/g)].length).toBe(3)
+    expect([...read('components/Coach.tsx').matchAll(/scrollBehavior\(\)/g)].length).toBe(2)
+  })
+})
+
 describe('the a11y pass reads more than fifteen component files, so an empty result above means clean and not skipped', () => {
   it('sees the component directory', () => {
     expect(componentFiles().length).toBeGreaterThan(15)

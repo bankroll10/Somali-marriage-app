@@ -3,6 +3,7 @@ import { chapters, chapterInsight } from '../data/intake'
 import type { AnswerValue, Answers, Chapter, Question } from '../types'
 import QuestionCard from './QuestionCard'
 import { BackButton, Button, Logo, ArrowRight } from './ui'
+import { scrollBehavior } from '../lib/motion'
 
 /** Long enough to see the choice register, short enough to feel instant. */
 const AUTO_ADVANCE_MS = 300
@@ -114,13 +115,13 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
       const reading = chapterInsight(current.chapter.id, answers)
       if (reading) {
         setInsight(reading)
-        window.scrollTo({ top: 0, behavior: 'smooth' })
+        window.scrollTo({ top: 0, behavior: scrollBehavior() })
         return
       }
     }
     setIndex(next)
     setShowIntro(flat[next].isFirstInChapter)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: scrollBehavior() })
   }
 
   function continueFromInsight() {
@@ -130,7 +131,7 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
     const next = index + 1
     setIndex(next)
     setShowIntro(false)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: scrollBehavior() })
   }
 
   function goBack() {
