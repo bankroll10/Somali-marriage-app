@@ -30,8 +30,8 @@ export function wordsLink(source: WordsSource): string {
 
 /** The recipient's gender is unknown, so the footnote says "they". */
 const FOOTNOTE: Record<WordsSource, string> = {
-  read: 'If you’re talking to someone, it reads what they’ve actually done and gives you the one question to ask. No account.',
-  guide: 'If you’re talking to someone, it reads what they’ve actually done and gives you the one question to ask. No account.',
+ read: 'If you’re talking to someone, it reads what they’ve done and gives you the one question to ask. No account.',
+ guide: 'If you’re talking to someone, it reads what they’ve done and gives you the one question to ask. No account.',
   eleven: 'Eleven conversations to have before you say yes. It tells you which one to open, and gives you the words. No account.',
   couple: 'Eleven conversations to have before you say yes. It tells you which one to open, and gives you the words. No account.',
   family: 'The conversations with your family, word for word. No account.',

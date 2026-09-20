@@ -227,14 +227,14 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
   let summary: string
 
   if (band === 'strong') {
-    headline = '{He} has shown you the things that actually predict it.'
+ headline = '{He} has shown you the things that predict it.'
     summary = `${durationNote} ${sentence(join(strongest))}${
       strongest.length ? '. ' : ''
     }Those are not small, and they are not what someone passing time produces. ${
       weakest.length
         ? `The thinnest part is that ${weakest[0]} — worth closing, not worth panicking about.`
         : `There is no obvious gap in what you have told us, which is rarer than you would think.`
-    } The useful thing now is not more watching. It is one clear conversation, so that what you both assume is actually said out loud.`
+ } The useful thing now is not more watching. It is one clear conversation, so that what you both assume is said out loud.`
   } else if (band === 'mixed') {
     headline = `Real signals — and one gap that is doing a lot of work.`
     summary = `${durationNote} ${

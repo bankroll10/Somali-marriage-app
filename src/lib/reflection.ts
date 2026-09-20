@@ -160,7 +160,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       if (why === 'ready')
         return soon
           ? 'You know why you are here and roughly when. Wanting to build a life with someone, and being able to say it plainly, is rarer than the people around you make it seem.'
-          : 'You feel genuinely ready, and you are giving yourself room on the timing. That combination — clear on the why, unhurried on the when — is the strongest place anyone starts from.'
+ : 'You feel ready, and you are giving yourself room on the timing. That combination — clear on the why, unhurried on the when — is the strongest place anyone starts from.'
       if (why === 'lonely')
         return 'You were honest that companionship is a real part of this. It is not a lesser reason, but it is worth watching: loneliness makes almost anyone look like an answer, so let your standards do the filtering rather than your evenings.'
       return 'You are still working out whether you are ready, and you said so instead of performing certainty. Arriving honestly is worth more than arriving fast.'
@@ -174,7 +174,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       if (p === 'consistent')
         return central
           ? 'You hold the core steadily and you want faith at the center of your home. Say that early; it filters more honestly than any list of qualities.'
-          : 'You are consistent in the core and growing in the rest — the place most people actually are, and rarely admit to.'
+ : 'You are consistent in the core and growing in the rest — the place most people are, and rarely admit to.'
       if (p === 'returning')
         return 'You said you are on the way back to your deen. That is a harder thing to write down than to feel, and the right person will meet you on that road rather than judge you for being on it.'
       return 'You were honest that faith sits lighter in practice than in identity. That clarity protects you from the specific heartbreak of marrying someone who expected a different home than the one you want.'
@@ -185,11 +185,11 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
         case 'central':
           return 'You want your people in this from the beginning. That is not old-fashioned — it is protection, and it tells us to look for someone who expects to meet them rather than someone who flinches.'
         case 'guided':
-          return 'You bring family in once it is serious. That is the balance most of this community is actually looking for, and it needs saying out loud early — quietly assuming it is how the first real clash starts.'
+ return 'You bring family in once it is serious. That is the balance most of this community is looking for, and it needs saying out loud early — quietly assuming it is how the first real clash starts.'
         case 'informed':
           return 'You keep your family informed and you lead the decision yourself. Hold that clearly: the person who respects it will respect it from day one, and the person who does not will test it slowly.'
         default:
-          return 'You would rather keep this private until you are sure. That instinct usually comes from somewhere real — and it is worth knowing now whether it is protecting your peace or delaying a conversation you will still have to have.'
+          return 'You would rather keep this private until you are sure. That instinct usually comes from somewhere real — and it is worth knowing now whether it is protecting you or delaying a conversation you will still have to have.'
       }
     }
 
@@ -238,7 +238,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       if (h === 'healed') return `You have done the work and you are at peace with it.${lean}`
       if (h === 'healing') return `You are still healing and you know it — which is the part most people skip.${lean}`
       if (h === 'fresh')
-        return `Something recent still aches, and you said so rather than performing recovery.${lean} Move gently. The right person will not need you to be finished.`
+        return `Something recent still aches, and you said so plainly.${lean} Move gently. The right person will not need you to be finished.`
       return `You have not looked closely at what you might still be carrying.${lean} That is worth an honest hour with yourself before it becomes someone else's to discover.`
     }
 
@@ -249,7 +249,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
         case 'unavailable':
           return `You see your pull toward people who cannot fully show up.${named} Let availability, not chemistry, be the first filter — it is the cheapest test there is.`
         case 'rushing':
-          return `You know you move fast.${named} Let this process slow you down on purpose; the right person is still there at a calmer pace.`
+          return `You know you move fast.${named} Let this slow you down; the right person is still there at a calmer pace.`
         case 'walls':
           return `You keep your walls up, and you said so.${named} Real closeness will ask you to lower one a little earlier than is comfortable — with someone who has earned it.`
         case 'settling':
@@ -319,7 +319,7 @@ function growthNote(answers: Answers): string {
     'trust|walls':
       'You said the hardest part is trusting again, and that the pattern you want to leave behind is keeping your walls up. Those are not two problems. They are one thing seen from the inside and from the outside — and the way through is not to tear the wall down, it is to let one person earn a door.',
     'trust|unavailable':
-      'You said trusting again is the hardest part, and that you tend to choose people who cannot fully show up. Be gentle with yourself about that: someone unavailable can never actually test your trust, which makes them feel safer than they are.',
+ 'You said trusting again is the hardest part, and that you tend to choose people who cannot fully show up. Be gentle with yourself about that: someone unavailable can never test your trust, which makes them feel safer than they are.',
     'serious|rushing':
       'You want to know whether someone is serious, and you know you tend to move fast. Those work against each other — speed is what makes seriousness impossible to read. Slowness is not a delay here; it is the actual instrument.',
     'serious|settling':
@@ -338,7 +338,7 @@ function growthNote(answers: Answers): string {
     unavailable:
       'You see your pull toward people who cannot fully show up. Naming it is how you start choosing differently — let availability, not chemistry, be your first filter.',
     rushing:
-      'You know you tend to move fast. Let this process slow you down on purpose; the right person will still be there at a calmer pace.',
+      'You know you tend to move fast. Let this slow you down; the right person will still be there at a calmer pace.',
     walls:
       'You guard yourself closely. Real intimacy will ask you to lower the wall a little earlier than feels comfortable — gently, and with someone who earns it.',
     settling:
@@ -349,7 +349,7 @@ function growthNote(answers: Answers): string {
   let base =
     (hook && pattern ? PAIRS[`${hook}|${pattern}`] : undefined) ??
     (pattern ? PATTERNS[pattern] : undefined) ??
-    'You are doing the inner work, and it shows.'
+    'You answered these plainly, and it shows.'
 
   if (working) {
     base += ` In your own words, you’re still learning to ${working
@@ -425,7 +425,7 @@ function headlineFor(shape: Shape): string {
     case 'building':
       return 'Building your foundation'
     case 'early':
-      return 'Earlier in the journey — and that’s okay'
+      return 'Early, and honest about it'
   }
 }
 

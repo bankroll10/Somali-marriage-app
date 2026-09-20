@@ -67,7 +67,7 @@ describe('Trust keeps what it collapsed', () => {
     // The screen says "Six things can change that". These are the six.
     for (const summary of [
       'Keeping your map',
-      'Joining the founding cohort',
+      'Asking to be counted',
       'Asking {him} to do the eleven too',
       'Asking your family to vouch',
       'Being counted in the ladder',
@@ -86,7 +86,7 @@ describe('Trust keeps what it collapsed', () => {
     // plus the three that a person is most entitled to find. If a later
     // refactor empties a disclosure, this is what notices.
     for (const clause of [
-      'the founder’s\n                backup deliberately does not include it',
+      'the founder’s\n                backup does not include it',
       'a breakdown that would come back as one or two comes back blank instead',
       'That copy is the one thing\n                Forget me cannot reach on its own',
       'never how far you got, never how long you spent',

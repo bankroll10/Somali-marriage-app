@@ -80,7 +80,7 @@ export const TOPICS: Topic[] = [
         'with-family': 'You told your map you picture living with family — one household.',
         'near-family': 'You told your map you picture your own place, close to family.',
         separate: 'You told your map you picture your own place — your own city, if it comes to it.',
-        flexible: 'You told your map you are genuinely flexible on where you’d live.',
+ flexible: 'You told your map you are flexible on where you’d live.',
       },
     },
   },
@@ -174,7 +174,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'Vagueness here is not romance. It is a decision being left to whoever pushes hardest later.',
       words:
-        'When you think about children — how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you actually picture, not what sounds right.',
+ 'When you think about children — how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right.',
       tells: 'Listen for whether {he} has pictures or only phrases. Pictures can be talked about. Phrases cannot.',
     },
     yourSide: {
@@ -255,7 +255,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'You need to know whether you are in {his} picture, and where.',
       words:
-        'Do you see yourself moving back one day — or spending months at a time there? I’m not asking you to decide now. I’m asking what you actually picture, because I need to know if I’m in that picture, and where.',
+ 'Do you see yourself moving back one day — or spending months at a time there? I’m not asking you to decide now. I’m asking what you picture, because I need to know if I’m in that picture, and where.',
       tells: 'Listen for whether you appear in the answer. “We’d figure it out” means you are not yet in the picture.',
     },
   },
@@ -315,7 +315,7 @@ export const TOPICS: Topic[] = [
 export const OWN_ANSWER_FIRST: ElevenScript = {
   why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is the most common state on this list, and the most fixable.',
   words:
-    'Before I raise this with you, I’m working out what I actually want here. Give me a week. Then I’ll tell you plainly, and I’ll want the same back.',
+ 'Before I raise this with you, I’m working out what I want here. Give me a week. Then I’ll tell you plainly, and I’ll want the same back.',
   tells:
     'Write your own answer down before you ask for {his}. Otherwise {his} becomes yours by default, and you find out in year three that it never was.',
 }

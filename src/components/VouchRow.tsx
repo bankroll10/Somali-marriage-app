@@ -16,7 +16,7 @@ interface Props {
 
 /** The words a family member reads first, so they are written in one place. */
 const ASK =
-  'Salaam — I’m using Niyyah, a marriage platform built for us. Before anyone is introduced, they ask a family member to confirm I am who I say and that I’m seeking marriage. Would you? It takes a minute, and there’s no account.'
+  'Salaam — I’m using Niyyah, which is built for Somali people seeking marriage. Before anyone is introduced, they ask a family member to confirm I am who I say and that I’m seeking marriage. Would you? It takes a minute, and there’s no account.'
 
 /**
  * The ask, and the vouch once it is given.

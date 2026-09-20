@@ -46,7 +46,7 @@ export default function Welcome({
               curiosity and assumes she is fine, which is both kinder and closer
               to what the map actually returns. */}
           <h1 className="animate-rise font-display text-[2.9rem] font-medium leading-[1.04] tracking-tight text-balance sm:text-[3.6rem]">
-            What’s <span className="italic text-gold-soft">actually</span> in your way?
+            What’s in your way?
           </h1>
 
           <p

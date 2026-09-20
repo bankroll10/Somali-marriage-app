@@ -136,7 +136,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             url: instrumentLink('door', 'door'),
           }
         : {
-            text: `Salaam — Niyyah is being built for us, one city at a time. ${opensWhen(pool)} Start with the read: ninety seconds on what someone has actually done, and the one question to ask next. No account.`,
+ text: `Salaam — Niyyah is being built for us, one city at a time. ${opensWhen(pool)} Start with the read: ninety seconds on what someone has done, and the one question to ask next. No account.`,
             url: instrumentLink('read', 'door'),
           },
       'door_sent',
@@ -357,7 +357,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
   return (
     <div className={`rounded-card border border-gold/30 bg-gold/[0.07] ${compact ? 'px-5 py-5' : 'p-6'}`}>
       <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
-        Founding cohort{place ? ` · ${other && country ? getCountry(country)?.label : place.label}` : ''}
+        {place ? (other && country ? getCountry(country)?.label : place.label) : 'The first cities'}
       </p>
       <p
         className={`mt-2.5 font-display font-medium leading-snug tracking-tight text-ink text-balance ${compact ? 'text-[1.2rem]' : 'text-[1.45rem]'}`}

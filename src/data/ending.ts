@@ -51,10 +51,10 @@ const WHO: EndingQuestion = {
 
 const MATTERED: EndingQuestion = {
   id: 'mattered',
-  prompt: 'What actually decided it?',
+ prompt: 'What decided it?',
   helper: 'Looking back — the thing that made the difference.',
   options: [
-    { id: 'shown', label: 'Seeing what {he} had actually done, not what {he} said' },
+ { id: 'shown', label: 'Seeing what {he} had done, not what {he} said' },
     { id: 'eleven', label: 'One of the eleven conversations' },
     { id: 'families', label: 'The families meeting properly' },
     { id: 'myself', label: 'Getting clear about myself first' },
@@ -64,7 +64,7 @@ const MATTERED: EndingQuestion = {
 
 const USED: EndingQuestion = {
   id: 'used',
-  prompt: 'What here did you actually use?',
+ prompt: 'What here did you use?',
   helper: 'Tap everything that was real. Leave the rest.',
   multi: true,
   options: [

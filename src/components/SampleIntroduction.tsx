@@ -159,7 +159,7 @@ export default function SampleIntroduction({
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">Sharpen this read</p>
           <p className="mt-2 text-[0.92rem] leading-relaxed text-muted text-pretty">
             Three things about how you’d live. No other app reads on these — and they are what our
-            marriages actually break on. Optional; the reasons above change as you answer.
+ marriages break on. Optional; the reasons above change as you answer.
           </p>
           <div className="mt-4">
             <HowYoudLive answers={answers} onAnswer={onAnswer} />

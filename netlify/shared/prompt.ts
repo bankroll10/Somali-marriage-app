@@ -56,12 +56,12 @@ export const MODE_VOICE: Record<string, { label: string; tagline: string; descri
   islamic: {
     label: 'Islamic Values',
     tagline: 'Intention, modesty, family, respect',
-    description: 'Anchoring the journey in deen, dignity, and a halal path.',
+    description: 'Deen, dignity, and a halal path.',
   },
   matchmaker: {
     label: 'Matchmaker',
     tagline: 'Alignment over looks',
-    description: 'Looks past the photos to what actually lasts — alignment.',
+    description: 'Looks past the photos to what lasts — alignment.',
   },
 }
 
@@ -70,7 +70,7 @@ export const STAGE_FOCUS: Record<string, { label: string; focus: string }> = {
   preparing: {
     label: 'Preparing',
     focus:
-      'Becoming clear about what you actually need — and becoming someone worth choosing. Everything after this is easier when this part is honest.',
+      'Becoming clear about what you need — and becoming someone worth choosing. Everything after this is easier when this part is honest.',
   },
   talking: {
     label: 'Getting to know someone',

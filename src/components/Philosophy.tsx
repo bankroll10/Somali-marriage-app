@@ -18,7 +18,7 @@ const bridges = [
   {
     left: 'Tradition',
     right: 'Technology',
-    body: 'The wisdom of how it was always done, with the tools of how we actually live now.',
+ body: 'The wisdom of how it was always done, with the tools of how we live now.',
   },
   {
     left: 'Family',
@@ -33,12 +33,12 @@ const bridges = [
   {
     left: 'Smart guidance',
     right: 'Faith',
-    body: 'Guidance that’s genuinely smart and God-conscious — never one at the cost of the other.',
+ body: 'Guidance that’s smart and God-conscious — never one at the cost of the other.',
   },
   {
     left: 'Somali culture',
     right: 'Modern reality',
-    body: 'Who you are and where you actually live — both fully honoured.',
+ body: 'Who you are and where you live — both fully honoured.',
   },
 ]
 
@@ -65,7 +65,7 @@ const principles = [
   },
   {
     title: 'Alignment over attraction',
-    body: 'A spark lights up for the wrong person just as bright as the right one. Choose on whether your lives actually fit.',
+ body: 'A spark lights up for the wrong person just as bright as the right one. Choose on whether your lives fit.',
   },
   {
     title: 'Involve the people who love you',
@@ -73,7 +73,7 @@ const principles = [
   },
   {
     title: 'Protect your time, faith, and peace',
-    body: 'Clarity early. No drifting, no situationships, no shrinking yourself to be chosen.',
+    body: 'Clarity early. No drifting, no half-relationships, no shrinking yourself to be chosen.',
   },
 ]
 
@@ -95,7 +95,7 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
               Our philosophy
             </p>
             <h1 className="animate-rise mt-4 font-display text-[2.1rem] font-medium leading-[1.12] tracking-tight text-balance sm:text-[2.7rem]">
-              The trusted marriage platform for the{' '}
+              A place to marry well, for the{' '}
               <span className="italic text-gold-soft">Somali diaspora.</span>
             </h1>
             <p className="animate-rise mt-5 text-[1.05rem] leading-relaxed text-cream/75 text-pretty">
@@ -219,7 +219,7 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
             and never told a room is full when it is filling.
           </p>
           <p className="mt-3 text-[1rem] leading-relaxed text-ink-soft text-pretty">
-            A marriage platform that will lie about how many people are here will
+            Anywhere that will lie about how many people are here will
             lie about who they are. We would rather open slowly and be believed.
           </p>
         </section>

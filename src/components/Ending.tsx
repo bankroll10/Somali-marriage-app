@@ -220,7 +220,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
             If you have two more minutes
           </p>
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
-            Four questions, and then we stop. Nobody has ever told us what actually decides this, and
+ Four questions, and then we stop. Nobody has ever told us what decides this, and
             without knowing we are guessing at what to build for the next person. Skip any of them.
             With Count me on, the options you tap here reach us under the same random code as your
             steps. The line you write below never does — it is yours.

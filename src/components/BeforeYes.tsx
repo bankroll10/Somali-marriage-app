@@ -181,7 +181,7 @@ export default function BeforeYes({
             {[
               'This does not score anyone. It records which conversations have happened.',
               'We take no position on any of them — qabiil and a second wife included.',
-              'You will leave with something you can actually say.',
+ 'You will leave with something you can say.',
               `No account, no sign-in. Your answers stay on this phone unless you keep your map, or ask ${them} to answer too.`,
             ].map((line) => (
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>
@@ -398,7 +398,7 @@ function Result({
             <span className="flex-1">
               <span className="font-display text-[1.15rem] font-medium text-ink">Now your own map</span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                Two minutes on what you actually need. Your side of these conversations gets clearer.
+ Two minutes on what you need. Your side of these conversations gets clearer.
               </span>
             </span>
             <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
@@ -601,7 +601,7 @@ function Together({
       </p>
       <p className="mt-2 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">
         {!couple
-          ? 'See where the two of you actually stand.'
+ ? 'See where the two of you stand.'
           : view === 'asking'
             ? `Looking for ${pronoun === 'him' ? 'his' : 'her'} answers…`
             : view === 'unreachable'

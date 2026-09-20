@@ -33,14 +33,14 @@ export const EYEBROW = 'Built for the Somali diaspora'
 export const BUILT_BY = 'Built by a Somali, for the questions our aunties ask — and the ones they don’t.'
 
 /** `<title>`: what a tab, a bookmark and a search result call this. */
-export const TITLE = `${NAME} — the trusted marriage platform for the Somali diaspora`
+export const TITLE = `${NAME} — marriage for the Somali diaspora, done in the open`
 
 /** The meta description and the manifest's description. */
 export const DESCRIPTION =
-  'The trusted marriage platform for the Somali diaspora — guided by faith, designed for serious people.'
+  'Marriage for the Somali diaspora, done in the open — guided by faith, made for serious people.'
 
 /** What the social card says when a link is pasted into a chat. */
 export const TAGLINE = 'Find someone serious — without losing your dignity, faith, time, or peace.'
 
 /** The social card's alt text. */
-export const OG_ALT = `${NAME} — built for the Somali diaspora. What’s actually in your way?`
+export const OG_ALT = `${NAME} — built for the Somali diaspora. What’s in your way?`

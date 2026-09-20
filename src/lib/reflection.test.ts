@@ -166,7 +166,7 @@ describe('the map is about the person who filled it in', () => {
   })
 
   it('names the hardest part she gave us before the intake even started', () => {
-    expect(buildReflection(hodan).summary).toContain('knowing if someone is actually serious')
+    expect(buildReflection(hodan).summary).toContain('knowing if someone is serious')
     expect(buildReflection(sagal).summary).toContain('trusting again after being hurt')
   })
 

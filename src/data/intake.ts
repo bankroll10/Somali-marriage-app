@@ -47,7 +47,7 @@ const household: Question = {
     { id: 'with-family', label: 'With family', hint: 'One household — theirs or mine' },
     { id: 'near-family', label: 'Our own place, close to family' },
     { id: 'separate', label: 'Our own place — our own city, if it comes to it' },
-    { id: 'flexible', label: 'Genuinely flexible' },
+    { id: 'Flexible', label: 'Flexible' },
   ],
 }
 
@@ -108,7 +108,7 @@ export const chapters: Chapter[] = [
         options: [
           {
             id: 'ready',
-            label: 'I feel genuinely ready to build a life with someone',
+ label: 'I feel ready to build a life with someone',
             tags: ['Intentional'],
             weight: 1,
           },
@@ -171,7 +171,7 @@ export const chapters: Chapter[] = [
         id: 'family-role',
         type: 'single',
         dimension: 'family',
-        prompt: 'How involved do you want family in the journey to marriage?',
+        prompt: 'How involved do you want family on the way to marriage?',
         options: [
           { id: 'central', label: 'Central — family is part of every step', tags: ['Family-led'], weight: 0.9 },
           { id: 'guided', label: 'Involved once things are serious', tags: ['Balanced'], weight: 1 },
@@ -235,7 +235,7 @@ export const chapters: Chapter[] = [
     kicker: '03 · Heart',
     title: 'Heart & honest mirror',
     intro:
-      'The hardest and most important part — and the one no other app asks. Not who you want, but how your heart actually works, and what you are still becoming. This stays private to you.',
+ 'The hardest and most important part — and the one no other app asks. Not who you want, but how your heart works, and what you are still becoming. This stays private to you.',
     questions: [
       {
         id: 'conflict',
@@ -254,7 +254,7 @@ export const chapters: Chapter[] = [
         id: 'healing',
         type: 'single',
         dimension: 'emotional',
-        prompt: 'Are you carrying something you’re still healing from?',
+        prompt: 'Is something from the past still with you?',
         helper: 'There’s no shame here. Marriage goes better when we arrive whole, not perfect.',
         options: [
           { id: 'healed', label: 'I’ve done the work and feel at peace', tags: ['At peace'], weight: 1 },
@@ -268,7 +268,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'emotional',
         prompt: 'When you care about someone, how does your heart tend to move?',
-        helper: 'Plainly — most of us lean one way. Knowing yours is a quiet superpower.',
+        helper: 'Plainly — most of us lean one way, and it helps to know which.',
         options: [
           { id: 'secure', label: 'Steady — I can stay calm and trust', tags: ['Secure'], weight: 1 },
           { id: 'anxious', label: 'I worry, overthink, need reassurance', tags: ['Anxious lean'], weight: 0.65 },

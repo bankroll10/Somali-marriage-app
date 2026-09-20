@@ -45,7 +45,7 @@ const women: Moment[] = [
   },
   {
     label: 'Is he serious?',
-    prompt: 'Someone has shown interest. How do I tell if he’s actually serious?',
+ prompt: 'Someone has shown interest. How do I tell if he’s serious?',
     mode: 'auntie',
     target: 'read',
   },
@@ -59,7 +59,7 @@ const men: Moment[] = [
   },
   {
     label: 'Is she serious?',
-    prompt: 'Someone has shown interest. How do I tell if she’s actually serious?',
+ prompt: 'Someone has shown interest. How do I tell if she’s serious?',
     mode: 'brother',
     target: 'read',
   },
@@ -70,7 +70,7 @@ const men: Moment[] = [
   },
   {
     label: 'Talking to her wali',
-    prompt: 'What do I actually say to her father or brother when the time comes?',
+ prompt: 'What do I say to her father or brother when the time comes?',
     mode: 'islamic',
   },
 ]

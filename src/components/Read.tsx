@@ -204,7 +204,7 @@ export default function Read({
             </div>
           )}
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-            Eleven questions about what {they} has actually <em>done</em> — not
+ Eleven questions about what {they} has <em>done</em> — not
             how you feel, and not what {they} has
             promised. At the end you get an honest read and the one question worth
             asking {subject} next, word for word.
@@ -225,7 +225,7 @@ export default function Read({
             {[
               'We never ask their name. Nothing here identifies anyone.',
               'We will not tell you what kind of person they are. We have not met them.',
-              'You will get something you can actually say this week.',
+ 'You will get something you can say this week.',
               'No account, no sign-in. Your answers stay on this phone unless you choose to keep your map.',
             ].map((line) => (
               <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">
@@ -434,7 +434,7 @@ function Result({
       </div>
 
       {result.shown.length > 0 && (
-        <Panel title={`What ${subject === 'him' ? 'he' : 'she'} has actually done`}>
+ <Panel title={`What ${subject === 'him' ? 'he' : 'she'} has done`}>
           {result.shown.slice(0, 5).map((n) => (
             <Line key={n} text={n} tone="forest" />
           ))}
@@ -486,7 +486,7 @@ function Result({
               Before you say yes
             </span>
             <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-              Eleven conversations that decide a Somali marriage. You can send them to
+              Eleven conversations most couples have too late. You can send them to
               {' '}{subject} too — {they} answers on {subject === 'him' ? 'his' : 'her'} own phone, and
               neither of you sees the other’s answers, only where you match.
             </span>
@@ -543,7 +543,7 @@ function Result({
                   Now the other half of it
                 </span>
                 <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                  That was about {subject}. Two minutes on you — what you actually need, and what you
+ That was about {subject}. Two minutes on you — what you need, and what you
                   will not compromise on. It makes every read after this one sharper.
                 </span>
               </span>

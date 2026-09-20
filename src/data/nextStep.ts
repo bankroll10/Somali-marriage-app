@@ -44,7 +44,7 @@ const STEPS: Record<Dimension, NextStep> = {
     frame:
       'Most family friction isn’t disagreement — it’s that no one has said the real thing out loud yet.',
     action:
-      'Tell one person in your family what you’re actually looking for, before they tell you what they want for you.',
+ 'Tell one person in your family what you’re looking for, before they tell you what they want for you.',
     done: 'You said the real thing to the people it’s hardest to say it to. That changes what gets brought to you.',
     mode: 'auntie',
   },
@@ -66,7 +66,7 @@ const STEPS: Record<Dimension, NextStep> = {
   },
   emotional: {
     frame:
-      'This is the ground that decides how a good match actually feels day to day. Walls and spirals both live here.',
+ 'This is the ground that decides how a good match feels day to day. Walls and spirals both live here.',
     action:
       'Next time you want to go quiet on someone, say “I need a moment, I’m not disappearing” instead. Once is enough to prove it’s possible.',
     done: 'You stayed in the room instead of going quiet. That’s the whole skill.',

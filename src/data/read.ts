@@ -145,7 +145,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
   {
     id: 'timeline',
     dimension: 'intent',
-    prompt: 'Has {he} given you a timeline you could actually hold {him} to?',
+ prompt: 'Has {he} given you a timeline you could hold {him} to?',
     options: [
       {
         id: 'dated',
@@ -287,7 +287,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     // read modesty as disinterest. Hearing nothing at all still counts — it
     // is just no longer the bottom of the scale.
     man: {
-      helper: 'Be honest. Some people never text first on purpose — what you are reading is whether you hear from her at all.',
+      helper: 'Be honest. Some people never text first, by habit — what you are reading is whether you hear from her at all.',
       options: {
         'day-two': { weight: 0.85 },
         eventually: { weight: 0.55 },

@@ -159,7 +159,7 @@ I’m not here to hype you up — I’m here to keep you honest and effective. Y
     { label: 'How do I state my intention clearly?', prompt: 'How do I state my intention for marriage clearly without it being awkward?' },
     { label: 'I keep flirting in circles', prompt: 'I keep flirting in circles and not getting anywhere. Help.' },
     { label: 'What do I say to her wali?', prompt: 'What do I say to her father or brother when the time comes?' },
-    { label: 'How do I stop wasting time?', prompt: 'How do I stop wasting time and actually move toward marriage?' },
+ { label: 'How do I stop wasting time?', prompt: 'How do I stop wasting time and move toward marriage?' },
   ],
   intents: [
     {
@@ -225,16 +225,16 @@ This is a space to slow down and understand what’s happening inside you — th
   starters: [
     { label: 'I can’t stop overthinking his replies', prompt: 'I can’t stop overthinking every reply he sends. Help me.' },
     { label: 'I think I’m anxiously attached', prompt: 'I think I have anxious attachment. What does that mean for me?' },
-    { label: 'Why do I pull away when I like someone?', prompt: 'Why do I pull away or go cold when I actually like someone?' },
+ { label: 'Why do I pull away when I like someone?', prompt: 'Why do I pull away or go cold when I like someone?' },
     { label: 'Help me calm a spiral', prompt: 'I’m spiralling right now. Help me calm down.' },
   ],
   intents: [
     {
       keywords: ['overthink', 'overthinking', 'spiral', 'spiralling', 'spiraling', 'cant stop', "can't stop", 'in my head', 'reading too much', 'analysing'],
       respond: (ctx) =>
-        `Let’s slow it down together. Overthinking is usually your nervous system trying to protect you from uncertainty — it’s not a sign something is wrong.
+        `Let’s slow it down together. Overthinking is usually your mind trying to protect you from not knowing — it is not a sign something is wrong.
 
-Try separating *fact* from *story*. On one side: what actually happened (“he replied after four hours”). On the other: the story your mind added (“he’s losing interest”). Almost always, the facts are far calmer than the story.${(() => {
+Try separating *fact* from *story*. On one side: what happened (“he replied after four hours”). On the other: the story your mind added (“he’s losing interest”). Almost always, the facts are far calmer than the story.${(() => {
           const cs = ctx.answers['comm-safety']
           if (!Array.isArray(cs) || cs.length === 0) return ''
           const map: Record<string, string> = { consistency: 'consistency', directness: 'directness', gentleness: 'gentleness', reassurance: 'reassurance', space: 'respected space', 'follow-through': 'follow-through' }
@@ -251,7 +251,7 @@ Try separating *fact* from *story*. On one side: what actually happened (“he r
           : `An anxious lean means closeness can trigger a fear of losing it — so you seek reassurance, and silence feels like danger.`
         return `${intro}
 
-The work isn’t to never feel anxious — it’s to not *act* from the panic. When the wave comes: name it (“this is my attachment system, not the truth”), feel it in your body, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. Over time, you teach your nervous system that you are safe even in the silence.`
+The work isn’t to never feel anxious — it’s to not *act* from the panic. When the wave comes: name it (“this is the fear, not the truth”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. Over time the silence stops feeling like danger.`
       },
     },
     {
@@ -264,7 +264,7 @@ The gentle work is to *notice the urge before you act on it*. When you feel the 
     {
       keywords: ['calm', 'spiralling now', 'panic', 'anxiety', 'cant breathe', 'overwhelmed', 'right now', 'help me'],
       respond: () =>
-        `Okay — right now, let’s just regulate. Nothing to fix this minute.
+        `Okay — right now, let’s just slow down. Nothing to fix this minute.
 
 • Feel your feet on the floor. Look around and name five things you can see.
 • Breathe out longer than you breathe in — four counts in, six counts out, a few times.
@@ -289,7 +289,7 @@ const islamic: GuidanceMode = {
   id: 'islamic',
   label: 'Islamic Values',
   tagline: 'Intention, modesty, family, respect',
-  description: 'Anchoring the journey in deen, dignity, and a halal path.',
+  description: 'Deen, dignity, and a halal path.',
   glyph: 'crescent',
   accent: 'forest',
   greeting: (ctx) =>
@@ -342,7 +342,7 @@ For a sister, the wali’s involvement is part of the path and a safeguard of he
       respond: () =>
         `In our deen, character — akhlaq — is the truest measure. “The most complete of believers in faith are the best of them in character, and the best of you are those best to their wives.”
 
-So look past charm to how they actually treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for fifty years.`,
+So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for fifty years.`,
     },
   ],
   fallback: (ctx) =>
@@ -361,14 +361,14 @@ function readMap(ctx: CoachContext): string {
   if (tl === 'within-1' || tl === '1-2') bits.push('someone ready to move with intention, not drift')
   if (Array.isArray(a['value-most']) && a['value-most'].length)
     bits.push(`a character built on what you value most`)
-  return bits.length ? bits.join(', ') : 'someone genuinely aligned with the life you described'
+ return bits.length ? bits.join(', ') : 'someone aligned with the life you described'
 }
 
 const matchmaker: GuidanceMode = {
   id: 'matchmaker',
   label: 'Matchmaker',
   tagline: 'Alignment over looks',
-  description: 'Looks past the photos to what actually lasts — alignment.',
+ description: 'Looks past the photos to what lasts — alignment.',
   glyph: 'spark',
   accent: 'clay',
   greeting: (ctx) =>
@@ -376,7 +376,7 @@ const matchmaker: GuidanceMode = {
 
 I’ll be straight with you: there is nobody for me to introduce you to yet, and I won’t pretend otherwise. What I can do now is read your map with you — it says you need ${readMap(ctx)} — and get you clear on what has to be true of the person before you meet anyone, so that when you do, you find out early rather than late.`,
   starters: [
-    { label: 'What kind of person actually fits me?', prompt: 'Based on my map, what kind of person actually fits me?' },
+ { label: 'What kind of person fits me?', prompt: 'Based on my map, what kind of person fits me?' },
     { label: 'What should I look for first?', prompt: 'What should I prioritise and look for first in someone?' },
     { label: 'What are my green flags to seek?', prompt: 'What green flags should I be actively looking for?' },
     { label: 'Why does alignment beat attraction?', prompt: 'Why does alignment matter more than attraction?' },
@@ -389,9 +389,9 @@ I’ll be straight with you: there is nobody for me to introduce you to yet, and
       // bought in a demo, it cost the one thing this product actually sells.
       keywords: ['focus on', 'who first', 'which of them', 'compare', 'best match', 'strongest', 'who should i talk', 'introductions'],
       respond: () =>
-        `I won’t pretend to have people for you. Your city hasn’t opened yet — when it does, you’ll see the real count on the door and I’ll read whoever is actually there against your map.
+ `I won’t pretend to have people for you. Your city hasn’t opened yet — when it does, you’ll see the real count on the door and I’ll read whoever is there against your map.
 
-Until then the work is the same work, and it isn’t waiting: if you’re already talking to someone, take a read on what he has actually done, and go through the eleven conversations before the families are involved. If you’re not, your map and the words for your family are what make the first month go well when it comes.
+Until then the work is the same work, and it isn’t waiting: if you’re already talking to someone, take a read on what he has done, and go through the eleven conversations before the families are involved. If you’re not, your map and the words for your family are what make the first month go well when it comes.
 
 That’s not a consolation. It’s the part most people skip.`,
     },
@@ -408,7 +408,7 @@ Don’t shop for a feeling — recognise a fit. The strongest marriages aren’t
         `Prioritise in this order — it’ll save you years:
 • **Character & deen** first. Honesty, kindness, God-consciousness. Non-negotiable.
 • **Direction & alignment** second. Same horizon on faith, family, children, where you’ll live.
-• **Emotional availability** third. Can they actually show up, communicate, repair?
+• **Emotional availability** third. Can they show up, communicate, repair?
 • **Attraction** fourth — it matters, but it’s the easiest to mistake for compatibility.
 
 Most people run that list upside down and wonder why it hurts. Get the top right and attraction grows. Get only the bottom right and it fades into resentment.`,
@@ -430,7 +430,7 @@ Notice: none of these show up in a photo. That’s exactly why I look past the p
       respond: () =>
         `Attraction gets you interested; alignment keeps you married. Chemistry is real, but it’s a terrible *filter* — it lights up just as bright for the wrong person as the right one.
 
-Alignment is whether your lives actually fit: faith, family, finances, children, pace, values. When those line up, attraction tends to *grow*, because respect is the deepest kind of attraction there is. When they don’t, no amount of spark survives the friction. So feel the spark — but choose on the fit.`,
+Alignment is whether your lives fit: faith, family, finances, children, pace, values. When those line up, attraction tends to *grow*, because respect is the deepest kind of attraction there is. When they don’t, no amount of spark survives the friction. So feel the spark — but choose on the fit.`,
     },
   ],
   fallback: (ctx) =>

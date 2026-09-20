@@ -62,7 +62,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
             This is what a serious person looks like here.
           </h1>
           <p className="animate-rise mt-4 max-w-lg text-[1.04rem] leading-relaxed text-ink-soft text-pretty">
-            Not a badge you tap. The things you have actually done — each costs a
+ Not a badge you tap. The things you have done — each costs a
             little time and a little honesty, and none can be faked. If a pool ever
             opens here, this is what would decide who you meet, and who meets you —
             and nothing is deciding it yet.
@@ -116,7 +116,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 </p>
                 <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                   No answer in your words, no name, nothing that leads back to you. It is how we
-                  find out whether any of this actually helps anyone. Turn it off and nothing is
+ find out whether any of this helps anyone. Turn it off and nothing is
                   sent.
                 </p>
               </>
@@ -171,7 +171,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 Three things are
-                left out on purpose: your email or phone, your conversations with the
+                left out: your email or phone, your conversations with the
                 guide, and anything the guide handed you to say. Those never leave this
                 phone under your code.
               </p>
@@ -181,7 +181,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               </p>
             </Disclose>
 
-            <Disclose summary="Joining the founding cohort" hint="Your city and how to reach you, kept apart">
+            <Disclose summary="Asking to be counted" hint="Your city and how to reach you, kept apart">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                 If you ask to be counted, your map is kept as above — kept again
                 that day, as it is then, and if you have not given your age we ask
@@ -219,7 +219,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 One more honest thing: your kept map lives in one
                 place, with the company we rent storage from, and the founder’s
-                backup deliberately does not include it. If that storage were
+                backup does not include it. If that storage were
                 ever lost, the map would be too — which is why it also stays on
                 your phone, and why the code is worth keeping.
               </p>

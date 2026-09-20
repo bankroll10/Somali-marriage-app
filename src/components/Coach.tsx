@@ -528,7 +528,7 @@ export default function Coach({
                 is the thing the guide would have told you to do anyway.
               </p>
               <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
-                There is nothing to buy here. That is deliberate.
+                There is nothing to buy here.
               </p>
               <button
                 onClick={onBack}

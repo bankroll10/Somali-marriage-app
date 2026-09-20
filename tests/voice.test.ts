@@ -1,0 +1,112 @@
+import { readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
+import { describe, expect, it } from 'vitest'
+
+/**
+ * The voice, held as a list of things it does not say (docs/VOICE.md).
+ *
+ * Every phrase here was live in the product on 2026-09-20, most of them
+ * dozens of times. They fall into five habits: the verbal tic ("actually" —
+ * sixty occurrences), announcing sincerity ("genuinely", "on purpose"),
+ * therapy vocabulary outside the one voice allowed it, startup nouns
+ * ("founding cohort", "platform"), and the phrase docs/PROTOCOL.md:386 names
+ * as its example of an exaggerated cultural claim. A word that earns its
+ * place goes on the allowlist with a reason; nothing else does.
+ *
+ * Scanned line by line, comments skipped, in the shape of promises.test.ts.
+ */
+
+const ROOT = join(import.meta.dirname, '..', 'src')
+const DIRS = ['components', 'data', 'lib']
+
+const BANNED: [RegExp, string][] = [
+  [/\bactually\b/i, 'the tic — say the thing without insisting it is real'],
+  [/\bgenuinely\b/i, 'announces sincerity; the sentence should carry it'],
+  [/\bliterally\b/i, 'filler'],
+  [/\btruly\b/i, 'announces sincerity'],
+  [/\bsuperpower\b/i, 'startup'],
+  [/\bon purpose\b/i, 'explains a design decision to the person'],
+  [/\bdeliberately\b/i, 'explains a design decision to the person'],
+  [/\bthat is deliberate\b/i, 'explains a design decision to the person'],
+  [/\bthe whole point\b/i, 'aphorism'],
+  [/here’s the frame|here's the frame/i, 'the fallback opener'],
+  [/\byour peace\b/i, 'therapy, outside the therapist'],
+  [/\bdata too\b/i, 'therapy, outside the therapist'],
+  [/\bnervous system\b/i, 'clinical, even for the therapist'],
+  [/\bregulate\b/i, 'clinical, even for the therapist'],
+  [/\bjourney\b/i, 'self-help register'],
+  [/\bhealing from\b/i, 'therapy, outside the therapist'],
+  [/\binner work\b/i, 'therapy'],
+  [/\bperforming recovery\b/i, 'therapy-internet'],
+  [/\bfounding cohort\b/i, 'startup'],
+  [/\bfounding member/i, 'startup'],
+  [/\bplatform\b/i, 'startup — it is Niyyah, or nothing'],
+  [/\bI want in\b/i, 'scarcity language put in her mouth'],
+  [/\bsituationship/i, 'internet'],
+  [/decides? a Somali marriage/i, 'docs/PROTOCOL.md:386 — the example of an exaggerated claim'],
+]
+
+/** Lines that keep a banned word, each with the reason it earns its place. */
+const ALLOWED: [RegExp, string][] = [
+  [/Actually, it’s something else/, 'a button in the person’s own voice, correcting us'],
+  [/navigator\.platform|process\.platform/, 'code, not copy'],
+  [/^\s*\/\\b\(/, 'a routing regex reads what she typed; it is not something we say'],
+]
+
+/** Comment lines, including the continuation lines of a block comment, which carry no marker of their own. */
+function commentLines(lines: string[]): Set<number> {
+  const out = new Set<number>()
+  let inBlock = false
+  lines.forEach((line, i) => {
+    const t = line.trim()
+    if (inBlock) {
+      out.add(i)
+      if (t.includes('*/')) inBlock = false
+      return
+    }
+    if (t.startsWith('//') || t.startsWith('*')) out.add(i)
+    const open = t.indexOf('/*')
+    if (open !== -1) {
+      out.add(i)
+      if (!t.slice(open).includes('*/')) inBlock = true
+    }
+  })
+  return out
+}
+
+function files(): { file: string; lines: string[] }[] {
+  const out: { file: string; lines: string[] }[] = []
+  const walk = (at: string, rel: string) => {
+    for (const entry of readdirSync(at, { withFileTypes: true })) {
+      const full = join(at, entry.name)
+      const r = `${rel}/${entry.name}`
+      if (entry.isDirectory()) walk(full, r)
+      else if (/\.tsx?$/.test(entry.name) && !entry.name.includes('.test.')) {
+        out.push({ file: r, lines: readFileSync(full, 'utf8').split('\n') })
+      }
+    }
+  }
+  for (const d of DIRS) walk(join(ROOT, d), d)
+  return out
+}
+
+describe('the voice', () => {
+  it('says none of the things it stopped saying', () => {
+    const hits: string[] = []
+    for (const { file, lines } of files()) {
+      const skip = commentLines(lines)
+      lines.forEach((line, i) => {
+        if (skip.has(i)) return
+        if (ALLOWED.some(([re]) => re.test(line))) return
+        for (const [re, why] of BANNED) {
+          if (re.test(line)) hits.push(`${file}:${i + 1}  ${why}\n      ${line.trim().slice(0, 110)}`)
+        }
+      })
+    }
+    expect(hits, `\n${hits.length} lines say something the voice does not:\n\n${hits.join('\n')}\n`).toEqual([])
+  })
+
+  it('reads more than forty files, so an empty result means clean and not skipped', () => {
+    expect(files().length).toBeGreaterThan(40)
+  })
+})

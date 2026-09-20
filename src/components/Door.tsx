@@ -101,7 +101,7 @@ export default function Door({
       <main className="mx-auto max-w-xl px-6">
         <div className="py-10">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold">
-            Founding cohort{place ? ` · ${other && country ? getCountry(country)?.label : place.label}` : ''}
+            {place ? (other && country ? getCountry(country)?.label : place.label) : 'The first cities'}
           </p>
           <h1 className="animate-rise mt-2.5 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
             Nobody is introduced to anyone until both sides are here.

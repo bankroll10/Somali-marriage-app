@@ -106,7 +106,7 @@ export default function Profile({
           </h1>
           <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
             Not a photo, not a bio, not a number. Nobody is introduced here yet. If a pool opens, who you
-            meet would be decided by what you have actually done here, what you will not compromise on, and
+ meet would be decided by what you have done here, what you will not compromise on, and
             how you would live. All of it is yours to do or not — and none of it can be tapped into being.
           </p>
           {!saveOk && (

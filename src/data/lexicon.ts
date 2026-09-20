@@ -51,7 +51,7 @@ export const LEXICON: Term[] = [
   {
     id: 'reading',
     term: 'A reading',
-    body: 'One dated map. You will have several. The distance between them is the whole point.',
+    body: 'One dated map. You will have several, and what changed between them is what to read.',
   },
   {
     id: 'ground',
@@ -86,7 +86,7 @@ export const LEXICON: Term[] = [
   {
     id: 'eleven',
     term: 'The eleven',
-    body: 'The eleven conversations that decide a Somali marriage. You can answer them alone, or send them to him and see only where the two of you match.',
+    body: 'The eleven conversations couples rarely have before the families do. You can answer them alone, or send them to the other person and see only where you match.',
   },
   {
     id: 'vouch',

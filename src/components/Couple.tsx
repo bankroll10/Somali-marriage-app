@@ -204,7 +204,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
               {sender}’s asked you to do this too.
             </h1>
             <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-              Eleven conversations that decide a Somali marriage — where you’d live, money sent home, a
+              Eleven conversations couples rarely have before the families do — where you’d live, money sent home, a
               second wife. For each one, say only whether the two of you have talked about it.
             </p>
             <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
@@ -347,14 +347,14 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 <button onClick={onRead} className="group flex items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5">
                   <span className="flex-1">
                     <span className="font-display text-[1.15rem] font-medium text-ink">Is {senderObj === 'her' ? 'she' : 'he'} serious? Get your own read.</span>
-                    <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">Ninety seconds on what {senderObj === 'her' ? 'she' : 'he'} has actually done, and the one question to ask next.</span>
+ <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">Ninety seconds on what {senderObj === 'her' ? 'she' : 'he'} has done, and the one question to ask next.</span>
                   </span>
                   <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
                 </button>
                 <button onClick={onBuildMap} className="group flex items-center gap-4 rounded-card border border-gold/30 bg-gold/[0.07] p-5 text-left transition-all hover:-translate-y-0.5">
                   <span className="flex-1">
                     <span className="font-display text-[1.15rem] font-medium text-ink">Your own map</span>
-                    <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">Two minutes on what you actually need. Nothing here is shared with anyone.</span>
+ <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">Two minutes on what you need. Nothing here is shared with anyone.</span>
                   </span>
                   <ArrowRight className="flex-none text-gold transition-transform group-hover:translate-x-0.5" />
                 </button>
