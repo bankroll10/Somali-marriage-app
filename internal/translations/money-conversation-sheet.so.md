@@ -158,15 +158,22 @@ so a future edit starts from the same understanding.
 
 ---
 
-## Two lines not on this list
+## Lines not on this list
 
-Two operational, non-content sentences exist only in the built HTML, not
-in the 49 approved rows above, because they didn't exist in this form when
-those rows were reviewed: the four-page file's cross-reference to the
-one-page file, and the one-page file's combined "this is the one-page
-version" note. Both are purely wayfinding (which file to use, printed
+Operational, non-content sentences exist only in the built HTML, not in
+the 49 approved rows above, because they didn't exist in this form when
+those rows were reviewed. Purely wayfinding (which file to use, printed
 where), translated directly in the HTML build rather than routed through
 this table. Worth a look if this file is ever revisited.
+
+- The four-page file's cross-reference to the one-page file, and the
+  one-page file's combined "this is the one-page version" note.
+- 2026-09-20: each of the four Somali/English sheet pairs gained a
+  one-line version switcher (English ↔ Somali, 4-page ↔ 1-page). The
+  Somali sides reuse "nooska afar-bog ah" / "nooska hal-bog ah" verbatim
+  from the note above them; "Af-Ingiriisi ahaan" ("in English") and
+  "Sidoo kale" ("also") are new short phrases, in the same operational
+  register as the two lines above, not run past the founder individually.
 
 ## What's built from this
 
@@ -175,7 +182,7 @@ this table. Worth a look if this file is ever revisited.
 - `public/niyyah-money-conversation-sheet-1page-so.html` — the same
   twenty questions condensed to one printed page.
 - `public/niyyah-money-conversation-sheet-so.txt` — plain-text twin.
-- Catalog rows in `docs/ASSETS.md` (N3-so, N3-1page-so), `built, not yet
-  checked` — same as every other asset, a URL is not "live and checked"
-  until a person opens it on a session-less device.
+- Catalog rows in `docs/ASSETS.md` (N3-so, N3-1page-so), **live and
+  checked** since 2026-09-20 — the founder ran a session-less `curl -sI`
+  against both addresses after the merge reached Netlify, and got 200.
 - Structural tests in `tests/sheet-so.test.ts`.

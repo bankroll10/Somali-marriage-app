@@ -22,15 +22,24 @@ const REF = readFileSync('internal/translations/money-conversation-sheet.so.md',
 
 
 describe('both files open from disk, with the network off', () => {
+  const switcherHrefs = {
+    'four-page': ['niyyah-money-conversation-sheet-1page-so.html', 'niyyah-money-conversation-sheet.html'],
+    'one-page': ['niyyah-money-conversation-sheet-so.html', 'niyyah-money-conversation-sheet-1page.html'],
+  } as const
+
   for (const [name, doc] of [['four-page', HTML], ['one-page', ONE_PAGE]] as const) {
     it(`${name}: fetches nothing, saves nothing, no script`, () => {
       for (const forbidden of ['<script', '<iframe', '<img', '<link ', '@import', 'src=', 'localStorage', 'sessionStorage', '<form', 'action=', 'type="submit"']) {
         expect(doc, forbidden).not.toContain(forbidden)
       }
-      const anchors = [...doc.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
-      expect(anchors, name).toEqual(['https://joinniyyah.com/'])
       const urls = doc.match(/https?:\/\/[^\s"'<>)]+/g) ?? []
       expect(urls, name).toEqual(['https://joinniyyah.com/'])
+    })
+
+    it(`${name}: the version switcher's two links are relative, the footer's is the one absolute address`, () => {
+      const anchors = [...doc.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
+      expect(anchors, name).toEqual([...switcherHrefs[name], 'https://joinniyyah.com/'])
+      for (const href of switcherHrefs[name]) expect(href, href).not.toMatch(/^https?:|^\//)
     })
 
     it(`${name}: declares lang="so" and names Niyyah in its own <title>`, () => {
@@ -124,6 +133,22 @@ describe('the wording matches the approved reference, not a re-drafted version',
       expect(doc.match(/Qofka A/g)?.length).toBeGreaterThanOrEqual(20)
       expect(doc.match(/Qofka B/g)?.length).toBeGreaterThanOrEqual(20)
     }
+  })
+})
+
+describe('the version switcher reuses established vocabulary, not new coinages', () => {
+  // "nooska afar-bog ah" / "nooska hal-bog ah" already exist verbatim in
+  // each file's own screen-only note above the switcher — reused rather
+  // than re-translated, so the switcher can't drift from how the page
+  // already describes its own length.
+  it('four-page: points to the one-page twin using its own established phrase, and to English', () => {
+    expect(HTML).toContain('<a href="niyyah-money-conversation-sheet-1page-so.html">nooska hal-bog ah</a>')
+    expect(HTML).toContain('<a href="niyyah-money-conversation-sheet.html">Af-Ingiriisi ahaan</a>')
+  })
+
+  it('one-page: points to the four-page twin using its own established phrase, and to English', () => {
+    expect(ONE_PAGE).toContain('<a href="niyyah-money-conversation-sheet-so.html">nooska afar-bog ah</a>')
+    expect(ONE_PAGE).toContain('<a href="niyyah-money-conversation-sheet-1page.html">Af-Ingiriisi ahaan</a>')
   })
 })
 

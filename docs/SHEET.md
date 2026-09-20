@@ -355,20 +355,51 @@ deciding") — the two Somali phrases happen to be close enough in length to
 each other that they wrap to the same number of lines and stay aligned
 without needing an invented short form.
 
-**Two lines exist only in the built HTML, not in the approved 49 rows** —
-the four-page file's cross-reference to the one-page file, and the
-one-page file's own "this is the one-page version" note. Both are purely
-operational (which file to use), translated directly during the build
-rather than routed through the approved table, since neither existed in
-this form when the 49 rows were reviewed. Noted in
+**Several lines exist only in the built HTML, not in the approved 49
+rows** — the four-page file's cross-reference to the one-page file, the
+one-page file's own "this is the one-page version" note, and (2026-09-20)
+each file's version switcher below. All are purely operational (which
+file to use, printed where), translated directly during the build rather
+than routed through the approved table, since none existed in this form
+when the 49 rows were reviewed. Noted in
 `internal/translations/money-conversation-sheet.so.md` for anyone who
 revisits the file.
 
-`docs/ASSETS.md` carries N3-so and N3-1page-so at the same `built, not yet
-checked` status as every other asset in the family — approved language is
-not the same thing as a URL a founder has actually opened on a
-session-less device, and the catalog's rule doesn't bend for this one
-either.
+`docs/ASSETS.md` carries N3-so and N3-1page-so as **live and checked**
+since 2026-09-20 — the founder ran a session-less `curl -sI` against both
+addresses after the merge reached Netlify, and got 200 on each.
+
+## The version switcher — every sheet page links to its counterparts
+
+2026-09-20: each of the four sheet files (English and Somali, four-page
+and one-page) carries a one-line, screen-only version switcher — added
+after a page and after the facilitator note both named their counterparts
+in plain text but never linked them. Two links per file, one per axis of
+variation:
+
+- English ↔ Somali: the four-page English file links to the four-page
+  Somali file, and so on for each pairing.
+- 4-page ↔ 1-page: the four-page file links to the one-page file in the
+  same language, and back.
+
+Every href is a bare relative filename — `niyyah-money-conversation-
+sheet-so.html`, not a path or an absolute URL — since all five files sit
+as siblings in `public/`, copied verbatim to `dist/`'s root. The switcher
+is `.screen-only`, the same class the existing cross-reference notes
+already use, so it adds nothing to any printed page: re-measured in
+Chromium after adding it, all five files render at the exact same page
+counts as before (English 4/4 and 1/1, Somali 4/4 and 1/1, the
+facilitator note 1/1 at the same 55% fill). The facilitator note's
+"Which version to use" section changed the same way — its four filenames,
+previously named in `<code>` but not linked, now wrap in `<a href>` to the
+same four files, with no change to the visible text.
+
+The Somali sides of the switcher reuse "nooska afar-bog ah" / "nooska
+hal-bog ah" verbatim from each file's own existing note rather than
+re-translating; "Af-Ingiriisi ahaan" ("in English") and "Sidoo kale"
+("also") are new short, operational phrases in the same register as the
+lines above, not run past the founder individually — see
+`internal/translations/money-conversation-sheet.so.md`.
 
 ## Where the rest lives
 

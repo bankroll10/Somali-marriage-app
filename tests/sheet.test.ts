@@ -32,13 +32,24 @@ describe('it opens from disk, with the network off', () => {
     }
   })
 
-  it('carries exactly one link, and it is the one address we own', () => {
-    const anchors = [...HTML.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
-    expect(anchors).toEqual(['https://joinniyyah.com/'])
-    // No second URL hiding in a comment, a meta tag or the CSS either.
+  it('carries exactly one absolute link, and it is the one address we own', () => {
+    // The version switcher adds two more <a> tags, but both are relative —
+    // this file still reaches outside itself in exactly one place.
     const urls = HTML.match(/https?:\/\/[^\s"'<>)]+/g) ?? []
     expect(urls).toEqual(['https://joinniyyah.com/'])
     expect(TXT.match(/https?:\/\/[^\s]+/g)).toEqual(['https://joinniyyah.com/'])
+  })
+
+  it('the version switcher is the only other link, and every href is relative', () => {
+    const anchors = [...HTML.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
+    expect(anchors).toEqual([
+      'niyyah-money-conversation-sheet-1page.html',
+      'niyyah-money-conversation-sheet-so.html',
+      'https://joinniyyah.com/',
+    ])
+    for (const href of anchors.filter((h) => h !== 'https://joinniyyah.com/')) {
+      expect(href, href).not.toMatch(/^https?:|^\//)
+    }
   })
 
   it('saves nothing and sends nothing — there is no form to submit', () => {
@@ -58,10 +69,9 @@ describe('it opens from disk, with the network off', () => {
     expect(HTML).toMatch(/screen-only[\s\S]*?\{\s*display: none;/)
   })
 
-  it('points, in plain text, to the one-page twin — without adding a second link', () => {
+  it('points to the one-page twin, both in plain text and as a real relative link', () => {
     expect(HTML).toContain('niyyah-money-conversation-sheet-1page.html')
-    // Named, not linked: still exactly one <a> on the page.
-    expect([...HTML.matchAll(/<a\s[^>]*href=/g)]).toHaveLength(1)
+    expect(HTML).toContain('<a href="niyyah-money-conversation-sheet-1page.html">')
   })
 })
 
@@ -151,10 +161,15 @@ describe('what it refuses to say', () => {
   })
 
   it('uses only the terms the reader already uses, and explains no culture to them', () => {
-    // mahr, nikah, walima and nothing else in Somali or Arabic; no lang= switch,
-    // because there is no second language on the page to switch into.
+    // mahr, nikah, walima and nothing else in Somali or Arabic; no lang=
+    // switch, because this document itself is never bilingual — "Somali"
+    // appears exactly once, as the version switcher's link to the separate
+    // Somali document, not as an explanation folded into this page's prose.
     expect(HTML).not.toContain('lang="so"')
-    expect(BOTH).not.toMatch(/\bSomali\b|\bin our culture\b|\btraditionally\b|\bin the community\b/i)
+    expect(HTML.match(/\bSomali\b/g)).toHaveLength(1)
+    expect(HTML).toContain('<a href="niyyah-money-conversation-sheet-so.html">in Somali</a>')
+    expect(BOTH).not.toMatch(/\bin our culture\b|\btraditionally\b|\bin the community\b/i)
+    expect(TXT).not.toMatch(/\bSomali\b/i)
     for (const term of ['mahr', 'nikah', 'walima']) expect(BOTH.toLowerCase()).toContain(term)
   })
 })
@@ -223,8 +238,12 @@ describe('on paper', () => {
     }
     expect(PRINT).toMatch(/\.print-footer \{\s*display: block/)
     expect(CSS).toMatch(/^\s*\.print-footer \{\s*display: none;/m)
-    // No extra <a>: repeating the name four times must not repeat the link.
-    expect([...HTML.matchAll(/<a\s[^>]*href=/g)]).toHaveLength(1)
+    // No extra <a>: repeating the name four times must not repeat the link,
+    // and the version switcher's two links stay screen-only, so print never
+    // shows more than the one clickable address in the real footer.
+    expect([...HTML.matchAll(/<a\s[^>]*href=/g)]).toHaveLength(3)
+    const switcher = HTML.match(/<p class="note screen-only">\s*Also:[\s\S]*?<\/p>/)![0]
+    expect(switcher).toMatch(/class="note screen-only"/)
   })
 })
 
@@ -281,7 +300,14 @@ describe('the one-page variant', () => {
       expect(ONE_PAGE, forbidden).not.toContain(forbidden)
     }
     const anchors = [...ONE_PAGE.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
-    expect(anchors).toEqual(['https://joinniyyah.com/'])
+    expect(anchors).toEqual([
+      'niyyah-money-conversation-sheet.html',
+      'niyyah-money-conversation-sheet-1page-so.html',
+      'https://joinniyyah.com/',
+    ])
+    for (const href of anchors.filter((h) => h !== 'https://joinniyyah.com/')) {
+      expect(href, href).not.toMatch(/^https?:|^\//)
+    }
   })
 
   it('carries "Niyyah" in its own <title>', () => {
@@ -388,6 +414,11 @@ describe('the one-page variant', () => {
     expect(ONE_PAGE).toContain('use the four-page version instead')
   })
 
+  it('carries a version switcher with real relative links to its two counterparts', () => {
+    expect(ONE_PAGE).toContain('<a href="niyyah-money-conversation-sheet.html">the four-page version</a>')
+    expect(ONE_PAGE).toContain('<a href="niyyah-money-conversation-sheet-1page-so.html">in Somali</a>')
+  })
+
   it('still drops to one column below 700px, with no field under the 16px floor', () => {
     expect(O_CSS).toContain('@media (max-width: 700px)')
     expect(O_CSS.match(/font-size: 1rem; \/\* 16px floor/g)?.length).toBeGreaterThanOrEqual(2)
@@ -400,14 +431,26 @@ describe('the facilitator note', () => {
   // same no-network guarantee as the two sheets, and the three things a
   // coordinator actually asked "how" about.
 
-  it('fetches nothing and saves nothing, the same as the two sheets', () => {
+  it('fetches nothing, and reaches outside itself only at the one address we own', () => {
     for (const forbidden of ['<script', '<iframe', '<img', '<link ', '@import', 'src=', 'localStorage', 'sessionStorage', '<form', 'action=', 'type="submit"']) {
       expect(NOTE, forbidden).not.toContain(forbidden)
     }
-    const anchors = [...NOTE.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
-    expect(anchors).toEqual(['https://joinniyyah.com/'])
     const urls = NOTE.match(/https?:\/\/[^\s"'<>)]+/g) ?? []
     expect(urls).toEqual(['https://joinniyyah.com/'])
+  })
+
+  it('links each of the four sheet files by their real, relative filename', () => {
+    const anchors = [...NOTE.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
+    expect(anchors).toEqual([
+      'niyyah-money-conversation-sheet-1page.html',
+      'niyyah-money-conversation-sheet.html',
+      'niyyah-money-conversation-sheet-so.html',
+      'niyyah-money-conversation-sheet-1page-so.html',
+      'https://joinniyyah.com/',
+    ])
+    for (const href of anchors.filter((h) => h !== 'https://joinniyyah.com/')) {
+      expect(href, href).not.toMatch(/^https?:|^\//)
+    }
   })
 
   it('carries "Niyyah" in its own <title>', () => {
