@@ -44,7 +44,7 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
 
   return (
     <div className="relative min-h-dvh bg-cream">
-      <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-6">
+      <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-safe-6">
         <BackButton onClick={chosen ? () => setChosen(null) : onBack} className="self-start" />
 
         <div className="flex flex-1 flex-col justify-center py-10">

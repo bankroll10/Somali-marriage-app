@@ -246,4 +246,39 @@
   .animate-screen {
     animation: screen-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
+
+  /* Safe-area padding (docs/MOBILE.md). iOS's status bar (black-translucent,
+     see index.html) and home-indicator gesture bar both sit inside the
+     visual viewport once this app runs standalone (viewport-fit=cover) —
+     nothing here used env() before this pass. Every one of these falls back
+     to 0px on a device that doesn't report an inset, so each is a no-op
+     where it isn't needed and adds space only where it is. */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* For a root whose own top padding was a plain 1.5rem (pt-6) or 2rem
+     (pt-8) before this pass — replaces that utility so the same rem value
+     still renders when the inset is 0, and grows only when it isn't. */
+  .pt-safe-6 {
+    padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+  }
+  .pt-safe-8 {
+    padding-top: calc(2rem + env(safe-area-inset-top, 0px));
+  }
+
+  /* For an element that is itself sticky at the very top and can't rely on
+     an ancestor's padding once it has scrolled past it (ScreenHeader's
+     sticky mode, Intake's top bar) — its own baseline 0.875rem (py-3.5)
+     plus the inset, in one declaration. */
+  .pt-safe-sticky {
+    padding-top: calc(0.875rem + env(safe-area-inset-top, 0px));
+  }
+
+  /* For a fixed or flex-pinned bottom bar, which ignores an ancestor's
+     padding entirely (ShortMap's and Intake's fixed CTA bars, Coach's
+     composer). */
+  .pb-safe-bar {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  }
 }

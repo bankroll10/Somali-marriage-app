@@ -364,7 +364,7 @@ function Shell({
   title: string
 }) {
   return (
-    <div className="min-h-dvh bg-cream pb-16">
+    <div className="min-h-dvh bg-cream pb-16 pt-safe">
       <ScreenHeader onBack={onBack}>
         <p className="font-display text-[1.05rem] font-medium text-ink">{title}</p>
       </ScreenHeader>

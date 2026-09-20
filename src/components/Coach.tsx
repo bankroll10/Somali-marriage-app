@@ -297,7 +297,7 @@ export default function Coach({
   if (!activeMode) {
     const recommended = defaultModeFor(identity.gender)
     return (
-      <div className="min-h-dvh bg-cream">
+      <div className="min-h-dvh bg-cream pb-16 pt-safe">
         <ScreenHeader onBack={onBack}>
           <p className="font-display text-[1.05rem] font-medium text-ink">Your guide</p>
         </ScreenHeader>
@@ -564,7 +564,7 @@ export default function Coach({
 
       <div className="flex-none border-t border-line/70 bg-cream/90 backdrop-blur-md">
         {locked ? (
-          <div className="mx-auto max-w-xl px-5 py-4 text-center">
+          <div className="mx-auto max-w-xl px-5 pt-4 pb-safe-bar text-center">
             <p className="text-[0.85rem] text-muted text-pretty">
               Take a step on Home and the guide picks up where you left it.
             </p>
@@ -575,7 +575,7 @@ export default function Coach({
             e.preventDefault()
             send(input)
           }}
-          className="mx-auto flex max-w-xl items-end gap-2.5 px-5 py-4"
+          className="mx-auto flex max-w-xl items-end gap-2.5 px-5 pt-4 pb-safe-bar"
         >
           <textarea
             value={input}

@@ -163,7 +163,7 @@ export default function ReflectionView({
   const finished = doneSteps(steps)
   const finishedToday = steps.find((s) => s.done === today) ?? null
   return (
-    <div className="min-h-dvh bg-cream pb-24">
+    <div className="min-h-dvh bg-cream pb-24 pt-safe">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           {firstReveal ? (

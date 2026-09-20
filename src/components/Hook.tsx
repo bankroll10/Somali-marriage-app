@@ -23,7 +23,7 @@ export default function Hook({ identity, value, onSelect, onContinue, onBack }: 
 
   return (
     <div className="relative min-h-dvh bg-cream">
-      <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-6">
+      <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-safe-6">
         <BackButton onClick={onBack} className="self-start" />
 
         <div className="flex flex-1 flex-col justify-center py-10">

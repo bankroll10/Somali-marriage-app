@@ -81,7 +81,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
   }
 
   return (
-    <div className="min-h-dvh bg-cream pb-16">
+    <div className="min-h-dvh bg-cream pb-16 pt-safe">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-xl items-center justify-between px-6 py-4">
           <Logo className="text-ink" />

@@ -94,7 +94,7 @@ export default function Door({
   const pool = other ? within : city
 
   return (
-    <div className="min-h-dvh bg-cream pb-16">
+    <div className="min-h-dvh bg-cream pb-16 pt-safe">
       <ScreenHeader onBack={onBack}>
         <p className="font-display text-[1.05rem] font-medium text-ink">The door</p>
       </ScreenHeader>

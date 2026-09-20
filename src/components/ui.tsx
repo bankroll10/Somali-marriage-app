@@ -172,7 +172,7 @@ export function ScreenHeader({
     <header
       className={`${sticky ? 'sticky top-0 z-10 ' : ''}border-b border-line/70 bg-cream/85 backdrop-blur-md`}
     >
-      <div className="mx-auto flex max-w-2xl items-center gap-3 px-5 py-3.5 sm:px-6">
+      <div className={`mx-auto flex max-w-2xl items-center gap-3 px-5 sm:px-6 ${sticky ? 'pb-3.5 pt-safe-sticky' : 'py-3.5'}`}>
         {onBack && <BackButton onClick={onBack} label={backLabel} />}
         {children}
       </div>

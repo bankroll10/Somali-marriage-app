@@ -163,7 +163,7 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
     <div className="relative min-h-dvh bg-cream">
       {/* Top bar */}
       <div className="sticky top-0 z-10 border-b border-line/70 bg-cream/85 backdrop-blur-md">
-        <div className="mx-auto flex max-w-xl items-center gap-4 px-5 py-3.5">
+        <div className="mx-auto flex max-w-xl items-center gap-4 px-5 pb-3.5 pt-safe-sticky">
           <BackButton onClick={goBack} />
           <div className="flex-1">
             <div className="h-1.5 overflow-hidden rounded-full bg-sand">
@@ -215,7 +215,7 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
       {/* Bottom action bar */}
       {!showIntro && !insight && (
         <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line/70 bg-cream/90 backdrop-blur-md">
-          <div className="mx-auto flex max-w-xl items-center justify-between px-5 py-4">
+          <div className="mx-auto flex max-w-xl items-center justify-between px-5 pt-4 pb-safe-bar">
             <span className="text-sm text-muted">
               Chapter {current.chapterIndex + 1} of {chapters.length}
             </span>

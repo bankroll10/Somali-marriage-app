@@ -47,7 +47,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
   const [stillHeld, setStillHeld] = useState<string[]>([])
 
   return (
-    <div className="min-h-dvh bg-cream pb-20">
+    <div className="min-h-dvh bg-cream pb-20 pt-safe">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           <BackButton onClick={onBack} />

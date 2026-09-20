@@ -83,7 +83,7 @@ export default function Philosophy({ onBack, onPrimary, primaryLabel }: Props) {
       {/* Hero — the positioning */}
       <div className="relative overflow-hidden bg-forest-deep text-cream">
         <GeoBackdrop className="opacity-70" />
-        <div className="relative mx-auto max-w-2xl px-6 pb-12 pt-6">
+        <div className="relative mx-auto max-w-2xl px-6 pb-12 pt-safe-6">
           <div className="flex items-center justify-between">
             <BackButton onClick={onBack} tone="light" />
             <Logo mono className="text-cream" />

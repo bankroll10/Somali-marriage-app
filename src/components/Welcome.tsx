@@ -27,7 +27,7 @@ export default function Welcome({
     <div className="relative min-h-dvh overflow-hidden bg-forest-deep text-cream">
       <GeoBackdrop className="opacity-70" />
 
-      <div className="relative mx-auto flex min-h-dvh max-w-2xl flex-col px-6 pb-12 pt-8">
+      <div className="relative mx-auto flex min-h-dvh max-w-2xl flex-col px-6 pb-12 pt-safe-8">
         <header className="flex items-center justify-between">
           <Logo mono className="text-cream" />
           <span className="text-xs uppercase tracking-[0.2em] text-cream/50">نية</span>

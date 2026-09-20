@@ -27,7 +27,7 @@ export default function Families({ gender, stage, onTaken, onBack }: Props) {
   const intro = somali('families.intro')
 
   return (
-    <div className="min-h-dvh bg-cream pb-16">
+    <div className="min-h-dvh bg-cream pb-16 pt-safe">
       <ScreenHeader onBack={onBack}>
         <p className="font-display text-[1.05rem] font-medium text-ink">Bringing the families in</p>
       </ScreenHeader>
