@@ -163,7 +163,7 @@ export default function ReflectionView({
   const finished = doneSteps(steps)
   const finishedToday = steps.find((s) => s.done === today) ?? null
   return (
-    <div className="min-h-dvh bg-cream pb-24">
+    <div className="min-h-dvh bg-cream pb-24 pt-safe">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           {firstReveal ? (
@@ -249,7 +249,7 @@ export default function ReflectionView({
             {r.dimensions.map((d, i) => (
               <div key={d.dimension} className="animate-rise" style={{ animationDelay: `${i * 60}ms` }}>
                 <div className="flex items-center justify-between gap-3">
-                  <span className="font-display text-[1.05rem] font-medium text-ink">{d.label}</span>
+                  <span className="min-w-0 flex-1 font-display text-[1.05rem] font-medium text-ink">{d.label}</span>
                   <StateTag state={d.state} />
                 </div>
                 <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">{d.note}</p>

@@ -191,7 +191,12 @@ defect:
   interactive chips on the same screens.
 - "Skip" occupies the primary slot on two screens, and Hook's "Skip for now"
   starts the sixteen-question intake.
-- Roughly fifteen further touch targets sit between 31 and 39 px.
+- ~~Roughly fifteen further touch targets sit between 31 and 39 px.~~
+  *Fixed 2026-09-20 (docs/MOBILE.md): the mobile-craft pass found ~26 —
+  wider than this pass's own count, since it also caught the text-link
+  actions with no padding at all, not only the ones already in the 31-39
+  range — and brought every one to the same 44px floor `BackButton` set
+  here, behind one shared primitive.*
 - `Cohort`'s Count-me-in disables on six conditions with no message, one of
   which (`!identity.gender`) no control on that screen can satisfy.
 

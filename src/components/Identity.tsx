@@ -17,7 +17,7 @@ const options: { gender: Gender; label: string; sub: string }[] = [
 export default function IdentityStep({ identity, onChange, onContinue, onBack }: Props) {
   return (
     <div className="relative min-h-dvh bg-cream">
-      <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-6">
+      <div className="mx-auto flex min-h-dvh max-w-xl flex-col px-6 pb-12 pt-safe-6">
         <BackButton onClick={onBack} className="self-start" />
 
         <div className="flex flex-1 flex-col justify-center py-10">
@@ -73,6 +73,7 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
               onChange={(e) => onChange({ ...identity, firstName: e.target.value })}
               placeholder="Your first name"
               autoComplete="given-name"
+              autoCapitalize="words"
               className={`w-full px-4 py-3.5 text-[1rem] ${fieldClass}`}
             />
           </div>

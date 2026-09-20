@@ -53,7 +53,7 @@ export default function ShortMap({ answers, gender, onAnswer, onDone, onBack }: 
         </div>
       </main>
       <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line/70 bg-cream/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-xl items-center justify-end px-5 py-4">
+        <div className="mx-auto flex max-w-xl items-center justify-end px-5 pt-4 pb-safe-bar">
           <Button onClick={() => (last ? onDone() : setIndex(index + 1))} disabled={!answered} className="group">
             {last ? 'Your age, and how to reach you' : 'Continue'}
             <ArrowRight className="transition-transform group-hover:translate-x-0.5" />

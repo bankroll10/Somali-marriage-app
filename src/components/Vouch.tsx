@@ -3,7 +3,7 @@ import type { VouchState } from '../types'
 import { relationshipOptions } from '../data/vouch'
 import { readVouchDetail, sendVouch } from '../lib/vouch'
 import { track } from '../lib/analytics'
-import { ArrowRight, Button, Logo, fieldClass , NotSaving} from './ui'
+import { ArrowRight, Button, Logo, TextButton, fieldClass , NotSaving} from './ui'
 
 interface Props {
   code: string
@@ -81,7 +81,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
   }
 
   return (
-    <div className="min-h-dvh bg-cream pb-16">
+    <div className="min-h-dvh bg-cream pb-16 pt-safe">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-xl items-center justify-between px-6 py-4">
           <Logo className="text-ink" />
@@ -126,13 +126,13 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
 
             <div className="mt-6">
               <label htmlFor="vouch-name" className="block text-[0.92rem] font-medium text-ink">Your first name</label>
-              <input id="vouch-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={40} autoComplete="given-name" className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`} />
+              <input id="vouch-name" value={firstName} onChange={(e) => setFirstName(e.target.value)} maxLength={40} autoComplete="given-name" autoCapitalize="words" enterKeyHint="next" className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`} />
             </div>
 
             <div className="mt-6">
               <label htmlFor="vouch-sentence" className="block text-[0.92rem] font-medium text-ink">One sentence about them</label>
               <p className="mt-0.5 text-[0.82rem] text-muted">Only the founder reads this. It is never shown to anyone they meet.</p>
-              <textarea id="vouch-sentence" value={sentence} onChange={(e) => setSentence(e.target.value)} maxLength={280} rows={3} placeholder="e.g. She is my sister, and she means this." className={`mt-2 w-full resize-none bg-white/70 px-4 py-3 text-[1rem] leading-relaxed ${fieldClass}`} />
+              <textarea id="vouch-sentence" value={sentence} onChange={(e) => setSentence(e.target.value)} maxLength={280} rows={3} placeholder="e.g. She is my sister, and she means this." enterKeyHint="next" className={`mt-2 max-h-40 w-full resize-none bg-white/70 px-4 py-3 text-[1rem] leading-relaxed ${fieldClass}`} />
             </div>
 
             <div className="mt-6">
@@ -140,7 +140,7 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
                 Your phone <span className="font-normal text-muted">(optional)</span>
               </label>
               <p className="mt-0.5 text-[0.82rem] text-muted">So the founder can confirm it is really you. Never shared, never shown.</p>
-              <input id="vouch-phone" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={40} inputMode="tel" autoComplete="tel" className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`} />
+              <input id="vouch-phone" value={phone} onChange={(e) => setPhone(e.target.value)} maxLength={40} inputMode="tel" autoComplete="tel" enterKeyHint="done" className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`} />
             </div>
 
             <div className="mt-8">
@@ -157,13 +157,13 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
             {/* Vouching is a real commitment made on someone else's behalf.
                 The three phases after this one each offered a way out; the one
                 phase where a person might want to decline did not. */}
-            <button
+            <TextButton
               type="button"
               onClick={onDone}
-              className="mt-6 px-2 py-2 text-[0.88rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+              className="mt-6 text-[0.88rem] font-medium text-muted underline hover:text-ink"
             >
               What Niyyah is
-            </button>
+            </TextButton>
           </form>
         )}
 
@@ -206,9 +206,9 @@ export default function Vouch({ code, onDone, saveOk = true }: Props) {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button onClick={() => window.location.reload()}>Try again</Button>
-              <button onClick={onDone} className="px-2 py-2 text-sm font-medium text-muted underline underline-offset-4 transition hover:text-ink">
+              <TextButton onClick={onDone} className="text-sm font-medium text-muted underline hover:text-ink">
                 What Niyyah is
-              </button>
+              </TextButton>
             </div>
           </div>
         )}

@@ -5,7 +5,7 @@ import { countries, getCountry } from '../data/countries'
 import { hesitationOptions, type Hesitation } from '../data/hesitation'
 import { cohortCount, opensWhen } from '../lib/cohort'
 import { DoorCount, type CountState } from './Cohort'
-import { ArrowRight, ScreenHeader, fieldClass } from './ui'
+import { ArrowRight, ScreenHeader, TextButton, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -94,7 +94,7 @@ export default function Door({
   const pool = other ? within : city
 
   return (
-    <div className="min-h-dvh bg-cream pb-16">
+    <div className="min-h-dvh bg-cream pb-16 pt-safe">
       <ScreenHeader onBack={onBack}>
         <p className="font-display text-[1.05rem] font-medium text-ink">The door</p>
       </ScreenHeader>
@@ -154,7 +154,7 @@ export default function Door({
                   if (e.target.value) onScene(e.target.value)
                 }}
                 aria-label="Your community"
-                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+                className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
               >
                 <option value="">Where are you?</option>
                 {scenes.map((s) => (
@@ -173,7 +173,7 @@ export default function Door({
                   if (e.target.value) onCountry(e.target.value)
                 }}
                 aria-label="Your country"
-                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+                className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
               >
                 <option value="">Somewhere else in…</option>
                 {countries.map((c) => (
@@ -210,13 +210,13 @@ export default function Door({
           {/* The one no this product records — the same word, from the same
               list, as the door card on Home. docs/GAPS.md. */}
           {hesitating === 'closed' && (
-            <button
+            <TextButton
               type="button"
               onClick={() => setHesitating('open')}
-              className="mt-4 text-[0.82rem] font-medium text-muted underline-offset-4 hover:underline"
+              className="mt-4 text-[0.82rem] font-medium text-muted hover:underline"
             >
               Not now
-            </button>
+            </TextButton>
           )}
           {hesitating === 'open' && (
             <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
@@ -240,13 +240,13 @@ export default function Door({
                 One word reaches us — why the door was hard to walk through — under a random code this phone
                 made up for itself. Nothing else, and nothing about you.
               </p>
-              <button
+              <TextButton
                 type="button"
                 onClick={() => setHesitating('closed')}
-                className="mt-2 text-[0.8rem] font-medium text-muted underline-offset-4 hover:underline"
+                className="mt-2 text-[0.8rem] font-medium text-muted hover:underline"
               >
                 Skip
-              </button>
+              </TextButton>
             </div>
           )}
           {hesitating === 'said' && (

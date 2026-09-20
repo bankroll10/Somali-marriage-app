@@ -11,7 +11,7 @@ import { parseAge } from '../lib/age'
 import { shareOrCopy } from '../lib/share'
 import { contactProblem, looksReachable } from '../lib/contact'
 import { track } from '../lib/analytics'
-import { ArrowRight, CheckIcon, Spinner, fieldClass } from './ui'
+import { ArrowRight, CheckIcon, Spinner, TextButton, fieldClass } from './ui'
 
 interface Props {
   identity: Identity
@@ -395,7 +395,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
                 if (e.target.value) onScene?.(e.target.value)
               }}
               aria-label="Your community"
-              className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+              enterKeyHint="next"
+              className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
             >
               <option value="">Where are you?</option>
               {scenes.map((s) => (
@@ -414,7 +415,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
                 if (e.target.value) onCountry?.(e.target.value)
               }}
               aria-label="Your country"
-              className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+              enterKeyHint="next"
+              className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
             >
               <option value="">Somewhere else in…</option>
               {countries.map((c) => (
@@ -439,7 +441,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
                 placeholder="Your age"
                 aria-label="Your age"
                 aria-describedby="cohort-age-hint"
-                className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+                enterKeyHint="next"
+                className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
               />
               <p id="cohort-age-hint" className="mt-1.5 text-[0.78rem] leading-relaxed text-muted text-pretty">
                 {MIN_AGE}–{MAX_AGE}. An introduction cannot be made without it. It goes into your kept map, never onto
@@ -449,7 +452,10 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           )}
           <input
             type="text"
-            inputMode="email"
+            // No single inputMode serves both an email and a phone number,
+            // which this field explicitly accepts either of — "text" gives
+            // the full default keyboard rather than biasing toward @.
+            inputMode="text"
             autoComplete="email"
             required
             value={contact}
@@ -458,7 +464,8 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             placeholder="Email or phone"
             aria-label="Email or phone"
             aria-describedby={contactHint ? 'cohort-contact-hint' : undefined}
-            className={`w-full bg-white/70 px-4 py-3 text-[0.98rem] ${fieldClass}`}
+            enterKeyHint="done"
+            className={`w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
           />
           {/* Only once she has left the field, so it explains rather than nags. */}
           {contactHint && (
@@ -533,13 +540,13 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
           the door is where people stop, and until now it learned nothing from
           that. One word, about the door, from a list we wrote — docs/GAPS.md. */}
       {onHesitate && hesitating === 'closed' && (
-        <button
+        <TextButton
           type="button"
           onClick={() => setHesitating('open')}
-          className="mt-3 text-[0.82rem] font-medium text-muted underline-offset-4 hover:underline"
+          className="mt-3 text-[0.82rem] font-medium text-muted hover:underline"
         >
           Not now
-        </button>
+        </TextButton>
       )}
       {onHesitate && hesitating === 'open' && (
         <div className="mt-4 rounded-card border border-line bg-white/60 p-4">
@@ -563,13 +570,13 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             One word reaches us — why the door was hard to walk through — under the same random code as
             your steps. Nothing else, and nothing about you.
           </p>
-          <button
+          <TextButton
             type="button"
             onClick={() => setHesitating('closed')}
-            className="mt-2 text-[0.8rem] font-medium text-muted underline-offset-4 hover:underline"
+            className="mt-2 text-[0.8rem] font-medium text-muted hover:underline"
           >
             Skip
-          </button>
+          </TextButton>
         </div>
       )}
       {hesitating === 'said' && (

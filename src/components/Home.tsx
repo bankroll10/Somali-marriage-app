@@ -16,6 +16,7 @@ import {
   LockGlyph,
   Logo,
   ArrowRight,
+  TextButton,
   fieldClass,
   PersonGlyph,
   SeedGlyph,
@@ -140,7 +141,7 @@ export default function Home({
   }
 
   return (
-    <div className="min-h-dvh bg-cream pb-16">
+    <div className="min-h-dvh bg-cream pb-16 pt-safe">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           <Logo className="text-ink" />
@@ -266,7 +267,8 @@ export default function Home({
                 rows={1}
                 placeholder="Say it in one line…"
                 aria-label="Tell your guide what happened"
-                className={`max-h-28 min-h-[2.75rem] flex-1 resize-none bg-cream/60 px-3.5 py-2.5 text-[0.98rem] leading-relaxed ${fieldClass}`}
+                enterKeyHint="send"
+                className={`max-h-28 min-h-[2.75rem] flex-1 resize-none bg-cream/60 px-3.5 py-2.5 text-[1rem] leading-relaxed ${fieldClass}`}
               />
               <button
                 type="submit"
@@ -574,21 +576,21 @@ export default function Home({
                 >
                   Yes, start over
                 </button>
-                <button
+                <TextButton
                   onClick={() => setRestarting(false)}
-                  className="px-2 py-2 text-[0.85rem] font-medium text-muted underline underline-offset-4 transition hover:text-ink"
+                  className="text-[0.85rem] font-medium text-muted underline hover:text-ink"
                 >
                   Keep it
-                </button>
+                </TextButton>
               </div>
             </div>
           ) : (
-            <button
+            <TextButton
               onClick={() => setRestarting(true)}
-              className="px-3 py-2 text-[0.8rem] text-muted underline underline-offset-4 transition hover:text-ink"
+              className="text-[0.8rem] text-muted underline hover:text-ink"
             >
               Start over from the beginning
-            </button>
+            </TextButton>
           )}
         </div>
       </main>

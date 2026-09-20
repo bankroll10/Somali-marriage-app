@@ -8,7 +8,7 @@ import {
   whenLabel,
 } from '../../data/nextStep'
 import { todayKey } from '../../lib/dates'
-import { ArrowRight, CheckIcon } from '../ui'
+import { ArrowRight, CheckIcon, TextButton } from '../ui'
 
 interface Props {
   reflection: Reflection
@@ -114,19 +114,19 @@ export default function WorkCard({
               change — a loop, not a practice. The map is reached when she
               wants it. */}
           <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 border-t border-cream/10 pt-1.5">
-            <button
+            <TextButton
               onClick={onOpenMap}
-              className="py-2.5 text-[0.8rem] text-cream/50 underline-offset-4 transition hover:text-cream/80 hover:underline"
+              className="text-[0.8rem] text-cream/50 hover:text-cream/80 hover:underline"
             >
               {steps.some((s) => s.done) ? 'See everything you’ve done' : 'Where this comes from'}
-            </button>
+            </TextButton>
             {!finishedToday && (
-              <button
+              <TextButton
                 onClick={swapGround}
-                className="py-2.5 text-[0.8rem] text-cream/40 underline-offset-4 transition hover:text-cream/70 hover:underline"
+                className="text-[0.8rem] text-cream/40 hover:text-cream/70 hover:underline"
               >
                 Not this one
-              </button>
+              </TextButton>
             )}
           </div>
         </div>

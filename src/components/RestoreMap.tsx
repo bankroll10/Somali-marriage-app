@@ -87,6 +87,7 @@ export default function RestoreMap() {
           spellCheck={false}
           inputMode="text"
           maxLength={CODE_LENGTH}
+          enterKeyHint="done"
           className={`w-full bg-cream/10 px-4 py-2.5 text-[1rem] tracking-[0.2em] text-cream placeholder:text-cream/30 ${fieldClass}`}
         />
         <button
@@ -94,7 +95,13 @@ export default function RestoreMap() {
           disabled={!code.trim() || state === 'checking'}
           className="inline-flex flex-none items-center gap-2 rounded-full bg-cream px-5 py-2.5 text-[0.88rem] font-medium text-forest-deep transition hover:bg-white disabled:opacity-40"
         >
-          {state === 'checking' ? <Spinner /> : 'Restore'}
+          {state === 'checking' ? (
+            <>
+              <Spinner /> Checking…
+            </>
+          ) : (
+            'Restore'
+          )}
         </button>
       </div>
       {state !== 'idle' && state !== 'checking' && (

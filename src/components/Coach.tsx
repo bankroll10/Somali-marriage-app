@@ -16,6 +16,7 @@ import {
   ScreenHeader,
   SeedGlyph,
   SparkGlyph,
+  TextButton,
   TypingDots,
   fieldClass,
 } from './ui'
@@ -297,7 +298,7 @@ export default function Coach({
   if (!activeMode) {
     const recommended = defaultModeFor(identity.gender)
     return (
-      <div className="min-h-dvh bg-cream">
+      <div className="min-h-dvh bg-cream pb-16 pt-safe">
         <ScreenHeader onBack={onBack}>
           <p className="font-display text-[1.05rem] font-medium text-ink">Your guide</p>
         </ScreenHeader>
@@ -421,12 +422,12 @@ export default function Coach({
               guide is a pressure gauge, and the thing it sold was the guide
               without one. */}
         </div>
-        <button
+        <TextButton
           onClick={() => setMode(null)}
-          className="rounded-full border border-line px-3 py-1.5 text-[0.78rem] font-medium text-ink-soft transition hover:bg-sand"
+          className="rounded-full border border-line text-[0.78rem] font-medium text-ink-soft hover:bg-sand"
         >
           Switch
-        </button>
+        </TextButton>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
@@ -552,8 +553,8 @@ export default function Coach({
                     onClick={() => send(s.prompt)}
                     className="group flex items-center justify-between gap-3 rounded-2xl border border-line bg-white/60 px-4 py-3 text-left text-[0.95rem] font-medium text-ink transition-all hover:border-forest/40 hover:bg-white"
                   >
-                    {s.label}
-                    <span className={`${accentText[activeMode.accent]} transition-transform group-hover:translate-x-0.5`}>→</span>
+                    <span className="min-w-0 flex-1 text-left">{s.label}</span>
+                    <span className={`flex-none ${accentText[activeMode.accent]} transition-transform group-hover:translate-x-0.5`}>→</span>
                   </button>
                 ))}
               </div>
@@ -564,7 +565,7 @@ export default function Coach({
 
       <div className="flex-none border-t border-line/70 bg-cream/90 backdrop-blur-md">
         {locked ? (
-          <div className="mx-auto max-w-xl px-5 py-4 text-center">
+          <div className="mx-auto max-w-xl px-5 pt-4 pb-safe-bar text-center">
             <p className="text-[0.85rem] text-muted text-pretty">
               Take a step on Home and the guide picks up where you left it.
             </p>
@@ -575,9 +576,10 @@ export default function Coach({
             e.preventDefault()
             send(input)
           }}
-          className="mx-auto flex max-w-xl items-end gap-2.5 px-5 py-4"
+          className="mx-auto flex max-w-xl items-end gap-2.5 px-5 pt-4 pb-safe-bar"
         >
           <textarea
+            enterKeyHint="send"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
