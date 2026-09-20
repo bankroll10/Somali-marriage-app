@@ -430,7 +430,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
             Every member is held to the same standard. Wherever we know who
             you’ve been in touch with — right now, that means after the eleven —
             you can report a concern about them, in your own words if you need
-            to. What’s built in the light, with dignity, is what we protect.
+            to.
           </p>
           {/* The mechanism, and its honest limit — 182 words that a person
               reading a promise does not have to read to trust it, and must be
@@ -452,23 +452,21 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
 
           <Disclose
             summary="Exactly what a report does"
-            hint="And the honest limit"
+            hint="And its limit"
             className="mt-4 border-cream/20 bg-cream/10"
           >
             <p className="text-[0.95rem] leading-relaxed text-cream/90 text-pretty">
-              Here is exactly what that does, because you should be able to
-              hold us to it: it reaches the founder, who reads these every week
-              and no later. She can speak to them, tell the family who vouched
-              for them, and decide that nobody here will ever introduce them —
-              and what she did is written down, though until introductions
-              exist here that decision is a note in her queue, not a mark on a
-              person, because nobody here has an account to mark.
+              It reaches the founder, who reads these every week. She can speak
+              to them, tell the family who vouched for them, and decide that
+              nobody here will ever introduce them. What she did is written
+              down, though until introductions exist that decision is a note in
+              her queue, not a mark on a person, because nobody here has an
+              account to mark.
             </p>
             <p className="mt-2.5 text-[0.95rem] leading-relaxed text-cream/90 text-pretty">
-              There are no accounts here, so
-              nobody can be thrown off a list that doesn’t exist; a man who
-              answered your eleven left no account behind either. That is the
-              honest limit, and it is why the vouch and the introduction are
+              There are no accounts here, so nobody can be thrown off a list
+              that doesn’t exist; whoever answered your eleven left no account
+              behind either. That is why the vouch and the introduction are
               where the weight sits.
             </p>
           </Disclose>

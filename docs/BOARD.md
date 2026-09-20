@@ -1488,3 +1488,40 @@ in `docs/DEPLOY.md` — where one row still claimed his answer was never capped.
 `netlify/`, and none on the Anthropic SDK — `docs/SCALE.md` ties it to a paid
 plan), the silent redirects to Welcome, and a re-opened read that carries no
 date.
+
+## The microcopy pass, 2026-09-20 (docs/VOICE.md)
+
+**The copy's failures were not scattered. They were a handful of habits, each
+repeated dozens of times** — "actually" sixty times, "not X — it's Y" forty,
+text naming the wrong side thirty, "never" twenty times on one screen, and the
+phrase `docs/PROTOCOL.md` gives as its own example of an exaggerated cultural
+claim, live in seven places. Two of them were bugs under the protocol's own
+taxonomy: a man reading the eleven got *"A second wife — what she believes
+about it for her own life"* and a script asking **her** whether she would want
+one, because the topic prose passed through the pronoun swap without ever
+being written for his side.
+
+**No document stated what the voice is; every rule was a prohibition.**
+`docs/VOICE.md` writes the target down — Somali-aware, adult, calm, warm,
+precise, dignified, direct — as seven words with what each forbids, six rules,
+and the ten lines already in the product that the rest was held to.
+
+**Two of my own earlier decisions were reversed, on the brief's authority.**
+The 1,800-word floor on Trust from the load pass, set when that pass promised
+"no word deleted", is now a floor on each of Trust's six rows — where a
+deletion would hide — and the six pinned clauses are untouched. And
+`docs/NORTHSTAR.md`'s call to keep *"Emotional readiness"* is reversed in place:
+what that ground reads is how she handles a silence and what she is still
+carrying, and "readiness" named the frame after all.
+
+**Changed:** five commits — the eleven and Trust speak to whoever is reading
+them; a voice test that bans thirty phrases and reads every file twice, once
+with its line breaks folded; every overstatement at the size of what Niyyah
+has seen; therapy language only where the therapist is speaking; and Trust,
+"your space", "Count me" and a dozen screens saying their thing once. The
+mailto body sent the founder the scene id (`twin-cities`), not the city — fixed
+while passing.
+
+**Left named, not fixed:** the question prompts themselves (the sessions'
+instrument), the Somali gated lines (a native speaker's call), and "not X —
+it's Y" thinned to one per paragraph rather than to zero.

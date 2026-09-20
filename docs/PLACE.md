@@ -201,6 +201,7 @@ and `Profile.tsx:396` renders that definition on the same screen as a
 `Count me in` button. Someone who opens "The words on this page" to find out
 what the button does is told it means anonymous step counting.
 *Watch for:* anyone asking whether being counted is the same as being counted.
+*Resolved 2026-09-20 (docs/VOICE.md):* the analytics control is *"Tell us which steps you reach"* and its Trust row *"The steps you reach"*; "counted" now means the door only. The watch stands for the sessions.
 
 **C2 · "the eleven" is the name of a thing no button says.** Trust, Coach and
 Plus all use the bare noun; the destination calls itself *"Before you say

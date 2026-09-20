@@ -174,7 +174,7 @@ already doing it correctly, so it got the glossary and nothing else.
 | L4 | **The two results get an outline**, and the eleven adopts the shape the read already had: one primary — her own map, or the family words once she has one — and the other five inside "More you can do here" | `Read.tsx`, `BeforeYes.tsx` |
 | L5 | **The guide opens the voice it already recommended.** `defaultModeFor` is now acted on; the other four are behind "Or choose a different voice", which is what "you can switch any time" already promised | `Coach.tsx` |
 | L6 | **The door's two long blocks split.** `opensWhen` becomes two sentences instead of a thirty-two-word clause chain ending in three qualifiers; the 67-word paragraph under the only button on the screen becomes what joining costs, then what it does not do | `src/lib/cohort.ts`, `Door.tsx`, `Cohort.tsx` |
-| L7 | **`tests/load.test.ts`** — nine tests: the lexicon covers every id a screen asks for and defines only words the product says; Trust still names all six exceptions, still contains six clauses a person is most entitled to find, and still carries at least 1,800 words of prose; `<details>` is hand-rolled in exactly one file | new `tests/load.test.ts` |
+| L7 | **`tests/load.test.ts`** — nine tests: the lexicon covers every id a screen asks for and defines only words the product says; Trust still names all six exceptions, still contains six clauses a person is most entitled to find, ~~and still carries at least 1,800 words of prose~~ *(replaced 2026-09-20 by a floor on each of the six rows — docs/VOICE.md)*; `<details>` is hand-rolled in exactly one file | new `tests/load.test.ts` |
 
 ### What this deliberately did *not* do
 
@@ -184,6 +184,12 @@ Trust's founding-cohort paragraph and the report mechanism in "Our promise" —
 are intact, word for word, on rows that name them. That is the difference
 between disclosure and deletion, and it is what the word floor in
 `tests/load.test.ts` exists to keep.
+
+*2026-09-20 (docs/VOICE.md): the voice pass did what this pass declined to —
+it cut what Trust said twice, and the word floor went with it. The six pinned
+clauses and the six rows are still there, now floored row by row, which is
+where a deletion would hide; the "no word deleted" rule was this pass's, and
+the microcopy brief said the opposite.*
 
 Philosophy is the one honest complication. Its glossary grew from six terms to
 thirteen, so left open it would have taken that screen *up* from 665 words to
