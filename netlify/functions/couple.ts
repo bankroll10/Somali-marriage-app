@@ -244,22 +244,40 @@ export default async function handler(req: Request) {
     // Bounded, like every public write — after validation, before any read.
     if (await overHourlyCap('couple', DEFAULT_HOURLY_CAP)) return rateLimited()
     try {
-      const existing = code ? ((await store.get(code, { type: 'json' })) as CoupleRecord | null) : null
+      const held = code
+        ? ((await store.getWithMetadata(code, { type: 'json' })) as { data: CoupleRecord; etag?: string } | null)
+        : null
+      const existing = held?.data ?? null
       // Once the other side has answered, hers is frozen — re-posting would let
       // her flip one topic and read his exact state off the joint.
       if (existing?.second) return Response.json({ error: 'answered' }, { status: 409 })
+      // The code is six characters she texted him, so anyone holding it could
+      // re-post as `first` and replace her eleven answers — or flip the creator
+      // side — and be told 200. The sheet belongs to the side that made it
+      // (docs/FAIL.md).
+      if (existing && existing.creator !== body.gender) {
+        return Response.json({ error: 'not_yours' }, { status: 409 })
+      }
       const record: CoupleRecord = {
         creator: body.gender as 'woman' | 'man',
         first: body.states,
         createdAt: existing?.createdAt ?? day(now),
         expiresAt: day(now + TTL_MS),
       }
-      // Hers again, under the code she already sent him: an ordinary write.
+      // Hers again, under the code she already sent him: conditional on the
+      // sheet still being what was just read. The unconditional write it
+      // replaces was a time-of-check bug with the worst possible payload — if
+      // he answered in the window, this destroyed his answer while the
+      // permanent tally had already counted the pair, and the sheet read as
+      // open again with the joint unrecoverable.
       // A new pair: minted with `onlyIfNew`, so two women drawing the same six
       // characters costs a retry rather than one of them answering into the
       // other's sheet — netlify/shared/code.ts.
       if (code) {
-        await store.setJSON(code, stamp(record))
+        const written = held?.etag
+          ? await store.setJSON(code, stamp(record), { onlyIfMatch: held.etag })
+          : await store.setJSON(code, stamp(record), { onlyIfNew: true })
+        if (!written.modified) return Response.json({ error: 'answered' }, { status: 409 })
         return Response.json({ code })
       }
       const minted = await mint((c, v: CoupleRecord) => store.setJSON(c, v, { onlyIfNew: true }), stamp(record))
@@ -281,16 +299,24 @@ export default async function handler(req: Request) {
     // Bounded after validation, before any read — like every other public write.
     if (await overHourlyCap('couple-answer', DEFAULT_ANSWER_CAP)) return rateLimited()
     try {
-      const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
+      const held = (await store.getWithMetadata(code, { type: 'json' })) as { data: CoupleRecord; etag?: string } | null
+      const record = held?.data ?? null
       if (!record) return Response.json({ error: 'not_found' }, { status: 404 })
       if (Date.parse(record.expiresAt) < now) return Response.json({ error: 'expired' }, { status: 404 })
       // Once. A second answer would let him probe hers the same way.
       if (record.second) return Response.json({ error: 'answered' }, { status: 409 })
       const updated: CoupleRecord = { ...record, second: body.states, answeredAt: day(now) }
       // Stamped after the spread, so a sheet born at one version and answered
-      // at another carries the version it was last written in.
-      await store.setJSON(code, stamp(updated))
-      // The pair is saved. Now, and only now, it is counted.
+      // at another carries the version it was last written in. Conditional,
+      // because the check above is not a lock: two taps landing together both
+      // passed it, both wrote, and `countPair` ran twice — one pair counted
+      // twice in a permanent tally that carries no code to reconcile against
+      // (docs/FAIL.md).
+      const written = held?.etag
+        ? await store.setJSON(code, stamp(updated), { onlyIfMatch: held.etag })
+        : await store.setJSON(code, stamp(updated), { onlyIfNew: true })
+      if (!written.modified) return Response.json({ error: 'answered' }, { status: 409 })
+      // The pair is saved, once. Now, and only now, it is counted.
       await countPair(jointOf(updated.first, body.states))
       return Response.json(view(updated))
     } catch (err) {

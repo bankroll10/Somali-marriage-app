@@ -558,7 +558,15 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
   }
 
-  const raw = await req.text()
+  // Its six siblings all guard this; this one did not, so a truncated or
+  // aborted upload was an uncaught rejection and whatever the platform emits
+  // — not a 400, not JSON (docs/FAIL.md).
+  let raw: string
+  try {
+    raw = await req.text()
+  } catch {
+    return Response.json({ error: 'bad_json' }, { status: 400 })
+  }
   if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
 
   let body: { id?: string; rungs?: unknown; scene?: string; country?: string; via?: string; gender?: string; facts?: unknown }

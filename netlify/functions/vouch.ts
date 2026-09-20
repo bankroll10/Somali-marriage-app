@@ -195,10 +195,27 @@ export default async function handler(req: Request) {
       // One token per map, reused: asking twice sends the same link, and
       // forgetting a map has one token to find.
       const existing = (await store.get(`asked/${code}`, { type: 'text' })) as string | null
-      if (existing && TOKEN.test(existing)) return Response.json({ token: existing })
+      if (existing && TOKEN.test(existing)) {
+        // Confirm the pointer is really there. A half-written ask used to
+        // leave `asked/` naming a token that resolved to nothing, and every
+        // later ask handed back the same dead link.
+        if (!(await store.getMetadata(`token/${existing}`))) await store.set(`token/${existing}`, code)
+        return Response.json({ token: existing })
+      }
       const token = newToken()
+      // `asked/` first, and only if nothing claimed it: forget me finds the
+      // token by reading this key (netlify/functions/keep.ts), so a token
+      // written before it — or a second token from a simultaneous ask — is one
+      // this store can never clean up. It survived forget me and still
+      // resolved to her code, which is a promise on the Trust screen
+      // (docs/FAIL.md).
+      const claimed = await store.set(`asked/${code}`, token, { onlyIfNew: true })
+      if (!claimed.modified) {
+        const winner = (await store.get(`asked/${code}`, { type: 'text' })) as string | null
+        if (winner && TOKEN.test(winner)) return Response.json({ token: winner })
+        return Response.json({ error: 'unavailable' }, { status: 503 })
+      }
       await store.set(`token/${token}`, code)
-      await store.set(`asked/${code}`, token)
       return Response.json({ token })
     } catch (err) {
       console.error('[niyyah] vouch: ask failed', err)
@@ -246,7 +263,17 @@ export default async function handler(req: Request) {
       ...(phone ? { phone } : {}),
       at: day(),
     }
-    await store.setJSON(code, stamp(record))
+    // Conditional, because the read above is not a lock. Two relatives
+    // submitting together both saw nothing and the second silently replaced
+    // the first — against this file's own rule that a vouch is never
+    // rewritten (docs/FAIL.md).
+    const written = await store.setJSON(code, stamp(record), { onlyIfNew: true })
+    if (!written.modified) {
+      const winner = (await store.get(code, { type: 'json' })) as VouchRecord | null
+      return winner
+        ? Response.json({ error: 'vouched', ...publicView(winner) }, { status: 409 })
+        : Response.json({ error: 'unavailable' }, { status: 503 })
+    }
     return Response.json(publicView(record))
   } catch (err) {
     console.error('[niyyah] vouch: write failed', err)

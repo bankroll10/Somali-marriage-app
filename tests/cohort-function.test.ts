@@ -29,7 +29,15 @@ function memStore(name: string) {
       if (v === null) return null
       return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
     },
-    set: async (key: string, value: string) => void m.set(key, value),
+    // Conditional options work here too: the real store returns { modified }
+    // from `set` exactly as it does from `setJSON`, and vouch.ts now claims
+    // `asked/<code>` with onlyIfNew so no token can outlive forget me.
+    set: async (key: string, value: string, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
+      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
+      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
+      m.set(key, value)
+      return { modified: true }
+    },
     // Conditional writes behave like the real store's, so the hourly cap in
     // shared/limit.ts counts here the way it does in production.
     setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {

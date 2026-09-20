@@ -81,9 +81,15 @@ async function sweep(store: Store, bucket: string, period: Period, keep: string)
 export type CapState = 'under' | 'over' | 'unknown'
 
 export async function capState(bucket: string, cap: number, period: Period = 'h'): Promise<CapState> {
-  const store = getStore({ name: 'limits', consistency: 'strong' })
-  const key = periodKey(bucket, period)
   try {
+    // Inside the try, not above it. Opening a store can throw on its own — a
+    // missing Blobs environment, a bad site context — and almost every caller
+    // awaits this *outside* its own try, so a throw here was an unhandled
+    // rejection and a platform 500 with a non-JSON body, on every capped
+    // endpoint at once. That is precisely the failure the note above says a
+    // rate limiter must never cause (docs/FAIL.md).
+    const store = getStore({ name: 'limits', consistency: 'strong' })
+    const key = periodKey(bucket, period)
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       const current = (await store.getWithMetadata(key, { type: 'json' })) as { data: number; etag?: string } | null
       const count = current?.data ?? 0
