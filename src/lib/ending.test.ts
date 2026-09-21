@@ -98,8 +98,8 @@ describe('how you chose', () => {
 describe('the two things only a married person can send', () => {
   it('both say what kind of link they are, and nothing about who sent them', () => {
     const { eleven, door } = marriedShares({ scene: 'twin-cities' }, 'Ask about money home before anyone books a hall.')
-    expect(eleven.url).toMatch(/\/\?eleven&via=married$/)
-    expect(door.url).toMatch(/\/\?door&via=married$/)
+    expect(eleven.url).toMatch(/\/tools\/before-you-say-yes\?via=married$/)
+    expect(door.url).toMatch(/\/tools\/door\?via=married$/)
     for (const share of [eleven, door]) {
       expect(share.url).not.toMatch(/code|map=|ref|name/)
       expect(share.text).not.toMatch(/Hodan|ACDEFG/)

@@ -1,5 +1,5 @@
 import type { Script } from '../data/read'
-import { instrumentLink } from './links'
+import { instrumentLink, toolLink } from './links'
 
 /**
  * The words, as they travel.
@@ -18,13 +18,17 @@ export function wordsLink(source: WordsSource): string {
   switch (source) {
     case 'read':
     case 'guide':
+      // Which side to read is unknown here — a script carries no gender, and
+      // threading one through would touch three call sites (ScriptCard,
+      // Coach's guide words, home/FollowUp) for a card that still names the
+      // product correctly. Left as the query form; see docs/LINKS.md.
       return instrumentLink('read', 'words')
     case 'eleven':
-      return instrumentLink('eleven', 'eleven')
+      return toolLink('before-you-say-yes', 'eleven')
     case 'couple':
-      return instrumentLink('eleven', 'couple')
+      return toolLink('before-you-say-yes', 'couple')
     case 'family':
-      return instrumentLink('families', 'family')
+      return toolLink('families', 'family')
   }
 }
 

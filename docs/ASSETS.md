@@ -38,7 +38,8 @@ in a pitch.
 | **N1c** | The eleven, interactive — one conversation at a time, with the two-sided sheet | `https://joinniyyah.com/tools/before-you-say-yes` | **live and checked** | 2026-09-17 |
 | **N2** | The eleven, to read and print — all of them, in a voice for two readers | `https://joinniyyah.com/guides/before-you-say-yes` | **live and checked** | 2026-09-17 |
 | **N2s** | Three of the eleven, one Letter page — the sample that goes in a pitch | `https://joinniyyah.com/guides/before-you-say-yes/sample` | **live and checked** | 2026-09-17 |
-| **N0** | The door — the honest count, for someone looking rather than talking | `https://joinniyyah.com/?door` | advertised but not fully inspected | — |
+| **N0** | The door — the honest count, for someone looking rather than talking | `https://joinniyyah.com/tools/door` | **built, not yet checked** | — |
+| **N4** | Bringing the families in — the words, word for word, at their own address | `https://joinniyyah.com/tools/families` | **built, not yet checked** | — |
 | **N3** | The money conversation — mahr, the wedding, debt and family support, on one printable sheet (four pages, room to write) | `https://joinniyyah.com/niyyah-money-conversation-sheet.html` | **live and checked** | 2026-09-20 |
 | **N3-1page** | The money conversation, condensed — the same twenty questions on a single printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.html` | **live and checked** | 2026-09-20 |
 | **N3-note** | A half-page note for whoever hands N3 or N3-1page to a couple: when, how, what happens to it after, and that a Somali version exists | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **live and checked** | 2026-09-20 |

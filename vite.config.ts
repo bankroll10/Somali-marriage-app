@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { defineConfig, loadEnv } from 'vite'
@@ -7,6 +8,7 @@ import { DESCRIPTION, OG_ALT, TAGLINE, TITLE } from './src/data/brand.js'
 import { GUIDE, TOOLS, toolPath } from './src/data/tools.js'
 import { sitemapXml, toolPageHtml } from './src/lib/toolPages.js'
 import { guideHtml, sampleHtml } from './src/lib/guidePages.js'
+import { serviceWorkerJs } from './src/lib/serviceWorker.js'
 
 /** Must match DEFAULT_SITE_HOST in src/lib/site.ts. */
 const DEFAULT_SITE_HOST = 'joinniyyah.com'
@@ -70,9 +72,15 @@ export default defineConfig(({ mode }) => {
         // here rather than kept in public/, where they would be the only files
         // in the repository carrying an address we might not own tomorrow
         // (src/lib/site.ts). Build only; dev has no crawler.
-        generateBundle() {
+        generateBundle(_options, bundle) {
           this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robots(host) })
           this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapXml(host, PAGES) })
+          // A hash of the whole asset list, not a timestamp: the offline
+          // shell's cache is only worth invalidating when something in it
+          // actually changed, and two builds of the same commit should not
+          // force every online visitor to re-cache the shell for nothing.
+          const version = createHash('sha256').update(Object.keys(bundle).sort().join('\n')).digest('hex').slice(0, 12)
+          this.emitFile({ type: 'asset', fileName: 'sw.js', source: serviceWorkerJs(version) })
         },
         // One HTML document per tool, derived from the built index.html so the
         // hashed asset tags are the same and only the head differs — title,

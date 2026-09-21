@@ -38,12 +38,14 @@
  * three above and with the same urgency: an article link is minted once, into
  * an archive, and there is no second chance to tag it (docs/ASSETS.md).
  *
- * Since 2026-09-17 three of the instruments also have a path — `/tools/…`,
- * defined once in src/data/tools.ts — so that a link can be understood before
- * it is opened and survives a reload. A path is recognised here too, before
- * the query, because a tool path is minted deliberately and no link this
- * product hands out puts a code on one. The query-string forms stay, unchanged,
- * for every link already sitting in someone's messages.
+ * Since 2026-09-17 the instruments also have paths — `/tools/…`, defined once
+ * in src/data/tools.ts — so that a link can be understood before it is opened
+ * and survives a reload. Two joined the original three on 2026-09-21, once an
+ * audit found `door` and `families` still query-only and previewing as the
+ * homepage in every messaging app (`docs/LINKS.md`). A path is recognised
+ * here too, before the query, because a tool path is minted deliberately and
+ * no link this product hands out puts a code on one. The query-string forms
+ * stay, unchanged, for every link already sitting in someone's messages.
  *
  * This is the one place links are recognised, so main.tsx can dispatch without
  * a router and the query string can be cleaned before React reads storage.
@@ -124,6 +126,12 @@ export function entryFromUrl(search: string, pathname = '/'): Entry | null {
 export function pathFor(screen: string, reader: ToolSide | undefined, current: string): string | undefined {
   if (screen === 'read' || screen === 'beforeYes') {
     const tool = toolFor(screen === 'read' ? 'read' : 'eleven', reader)
+    return tool ? toolPath(tool.slug) : undefined
+  }
+  // The door and the family words have no `about`, so no chooser to wait on —
+  // the path is known the moment the screen is, same as any tool with one slug.
+  if (screen === 'door' || screen === 'families') {
+    const tool = TOOLS.find((t) => t.kind === screen)
     return tool ? toolPath(tool.slug) : undefined
   }
   return toolFromPath(current) ? '/' : undefined
