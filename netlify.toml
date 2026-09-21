@@ -40,6 +40,16 @@
 [functions]
   node_bundler = "esbuild"
 
+# The offline shell's own script must never be cached — a browser holding an
+# old sw.js past its check-for-updates window is a browser that cannot pick
+# up a fix to the shell itself. Every hashed asset it caches through Cache
+# Storage is unaffected; this header is only about the one file that decides
+# what those caches hold (src/lib/serviceWorker.ts, docs/LINKS.md).
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+
 # There is deliberately no X-Robots-Tag here.
 #
 # Until 2026-09-13 every path carried `noindex, nofollow` and public/robots.txt

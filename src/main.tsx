@@ -60,3 +60,17 @@ const render = (entry: Entry | null) =>
   )
 
 void resolveEntry().then(render, () => render(null))
+
+// The offline shell (src/lib/serviceWorker.ts, docs/LINKS.md). Production
+// only — a dev-server module graph has nothing in common with a built
+// shell, and a worker left registered from `npm run dev` would keep
+// serving a stale localhost cache after the server stops. After `load`,
+// so registration never competes with the first paint for the network.
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // No offline shell this session — every screen still works online,
+      // exactly as it did before this existed.
+    })
+  })
+}

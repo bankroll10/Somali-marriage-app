@@ -31,6 +31,8 @@ describe('the links this product hands out', () => {
       withVia(coupleLink('HJKMNP', SITE_URL), 'couple'),
       toolLink('is-he-serious', 'words'),
       toolLink('before-you-say-yes', 'eleven'),
+      toolLink('door', 'door'),
+      toolLink('families', 'family'),
     ]) {
       expect(url).not.toMatch(/install|from=|ref=|by=|code|answer|name/)
     }
@@ -59,6 +61,19 @@ describe('the links this product hands out', () => {
       expect(pathFor('home', 'woman', '/tools/is-he-serious')).toBe('/')
       expect(pathFor('home', 'woman', '/')).toBeUndefined()
       expect(pathFor('coach', undefined, '/')).toBeUndefined()
+    })
+
+    it('the door and the family words are the same: one slug, no chooser to wait on', () => {
+      expect(toolLink('door', 'door')).toBe(`${SITE_URL}/tools/door?via=door`)
+      expect(toolLink('families', 'family')).toBe(`${SITE_URL}/tools/families?via=family`)
+      const door = new URL(toolLink('door', 'door'))
+      expect(entryFromUrl(door.search, door.pathname)).toEqual({ kind: 'door', via: 'door' })
+      const families = new URL(toolLink('families', 'family'))
+      expect(entryFromUrl(families.search, families.pathname)).toEqual({ kind: 'families', via: 'family' })
+      expect(pathFor('door', undefined, '/')).toBe('/tools/door')
+      expect(pathFor('families', undefined, '/')).toBe('/tools/families')
+      expect(pathFor('home', undefined, '/tools/door')).toBe('/')
+      expect(pathFor('home', undefined, '/tools/families')).toBe('/')
     })
   })
 })

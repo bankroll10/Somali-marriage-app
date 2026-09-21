@@ -6,7 +6,7 @@ import { getHookOption } from '../data/hook'
 import { hesitationOptions, type Hesitation } from '../data/hesitation'
 import { COHORT_TARGET, cohortCount, joinCohort, opensWhen, type CohortCount, type SideCount } from '../lib/cohort'
 import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../lib/waitlist'
-import { instrumentLink } from '../lib/links'
+import { instrumentLink, toolLink } from '../lib/links'
 import { parseAge } from '../lib/age'
 import { shareOrCopy } from '../lib/share'
 import { contactProblem, looksReachable } from '../lib/contact'
@@ -133,7 +133,7 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
       kind === 'door'
         ? {
             text: `Salaam — Niyyah is being built for us, one city at a time. ${opensWhen(pool)} Here’s where it stands. No photos, no account: three answers, your age, and a way to reach you.`,
-            url: instrumentLink('door', 'door'),
+            url: toolLink('door', 'door'),
           }
         : {
  text: `Salaam — Niyyah is being built for us, one city at a time. ${opensWhen(pool)} Start with the read: ninety seconds on what someone has done, and the one question to ask next. No account.`,

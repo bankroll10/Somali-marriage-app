@@ -40,7 +40,7 @@ describe('the words, as they travel', () => {
     ]
     for (const [source, kind, via] of cases) {
       const url = new URL(wordsLink(source))
-      expect(entryFromUrl(url.search), source).toEqual({ kind, via })
+      expect(entryFromUrl(url.search, url.pathname), source).toEqual({ kind, via })
     }
   })
 })

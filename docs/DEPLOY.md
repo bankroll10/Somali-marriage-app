@@ -271,6 +271,11 @@ changed: its own title, description, social-card lines, canonical and `og:url`
 rewrite, so a fresh visit, a reload and a messaging app's preview all read the
 tool's own head without running the app. The sitemap lists all four pages.
 
+`door` and `families` joined this table on 2026-09-21 (`docs/LINKS.md`) —
+`/tools/door`, `/tools/families` — after a link/discovery audit found both
+still previewing as the homepage in every messaging app. Same mechanism,
+same test coverage; nothing about the build changed to add them.
+
 **After the first deploy that carries them**, once:
 
 ```sh
@@ -324,6 +329,23 @@ via; eleven begun and completed among them; the two-sided sheet asked and
 answered; `counted` by city. Not measured, and not to be promised in a pitch:
 opens of the page itself, and return visits (`docs/LEARNING.md`). The decision
 rule is A9 in `docs/EXPERIMENTS.md`.
+
+## The offline shell
+
+Since 2026-09-21 the build writes `dist/sw.js` (`src/lib/serviceWorker.ts`,
+`docs/LINKS.md`), registered from `src/main.tsx` in production only. It
+caches the shell — the built HTML, JS, CSS and fonts — network-first, so an
+online visit always gets whatever shipped most recently and only a genuinely
+unreachable network falls back to the cache. It never touches
+`/.netlify/*`: every write and every live read still goes straight to the
+network, exactly as before.
+
+`netlify.toml` sets `Cache-Control: no-cache` on `/sw.js` itself, so a
+browser holding an old worker always checks for a new one rather than
+sitting on a stale shell indefinitely. Nothing to rotate or clean up by
+hand: the cache name is a hash of the build's own asset list, so a new
+deploy gets a new cache automatically and the worker's own `activate`
+handler deletes every cache but the current one.
 
 ## At real launch
 

@@ -30,8 +30,14 @@ function builtIndex(): string {
 }
 
 describe('the table', () => {
-  it('names the three tools, and nothing else', () => {
-    expect(TOOLS.map((t) => t.slug).sort()).toEqual(['before-you-say-yes', 'is-he-serious', 'is-she-serious'])
+  it('names the five tools, and nothing else', () => {
+    expect(TOOLS.map((t) => t.slug).sort()).toEqual([
+      'before-you-say-yes',
+      'door',
+      'families',
+      'is-he-serious',
+      'is-she-serious',
+    ])
     for (const t of TOOLS) {
       expect(t.slug).toMatch(/^[a-z-]+$/)
       expect(t.title.length).toBeGreaterThan(10)
@@ -48,6 +54,15 @@ describe('the table', () => {
     const eleven = TOOLS.find((t) => t.slug === 'before-you-say-yes')!
     expect(eleven.kind).toBe('eleven')
     expect(eleven.about).toBeUndefined()
+  })
+
+  it('the door and the family words are about the person who arrives, not someone else', () => {
+    const door = TOOLS.find((t) => t.slug === 'door')!
+    expect(door.kind).toBe('door')
+    expect(door.about).toBeUndefined()
+    const families = TOOLS.find((t) => t.slug === 'families')!
+    expect(families.kind).toBe('families')
+    expect(families.about).toBeUndefined()
   })
 
   it('shares under a via the ladder already knows', () => {

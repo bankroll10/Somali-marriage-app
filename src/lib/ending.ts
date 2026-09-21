@@ -14,7 +14,7 @@ import { relationshipLabel } from '../data/vouch'
 import { speak } from '../data/read'
 import { countryFor, getScene } from '../data/scenes'
 import { getCountry } from '../data/countries'
-import { instrumentLink } from './links'
+import { toolLink } from './links'
 import { opensWhen } from './cohort'
 
 /**
@@ -241,11 +241,11 @@ export function marriedShares(
   return {
     eleven: {
       text: [lead, line ? `\n${line}` : '', '\nIt is free, and there is no account.'].join(''),
-      url: instrumentLink('eleven', 'married'),
+      url: toolLink('before-you-say-yes', 'married'),
     },
     door: {
       text: `We married, alhamdulillah. Niyyah is being built for us, one city at a time. ${opensWhen(pool)} If you’re looking, this is where it stands. No photos, no account: three answers, your age, and a way to reach you.`,
-      url: instrumentLink('door', 'married'),
+      url: toolLink('door', 'married'),
     },
   }
 }
