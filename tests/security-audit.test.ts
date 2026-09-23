@@ -53,6 +53,8 @@ const { default: vouch } = await import('../netlify/functions/vouch')
 const { default: couple } = await import('../netlify/functions/couple')
 const { default: cohort } = await import('../netlify/functions/cohort')
 const { default: progress } = await import('../netlify/functions/progress')
+const { isFounder } = await import('../netlify/shared/founder')
+const { sameSecret } = await import('../netlify/shared/secret')
 
 const call = (h: (r: Request) => Promise<Response>, path: string, init?: RequestInit) =>
   h(new Request(`http://x/.netlify/functions/${path}`, init))
@@ -143,5 +145,109 @@ describe('O4 — no key is one `git add -A` from the repository', () => {
     expect(example).toMatch(/Unset means CLOSED/)
     // No value for either secret, ever, in a tracked file.
     expect(example).not.toMatch(/^\s*(ANTHROPIC_API_KEY|FOUNDER_KEY)\s*=/m)
+  })
+})
+
+describe('O5 — the family vouch does not say which tokens are live', () => {
+  // The family branch resolved the token before anything else and before the
+  // cap: an unknown token answered `bad_code`, a live one went on to
+  // `bad_relationship` — an existence oracle over vouch tokens, unmetered.
+  const vouchWith = (code: string, relationship: string) =>
+    call(vouch, 'vouch', json({ code, relationship, firstName: 'Cabdi', sentence: 'She is who she says.' }))
+
+  it('a live token and a dead one get the same answer to a bad body', async () => {
+    memStore('maps').setJSON('ACDEFG', { snapshot: {}, createdAt: 'd', expiresAt: '2099-01-01' })
+    await memStore('vouches').set('token/HJKMNPQR', 'ACDEFG')
+    const live = await vouchWith('HJKMNPQR', 'not-a-relationship')
+    const dead = await vouchWith('QRTWXY34', 'not-a-relationship')
+    expect(live.status).toBe(dead.status)
+    expect(await live.json()).toEqual(await dead.json())
+  })
+
+  it('every token lookup spends the cap', async () => {
+    vi.stubEnv('VOUCH_HOURLY_CAP', '1')
+    expect((await vouchWith('QRTWXY34', 'father')).status).toBe(400)
+    expect((await vouchWith('QRTWXY47', 'father')).status).toBe(503)
+  })
+})
+
+describe('O6 — the man she sent the eleven to cannot rewrite her side of it', () => {
+  // Re-posting `side: first` was gated on `creator === body.gender` — a gender
+  // the caller simply states. He holds the code (she texted it to him), so
+  // before answering he could post as a woman with states he chose, and the
+  // joint she then read was his invention, not their conversation.
+  const sheet = (states: Record<string, string>, extra: Record<string, unknown> = {}) =>
+    call(couple, 'couple', json({ side: 'first', gender: 'woman', states, ...extra }))
+  const differ = Object.fromEntries(TOPICS.map((t) => [t, 'differ']))
+
+  it('holding the code and claiming her gender is not enough', async () => {
+    const created = await (await sheet(TOPICS_ALL)).json()
+    const forged = await sheet(differ, { code: created.code })
+    expect(forged.status).toBe(409)
+    // Her eleven, exactly as she answered it.
+    expect(JSON.parse(stores.get('couples')!.get(created.code)!).first).toEqual(TOPICS_ALL)
+  })
+
+  it('the key she was handed at creation is what lets her change it, until he answers', async () => {
+    const created = await (await sheet(TOPICS_ALL)).json()
+    expect(typeof created.key).toBe('string')
+    expect((await sheet(differ, { code: created.code, key: created.key })).status).toBe(200)
+    // The key is hers alone: no read of the sheet ever returns it.
+    const read = await (await call(couple, `couple?code=${created.code}`)).json()
+    expect(JSON.stringify(read)).not.toContain(created.key)
+  })
+
+  it('a sheet from before the key keeps the old check until it expires', async () => {
+    memStore('couples').setJSON('HJKMNP', { creator: 'woman', first: TOPICS_ALL, createdAt: 'd', expiresAt: '2099-01-01' })
+    expect((await sheet(differ, { code: 'HJKMNP', gender: 'man' })).status).toBe(409)
+    expect((await sheet(differ, { code: 'HJKMNP' })).status).toBe(200)
+  })
+
+  it('a code nobody minted is never created on demand', async () => {
+    expect((await sheet(TOPICS_ALL, { code: 'QRTWXY' })).status).toBe(404)
+    expect(stores.get('couples')?.has('QRTWXY') ?? false).toBe(false)
+  })
+})
+
+describe('O7 — no page can be framed, and the floor of headers is set', () => {
+  const toml = readFileSync(new URL('../netlify.toml', import.meta.url), 'utf8')
+  const block = toml.slice(toml.indexOf('for = "/*"'), toml.indexOf('[[headers]]', toml.indexOf('for = "/*"')))
+
+  it('every path carries them', () => {
+    expect(block).toContain('X-Frame-Options = "DENY"')
+    expect(block).toContain(`Content-Security-Policy = "frame-ancestors 'none'"`)
+    expect(block).toContain('X-Content-Type-Options = "nosniff"')
+    expect(block).toContain('Referrer-Policy = "strict-origin-when-cross-origin"')
+    expect(block).toMatch(/Permissions-Policy = "camera=\(\), microphone=\(\), geolocation=\(\)/)
+    expect(block).toMatch(/Strict-Transport-Security = "max-age=\d{8,}"/)
+  })
+})
+
+describe('O11 — the founder key is compared whole, and in constant time', () => {
+  const asked = (header?: string) => new Request('http://x/', { headers: header ? { authorization: header } : {} })
+
+  it('refuses every near miss, and a missing key refuses everything', () => {
+    vi.stubEnv('FOUNDER_KEY', 'a-long-founder-key-0123456789')
+    expect(isFounder(asked('Bearer a-long-founder-key-0123456789'))).toBe(true)
+    expect(isFounder(asked('bearer a-long-founder-key-0123456789'))).toBe(true)
+    for (const near of ['a-long-founder-key-012345678', 'a-long-founder-key-01234567890', 'a-long-founder-key-012345678X', '', ' ']) {
+      expect(isFounder(asked(`Bearer ${near}`))).toBe(false)
+    }
+    expect(isFounder(asked('Basic a-long-founder-key-0123456789'))).toBe(false)
+    expect(isFounder(asked())).toBe(false)
+    vi.stubEnv('FOUNDER_KEY', '')
+    expect(isFounder(asked('Bearer '))).toBe(false)
+  })
+
+  it('the comparison looks at every byte rather than stopping at the first difference', () => {
+    // A timing test in CI measures the runner, not the code; this pins the
+    // shape instead — no early return, no `===` on the secret.
+    const src = readFileSync(new URL('../netlify/shared/secret.ts', import.meta.url), 'utf8')
+    const body = src.slice(src.indexOf('export function sameSecret'))
+    expect(body).not.toMatch(/return false|===\s*b\b|a\s*===/)
+    expect(body).toMatch(/diff \|= left\[i\] \^ right\[i\]/)
+    expect(sameSecret('abc', 'abc')).toBe(true)
+    expect(sameSecret('abc', 'abd')).toBe(false)
+    expect(sameSecret('abc', 'abcd')).toBe(false)
   })
 })

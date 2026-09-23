@@ -51,10 +51,25 @@ export function rememberedVia(): Via | null {
   }
 }
 
-/** Same alphabet and length as a map code (src/lib/code.ts) — a different code. */
+/**
+ * Same alphabet and length as a map code (src/lib/code.ts) — a different code.
+ *
+ * Rejection-sampled, like the server's generator (netlify/shared/code.ts).
+ * This was the last copy of `ALPHABET[b % 23]`: 256 is not a multiple of 23,
+ * so A, C and D came up 12 times in 256 and every other symbol 11 — the bias
+ * docs/HARD.md row 9 said was gone everywhere (docs/SECURITY.md, O11).
+ */
+const LIMIT = 256 - (256 % ALPHABET.length)
 function newId(): string {
-  const bytes = crypto.getRandomValues(new Uint8Array(CODE_LENGTH))
-  return Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('')
+  const out: string[] = []
+  while (out.length < CODE_LENGTH) {
+    for (const b of crypto.getRandomValues(new Uint8Array(CODE_LENGTH))) {
+      if (b >= LIMIT) continue
+      out.push(ALPHABET[b % ALPHABET.length])
+      if (out.length === CODE_LENGTH) break
+    }
+  }
+  return out.join('')
 }
 
 /** The install code if this phone has one — never made here. For forgetting. */

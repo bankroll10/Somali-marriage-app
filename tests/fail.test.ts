@@ -109,8 +109,10 @@ describe('a write that matters is conditional', () => {
   it('holds the couple sheet against the side that did not make it', () => {
     const couple = read('netlify/functions/couple.ts')
     // Anyone holding the six characters she texted him could replace her
-    // eleven answers, or destroy his, and be told 200.
-    expect(couple).toMatch(/existing\.creator !== body\.gender/)
+    // eleven answers, or destroy his, and be told 200. The first guard here
+    // compared a gender the request *states*, which he could simply state
+    // (docs/SECURITY.md, O6); the sheet is now hers by the key she was handed.
+    expect(couple).toMatch(/existing\.owner \? sameSecret\(key, existing\.owner\)/)
     expect([...couple.matchAll(/onlyIfMatch: held\.etag/g)].length).toBeGreaterThanOrEqual(2)
   })
 

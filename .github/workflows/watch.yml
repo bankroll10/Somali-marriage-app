@@ -40,6 +40,12 @@ on:
 env:
   SITE: ${{ vars.SITE_URL || 'https://joinniyyah.com' }}
 
+# The token every job gets reads the repository and nothing else. Neither
+# workflow writes to it; an artifact upload does not need it (docs/SECURITY.md,
+# O10).
+permissions:
+  contents: read
+
 jobs:
   safety:
     if: github.event.schedule == '0 9 * * 1' || (github.event_name == 'workflow_dispatch' && inputs.job == 'safety')

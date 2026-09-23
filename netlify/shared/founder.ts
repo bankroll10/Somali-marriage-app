@@ -23,6 +23,8 @@
  * the bundler. `tests/deploy-layout.test.ts` keeps it from wandering in.
  */
 
+import { sameSecret } from './secret'
+
 /**
  * Said once per cold start, not per request: a guard that is off should be
  * visible in the logs, not a wall of noise that gets filtered out.
@@ -40,16 +42,6 @@ function warnOnce(message: string) {
   console.warn(message)
 }
 
-/** Constant-time comparison, so the response time never leaks the key. */
-function matches(a: string, b: string): boolean {
-  const encoder = new TextEncoder()
-  const left = encoder.encode(a)
-  const right = encoder.encode(b)
-  let diff = left.length ^ right.length
-  const len = Math.min(left.length, right.length)
-  for (let i = 0; i < len; i++) diff |= left[i] ^ right[i]
-  return diff === 0
-}
 
 /**
  * True only when a key is configured and the request carries
@@ -71,7 +63,8 @@ export function isFounder(req: Request): boolean {
   const scheme = header.slice(0, space).toLowerCase()
   const token = header.slice(space + 1).trim()
   if (scheme !== 'bearer' || !token) return false
-  return matches(token, key)
+  // Constant-time, so the response time never leaks the key.
+  return sameSecret(token, key)
 }
 
 /** The refusal. Names no key, caches nowhere. */

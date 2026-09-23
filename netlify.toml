@@ -40,6 +40,24 @@
 [functions]
   node_bundler = "esbuild"
 
+# Every page, every file. None of these existed until 2026-09-23 (docs/SECURITY.md,
+# O7). The one that matters most is framing: "Forget me" is two taps, and a page
+# that could frame this one could put both taps under a member's finger without
+# her seeing the words. The rest are the ordinary floor — no type sniffing, no
+# full URL in a Referer to another site (a `?map=` code is the whole map), HTTPS
+# remembered, and no camera, microphone or location asked for by anything.
+# Function responses are JSON the page itself fetches; these rules are for what
+# a browser renders.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    Content-Security-Policy = "frame-ancestors 'none'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=()"
+    Strict-Transport-Security = "max-age=31536000"
+
 # The offline shell's own script must never be cached — a browser holding an
 # old sw.js past its check-for-updates window is a browser that cannot pick
 # up a fix to the shell itself. Every hashed asset it caches through Cache

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { rememberVia, rememberedVia, reportRungs, resetReported } from './progress'
+import { installId, rememberVia, rememberedVia, reportRungs, resetReported } from './progress'
 
 function installStorage() {
   const store = new Map<string, string>()
@@ -99,5 +99,19 @@ describe('the facts beside the rungs', () => {
     expect(spy.mock.calls.length).toBe(1)
     await reportRungs(['arrived', 'read'], undefined, { read: { band: 'mixed', thin: 'public' }, through: ['read:public'] })
     expect(spy.mock.calls.length).toBe(2)
+  })
+})
+
+describe('the install code', () => {
+  it('throws away the bytes that would bias it, like the server does', () => {
+    // 256 = 11×23 + 3: bytes 253, 254 and 255 used to fold onto A, C and D, so
+    // those three came up one time in eleven more often (docs/SECURITY.md O11).
+    const draws = [
+      [253, 254, 255, 1, 2, 3],
+      [4, 5, 6, 7, 8, 9],
+    ]
+    vi.stubGlobal('crypto', { getRandomValues: (a: Uint8Array) => (a.set(draws.shift()!), a) })
+    const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
+    expect(installId()).toBe([1, 2, 3, 4, 5, 6].map((i) => ALPHABET[i]).join(''))
   })
 })

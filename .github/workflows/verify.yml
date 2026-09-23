@@ -21,6 +21,12 @@ concurrency:
   group: verify-${{ github.ref }}
   cancel-in-progress: true
 
+# The token every job gets reads the repository and nothing else. Neither
+# workflow writes to it; an artifact upload does not need it (docs/SECURITY.md,
+# O10).
+permissions:
+  contents: read
+
 jobs:
   verify:
     runs-on: ubuntu-latest

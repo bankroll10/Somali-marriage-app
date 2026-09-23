@@ -231,14 +231,12 @@ export default async function handler(req: Request) {
   }
 
   // ── A family member vouches, with the token from the link ─────────────────
-  let code: string | null
-  try {
-    code = await resolve(store, body.code)
-  } catch (err) {
-    console.error('[niyyah] vouch: token lookup failed', err)
-    return Response.json({ error: 'unavailable' }, { status: 503 })
-  }
-  if (!code) return Response.json({ error: 'bad_code' }, { status: 400 })
+  // Shape, then the fields, then the cap, and only then the token lookup
+  // (docs/SECURITY.md, O5). This used to resolve the token first: an unknown
+  // one answered `bad_code` and a live one went on to `bad_relationship`, so
+  // any malformed body told a caller which tokens were live, at no cost.
+  const shaped = normalise(body.code)
+  if (!CODE.test(shaped) && !TOKEN.test(shaped)) return Response.json({ error: 'bad_code' }, { status: 400 })
   const relationship = clean(body.relationship, 20)
   const firstName = clean(body.firstName, 40)
   const sentence = clean(body.sentence, 280)
@@ -249,6 +247,15 @@ export default async function handler(req: Request) {
 
   // Bounded, like every public write — after validation, before any read.
   if (await overHourlyCap('vouch', DEFAULT_HOURLY_CAP)) return rateLimited()
+
+  let code: string | null
+  try {
+    code = await resolve(store, shaped)
+  } catch (err) {
+    console.error('[niyyah] vouch: token lookup failed', err)
+    return Response.json({ error: 'unavailable' }, { status: 503 })
+  }
+  if (!code) return Response.json({ error: 'bad_code' }, { status: 400 })
 
   // A vouch attaches to a kept map. A code nobody has kept a map under is not a
   // person, and is not vouched for.

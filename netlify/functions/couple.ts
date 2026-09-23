@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs'
-import { CODE, mint, normalise } from '../shared/code'
+import { CODE, TOKEN_LENGTH, mint, newCode, normalise } from '../shared/code'
+import { sameSecret } from '../shared/secret'
 import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, TOPICS, YES_STATES as STATES } from '../shared/vocab'
 import { day } from '../shared/day'
@@ -64,6 +65,13 @@ type Sides = Record<string, YesState>
 
 interface CoupleRecord {
   creator: 'woman' | 'man'
+  /**
+   * The key the person who started it was handed, and the only thing that
+   * lets her change her side before he answers (docs/SECURITY.md, O6). Never
+   * in any response but the one that created it. Absent on sheets made before
+   * 2026-09-23, which keep the old gender check until they expire.
+   */
+  owner?: string
   first: Sides
   second?: Sides
   createdAt: string
@@ -223,7 +231,7 @@ export default async function handler(req: Request) {
 
   if (req.method !== 'POST') return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
 
-  const body = await readJson<{ side?: string; code?: unknown; gender?: string; states?: unknown }>(req, MAX_BODY)
+  const body = await readJson<{ side?: string; code?: unknown; key?: unknown; gender?: string; states?: unknown }>(req, MAX_BODY)
   if (body instanceof Response) return body
   if (!validSides(body.states)) return Response.json({ error: 'bad_states' }, { status: 400 })
 
@@ -237,48 +245,59 @@ export default async function handler(req: Request) {
     // Bounded, like every public write — after validation, before any read.
     if (await overHourlyCap('couple', DEFAULT_HOURLY_CAP)) return rateLimited()
     try {
-      const held = code
-        ? ((await store.getWithMetadata(code, { type: 'json' })) as { data: CoupleRecord; etag?: string } | null)
-        : null
-      const existing = held?.data ?? null
-      // Once the other side has answered, hers is frozen — re-posting would let
-      // her flip one topic and read his exact state off the joint.
-      if (existing?.second) return Response.json({ error: 'answered' }, { status: 409 })
-      // The code is six characters she texted him, so anyone holding it could
-      // re-post as `first` and replace her eleven answers — or flip the creator
-      // side — and be told 200. The sheet belongs to the side that made it
-      // (docs/FAIL.md).
-      if (existing && existing.creator !== body.gender) {
-        return Response.json({ error: 'not_yours' }, { status: 409 })
-      }
-      const record: CoupleRecord = {
-        creator: body.gender as 'woman' | 'man',
-        first: body.states,
-        createdAt: existing?.createdAt ?? day(now),
-        expiresAt: day(now + TTL_MS),
-      }
-      // Hers again, under the code she already sent him: conditional on the
-      // sheet still being what was just read. The unconditional write it
-      // replaces was a time-of-check bug with the worst possible payload — if
-      // he answered in the window, this destroyed his answer while the
-      // permanent tally had already counted the pair, and the sheet read as
-      // open again with the joint unrecoverable.
-      // A new pair: minted with `onlyIfNew`, so two women drawing the same six
-      // characters costs a retry rather than one of them answering into the
-      // other's sheet — netlify/shared/code.ts.
+      // Hers again, under the code she already sent him.
       if (code) {
-        const written = held?.etag
+        const held = (await store.getWithMetadata(code, { type: 'json' })) as { data: CoupleRecord; etag?: string } | null
+        // A code is minted, never chosen: a sheet nobody started is not
+        // created on demand under whatever the body names.
+        if (!held) return Response.json({ error: 'not_found' }, { status: 404 })
+        const existing = held.data
+        // Once the other side has answered, hers is frozen — re-posting would
+        // let her flip one topic and read his exact state off the joint.
+        if (existing.second) return Response.json({ error: 'answered' }, { status: 409 })
+        // The sheet is hers by the key she was handed when she made it. It
+        // used to be hers by the gender the request *said* — and the code is
+        // six characters she texted him, so he could post as her with states
+        // he chose, and the joint she read was his invention
+        // (docs/SECURITY.md, O6). Sheets from before the key keep the old
+        // check until they expire.
+        const key = typeof body.key === 'string' ? body.key : ''
+        const hers = existing.owner ? sameSecret(key, existing.owner) : existing.creator === body.gender
+        if (!hers) return Response.json({ error: 'not_yours' }, { status: 409 })
+        const record: CoupleRecord = {
+          ...existing,
+          first: body.states,
+          createdAt: existing.createdAt ?? day(now),
+          expiresAt: day(now + TTL_MS),
+        }
+        // Conditional on the sheet still being what was just read. The
+        // unconditional write it replaces was a time-of-check bug with the
+        // worst possible payload — if he answered in the window, this
+        // destroyed his answer while the permanent tally had already counted
+        // the pair.
+        const written = held.etag
           ? await store.setJSON(code, stamp(record), { onlyIfMatch: held.etag })
           : await store.setJSON(code, stamp(record), { onlyIfNew: true })
         if (!written.modified) return Response.json({ error: 'answered' }, { status: 409 })
         return Response.json({ code })
+      }
+      // A new pair: minted with `onlyIfNew`, so two women drawing the same six
+      // characters costs a retry rather than one of them answering into the
+      // other's sheet — netlify/shared/code.ts. The key goes back once, here.
+      const owner = newCode(TOKEN_LENGTH)
+      const record: CoupleRecord = {
+        creator: body.gender as 'woman' | 'man',
+        owner,
+        first: body.states,
+        createdAt: day(now),
+        expiresAt: day(now + TTL_MS),
       }
       const minted = await mint((c, v: CoupleRecord) => store.setJSON(c, v, { onlyIfNew: true }), stamp(record))
       if (!minted) {
         console.error('[niyyah] couple: every minted code collided')
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
-      return Response.json({ code: minted })
+      return Response.json({ code: minted, key: owner })
     } catch (err) {
       console.error('[niyyah] couple: create failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
