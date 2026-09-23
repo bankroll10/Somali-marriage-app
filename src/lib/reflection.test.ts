@@ -4,6 +4,8 @@ import { allQuestions } from '../data/intake'
 import type { Answers, GroundState } from '../types'
 
 const STATES: GroundState[] = ['thin', 'steady', 'strong']
+/** Positions she holds — described, never rated (docs/ALIGNMENT.md S5). */
+const POSITIONS = ['faith', 'family', 'vision']
 
 /** The seeded demo member, kept in sync with lib/demo.ts. */
 const demoAnswers: Answers = {
@@ -23,12 +25,13 @@ const demoAnswers: Answers = {
 }
 
 describe('buildReflection', () => {
-  it('puts no number on a person — every ground is one of three words', () => {
+  it('puts no number on a person — every rated ground is one of three words, and a position is none', () => {
     for (const answers of [{}, demoAnswers]) {
       const r = buildReflection(answers)
       expect('overall' in r).toBe(false)
       for (const d of r.dimensions) {
-        expect(STATES).toContain(d.state)
+        if (POSITIONS.includes(d.dimension)) expect(d.state).toBeNull()
+        else expect(STATES).toContain(d.state)
         expect('score' in d).toBe(false)
       }
     }
@@ -38,7 +41,7 @@ describe('buildReflection', () => {
     // Someone who answered nothing has told us nothing — the honest reading is
     // steady, and the copy must never call that "early in the journey".
     const r = buildReflection({})
-    for (const d of r.dimensions) expect(d.state).toBe('steady')
+    for (const d of r.dimensions) if (!POSITIONS.includes(d.dimension)) expect(d.state).toBe('steady')
     expect(r.headline).toBe('Building your foundation')
   })
 
@@ -46,19 +49,22 @@ describe('buildReflection', () => {
     const r = buildReflection(demoAnswers)
     expect(r.thinnest).toHaveLength(7)
     expect(new Set(r.thinnest).size).toBe(7)
-    const stateOf = (d: string) => r.dimensions.find((x) => x.dimension === d)!.state
-    // Nothing strong may sit ahead of something thin.
+    const stateOf = (d: string) => r.dimensions.find((x) => x.dimension === d)!.state!
+    // Nothing strong may sit ahead of something thin, among the rated grounds;
+    // the positions follow, in the map's own order, never as a gap.
+    const rated = r.thinnest.slice(0, 4)
+    expect(r.thinnest.slice(4)).toEqual(POSITIONS)
     const rank = { thin: 0, steady: 1, strong: 2 }
-    for (let i = 1; i < r.thinnest.length; i++) {
-      expect(rank[stateOf(r.thinnest[i])]).toBeGreaterThanOrEqual(rank[stateOf(r.thinnest[i - 1])])
+    for (let i = 1; i < rated.length; i++) {
+      expect(rank[stateOf(rated[i])]).toBeGreaterThanOrEqual(rank[stateOf(rated[i - 1])])
     }
   })
 
   it('reads the demo member as the demo copy claims', () => {
-    // lib/demo.ts seeds a map history ending at "Grounded and ready". If the
+    // lib/demo.ts seeds a map history that ends on steady ground. If the
     // thresholds drift, the demo quietly breaks.
     const r = buildReflection(demoAnswers)
-    expect(r.headline).toBe('Grounded and ready')
+    expect(r.headline).toBe('On steady ground')
   })
 
   it('reads the most honest answers as building, not as early', () => {

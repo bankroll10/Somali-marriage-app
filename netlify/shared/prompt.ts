@@ -62,7 +62,7 @@ export const MODE_VOICE: Record<string, { label: string; tagline: string; descri
   matchmaker: {
     label: 'Matchmaker',
     tagline: 'Alignment over looks',
-    description: 'Looks past the photos to what lasts — alignment.',
+    description: 'Looks past the photos to how two lives would fit.',
   },
 }
 

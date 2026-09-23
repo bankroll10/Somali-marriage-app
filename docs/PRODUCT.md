@@ -174,13 +174,19 @@ instruments:
 - **One introduction at a time.** The next arrives only after a yes or a no
   *with a reason*. A considered no is progress and is recorded; it is not a
   swipe.
-- **Non-negotiables gate before anything is scored.** What she said she will
-  not compromise on is checked first; the rest becomes "the first thing to ask
-  him".
-- **No percentage, no bands.** Three reasons, one place you differ, one
-  question to open with.
-- **What decides who meets whom:** the ledger (what she has actually done
-  here), her non-negotiables, and how she'd live. Never a readiness number.
+- **Non-negotiables gate only where the answers plainly contradict them.**
+  Two of seven can be checked — faith against "lighter in practice", children
+  where one wants them and the other does not; everything else she said she
+  will not compromise on becomes "the first thing to ask him"
+  (`docs/ALIGNMENT.md`).
+- **Nothing is scored.** Where the two answers are the same, where they
+  differ — every difference, never "the one that matters most" — what is not
+  known yet, and one question to open with. No percentage, no band, no
+  weighted fit.
+- **What decides who meets whom:** a person, by hand — reading the ledger
+  (what she has actually done here), what each of them said they will not
+  compromise on, and how they'd live. Never a readiness number, and never an
+  assumption neither of them stated, such as an age band.
 - **Never:** who liked you, interest limits, paid visibility, notifications
   about people.
 

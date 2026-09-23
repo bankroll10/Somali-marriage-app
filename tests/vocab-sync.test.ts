@@ -67,7 +67,8 @@ describe('every word the server accepts is a word the app uses', () => {
   it('the map’s seven grounds and their three states', () => {
     const r = buildReflection({})
     expect(sorted(vocab.DIMENSIONS)).toEqual(sorted(r.dimensions.map((d) => d.dimension)))
-    for (const d of r.dimensions) expect(vocab.GROUND_STATES.has(d.state)).toBe(true)
+    // A position (faith, family, vision) has no state and sends none.
+    for (const d of r.dimensions) if (d.state) expect(vocab.GROUND_STATES.has(d.state)).toBe(true)
   })
 
   it('the read’s dimensions, and what a read follow-up can be about', () => {

@@ -100,7 +100,8 @@ export function factsFrom(i: FactsInput): Facts {
 
   if (i.reflection) {
     const grounds: Partial<Record<Dimension, GroundState>> = {}
-    for (const d of i.reflection.dimensions) grounds[d.dimension] = d.state
+    // A position (faith, family, vision) has no state, and nothing is recorded for it.
+    for (const d of i.reflection.dimensions) if (d.state) grounds[d.dimension] = d.state
     facts.grounds = grounds
   }
 

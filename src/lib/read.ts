@@ -58,21 +58,21 @@ export interface ReadResult {
 export type ReadAnswers = Record<string, string>
 
 /**
- * How much each dimension counts.
+ * The order the dimensions are read in, and the order a tie is broken in.
  *
  * `public` leads deliberately. Every other signal can be produced by a man who
- * is enjoying himself; being known to his people costs him something.
+ * is enjoying himself; being known to his people costs him something. That is
+ * a judgement, and it is stated as an order, not a decimal: this file used to
+ * weight the five .26/.21/.20/.19/.14 and sum them into an `overall` that
+ * decided the band — numbers nobody had measured, invisible to her, which
+ * could call a man "strong" while her own screen said he had not yet shown
+ * how he handles hard things (docs/ALIGNMENT.md S3). The band is now read from
+ * the states she can see.
  */
-const WEIGHTS: Record<ReadDimension, number> = {
-  public: 0.26,
-  intent: 0.21,
-  consistency: 0.2,
-  pressure: 0.19,
-  family: 0.14,
-}
-
-/** Stable order for iteration and display — most consequential first. */
 const PRIORITY: ReadDimension[] = ['public', 'pressure', 'intent', 'family', 'consistency']
+
+/** Lowest first, for choosing which gap to speak to. */
+const STATE_RANK: Record<DimensionState, number> = { 'not-yet': 0, partly: 1, shown: 2 }
 
 /** Why a gap in this dimension matters. The sentence that turns a score into a reason. */
 const WHY_IT_MATTERS: Record<ReadDimension, string> = {
@@ -95,7 +95,7 @@ const DURATION_NOTE: Record<string, string> = {
   'months-plus': 'You are past three months.',
 }
 
-/** Long enough that a gap is a decision rather than an oversight. */
+/** Long enough that a gap is fair to ask about directly. */
 const MATURE = new Set(['months-3', 'months-plus'])
 
 /**
@@ -107,6 +107,12 @@ const CONFIDANTE: Record<Gender, string> = {
   man: 'a brother, a friend, an older man you trust',
 }
 
+/**
+ * A dimension's average answer, as a word. The per-answer weights in
+ * src/data/read.ts are an editorial ordering of the options — which answer
+ * shows more of the thing — and these two lines turn their average into one
+ * of three words. Nothing finer reaches her.
+ */
 function stateOf(score: number): DimensionState {
   if (score >= 0.7) return 'shown'
   if (score >= 0.35) return 'partly'
@@ -145,7 +151,8 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
   for (const q of questions) {
     if (q.dimension === 'context') continue
     const chosen = q.options.find((o) => o.id === answers[q.id])
-    if (!chosen) continue
+    // An answer that says nothing about them — "I have not told {him}" — is not scored.
+    if (!chosen || chosen.weight === null) continue
     ;(collected[q.dimension] ??= []).push(chosen.weight)
   }
   const scores = {} as Record<ReadDimension, number>
@@ -153,14 +160,13 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     const xs = collected[dim] ?? []
     scores[dim] = xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
   }
-  const overall = PRIORITY.reduce((sum, d) => sum + scores[d] * WEIGHTS[d], 0)
 
   // ── Notes, strongest and weakest, from her own answers ───────────────────
   const scored = questions
     .filter((q) => q.dimension !== 'context')
-    .map((q) => {
+    .flatMap((q) => {
       const chosen = q.options.find((o) => o.id === answers[q.id])!
-      return { note: chosen.note, weight: chosen.weight, dimension: q.dimension as ReadDimension }
+      return chosen.weight === null ? [] : [{ note: chosen.note, weight: chosen.weight, dimension: q.dimension as ReadDimension }]
     })
   const shown = scored.filter((s) => s.weight >= 0.7).sort((a, b) => b.weight - a.weight).map((s) => s.note)
   const missing = scored.filter((s) => s.weight <= 0.3).sort((a, b) => a.weight - b.weight).map((s) => s.note)
@@ -173,14 +179,14 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
 
   const duration = answers.duration
   const durationNote = DURATION_NOTE[duration] ?? ''
-  // Which gap to speak to. Not simply the lowest score: how thin it is, times
-  // how much it matters. A woman nobody knows about does not need to be coached
-  // through asking how he'd approach her family — being hidden is the prior
-  // question, and answering the smaller one first would waste the only ask she
-  // is likely to make this week.
-  const thin = [...PRIORITY].sort(
-    (a, b) => (1 - scores[b]) * WEIGHTS[b] - (1 - scores[a]) * WEIGHTS[a],
-  )[0]
+  // Which gap to speak to: the thinnest state she can see, and among equals
+  // the one that comes first. A woman nobody knows about does not need to be
+  // coached through asking how he'd approach her family — being hidden is the
+  // prior question, and answering the smaller one first would waste the only
+  // ask she is likely to make this week.
+  const thin = [...dimensions].sort(
+    (a, b) => STATE_RANK[a.state] - STATE_RANK[b.state] || PRIORITY.indexOf(a.dimension) - PRIORITY.indexOf(b.dimension),
+  )[0].dimension
 
   // ── Money, before the families ───────────────────────────────────────────
   // Not a measure of how serious {he} is — the man running a romance scam is
@@ -243,8 +249,18 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
   }
 
   // ── The three real bands ─────────────────────────────────────────────────
-  // A high overall score cannot buy its way past being hidden.
-  const band: ReadBand = overall >= 0.72 && scores.public >= 0.6 ? 'strong' : overall >= 0.45 ? 'mixed' : 'thin'
+  // Read from the five states on her screen, by a rule she could check herself:
+  // strong is being known shown, nothing not-yet, and four of five shown; thin is
+  // more not-yet than shown; everything else is mixed. Nothing can buy its way
+  // past being hidden, and nothing she can see as missing can be summed away.
+  const count = (st: DimensionState) => dimensions.filter((d) => d.state === st).length
+  const publicShown = dimensions.find((d) => d.dimension === 'public')!.state === 'shown'
+  const band: ReadBand =
+    publicShown && count('not-yet') === 0 && count('shown') >= 4
+      ? 'strong'
+      : count('not-yet') > count('shown')
+        ? 'thin'
+        : 'mixed'
 
   const strongest = shown.slice(0, 2)
   const weakest = missing.slice(0, 2)
@@ -254,14 +270,14 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
   let summary: string
 
   if (band === 'strong') {
- headline = '{He} has shown you the things that predict it.'
+    headline = '{He} has done most of what this asks about.'
     summary = `${durationNote} ${sentence(join(strongest))}${
       strongest.length ? '. ' : ''
-    }Those are not small, and they are not what someone passing time produces. ${
+    }Those are real, and worth holding onto. ${
       weakest.length
         ? `The thinnest part is that ${weakest[0]} — worth closing, not worth panicking about.`
-        : `There is no obvious gap in what you have told us, which is rarer than you would think.`
- } The useful thing now is not more watching. It is one clear conversation, so that what you both assume is said out loud.`
+        : `There is no obvious gap in what you have told us.`
+    } This is a summary of your own answers — not a verdict on {him}, and not a prediction. The useful thing now is not more watching. It is one clear conversation, so that what you both assume is said out loud.`
   } else if (band === 'mixed') {
     headline = `Real signals — and one gap that is doing a lot of work.`
     summary = `${durationNote} ${
@@ -271,7 +287,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     }${
       weakest.length ? `What is missing is that ${weakest[0]}. ` : ''
     }${WHY_IT_MATTERS[thin]}${
-      mature ? ' At this point that is a decision rather than an oversight.' : ''
+      mature ? ' At this point it is fair to ask about it directly.' : ''
     }`
   } else {
     headline = 'So far, {he} has shown you very little of it.'
@@ -300,7 +316,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
 export function readSummary(result: Pick<ReadResult, 'band' | 'thin'>, gender: Gender = 'woman'): string {
   const BAND: Record<ReadBand, string> = {
     early: 'too early to tell',
-    strong: '{he} has shown the things that predict seriousness',
+    strong: '{he} has done most of what the read asks about',
     mixed: 'real signals with one significant gap',
     thin: 'very little shown so far',
     caution: 'a pattern of being kept hidden',

@@ -56,7 +56,7 @@ That’s why Niyyah starts with where you are, not with a profile. Your map will
     insight: (name) =>
       `${name ? `${name}, y` : 'Y'}ou’re not imagining it — the usual apps mix you into a crowd that isn’t looking for what you’re looking for, then make you sift by hand. The problem isn’t you. It’s the room.
 
-Niyyah is a different room — one that only opens when enough serious people are in it, and matches on how lives fit instead of on looks. First we build your map, so when you meet people here, you’re matched on what lasts.`,
+Niyyah is a different room — one that only opens when enough serious people are in it, and introduces people by hand, on what they said about the life they want instead of on looks. First we build your map, so an introduction here starts from your own answers.`,
   },
   {
     // The list's own test. Without this, a skip and "none of these fit" both

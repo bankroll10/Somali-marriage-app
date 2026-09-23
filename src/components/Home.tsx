@@ -516,8 +516,14 @@ export default function Home({
                 </GlyphTile>
                 <p className="mt-3 font-display text-[1.1rem] font-medium text-ink">Your map</p>
                 <p className="mt-1 text-[0.85rem] leading-snug text-muted text-pretty">
-                  {reflection.headline}. Thinnest right now:{' '}
-                  {reflection.dimensions.find((d) => d.dimension === reflection.thinnest[0])?.label.toLowerCase()}.
+                  {reflection.headline}.{' '}
+                  {(() => {
+                    // A strong ground is never named as the thinnest, even when it is the lowest.
+                    const thinnest = reflection.dimensions.find((d) => d.dimension === reflection.thinnest[0])
+                    return thinnest && thinnest.state !== 'strong'
+                      ? `Thinnest right now: ${thinnest.label.toLowerCase()}.`
+                      : 'Nothing reads thin.'
+                  })()}
                 </p>
               </button>
             ) : stage !== 'married' ? (

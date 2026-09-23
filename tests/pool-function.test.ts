@@ -4,8 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * The shape of a pool has one job: to say whether forty and forty could
  * introduce anyone. These drive the function against an in-memory stand-in
  * for Netlify Blobs and check that it counts live maps against the door's,
- * that supply is who is actually looking, that a pair clears the age band and
- * both people's checkable non-negotiables, that every fine split is floored,
+ * that supply is who is actually looking, that a pair clears both people's
+ * checkable non-negotiables — and that our age band is counted beside that,
+ * never inside it (docs/ALIGNMENT.md G3), that every fine split is floored,
  * that a lapsed entry is swept and its contact kept, and that nothing about a
  * person leaves.
  */
@@ -62,7 +63,8 @@ interface Person {
   country?: string
   reach?: string
   age?: number
-  stage?: string
+  /** Null: a map kept with no stage at all. */
+  stage?: string | null
   practice?: string
   children?: string
   nn?: string[]
@@ -83,7 +85,7 @@ function seed(p: Person): string {
     memStore('maps').setJSON(p.code, {
       snapshot: {
         identity: { firstName: 'Hodan', age: p.age },
-        stage: p.stage ?? 'preparing',
+        ...(p.stage === null ? {} : { stage: p.stage ?? 'preparing' }),
         answers: { practice: p.practice ?? 'consistent', children: p.children ?? 'want', dealbreakers: p.nn ?? ['honesty'] },
       },
       createdAt: '2026-09-01',
@@ -119,7 +121,9 @@ describe('who may read it', () => {
   })
 
   it('says what its pairs rest on', async () => {
-    expect((await read('scene=twin-cities')).assumptions).toEqual({ ageGap: AGE_GAP })
+    const { assumptions } = await read('scene=twin-cities')
+    expect(assumptions.ageGap).toMatchObject(AGE_GAP)
+    expect(assumptions.ageGap.gates).toMatch(/^nothing/)
   })
 })
 
@@ -193,8 +197,18 @@ describe('the door against the maps', () => {
     expect(r.live.women).toBe(4)
     expect(r.supply).toEqual({ women: 1, men: 1 })
     // The split is there to be read, floored like every split by a quasi-identifier.
-    expect(Object.keys(r.stages.women).sort()).toEqual(['deciding', 'married', 'preparing', 'talking'])
+    expect(Object.keys(r.stages.women).sort()).toEqual(['deciding', 'married', 'preparing', 'talking', 'unknown'])
     expect(r.stages.women.talking).toBeNull()
+  })
+
+  it('a map kept with no stage is unknown, never assumed to be looking', async () => {
+    for (let i = 1; i <= 5; i += 1) woman(i, { stage: null })
+    woman(6)
+    man(1)
+    const r = await read('scene=twin-cities')
+    expect(r.live.women).toBe(6)
+    expect(r.supply).toEqual({ women: 1, men: 1 })
+    expect(r.stages.women.unknown).toBe(5)
   })
 })
 
@@ -216,37 +230,37 @@ describe('a pair', () => {
   it('needs both people to have an age', async () => {
     woman(1, { age: 27 })
     man(1, { age: undefined })
-    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 0, of: 1 })
+    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 0, withinAgeGap: 0, of: 1 })
   })
 
-  it('is within the band — he may be older by ten, younger by three', async () => {
+  it('is not gated on our age band — the band is counted beside it: he may be older by ten, younger by three', async () => {
     woman(1, { age: 28 })
     man(1, { age: 38 })
     man(2, { age: 39 })
     man(3, { age: 25 })
     man(4, { age: 24 })
-    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 2, of: 4 })
+    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 4, withinAgeGap: 2, of: 4 })
   })
 
   it('clears her checkable non-negotiables against him', async () => {
     woman(1, { nn: ['faith-nn'] })
     man(1, { practice: 'cultural' })
     man(2, { practice: 'devout' })
-    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 1, of: 2 })
+    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 1, withinAgeGap: 1, of: 2 })
   })
 
   it('clears his against her, too — the gate runs both ways', async () => {
     woman(1, { children: 'no', nn: ['honesty'] })
     man(1, { children: 'want', nn: ['kids-nn'] })
     man(2, { children: 'want', nn: ['honesty'] })
-    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 1, of: 2 })
+    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 1, withinAgeGap: 1, of: 2 })
   })
 
   it('counts only supply', async () => {
     woman(1, { stage: 'talking' })
     woman(2)
     man(1)
-    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 1, of: 1 })
+    expect((await read('scene=twin-cities')).pairs).toEqual({ eligible: 1, withinAgeGap: 1, of: 1 })
   })
 })
 
@@ -255,7 +269,7 @@ describe('inventory and the stranded', () => {
     for (let i = 1; i <= 5; i += 1) woman(i, { nn: ['faith-nn'] })
     man(1, { practice: 'cultural' })
     const r = await read('scene=twin-cities')
-    expect(r.pairs).toEqual({ eligible: 0, of: 5 })
+    expect(r.pairs).toEqual({ eligible: 0, withinAgeGap: 0, of: 5 })
     expect(r.inventory.women).toEqual({ '0': 5, '1-2': null, '3-5': null, '6+': null })
     expect(r.stranded).toEqual({ women: 5, men: null })
     expect(r.stranded.women).toBe(r.inventory.women['0'])
@@ -269,6 +283,16 @@ describe('inventory and the stranded', () => {
     const after = await read('scene=twin-cities')
     expect(after.stranded.women).toBeNull()
     expect(after.inventory.women['1-2']).toBe(5)
+  })
+
+  it('counts who is stranded only by our age band as a second column, so the founder asks rather than assumes', async () => {
+    for (let i = 1; i <= 5; i += 1) woman(i, { age: 36 })
+    man(1, { age: 31 })
+    const r = await read('scene=twin-cities')
+    expect(r.stranded.women).toBeNull()
+    expect(r.inventory.women['1-2']).toBe(5)
+    expect(r.strandedWithinAgeGap.women).toBe(5)
+    expect(r.inventoryWithinAgeGap.women['0']).toBe(5)
   })
 })
 

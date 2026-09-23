@@ -43,11 +43,11 @@ describe('what the rungs were made of', () => {
     expect(factsFrom(none)).toEqual({})
   })
 
-  it('names each of the seven grounds in a word, from the reflection', () => {
+  it('names each of the four rated grounds in a word, and records nothing for a position she holds', () => {
+    // Faith, family and vision are described, never rated (docs/ALIGNMENT.md S5),
+    // so the learning record carries no state for them.
     const facts = factsFrom({ ...none, reflection: buildReflection({}) })
-    expect(Object.keys(facts.grounds!).sort()).toEqual(
-      ['intention', 'faith', 'family', 'vision', 'character', 'emotional', 'selfAwareness'].sort(),
-    )
+    expect(Object.keys(facts.grounds!).sort()).toEqual(['intention', 'character', 'emotional', 'selfAwareness'].sort())
     for (const state of Object.values(facts.grounds!)) expect(['thin', 'steady', 'strong']).toContain(state)
   })
 

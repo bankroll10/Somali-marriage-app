@@ -59,12 +59,25 @@ import type { KeptMap } from './keep'
  * and she is in one. `stages` sits beside supply so the founder can see the
  * split rather than take it on trust.
  *
- * The age band is an assumption. `AGE_GAP` says what most families would
- * consider, it gates nothing — the introduction is by hand — and it is echoed
- * in every response so nobody reads the pairs without seeing what they rest
- * on. It is revised only by the founder's hand, from the introductions
- * record's `age` reason once that exists (designed, docs/LIQUIDITY.md), never
- * from a tally: docs/LEARNING.md forbids learning age.
+ * A map kept with no stage is `unknown`, never assumed `preparing`: the old
+ * default counted anyone whose stage was missing as supply and flattered the
+ * opening checklist (docs/ATOMIC.md T7, docs/ALIGNMENT.md G5).
+ *
+ * ─── The age band is ours, so it is beside the gate, never in it ───────────
+ * `AGE_GAP` is an assumption about what most families would consider. Neither
+ * person stated it, and it is not the same both ways. It used to be inside
+ * `eligible()`, which meant a woman five years older than a man counted as
+ * stranded for him, moved the decision to open a pool, and — once the queue
+ * walks "who is eligible for him" — would never have been introduced to him
+ * at all, on a preference nobody expressed (docs/ALIGNMENT.md G3). So
+ * `eligible()` is what the two of them said, and nothing else; the band is a
+ * second, pessimistic column — `pairs.withinAgeGap`, `inventoryWithinAgeGap`,
+ * `strandedWithinAgeGap` — so the founder sees what the assumption alone
+ * costs. Where the two columns disagree about a member, the answer is to ask
+ * her which ages she would consider, by hand. The band is revised only by the
+ * founder's hand, from the introductions record's `age` reason once that
+ * exists (designed, docs/LIQUIDITY.md), never from a tally: docs/LEARNING.md
+ * forbids learning age.
  *
  * Founder-gated like every readout, fails open like every readout but
  * /safety, and uncapped like every founder route. One list and one map read
@@ -76,12 +89,13 @@ import type { KeptMap } from './keep'
 // re-exported so this readout's callers and tests read them from here as before.
 export { AGE_BANDS, bandOf, type AgeBand } from '../shared/age'
 
-/** He may be this much older than her, and this much younger. An assumption — see above. */
+/** He may be this much older than her, and this much younger. An assumption, reported beside the gate — see above. */
 export const AGE_GAP = { olderBy: 10, youngerBy: 3 } as const
 
 /** Eligible partners a member has in the pool, as a bucket — never a number on a person. */
 const INVENTORY = ['0', '1-2', '3-5', '6+'] as const
-const STAGES = [...VOCAB_STAGES] as const
+/** The stages as kept, and `unknown` for a map kept without one. */
+const STAGES = [...VOCAB_STAGES, 'unknown'] as const
 
 type Side = 'women' | 'men'
 type Row = Record<string, number>
@@ -125,18 +139,28 @@ function readMember(key: string, side: Side, kept: KeptMap | null, now: number):
   }
   const rawAge = snap.identity?.age
   const age = typeof rawAge === 'number' && Number.isInteger(rawAge) && rawAge >= 18 && rawAge <= 99 ? rawAge : undefined
-  const stage = typeof snap.stage === 'string' && VOCAB_STAGES.has(snap.stage) ? snap.stage : 'preparing'
+  const stage = typeof snap.stage === 'string' && VOCAB_STAGES.has(snap.stage) ? snap.stage : 'unknown'
   const nn = Array.isArray(snap.answers?.dealbreakers)
     ? snap.answers.dealbreakers.filter((v): v is string => typeof v === 'string')
     : []
   return { key, code, side, live, expired, stage, age, practice: snap.answers?.practice, children: snap.answers?.children, nn }
 }
 
-/** Could these two be introduced: both aged, within the band, and neither fails the other's checkable non-negotiables. */
+/**
+ * Could these two be introduced, on what they said: both aged — an
+ * introduction by hand needs one, and they were told so — and neither's
+ * answers plainly contradict the other's stated non-negotiables. Nothing we
+ * assumed.
+ */
 export function eligible(w: Member, m: Member): boolean {
   if (w.age === undefined || m.age === undefined) return false
-  if (m.age - w.age > AGE_GAP.olderBy || w.age - m.age > AGE_GAP.youngerBy) return false
   return blocked(w.nn, w, m) === null && blocked(m.nn, m, w) === null
+}
+
+/** Whether a pair falls inside our age assumption. Reported, never gated. */
+export function withinAgeGap(w: Member, m: Member): boolean {
+  if (w.age === undefined || m.age === undefined) return false
+  return m.age - w.age <= AGE_GAP.olderBy && w.age - m.age <= AGE_GAP.youngerBy
 }
 
 type Store = ReturnType<typeof getStore>
@@ -240,27 +264,39 @@ async function health(cohort: Store, maps: Store, pool: Pool, contacts: Store, s
 
   // Every pair in supply, both directions. The count per member exists only
   // long enough to land in a bucket.
+  // The second column is the same count with our age band applied on top.
   let pairs = 0
+  let pairsInBand = 0
   const partners = new Map<Member, number>()
+  const partnersInBand = new Map<Member, number>()
   for (const w of supplyW) {
     for (const m of supplyM) {
       if (!eligible(w, m)) continue
       pairs += 1
       partners.set(w, (partners.get(w) ?? 0) + 1)
       partners.set(m, (partners.get(m) ?? 0) + 1)
+      if (!withinAgeGap(w, m)) continue
+      pairsInBand += 1
+      partnersInBand.set(w, (partnersInBand.get(w) ?? 0) + 1)
+      partnersInBand.set(m, (partnersInBand.get(m) ?? 0) + 1)
     }
   }
   const inventory = sides(() => zeroes(INVENTORY))
-  for (const m of [...supplyW, ...supplyM]) inventory[m.side][bucketOf(partners.get(m) ?? 0)] += 1
+  const inventoryInBand = sides(() => zeroes(INVENTORY))
+  for (const m of [...supplyW, ...supplyM]) {
+    inventory[m.side][bucketOf(partners.get(m) ?? 0)] += 1
+    inventoryInBand[m.side][bucketOf(partnersInBand.get(m) ?? 0)] += 1
+  }
 
   // The door's own numbers and the checklist's denominators stay whole, like
   // the door's women and men; every finer split is floored. The '0' bucket is
   // `stranded`, returned under both names so the checklist can name it.
   const flooredInventory = floorRows(inventory)
+  const flooredInBand = floorRows(inventoryInBand)
   return {
     ...pool,
     target: COHORT_TARGET,
-    assumptions: { ageGap: AGE_GAP },
+    assumptions: { ageGap: { ...AGE_GAP, gates: 'nothing — reported as the withinAgeGap columns' } },
     door,
     live,
     supply,
@@ -268,9 +304,11 @@ async function health(cohort: Store, maps: Store, pool: Pool, contacts: Store, s
     swept,
     stages: floorRows(stages),
     ages: floorRows(ages),
-    pairs: { eligible: pairs, of: supply.women * supply.men },
+    pairs: { eligible: pairs, withinAgeGap: pairsInBand, of: supply.women * supply.men },
     inventory: flooredInventory,
     stranded: { women: flooredInventory.women['0'], men: flooredInventory.men['0'] },
+    inventoryWithinAgeGap: flooredInBand,
+    strandedWithinAgeGap: { women: flooredInBand.women['0'], men: flooredInBand.men['0'] },
   }
 }
 

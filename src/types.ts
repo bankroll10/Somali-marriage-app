@@ -210,7 +210,12 @@ export type GroundState = 'thin' | 'steady' | 'strong'
 export interface DimensionReading {
   dimension: Dimension
   label: string
-  state: GroundState
+  /**
+   * Where she stands, in a word — or `null` for a ground that is a position
+   * she holds (faith, family, vision), which the map describes and never
+   * rates (docs/ALIGNMENT.md S5).
+   */
+  state: GroundState | null
   /** A short, human reading of where they stand. */
   note: string
 }
@@ -366,7 +371,7 @@ export interface MapSnapshot {
 }
 
 export interface Reflection {
-  /** Overall headline reading, e.g. "Grounded and ready". */
+  /** Overall headline reading, e.g. "On steady ground". */
   headline: string
   /** A warm paragraph synthesizing where they are. */
   summary: string

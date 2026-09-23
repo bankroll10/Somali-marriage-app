@@ -114,7 +114,7 @@ describe('the two things only a married person can send', () => {
   })
 
   it('names the pool the way the door does — the city, or the country for somewhere else', () => {
-    expect(marriedShares({ scene: 'twin-cities' }).door.text).toContain('Minneapolis–St. Paul opens when 40 women and 40 men here can each be introduced')
+    expect(marriedShares({ scene: 'twin-cities' }).door.text).toContain('Minneapolis–St. Paul opens when there are enough women and men here that each can be introduced')
     expect(marriedShares({ scene: 'other', country: 'uk' }).door.text).toContain('the UK opens when')
     expect(marriedShares({}).door.text).toContain('your city opens when')
   })

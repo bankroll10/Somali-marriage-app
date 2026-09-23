@@ -81,30 +81,29 @@ describe('which one to open', () => {
   })
   it('when everything is agreed, it still ends in words — to revisit, not to celebrate', () => {
     const r = buildBeforeYes(answers())!
-    expect(r.headline).toMatch(/done the work/i)
+    expect(r.headline).toMatch(/you agree on every one/i)
     expect(r.open.script.words).toMatch(/go back over/i)
   })
 })
 
 describe('the headline is about the conversations, never about him', () => {
-  it('names one load-bearing disagreement as one', () => {
+  it('names one disagreement as one', () => {
     const r = buildBeforeYes(answers({ live: 'differ' }))!
-    expect(r.loadBearingDiffer).toEqual(['Where you’d live'])
-    expect(r.headline).toMatch(/carrying more weight/i)
+    expect(r.headline).toBe('One conversation doesn’t line up yet.')
   })
-  it('names two or more as more than one', () => {
+  it('names two as two', () => {
     const r = buildBeforeYes(answers({ live: 'differ', 'second-wife': 'differ' }))!
-    expect(r.loadBearingDiffer).toHaveLength(2)
-    expect(r.headline).toMatch(/more than one/i)
+    expect(r.headline).toBe('Two conversations don’t line up yet.')
   })
-  it('does not call a wedding disagreement load-bearing', () => {
-    const r = buildBeforeYes(answers({ 'aroos-mahr': 'differ' }))!
-    expect(r.loadBearingDiffer).toEqual([])
-    expect(r.headline).toMatch(/mostly agree/i)
+  it('never calls a difference light — the wedding and the mahr read like any other (docs/ALIGNMENT.md S6)', () => {
+    const light = buildBeforeYes(answers({ 'aroos-mahr': 'differ' }))!
+    const heavy = buildBeforeYes(answers({ live: 'differ' }))!
+    expect(light.headline).toBe(heavy.headline)
+    expect(light.headline).not.toMatch(/mostly|weight|heav/i)
   })
-  it('says nothing is broken when nothing has been talked about', () => {
+  it('says nothing is crossed when nothing has been talked about', () => {
     const r = buildBeforeYes(all('not-talked'))!
-    expect(r.headline).toMatch(/nothing is broken/i)
+    expect(r.headline).toMatch(/nothing is crossed/i)
     expect(r.summary).toMatch(/eleven you haven’t had yet/i)
   })
 })
