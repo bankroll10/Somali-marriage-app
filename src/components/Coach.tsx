@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import type { Answers, CoachMessage, Identity, ModeId, Stage } from '../types'
 import { getMode, modes, defaultModeFor, type CoachContext } from '../data/coach'
-import { askCoach, needsHelpLine, type Closer } from '../lib/coach'
+import { askCoach, needsCrisisLine, needsHelpLine, type Closer } from '../lib/coach'
 import HelpLine from './HelpLine'
 import { shareOrCopy } from '../lib/share'
 import { wordsMessage } from '../lib/words'
@@ -484,9 +484,13 @@ export default function Coach({
                   (netlify/shared/prompt.ts): a wrong one in a crisis is worse
                   than none. */}
               {m.role === 'coach' &&
-                (needsHelpLine(m.text, 'coach') || (messages[i - 1]?.role === 'user' && needsHelpLine(messages[i - 1].text))) && (
-                  <HelpLine urgent className="pl-12" />
-                )}
+                (needsCrisisLine(m.text, 'coach') || (messages[i - 1]?.role === 'user' && needsCrisisLine(messages[i - 1].text)) ? (
+                  <HelpLine kind="crisis" className="pl-12" />
+                ) : (
+                  (needsHelpLine(m.text, 'coach') || (messages[i - 1]?.role === 'user' && needsHelpLine(messages[i - 1].text))) && (
+                    <HelpLine urgent className="pl-12" />
+                  )
+                ))}
             </Fragment>
           ))}
           {thinking && <Thinking glyph={activeMode.glyph} accent={activeMode.accent} />}

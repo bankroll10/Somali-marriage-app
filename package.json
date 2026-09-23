@@ -14,7 +14,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "verify": "npm run typecheck && npm run lint && npm test",
-    "typecheck": "tsc -b"
+    "typecheck": "tsc -b",
+    "eval:guide": "GUIDE_EVAL_LIVE=1 vitest run tests/guide-eval-live.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.122.0",

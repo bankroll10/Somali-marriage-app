@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { COUNTRIES } from '../netlify/shared/vocab'
 import { HELP, dial } from '../src/data/help'
-import { SAFETY_REPLY, askCoach, needsHelpLine } from '../src/lib/coach'
+import { SAFETY_REPLY, askCoach, needsCrisisLine, needsHelpLine } from '../src/lib/coach'
 import { buildSystemPrompt, sanitiseContext } from '../netlify/shared/prompt'
 
 /**
@@ -30,6 +30,16 @@ describe('the help directory', () => {
     }
   })
 
+  it('names a crisis line for every real country but one, and the hours where it is not always open', () => {
+    // Checked 2026-09-24 for the Guide's evaluation (docs/GUIDE-EVAL.md).
+    for (const id of [...COUNTRIES].filter((c) => c !== 'other' && c !== 'so')) {
+      expect(HELP[id].crisis?.number, id).toMatch(/^\+?[\d ]+$/)
+    }
+    expect(HELP.dk.crisis?.hours).toBeTruthy()
+    expect(HELP.ke.crisis?.hours).toBeTruthy()
+    expect(HELP.ae.crisis?.hours).toBeTruthy()
+  })
+
   it('dials what it shows', () => {
     expect(dial('1-800-799-7233')).toBe('tel:18007997233')
     expect(dial('0808 2000 247')).toBe('tel:08082000247')
@@ -40,6 +50,13 @@ describe('where the line is shown', () => {
   it('on the report, and on the read’s caution card', () => {
     expect(src('src/components/ReportConcern.tsx')).toMatch(/<HelpLine /)
     expect(src('src/components/Read.tsx')).toMatch(/<HelpLine urgent/)
+  })
+
+  it('the crisis line under a guide answer to thoughts of suicide or self-harm', () => {
+    expect(src('src/components/Coach.tsx')).toMatch(/<HelpLine kind="crisis"/)
+    expect(needsCrisisLine('I have been thinking about ending my life')).toBe(true)
+    expect(needsCrisisLine('I have been hurting myself since the engagement ended')).toBe(true)
+    expect(needsCrisisLine('he is killing me with these late replies')).toBe(false)
   })
 
   it('under a guide answer to a threat, a money ask or force', () => {
@@ -67,6 +84,11 @@ describe('the guide', () => {
       const reply = await askCoach('he threatened me when I said no', { identity: {}, answers: {}, onDeviceOnly: true } as never, mode)
       expect(reply.text).toBe(SAFETY_REPLY)
     }
+  })
+
+  it('offers no way to close the conversation under a crisis', async () => {
+    const reply = await askCoach('I want to die', { identity: {}, answers: {}, onDeviceOnly: true } as never, 'auntie')
+    expect(reply.closers).toEqual([])
   })
 
   it('never puts a number in its own words — the checked ones go beneath', () => {
