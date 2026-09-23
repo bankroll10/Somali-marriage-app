@@ -35,13 +35,20 @@ export const COHORT_TARGET = 40
  * condition, and forty is named as the first mark, not the promise
  * (docs/BOARD.md, decision 2).
  *
+ * Since 2026-09-23 the sentence carries no number at all. "Forty women and
+ * forty men" was still a condition the founder does not use — the opening
+ * checklist (docs/ATOMIC.md §6) opens on at least twenty men with women at
+ * least as many — and "fitting" now means what the two people said, not our
+ * age band (docs/ALIGNMENT.md U1, G3). Forty stays on the count as the first
+ * mark.
+ *
  * Two sentences since 2026-09-18. As one they were a thirty-two-word clause
  * chain ending in three qualifiers, and it was the longest paragraph on the
  * door — the screen a stranger from a mosque group lands on (docs/LOAD.md).
  * The condition first, what the condition means second. Same words.
  */
 export function opensWhen(pool: string): string {
-  return `${pool} opens when ${COHORT_TARGET} women and ${COHORT_TARGET} men here can each be introduced to someone. That means counted, reachable, and fitting at least one person on the other side.`
+  return `${pool} opens when there are enough women and men here that each can be introduced to someone. That means counted, reachable, and fitting at least one person on the other side by what each said they won’t compromise on.`
 }
 
 export interface SideCount {

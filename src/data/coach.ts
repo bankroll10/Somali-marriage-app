@@ -368,7 +368,7 @@ const matchmaker: GuidanceMode = {
   id: 'matchmaker',
   label: 'Matchmaker',
   tagline: 'Alignment over looks',
- description: 'Looks past the photos to what lasts — alignment.',
+ description: 'Looks past the photos to how two lives would fit.',
   glyph: 'spark',
   accent: 'clay',
   greeting: (ctx) =>

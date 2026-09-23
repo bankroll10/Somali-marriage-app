@@ -181,6 +181,9 @@ after the fifth city.
   and `consequence` from outcomes presumes the outcomes are predictable
   from the answers, which is exactly what the literature says they are not.
 - **CURRENT EVIDENCE.** None. `marriedBy.through` needs marriages; years.
+  Acted on 2026-09-23: every weight that ranked or graded a pair or a person
+  without evidence was removed or relabelled, and what remains is inventoried
+  with its five questions in `docs/ALIGNMENT.md`.
 - **MISSING EVIDENCE.** Whether courtships end on the eleven's topics at all.
 - **CONSEQUENCE IF WRONG.** The learning moat learns nothing predictive and
   the "pairing" data is noise; "Deciding together" is priced for an outcome

@@ -32,10 +32,11 @@ interface Props {
  * behind a "verify to enter" gate. It taught her that this is a dating app
  * populated by fiction — the one lesson that undoes the whole trust claim.
  *
- * What survives is the part that is true: the matching is real, and it runs on
- * her actual map. So this shows one person — invented, and said so in the
- * first line — and the exact reasons her answers align with his. Her side of
- * the screen is real. There is no "express interest", because there is nobody
+ * What survives is the part that is true: her side of the screen is her own
+ * map. So this shows one person — invented, and said so in the first line —
+ * and, literally, where her answers and his are the same, where they differ,
+ * and what is not known yet. No score chooses him and none is implied: every
+ * introduction is made by a person, by hand (docs/ALIGNMENT.md). There is no "express interest", because there is nobody
  * on the other side of it, and the honest next step is the count below.
  */
 export default function SampleIntroduction({
@@ -56,17 +57,14 @@ export default function SampleIntroduction({
   const sample = useMemo(() => {
     // Women are who this is built for first; a missing gender shows her side.
     const pool = candidatesFor(identity.gender ?? 'woman')
-    return pool
       .map((candidate) => ({ candidate, align: alignment(answers, candidate) }))
-      // Never show her a sample that fails one of her non-negotiables; the
-      // real thing will not, either. Then her city, then the closest fit.
+      // Never show her a sample whose answers contradict one of her
+      // non-negotiables; the real thing will not, either.
       .filter((x) => !x.align.blocked)
-      .sort((a, b) => {
-        const as = a.candidate.scene === identity.scene ? 1 : 0
-        const bs = b.candidate.scene === identity.scene ? 1 : 0
-        if (as !== bs) return bs - as
-        return b.align.fit - a.align.fit
-      })[0]
+    // Her city first, then simply the first in the file. It used to be the
+    // highest weighted "fit" — the most flattering invented man, chosen by
+    // numbers nobody had measured (docs/ALIGNMENT.md S1).
+    return pool.find((x) => x.candidate.scene === identity.scene) ?? pool[0]
   }, [identity.gender, identity.scene, answers])
 
   if (!sample) return null
@@ -84,11 +82,11 @@ export default function SampleIntroduction({
             A sample — not a real member
           </p>
           <h1 className="mt-2 font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
-            Chosen by alignment — not looks.
+            Read from your answers — not looks.
           </h1>
           <p className="mt-2 text-[0.95rem] leading-relaxed text-muted text-pretty">
             If a pool opens here, this is the shape an introduction would take: one person at a time,
-            why we think your lives fit, where you differ, and the first thing to
+            where your answers are the same, where they differ, and the first thing to
             ask. Never a percentage, never a ranking. {c.name} is invented to show
             it. Your side is real — every line below comes from your own map.
           </p>
@@ -120,25 +118,24 @@ export default function SampleIntroduction({
 
         {/* The part that is real: her map, read against someone. */}
         <div className="mt-6 rounded-card bg-forest p-6 text-cream">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold-ink">Why your lives would fit</p>
-          {align.reasons.length > 0 ? (
-            <ul className="mt-3 space-y-1.5">
-              {align.reasons.map((r) => (
-                <li key={r} className="flex gap-2.5 text-[0.95rem] text-cream/85">
-                  <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-gold-soft" />
-                  <span>{r}</span>
-                </li>
-              ))}
-            </ul>
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-gold-ink">Where your answers meet</p>
+          {align.same.length > 0 ? (
+            <Lines items={align.same} />
           ) : (
             <p className="mt-3 text-[0.95rem] text-cream/85 text-pretty">
-              Not much yet — the more of your map you’ve answered, the more there is to read here.
+              Nothing yet — the more of your map you’ve answered, the more there is to read here.
             </p>
           )}
-          {align.differs && (
+          {align.differ.length > 0 && (
             <div className="mt-4 border-t border-cream/15 pt-4">
-              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">Where you differ</p>
-              <p className="mt-1.5 text-[0.95rem] text-cream/85">{align.differs}</p>
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">Where they differ</p>
+              <Lines items={align.differ} />
+            </div>
+          )}
+          {align.unknown.length > 0 && (
+            <div className="mt-4 border-t border-cream/15 pt-4">
+              <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">Not known yet</p>
+              <Lines items={align.unknown} />
             </div>
           )}
           <div className="mt-4 border-t border-cream/15 pt-4">
@@ -146,9 +143,10 @@ export default function SampleIntroduction({
             <p className="mt-1.5 text-[0.95rem] leading-relaxed text-cream/85 text-pretty">{align.ask}</p>
           </div>
           <p className="mt-4 text-[0.82rem] leading-relaxed text-cream/60 text-pretty">
-            What you said you won’t compromise on is checked first; anyone who fails it is never shown.
-            The rest is read from your answers on faith, timeline, family, children, what you value most
-            — and, once you’ve said, how you’d live. A real member would be read the same way.
+            Two of the things you said you won’t compromise on — faith and children — can be checked
+            against someone’s answers, and anyone whose answers plainly contradict them is never shown.
+            The rest can’t be read from a form; they are the first things to ask. Nothing here is scored:
+            it is your answers and theirs, side by side, and a person makes every introduction by hand.
           </p>
         </div>
 
@@ -159,7 +157,7 @@ export default function SampleIntroduction({
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">Sharpen this read</p>
           <p className="mt-2 text-[0.92rem] leading-relaxed text-muted text-pretty">
             Three things about how you’d live. The apps do not ask about them, and couples find out
-            late. Optional; the reasons above change as you answer.
+            late. Optional; the lines above change as you answer.
           </p>
           <div className="mt-4">
             <HowYoudLive answers={answers} onAnswer={onAnswer} />
@@ -207,5 +205,19 @@ export default function SampleIntroduction({
         </div>
       </main>
     </div>
+  )
+}
+
+/** A short list, one line each — the same shape for every section, so none reads as more certain. */
+function Lines({ items }: { items: string[] }) {
+  return (
+    <ul className="mt-3 space-y-1.5">
+      {items.map((r) => (
+        <li key={r} className="flex gap-2.5 text-[0.95rem] text-cream/85">
+          <span className="mt-2 h-1.5 w-1.5 flex-none rounded-full bg-gold-soft" />
+          <span>{r}</span>
+        </li>
+      ))}
+    </ul>
   )
 }

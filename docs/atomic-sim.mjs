@@ -1,12 +1,15 @@
 // The simulation behind docs/ATOMIC.md. Run it: `node docs/atomic-sim.mjs`.
 //
 // Layer 1 is the pool exactly as netlify/functions/pool.ts computes it —
-// eligible(w, m) means both are aged, he is at most ten years older and three
-// years younger (AGE_GAP), and neither side's checkable non-negotiables block
-// the other (netlify/shared/gate.ts: `faith-nn` against his practice being
-// cultural or returning; `kids-nn` against a clash on children). It reports
-// what /pool would report: the eligible-pair share `p`, and the share of each
-// side with at least three eligible partners, by pool size and ratio.
+// eligible(w, m) means both are aged and neither side's checkable
+// non-negotiables block the other (netlify/shared/gate.ts, since 2026-09-23:
+// `faith-nn` against his practice being cultural; `kids-nn` against want
+// facing no). The age band — he at most ten years older, three younger — is
+// our assumption, and since docs/ALIGNMENT.md G3 it is reported beside the
+// gate, never inside it: the "with our age band" rows are /pool's
+// `withinAgeGap` columns. It reports what /pool would report: the
+// eligible-pair share `p`, and the share of each side with at least three
+// eligible partners, by pool size and ratio.
 //
 // Layer 2 adds the two quantities the architecture does not hold and cannot
 // see: `q`, the share of eligible pairs where an introduction would be welcome
@@ -34,13 +37,13 @@ const pick = (table) => {
 }
 
 // gate.ts, transcribed.
-const CLASH = new Set(['want/no', 'no/want', 'no/open', 'open/no'])
+const CLASH = new Set(['want/no', 'no/want'])
 const blocked = (nn, hers, his) =>
-  (nn.includes('faith-nn') && (his.practice === 'cultural' || his.practice === 'returning')) ||
+  (nn.includes('faith-nn') && his.practice === 'cultural') ||
   (nn.includes('kids-nn') && CLASH.has(`${hers.children}/${his.children}`))
-// pool.ts, transcribed: AGE_GAP = { olderBy: 10, youngerBy: 3 }.
+// pool.ts, transcribed: AGE_GAP = { olderBy: 10, youngerBy: 3 } — reported, not gated.
 const inBand = (w, m) => !(m.age - w.age > 10 || w.age - m.age > 3)
-const eligible = (w, m) => inBand(w, m) && !blocked(w.nn, w, m) && !blocked(m.nn, m, w)
+const eligible = (w, m) => !blocked(w.nn, w, m) && !blocked(m.nn, m, w)
 
 // The assumed community. Women 24–34, men 26–36; practice 30/40/20/10
 // devout / consistent / returning / cultural; children 70/25/5 want / open /
@@ -60,7 +63,7 @@ const pct = (x) => `${Math.round(x * 100)}%`.padStart(4)
 const share = (inv, k) => inv.filter((n) => n >= k).length / inv.length
 
 // ---------------------------------------------------------------- layer 1
-function layer1(label, W, M, { ageOn = true, gateOn = true } = {}, trials = 300) {
+function layer1(label, W, M, { ageOn = false, gateOn = true } = {}, trials = 300) {
   const ok = (w, m) => (!ageOn || inBand(w, m)) && (!gateOn || (!blocked(w.nn, w, m) && !blocked(m.nn, m, w)))
   let p = 0, w3 = 0, m3 = 0, w6 = 0
   for (let t = 0; t < trials; t++) {
@@ -74,9 +77,9 @@ function layer1(label, W, M, { ageOn = true, gateOn = true } = {}, trials = 300)
 }
 
 console.log('LAYER 1 — the readout /pool would give (pool.ts eligibility; 300 trials each)')
-layer1('40/40, age rule only', 40, 40, { gateOn: false })
-layer1('40/40, gate only', 40, 40, { ageOn: false })
-layer1('40/40, as built', 40, 40)
+layer1('40/40, age band only', 40, 40, { ageOn: true, gateOn: false })
+layer1('40/40, as built (gate)', 40, 40)
+layer1('40/40, with our age band', 40, 40, { ageOn: true })
 layer1('12/12', 12, 12)
 layer1('8/8', 8, 8)
 layer1('40/13 (3:1)', 40, 13)
@@ -89,10 +92,15 @@ function layer2(W, M, q, a, trials = 400) {
   let w1 = 0, w3 = 0, m1 = 0, m3 = 0
   for (let t = 0; t < trials; t++) {
     const ws = women(W, a), ms = men(M, a)
-    // Welcome both ways, and the other side still there to answer.
-    const good = (w, m) => m.active && eligible(w, m) && rnd() < q
+    // Welcome both ways, and the other side still there to answer. The age
+    // band stays in here as part of the hypothesis of what is welcome: the
+    // product no longer assumes it (docs/ALIGNMENT.md G3), but a simulation of
+    // what families will say yes to still may, so this layer stays
+    // conservative and moves only with the narrowed gate.
+    const welcome = (w, m) => eligible(w, m) && inBand(w, m)
+    const good = (w, m) => m.active && welcome(w, m) && rnd() < q
     const invW = ws.map((w) => ms.filter((m) => good(w, m)).length)
-    const invM = ms.map((m) => ws.filter((w) => w.active && eligible(w, m) && rnd() < q).length)
+    const invM = ms.map((m) => ws.filter((w) => w.active && welcome(w, m) && rnd() < q).length)
     w1 += share(invW, 1); w3 += share(invW, 3); m1 += share(invM, 1); m3 += share(invM, 3)
   }
   return `women ≥1 ${pct(w1 / trials)} ≥3 ${pct(w3 / trials)}   men ≥1 ${pct(m1 / trials)} ≥3 ${pct(m3 / trials)}`

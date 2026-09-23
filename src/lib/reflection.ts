@@ -48,6 +48,22 @@ const DIMENSION_LABELS: Record<Dimension, string> = {
   selfAwareness: 'Knowing yourself',
 }
 
+/**
+ * The grounds that are positions, not readiness.
+ *
+ * How central faith is, how practised, how involved family should be, whether
+ * children are in view: each is a position a person may hold and still be
+ * wholly ready to marry. The map used to rate them — a Muslim whose faith is
+ * private, lighter in practice, read "Thin" on faith and "Thinnest right now:
+ * faith" on Home; wanting family informed rather than central, or no children,
+ * or a three-year timeline, scored lower too. That is a religious and cultural
+ * verdict the guide is forbidden to give, from weights nobody measured
+ * (docs/ALIGNMENT.md S5). So these are described, in her own words, and never
+ * rated; and they are never anyone's thinnest ground, though the work on them
+ * is still offered after the rated grounds'.
+ */
+const POSITIONS = new Set<Dimension>(['faith', 'family', 'vision'])
+
 const DIMENSION_ORDER: Dimension[] = [
   'intention',
   'faith',
@@ -126,7 +142,7 @@ function dimensionReading(dim: Dimension, answers: Answers): DimensionReading {
   return {
     dimension: dim,
     label: DIMENSION_LABELS[dim],
-    state: stateOf(strength(dim, answers)),
+    state: POSITIONS.has(dim) ? null : stateOf(strength(dim, answers)),
     note: dimensionNote(dim, answers),
   }
 }
@@ -214,7 +230,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       const nn = count > 0 && count < WORDS.length ? WORDS[count] : ''
       switch (a('conflict')) {
         case 'talk':
-          return `You talk things through even when it is hard${nn ? `, and you named ${nn} thing${count === 1 ? '' : 's'} you will not compromise on` : ''}. How someone handles the difficult hour predicts more than how they behave in the easy ones.`
+          return `You talk things through even when it is hard${nn ? `, and you named ${nn} thing${count === 1 ? '' : 's'} you will not compromise on` : ''}. How someone handles the difficult hour says more than how they behave in the easy ones.`
         case 'space':
           return 'You need space before you can come back to it. That is workable and healthy — as long as the person you choose knows it is a pause and not a punishment. Say it before the first argument, not during it.'
         case 'avoid':
@@ -400,17 +416,19 @@ function alignmentParagraph(answers: Answers): string {
 }
 
 /**
- * The headline comes from the pattern of grounds, not from a threshold on a
- * sum. Someone with nothing thin and most things strong is grounded; someone
- * with nothing thin is ready with clarity to gain; up to two thin grounds is
- * a foundation being built; more than that is early — and that is okay.
+ * The headline comes from the pattern of the four rated grounds — intention,
+ * character, steadiness, knowing yourself — never from a position she holds.
+ * Nothing thin and most strong is steady ground; nothing thin is steady with
+ * clarity to gain; up to two thin is a foundation being built; more is early —
+ * and that is okay. It names where she stands, never a verdict that she is
+ * "ready": the map cannot know that, and used to say it.
  */
 type Shape = 'grounded' | 'clear' | 'building' | 'early'
 
 function shapeOf(dimensions: DimensionReading[]): Shape {
   const thin = dimensions.filter((d) => d.state === 'thin').length
   const strong = dimensions.filter((d) => d.state === 'strong').length
-  if (thin === 0 && strong >= 4) return 'grounded'
+  if (thin === 0 && strong >= 3) return 'grounded'
   if (thin === 0 && strong >= 1) return 'clear'
   if (thin <= 2) return 'building'
   return 'early'
@@ -419,9 +437,9 @@ function shapeOf(dimensions: DimensionReading[]): Shape {
 function headlineFor(shape: Shape): string {
   switch (shape) {
     case 'grounded':
-      return 'Grounded and ready'
+      return 'On steady ground'
     case 'clear':
-      return 'Ready, with clarity to gain'
+      return 'Steady, with clarity to gain'
     case 'building':
       return 'Building your foundation'
     case 'early':
@@ -437,9 +455,9 @@ function summaryFor(
 ): string {
   const opener =
     shape === 'grounded'
-      ? 'You come to this with rare clarity.'
+      ? 'You come to this with real clarity.'
       : shape === 'clear'
-        ? 'You are closer to ready than most who start this.'
+        ? 'You are clear on more of this than you might think.'
         : shape === 'building'
           ? 'You have a real foundation, with a few things still taking shape.'
           : 'You are early in this — and arriving honestly is worth more than arriving fast.'
@@ -463,12 +481,18 @@ function summaryFor(
 export function buildReflection(answers: Answers): Reflection {
   const dimensions = DIMENSION_ORDER.map((d) => dimensionReading(d, answers))
 
-  // Thinnest first. Stable on ties, so two equally thin grounds keep the
-  // map's own order rather than flickering between readings.
-  const thinnest = [...DIMENSION_ORDER].sort((a, b) => strength(a, answers) - strength(b, answers))
+  // Thinnest first, among the rated grounds only; the positions follow in the
+  // map's own order, so their work is still offered but never as a gap.
+  // Stable on ties, so two equally thin grounds keep the map's own order
+  // rather than flickering between readings.
+  const rated = DIMENSION_ORDER.filter((d) => !POSITIONS.has(d))
+  const thinnest = [
+    ...rated.sort((a, b) => strength(a, answers) - strength(b, answers)),
+    ...DIMENSION_ORDER.filter((d) => POSITIONS.has(d)),
+  ]
   const byDim = new Map(dimensions.map((d) => [d.dimension, d]))
   const low = byDim.get(thinnest[0])!
-  const top = byDim.get(thinnest[thinnest.length - 1])!
+  const top = byDim.get(thinnest[rated.length - 1])!
   const shape = shapeOf(dimensions)
 
   const coreValues = collectTags(
@@ -493,7 +517,7 @@ export function buildReflection(answers: Answers): Reflection {
 export function snapshotOf(answers: Answers, date: string): MapSnapshot {
   const r = buildReflection(answers)
   const grounds: Partial<Record<Dimension, GroundState>> = {}
-  for (const d of r.dimensions) grounds[d.dimension] = d.state
+  for (const d of r.dimensions) if (d.state) grounds[d.dimension] = d.state
   // Only the map's own answers — the hook is asked before the map and is not
   // part of it. How you'd live used to be excluded here too; it is in chapter
   // two now (docs/NORTHSTAR.md), so whose house she pictures is something the

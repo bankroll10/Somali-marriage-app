@@ -182,12 +182,13 @@ everything finer is floored, and the subtraction caveat below applies.
 | `supply` | Of those, how many are *preparing* as of their last keep — the people an introduction could go to. `talking` is not supply: she is in one, and the rule is one at a time |
 | `unaged` | Live members with no age. An introduction cannot be made to one; before this pass nobody was asked |
 | `swept` | Entries a sweep would remove, by side — removed only with `?sweep=1`, and weekly by `netlify/functions/sweep.ts`. Their `contacts` rows go with them: the way to reach someone lives exactly as long as her map (`docs/BOARD.md` decision 13) |
-| `stages[side][stage]` | The live members by stage. Floored |
+| `stages[side][stage]` | The live members by stage, and `unknown` for a map kept with no stage — never counted as supply (`docs/ALIGNMENT.md` G5). Floored |
 | `ages[side][band]` | The live members by age band — 18–24, 25–29, 30–34, 35–39, 40+. Floored. The one split the door could never show, and the one that strands people |
-| `pairs` | `{eligible, of}` over supply: `of` is every woman against every man; `eligible` is the pairs where both have an age, he is within `assumptions.ageGap`, and neither fails the other's checkable non-negotiables (`netlify/shared/gate.ts`). `eligible / of` is `p_gate`, the number every worked example in `docs/LIQUIDITY.md` assumed and this replaces |
+| `pairs` | `{eligible, withinAgeGap, of}` over supply: `of` is every woman against every man; `eligible` is the pairs where both have an age and neither's answers plainly contradict the other's checkable non-negotiables (`netlify/shared/gate.ts`) — what they said, nothing we assumed; `withinAgeGap` is the same pairs with our age band applied on top. `eligible / of` is `p_gate`, the number every worked example in `docs/LIQUIDITY.md` assumed and this replaces |
 | `inventory[side][bucket]` | How many members have 0, 1–2, 3–5 or 6+ eligible partners in the pool. Floored, computed on read, never stored — a histogram over the pool, not a count on a person |
 | `stranded[side]` | `inventory[side]['0']` under its own name: the members the pool could not introduce to anyone. `null` means fewer than five — which is **not** a pass below forty a side (`docs/ATOMIC.md` §3: up to four people with nobody read as `null`); until the raw view exists, read the maps by hand. A number is the checklist's fail and names the side |
-| `assumptions.ageGap` | What the pairs rest on: he may be older by `olderBy`, younger by `youngerBy`. An assumption, revised only by hand |
+| `inventoryWithinAgeGap`, `strandedWithinAgeGap` | The same histogram and its zero bucket, with our age band applied. Someone stranded here and not in `stranded` has partners by what she said and none by what we assumed: ask her which ages she would consider, by hand, before reading her as stranded (`docs/ALIGNMENT.md` G3) |
+| `assumptions.ageGap` | Our age band: he may be older by `olderBy`, younger by `youngerBy`, and `gates` says it gates nothing. An assumption, revised only by hand |
 
 What each field in `/progress` means:
 
@@ -237,13 +238,13 @@ message cites the readout row and the month.
 | Constant | File | Revised by | Rule of thumb |
 |---|---|---|---|
 | `consequence` per topic | `src/data/beforeYes.ts` | `eleven.open` × `throughByTopic` × `marriedBy.through` | A topic often opened, rarely confirmed as said, and under-represented among the married carries more than its number says. Raise it |
-| `WEIGHTS` | `src/lib/read.ts` | `read.thin` × `marriedBy.readThin` | A ground that reads thinnest as often for people who marry as for people who do not is over-weighted. Lower it |
-| `stateOf` thresholds (0.75 / 0.5) | `src/lib/reflection.ts` | `grounds[dim]` | If one ground reads thin for most of the community, the threshold is measuring the community, not the person. Move it |
+| The read's per-answer weights and `PRIORITY` order | `src/data/read.ts`, `src/lib/read.ts` | `read.thin` × `marriedBy.readThin` | A dimension that reads thinnest as often for people who marry as for people who do not is placed too early. Move it down the order. The five-dimension `WEIGHTS` and their sum are gone (`docs/ALIGNMENT.md` S3); do not bring a sum back |
+| `stateOf` thresholds (0.75 / 0.5) | `src/lib/reflection.ts` | `grounds[dim]`, rated grounds only | If one ground reads thin for most of the community, the threshold is measuring the community, not the person. Move it. Faith, family and vision are positions and are never rated (`docs/ALIGNMENT.md` S5) |
 | Step order | `src/data/nextStep.ts` | `grounds[dim]` | The most common thin ground gets the best-written step |
 | Scripts | `src/data/read.ts` `SCRIPTS`, `src/data/beforeYes.ts` `script`, `src/data/families.ts` | `through["source:topic"]` against how often that script was handed out (`eleven.open`, `read.thin`) | Words handed out often and said rarely get rewritten. Words never once confirmed get cut |
 | Joint `URGENCY` | `src/lib/couple.ts` | `/couple` `topics[topic][joint]` | The joint state pairs most often land in for a topic is the one that topic's line should name |
-| `alignment` scales | `src/lib/matching.ts` | only once `ending.who.here > 0` | Nothing to calibrate against until this product has introduced two people who married. Do not touch |
-| `AGE_GAP` | `netlify/functions/pool.ts` | only by hand, from the introductions record's `age` no-reason *(designed)*, on a hundred introductions | An assumption about what families consider, never a learned one — `docs/LEARNING.md` forbids learning age. If `age` leads the reasons people say no, the question in `docs/LIQUIDITY.md`'s deferred list ships; the band itself moves only by the founder's judgement |
+| `alignment` | `src/lib/matching.ts` | nothing — it has no numbers | Removed 2026-09-23: it compares answers literally (`docs/ALIGNMENT.md` S1). A weight may come back only as a reason the introductions record's both-yes rate supports, never as a sum |
+| `AGE_GAP` (reported, gates nothing) | `netlify/functions/pool.ts` | only by hand, from the introductions record's `age` no-reason *(designed)*, on a hundred introductions | An assumption about what families consider, never a learned one — `docs/LEARNING.md` forbids learning age. If `age` leads the reasons people say no, the question in `docs/LIQUIDITY.md`'s deferred list ships; the band itself moves only by the founder's judgement |
 | The `dealbreakers` question and its gate | `src/data/intake.ts`, `matching.ts` `gate()` | `ended.which['non-negotiable']` × `marriedBy.ended['non-negotiable']` | A non-negotiable that ends courtships and precedes marriage is load-bearing; one that ends nothing is aspirational, and the question — never her gate — is what changes |
 | The order of the four questions on the ending | `src/data/ending.ts` | `ending.*` answer rates against `rungs.married` | A question skipped by most is asked last, or dropped |
 

@@ -36,6 +36,9 @@ const READ_ELSEWHERE = [
   'working-on', // the honest mirror, in their own words
 ]
 
+/** Described in her words, never rated (src/lib/reflection.ts POSITIONS). */
+const POSITIONS: string[] = ['faith', 'family', 'vision']
+
 function canScore(q: (typeof allQuestions)[number]): boolean {
   if (q.type === 'scale') return true
   return !!q.options?.some((o) => typeof o.weight === 'number')
@@ -51,12 +54,20 @@ describe('the intake — short enough to finish, complete enough to read', () =>
     expect(chapters.length).toBeLessThanOrEqual(3)
   })
 
-  it('every dimension still has an answer that scores it', () => {
-    // A dimension with no scoring question silently reads as 50 for everyone,
-    // which would make "your thinnest ground" a lie for that dimension.
-    for (const dim of DIMENSIONS) {
+  it('every rated ground still has an answer that scores it', () => {
+    // A ground with no scoring question silently reads as 50 for everyone,
+    // which would make "your thinnest ground" a lie for that ground.
+    for (const dim of DIMENSIONS.filter((d) => !POSITIONS.includes(d))) {
       const scoring = allQuestions.filter((q) => q.dimension === dim && canScore(q))
       expect(scoring.length, `no scoring question for ${dim}`).toBeGreaterThan(0)
+    }
+  })
+
+  it('no answer that is a position carries a readiness weight (docs/ALIGNMENT.md S5)', () => {
+    // Faith, family and children are positions; how soon is a timeline, not readiness.
+    for (const id of ['practice', 'family-role', 'children', 'timeline']) {
+      const q = allQuestions.find((x) => x.id === id)!
+      expect(q.options?.some((o) => typeof o.weight === 'number'), id).toBe(false)
     }
   })
 

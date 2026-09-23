@@ -77,7 +77,15 @@ const STATE_CLASS: Record<GroundState, string> = {
   strong: 'border-forest/30 bg-forest/[0.08] text-forest',
 }
 
-function StateTag({ state }: { state: GroundState }) {
+/** A position she holds — faith, family, vision — is described, never rated (docs/ALIGNMENT.md S5). */
+function StateTag({ state }: { state: GroundState | null }) {
+  if (state === null) {
+    return (
+      <span className="rounded-full border border-line px-2.5 py-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] text-muted">
+        Your position
+      </span>
+    )
+  }
   return (
     <span className={`rounded-full border px-2.5 py-0.5 text-[0.72rem] font-semibold uppercase tracking-[0.12em] ${STATE_CLASS[state]}`}>
       {STATE_LABEL[state]}
@@ -157,8 +165,11 @@ export default function ReflectionView({
   const previous = history.length >= 2 ? history[history.length - 2] : undefined
   const changes = latest ? changesBetween(previous, latest) : { answers: [], grounds: [] }
   const hasChanges = changes.answers.length > 0 || changes.grounds.length > 0
-  const thinLabel = r.dimensions.find((d) => d.dimension === r.thinnest[0])?.label.toLowerCase() ?? ''
+  const thinnest = r.dimensions.find((d) => d.dimension === r.thinnest[0])
+  const thinLabel = thinnest?.label.toLowerCase() ?? ''
   const strongLabels = r.dimensions.filter((d) => d.state === 'strong').map((d) => d.label.toLowerCase())
+  // Every rated ground strong: the lowest of them is not "thin", and is not called so.
+  const thinLine = thinnest?.state === 'strong' ? 'Nothing reads thin.' : `Thinnest on ${thinLabel}.`
   // The ground to work next: thinnest first, but skipping what's already been
   // worked — so the map keeps handing over something new.
   const carried = findOpenStep(steps)
@@ -197,8 +208,8 @@ export default function ReflectionView({
             </h1>
             <p className="mt-3 max-w-lg text-[1rem] leading-relaxed text-cream/85 text-pretty">
               {strongLabels.length > 0
-                ? `Strong on ${strongLabels.slice(0, 3).join(', ')}. Thinnest on ${thinLabel}.`
-                : `Steady across most of it. Thinnest on ${thinLabel}.`}
+                ? `Strong on ${strongLabels.slice(0, 3).join(', ')}. ${thinLine}`
+                : `Steady across most of it. ${thinLine}`}
             </p>
             <p className="mt-3 max-w-md text-[0.92rem] leading-relaxed text-cream/60 text-pretty">
               {firstReveal

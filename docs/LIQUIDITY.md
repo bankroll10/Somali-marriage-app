@@ -33,12 +33,12 @@ cannot meet.
 | Dimension | What splits a pool | Known today | Refused, on purpose | What it costs when unmanaged | The mechanism |
 |---|---|---|---|---|---|
 | **Geography** | A hundred small pockets across fifteen countries; a city is where she can meet someone this week, a country is where she would move | City, country and reach on every `cohort` key; the door's `here` and `across` | Location finer than the city; a viewer-dependent pool; a worldwide sentence on the door | Bristol and Aberdeen counted toward one door that can never open | The pool as the unit; `reach` asked once and mutual; "I'd travel within the UK" re-joins on one tap (`src/components/Cohort.tsx`); `/pool?country=` reads the travellers |
-| **Age** | The age each family would consider; a 24-year-old and a 45-year-old counted as liquidity for each other | In the kept map — and, until this pass, optional, asked only behind "Add your age" on Profile | Age as a learned feature; an age band as a segment of the door's key (`docs/WEDGE.md`) | **The fragmenter the door cannot see, and the one that strands people** — a woman outside the men's band has nobody, whatever the door says | Age required at the door, into the map, never onto the door; `/pool` `ages` per side, floored; `AGE_GAP` as a stated assumption, gating nothing |
+| **Age** | The age each family would consider; a 24-year-old and a 45-year-old counted as liquidity for each other | In the kept map — and, until this pass, optional, asked only behind "Add your age" on Profile | Age as a learned feature; an age band as a segment of the door's key (`docs/WEDGE.md`); **an age preference nobody stated, applied as a gate** | **The fragmenter the door cannot see, and the one that strands people** — a woman outside the men's band has nobody, whatever the door says | Age required at the door, into the map, never onto the door; `/pool` `ages` per side, floored; `AGE_GAP` as a stated assumption — since 2026-09-23 outside `eligible()` altogether, reported as the `withinAgeGap` columns beside it (`docs/ALIGNMENT.md` G3) |
 | **Gender balance** | Women arrive first; men arrive through them, already attached | The door's women and men; `sides`, `sidesByVia.man.group` | Boosting, seeding, paying a man for reach | The scarce side bounds throughput: at 120/40 she waits three times as long as at 40/40 | The honest door; the two asks; the queue walks the scarce side first (below) |
-| **Stated preferences** | Seven non-negotiables, three values | All in the map; only `faith-nn` and `kids-nn` can be checked against another map | A stated non-negotiable overridden by inferred behaviour; an "inconsistent" flag | Only two of seven fragment a pool — **by design**; the other five become the first question, not a filter | `netlify/shared/gate.ts`, the twin of `matching.ts` `gate()`, both directions |
+| **Stated preferences** | Seven non-negotiables, three values | All in the map; only `faith-nn` and `kids-nn` can be checked against another map | A stated non-negotiable overridden by inferred behaviour; an "inconsistent" flag; **our reading of her words standing in for her words** | Only two of seven fragment a pool — **by design**; the other five become the first question, not a filter. And the two block only a plain contradiction — `cultural` practice, want against no — while `returning` and open/no are the first question (`docs/ALIGNMENT.md` G1, G2) | `netlify/shared/gate.ts`, the twin of `matching.ts` `gate()`, both directions |
 | **Marriage readiness** | Preparing, talking, deciding, married; the timeline; what she has done here | Stage in the map as of the last keep; the ledger on the door | Attention traces as a readiness proxy | A woman getting to know someone is on the door and is not supply | `/pool` `supply` (live and preparing) beside `stages`; one introduction at a time |
 | **Active vs inactive** | People who kept a map and left | No last-seen, by design; a map lapses a year after its last keep | Last-seen, days since open, a nudge, "the pool moved since you were here" (`docs/BETS.md` B15, B16) | The door only ever rose (`docs/HARD.md` #12) | The sweep, on `/pool?sweep=1` and weekly by `netlify/functions/sweep.ts`; designed: the reply to "your pool opened" as confirmation, `no-answer` as a closed outcome, two in a row → paused and told |
-| **Match eligibility** | Whether *this* woman and *this* man could be introduced | Nothing computed, anywhere, until this pass | Percentages, bands, a rank | Forty and forty that cannot introduce anyone | `eligible()` in `netlify/functions/pool.ts`: both aged, within the band, neither fails the other's checkable non-negotiables; `pairs`, `inventory`, `stranded` |
+| **Match eligibility** | Whether *this* woman and *this* man could be introduced | Nothing computed, anywhere, until this pass | Percentages, bands, a rank | Forty and forty that cannot introduce anyone | `eligible()` in `netlify/functions/pool.ts`: both aged, neither's answers plainly contradict the other's checkable non-negotiables; `pairs`, `inventory`, `stranded` — and beside them, with our age band applied, `pairs.withinAgeGap`, `inventoryWithinAgeGap`, `strandedWithinAgeGap` |
 | **Cultural and value compatibility** | Practice, how central faith is, family's role, whose house, work, money home, the eleven — qabiil, a second wife, going back | All in the map and the eleven | **Clan, as a field** — qabiil is a conversation, recorded as had or not, never matched on | A courtship that ends at the families on qabiil ends there, not in a filter — and `ended.which` is where the product learns which of the eleven is load-bearing | Scored and asked, never gated (`docs/PRODUCT.md` §7); `docs/REDTEAM.md` assumption 4 is the honest limit on how much any of it predicts |
 | **Relocation willingness** | Who would move, and how far | `reach`: city, country, anywhere; `across` on the door | "He would come to her" — a reach that depends on who is looking | `other` on its own is nobody's pool | Country pools; `anywhere` counted in the founder's tally and never rendered |
 
@@ -144,7 +144,11 @@ time:
 2. **Every member has ≥ 1 eligible, active counterpart, and ≥ 80% have ≥ 3**
    — from the *raw* inventory, by hand from the maps until the founder's raw
    view exists (`docs/ATOMIC.md` T3). `stranded` null under the floor is not
-   a pass below forty a side. And nobody unaged among supply.
+   a pass below forty a side. And nobody unaged among supply. Read
+   `strandedWithinAgeGap` beside it: anyone stranded only by our age band is
+   asked, by hand, which ages she would consider — the band is not hers
+   until she says so (`docs/ALIGNMENT.md` G3). A map kept with no stage is
+   `unknown` in `stages` and is not supply (G5).
 3. **Activity ≥ 70%:** an introduction offered is answered within fourteen
    days by seven in ten. Below that the pool is a directory.
 4. **Ten or more introductions a fortnight by hand, and the first twenty
@@ -224,7 +228,8 @@ same, near, far on each dimension for a pair that said yes twice. **Never
 `she-no` or `he-no` per person**: a per-person no-count is the desirability
 score by another route.
 
-**The queue.** Eligible (`pool.ts`'s rule), confirmed, not paused, no open
+**The queue.** Eligible (`pool.ts`'s rule — what the two of them said, never
+our age band), confirmed, not paused, no open
 introduction. Never-introduced first, then longest since the last. The
 scarce side is walked first: for each man in queue order, the first woman in
 queue order who is eligible for him and has not met him. One open
@@ -232,10 +237,11 @@ introduction per person, on both sides. The window closes as `no-answer`.
 By hand from the record at the first pool; the matchmaker's tool computes
 it once there is more than one open pool.
 
-**What she is shown.** `docs/PRODUCT.md` §7, unchanged: three reasons, one
-place they differ, one question to open with — `alignment()` re-aimed at two
-maps instead of a map and an invented person. No percentage, no band, no
-count.
+**What she is shown.** `docs/PRODUCT.md` §7: where their answers are the
+same, where they differ, what is not known yet, and one question to open
+with — `alignment()` re-aimed at two maps instead of a map and an invented
+person. No percentage, no band, no count, and since 2026-09-23 no weighted
+fit behind it either (`docs/ALIGNMENT.md` S1).
 
 **Never built.** A visible wait or position. "N people match you." A ranking
 by yeses received. An age filter she sets that becomes a ranking. Boosting

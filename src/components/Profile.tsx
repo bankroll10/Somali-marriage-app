@@ -137,15 +137,16 @@ export default function Profile({
         {/* Vouched by family — the only verification we claim. Or the ask. */}
         <VouchRow vouch={vouch} onKept={onKept} />
 
-        {/* What she will not compromise on — hard gates before anything is weighed. */}
+        {/* What she will not compromise on — two are gates, the rest are the first questions (docs/ALIGNMENT.md G8). */}
         {reflection && reflection.nonNegotiables.length > 0 && (
           <section className="mt-5 rounded-card border border-line bg-white/60 p-5">
             <h2 className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">
               What you won’t compromise on
             </h2>
             <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">
-              Checked first, before anything else about a person is weighed. Someone who fails one of
-              these is never introduced, however much else fits.
+              Faith and children can be checked against someone’s answers: anyone whose answers plainly
+              contradict what you said is never introduced. The others can’t be read from a form — they
+              are the first things to ask.
             </p>
             <ul className="mt-3 space-y-1.5">
               {reflection.nonNegotiables.map((n) => (

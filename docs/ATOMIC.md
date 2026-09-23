@@ -120,6 +120,25 @@ and 30% — every distribution a HYPOTHESIS; 300 trials a row:
 | 40/13 (3:1) | 56% | 92% | 98% | 67% |
 | 40/7 (6:1) | 56% | 74% | 99% | 25% |
 
+**Re-run 2026-09-23, after `docs/ALIGNMENT.md`.** The gate now blocks only
+plain contradictions — `faith-nn` against `cultural` alone, `kids-nn` on
+want facing no — and the age band is reported beside `eligible()`, never in
+it. Same seed, same hypotheses:
+
+| Pool | *p* | Women ≥ 3 | Men ≥ 3 | Women `6+` |
+|---|---|---|---|---|
+| 40/40, age band only | 85% | 100% | 100% | 100% |
+| **40/40, as built (gate)** | **86%** | **100%** | **100%** | **100%** |
+| 40/40, with our age band (`withinAgeGap`) | 73% | 100% | 100% | 100% |
+| 12/12 | 85% | 99% | 98% | 94% |
+| 8/8 | 86% | 97% | 96% | 86% |
+| 40/13 (3:1) | 86% | 99% | 100% | 94% |
+| 40/7 (6:1) | 85% | 96% | 100% | 76% |
+
+The finding below holds, only more so: the readout says still less about
+whether two people would say yes, which is why layer 2 is the one that
+decides.
+
 INFERENCE, and the central finding: **the coded gate barely fragments a
 pool.** At twelve a side the readout already says nine in ten members have
 three or more eligible partners; at forty a side nearly everyone has six or
@@ -176,6 +195,27 @@ it at every imbalance):
 | 40/7 (6:1) | 68% / 12% | 45% / 2% | 27% / 0% | 25% / 0% |
 | 120/40 | 98% / 89% | 92% / 61% | 79% / 28% | 77% / 25% |
 
+**Re-run 2026-09-23, after `docs/ALIGNMENT.md`.** Layer 2 keeps the age band
+inside its hypothesis of what is *welcome* — the product no longer assumes
+it, but a simulation of what families will say yes to still may — so this
+table moves only with the narrowed gate (a `returning` man and an open/no
+pair are no longer blocked before anyone is asked):
+
+| Pool | q 0.30, a 1 | q 0.15, a 1 | q 0.08, a 1 | q 0.15, a 0.5 |
+|---|---|---|---|---|
+| 20/20 | 98% / 79% | 87% / 38% | 68% / 11% | 66% / 9% |
+| **25/20** | 97% / 79% | **87% / 37%** | 69% / 12% | 66% / 10% |
+| 40/40 | 100% / 97% | 97% / 78% | 88% / 41% | 87% / 37% |
+| 60/60 | 100% / 99% | 99% / 92% | 95% / 66% | 95% / 61% |
+| 100/100 | 100% / 100% | 100% / 98% | 99% / 88% | 99% / 87% |
+| 40/13 (3:1) | 93% / 55% | 75% / 17% | 53% / 4% | 50% / 3% |
+| 40/7 (6:1) | 80% / 20% | 55% / 4% | 33% / 1% | 32% / 1% |
+| 120/40 | 100% / 97% | 98% / 78% | 89% / 41% | 87% / 38% |
+
+The inferences below were drawn from the first table and still hold in
+direction; the §6 conditions are unchanged. *q* and *a* still decide, and
+the gate still cannot see them.
+
 INFERENCES:
 
 1. **Forty and forty is "several options" only if q is generous.** At the
@@ -201,9 +241,9 @@ INFERENCES:
 |---|---|---|
 | **Geography** | One metro as one pool — Minneapolis–St Paul first (`docs/WEDGE.md`; ~84,000, the largest US concentration). Not a country pool | Marriage is local: families meet, mahr is negotiated in a room. FACT: the door's `here` is everyone in the city whatever their reach; `across` is everyone in the country whose reach is not `city`; `anywhere` counts as `country` (`cohort.ts`). `docs/LIQUIDITY.md`: `N` people over `k` pools make ~`N²p/4k` pairs — two pools of twenty hold half the pairs of one of forty. Twelve named doors at four each is twelve dead networks |
 | **Gender balance** | Between 1:1 and 2:1 women to men *among active preparing members* | The 40/7 row is a broken network for women; 40/13 is marginal. The hard side sizes the network: reach the men's number and the women's follows |
-| **Age ranges** | Women 24–32, men 26–36, one pool; the rule (+10 / −3) already makes almost every pair age-eligible. **Do not split by age band** below ~100 a side | Splitting is fragmentation; the rule is generous on purpose |
+| **Age ranges** | Women 24–32, men 26–36, one pool. **Do not split by age band** below ~100 a side. Since 2026-09-23 the +10 / −3 band gates nothing — it is `/pool`'s `withinAgeGap` column beside the gate, and where the two disagree the founder asks the member which ages she would consider (`docs/ALIGNMENT.md` G3) | Splitting is fragmentation; an age preference nobody stated is not ours to apply |
 | **Marriage readiness** | `preparing` only. FACT: `supply` already excludes talking, deciding and married, and count-me is offered to preparing only since 2026-09-12 | A talking member is a name on the door and a possibility for nobody |
-| **Compatibility overlap** | The two checkable gates pass ~56% of pairs; the real overlap *q* is unknown and is the single most important number the first pool produces | §4 |
+| **Compatibility overlap** | The two checkable gates passed ~56% of pairs; narrowed to plain contradictions (2026-09-23), ~86%, or ~73% with the age band read beside them. The real overlap *q* is unknown and is the single most important number the first pool produces | §4 |
 | **Stated preferences** | Only two gate, by design; the rest are scored or asked. Keep it so below 100 a side | Every added gate shrinks *p* multiplicatively |
 | **Active-user share** | Unknown, unmeasured, and the thing most likely to make a healthy-looking pool dead. Target: ≥ 70% of `supply` answer an introduction within fourteen days | §4, point 3 |
 | **Willingness to relocate** | `reach` is asked (city / country / anywhere) but a country pool is not a real pool yet. Relocation is a *tie-breaker* inside a metro pool, not a way to fill one | Families do not cross a country for a first introduction |
@@ -384,7 +424,8 @@ with a `src/` twin, so §9's "which gate is missing" is readable.
 **T7 · The readout tells the truth at small N.** `stranded` computed from the
 raw inventory for the founder, floored only in what leaves; `unaged` over
 `supply`; a kept map with no `stage` read as unknown and excluded from
-`supply` rather than assumed `preparing`; the join requiring an age
+`supply` rather than assumed `preparing` (**built 2026-09-23**,
+`docs/ALIGNMENT.md` G5); the join requiring an age
 server-side, as the client already does. Four small corrections to `pool.ts`
 and `cohort.ts`, each with a test, so the checklist measures what it says.
 
@@ -437,3 +478,7 @@ say what the algorithm should be.
   active men in one metro under six conditions; seven constraints ranked;
   twelve assumptions with tests; twelve metrics; T1–T7 planned and held.
   Documents only.
+- 2026-09-23 — Re-run after `docs/ALIGNMENT.md`: the gate blocks only plain
+  contradictions and the age band is reported beside it, so *p* is ~86%
+  (~73% with the band); layer 2 at 25/20, q 0.15 is 87% / 37%. T7's stage
+  default is built. The §6 conditions stand.

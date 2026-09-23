@@ -25,8 +25,13 @@ export interface ReadOption {
   id: string
   label: string
   hint?: string
-  /** 0–1. How much this answer says he is doing the thing this dimension measures. */
-  weight: number
+  /**
+   * 0–1. How much this answer says he is doing the thing this dimension
+   * measures — an editorial ordering of the options, never measured against
+   * an outcome (docs/ALIGNMENT.md S4). `null` when the answer says nothing
+   * about him at all, which is not scored rather than scored as half.
+   */
+  weight: number | null
   /** What he did, stated as fact, from her side. Read back in the result. */
   note: string
 }
@@ -348,7 +353,8 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
       { id: 'straight', label: 'Yes — and {he} answered straight', weight: 1, note: '{he} knows your non-negotiables and answered them straight' },
       { id: 'deflected', label: 'Yes — but {he} changed the subject', weight: 0.2, note: '{he} moved away from your non-negotiables rather than answering them' },
       { id: 'pushed', label: 'Yes — and {he} pushed back on them', weight: 0.1, note: '{he} has pushed back on the things you said you would not compromise on' },
-      { id: 'untold', label: 'I have not told {him}', weight: 0.5, note: 'you have not told {him} your non-negotiables yet' },
+      // Says nothing about {him}, so it is not scored — it used to count as 0.5.
+      { id: 'untold', label: 'I have not told {him}', weight: null, note: 'you have not told {him} your non-negotiables yet' },
     ],
   },
   {

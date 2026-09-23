@@ -3,7 +3,10 @@ import type { Chapter, Question } from '../types'
 /**
  * The guided intake. Tone: a wise, warm guide — not a survey, not a quiz.
  * Each option can carry `tags` (surfaced as core values) and a `weight`
- * (0–1) that informs the readiness reading for its dimension.
+ * (0–1) that informs the readiness reading for its dimension — only where the
+ * answer is about readiness. Faith, family, children and timeline are
+ * positions a person holds, so their options carry no weight and their grounds
+ * are described, never rated (docs/ALIGNMENT.md S5).
  *
  * This is intentionally edited prose, not generated. It is the soul of the app.
  *
@@ -13,8 +16,8 @@ import type { Chapter, Question } from '../types'
  * too — neither reached the map. So this is the cut: every question that the
  * map's scoring, the alignment engine (lib/matching.ts) or the Guide reads
  * stays; every question that only added a tag or a second reading of the same
- * dimension went. Each of the seven dimensions still has at least one scoring
- * answer, which data/intake.test.ts guards. The removed questions are in git
+ * dimension went. Each of the four rated grounds still has at least one scoring
+ * answer, and the three positions have none, which data/intake.test.ts guards. The removed questions are in git
  * history if the signal ever says people want to go deeper.
  *
  * Sixteen, since docs/NORTHSTAR.md: the three "how you'd live" questions moved
@@ -93,10 +96,10 @@ export const chapters: Chapter[] = [
         prompt: 'What is your timeline for marriage?',
         helper: 'Not a deadline — just where your heart honestly is.',
         options: [
-          { id: 'within-1', label: 'Within the next year', tags: ['Ready now'], weight: 1 },
-          { id: '1-2', label: 'In the next one to two years', tags: ['Soon'], weight: 0.9 },
-          { id: '3-plus', label: 'Three years or more', tags: ['Long horizon'], weight: 0.65 },
-          { id: 'exploring', label: 'No fixed time — but exploring seriously', tags: ['Exploring seriously'], weight: 0.7 },
+          { id: 'within-1', label: 'Within the next year', tags: ['Ready now'] },
+          { id: '1-2', label: 'In the next one to two years', tags: ['Soon'] },
+          { id: '3-plus', label: 'Three years or more', tags: ['Long horizon'] },
+          { id: 'exploring', label: 'No fixed time — but exploring seriously', tags: ['Exploring seriously'] },
         ],
       },
       {
@@ -140,10 +143,10 @@ export const chapters: Chapter[] = [
         prompt: 'Where are you in your practice right now?',
         helper: 'Honesty here saves years later.',
         options: [
-          { id: 'devout', label: 'Practicing steadily — it shapes my daily life', tags: ['Devout'], weight: 1 },
-          { id: 'consistent', label: 'Consistent in the core, growing in the rest', tags: ['Grounded'], weight: 0.85 },
-          { id: 'returning', label: 'Reconnecting with my faith and on the way back', tags: ['Returning'], weight: 0.7 },
-          { id: 'cultural', label: 'Muslim by identity, lighter in practice', tags: ['Cultural'], weight: 0.5 },
+          { id: 'devout', label: 'Practicing steadily — it shapes my daily life', tags: ['Devout'] },
+          { id: 'consistent', label: 'Consistent in the core, growing in the rest', tags: ['Grounded'] },
+          { id: 'returning', label: 'Reconnecting with my faith and on the way back', tags: ['Returning'] },
+          { id: 'cultural', label: 'Muslim by identity, lighter in practice', tags: ['Cultural'] },
         ],
       },
       {
@@ -173,10 +176,10 @@ export const chapters: Chapter[] = [
         dimension: 'family',
         prompt: 'How involved do you want family on the way to marriage?',
         options: [
-          { id: 'central', label: 'Central — family is part of every step', tags: ['Family-led'], weight: 0.9 },
-          { id: 'guided', label: 'Involved once things are serious', tags: ['Balanced'], weight: 1 },
-          { id: 'informed', label: 'Kept informed, but I lead the decision', tags: ['Independent-minded'], weight: 0.8 },
-          { id: 'private', label: 'Mostly private until I’m sure', tags: ['Self-directed'], weight: 0.6 },
+          { id: 'central', label: 'Central — family is part of every step', tags: ['Family-led'] },
+          { id: 'guided', label: 'Involved once things are serious', tags: ['Balanced'] },
+          { id: 'informed', label: 'Kept informed, but I lead the decision', tags: ['Independent-minded'] },
+          { id: 'private', label: 'Mostly private until I’m sure', tags: ['Self-directed'] },
         ],
       },
       household,
@@ -186,10 +189,10 @@ export const chapters: Chapter[] = [
         dimension: 'vision',
         prompt: 'How do you feel about children?',
         options: [
-          { id: 'want', label: 'I want children, God willing', tags: ['Family-minded'], weight: 1 },
-          { id: 'open', label: 'Open to it with the right person', tags: ['Open'], weight: 0.8 },
-          { id: 'unsure', label: "I'm still unsure", tags: ['Reflecting'], weight: 0.6 },
-          { id: 'no', label: 'I don’t see children in my future', tags: ['Clear'], weight: 0.8 },
+          { id: 'want', label: 'I want children, God willing', tags: ['Family-minded'] },
+          { id: 'open', label: 'Open to it with the right person', tags: ['Open'] },
+          { id: 'unsure', label: "I'm still unsure", tags: ['Reflecting'] },
+          { id: 'no', label: 'I don’t see children in my future', tags: ['Clear'] },
         ],
       },
       work,
@@ -242,7 +245,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'character',
         prompt: 'When something is wrong between you, what do you do?',
-        helper: 'How we handle conflict predicts more than how we love.',
+        helper: 'How we handle conflict says more than how we love.',
         options: [
           { id: 'talk', label: 'I talk it through, even when it’s hard', tags: ['Communicative'], weight: 1 },
           { id: 'space', label: 'I need space first, then I come back to it', tags: ['Reflective'], weight: 0.8 },
@@ -331,9 +334,9 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
             : 'You’re giving yourself room on the timeline. Good — a marriage chosen calmly beats one chosen against a clock.'
       const faith =
         p === 'devout' || p === 'consistent'
-          ? 'And faith isn’t a checkbox for you — it’s the frame. We’ll look for someone walking at a pace that fits beside yours.'
+          ? 'And faith isn’t a checkbox for you — it’s the frame. Someone walking at a pace beside yours is worth asking about early.'
           : p === 'returning'
-            ? 'And you named where you really are with your deen — returning, and honest about it. That honesty will find you someone who meets you there.'
+            ? 'And you named where you really are with your deen — returning, and honest about it. The right person meets you there.'
             : 'And you were honest about where faith sits for you right now. That clarity protects you from a mismatch more than any filter could.'
       return `${intention} ${faith}`
     }

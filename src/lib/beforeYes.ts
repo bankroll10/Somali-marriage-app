@@ -8,9 +8,16 @@ import { ALL_AGREED, STATES, beforeYesTopics, ownAnswerFirst, type Topic, type Y
  * It does one thing: it looks at which of the eleven conversations have been
  * had, and decides which one to open next. It has no opinion about him, none
  * about her, and none about whether they should marry. The only judgement in
- * here is about *urgency* — which gap costs the most to leave open — and even
- * that is a product of how much rides on a topic and whether they have reached
- * it at all.
+ * here is which one to open first — a product of each topic's `consequence`
+ * and whether they have reached it at all.
+ *
+ * That order is editorial. Nobody has measured which of the eleven a marriage
+ * fails on — `ended.which` exists to find out — so the order decides only
+ * which conversation gets the words first, and is never said to her as a
+ * weight. The headline used to be: "where you don't, it isn't the ones that
+ * carry the most weight" told a couple who differed on qabiil or going back
+ * that theirs was a light difference, on a number we made up
+ * (docs/ALIGNMENT.md S6). A difference is now named as a difference.
  */
 
 export interface TopicReading {
@@ -35,8 +42,6 @@ export interface BeforeYesResult {
     why: string
     script: Script
   }
-  /** Load-bearing topics where they have talked and do not agree. */
-  loadBearingDiffer: string[]
 }
 
 export type BeforeYesAnswers = Record<string, string>
@@ -49,12 +54,14 @@ const STATE_URGENCY: Record<YesState, number> = {
   agree: 0,
 }
 
-/** A topic that carries this much is one a marriage can fail on alone. */
-const LOAD_BEARING = 0.8
 
 const WORDS = ['none', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve']
 function words(n: number): string {
   return WORDS[n] ?? String(n)
+}
+
+function capital(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 function lower(label: string): string {
@@ -90,13 +97,9 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
     unknown: byState.unknown.length,
   }
 
-  const loadBearingDiffer = readings
-    .filter((r) => r.state === 'differ' && r.topic.consequence >= LOAD_BEARING)
-    .map((r) => r.label)
-
   // ── Which one to open ────────────────────────────────────────────────────
-  // Urgency is how much a state needs attention times how much rides on the
-  // topic, so a disagreement about where you'd live outranks an unasked
+  // Urgency is how much a state needs attention times the topic's editorial
+  // `consequence`, so a disagreement about where you'd live outranks an unasked
   // question about the wedding — and an unasked question about where you'd
   // live outranks a disagreement about the wedding. Ties keep list order,
   // which is already most-consequential-first.
@@ -118,11 +121,10 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
 
   // ── Headline: about the conversations, never about him ───────────────────
   let headline: string
-  if (allAgreed) headline = 'You two have done the work most couples never do.'
-  else if (loadBearingDiffer.length >= 2) headline = 'More than one of the heavier conversations doesn’t line up yet.'
-  else if (loadBearingDiffer.length === 1) headline = 'One conversation is carrying more weight than the rest.'
-  else if (counts.differ > 0) headline = 'You mostly agree — and where you don’t, it isn’t the ones that carry the most weight.'
-  else headline = 'Nothing is broken. Several things are unasked.'
+  if (allAgreed) headline = `You have had all ${words(readings.length)}, and you agree on every one.`
+  else if (counts.differ === 1) headline = 'One conversation doesn’t line up yet.'
+  else if (counts.differ > 1) headline = `${capital(words(counts.differ))} conversations don’t line up yet.`
+  else headline = 'Nothing is crossed. Some conversations are still unopened.'
 
   // ── Summary: her counts in words, then why the open one matters ──────────
   const tally = `Of the ${words(readings.length)} conversations, you have had ${words(counts.agree)} where you agree, ${words(
@@ -131,7 +133,7 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
     counts.unknown,
   )} where you don’t yet know your own answer.`
   const point = allAgreed
-    ? 'What is left is not a gap but a habit: go back over the ones that carry the most, closer to the day, and check they still mean the same thing.'
+    ? 'What is left is not a gap but a habit: go back over them closer to the day, and check they still mean the same thing.'
     : open.state === 'unknown'
       ? `The one to sit with first is ${lower(open.label)} — and it starts with you, not ${gender === 'man' ? 'her' : 'him'}. ${open.why}`
       : `The one to open this week is ${lower(open.label)}. ${open.why}`
@@ -142,7 +144,6 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
     counts,
     byState,
     open,
-    loadBearingDiffer,
   }
 }
 

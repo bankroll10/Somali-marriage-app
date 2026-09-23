@@ -170,8 +170,8 @@ describe('the reading itself', () => {
 
   it('speaks to the thinnest ground, not a generic script', () => {
     expect(buildRead(answers({ known: 'nobody', secret: 'soft' }))!.thin).toBe('public')
-    // Weighted by consequence, not just depth: being hidden outranks a smaller
-    // gap that happens to score lower. Asking how he'd approach her family is
+    // The thinnest state first, and among equals the one that comes first:
+    // being hidden outranks a gap of the same depth. Asking how he'd approach her family is
     // the wrong question to put to a man who has told nobody she exists.
     expect(buildRead(answers({ known: 'nobody', secret: 'soft', family: 'no' }))!.thin).toBe('public')
     expect(buildRead(answers({ family: 'avoids' }))!.thin).toBe('family')
@@ -183,8 +183,9 @@ describe('the reading itself', () => {
     const r = buildRead(answers({ duration: 'months-plus', known: 'nobody', secret: 'soft' }))!
     expect(r.summary).toMatch(/past three months/i)
     expect(r.missing.join(' ')).toMatch(/nobody in his life knows you exist/i)
-    // A gap this late is named as a decision, not an oversight.
-    expect(r.summary).toMatch(/decision rather than an oversight/i)
+    // A gap this late is fair to ask about directly — named, but not read as his intent.
+    expect(r.summary).toMatch(/fair to ask about it directly/i)
+    expect(r.summary).not.toMatch(/decision rather than an oversight/i)
   })
 
   it('gives two different women two different readings', () => {
