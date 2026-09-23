@@ -21,6 +21,7 @@
     "smoke": "node --experimental-strip-types scripts/smoke.ts",
     "launch:preflight": "node --experimental-strip-types scripts/launch-preflight.ts",
     "stripe:verify": "node --experimental-strip-types scripts/stripe-verify.ts",
+    "stripe:setup-webhook": "node --experimental-strip-types scripts/stripe-setup-webhook.ts",
     "test:pg": "vitest run tests/contention.test.ts"
   },
   "dependencies": {

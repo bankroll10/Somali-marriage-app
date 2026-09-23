@@ -111,6 +111,7 @@ export interface AccountLike {
 }
 
 export interface WebhookEndpointLike {
+  id?: unknown
   url?: unknown
   status?: unknown
   enabled_events?: unknown
@@ -154,7 +155,7 @@ export function stripeAccountChecks(
   }
   const ours = endpoints.filter((e) => typeof e.url === 'string' && e.url.replace(/\/$/, '') === hookUrl)
   if (ours.length === 0) {
-    checks.push({ name: 'webhook endpoint for this site exists', ok: false, detail: `none of the ${endpoints.length} endpoint(s) points at ${hookUrl}` })
+    checks.push({ name: 'webhook endpoint for this site exists', ok: false, detail: `none of the ${endpoints.length} endpoint(s) points at ${hookUrl} — run: npm run stripe:setup-webhook` })
     return checks
   }
   const enabled = ours.find((e) => e.status === 'enabled') ?? ours[0]
@@ -166,6 +167,28 @@ export function stripeAccountChecks(
     { name: 'webhook sends every event the site needs', ok: missing.length === 0, detail: missing.length === 0 ? `all ${requiredEvents.length} present` : `MISSING: ${missing.join(', ')}` },
   )
   return checks
+}
+
+/** What `npm run stripe:setup-webhook` should do about the endpoint, decided without touching Stripe. */
+export type WebhookPlan =
+  | { action: 'create' }
+  | { action: 'update'; id: string; missing: string[] }
+  | { action: 'ok'; id: string }
+
+/**
+ * Is there already an endpoint at our URL, and does it carry every event the
+ * app acts on? Create one, widen the one that is there, or leave it alone —
+ * never a second endpoint for the same URL, which would double every
+ * delivery.
+ */
+export function webhookPlan(endpoints: WebhookEndpointLike[], hookUrl: string, requiredEvents: readonly string[]): WebhookPlan {
+  const norm = (u: string) => u.replace(/\/$/, '')
+  const mine = endpoints.find((e) => typeof e.url === 'string' && norm(e.url) === norm(hookUrl))
+  if (!mine || typeof (mine as { id?: unknown }).id !== 'string') return { action: 'create' }
+  const id = (mine as { id: string }).id
+  const events = listOf(mine.enabled_events)
+  const missing = events.includes('*') ? [] : requiredEvents.filter((e) => !events.includes(e))
+  return missing.length === 0 ? { action: 'ok', id } : { action: 'update', id, missing }
 }
 
 export function printChecks(title: string, checks: Check[]): boolean {

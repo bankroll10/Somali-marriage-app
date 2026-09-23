@@ -57,16 +57,20 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
 5. **Customer emails** (Settings → Business → Customer emails): *Email customers about
    successful payments* **on** if she wants Stripe to send receipts; the confirmation page says
    "if Stripe sends a receipt" either way. *Email customers about refunds* on.
-6. **Live webhook endpoint** (Developers → Webhooks → Add endpoint, with the mode toggle on
-   **Live**):
+6. **Live webhook endpoint** — **do not build this by hand.** Run
+   `STRIPE_SECRET_KEY=<her key> npm run stripe:setup-webhook`: it creates the endpoint with
+   exactly the right events and prints the signing secret, which Stripe returns only at
+   creation. That keeps the secret off SMS entirely and makes a missed event impossible. Run it
+   twice and it will not make a duplicate. For reference, what it creates (Developers → Webhooks
+   → Add endpoint, mode toggle on **Live**, if ever done by hand):
    - URL: `https://bread-pickup.netlify.app/api/stripe-webhook`
    - Events: `checkout.session.completed`, `checkout.session.expired`,
      `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
      `charge.refunded`, `charge.refund.updated`, `refund.created`, `refund.updated` — this list
      is `REQUIRED_WEBHOOK_EVENTS` in `bread/netlify/lib/stripe/gateway.ts`, and
      `npm run stripe:verify` checks the live endpoint against it and names anything missing
-   - Copy its **signing secret** straight into Netlify as `STRIPE_WEBHOOK_SECRET` **only at
-     cutover** (step 5). Until then the test endpoint stays wired.
+   - Its **signing secret** goes straight into Netlify as `STRIPE_WEBHOOK_SECRET` at cutover
+     (step 5). Until then the test endpoint stays wired.
    - Also add the four refund events to the existing **test** endpoint so refunds show on the
      admin page during rehearsal without pressing *Check refund*.
 7. **Live secret key** (Developers → API keys, mode **Live**): it will be pasted into Netlify as
@@ -76,20 +80,19 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
    by text — fine for a test key, not for a live one, which can create charges, issue refunds
    and read every customer record. In order of preference:
 
-   1. **Best — she adds the owner to her Stripe account**: Settings → Team and security → Team →
-      *New member*, role **Developer**. He then reads the key and creates the live webhook
-      endpoint himself and **no live credential is ever sent over SMS**, now or in future. It is
-      also permanently less work for her.
-   2. **Acceptable — a restricted key**: Developers → API keys → *Create restricted key*, with
-      only **Checkout Sessions: Write** and **Refunds: Read** — exactly what the site uses.
-      If that one leaks it cannot move her money, refund anyone or read her customer list.
-      `npm run stripe:verify` additionally wants **Account: Read** and **Webhook endpoints:
-      Read**; grant those to the same key or run the check once with a fuller one.
-   3. **Avoid** — texting an unrestricted `sk_live_` key.
+   **Chosen route (2026-09-23): a restricted key.** Adding the owner to her Stripe team was
+   considered and dropped as a bigger ask than it is worth. She creates one restricted key
+   (Developers → API keys → *Create restricted key*) with **Checkout Sessions: Write**,
+   **Refunds: Read**, **Webhook Endpoints: Write** and **Account: Read** — the exact walkthrough
+   to send her is in [`BIZ_MESSAGES.md`](BIZ_MESSAGES.md) §1b. If that key ever leaked it could
+   not move her money, refund anyone or read her customer list.
 
-   The webhook signing secret deserves the same care: whoever holds it can forge a
-   `checkout.session.completed` and mark an order paid that nobody paid for. Route 1 avoids
-   sending either.
+   The signing secret never travels at all: `npm run stripe:setup-webhook` creates the endpoint
+   and prints the secret on the machine that will paste it into Netlify. This matters — whoever
+   holds that secret can forge a `checkout.session.completed` and mark an order paid that nobody
+   paid for.
+
+   **Never** text an unrestricted `sk_live_` key: it is full access to her money.
 8. **Apple Pay**: on Stripe's hosted Checkout page no domain registration is needed (the page is
    on Stripe's domain). The on-device check is in section 7.
 9. **Radar** (default rules) and **Disputes** need nothing.
@@ -132,9 +135,10 @@ Only with Biz's explicit go-ahead. Pick a moment with no customer mid-checkout (
    (`OWNER_GUIDE.md`, backups).
 3. **Wipe the practice orders**: `DATABASE_URL="<…>" npm run db:clear-orders -- --yes`. It
    prints the counts before and after and refuses if any live-mode sale exists.
-4. **Netlify → Environment variables**: set `STRIPE_SECRET_KEY` to the live key and
-   `STRIPE_WEBHOOK_SECRET` to the live endpoint's signing secret (section 2, items 6–7); mark
-   both secret; leave `DATABASE_URL` unmarked.
+4. **Create the live webhook endpoint and get its secret**:
+   `STRIPE_SECRET_KEY=<her key> npm run stripe:setup-webhook`. Then **Netlify → Environment
+   variables**: `STRIPE_SECRET_KEY` to her restricted live key and `STRIPE_WEBHOOK_SECRET` to the
+   secret it just printed; mark both secret; leave `DATABASE_URL` unmarked.
 5. **Deploys → Trigger deploy → Deploy site.** Wait for *Published*.
 6. **Preflight**: `npm run launch:preflight -- https://bread-pickup.netlify.app` — every row
    must read PASS (live key, migrated, admin set, no test data, no holds, reconcile alive within

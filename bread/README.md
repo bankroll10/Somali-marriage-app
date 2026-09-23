@@ -145,6 +145,7 @@ Operating scripts (each needs only what it says):
 | `npm run smoke -- https://<site>` | nothing (`ADMIN_PASSWORD` in the shell adds a sign-in check) | proves the deployed site: health, availability, 404/400/401s, headers, scheduled job, webhook |
 | `npm run launch:preflight -- https://<site>` | nothing | go / no-go before the first real customer: live key, migrated, no test data, no holds |
 | `npm run stripe:verify` | `STRIPE_SECRET_KEY` in the shell | asks **Stripe** whether the account can really take a payment: charges and payouts enabled, nothing outstanding, descriptor, and a live webhook with every required event. Two GETs, charges nothing |
+| `npm run stripe:setup-webhook` | `STRIPE_SECRET_KEY` in the shell | creates the webhook endpoint with exactly the events the app acts on and prints its signing secret (Stripe shows it only at creation). `--dry-run` shows what it would do. Never makes a duplicate |
 | `npm run db:export -- --from … --to …` | `DATABASE_URL` | her orders as CSV |
 | `npm run db:clear-orders -- --yes` | `DATABASE_URL` | wipes practice orders before launch; refuses while a real sale exists |
 | `GET /api/health` | — | the same facts as JSON, nothing about any customer |

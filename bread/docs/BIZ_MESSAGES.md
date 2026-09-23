@@ -41,46 +41,58 @@ finding out at the first real payment. Keep the text below for reference.
 
 ---
 
-## 1b — Getting the live key safely (send next)
+## 1b — The live key (send next)
 
-Her account being ready is not the same as the site being able to use it. The live secret key and
-the live webhook signing secret still have to reach Netlify, and unlike the test ones they are
-worth real money: a live key can create charges, issue refunds and read every customer record, and
-the signing secret lets its holder forge a "this order was paid" message. So the ask is not "text
-me the key" — it is five minutes of dashboard work that means nothing sensitive is ever texted.
+Her account being ready is not the same as the site being able to use it: the live key and the
+webhook signing secret still have to reach Netlify.
 
-**Send this one:**
+Asking her to add the owner to her Stripe team was considered and **dropped** — it lands as a
+bigger ask than it is. Instead she creates **one restricted key**, and the owner's
+`npm run stripe:setup-webhook` does the fiddly half: it creates the webhook endpoint with exactly
+the eight events the site acts on, so she never has to find them in Stripe's event picker, and
+nothing can be silently missed. Stripe returns a signing secret only at creation, so that secret
+is printed on the owner's machine and pasted straight into Netlify — **it is never texted at
+all**. The restricted key is the only thing that travels, and it cannot move her money, refund
+anyone or read her customer list.
 
-> Amazing, thank you!! Two small things and then I can switch it on properly.
+**Send this:**
+
+> Good news — I can do almost all the rest myself. I need one thing from you and it's about 3
+> minutes.
 >
-> Could you add me to your Stripe account? It means I can do the technical bits myself and stop
-> sending you homework. In Stripe: Settings → Team and security → Team → "New member" → my email
-> is [YOUR EMAIL] → role "Developer".
+> First, the bit that matters: at the top of your Stripe dashboard there's a Test mode switch.
+> Make sure it's OFF.
 >
-> That's it — nothing else to do, and it means you never have to text me anything sensitive.
-> (If you'd rather not add me, totally fine, just say and I'll send you the other way to do it.)
-
-**Only if she'd rather not add you:**
-
-> No worries at all! Then two things instead:
+> Then:
+> 1. Developers → API keys
+> 2. Click "Create restricted key"
+> 3. Name it: bread site
+> 4. You'll see a long list of permissions, each with None / Read / Write. There's a search box at
+>    the top of that list — use it to find these four and set them:
+>    - Checkout Sessions → Write
+>    - Refunds → Read
+>    - Webhook Endpoints → Write
+>    - Account → Read
 >
-> 1. In Stripe, flip the toggle from Test to Live mode (top of the page), then Developers →
->    Webhooks → Add endpoint. URL: https://bread-pickup.netlify.app/api/stripe-webhook — I'll
->    send you the exact list of events to tick.
-> 2. Developers → API keys → Create restricted key. Name it "bread site", and switch on only
->    these two: Checkout Sessions: Write, and Refunds: Read. Everything else stays "None".
+>    Everything else stays on None. (If you can't find one of them, just tell me which and skip it.)
+> 5. Create the key, click to reveal it, and send it over.
 >
-> Send me that restricted key and the webhook's signing secret, then delete the messages. The
-> restricted one is safe to send — it can't move your money or see your customer list, it can
-> only do the bread orders.
+> That last permission is what lets me finish the setup without sending you more homework. The key
+> can only handle bread orders — it can't move your money, refund anyone or see your customer list
+> — so it's fine to text. Delete the message after and I'll do the rest.
 
-The eight events for that endpoint are in
-[`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) section 2, item 6, and `npm run stripe:verify` will
-tell you if any are missing.
+**Then the owner, in this order:**
 
-**Once the key is in hand:** that unlocks steps 4–7 of
-[`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) — the live key, the live webhook endpoint, and the
-cutover. Nothing about the site changes until then; it stays in test mode.
+| Step | Command / action |
+|---|---|
+| 1. Is her account really ready? | `STRIPE_SECRET_KEY=<her key> npm run stripe:verify` — the webhook row will fail, which is expected; the endpoint doesn't exist yet |
+| 2. Create the endpoint | `STRIPE_SECRET_KEY=<her key> npm run stripe:setup-webhook` — prints the signing secret once |
+| 3. Wire it up | Netlify → Environment variables → `STRIPE_SECRET_KEY` (her key) and `STRIPE_WEBHOOK_SECRET` (the printed secret), both marked secret → Trigger deploy |
+| 4. Confirm | `npm run stripe:verify` again — every row green |
+| 5. Launch | `launch:preflight`, `smoke`, the test-mode rehearsal, then the cutover in [`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) |
+
+If she can't find the "Account" permission, skip it: only the one row in `stripe:verify` that
+reads her account state needs it, and the script says so rather than failing.
 
 ---
 
