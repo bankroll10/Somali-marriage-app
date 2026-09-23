@@ -109,7 +109,7 @@ describe('the joint', () => {
 describe('the handshake', () => {
   it('she creates, he sees it is open for a man, and until he answers she is waiting', async () => {
     const { code } = await (await post({ side: 'first', gender: 'woman', states: sides() })).json()
-    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{6}$/)
+    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{8}$/)
     expect(await (await get(code)).json()).toEqual({ status: 'open', answerFor: 'man' })
   })
 

@@ -272,7 +272,7 @@ describe('the read and delete paths are bounded', () => {
     const read = (code: string) => vouch(new Request(`http://x/.netlify/functions/vouch?code=${code}`))
     // A token-shaped string nobody minted: a 400, but the lookup behind it ran,
     // so it counts.
-    expect((await read('ACDEFGHJ')).status).toBe(400)
+    expect((await read('ACDEFGHJKM')).status).toBe(400)
     expect((await read('ACDEFG')).status).toBe(503)
   })
 

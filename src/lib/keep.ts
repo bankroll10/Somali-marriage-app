@@ -1,6 +1,6 @@
 import { loadProgress, saveProgress, type PersistedState } from './storage'
 import type { Identity, WaitlistState } from '../types'
-import { CODE_LENGTH, cleanCode } from './code'
+import { cleanCode, isCode } from './code'
 import { send } from './net'
 
 /**
@@ -148,7 +148,7 @@ export type RestoreProblem = 'not-a-code' | 'not-found' | 'expired' | 'unreachab
 /** Fetch a kept map by its code, saying why when it cannot. */
 export async function restoreDetail(code: string): Promise<PersistedState | RestoreProblem> {
   const clean = cleanCode(code)
-  if (clean.length !== CODE_LENGTH) return 'not-a-code'
+  if (!isCode(clean)) return 'not-a-code'
 
   const res = await send(`${ENDPOINT}?code=${encodeURIComponent(clean)}`, { method: 'GET' })
   // No response at all: timed out, offline, or blocked. Her code may be perfect.

@@ -24,7 +24,7 @@ export interface WaitlistEntry {
    * The map code used to travel here too, so a row on the form could be
    * matched to a map in the store. It no longer does.
    *
-   * A six-character code is the sole authenticator for a kept map — for
+   * A map code is the sole authenticator for a kept map — for
    * reading it back and for the cascading delete in
    * netlify/functions/keep.ts — and sending it here put it in a third party's
    * store, in the same row as the way to reach her, while Trust told her the

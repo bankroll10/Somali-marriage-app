@@ -1,4 +1,5 @@
 import { getScene } from '../data/scenes'
+import { formatCode } from '../lib/code'
 import type { PersistedState } from '../lib/storage'
 
 interface Props {
@@ -38,7 +39,7 @@ export default function ConfirmRestore({ code, incoming, current, onDone }: Prop
       <main className="relative max-w-sm">
         <h1 className="font-display text-2xl font-medium tracking-tight">Bring this map onto this phone?</h1>
         <p className="mt-3 text-[0.98rem] leading-relaxed text-cream/80 text-pretty">
-          This link opens the map kept under <span className="font-medium tracking-wider text-cream">{code}</span>
+          This link opens the map kept under <span className="font-medium tracking-wider text-cream">{formatCode(code)}</span>
           {name ? (
             <>
               {' '}— for <span className="font-medium text-cream">{name}</span>

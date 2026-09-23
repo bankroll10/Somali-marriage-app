@@ -240,7 +240,7 @@ describe('withdrawing a report', () => {
     const { receipt } = await (await post({ code: CODE, side: 'woman', reason: 'threats' })).json()
     // The other side of the pair holds the code, and can name her side; what
     // he does not hold is the receipt.
-    expect((await withdraw(CODE, 'woman', 'ACDEFGHJ')).status).toBe(404)
+    expect((await withdraw(CODE, 'woman', 'ACDEFGHJKM')).status).toBe(404)
     expect((await withdraw(CODE, 'man', receipt)).status).toBe(404)
     // A six-character id is the founder's to resolve, never a withdrawal.
     expect((await withdraw(CODE, 'woman', 'ACDEFG')).status).toBe(400)

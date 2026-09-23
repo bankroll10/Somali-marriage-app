@@ -166,8 +166,8 @@ describe('O5 — the family vouch does not say which tokens are live', () => {
 
   it('every token lookup spends the cap', async () => {
     vi.stubEnv('VOUCH_HOURLY_CAP', '1')
-    expect((await vouchWith('QRTWXY34', 'father')).status).toBe(400)
-    expect((await vouchWith('QRTWXY47', 'father')).status).toBe(503)
+    expect((await vouchWith('QRTWXY3479', 'father')).status).toBe(400)
+    expect((await vouchWith('QRTWXY4789', 'father')).status).toBe(503)
   })
 })
 
@@ -249,5 +249,33 @@ describe('O11 — the founder key is compared whole, and in constant time', () =
     expect(sameSecret('abc', 'abc')).toBe(true)
     expect(sameSecret('abc', 'abd')).toBe(false)
     expect(sameSecret('abc', 'abcd')).toBe(false)
+  })
+})
+
+describe('O8 — codes minted from now on are eight characters, and six still work', () => {
+  it('the server mints eight, accepts six and eight, and keeps tokens at ten so nothing collides', async () => {
+    const { CODE, TOKEN, LEGACY_TOKEN, newCode, CODE_LENGTH, TOKEN_LENGTH } = await import('../netlify/shared/code')
+    expect(CODE_LENGTH).toBe(8)
+    expect(TOKEN_LENGTH).toBe(10)
+    expect(newCode()).toMatch(CODE)
+    expect(newCode()).toHaveLength(8)
+    expect(CODE.test('HJKMNP')).toBe(true)
+    expect(CODE.test('HJKMNPQR')).toBe(true)
+    for (const bad of ['HJKMN', 'HJKMNPQ', 'HJKMNPQRT', 'HJKMNPQRTW']) expect(CODE.test(bad)).toBe(false)
+    expect(TOKEN.test(newCode(TOKEN_LENGTH))).toBe(true)
+    expect(CODE.test(newCode(TOKEN_LENGTH))).toBe(false)
+    expect(LEGACY_TOKEN.test('HJKMNPQR')).toBe(true)
+  })
+
+  it('the client agrees, and shows an eight as two groups of four', async () => {
+    const { CODE_LENGTH, isCode, formatCode, cleanCode } = await import('../src/lib/code')
+    expect(CODE_LENGTH).toBe(8)
+    expect(isCode('hjkm-npqr')).toBe(true)
+    expect(isCode('HJKMNP')).toBe(true)
+    expect(isCode('HJKMNPQ')).toBe(false)
+    expect(formatCode('HJKMNPQR')).toBe('HJKM NPQR')
+    expect(formatCode('HJKMNP')).toBe('HJKMNP')
+    // What a person copies from the grouped form comes back whole.
+    expect(cleanCode(formatCode('HJKMNPQR'))).toBe('HJKMNPQR')
   })
 })

@@ -1,5 +1,5 @@
 import { getStore } from '@netlify/blobs'
-import { CODE_LENGTH, mint, normalise } from '../shared/code'
+import { CODE, mint, normalise } from '../shared/code'
 import { day } from '../shared/day'
 import { readJson } from '../shared/body'
 import { overHourlyCap, rateLimited } from '../shared/limit'
@@ -68,7 +68,9 @@ export default async function handler(req: Request) {
   // ── Restore ──────────────────────────────────────────────────────────────
   if (req.method === 'GET') {
     const code = normalise(new URL(req.url).searchParams.get('code') ?? '')
-    if (code.length !== CODE_LENGTH) {
+    // The alphabet, not just the length: a code with an O or a 0 in it was
+    // never minted, and is refused before it spends anything.
+    if (!CODE.test(code)) {
       return Response.json({ error: 'bad_code' }, { status: 400 })
     }
     // Bounded, after validation: a wrong-shaped code spends nothing.
@@ -101,7 +103,7 @@ export default async function handler(req: Request) {
   // What cannot be undone is not here at all: a count with no code in it.
   if (req.method === 'DELETE') {
     const code = normalise(new URL(req.url).searchParams.get('code') ?? '')
-    if (code.length !== CODE_LENGTH) return Response.json({ error: 'bad_code' }, { status: 400 })
+    if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
     // Bounded like the restore above, and for a sharper reason: this deletes.
     if (await overHourlyCap('forget', DEFAULT_READ_CAP)) return rateLimited()
     try {
@@ -118,7 +120,7 @@ export default async function handler(req: Request) {
       const cohort = getStore('cohort')
       const contacts = getStore('contacts')
 
-      if (coupleCode.length === CODE_LENGTH) await couples.delete(coupleCode)
+      if (CODE.test(coupleCode)) await couples.delete(coupleCode)
       const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
       if (token) await vouches.delete(`token/${token}`)
       await vouches.delete(`asked/${code}`)
@@ -176,7 +178,7 @@ export default async function handler(req: Request) {
   // Re-keeping under the code she already has, so updating a map does not
   // hand her a second code to remember.
   const code = body.code ? normalise(body.code) : ''
-  if (body.code && code.length !== CODE_LENGTH) {
+  if (body.code && !CODE.test(code)) {
     return Response.json({ error: 'bad_code' }, { status: 400 })
   }
 

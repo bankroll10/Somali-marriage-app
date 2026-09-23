@@ -19,8 +19,14 @@
 /** Unambiguous by design: no B, I, L, O, S, U, V, Z, and no 0, 1, 2, 5, 6. */
 export const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
 
-/** A map code, a couple code, an install id. */
-export const CODE_LENGTH = 6
+/**
+ * A map code, a couple code, an install id — eight characters since
+ * 2026-09-23, six before (netlify/shared/code.ts says why: six let one patient
+ * script find about 14% of kept maps a year; docs/SECURITY.md, O8). A code
+ * kept at six still works everywhere.
+ */
+export const CODE_LENGTH = 8
+export const LEGACY_CODE_LENGTH = 6
 
 const NOT_IN_ALPHABET = new RegExp(`[^${ALPHABET}]`, 'g')
 
@@ -36,7 +42,17 @@ export function cleanCode(raw: string): string {
 
 /** Could this be a code at all? Not whether a map exists under it. */
 export function isCode(raw: string): boolean {
-  return cleanCode(raw).length === CODE_LENGTH
+  const n = cleanCode(raw).length
+  return n === CODE_LENGTH || n === LEGACY_CODE_LENGTH
+}
+
+/**
+ * A code as a person reads it: eight characters as two groups of four, which
+ * is what makes eight no harder to say down a phone than six. A six stays as
+ * it always was. Display only — `cleanCode` drops the space on the way back.
+ */
+export function formatCode(code: string): string {
+  return code.length === CODE_LENGTH ? `${code.slice(0, 4)} ${code.slice(4)}` : code
 }
 
 /**
@@ -44,4 +60,4 @@ export function isCode(raw: string): boolean {
  * person is shown is a shape a code can have. It used to read `ABC123`, three
  * characters of which are impossible.
  */
-export const EXAMPLE_CODE = 'HJKM47'
+export const EXAMPLE_CODE = 'HJKM47QR'

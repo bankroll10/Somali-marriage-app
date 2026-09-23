@@ -107,11 +107,11 @@ describe('the install code', () => {
     // 256 = 11×23 + 3: bytes 253, 254 and 255 used to fold onto A, C and D, so
     // those three came up one time in eleven more often (docs/SECURITY.md O11).
     const draws = [
-      [253, 254, 255, 1, 2, 3],
-      [4, 5, 6, 7, 8, 9],
+      [253, 254, 255, 1, 2, 3, 4, 5],
+      [6, 7, 8, 9, 10, 11, 12, 13],
     ]
     vi.stubGlobal('crypto', { getRandomValues: (a: Uint8Array) => (a.set(draws.shift()!), a) })
     const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
-    expect(installId()).toBe([1, 2, 3, 4, 5, 6].map((i) => ALPHABET[i]).join(''))
+    expect(installId()).toBe([1, 2, 3, 4, 5, 6, 7, 8].map((i) => ALPHABET[i]).join(''))
   })
 })

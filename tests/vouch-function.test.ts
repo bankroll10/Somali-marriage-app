@@ -151,7 +151,8 @@ describe('the token in the link', () => {
 
   it('she asks, and gets a token that is not her code', async () => {
     const { token } = await ask()
-    expect(token).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{8}$/)
+    // Ten characters: never a code's shape, six or eight (docs/SECURITY.md, O8).
+    expect(token).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{10}$/)
     expect(token).not.toBe('ACDEFG')
     // Asking again sends the same link.
     expect((await ask()).token).toBe(token)
@@ -180,8 +181,24 @@ describe('the token in the link', () => {
   })
 
   it('a token nobody minted is a bad code', async () => {
-    expect((await get('ACDEFGHJ')).status).toBe(400)
-    expect((await post({ ...good, code: 'ACDEFGHJ' })).status).toBe(400)
+    expect((await get('ACDEFGHJKM')).status).toBe(400)
+    expect((await post({ ...good, code: 'ACDEFGHJKM' })).status).toBe(400)
+  })
+
+  it('a link minted when tokens were eight still vouches — eight is looked up as a token before it is taken as a code', async () => {
+    // Codes became eight characters on 2026-09-23 and tokens ten; the links
+    // already in relatives' messages carry eight (docs/SECURITY.md, O8).
+    await memStore('vouches').set('token/QRTWXY34', 'ACDEFG')
+    const res = await post({ ...good, code: 'QRTWXY34' })
+    expect(res.status).toBe(200)
+    expect(await (await get('ACDEFG')).json()).toEqual({ vouched: true, relationship: 'brother', firstName: 'Ali' })
+  })
+
+  it('an eight-character map code, as minted now, is her code', async () => {
+    memStore('maps').setJSON('HJKMNPQR', { snapshot: {}, createdAt: 'd', expiresAt: '2099-01-01' })
+    expect((await post({ side: 'ask', code: 'HJKMNPQR' })).status).toBe(200)
+    expect((await post({ ...good, code: 'HJKMNPQR' })).status).toBe(200)
+    expect((await (await get('HJKMNPQR')).json()).vouched).toBe(true)
   })
 
   it('an older link still carrying the code still vouches', async () => {

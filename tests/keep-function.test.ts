@@ -61,7 +61,8 @@ describe('keeping a map', () => {
     const res = await post({ snapshot: { identity: { firstName: 'Sagal' }, answers: {} } })
     expect(res.status).toBe(200)
     const { code } = await res.json()
-    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{6}$/)
+    // Eight characters since 2026-09-23 (docs/SECURITY.md, O8).
+    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{8}$/)
     const restored = await get(code)
     // Her whole map, keyed by a secret in the URL: never cached, by a browser
     // or anything between (docs/THREAT.md, T4). Nor is "nothing here".
@@ -131,9 +132,23 @@ describe('keeping a map', () => {
     expect(again.snapshot.answers.timeline).toBe('1-2')
   })
 
-  it('an eight-character vouch token is not a code, and opens nothing', async () => {
+  it('a vouch token is not a code, and opens nothing', async () => {
     seed('ACDEFG', { identity: { firstName: 'Sagal' } })
-    expect((await get('ACDEFGHJ')).status).toBe(400)
+    // Ten characters: never a code's shape.
+    expect((await get('ACDEFGHJKM')).status).toBe(400)
+    // Eight is a code's shape now, and a token minted before that is eight —
+    // but tokens live in the vouches store, so nothing is kept under one here.
+    expect((await get('ACDEFGHJ')).status).toBe(404)
+  })
+
+  it('a code kept at six characters, before codes were eight, still comes back', async () => {
+    seed('HJKMNP', { identity: { firstName: 'Sagal' } })
+    expect((await (await get('HJKMNP')).json()).snapshot.identity.firstName).toBe('Sagal')
+    // And an eight-character one, as minted now.
+    seed('HJKMNPQR', { identity: { firstName: 'Hodan' } })
+    expect((await (await get('hjkm-npqr')).json()).snapshot.identity.firstName).toBe('Hodan')
+    // Any other length, and anything off the alphabet, is not a code.
+    for (const bad of ['HJKMNPQ', 'HJKMN', 'HJKMNPQRT', 'OOOOOO', 'H0KMNP']) expect((await get(bad)).status).toBe(400)
   })
 
   it('forgetting a code removes the map, the pair, the vouch and its token, and the door entry — and a second time is a quiet 404', async () => {
@@ -201,7 +216,7 @@ describe('keeping a map', () => {
 
   it('forgetting needs a code the right shape', async () => {
     expect((await forget('nope')).status).toBe(400)
-    expect((await forget('ACDEFGHJ')).status).toBe(400)
+    expect((await forget('ACDEFGHJKM')).status).toBe(400)
   })
 
   it('refuses a snapshot that is not an object, and a bad code', async () => {
@@ -236,31 +251,31 @@ describe('a minted code never lands on somebody', () => {
 
   it('retries onto a free code, and leaves the taken one exactly as it was', async () => {
     const hers = { snapshot: { identity: { firstName: 'Sagal' } }, createdAt: '2026-01-01', expiresAt: '2027-01-01' }
-    memStore('maps').setJSON('AAAAAA', hers)
-    vi.spyOn(crypto, 'getRandomValues').mockImplementation(drawing('AAAAAA', 'CCCCCC') as never)
+    memStore('maps').setJSON('AAAAAAAA', hers)
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation(drawing('AAAAAAAA', 'CCCCCCCC') as never)
 
     const res = await post({ snapshot: { identity: { firstName: 'Hodan' } } })
     expect(res.status).toBe(200)
-    expect((await res.json()).code).toBe('CCCCCC')
+    expect((await res.json()).code).toBe('CCCCCCCC')
 
     // Hers is untouched, byte for byte.
-    expect(JSON.parse(stores.get('maps')!.get('AAAAAA')!)).toEqual(hers)
+    expect(JSON.parse(stores.get('maps')!.get('AAAAAAAA')!)).toEqual(hers)
     // And the new map really is stored, under the code that was free.
-    expect(JSON.parse(stores.get('maps')!.get('CCCCCC')!).snapshot.identity.firstName).toBe('Hodan')
+    expect(JSON.parse(stores.get('maps')!.get('CCCCCCCC')!).snapshot.identity.firstName).toBe('Hodan')
     vi.restoreAllMocks()
   })
 
   it('refuses rather than overwrites when every attempt collides', async () => {
-    for (const c of ['AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF']) {
+    for (const c of ['AAAAAAAA', 'CCCCCCCC', 'DDDDDDDD', 'EEEEEEEE', 'FFFFFFFF']) {
       memStore('maps').setJSON(c, { snapshot: { taken: c }, createdAt: 'd', expiresAt: 'z' })
     }
     vi.spyOn(crypto, 'getRandomValues').mockImplementation(
-      drawing('AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF') as never,
+      drawing('AAAAAAAA', 'CCCCCCCC', 'DDDDDDDD', 'EEEEEEEE', 'FFFFFFFF') as never,
     )
     // Failing to save is recoverable — her map is still on her phone.
     // Overwriting one of these five is not.
     expect((await post({ snapshot: { identity: { firstName: 'Hodan' } } })).status).toBe(503)
-    for (const c of ['AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF']) {
+    for (const c of ['AAAAAAAA', 'CCCCCCCC', 'DDDDDDDD', 'EEEEEEEE', 'FFFFFFFF']) {
       expect(JSON.parse(stores.get('maps')!.get(c)!).snapshot.taken).toBe(c)
     }
     vi.restoreAllMocks()
