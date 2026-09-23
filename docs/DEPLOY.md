@@ -105,7 +105,7 @@ these live in the repository, and none should.
 | `SAFETY_HOURLY_CAP` | Reports filed in one hour — a flood is the one way to bury a real one. Since 2026-09-23 it is spent only by a report against a pair that exists, so junk codes cannot bury a real report (`docs/THREAT.md` T2). | `30` |
 | `SAFETY_PROBE_HOURLY_CAP` | Report attempts of any kind in one hour, checked before the pair is looked up — bounds guessing couple codes through the report route. Past it, a miss is a 503, not a 404. | `600` |
 | `PROGRESS_HOURLY_CAP` | Rung reports in one hour — a loop of made-up install codes is the cheapest way to make the readout time out. | `1000` |
-| `RESTORE_HOURLY_CAP` | Maps **restored** in one hour. A six-character code is the sole authenticator for a map, so an unmetered read is an enumeration surface — see `docs/HARD.md`. | `600` |
+| `RESTORE_HOURLY_CAP` | Maps **restored** in one hour. A map code (eight characters since 2026-09-23, six before) is the sole authenticator for a map, so an unmetered read is an enumeration surface. See `docs/HARD.md`, and `docs/SECURITY.md` O8 for why the caps alone were not enough. | `600` |
 | `FORGET_HOURLY_CAP` | Maps **forgotten** in one hour. Possession of the code is the authority, so this one deletes across five stores. | `600` |
 | `COUPLE_READ_HOURLY_CAP` | Joint sheets read back in one hour. | `600` |
 | `VOUCH_READ_HOURLY_CAP` | Vouch lookups (`GET /vouch?code=` or `?token=`) in one hour. Was the one public read with no bucket — an existence oracle over the map code (`docs/THREAT.md` T1). The app reads it twice per open of a kept member nobody has vouched for yet (the read, and one recheck 20 s later), so this binds at roughly 300 such opens an hour; past it the client fails quiet and shows "nobody yet". | `600` |
@@ -162,6 +162,25 @@ only the vouch screen. Old links still vouch — the server accepts both — but
 anyone who received one holds a code that restores a map. There is no way to
 recall them; the honest step is to tell anyone who was sent one before that
 date that the link also opened the map, and that a fresh one does not.
+
+On 2026-09-23 codes became eight characters and tokens ten
+(`docs/SECURITY.md`, O8). Nothing already sent breaks:
+- a six-character map or couple code still opens;
+- an eight-character vouch token still vouches, because the server looks for
+  a token before it takes eight characters as a code.
+
+A `?map=` link now asks "Is this yours?" before it replaces anything on the
+phone. Opening her own link on her own phone does nothing (SECURITY O2).
+
+## Security headers
+
+`netlify.toml` sends `X-Frame-Options: DENY`,
+`Content-Security-Policy: frame-ancestors 'none'`, `nosniff`, a
+`Referrer-Policy`, a `Permissions-Policy` and a year of HSTS on every path
+(`docs/SECURITY.md`, O7). After a deploy, confirm them once:
+`curl -sI https://<host>/ | grep -iE 'x-frame|content-security|strict-transport'`.
+If a future feature ever needs to be framed (an embed, a partner page), that
+is a decision to make here, not a header to delete.
 
 ## The backup
 

@@ -39,6 +39,7 @@ function memStore(name: string) {
 vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
 
 const { default: handler } = await import('../netlify/functions/safety')
+const { TOKEN } = await import('../netlify/shared/code')
 
 const CODE = 'ACDEFG'
 const post = (body: unknown) => handler(new Request('http://x/.netlify/functions/safety', { method: 'POST', body: JSON.stringify(body) }))
@@ -71,13 +72,17 @@ describe('reporting a concern', () => {
   it('accepts a real report, with details capped and optional', async () => {
     const res = await post({ code: CODE, side: 'woman', reason: 'threats', details: 'x'.repeat(900) })
     expect(res.status).toBe(200)
-    expect((await res.json()).received).toBe(true)
+    const answer = await res.json()
+    expect(answer.received).toBe(true)
 
     const stored = JSON.parse([...stores.get('reports')!.values()][0])
+    // The id is the receipt her phone keeps to withdraw it — a token's length,
+    // because it is a secret (docs/SECURITY.md, O1).
+    expect(answer.receipt).toBe(stored.id)
     expect(stored.reason).toBe('threats')
     expect(stored.details.length).toBe(500)
     expect(stored.at).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    expect(stored.id).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{6}$/)
+    expect(stored.id).toMatch(TOKEN)
 
     const bare = await post({ code: CODE, side: 'man', reason: 'other' })
     expect(bare.status).toBe(200)
@@ -207,5 +212,41 @@ describe('resolving a report', () => {
     expect((await resolve(report, 'made-it-up')).status).toBe(400)
     expect((await resolve({ ...report, id: 'HJKMNP' }, 'no-action')).status).toBe(404)
     expect((await resolve(report, 'no-action')).status).toBe(200)
+  })
+})
+
+describe('withdrawing a report', () => {
+  const openReports = () =>
+    [...stores.get('reports')!.entries()].filter(([k]) => !k.startsWith('resolved/')).map(([, v]) => JSON.parse(v))
+  const withdraw = (code: string, side: string, id: string) => del(`code=${code}&side=${side}&id=${id}`)
+
+  it('the receipt takes back exactly that report, and leaves nothing behind', async () => {
+    const { receipt } = await (await post({ code: CODE, side: 'woman', reason: 'threats', details: 'her words' })).json()
+    await post({ code: CODE, side: 'woman', reason: 'harassment' })
+    await post({ code: CODE, side: 'man', reason: 'other' })
+    expect(openReports()).toHaveLength(3)
+
+    const res = await withdraw(CODE, 'woman', receipt)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ withdrawn: true })
+    expect(openReports().map((r) => r.reason).sort()).toEqual(['harassment', 'other'])
+    // Her asking to be forgotten, not the founder deciding: no stub.
+    expect([...stores.get('reports')!.keys()].some((k) => k.startsWith('resolved/'))).toBe(false)
+    // Once.
+    expect((await withdraw(CODE, 'woman', receipt)).status).toBe(404)
+  })
+
+  it('without the receipt nothing moves — not the right code, not the right side, not a guess', async () => {
+    const { receipt } = await (await post({ code: CODE, side: 'woman', reason: 'threats' })).json()
+    // The other side of the pair holds the code, and can name her side; what
+    // he does not hold is the receipt.
+    expect((await withdraw(CODE, 'woman', 'ACDEFGHJKM')).status).toBe(404)
+    expect((await withdraw(CODE, 'man', receipt)).status).toBe(404)
+    // A six-character id is the founder's to resolve, never a withdrawal.
+    expect((await withdraw(CODE, 'woman', 'ACDEFG')).status).toBe(400)
+    expect((await withdraw('nope', 'woman', receipt)).status).toBe(400)
+    // An outcome, or a key, is resolution — which is the founder's alone.
+    expect((await del(`code=${CODE}&side=woman&id=${receipt}&outcome=no-action`)).status).toBe(401)
+    expect(openReports()).toHaveLength(1)
   })
 })

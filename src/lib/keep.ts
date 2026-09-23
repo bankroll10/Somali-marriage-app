@@ -1,6 +1,6 @@
-import { loadProgress, type PersistedState } from './storage'
+import { loadProgress, saveProgress, type PersistedState } from './storage'
 import type { Identity, WaitlistState } from '../types'
-import { CODE_LENGTH, cleanCode } from './code'
+import { cleanCode, isCode } from './code'
 import { send } from './net'
 
 /**
@@ -58,7 +58,7 @@ export function rememberedCode(): string | null {
   }
 }
 
-function rememberCode(code: string) {
+export function rememberCode(code: string) {
   try {
     localStorage.setItem(CODE_KEY, code)
   } catch {
@@ -148,7 +148,7 @@ export type RestoreProblem = 'not-a-code' | 'not-found' | 'expired' | 'unreachab
 /** Fetch a kept map by its code, saying why when it cannot. */
 export async function restoreDetail(code: string): Promise<PersistedState | RestoreProblem> {
   const clean = cleanCode(code)
-  if (clean.length !== CODE_LENGTH) return 'not-a-code'
+  if (!isCode(clean)) return 'not-a-code'
 
   const res = await send(`${ENDPOINT}?code=${encodeURIComponent(clean)}`, { method: 'GET' })
   // No response at all: timed out, offline, or blocked. Her code may be perfect.
@@ -171,7 +171,10 @@ export async function restoreDetail(code: string): Promise<PersistedState | Rest
   try {
     const { snapshot } = (await res.json()) as { snapshot?: KeptSnapshot }
     if (!snapshot || typeof snapshot !== 'object') return 'unreachable'
-    rememberCode(clean)
+    // Fetched, not adopted. This used to remember the code here, so opening
+    // anyone's `?map=` link made their code this phone's own: every keep, join
+    // and vouch-ask after it wrote under a code the sender holds and reads
+    // (docs/SECURITY.md, O2). The caller adopts it, after she says it is hers.
     // A restored map starts the guide fresh — its threads were never kept,
     // including in a snapshot kept before that was true. Her contact was
     // never kept either; the founder already has it from the form.
@@ -183,6 +186,16 @@ export async function restoreDetail(code: string): Promise<PersistedState | Rest
   } catch {
     return 'unreachable'
   }
+}
+
+/**
+ * Make a fetched map this phone's own: its answers into storage, its code as
+ * the one every later keep writes under. Only ever after she has said it is
+ * hers — see src/components/ConfirmRestore.tsx.
+ */
+export function adoptMap(code: string, snapshot: PersistedState): void {
+  saveProgress(snapshot)
+  rememberCode(cleanCode(code))
 }
 
 /** The same, for callers that only need the map or nothing (the `?map=` link). */

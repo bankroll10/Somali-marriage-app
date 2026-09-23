@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs'
-import { CODE } from '../shared/code'
+import { CODE, normalise } from '../shared/code'
+import { readJson } from '../shared/body'
 import { isFounder, notFounder } from '../shared/founder'
 import { day } from '../shared/day'
 import { stamp } from '../shared/record'
@@ -180,7 +181,10 @@ function parseFacts(x: unknown): Facts | null {
     for (const t of x.through) {
       if (typeof t !== 'string') return null
       const colon = t.indexOf(':')
-      const allowed = THROUGH_TOPICS[t.slice(0, colon)]
+      // Own keys only: `constructor:` used to find Object's prototype here and
+      // throw on `.has` (docs/SECURITY.md, O3).
+      const prefix = t.slice(0, colon)
+      const allowed = Object.hasOwn(THROUGH_TOPICS, prefix) ? THROUGH_TOPICS[prefix] : undefined
       if (colon === -1 || !allowed || !allowed.has(t.slice(colon + 1))) return null
     }
     out.through = [...new Set(x.through as string[])].sort()
@@ -212,7 +216,7 @@ function parseFacts(x: unknown): Facts | null {
       if (!isPlain(e) || !onlyKeys(e, ['stage', 'reason', 'which'])) return null
       if (typeof e.stage !== 'string' || !ENDED_STAGES.has(e.stage)) return null
       if (typeof e.reason !== 'string' || !ENDED_REASONS.has(e.reason)) return null
-      const takes = ENDED_WHICH[e.reason]
+      const takes = Object.hasOwn(ENDED_WHICH, e.reason) ? ENDED_WHICH[e.reason] : undefined
       // A which only where the reason takes one, and only from that reason's list.
       if (e.which !== undefined) {
         if (!takes || typeof e.which !== 'string' || !takes.has(e.which)) return null
@@ -535,7 +539,7 @@ export default async function handler(req: Request) {
   // tally, not just the store. Possession of the code is the authority; the
   // code was made on her phone and never left it except in these reports.
   if (req.method === 'DELETE') {
-    const id = (new URL(req.url).searchParams.get('id') ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const id = normalise(new URL(req.url).searchParams.get('id'))
     if (!ID.test(id)) return Response.json({ error: 'bad_id' }, { status: 400 })
     // Bounded like keep.ts's forget, and for the same reason: possession of
     // the id is the authority, so an unmetered DELETE is a destruction
@@ -558,25 +562,12 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
   }
 
-  // Its six siblings all guard this; this one did not, so a truncated or
-  // aborted upload was an uncaught rejection and whatever the platform emits
-  // — not a 400, not JSON (docs/FAIL.md).
-  let raw: string
-  try {
-    raw = await req.text()
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
-  if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
+  // Its six siblings all guarded a truncated upload; this one did not
+  // (docs/FAIL.md). All seven now read the same way — netlify/shared/body.ts.
+  const body = await readJson<{ id?: unknown; rungs?: unknown; scene?: string; country?: string; via?: string; gender?: string; facts?: unknown }>(req, MAX_BODY)
+  if (body instanceof Response) return body
 
-  let body: { id?: string; rungs?: unknown; scene?: string; country?: string; via?: string; gender?: string; facts?: unknown }
-  try {
-    body = JSON.parse(raw)
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
-
-  const id = (body.id ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const id = normalise(body.id)
   if (!ID.test(id)) return Response.json({ error: 'bad_id' }, { status: 400 })
   if (!Array.isArray(body.rungs)) return Response.json({ error: 'bad_rungs' }, { status: 400 })
 

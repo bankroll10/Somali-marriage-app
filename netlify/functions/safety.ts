@@ -2,9 +2,10 @@ import { getStore } from '@netlify/blobs'
 import { notFounder, requireFounder } from '../shared/founder'
 import { GENDERS, SAFETY_OUTCOMES, SAFETY_REASONS } from '../shared/vocab'
 import { day } from '../shared/day'
+import { readJson } from '../shared/body'
 import { stamp } from '../shared/record'
 import { overHourlyCap, rateLimited } from '../shared/limit'
-import { CODE, newCode, normalise } from '../shared/code'
+import { CODE, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
 
 /**
  * The one report a member can make about a real, named person.
@@ -60,6 +61,16 @@ import { CODE, newCode, normalise } from '../shared/code'
  * probe bucket, the pair is checked, and only a report against a pair that
  * exists spends the reporting cap: burying real reports needs thirty live
  * couple codes an hour, not thirty strings.
+ *
+ * **Withdrawn only by receipt** (docs/SECURITY.md, O1). Filing a report hands
+ * back its id, which is the report's receipt: a token nobody else ever sees —
+ * not the other person, not the couple record, not any public route. Forget me
+ * on her phone withdraws her reports by sending it. Before this, forget me in
+ * netlify/functions/keep.ts deleted every report under `${couple}-${side}-`,
+ * with both values read from a snapshot the caller had written — so the
+ * reported man could keep a map that claimed to be her and erase her reports
+ * by forgetting it. Only a person holding a report's receipt can withdraw it;
+ * only the founder can resolve one.
  */
 
 const MAX_BODY = 2_000
@@ -88,7 +99,13 @@ interface Report {
   at: string
 }
 
-/** One key per report, so nothing can overwrite anything. */
+/**
+ * One key per report, so nothing can overwrite anything. The id is a token's
+ * length, not a code's: it is the receipt that withdraws the report, so it is
+ * a secret, and eight characters of it is what a guess has to find on top of
+ * the couple code. Reports filed before 2026-09-23 carry a six-character id
+ * and no receipt anyone holds; the founder resolves those.
+ */
 function keyFor(code: string, side: string, id: string): string {
   return `${code}-${side}-${id}`
 }
@@ -137,21 +154,10 @@ export default async function handler(req: Request) {
   }
 
   if (req.method === 'POST') {
-    let text: string
-    try {
-      text = await req.text()
-    } catch {
-      return Response.json({ error: 'bad_json' }, { status: 400 })
-    }
-    if (text.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
-    let body: { code?: string; side?: string; reason?: string; details?: unknown }
-    try {
-      body = JSON.parse(text)
-    } catch {
-      return Response.json({ error: 'bad_json' }, { status: 400 })
-    }
+    const body = await readJson<{ code?: unknown; side?: string; reason?: string; details?: unknown }>(req, MAX_BODY)
+    if (body instanceof Response) return body
 
-    const code = (body.code ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+    const code = normalise(body.code)
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
     if (!GENDERS.has(body.side ?? '')) return Response.json({ error: 'bad_side' }, { status: 400 })
     if (!SAFETY_REASONS.has(body.reason ?? '')) return Response.json({ error: 'bad_reason' }, { status: 400 })
@@ -177,7 +183,7 @@ export default async function handler(req: Request) {
     // cannot bury the queue (see the header).
     if (await overHourlyCap('safety', DEFAULT_HOURLY_CAP)) return rateLimited()
 
-    const id = newCode()
+    const id = newCode(TOKEN_LENGTH)
     const record: Report = { id, code, side: body.side as 'woman' | 'man', reason: body.reason!, ...(details ? { details } : {}), at: day() }
     try {
       await store.setJSON(keyFor(code, body.side!, id), stamp(record))
@@ -185,7 +191,8 @@ export default async function handler(req: Request) {
       console.error('[niyyah] safety: write failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
-    return Response.json({ received: true })
+    // The receipt. Her phone keeps it, and forget me sends it back.
+    return Response.json({ received: true, receipt: id })
   }
 
   if (req.method === 'DELETE') {
@@ -193,13 +200,38 @@ export default async function handler(req: Request) {
     // what is left: the kind of harm, the day, and what was done about it —
     // joined to nobody. Deleting outright made "resolved" and "never happened"
     // the same byte. See docs/HARD.md.
-    if (!requireFounder(req)) return notFounder()
     const params = new URL(req.url).searchParams
     const code = normalise(params.get('code'))
     const side = params.get('side') ?? ''
     const id = normalise(params.get('id'))
+
+    // ── Withdrawn, by the person who filed it ─────────────────────────────
+    // No key and no outcome: she is taking back her own report, with the
+    // receipt only she was ever given. Nothing is left behind — this is her
+    // asking to be forgotten, not the founder deciding what happened.
+    if (!params.has('outcome') && !req.headers.has('authorization')) {
+      if (!CODE.test(code) || !GENDERS.has(side) || !TOKEN.test(id)) {
+        return Response.json({ error: 'bad_request' }, { status: 400 })
+      }
+      // A wrong receipt is a 404, so every attempt is metered like any other
+      // guess at a pair.
+      if (await overHourlyCap('safety-probe', DEFAULT_PROBE_CAP)) return rateLimited()
+      try {
+        const key = keyFor(code, side, id)
+        if (!(await store.getMetadata(key))) return Response.json({ error: 'not_found' }, { status: 404 })
+        await store.delete(key)
+      } catch (err) {
+        console.error('[niyyah] safety: withdraw failed', err)
+        return Response.json({ error: 'unavailable' }, { status: 503 })
+      }
+      return Response.json({ withdrawn: true })
+    }
+
+    if (!requireFounder(req)) return notFounder()
     const outcome = params.get('outcome') ?? ''
-    if (!CODE.test(code) || !GENDERS.has(side) || !CODE.test(id) || !SAFETY_OUTCOMES.has(outcome)) {
+    // Reports filed before receipts carry a six-character id; the founder
+    // resolves both.
+    if (!CODE.test(code) || !GENDERS.has(side) || !(CODE.test(id) || TOKEN.test(id)) || !SAFETY_OUTCOMES.has(outcome)) {
       return Response.json({ error: 'bad_request' }, { status: 400 })
     }
     try {

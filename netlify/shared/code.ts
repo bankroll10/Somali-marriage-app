@@ -23,22 +23,44 @@
  * lines rather than after it is load-bearing. Bytes at or above 253 are thrown
  * away and drawn again, so every symbol is exactly as likely as every other.
  *
- * **What a code is worth.** Six symbols is 23⁶ ≈ 148 million, about 27 bits —
- * roughly an eight-digit PIN, and the *sole* authenticator for a kept map. That
- * is a deliberate trade for having no accounts (`docs/CONTROL.md`), and it is
- * why minting must never overwrite (see `mint` below) and why the routes that
- * redeem a code are rate limited (`netlify/shared/limit.ts`).
+ * **What a code is worth.** It is the *sole* authenticator for a kept map — a
+ * deliberate trade for having no accounts (`docs/CONTROL.md`) — which is why
+ * minting must never overwrite (see `mint` below) and why every route that
+ * redeems a code is rate limited (`netlify/shared/limit.ts`).
+ *
+ * **Eight symbols, since 2026-09-23.** Six was 23⁶ ≈ 148 million, about 27
+ * bits, kept on the premise that the read caps bound enumeration
+ * (docs/BOARD.md decision 12). They bound the *rate*, not the *fraction*: six
+ * routes each answer "does this map code exist?" on their own hourly cap —
+ * 2,400 guesses an hour, 21 million a year — so one patient script found about
+ * 14% of all kept maps a year at any membership size, two of those routes
+ * destructive (docs/SECURITY.md, O8). Eight is 23⁸ ≈ 78 billion, 512 times the
+ * space: the same script finds about 0.03% a year. Codes minted before stay six
+ * and keep working everywhere — `CODE` accepts both — and read aloud as two
+ * groups of four (`ACDE FGHJ`), eight is no harder to say than six.
  */
 
 export const ALPHABET = 'ACDEFGHJKMNPQRTWXY34789'
 
-/** A map code, a couple code, an install id. */
-export const CODE_LENGTH = 6
-/** A vouch token. Eight, never six: a token is not a code and cannot be mistaken for one. */
-export const TOKEN_LENGTH = 8
+/** A map code, a couple code, an install id, as minted from 2026-09-23. */
+export const CODE_LENGTH = 8
+/** What every code was before that, and still is for anyone who kept one. */
+export const LEGACY_CODE_LENGTH = 6
+/**
+ * A vouch token, a report receipt, a couple owner key. Ten, never eight: a
+ * token is not a code and must never be mistaken for one. Tokens were eight
+ * until codes became eight; those already sent still resolve (`LEGACY_TOKEN`).
+ */
+export const TOKEN_LENGTH = 10
 
-export const CODE = /^[ACDEFGHJKMNPQRTWXY34789]{6}$/
-export const TOKEN = /^[ACDEFGHJKMNPQRTWXY34789]{8}$/
+/** A map code, a couple code or an install id: six characters (kept before 2026-09-23) or eight. */
+export const CODE = /^(?:[ACDEFGHJKMNPQRTWXY34789]{6}|[ACDEFGHJKMNPQRTWXY34789]{8})$/
+export const TOKEN = /^[ACDEFGHJKMNPQRTWXY34789]{10}$/
+/**
+ * A vouch token minted before 2026-09-23 — the same shape as a new map code.
+ * Only netlify/functions/vouch.ts meets both, and it looks for a token first.
+ */
+export const LEGACY_TOKEN = /^[ACDEFGHJKMNPQRTWXY34789]{8}$/
 
 /** The largest multiple of the alphabet that fits in a byte. Above it, draw again. */
 const LIMIT = 256 - (256 % ALPHABET.length)
@@ -61,10 +83,10 @@ export function normalise(raw: unknown): string {
 }
 
 /**
- * How many codes to try before giving up. A collision is a coin-flip at ~14,300
- * kept maps and a certainty well before a hundred thousand, so this is not a
- * theoretical guard — but two collisions in a row is not a scale this product
- * will ever see, and if it does, a 503 is the right answer rather than a write.
+ * How many codes to try before giving up. At six characters a collision was a
+ * coin-flip at ~14,300 kept maps; at eight it is one at ~330,000, and still not
+ * a theoretical guard — but two in a row is not a scale this product will ever
+ * see, and if it does, a 503 is the right answer rather than a write.
  */
 export const MINT_ATTEMPTS = 5
 

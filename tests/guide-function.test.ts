@@ -152,6 +152,22 @@ describe('the bounds on one call', () => {
   })
 })
 
+describe('a body that could never reach the model', () => {
+  // docs/SECURITY.md, O3: each of these threw past the handler (a `null` body,
+  // a number for the message, an object for the history), and every junk body
+  // was only checked after the day's and the hour's caps had been spent.
+  it('is a 400 — never a crash, never a call, and never a unit of the day’s budget', async () => {
+    vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
+    for (const body of ['null', '[]', '7', JSON.stringify({ mode: 'auntie', message: 7 }), JSON.stringify({ mode: 'auntie', message: 'hi', history: {} })]) {
+      const res = await ask(body)
+      expect(res.status).toBe(400)
+      expect((await res.json()).error).toBeTruthy()
+    }
+    expect(stream).not.toHaveBeenCalled()
+    expect(limits.size).toBe(0)
+  })
+})
+
 describe('who owns the prompt', () => {
   // Until the reality-sprint pass the caller sent the system prompt and this
   // function passed it through, which made the route a general-purpose Claude

@@ -2,6 +2,7 @@ import { rememberedCode } from './keep'
 import { rememberedInstallId } from './progress'
 import { clearProgress, loadProgress } from './storage'
 import { send } from './net'
+import { rememberedReceipts, withdrawReport } from './safety'
 
 /**
  * Forget me.
@@ -43,6 +44,7 @@ export const LOCAL_KEYS = [
   'niyyah.draft.v1',
   // The coded link this device is part-way through — see src/lib/entry.ts.
   'niyyah.entry.v1',
+  'niyyah.reports.v1',
 ]
 
 async function del(url: string): Promise<boolean> {
@@ -58,6 +60,8 @@ export interface Forgotten {
   progress: boolean
   /** The eleven she sent him — or true when she never sent one. */
   couple: boolean
+  /** Every concern she reported from this phone, withdrawn — or true when there were none. */
+  reports: boolean
 }
 
 export async function forgetMe(): Promise<Forgotten> {
@@ -67,13 +71,17 @@ export async function forgetMe(): Promise<Forgotten> {
   // already gone — the map cascade may well have taken the couple with it —
   // which is the same as done.
   const pair = loadProgress()?.couple?.code
-  const [map, progress, couple] = await Promise.all([
+  const receipts = rememberedReceipts()
+  const [map, progress, couple, reports] = await Promise.all([
     code ? del(`${KEEP}?code=${encodeURIComponent(code)}`) : Promise.resolve(true),
     id ? del(`${PROGRESS}?id=${encodeURIComponent(id)}`) : Promise.resolve(true),
     pair ? del(`${COUPLE}?code=${encodeURIComponent(pair)}`) : Promise.resolve(true),
+    // Her reports go by their receipts, never by anything a kept map says —
+    // see netlify/functions/safety.ts.
+    Promise.all(receipts.map(withdrawReport)).then((all) => all.every(Boolean)),
   ])
   clearEverything()
-  return { map, progress, couple }
+  return { map, progress, couple, reports }
 }
 
 /**

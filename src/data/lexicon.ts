@@ -101,7 +101,7 @@ export const LEXICON: Term[] = [
   {
     id: 'code',
     term: 'Your code',
-    body: 'Six characters that bring your map back on any phone. Registered to nobody, and there is no account behind it — which is why keeping it matters.',
+    body: 'Eight characters that bring your map back on any phone. Registered to nobody, and there is no account behind it — which is why keeping it matters.',
   },
   {
     id: 'counted',

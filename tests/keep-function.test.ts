@@ -61,7 +61,8 @@ describe('keeping a map', () => {
     const res = await post({ snapshot: { identity: { firstName: 'Sagal' }, answers: {} } })
     expect(res.status).toBe(200)
     const { code } = await res.json()
-    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{6}$/)
+    // Eight characters since 2026-09-23 (docs/SECURITY.md, O8).
+    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{8}$/)
     const restored = await get(code)
     // Her whole map, keyed by a secret in the URL: never cached, by a browser
     // or anything between (docs/THREAT.md, T4). Nor is "nothing here".
@@ -131,9 +132,23 @@ describe('keeping a map', () => {
     expect(again.snapshot.answers.timeline).toBe('1-2')
   })
 
-  it('an eight-character vouch token is not a code, and opens nothing', async () => {
+  it('a vouch token is not a code, and opens nothing', async () => {
     seed('ACDEFG', { identity: { firstName: 'Sagal' } })
-    expect((await get('ACDEFGHJ')).status).toBe(400)
+    // Ten characters: never a code's shape.
+    expect((await get('ACDEFGHJKM')).status).toBe(400)
+    // Eight is a code's shape now, and a token minted before that is eight —
+    // but tokens live in the vouches store, so nothing is kept under one here.
+    expect((await get('ACDEFGHJ')).status).toBe(404)
+  })
+
+  it('a code kept at six characters, before codes were eight, still comes back', async () => {
+    seed('HJKMNP', { identity: { firstName: 'Sagal' } })
+    expect((await (await get('HJKMNP')).json()).snapshot.identity.firstName).toBe('Sagal')
+    // And an eight-character one, as minted now.
+    seed('HJKMNPQR', { identity: { firstName: 'Hodan' } })
+    expect((await (await get('hjkm-npqr')).json()).snapshot.identity.firstName).toBe('Hodan')
+    // Any other length, and anything off the alphabet, is not a code.
+    for (const bad of ['HJKMNPQ', 'HJKMN', 'HJKMNPQRT', 'OOOOOO', 'H0KMNP']) expect((await get(bad)).status).toBe(400)
   })
 
   it('forgetting a code removes the map, the pair, the vouch and its token, and the door entry — and a second time is a quiet 404', async () => {
@@ -158,7 +173,7 @@ describe('keeping a map', () => {
 
     const res = await forget('ACDEFG')
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ forgotten: true, reportsTaken: true })
+    expect(await res.json()).toEqual({ forgotten: true })
     expect(stores.get('maps')!.has('ACDEFG')).toBe(false)
     expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
     expect([...stores.get('vouches')!.keys()]).toEqual([])
@@ -167,10 +182,10 @@ describe('keeping a map', () => {
     // to delete it by hand. See docs/OWNED.md.
     expect(stores.get('contacts')!.has('ACDEFG')).toBe(false)
     expect(stores.get('contacts')!.has('QRTWXY')).toBe(true)
-    // Her words about what happened go with the rest of it — the one store the
-    // cascade used to miss (docs/HARD.md). A resolved stub carries no code and
-    // nothing of hers, so it stays.
-    expect(stores.get('reports')!.has('HJKMNP-woman-ACDEFG')).toBe(false)
+    // Reports are not this cascade's to touch: a report is withdrawn by the
+    // receipt its filer holds (netlify/functions/safety.ts), because anything
+    // read from a snapshot is whatever the caller wrote (docs/SECURITY.md, O1).
+    expect(stores.get('reports')!.has('HJKMNP-woman-ACDEFG')).toBe(true)
     expect(stores.get('reports')!.has('resolved/QRTWXY')).toBe(true)
     expect(stores.get('couples')!.has('QRTWXY')).toBe(true)
     // Nothing left to forget.
@@ -178,61 +193,30 @@ describe('keeping a map', () => {
     expect((await get('ACDEFG')).status).toBe(404)
   })
 
-  it('says so when it cannot take her reports, rather than reporting the promise kept', async () => {
-    // Reports are keyed by the side that filed them, so without a side there
-    // is no safe prefix to delete under — taking both would let a reported man
-    // erase the report about himself. The cascade skipped them and answered
-    // `{ forgotten: true }` anyway, which is Trust's promise reported kept
-    // when part of it was not (docs/FAIL.md).
-    seed('ACDEFG', { identity: { firstName: 'Sagal' }, couple: { code: 'HJKMNP', at: 'x' } })
-    memStore('couples'); memStore('vouches'); memStore('cohort'); memStore('contacts')
-    memStore('reports')
-    stores.get('reports')!.set('HJKMNP-woman-ACDEFG', JSON.stringify({ id: 'ACDEFG', code: 'HJKMNP', side: 'woman', reason: 'threats', at: 'd' }))
-
-    const res = await forget('ACDEFG')
-    expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ forgotten: true, reportsTaken: false })
-    // The phone and the map are gone either way; only the report stayed.
-    expect(stores.get('maps')!.has('ACDEFG')).toBe(false)
-    expect(stores.get('reports')!.has('HJKMNP-woman-ACDEFG')).toBe(true)
-  })
-
-  it('a man’s forget me leaves her report about him exactly where it was', async () => {
-    // He sent her the eleven, kept his map, and she reported him. Both hold
-    // the couple code, so until 2026-09-17 his forget me took her report with
-    // his sheet — the one thing netlify/functions/couple.ts says must never
-    // happen (docs/RISKS.md R4). Her words stay; only his own filings go.
-    seed('ACDEFG', { identity: { gender: 'man' }, couple: { code: 'HJKMNP', at: 'x' } })
-    memStore('couples').setJSON('HJKMNP', { creator: 'man', first: {} })
-    memStore('reports')
-    stores.get('reports')!.set('HJKMNP-woman-QRTWXY', JSON.stringify({ id: 'QRTWXY', code: 'HJKMNP', side: 'woman', reason: 'threats', details: 'her words', at: 'd' }))
-    stores.get('reports')!.set('HJKMNP-man-BCDFGH', JSON.stringify({ id: 'BCDFGH', code: 'HJKMNP', side: 'man', reason: 'other', at: 'd' }))
-
-    expect((await forget('ACDEFG')).status).toBe(200)
-    expect(stores.get('reports')!.has('HJKMNP-woman-QRTWXY')).toBe(true)
-    expect(stores.get('reports')!.has('HJKMNP-man-BCDFGH')).toBe(false)
-    expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
-  })
-
-  it('her forget me takes her report and leaves his — and a map with no side takes none', async () => {
-    seed('ACDEFG', { identity: { gender: 'woman' }, couple: { code: 'HJKMNP', at: 'x' } })
-    memStore('reports')
-    stores.get('reports')!.set('HJKMNP-woman-QRTWXY', JSON.stringify({ id: 'QRTWXY', code: 'HJKMNP', side: 'woman', reason: 'threats', at: 'd' }))
-    stores.get('reports')!.set('HJKMNP-man-BCDFGH', JSON.stringify({ id: 'BCDFGH', code: 'HJKMNP', side: 'man', reason: 'other', at: 'd' }))
-    expect((await forget('ACDEFG')).status).toBe(200)
-    expect(stores.get('reports')!.has('HJKMNP-woman-QRTWXY')).toBe(false)
-    expect(stores.get('reports')!.has('HJKMNP-man-BCDFGH')).toBe(true)
-
-    // An older snapshot that never said which side it was: nothing in reports
-    // is guessed at, so nothing in reports is deleted.
-    seed('JKMNPQ', { identity: {}, couple: { code: 'HJKMNP', at: 'x' } })
-    expect((await forget('JKMNPQ')).status).toBe(200)
-    expect(stores.get('reports')!.has('HJKMNP-man-BCDFGH')).toBe(true)
+  it('takes no report on either side, whatever the snapshot claims — a report goes only by its receipt', async () => {
+    // This cascade used to delete `${couple}-${side}-*`, with both read out of
+    // the snapshot. A snapshot is whatever the caller POSTed, so a reported man
+    // could keep a map claiming to be her and erase her reports by forgetting
+    // it (docs/SECURITY.md, O1; tests/security-audit.test.ts). Now neither
+    // side's report moves, and the sheet — which any code holder can delete
+    // anyway — is the only thing a snapshot can name.
+    for (const [code, gender] of [['ACDEFG', 'woman'], ['JKMNPQ', 'man'], ['QRTWXY', undefined]] as const) {
+      seed(code, { identity: { gender }, couple: { code: 'HJKMNP', at: 'x' } })
+      memStore('couples').setJSON('HJKMNP', { creator: 'woman', first: {} })
+      memStore('reports')
+      stores.get('reports')!.set('HJKMNP-woman-QRTWXYAC', JSON.stringify({ id: 'QRTWXYAC', code: 'HJKMNP', side: 'woman', reason: 'threats', at: 'd' }))
+      stores.get('reports')!.set('HJKMNP-man-BCDFGHJK', JSON.stringify({ id: 'BCDFGHJK', code: 'HJKMNP', side: 'man', reason: 'other', at: 'd' }))
+      const res = await forget(code)
+      expect(res.status).toBe(200)
+      expect(await res.json()).toEqual({ forgotten: true })
+      expect(stores.get('reports')!.size).toBe(2)
+      expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
+    }
   })
 
   it('forgetting needs a code the right shape', async () => {
     expect((await forget('nope')).status).toBe(400)
-    expect((await forget('ACDEFGHJ')).status).toBe(400)
+    expect((await forget('ACDEFGHJKM')).status).toBe(400)
   })
 
   it('refuses a snapshot that is not an object, and a bad code', async () => {
@@ -267,31 +251,31 @@ describe('a minted code never lands on somebody', () => {
 
   it('retries onto a free code, and leaves the taken one exactly as it was', async () => {
     const hers = { snapshot: { identity: { firstName: 'Sagal' } }, createdAt: '2026-01-01', expiresAt: '2027-01-01' }
-    memStore('maps').setJSON('AAAAAA', hers)
-    vi.spyOn(crypto, 'getRandomValues').mockImplementation(drawing('AAAAAA', 'CCCCCC') as never)
+    memStore('maps').setJSON('AAAAAAAA', hers)
+    vi.spyOn(crypto, 'getRandomValues').mockImplementation(drawing('AAAAAAAA', 'CCCCCCCC') as never)
 
     const res = await post({ snapshot: { identity: { firstName: 'Hodan' } } })
     expect(res.status).toBe(200)
-    expect((await res.json()).code).toBe('CCCCCC')
+    expect((await res.json()).code).toBe('CCCCCCCC')
 
     // Hers is untouched, byte for byte.
-    expect(JSON.parse(stores.get('maps')!.get('AAAAAA')!)).toEqual(hers)
+    expect(JSON.parse(stores.get('maps')!.get('AAAAAAAA')!)).toEqual(hers)
     // And the new map really is stored, under the code that was free.
-    expect(JSON.parse(stores.get('maps')!.get('CCCCCC')!).snapshot.identity.firstName).toBe('Hodan')
+    expect(JSON.parse(stores.get('maps')!.get('CCCCCCCC')!).snapshot.identity.firstName).toBe('Hodan')
     vi.restoreAllMocks()
   })
 
   it('refuses rather than overwrites when every attempt collides', async () => {
-    for (const c of ['AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF']) {
+    for (const c of ['AAAAAAAA', 'CCCCCCCC', 'DDDDDDDD', 'EEEEEEEE', 'FFFFFFFF']) {
       memStore('maps').setJSON(c, { snapshot: { taken: c }, createdAt: 'd', expiresAt: 'z' })
     }
     vi.spyOn(crypto, 'getRandomValues').mockImplementation(
-      drawing('AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF') as never,
+      drawing('AAAAAAAA', 'CCCCCCCC', 'DDDDDDDD', 'EEEEEEEE', 'FFFFFFFF') as never,
     )
     // Failing to save is recoverable — her map is still on her phone.
     // Overwriting one of these five is not.
     expect((await post({ snapshot: { identity: { firstName: 'Hodan' } } })).status).toBe(503)
-    for (const c of ['AAAAAA', 'CCCCCC', 'DDDDDD', 'EEEEEE', 'FFFFFF']) {
+    for (const c of ['AAAAAAAA', 'CCCCCCCC', 'DDDDDDDD', 'EEEEEEEE', 'FFFFFFFF']) {
       expect(JSON.parse(stores.get('maps')!.get(c)!).snapshot.taken).toBe(c)
     }
     vi.restoreAllMocks()

@@ -137,3 +137,12 @@ _Dated, one line each: an inversion found or a trigger fired._
   (`vouch-read`). The safety route spent its 30-an-hour reporting cap before
   checking the pair existed, so junk could bury a real report; it now spends
   a probe bucket first and the reporting cap only on a live pair.
+- 2026-09-23 — The OWASP audit (`docs/SECURITY.md`) found two things here
+  wrong in practice. First, the 2026-09-17 fix for "a reported man erases her
+  report" was incomplete: the cascade took both the couple code and the side
+  from a snapshot the caller writes. Reports now go only by the receipt their
+  filer was handed. Second, row 3's premise that "the read caps bound
+  enumeration" held for the rate, not the fraction: six code-gated routes
+  gave one script about 14% of kept maps a year. BOARD decision 12's six
+  characters became eight for every code minted from now on, and six still
+  works.

@@ -487,7 +487,7 @@ export function useNiyyah(entry: Entry | null = null) {
     // replace regardless, so a timed-out DELETE left her kept map on the
     // server and showed her a stranger's app as proof it was gone — against
     // the one promise this product is built on (docs/NORMAN.md).
-    if (result.map && result.progress && result.couple) window.location.replace('/')
+    if (result.map && result.progress && result.couple && result.reports) window.location.replace('/')
     return result
   }
 

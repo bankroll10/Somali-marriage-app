@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
-import { CODE, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
+import { CODE, LEGACY_TOKEN, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
 import { day } from '../shared/day'
+import { readJson } from '../shared/body'
 import { stamp } from '../shared/record'
 import { floor } from '../shared/floor'
 import { isFounder, notFounder } from '../shared/founder'
@@ -84,17 +85,28 @@ const newToken = () => newCode(TOKEN_LENGTH)
 
 type Store = ReturnType<typeof getStore>
 
+/** A token as minted now, or as minted before codes became eight characters. */
+const isToken = (s: string) => TOKEN.test(s) || LEGACY_TOKEN.test(s)
+
 /**
  * A token or a code, to the code. Her own screens send the code; the family
  * member's link sends the token; an older link sends the code. Anything else
  * is nothing.
+ *
+ * Eight characters is two things: a token minted before 2026-09-23, or a map
+ * code minted after it (netlify/shared/code.ts). A token is looked for first —
+ * the link a relative is holding must keep working — and only when there is
+ * none is it taken as a code. Both are random over 78 billion, so one string
+ * being both is not a case this has to decide.
  */
 async function resolve(store: Store, raw: unknown): Promise<string | null> {
   const key = normalise(raw)
-  if (CODE.test(key)) return key
-  if (!TOKEN.test(key)) return null
-  const code = (await store.get(`token/${key}`, { type: 'text' })) as string | null
-  return code && CODE.test(code) ? code : null
+  if (isToken(key)) {
+    const code = (await store.get(`token/${key}`, { type: 'text' })) as string | null
+    if (code && CODE.test(code)) return code
+    if (TOKEN.test(key)) return null
+  }
+  return CODE.test(key) ? key : null
 }
 
 /**
@@ -157,7 +169,7 @@ export default async function handler(req: Request) {
     // `GET /keep`. Then the cap, before `resolve`: the token lookup is itself
     // the oracle, so it must be metered too, not only the read behind it.
     const shaped = normalise(raw)
-    if (!CODE.test(shaped) && !TOKEN.test(shaped)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    if (!CODE.test(shaped) && !isToken(shaped)) return Response.json({ error: 'bad_code' }, { status: 400 })
     if (await overHourlyCap('vouch-read', DEFAULT_READ_CAP)) return rateLimited()
     let code: string | null
     try {
@@ -187,19 +199,8 @@ export default async function handler(req: Request) {
 
   if (req.method !== 'POST') return Response.json({ error: 'GET or POST only' }, { status: 405 })
 
-  let text: string
-  try {
-    text = await req.text()
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
-  if (text.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
-  let body: { side?: string; code?: string; relationship?: string; firstName?: string; sentence?: string; phone?: string }
-  try {
-    body = JSON.parse(text)
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
+  const body = await readJson<{ side?: string; code?: unknown; relationship?: unknown; firstName?: unknown; sentence?: unknown; phone?: unknown }>(req, MAX_BODY)
+  if (body instanceof Response) return body
 
   // ── She asks: mint the token her link will carry ──────────────────────────
   if (body.side === 'ask') {
@@ -212,7 +213,7 @@ export default async function handler(req: Request) {
       // One token per map, reused: asking twice sends the same link, and
       // forgetting a map has one token to find.
       const existing = (await store.get(`asked/${code}`, { type: 'text' })) as string | null
-      if (existing && TOKEN.test(existing)) {
+      if (existing && isToken(existing)) {
         // Confirm the pointer is really there. A half-written ask used to
         // leave `asked/` naming a token that resolved to nothing, and every
         // later ask handed back the same dead link.
@@ -229,7 +230,7 @@ export default async function handler(req: Request) {
       const claimed = await store.set(`asked/${code}`, token, { onlyIfNew: true })
       if (!claimed.modified) {
         const winner = (await store.get(`asked/${code}`, { type: 'text' })) as string | null
-        if (winner && TOKEN.test(winner)) return Response.json({ token: winner })
+        if (winner && isToken(winner)) return Response.json({ token: winner })
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
       await store.set(`token/${token}`, code)
@@ -241,14 +242,12 @@ export default async function handler(req: Request) {
   }
 
   // ── A family member vouches, with the token from the link ─────────────────
-  let code: string | null
-  try {
-    code = await resolve(store, body.code)
-  } catch (err) {
-    console.error('[niyyah] vouch: token lookup failed', err)
-    return Response.json({ error: 'unavailable' }, { status: 503 })
-  }
-  if (!code) return Response.json({ error: 'bad_code' }, { status: 400 })
+  // Shape, then the fields, then the cap, and only then the token lookup
+  // (docs/SECURITY.md, O5). This used to resolve the token first: an unknown
+  // one answered `bad_code` and a live one went on to `bad_relationship`, so
+  // any malformed body told a caller which tokens were live, at no cost.
+  const shaped = normalise(body.code)
+  if (!CODE.test(shaped) && !isToken(shaped)) return Response.json({ error: 'bad_code' }, { status: 400 })
   const relationship = clean(body.relationship, 20)
   const firstName = clean(body.firstName, 40)
   const sentence = clean(body.sentence, 280)
@@ -259,6 +258,15 @@ export default async function handler(req: Request) {
 
   // Bounded, like every public write — after validation, before any read.
   if (await overHourlyCap('vouch', DEFAULT_HOURLY_CAP)) return rateLimited()
+
+  let code: string | null
+  try {
+    code = await resolve(store, shaped)
+  } catch (err) {
+    console.error('[niyyah] vouch: token lookup failed', err)
+    return Response.json({ error: 'unavailable' }, { status: 503 })
+  }
+  if (!code) return Response.json({ error: 'bad_code' }, { status: 400 })
 
   // A vouch attaches to a kept map. A code nobody has kept a map under is not a
   // person, and is not vouched for.

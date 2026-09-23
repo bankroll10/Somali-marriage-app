@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { restoreDetail, type RestoreProblem } from '../lib/keep'
-import { CODE_LENGTH, EXAMPLE_CODE, cleanCode } from '../lib/code'
-import { saveProgress } from '../lib/storage'
+import { adoptMap, restoreDetail, type RestoreProblem } from '../lib/keep'
+import { CODE_LENGTH, EXAMPLE_CODE, cleanCode, formatCode, isCode } from '../lib/code'
 import { track } from '../lib/analytics'
 import { Spinner, fieldClass } from './ui'
 
@@ -28,7 +27,7 @@ export default function RestoreMap() {
     // Checked here, before anything is spent. A code of the wrong length was
     // costing a network round trip and a second and a half to come back as
     // "no map found", which is not what was wrong (docs/NORMAN.md).
-    if (code.length !== CODE_LENGTH) {
+    if (!isCode(code)) {
       setState('not-a-code')
       return
     }
@@ -39,13 +38,15 @@ export default function RestoreMap() {
       return
     }
     track('map_restored')
-    saveProgress(result)
+    // She typed this code herself, on the welcome screen — the consent a link
+    // someone else sent her cannot give (docs/SECURITY.md, O2).
+    adoptMap(code, result)
     window.location.href = window.location.pathname
   }
 
   /** One sentence per reason, because the reasons want different things done. */
   const problem: Record<RestoreProblem, string> = {
-    'not-a-code': `A code is ${CODE_LENGTH} characters, like ${EXAMPLE_CODE} — check for a missing one.`,
+    'not-a-code': `A code is ${CODE_LENGTH} characters, like ${formatCode(EXAMPLE_CODE)} (six, if you kept yours before September 2026) — check for a missing one.`,
     'not-found': 'No map is kept under that code. Check it against the one you saved.',
     expired: 'That code has lapsed. A kept map is held for a year after the last time it was kept, and this one is past that, so there is nothing left to bring back.',
     unreachable: 'We could not reach the map just now — that is us, not your code. Nothing has been changed; try again in a moment.',
@@ -81,7 +82,7 @@ export default function RestoreMap() {
             setCode(cleanCode(e.target.value))
             if (state !== 'idle' && state !== 'checking') setState('idle')
           }}
-          placeholder={EXAMPLE_CODE}
+          placeholder={formatCode(EXAMPLE_CODE)}
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck={false}

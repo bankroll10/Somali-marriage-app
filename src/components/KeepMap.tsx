@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { keepMap, rememberedCode, restoreLink } from '../lib/keep'
+import { formatCode } from '../lib/code'
 import { SITE_URL } from '../lib/site'
 import { track } from '../lib/analytics'
 import { Announce, ArrowRight, CheckIcon, Spinner } from './ui'
@@ -77,7 +78,7 @@ export default function KeepMap({ onKept }: Props = {}) {
           on any phone, even if you lose this one.
         </p>
         <p className="mt-4 select-all text-center font-display text-[2rem] font-medium tracking-[0.3em] text-forest tabular-nums">
-          {code}
+          {formatCode(code)}
         </p>
         <button
           onClick={copyLink}

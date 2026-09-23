@@ -109,7 +109,7 @@ describe('the joint', () => {
 describe('the handshake', () => {
   it('she creates, he sees it is open for a man, and until he answers she is waiting', async () => {
     const { code } = await (await post({ side: 'first', gender: 'woman', states: sides() })).json()
-    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{6}$/)
+    expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{8}$/)
     expect(await (await get(code)).json()).toEqual({ status: 'open', answerFor: 'man' })
   })
 
@@ -134,12 +134,13 @@ describe('the handshake', () => {
   })
 
   it('freezes her side the moment he has answered, and his after once', async () => {
-    const { code } = await (await post({ side: 'first', gender: 'woman', states: sides() })).json()
-    // She may still change her mind while he has not answered.
-    expect((await post({ side: 'first', gender: 'woman', code, states: sides({ live: 'differ' }) })).status).toBe(200)
+    const { code, key } = await (await post({ side: 'first', gender: 'woman', states: sides() })).json()
+    // She may still change her mind while he has not answered — with the key
+    // she was handed, never on a gender anyone can claim (docs/SECURITY.md, O6).
+    expect((await post({ side: 'first', gender: 'woman', code, key, states: sides({ live: 'differ' }) })).status).toBe(200)
     expect((await post({ side: 'second', code, states: sides() })).status).toBe(200)
     // Now neither can probe the other.
-    expect((await post({ side: 'first', gender: 'woman', code, states: sides({ live: 'not-talked' }) })).status).toBe(409)
+    expect((await post({ side: 'first', gender: 'woman', code, key, states: sides({ live: 'not-talked' }) })).status).toBe(409)
     expect((await post({ side: 'second', code, states: sides({ live: 'not-talked' }) })).status).toBe(409)
   })
 

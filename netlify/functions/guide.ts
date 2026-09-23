@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import type { Context } from '@netlify/functions'
 import { isFounder, notFounder } from '../shared/founder'
 import { overCapOrUnknown, rateLimited } from '../shared/limit'
+import { readJson } from '../shared/body'
 import { GUIDE_MODES, buildSystemPrompt, sanitiseContext } from '../shared/prompt'
 
 /**
@@ -205,6 +206,27 @@ export default async function handler(req: Request, _context: Context) {
     return Response.json({ error: 'guide_not_configured' }, { status: 503 })
   }
 
+  // Measured before it is parsed, like keep.ts and cohort.ts: the size of the
+  // body is the size of the bill, and this route used to accept any size.
+  // Read, and checked, before either cap is spent: a body that could never
+  // reach the model used to spend a call of the day's budget anyway — and a
+  // `null` body, a number for the message or an object for the history threw
+  // past this function's own error contract (docs/SECURITY.md, O3).
+  const body = await readJson<Body>(req, MAX_BODY)
+  if (body instanceof Response) return body
+
+  const message = typeof body.message === 'string' ? body.message.trim() : ''
+  if (!message) return Response.json({ error: 'missing_message' }, { status: 400 })
+
+  // The mode is the only thing the caller chooses about how the guide speaks,
+  // and it chooses from five. Anything else is not a voice this product has.
+  const mode = typeof body.mode === 'string' ? body.mode : ''
+  if (!GUIDE_MODES.has(mode)) return Response.json({ error: 'bad_mode' }, { status: 400 })
+
+  if (body.history !== undefined && !Array.isArray(body.history)) {
+    return Response.json({ error: 'bad_history' }, { status: 400 })
+  }
+
   // The day first, so an hour's budget is not spent by a call the day would
   // have refused anyway. Both checks fail closed: this is the one route that
   // bills per call, so a counter that cannot be read is a refusal here, where
@@ -220,31 +242,6 @@ export default async function handler(req: Request, _context: Context) {
     console.error('[niyyah] guide: hourly cap reached')
     return rateLimited()
   }
-
-  // Measured before it is parsed, like keep.ts and cohort.ts: the size of the
-  // body is the size of the bill, and this route used to accept any size.
-  let raw: string
-  try {
-    raw = await req.text()
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
-  if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
-
-  let body: Body
-  try {
-    body = JSON.parse(raw) as Body
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
-
-  const message = body.message?.trim()
-  if (!message) return Response.json({ error: 'missing_message' }, { status: 400 })
-
-  // The mode is the only thing the caller chooses about how the guide speaks,
-  // and it chooses from five. Anything else is not a voice this product has.
-  const mode = typeof body.mode === 'string' ? body.mode : ''
-  if (!GUIDE_MODES.has(mode)) return Response.json({ error: 'bad_mode' }, { status: 400 })
 
   // Built here, from values checked here. Nothing the caller sends can reach
   // the persona, the frame or the grounding rules.
