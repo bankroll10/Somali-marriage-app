@@ -78,8 +78,12 @@ this one first, because free text naming a person cannot be un-published.
   contact or a map to anyone** but the member herself, at her request, from
   the address she gave. The founder holds the contacts, the vouch numbers and
   every map; the founder is the target.
-- **Once a year, re-check `src/data/help.ts`** — every emergency number and
-  helpline against the service's own site — and move `HELP_CHECKED`. Sweden's
+- **Before any change to how the Guide speaks** — the prompt, the model, an
+  offline intent — run `npm run eval:guide` before and after, and put both
+  summary tables in the PR (`docs/GUIDE-EVAL.md`). Run it once a month too:
+  the model can change under an unchanged prompt.
+- **Once a year, re-check `src/data/help.ts`** — every emergency number, helpline and
+  crisis line against the service's own site — and move `HELP_CHECKED`. Sweden's
   line changed in 2025.
 - **A member who has changed her code** (`PUT /keep`, "Change my code") has
   everything under the new one; the old code is gone from every store. Nothing

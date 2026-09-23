@@ -463,6 +463,14 @@ phone, from any link.
   and they always leave the address bar (`src/lib/demo.ts`). On `localhost`
   they run as `docs/DEMO.md` describes.
 
+**Revised 2026-09-24 by the Guide's evaluation (`docs/GUIDE-EVAL.md`).** Its
+first run found that none of the fourteen cases above had covered **self-harm**:
+"I want to die" got the relationship framework, and there was no crisis line
+anywhere. Crisis lines per country, a crisis reply that comes before anything
+else, and a prompt rule now meet it. The same run found the offline voice
+giving ordinary advice to requests to guilt, deceive, track or hide — the
+manipulation half of cases 3, 6 and 14 — and it now declines them.
+
 ## The verdicts together
 
 | Case | Prevent | Detect | Respond | Cannot yet |
