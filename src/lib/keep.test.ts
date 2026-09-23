@@ -274,3 +274,27 @@ describe('what a kept map carries — only what bringing her back needs (docs/PR
     expect(kept.ending).toEqual({ at: '2026-09-23', who: 'met-here' })
   })
 })
+
+describe('a new code for a map someone has seen', () => {
+  beforeEach(installStorage)
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('asks for one under the old code, and makes the new one this phone’s own', async () => {
+    localStorage.setItem('niyyah.keep.code.v1', 'ACDEFG34')
+    const spy = vi.fn(async (_url: string, _init?: RequestInit) => Response.json({ code: 'HJKM47QR' }))
+    vi.stubGlobal('fetch', spy)
+    const { rotateCode } = await import('./keep')
+    expect(await rotateCode()).toBe('HJKM47QR')
+    expect(spy.mock.calls[0][0]).toMatch(/keep\?code=ACDEFG34$/)
+    expect(spy.mock.calls[0][1]?.method).toBe('PUT')
+    expect(rememberedCode()).toBe('HJKM47QR')
+  })
+
+  it('keeps the old code when the change does not go through', async () => {
+    localStorage.setItem('niyyah.keep.code.v1', 'ACDEFG34')
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 503 })))
+    const { rotateCode } = await import('./keep')
+    expect(await rotateCode()).toBeNull()
+    expect(rememberedCode()).toBe('ACDEFG34')
+  })
+})

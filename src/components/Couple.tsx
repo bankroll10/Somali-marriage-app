@@ -71,6 +71,9 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
       // dead. Everything else is us.
       if (typeof v === 'string') setPhase(v === 'not-found' || v === 'expired' || v === 'not-a-code' ? 'dead' : 'unreachable')
       else if (v.status === 'joint') {
+        // Which side answered, so a report from here is filed as that side —
+        // it defaulted to "man" for everyone (docs/ABUSE.md).
+        if (v.answerFor) setAnswerFor(v.answerFor)
         setView(v)
         setPhase('answered-already')
       } else {

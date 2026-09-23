@@ -40,6 +40,50 @@ function hasWords(message: string, keyword: string): boolean {
   return new RegExp(`(?:^|[^a-z0-9])${escapeRe(keyword)}(?:[^a-z0-9]|$)`, 'i').test(message)
 }
 
+/**
+ * Words that mean this may not be a relationship question at all
+ * (docs/ABUSE.md): a threat, force, a man or woman asking for money before the
+ * families have met, someone holding pictures over her. Matched as whole
+ * words, on her own phone; nothing is sent or kept because of it.
+ */
+const SAFETY_WORDS = [
+  'threat', 'threats', 'threatened', 'threatening', 'threatens',
+  'hit me', 'hits me', 'hurt me', 'hurts me', 'hurting me',
+  'scared of him', 'scared of her', 'afraid of him', 'afraid of her',
+  'forced', 'forcing me', 'force me', 'make me marry', 'making me marry',
+  'blackmail', 'blackmailing', 'blackmailed',
+  'nudes', 'pictures of me', 'photos of me', 'videos of me',
+  'send money', 'sent money', 'sent him money', 'sent her money', 'asked me for money', 'asking me for money', 'asks me for money',
+  'loan', 'crypto', 'bitcoin', 'gift card', 'gift cards', 'western union', 'invest',
+  'stalking', 'following me', 'followed me',
+]
+
+/** The guide's own words that point at real-world help — the numbers belong under them. */
+const HELP_WORDS = ['emergency', 'helpline', 'in danger', 'real-world help']
+
+/** Whether this message, hers or the guide's, should carry the help line beneath it. */
+export function needsHelpLine(message: string, from: 'user' | 'coach' = 'user'): boolean {
+  const m = normalize(message)
+  return (from === 'user' ? SAFETY_WORDS : HELP_WORDS).some((w) => hasWords(m, w))
+}
+
+/**
+ * The offline answer to any of those, in every voice. The live guide gets the
+ * same rules in its prompt (netlify/shared/prompt.ts); this is the floor for
+ * when it cannot be reached or declines — which is exactly when a message like
+ * this is most likely to be declined. No numbers in the text: HelpLine puts the
+ * checked ones for where she lives beneath it (src/data/help.ts).
+ */
+export const SAFETY_REPLY = `What you have described is more than a question about a courtship, and it deserves more than an app.
+
+If you are in danger now, call the emergency number below. Then tell one person you trust — a sister, a friend, an older woman or man who knows you — exactly what you told me. Today.
+
+If money is being asked for, send nothing more — not a loan, not a bill, not a ticket, not an investment — until your families have met. That is the shape scams take, however real the person feels.
+
+If someone is holding pictures or messages over you: do not pay, do not send more, keep what they sent, and tell someone.
+
+The helpline below is free, and you do not have to give your name.`
+
 function scoreIntent(intent: CoachIntent, message: string): number {
   const m = normalize(message)
   let score = 0
@@ -263,6 +307,10 @@ export async function askCoach(
 
   // A short, considered pause — a guide thinks before speaking.
   await new Promise((r) => setTimeout(r, 700 + Math.random() * 500))
+
+  // Before any voice's own intents: a threat is not a question about texting
+  // late at night, whichever voice she opened.
+  if (needsHelpLine(message)) return { text: SAFETY_REPLY, closers: closersFor(SAFETY_REPLY), live: false }
 
   let best: CoachIntent | null = null
   let bestScore = 0

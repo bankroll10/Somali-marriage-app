@@ -161,6 +161,26 @@ export async function keepMap(patch?: KeepPatch): Promise<string | null> {
 }
 
 /**
+ * A new code for a map someone else has seen, with everything kept under the
+ * old one carried across and the old one left opening nothing — see PUT in
+ * netlify/functions/keep.ts. The phone keeps its answers; only the code changes.
+ */
+export async function rotateCode(): Promise<string | null> {
+  const old = rememberedCode()
+  if (!old) return null
+  const res = await send(`${ENDPOINT}?code=${encodeURIComponent(old)}`, { method: 'PUT' })
+  if (!res?.ok) return null
+  try {
+    const { code } = (await res.json()) as { code?: string }
+    if (!code || !isCode(code)) return null
+    rememberCode(code)
+    return code
+  } catch {
+    return null
+  }
+}
+
+/**
  * Why a restore did not produce a map. Four different things used to arrive as
  * one `null`, and the screen said "No map found for that code. Check it and try
  * again" for all of them — so a person whose map had *expired* (the server

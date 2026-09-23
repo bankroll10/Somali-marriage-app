@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { keepMap, rememberedCode, restoreLink } from '../lib/keep'
+import { keepMap, rememberedCode, restoreLink, rotateCode } from '../lib/keep'
 import { formatCode } from '../lib/code'
 import { SITE_URL } from '../lib/site'
 import { track } from '../lib/analytics'
@@ -32,6 +32,9 @@ export default function KeepMap({ onKept }: Props = {}) {
   const [code, setCode] = useState<string | null>(() => rememberedCode())
   const [state, setState] = useState<'idle' | 'saving' | 'error'>('idle')
   const [copied, setCopied] = useState(false)
+  // Changing the code: closed, asking, working, or failed.
+  const [change, setChange] = useState<'closed' | 'asking' | 'working' | 'failed'>('closed')
+  const [changed, setChanged] = useState(false)
 
   async function keep() {
     setState('saving')
@@ -46,6 +49,19 @@ export default function KeepMap({ onKept }: Props = {}) {
     setState('idle')
   }
 
+  async function changeCode() {
+    setChange('working')
+    const next = await rotateCode()
+    if (!next) {
+      setChange('failed')
+      return
+    }
+    setCode(next)
+    onKept?.(next)
+    setChanged(true)
+    setChange('closed')
+  }
+
   async function copyLink() {
     if (!code) return
     try {
@@ -58,7 +74,9 @@ export default function KeepMap({ onKept }: Props = {}) {
   }
 
   const announcement =
-    state === 'error'
+    changed
+      ? `Your map now has a new code, ${code?.split('').join(' ')}. The old one opens nothing.`
+      : state === 'error'
       ? 'That did not save. Your map is still on this phone.'
       : copied
         ? 'The link is copied.'
@@ -94,8 +112,54 @@ export default function KeepMap({ onKept }: Props = {}) {
         </button>
         <p className="mt-3 text-[0.78rem] leading-relaxed text-muted text-pretty">
           Kept, under a code with no name on it. Anyone without the code cannot
-          reach it.
+          reach it — and anyone with it can, so keep it to yourself. Niyyah will
+          never ask you for it.
         </p>
+        {/* A code someone has seen is a key someone holds. This used to have one
+            remedy, forget me, which cost her everything (docs/ABUSE.md). */}
+        {changed ? (
+          <p className="mt-3 text-[0.82rem] leading-relaxed text-forest text-pretty">
+            New code. The old one opens nothing now, and any link with it in is dead.
+          </p>
+        ) : change === 'closed' ? (
+          <button
+            onClick={() => setChange('asking')}
+            className="mt-3 text-[0.82rem] font-medium text-muted underline-offset-4 hover:underline"
+          >
+            Has someone else seen this code? Change it.
+          </button>
+        ) : (
+          <div className="mt-3 rounded-xl border border-line bg-white/70 p-4">
+            <p className="text-[0.85rem] leading-relaxed text-ink-soft text-pretty">
+              You get a new code, and everything kept under this one moves to it — your family’s
+              word and your place at the door too. The old code and every link with it stop
+              working. Nothing on this phone changes.
+            </p>
+            <div className="mt-3 flex items-center gap-4">
+              <button
+                onClick={changeCode}
+                disabled={change === 'working'}
+                className="inline-flex items-center gap-2 rounded-full bg-forest px-4 py-2 text-[0.85rem] font-medium text-cream transition hover:bg-forest-deep disabled:opacity-50"
+              >
+                {change === 'working' ? (
+                  <>
+                    <Spinner /> Changing it…
+                  </>
+                ) : (
+                  'Change my code'
+                )}
+              </button>
+              <button onClick={() => setChange('closed')} className="text-[0.85rem] font-medium text-muted hover:underline">
+                Not now
+              </button>
+            </div>
+            {change === 'failed' && (
+              <p role="status" className="mt-2 text-[0.82rem] text-clay">
+                That didn’t go through — your code is unchanged. Try again in a moment.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     )
   }

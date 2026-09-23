@@ -118,6 +118,22 @@ Five findings this model did not see, all fixed there:
 - **O8:** six-character codes let one patient script find about 14% of kept
   maps a year. New codes are eight characters.
 
+**Revised again the same day by the abuse pass (`docs/ABUSE.md`),** which asked
+what a bad person does with the product working as designed:
+- **T5 and T7 are built:** a honeypot on the waitlist form, and a per-city
+  hourly join cap.
+- **T8 is built.** "Change my code" (`PUT /keep`) moves the map, the vouch,
+  the door entry and the contact under a new code, and the old one opens
+  nothing.
+- **T2's channel had a second gag.** Either holder of a couple code could
+  delete the sheet, and a report against a deleted sheet was a 404. A retired
+  sheet now leaves a ninety-day reporting window (`netlify/shared/sheet.ts`).
+
+Three more were found and fixed there:
+- a `?fresh` link that wiped any phone that opened it;
+- forget me withdrawing reports, so a coerced wipe erased a threat;
+- reports from an already-answered sheet filed as the wrong side.
+
 ## P0 — built in this pass
 
 1. **The fifth read bucket** (`netlify/functions/vouch.ts`). A shape check

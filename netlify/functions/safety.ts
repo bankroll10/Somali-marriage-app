@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { reportable } from '../shared/sheet'
 import { notFounder, requireFounder } from '../shared/founder'
 import { GENDERS, SAFETY_OUTCOMES, SAFETY_REASONS } from '../shared/vocab'
 import { day } from '../shared/day'
@@ -65,7 +66,12 @@ import { CODE, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
  * **Withdrawn only by receipt** (docs/SECURITY.md, O1). Filing a report hands
  * back its id, which is the report's receipt: a token nobody else ever sees —
  * not the other person, not the couple record, not any public route. Forget me
- * on her phone withdraws her reports by sending it. Before this, forget me in
+ * on her phone used to withdraw her reports by sending it; since 2026-09-23 the
+ * app keeps no receipt and forget me withdraws nothing, because a receipt on
+ * her phone let whoever held the phone take her report back (docs/ABUSE.md,
+ * coercion). The route stays for a receipt already handed out; nothing in the
+ * app sends one. A report outlives its sheet too (netlify/shared/sheet.ts).
+ * Before receipts, forget me in
  * netlify/functions/keep.ts deleted every report under `${couple}-${side}-`,
  * with both values read from a snapshot the caller had written — so the
  * reported man could keep a map that claimed to be her and erase her reports
@@ -172,8 +178,9 @@ export default async function handler(req: Request) {
     // (neither side's sheet is ever read back by anything but the joint) is
     // never touched by this function.
     try {
-      const exists = await getStore('couples').getMetadata(code)
-      if (!exists) return Response.json({ error: 'not_found' }, { status: 404 })
+      // Or one that did, inside its window: the sheet is not hers to keep, and
+      // the man she is reporting can delete it (netlify/shared/sheet.ts).
+      if (!(await reportable(getStore('couples'), code))) return Response.json({ error: 'not_found' }, { status: 404 })
     } catch (err) {
       console.error('[niyyah] safety: couple lookup failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -191,7 +198,7 @@ export default async function handler(req: Request) {
       console.error('[niyyah] safety: write failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
-    // The receipt. Her phone keeps it, and forget me sends it back.
+    // The receipt. The app no longer keeps it (src/lib/safety.ts).
     return Response.json({ received: true, receipt: id })
   }
 

@@ -204,7 +204,9 @@ describe('every public write is bounded', () => {
     for (const [key, value] of limits) {
       // `h` for the hour, `d` for the day — the period is in the key so the two
       // listings stay disjoint and neither sweep can eat the other's counter.
-      expect(key).toMatch(/^cohort-(h-\d{4}-\d{2}-\d{2}T\d{2}|d-\d{4}-\d{2}-\d{2})$/)
+      // A city's own join counter (docs/ABUSE.md, spam) names the city, which
+      // is the door's public count already — a place, never a person.
+      expect(key).toMatch(/^(cohort|door-city-london)-(h-\d{4}-\d{2}-\d{2}T\d{2}|d-\d{4}-\d{2}-\d{2})$/)
       expect(value).toMatch(/^\d+$/)
     }
   })

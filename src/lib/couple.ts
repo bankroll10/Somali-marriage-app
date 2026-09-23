@@ -14,7 +14,11 @@ import { send, whyOf, type Why } from './net'
 const ENDPOINT = '/.netlify/functions/couple'
 
 export type Joint = 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
-export type CoupleView = { status: 'open'; answerFor: Gender } | { status: 'joint'; joint: Record<string, Joint> }
+export type CoupleView =
+  | { status: 'open'; answerFor: Gender }
+  // `answerFor` on the joint is the side that answered. A server older than
+  // 2026-09-23 does not send it.
+  | { status: 'joint'; joint: Record<string, Joint>; answerFor?: Gender }
 
 
 const post = (body: unknown) =>
@@ -65,9 +69,11 @@ export async function readCoupleDetail(code: string): Promise<CoupleView | Why> 
 
 async function parseView(res: Response): Promise<CoupleView | null> {
   try {
-    const body = (await res.json()) as Partial<CoupleView>
-    if (body.status === 'open' && (body.answerFor === 'woman' || body.answerFor === 'man')) return { status: 'open', answerFor: body.answerFor }
-    if (body.status === 'joint' && body.joint && typeof body.joint === 'object') return { status: 'joint', joint: body.joint }
+    const body = (await res.json()) as { status?: string; answerFor?: unknown; joint?: unknown }
+    const side = body.answerFor === 'woman' || body.answerFor === 'man' ? body.answerFor : undefined
+    if (body.status === 'open' && side) return { status: 'open', answerFor: side }
+    if (body.status === 'joint' && body.joint && typeof body.joint === 'object')
+      return { status: 'joint', joint: body.joint as Record<string, Joint>, ...(side ? { answerFor: side } : {}) }
     return null
   } catch {
     return null

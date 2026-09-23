@@ -6,7 +6,7 @@ import { isFounder, notFounder } from '../shared/founder'
 import { COUNTRIES, GENDERS, HOOKS, LEDGER, REACH, SCENES, SCENE_COUNTRY } from '../shared/vocab'
 import { day } from '../shared/day'
 import { floor } from '../shared/floor'
-import { overHourlyCap, rateLimited } from '../shared/limit'
+import { overHourlyCap, rateLimited, underLimit } from '../shared/limit'
 import { stamp } from '../shared/record'
 
 /**
@@ -86,6 +86,14 @@ const MAX_CONTACT = 200
 export const SEGMENTS = 6
 /** Joins in one hour, from everyone. A circuit breaker, not a member limit — see netlify/shared/limit.ts. */
 const DEFAULT_HOURLY_CAP = 200
+/**
+ * Joins in one hour into any one city. The site-wide cap alone let a bot mint
+ * maps and join them fast enough to show one city a false 40/40 before anyone
+ * looked, against the door's own promise that we never pretend a city is full
+ * (docs/THREAT.md T7, docs/ABUSE.md). Thirty real people do not join one
+ * city's door in an hour. One variable, `DOOR_CITY_HOURLY_CAP`, for every city.
+ */
+const DEFAULT_CITY_CAP = 30
 /** Door counts read in one hour, from everyone — the read cap, per keep.ts. */
 const DEFAULT_READ_CAP = 600
 
@@ -275,6 +283,8 @@ export default async function handler(req: Request) {
   // Bounded, like every public write. After validation, so a bad body spends
   // nothing; before any read, so the cap is the cheapest thing here.
   if (await overHourlyCap('cohort', DEFAULT_HOURLY_CAP)) return rateLimited()
+  const cityCap = Number(process.env.DOOR_CITY_HOURLY_CAP) || DEFAULT_CITY_CAP
+  if (!(await underLimit(`door-city-${scene}`, cityCap))) return rateLimited()
 
   // The count is of kept maps, not of taps. A code nobody has kept a map under
   // is not a person we could ever introduce, so it is not counted.

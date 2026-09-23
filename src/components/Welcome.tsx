@@ -188,7 +188,7 @@ export default function Welcome({
               Start with a read on them instead.
             </p>
             <p className="mt-2 text-[0.9rem] leading-relaxed text-cream/60 text-pretty">
-              Eleven questions about what they have done. You get a read, and
+              Twelve questions about what they have done. You get a read, and
               the one question worth asking them next — no account, no intake
               first.
             </p>

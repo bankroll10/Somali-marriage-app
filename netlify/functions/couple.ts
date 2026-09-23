@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { retire } from '../shared/sheet'
 import { CODE, TOKEN_LENGTH, mint, newCode, normalise } from '../shared/code'
 import { sameSecret } from '../shared/secret'
 import { isFounder, notFounder } from '../shared/founder'
@@ -88,7 +89,7 @@ export interface JointTally {
 /** What any caller may receive. There is no field here that could carry a side. */
 type CoupleResponse =
   | { status: 'open'; answerFor: 'woman' | 'man' }
-  | { status: 'joint'; joint: Record<string, Joint> }
+  | { status: 'joint'; joint: Record<string, Joint>; answerFor: 'woman' | 'man' }
 
 /**
  * Symmetric by construction: every branch tests both arguments the same way,
@@ -148,8 +149,11 @@ async function countPair(jointView: Record<string, Joint>): Promise<void> {
 }
 
 function view(record: CoupleRecord): CoupleResponse {
-  if (!record.second) return { status: 'open', answerFor: record.creator === 'woman' ? 'man' : 'woman' }
-  return { status: 'joint', joint: jointOf(record.first, record.second) }
+  const answerFor = record.creator === 'woman' ? 'man' : 'woman'
+  if (!record.second) return { status: 'open', answerFor }
+  // Carried on the joint too, so a report from the answered-already screen is
+  // filed as the side that answered — it said "man" for everyone.
+  return { status: 'joint', joint: jointOf(record.first, record.second), answerFor }
 }
 
 export default async function handler(req: Request) {
@@ -182,7 +186,7 @@ export default async function handler(req: Request) {
       const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
       if (!record) return Response.json({ error: 'not_found' }, { status: 404, headers })
       if (Date.parse(record.expiresAt) < Date.now()) {
-        await store.delete(code)
+        await retire(store, code, Date.parse(record.expiresAt))
         return Response.json({ error: 'expired' }, { status: 404, headers })
       }
       return Response.json(view(record), { headers })
@@ -210,7 +214,9 @@ export default async function handler(req: Request) {
    * It deletes the sheet and nothing else. In particular it does not touch
    * `reports`: a report is withdrawn only with the receipt its filer was
    * handed (netlify/functions/safety.ts). A man must never be able to erase a
-   * safety report about himself by tapping forget me.
+   * safety report about himself by tapping forget me — nor stop one being
+   * made: the sheet is retired, not erased, and a report can still be made
+   * against it for ninety days (netlify/shared/sheet.ts).
    */
   if (req.method === 'DELETE') {
     const code = normalise(new URL(req.url).searchParams.get('code'))
@@ -219,7 +225,10 @@ export default async function handler(req: Request) {
     try {
       const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
       if (!record) return Response.json({ error: 'not_found' }, { status: 404 })
-      await store.delete(code)
+      // Gone, but a report about it can still be made for ninety days: the
+      // person deleting it may be the person about to be reported
+      // (netlify/shared/sheet.ts).
+      await retire(store, code)
       // The joint tally is not touched and cannot be: it carries no code and
       // no side, so there is nothing in it to find (Trust says so).
       return Response.json({ ok: true })

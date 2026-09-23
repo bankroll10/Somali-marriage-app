@@ -123,6 +123,13 @@ function sentence(text: string): string {
 }
 
 /**
+ * Questions added after reads were already being kept. A read taken before one
+ * existed never saw it, so it is whole without it — and simply never names
+ * what that question alone could.
+ */
+const ADDED_LATER = new Set(['money'])
+
+/**
  * Read what he has shown her.
  *
  * Every question must be answered; a partial read would be a guess wearing the
@@ -130,7 +137,7 @@ function sentence(text: string): string {
  */
 export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadResult | null {
   const questions = readQuestions(gender)
-  if (questions.some((q) => !answers[q.id])) return null
+  if (questions.some((q) => !answers[q.id] && !ADDED_LATER.has(q.id))) return null
   const fix = speak(gender)
 
   // ── Score each dimension ─────────────────────────────────────────────────
@@ -175,6 +182,26 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     (a, b) => (1 - scores[b]) * WEIGHTS[b] - (1 - scores[a]) * WEIGHTS[a],
   )[0]
 
+  // ── Money, before the families ───────────────────────────────────────────
+  // Not a measure of how serious {he} is — the man running a romance scam is
+  // often the most attentive man she has met — so it is not scored. It is
+  // named, above everything else, because it is what scams do (docs/ABUSE.md).
+  if (answers.money === 'yes') {
+    return {
+      band: 'caution',
+      headline: fix('One of these is not about how serious {he} is.'),
+      summary: fix(`${durationNote} {He} has asked you for money before your families have met. Whatever the reason given — a bill, a ticket, family back home, an investment — that is the shape romance scams take, and it looks the same from inside whether or not {he} means well. We are not going to guess at {his} character from a few questions. We can tell you what to do.`),
+      shown,
+      missing,
+      dimensions,
+      thin,
+      script: scriptFor(thin, gender),
+      caution: fix(
+        `Send nothing more until your families have met — not a loan, not a ticket, not an investment. Tell ${CONFIDANTE[gender]} exactly what {he} asked for, this week. If {he} is serious, the families meeting first costs {him} nothing.`,
+      ),
+    }
+  }
+
   // ── The one pattern we do not coach ──────────────────────────────────────
   // Hidden, and made to feel like the problem. Naming it is right; treating it
   // as a communication issue with a clever script would be wrong.
@@ -188,7 +215,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
         answers.hard === 'blames'
           ? 'when you raise something difficult you come away feeling like the problem'
           : 'there is no one in {his} life who knows you exist'
-      }. Kept quiet, and left doubting yourself, is the shape that leaves someone with nobody to compare notes with. We cannot tell you what {he} intends, and we are not going to guess at {his} character from eleven questions. We can tell you that this particular combination is not a question for an app.`),
+      }. Kept quiet, and left doubting yourself, is the shape that leaves someone with nobody to compare notes with. We cannot tell you what {he} intends, and we are not going to guess at {his} character from a few questions. We can tell you that this particular combination is not a question for an app.`),
       shown,
       missing,
       dimensions,

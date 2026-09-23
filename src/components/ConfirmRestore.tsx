@@ -9,6 +9,12 @@ interface Props {
   incoming: PersistedState
   /** What this phone holds right now, if anything. */
   current: PersistedState | null
+  /**
+   * The code this phone keeps its own map under, if it keeps one. The one fact
+   * on this screen the sender cannot write: her own link carries this same
+   * code, and does nothing here (src/main.tsx).
+   */
+  ownCode?: string | null
   /** Her answer: true brings the map here, false leaves this phone exactly as it was. */
   onDone: (mine: boolean) => void
 }
@@ -27,8 +33,13 @@ interface Props {
  * So the link now asks, and says whose map it is. Her own map, on a new phone,
  * costs her one tap; someone else's is refused by the first thing she reads —
  * a name that is not hers.
+ *
+ * Except that the name is the sender's to write: an ex keeps a map with her
+ * name and city in it, and it reads as hers (docs/ABUSE.md). So when this phone
+ * already keeps a map of its own, the screen says the one thing he cannot
+ * fake — this link is a different code, and her own would not be.
  */
-export default function ConfirmRestore({ code, incoming, current, onDone }: Props) {
+export default function ConfirmRestore({ code, incoming, current, ownCode, onDone }: Props) {
   const name = incoming.identity?.firstName?.trim()
   const city = getScene(incoming.identity?.scene)?.label
   const currentName = current?.identity?.firstName?.trim()
@@ -49,6 +60,13 @@ export default function ConfirmRestore({ code, incoming, current, onDone }: Prop
             '.'
           )}
         </p>
+        {ownCode && ownCode !== code && (
+          <p className="mt-3 rounded-xl border border-clay/40 bg-clay/10 px-4 py-3 text-[0.92rem] leading-relaxed text-cream text-pretty">
+            This phone already keeps its own map, under{' '}
+            <span className="font-medium tracking-wider">{formatCode(ownCode)}</span>. Your own link would carry
+            that code — this one is someone else’s, whatever name it shows.
+          </p>
+        )}
         {holdsMap && (
           <p className="mt-3 text-[0.95rem] leading-relaxed text-cream/80 text-pretty">
             It replaces the map on this phone now{currentName ? ` — ${currentName}’s` : ''}, and that
