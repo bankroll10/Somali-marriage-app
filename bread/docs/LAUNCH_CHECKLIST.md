@@ -39,6 +39,12 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
 
 ## 2. Stripe Dashboard — do these now, in **live** mode, without taking a payment
 
+> **Reported done by Biz on 2026-09-23** — items 1, 2 and 3 below ("bank account is connected,
+> verification is complete, and I updated the website, business description, and statement
+> descriptor"). She wasn't certain, and neither of us can see her dashboard, so it is
+> **unconfirmed until `npm run stripe:verify` passes** (step 0 of the cutover). That command asks
+> Stripe directly and charges nothing.
+
 1. **Activate the account** (Settings → Business → Activate): legal details, bank account for
    payouts, identity. Until this is complete Stripe will not let live charges through.
 2. **Payouts** (Settings → Payouts): confirm the bank account and the schedule.
@@ -56,14 +62,34 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
    - URL: `https://bread-pickup.netlify.app/api/stripe-webhook`
    - Events: `checkout.session.completed`, `checkout.session.expired`,
      `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`,
-     `charge.refunded`, `charge.refund.updated`, `refund.created`, `refund.updated`
+     `charge.refunded`, `charge.refund.updated`, `refund.created`, `refund.updated` — this list
+     is `REQUIRED_WEBHOOK_EVENTS` in `bread/netlify/lib/stripe/gateway.ts`, and
+     `npm run stripe:verify` checks the live endpoint against it and names anything missing
    - Copy its **signing secret** straight into Netlify as `STRIPE_WEBHOOK_SECRET` **only at
      cutover** (step 5). Until then the test endpoint stays wired.
    - Also add the four refund events to the existing **test** endpoint so refunds show on the
      admin page during rehearsal without pressing *Check refund*.
 7. **Live secret key** (Developers → API keys, mode **Live**): it will be pasted into Netlify as
-   `STRIPE_SECRET_KEY` at cutover, nowhere else. A **restricted key** is the safer choice:
-   Checkout Sessions *Write*, Refunds *Read*, Webhook Endpoints none, everything else none.
+   `STRIPE_SECRET_KEY` at cutover, nowhere else.
+
+   **How the key should travel.** It is Biz's Stripe account, and so far credentials have come
+   by text — fine for a test key, not for a live one, which can create charges, issue refunds
+   and read every customer record. In order of preference:
+
+   1. **Best — she adds the owner to her Stripe account**: Settings → Team and security → Team →
+      *New member*, role **Developer**. He then reads the key and creates the live webhook
+      endpoint himself and **no live credential is ever sent over SMS**, now or in future. It is
+      also permanently less work for her.
+   2. **Acceptable — a restricted key**: Developers → API keys → *Create restricted key*, with
+      only **Checkout Sessions: Write** and **Refunds: Read** — exactly what the site uses.
+      If that one leaks it cannot move her money, refund anyone or read her customer list.
+      `npm run stripe:verify` additionally wants **Account: Read** and **Webhook endpoints:
+      Read**; grant those to the same key or run the check once with a fuller one.
+   3. **Avoid** — texting an unrestricted `sk_live_` key.
+
+   The webhook signing secret deserves the same care: whoever holds it can forge a
+   `checkout.session.completed` and mark an order paid that nobody paid for. Route 1 avoids
+   sending either.
 8. **Apple Pay**: on Stripe's hosted Checkout page no domain registration is needed (the page is
    on Stripe's domain). The on-device check is in section 7.
 9. **Radar** (default rules) and **Disputes** need nothing.
@@ -95,6 +121,11 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
 Only with Biz's explicit go-ahead. Pick a moment with no customer mid-checkout (`/api/health`
 → `liveHolds: 0`).
 
+0. **Ask Stripe whether she is actually ready** — with her live key in your shell:
+   `STRIPE_SECRET_KEY=... npm run stripe:verify`. Every row must PASS: live key, charges
+   enabled, payouts enabled, nothing still owed to Stripe, statement descriptor set, business
+   URL right, and a live webhook endpoint at our URL carrying all eight required events. Any
+   FAIL names exactly what her dashboard still needs. **Nothing is charged by this.**
 1. **Rehearsal done** — section 7's test-mode walk-through has been completed and the owner
    guide read.
 2. **Back up**: `pg_dump "<DATABASE_URL>" --format=custom --file=bread-pre-launch.dump`

@@ -29,8 +29,9 @@ The texts to send Biz for the items still open are in [`BIZ_MESSAGES.md`](BIZ_ME
 
 | Input | Today | Needed |
 |---|---|---|
-| **Stripe account** | Biz's account, in **test mode**; the owner's site holds its test keys | Biz completes Stripe's activation (business details, bank account for payouts, identity), then the **live** secret key and a **live** webhook endpoint (checklist) |
-| **Payout setup** | Not confirmed | Stripe → Settings → Payouts: bank account, schedule (daily / weekly / monthly) |
+| **Stripe account** | 🟡 **Reported complete by Biz 2026-09-23** (activation, bank account, website, business description, statement descriptor) — unconfirmed, she wasn't sure | Confirm with `npm run stripe:verify`, which asks Stripe directly and charges nothing. Then the **live** key and a **live** webhook endpoint (checklist section 2) |
+| **Payout setup** | 🟡 Reported connected 2026-09-23 | `stripe:verify` reports `payouts_enabled`. She still chooses the schedule in Stripe → Settings → Payouts |
+| **How the live key reaches Netlify** | Not decided | Preferably she adds the owner to her Stripe team (role Developer) so no live credential is texted; otherwise a **restricted** key. See checklist section 2, item 7 |
 | **Authorized admin identity** | One shared password, held by Biz and the owner; sessions last 30 days per phone | Decide who else, if anyone, gets it. There is one login; the audit trail records "admin". |
 | **Hosting ownership** | Netlify project `bread-pickup` and the Neon project are on the **owner's** accounts; the GitHub repository is the owner's | Decide whether they stay there or move to an account Biz controls (Netlify: transfer site to a team she owns; Neon: transfer project; both dashboard actions) |
 | **Domain** | None. The site is `bread-pickup.netlify.app` (HTTPS, free). | If she wants her own name: buy it (any registrar) and follow the domain steps in the checklist. Not required to launch. |

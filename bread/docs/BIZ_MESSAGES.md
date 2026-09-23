@@ -9,10 +9,17 @@ text — the only place any of those belong is the dashboard they came from.
 
 ---
 
-## 1 — Activate Stripe (send first; it blocks everything else)
+## 1 — Activate Stripe ✅ sent, and she reports it done (2026-09-23)
 
-This is the only launch step nobody but Biz can do: until Stripe has her business and bank
+This was the only launch step nobody but Biz could do: until Stripe has her business and bank
 details, real card payments cannot reach her account.
+
+> Her reply, 2026-09-23: *"I think Stripe is all set! Bank account is connected, verification is
+> complete, and I updated the website, business description, and statement descriptor. 🤷🏻‍♀️"*
+
+She wasn't certain, and neither of us can see her dashboard — so confirm it with
+`npm run stripe:verify` (asks Stripe directly, charges nothing) rather than taking her word and
+finding out at the first real payment. Keep the text below for reference.
 
 > Hey! The bread site is basically done. One thing only you can do: finish setting up your Stripe
 > account so money can actually reach your bank. Takes about 15 minutes.
@@ -32,7 +39,46 @@ details, real card payments cannot reach her account.
 > SSN or bank numbers to me or anyone else, and don't text me any of the keys from that site.
 > Tell me when it's approved and I'll do the rest.
 
-**When she says it's approved:** that unlocks steps 4–7 of
+---
+
+## 1b — Getting the live key safely (send next)
+
+Her account being ready is not the same as the site being able to use it. The live secret key and
+the live webhook signing secret still have to reach Netlify, and unlike the test ones they are
+worth real money: a live key can create charges, issue refunds and read every customer record, and
+the signing secret lets its holder forge a "this order was paid" message. So the ask is not "text
+me the key" — it is five minutes of dashboard work that means nothing sensitive is ever texted.
+
+**Send this one:**
+
+> Amazing, thank you!! Two small things and then I can switch it on properly.
+>
+> Could you add me to your Stripe account? It means I can do the technical bits myself and stop
+> sending you homework. In Stripe: Settings → Team and security → Team → "New member" → my email
+> is [YOUR EMAIL] → role "Developer".
+>
+> That's it — nothing else to do, and it means you never have to text me anything sensitive.
+> (If you'd rather not add me, totally fine, just say and I'll send you the other way to do it.)
+
+**Only if she'd rather not add you:**
+
+> No worries at all! Then two things instead:
+>
+> 1. In Stripe, flip the toggle from Test to Live mode (top of the page), then Developers →
+>    Webhooks → Add endpoint. URL: https://bread-pickup.netlify.app/api/stripe-webhook — I'll
+>    send you the exact list of events to tick.
+> 2. Developers → API keys → Create restricted key. Name it "bread site", and switch on only
+>    these two: Checkout Sessions: Write, and Refunds: Read. Everything else stays "None".
+>
+> Send me that restricted key and the webhook's signing secret, then delete the messages. The
+> restricted one is safe to send — it can't move your money or see your customer list, it can
+> only do the bread orders.
+
+The eight events for that endpoint are in
+[`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) section 2, item 6, and `npm run stripe:verify` will
+tell you if any are missing.
+
+**Once the key is in hand:** that unlocks steps 4–7 of
 [`LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) — the live key, the live webhook endpoint, and the
 cutover. Nothing about the site changes until then; it stays in test mode.
 

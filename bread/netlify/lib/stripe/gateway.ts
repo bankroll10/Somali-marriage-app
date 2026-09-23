@@ -74,6 +74,24 @@ export interface StripeGateway {
 
 export const CURRENCY = 'usd'
 
+/**
+ * The events the webhook handler actually acts on, and therefore the ones a
+ * Stripe endpoint must be subscribed to. `checkout.session.*` converts or
+ * releases a hold; the charge and refund events mirror a refund back onto
+ * the order. `npm run stripe:verify` checks a live endpoint against this
+ * list, so the docs, the dashboard and the code cannot drift apart.
+ */
+export const REQUIRED_WEBHOOK_EVENTS = [
+  'checkout.session.completed',
+  'checkout.session.expired',
+  'checkout.session.async_payment_succeeded',
+  'checkout.session.async_payment_failed',
+  'charge.refunded',
+  'charge.refund.updated',
+  'refund.created',
+  'refund.updated',
+] as const
+
 export function toGatewaySession(s: Stripe.Checkout.Session): GatewaySession {
   return {
     id: s.id,
