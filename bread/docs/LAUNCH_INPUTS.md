@@ -11,16 +11,16 @@ The texts to send Biz for the items still open are in [`BIZ_MESSAGES.md`](BIZ_ME
 | Input | Today | Where it lands |
 |---|---|---|
 | **Business name** | ✅ **Confirmed 2026-09-19: "Fresh Bread"** — already what the site shows everywhere, so no change was needed | Nothing left in the code. One action remains for Biz: type **Fresh Bread** as the **statement descriptor** during Stripe activation (what customers see on their bank statement) — it is in her text |
-| **Exact Life Time location and pickup instructions** | "Life Time — the front desk", 5–11 PM, best after 9 PM, and the sentence *Life Time is the pickup spot only — this bread is not sold by, or affiliated with, the gym.* The club's address is not shown anywhere. | `PICKUP_PLACE`, `PICKUP_PLACE_WHERE`, `PICKUP_PLACE_NOTE`, `PICKUP_START_HOUR`, `PICKUP_END_HOUR`, `PICKUP_PREFERRED_AFTER_HOUR` in `config.ts`. Confirm with the club that pickups at the front desk are acceptable to them. |
-| **Business contact for customers** | None shown. The confirmation page says a person will look at flagged payments, but gives no way to reach anyone. | A line on the order and confirmation pages (`Order.tsx`, `Thanks.tsx`) and in Stripe's receipt settings (support email / phone). Decide: email, phone, or neither. |
-| **Real bread photos** (optional) | Drawn placeholders, labelled as such | Two square photos ≥ 400 px into `bread/public/bread/`, then `image:` on each product in `config.ts` (README explains) |
+| **Exact Life Time location and pickup instructions** | ✅ **Confirmed 2026-09-23: Life Time Fridley, the front desk**, 5–11 PM, best after 9 PM | Done — `PICKUP_PLACE` |
+| **Business contact for customers** | ✅ **Confirmed 2026-09-23: her number, (612) 703-8698** — on the order page and every confirmation state, as a tap-to-call link | Done — `CONTACT_PHONE` |
+| **Real bread photos** (optional) | 🟡 Biz is taking them (said 2026-09-23). Drawn placeholders until then | Send them in the chat; they go in `public/bread/` and `image:` on each product |
 
 ## Rules to confirm (already built this way)
 
 | Rule | Today | Change it in |
 |---|---|---|
 | Timezone | America/Chicago for every time shown and every cutoff | `TIMEZONE` |
-| Cutoff interpretation | Orders close **exactly 48 hours before the shift starts** (5 PM on the pickup day → 5 PM two days earlier). Around the daylight-saving changes that lands at 4 PM (March) or 6 PM (November) on the calendar day, because it is a true 48 hours. | `ORDER_CUTOFF_HOURS`; or a rule change if "5 PM two days before, whatever the clocks did" is meant |
+| Cutoff interpretation | ✅ **Changed by Biz 2026-09-23: 5 PM the day before pickup** (was 48 hours). Monday closes Sunday 5 PM, Wednesday Tuesday 5 PM, Thursday Wednesday 5 PM. A wall-clock rule; with Mon/Wed/Thu pickups it is always exactly 24 h, DST included (tested across a year) | `ORDER_CUTOFF_DAYS_BEFORE`, `ORDER_CUTOFF_HOUR` |
 | Near-cutoff payment | Card checkout **closes 32 minutes before the cutoff** because Stripe's page needs 30; a session started before that ends exactly at the cutoff. Nothing can be paid after the cutoff. The alternative (a grace period past the cutoff) is described in `BUILD_PLAN.md` and not built. | `CARD_CHECKOUT_LEAD_MINUTES` |
 | Booking horizon | Customers see the next **4 weeks** of Mon / Wed / Thu | `WEEKS_AHEAD`, `PICKUP_WEEKDAYS` |
 | Prices and capacity | Sourdough $5 (3 per day), banana bread $3 (4 per day) | The `products` table (a `UPDATE` by the owner; the site reads it) — a capacity change applies to dates nobody has ordered on yet |
@@ -40,8 +40,8 @@ The texts to send Biz for the items still open are in [`BIZ_MESSAGES.md`](BIZ_ME
 
 | Input | Today | Where it lands |
 |---|---|---|
-| **Ingredients and allergens** for each bread | Not shown anywhere. Home-baked goods sold to the public may need an ingredient/allergen statement under Minnesota's cottage-food rules — check the current requirement. | `blurb` on each product in `config.ts` / the `products` table, or a short "Ingredients" note on the order page |
+| **Ingredients and allergens** for each bread | ✅ **Ingredients confirmed 2026-09-23**, shown verbatim on each product. No separate "Contains:" allergen line yet — that asserts more than she said (the flour's grain, the oil's source); ask her before adding one | `ingredients` in `config.ts` |
 | **Approved product descriptions** | "A full loaf" / "Small loaf" | Same |
-| **Cancellation and refund terms** | Nothing is written. The mechanics exist (refund in Stripe, cancel on the admin page); the policy does not. | One or two sentences on the order page and confirmation, e.g. whether a no-show is refunded, and by when a customer may cancel |
+| **Cancellation and refund terms** | ✅ **Confirmed 2026-09-23:** no refunds for a missed pickup; she brings it to Life Time on her next shift. Shown in the review before paying and on the confirmation. Worded about a *missed pickup* only, so it never promises no refund when she is the one who cancels | `MISSED_PICKUP` |
 | **Sales tax** | **No tax is charged or shown.** Whether bread sold this way is taxable, and whether Biz must collect, is a question for her accountant or the Minnesota Department of Revenue. | If tax applies: either set a fixed rate in Stripe Checkout (`tax_rates` on the line items) or enable Stripe Tax — a small code change either way, plus Biz's registration |
 | **Cottage-food registration / labelling** | Unknown | Her responsibility; nothing in the site depends on it |

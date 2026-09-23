@@ -101,7 +101,22 @@ reads her account state needs it, and the script says so rather than failing.
 
 ---
 
-## 2 — The five questions (send a day later)
+## 2 — The five questions ✅ answered 2026-09-23
+
+Her answers, verbatim, all now on the live site:
+
+1. *Pickup: Life Time Fridley — front desk.*
+2. *Sourdough: flour, water, salt, sourdough starter. Banana bread: bananas, brown sugar,
+   vanilla, eggs, sourdough starter, flour, baking soda, salt, milk, neutral oil, and butter.*
+3. *No refunds — it's a $5 loaf of bread 😂 If someone can't make their pickup, I can bring it
+   back to Life Time on my next shift for them.*
+4. *You can put my phone number on the site for customer questions/order issues.
+   (612-703-8698)*
+5. *I can take some good ones tomorrow of sourdough and banana.*
+6. Cutoff: *Let's do 5 PM the day before pickup instead of 48 hours … Monday closes Sunday at
+   5, Wednesday closes Tuesday at 5, and Thursday closes Wednesday at 5.*
+
+The original text, for the record:
 
 Everything here is content the site needs but cannot invent. Each answer is a sentence.
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { cutoffFor, isInWindow, isOrderable, isPickupDay, pickupDates } from '../shared/schedule.ts'
-import { partsInZone } from '../shared/zoned.ts'
+import { cutoffFor, isInWindow, isOrderable, isPickupDay, pickupDates, pickupStart } from '../shared/schedule.ts'
+import { addDays, partsInZone } from '../shared/zoned.ts'
 
 // Chicago is UTC−5 in September. "Local" below means Chicago.
 const local = (y: number, m: number, d: number, h: number, min = 0) => Date.UTC(y, m - 1, d, h + 5, min)
@@ -11,12 +11,14 @@ describe('pickup schedule', () => {
     expect(['2026-09-20', '2026-09-22', '2026-09-25', '2026-09-26'].some(isPickupDay)).toBe(false)
   })
 
-  it('closes orders 48 hours before the 5 PM shift', () => {
-    // Monday Sep 21 → cutoff Saturday Sep 19, 5:00 PM.
-    expect(cutoffFor('2026-09-21')).toBe(local(2026, 9, 19, 17))
-    expect(isOrderable('2026-09-21', local(2026, 9, 19, 16, 59))).toBe(true)
-    expect(isOrderable('2026-09-21', local(2026, 9, 19, 17, 0))).toBe(false)
-    expect(isOrderable('2026-09-21', local(2026, 9, 19, 17, 1))).toBe(false)
+  it('closes orders at 5 PM the day before pickup (Biz, 2026-09-23)', () => {
+    // Monday closes Sunday at 5, Wednesday closes Tuesday at 5, Thursday closes Wednesday at 5.
+    expect(cutoffFor('2026-09-21')).toBe(local(2026, 9, 20, 17))
+    expect(cutoffFor('2026-09-23')).toBe(local(2026, 9, 22, 17))
+    expect(cutoffFor('2026-09-24')).toBe(local(2026, 9, 23, 17))
+    expect(isOrderable('2026-09-21', local(2026, 9, 20, 16, 59))).toBe(true)
+    expect(isOrderable('2026-09-21', local(2026, 9, 20, 17, 0))).toBe(false)
+    expect(isOrderable('2026-09-21', local(2026, 9, 20, 17, 1))).toBe(false)
     // A Tuesday is never orderable, however early.
     expect(isOrderable('2026-09-22', local(2026, 9, 1, 9))).toBe(false)
   })
@@ -33,17 +35,31 @@ describe('pickup schedule', () => {
 
 // Chicago leaves daylight time on Nov 1 2026 and returns on Mar 14 2027.
 describe('cutoffs across daylight-saving changes and calendar edges', () => {
-  it('counts 48 elapsed hours, so the cutoff wall-clock shifts by the hour the clocks moved', () => {
-    // Mon Nov 2 2026 is in standard time: 5 PM CST = 23:00Z. 48 h earlier is
-    // Sat Oct 31 23:00Z, which Chicago (still on daylight time) calls 6 PM.
-    expect(cutoffFor('2026-11-02')).toBe(Date.UTC(2026, 9, 31, 23))
-    expect(partsInZone(cutoffFor('2026-11-02'), 'America/Chicago')).toMatchObject({ month: 10, day: 31, hour: 18 })
-    expect(isOrderable('2026-11-02', Date.UTC(2026, 9, 31, 22, 59, 59, 999))).toBe(true)
-    expect(isOrderable('2026-11-02', Date.UTC(2026, 9, 31, 23, 0, 0, 0))).toBe(false)
-    // Mon Mar 15 2027 is in daylight time: 5 PM CDT = 22:00Z; 48 h earlier
-    // is Sat Mar 13 22:00Z, 4 PM CST.
-    expect(cutoffFor('2027-03-15')).toBe(Date.UTC(2027, 2, 13, 22))
-    expect(partsInZone(cutoffFor('2027-03-15'), 'America/Chicago')).toMatchObject({ day: 13, hour: 16 })
+  it('is 5 PM on the wall clock the day before, whichever side of a clock change', () => {
+    // Clocks go back at 2 AM Sun Nov 1 2026, so Sunday 5 PM is already CST (UTC−6): 23:00Z.
+    expect(cutoffFor('2026-11-02')).toBe(Date.UTC(2026, 10, 1, 23))
+    expect(partsInZone(cutoffFor('2026-11-02'), 'America/Chicago')).toMatchObject({ month: 11, day: 1, hour: 17, minute: 0 })
+    expect(isOrderable('2026-11-02', Date.UTC(2026, 10, 1, 22, 59, 59, 999))).toBe(true)
+    expect(isOrderable('2026-11-02', Date.UTC(2026, 10, 1, 23, 0, 0, 0))).toBe(false)
+    // Clocks go forward at 2 AM Sun Mar 8 2026 and Sun Mar 14 2027: Sunday 5 PM is CDT (UTC−5).
+    expect(cutoffFor('2026-03-09')).toBe(Date.UTC(2026, 2, 8, 22))
+    expect(cutoffFor('2027-03-15')).toBe(Date.UTC(2027, 2, 14, 22))
+    expect(partsInZone(cutoffFor('2027-03-15'), 'America/Chicago')).toMatchObject({ month: 3, day: 14, hour: 17, minute: 0 })
+  })
+
+  it('for every pickup day in a year: 5 PM the previous day, and exactly 24 hours before the shift', () => {
+    // Clocks change at 2 AM on a Sunday and pickups are Mon/Wed/Thu, so the span from cutoff to
+    // shift never contains a change. If the pickup days ever change, this is what will say so.
+    let checked = 0
+    for (let d = '2026-09-01'; d < '2027-09-01'; d = addDays(d, 1)) {
+      if (!isPickupDay(d)) continue
+      const cutoff = cutoffFor(d)
+      const [y, m, day] = addDays(d, -1).split('-').map(Number)
+      expect(partsInZone(cutoff, 'America/Chicago'), d).toMatchObject({ year: y, month: m, day, hour: 17, minute: 0 })
+      expect(pickupStart(d) - cutoff, d).toBe(24 * 3_600_000)
+      checked++
+    }
+    expect(checked).toBeGreaterThan(150)
   })
 
   it('starts the window from today in Chicago, not today in UTC', () => {
@@ -67,7 +83,7 @@ describe('cutoffs across daylight-saving changes and calendar edges', () => {
     expect(isInWindow('2026-09-14', now)).toBe(false) // last Monday
     expect(isOrderable('2026-09-21', cutoffFor('2026-09-21') - 1)).toBe(true)
     expect(isOrderable('2026-09-21', cutoffFor('2026-09-21'))).toBe(false)
-    // On the pickup day itself, orders closed two days ago.
+    // On the pickup day itself, orders closed the evening before.
     expect(isOrderable('2026-09-21', Date.UTC(2026, 8, 21, 14))).toBe(false)
   })
 })

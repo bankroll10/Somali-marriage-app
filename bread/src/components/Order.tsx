@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, PRODUCTS, SHOP_NAME, TAGLINE, TIMEZONE, formatMoney, type ProductId } from '../../shared/config.ts'
+import { CONTACT_PHONE, CONTACT_PHONE_TEL, MISSED_PICKUP, PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, PRODUCTS, SHOP_NAME, TAGLINE, TIMEZONE, formatMoney, type ProductId } from '../../shared/config.ts'
 import { formatPhone, normalisePhone } from '../../shared/phone.ts'
 import type { DayAvailability, PublicProduct, Qty } from '../../shared/types.ts'
 import { addDays, formatYmd, weekdayOf, ymdInZone } from '../../shared/zoned.ts'
@@ -25,6 +25,8 @@ function readCanceled(): string | null {
 /** Until the server has answered, the prices and capacities are the configured ones; after, the server's. */
 const CONFIGURED: PublicProduct[] = PRODUCTS.map((p) => ({ id: p.id, name: p.name, blurb: p.blurb, priceCents: p.priceCents, capacityPerDay: p.capacityPerDay }))
 const imageOf = (id: ProductId) => PRODUCTS.find((p) => p.id === id)?.image
+/** Her ingredient list, verbatim, so anyone with an allergy can check before ordering. */
+const ingredientsOf = (id: ProductId) => PRODUCTS.find((p) => p.id === id)?.ingredients
 
 function weekLabel(date: string, today: string): string {
   const monday = (d: string) => addDays(d, -((weekdayOf(d) + 6) % 7))
@@ -310,6 +312,11 @@ export default function Order() {
                     <p className="text-[17px] font-semibold text-cocoa">{p.name}</p>
                     <p className="text-[13px] text-cocoa-soft">{p.blurb}</p>
                     <p className="mt-0.5 text-[16px] font-semibold text-cocoa">{formatMoney(p.priceCents)}</p>
+                    {ingredientsOf(p.id) && (
+                      <p className="mt-1 text-[12px] leading-snug text-cocoa-soft">
+                        <span className="font-semibold">Ingredients:</span> {ingredientsOf(p.id)}
+                      </p>
+                    )}
                     {state?.kind === 'sold_out' && <p className="mt-1 text-[12px] font-bold uppercase tracking-wide text-berry">Sold out for {formatYmd(selectedDay!.date)}</p>}
                     {state?.kind === 'held' && (
                       <p className="mt-1 text-[12px] font-medium text-crust-dark">
@@ -518,6 +525,10 @@ export default function Order() {
                   <dd>Order by {deadlineCopy(selectedDay.cutoffAt, today)}.</dd>
                 </div>
                 <div className="flex gap-3">
+                  <dt className="w-16 shrink-0 text-cocoa-soft">Refunds</dt>
+                  <dd>{MISSED_PICKUP}</dd>
+                </div>
+                <div className="flex gap-3">
                   <dt className="w-16 shrink-0 text-cocoa-soft">For</dt>
                   <dd>
                     {name.trim()} · {formatPhone(normalisePhone(phone) ?? '')}
@@ -541,6 +552,11 @@ export default function Order() {
           <p className="mt-4 text-[13px] leading-relaxed text-cocoa-soft">
             Paying holds your bread and opens a secure Stripe page for your card — Apple Pay or Google Pay appear there on phones and browsers that support them.
             Your order is confirmed the moment the payment goes through. If you back out, nothing is charged and your choices stay here.
+            Questions?{' '}
+            <a className="font-semibold text-crust-dark underline underline-offset-2" href={CONTACT_PHONE_TEL}>
+              Call or text {CONTACT_PHONE}
+            </a>
+            .
           </p>
         </Section>
       </div>

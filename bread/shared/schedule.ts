@@ -1,6 +1,7 @@
 import {
   CARD_CHECKOUT_LEAD_MINUTES,
-  ORDER_CUTOFF_HOURS,
+  ORDER_CUTOFF_DAYS_BEFORE,
+  ORDER_CUTOFF_HOUR,
   PICKUP_START_HOUR,
   PICKUP_WEEKDAYS,
   TIMEZONE,
@@ -17,9 +18,15 @@ export function pickupStart(ymd: string): number {
   return zonedEpoch(ymd, PICKUP_START_HOUR, TIMEZONE)
 }
 
-/** The last instant an order may be placed for a pickup date. */
+/**
+ * The last instant an order may be placed for a pickup date: 5:00 PM Chicago
+ * time on the calendar day before. A wall-clock rule, as she stated it — and
+ * since pickups are Mon/Wed/Thu and the clocks change at 2 AM on a Sunday, the
+ * span from cutoff to shift never contains a change, so it is also exactly 24
+ * hours (tests/schedule.test.ts pins that).
+ */
 export function cutoffFor(ymd: string): number {
-  return pickupStart(ymd) - ORDER_CUTOFF_HOURS * 3_600_000
+  return zonedEpoch(addDays(ymd, -ORDER_CUTOFF_DAYS_BEFORE), ORDER_CUTOFF_HOUR, TIMEZONE)
 }
 
 /**

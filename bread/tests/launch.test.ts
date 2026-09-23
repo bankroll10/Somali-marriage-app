@@ -181,13 +181,13 @@ describe('S8 — the deadline, to the millisecond', () => {
     expect(stripe.created).toHaveLength(1)
   })
 
-  it('across the daylight-saving changes the cutoff is exactly 48 hours before the 5 PM shift, and checkout agrees to the millisecond', async () => {
+  it('across the daylight-saving changes the cutoff is 5 PM the day before, and checkout agrees to the millisecond', async () => {
     for (const [date, wall] of [
-      ['2026-03-09', { month: 3, day: 7, hour: 16 }], // clocks went forward on Mar 8: 48 h earlier is 4 PM CST
-      ['2026-11-02', { month: 10, day: 31, hour: 18 }], // clocks went back on Nov 1: 48 h earlier is 6 PM CDT
+      ['2026-03-09', { month: 3, day: 8, hour: 17 }], // clocks went forward at 2 AM that Sunday
+      ['2026-11-02', { month: 11, day: 1, hour: 17 }], // clocks went back at 2 AM that Sunday
     ] as const) {
       const cutoff = cutoffFor(date)
-      expect(cutoff).toBe(pickupStart(date) - 48 * 3_600_000)
+      expect(cutoff).toBe(pickupStart(date) - 24 * 3_600_000)
       expect(partsInZone(cutoff, TIMEZONE)).toMatchObject(wall)
       expect(partsInZone(pickupStart(date), TIMEZONE)).toMatchObject({ hour: 17, minute: 0 })
 

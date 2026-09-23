@@ -68,7 +68,8 @@ describe('availability', () => {
     const body = JSON.parse(text)
     expect(body.days).toHaveLength(12)
     expect(body.days[0]).toMatchObject({ date: MON, open: true, blocked: false, remaining: { sourdough: 3, banana: 4 } })
-    expect(body.days[0].cutoffAt).toBe(new Date(Date.UTC(2026, 8, 19, 22)).toISOString())
+    // Monday Sep 21 closes Sunday Sep 20 at 5 PM Chicago (CDT, so 22:00Z) — 5 PM the day before.
+    expect(body.days[0].cutoffAt).toBe(new Date(Date.UTC(2026, 8, 20, 22)).toISOString())
     expect(body.days[1]).toMatchObject({ date: WED, remaining: { sourdough: 1, banana: 3 } })
     expect(body.products).toEqual([
       { id: 'sourdough', name: 'Sourdough', blurb: 'A full loaf', priceCents: 500, capacityPerDay: 3 },

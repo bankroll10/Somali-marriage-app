@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/config.ts'
+import { CONTACT_PHONE, CONTACT_PHONE_TEL, MISSED_PICKUP, PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/config.ts'
 import type { OrderSummary } from '../../shared/types.ts'
 import { formatInstant, ymdInZone } from '../../shared/zoned.ts'
 import { ApiError, getOrder } from '../lib/api.ts'
@@ -18,6 +18,16 @@ type State = { kind: 'loading' } | { kind: 'missing' } | { kind: 'error' } | { k
  */
 const POLL_MS = (attempt: number) => (attempt < 6 ? 2_000 : attempt < 18 ? 5_000 : 30_000)
 const MAX_POLLS = 40
+
+/** Her number, on every page a customer might have a question on. */
+const Contact = ({ className = 'mt-4' }: { className?: string }) => (
+  <p className={`${className} text-[14px] text-cocoa-soft`}>
+    Questions?{' '}
+    <a className="font-semibold text-crust-dark underline underline-offset-2" href={CONTACT_PHONE_TEL}>
+      Call or text {CONTACT_PHONE}
+    </a>
+  </p>
+)
 
 const Back = ({ label = 'Back to ordering', variant = 'secondary' }: { label?: string; variant?: 'primary' | 'secondary' }) => (
   <div className="mt-8">
@@ -104,6 +114,7 @@ export default function Thanks() {
           Nothing more is needed from you; she has this flagged and will sort it out. Keep your order code{' '}
           <span className="font-mono font-semibold">{order.shortId}</span> handy.
         </Notice>
+        <Contact />
         <div className="mt-6 flex flex-wrap gap-2">
           <Button variant="secondary" onClick={() => window.location.reload()}>
             Check again
@@ -137,6 +148,7 @@ export default function Thanks() {
             ? 'Still waiting on Stripe. It is safe to refresh this page — checking again never charges you twice. If you closed the payment page without paying, your bread is released automatically.'
             : 'It is safe to refresh this page or close it and come back: nothing here can charge you twice.'}
         </p>
+        <Contact />
         {state.stalled && (
           <div className="mt-6">
             <Button variant="secondary" onClick={() => window.location.reload()}>
@@ -161,6 +173,7 @@ export default function Thanks() {
             : 'The payment page closed without a payment, so the bread went back into the pool. Nothing was charged.'}{' '}
           Your choices are still on the order page if you would like to try again.
         </Notice>
+        <Contact />
         <Back label="Order again" variant="primary" />
       </Page>
     )
@@ -233,6 +246,8 @@ export default function Thanks() {
           ? `This page is your confirmation — screenshot it if you like, and give your name and order code at ${PICKUP_PLACE_WHERE} when you come for it. If Stripe sends a receipt, it goes to the email you gave on the payment page.`
           : 'Keep this page open, or come back to it any time — it will show "Paid" once your Zelle is confirmed.'}
       </p>
+      {paid && <p className="mt-3 text-[14px] leading-relaxed text-cocoa-soft">{MISSED_PICKUP}</p>}
+      <Contact className="mt-3" />
 
       <Back label={`Order more from ${SHOP_NAME}`} />
     </Page>

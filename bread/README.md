@@ -32,7 +32,7 @@ all constants at the top of that file; the social preview image is
 
 ## The rules, in one file
 
-Prices, capacity, pickup days and hours, the 48-hour cutoff, the hold window,
+Prices, capacity, pickup days and hours, the 5 PM day-before cutoff, the hold window,
 the timezone, the shop name and her Zelle details are all constants in
 [`shared/config.ts`](shared/config.ts). Change one there, push, and both the
 site and the server follow.
@@ -42,7 +42,10 @@ site and the server follow.
 | Sourdough $5 (3 per day), banana bread $3 (4 per day) | `PRODUCTS` |
 | Monday, Wednesday, Thursday | `PICKUP_WEEKDAYS` |
 | 5–11 PM, "best after 9 PM" | `PICKUP_START_HOUR`, `PICKUP_END_HOUR`, `PICKUP_PREFERRED_AFTER_HOUR` |
-| Orders close 48 h before the shift starts on the pickup date | `ORDER_CUTOFF_HOURS` |
+| Orders close at 5 PM the day before pickup (Mon → Sun 5 PM, Wed → Tue 5 PM, Thu → Wed 5 PM) — Biz, 2026-09-23 | `ORDER_CUTOFF_DAYS_BEFORE`, `ORDER_CUTOFF_HOUR` |
+| Pickup at Life Time Fridley, the front desk | `PICKUP_PLACE`, `PICKUP_PLACE_WHERE` |
+| Ingredients shown on each product, her words | `ingredients` on each of `PRODUCTS` |
+| Missed pickup: no refund, she brings it on her next shift; her number on the site | `MISSED_PICKUP`, `CONTACT_PHONE` |
 | A reservation holds bread for 3 hours awaiting Zelle | `PAYMENT_HOLD_HOURS` |
 | Her Zelle name and handle (manual path only) | `ZELLE_NAME` (blank until she gives it; the page then shows the handle alone), `ZELLE_HANDLE` (set to `(612) 703-8698`) |
 | Card checkout closes this many minutes before the deadline | `CARD_CHECKOUT_LEAD_MINUTES` (32: Stripe's page needs 30) |
@@ -294,7 +297,7 @@ in-process (PGlite) that ran the real migrations, with an injectable clock
 and Stripe replaced by a fake with the real API's idempotency behaviour:
 concurrent buyers for the last loaf, mixed carts that roll back whole,
 independent dates, blocked dates, forged requests, retried requests, lapsed
-holds, late confirmations, the exact 48-hour cutoff on both sides of a
+holds, late confirmations, the exact 5 PM day-before cutoff on both sides of a
 daylight-saving change, the Stripe lifecycle (retries under one idempotency
 key, the 32-minute deadline rule, timer-immunity of card holds, webhook
 signatures, duplicates and ordering, mismatched payments, reconciliation and

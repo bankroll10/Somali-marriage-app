@@ -1,4 +1,4 @@
-import { PRODUCTS, TIMEZONE } from '../../../shared/config.ts'
+import { PICKUP_PLACE, PRODUCTS, TIMEZONE } from '../../../shared/config.ts'
 import { formatPhone } from '../../../shared/phone.ts'
 import type { AdminDay, AdminOrder, Qty } from '../../../shared/types.ts'
 import { formatInstant, formatYmd } from '../../../shared/zoned.ts'
@@ -108,7 +108,7 @@ export function PrintSheet({ day }: { day: AdminDay }) {
   return (
     <section className="print-only">
       <h1 style={{ fontSize: '20pt', margin: '0 0 4pt' }}>{longDate(day.date)}</h1>
-      <p style={{ margin: '0 0 12pt', fontSize: '11pt' }}>Pickup 5–11 PM at Life Time · best after 9 PM</p>
+      <p style={{ margin: '0 0 12pt', fontSize: '11pt' }}>Pickup 5–11 PM at {PICKUP_PLACE} · best after 9 PM</p>
       <h2 style={{ fontSize: '14pt', margin: '0 0 4pt' }}>To bake</h2>
       <p style={{ fontSize: '16pt', margin: '0 0 12pt' }}>{nothingIn(day.toBake) ? 'Nothing' : PRODUCTS.map((p) => `${day.toBake[p.id]} ${p.name.toLowerCase()}`).join(' · ')}</p>
       <h2 style={{ fontSize: '14pt', margin: '0 0 6pt' }}>Orders ({owed.length})</h2>

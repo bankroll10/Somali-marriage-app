@@ -11,7 +11,7 @@ export const TAGLINE = 'Baked to order, paid up front, picked up on your way out
 export const SITE_URL = 'https://bread-pickup.netlify.app'
 
 /** Where customers collect. Shown on the order page and the confirmation. */
-export const PICKUP_PLACE = 'Life Time'
+export const PICKUP_PLACE = 'Life Time Fridley'
 /** Where inside the place to go. */
 export const PICKUP_PLACE_WHERE = 'the front desk'
 /**
@@ -32,14 +32,23 @@ export interface Product {
   image?: string
   name: string
   blurb: string
+  /** What is in it, in her words — shown on the order page so anyone with an allergy can check. */
+  ingredients: string
   priceCents: number
   /** How many she can make for one pickup day. */
   capacityPerDay: number
 }
 
 export const PRODUCTS: readonly Product[] = [
-  { id: 'sourdough', name: 'Sourdough', blurb: 'A full loaf', priceCents: 500, capacityPerDay: 3 },
-  { id: 'banana', name: 'Banana bread', blurb: 'Small loaf', priceCents: 300, capacityPerDay: 4 },
+  { id: 'sourdough', name: 'Sourdough', blurb: 'A full loaf', ingredients: 'Flour, water, salt, sourdough starter.', priceCents: 500, capacityPerDay: 3 },
+  {
+    id: 'banana',
+    name: 'Banana bread',
+    blurb: 'Small loaf',
+    ingredients: 'Bananas, brown sugar, vanilla, eggs, sourdough starter, flour, baking soda, salt, milk, neutral oil, butter.',
+    priceCents: 300,
+    capacityPerDay: 4,
+  },
 ]
 
 export const PRODUCT_IDS: readonly ProductId[] = PRODUCTS.map((p) => p.id)
@@ -61,8 +70,14 @@ export const PICKUP_START_HOUR = 17
 export const PICKUP_END_HOUR = 23
 export const PICKUP_PREFERRED_AFTER_HOUR = 21
 
-/** Orders close this many hours before the shift starts on the pickup date. */
-export const ORDER_CUTOFF_HOURS = 48
+/**
+ * Orders close at ORDER_CUTOFF_HOUR on the calendar day ORDER_CUTOFF_DAYS_BEFORE
+ * the pickup, Chicago wall-clock time. Biz, 2026-09-23: "5 PM the day before
+ * pickup. So Monday closes Sunday at 5, Wednesday closes Tuesday at 5, and
+ * Thursday closes Wednesday at 5." (It was 48 hours before the shift.)
+ */
+export const ORDER_CUTOFF_DAYS_BEFORE = 1
+export const ORDER_CUTOFF_HOUR = 17
 
 /** How far ahead customers can pick a date. */
 export const WEEKS_AHEAD = 4
@@ -99,6 +114,18 @@ export const STRIPE_HOLD_MARGIN_MINUTES = 10
  */
 export const ZELLE_NAME = ''
 export const ZELLE_HANDLE = '(612) 703-8698'
+
+/** Her number, on the site for customer questions and order problems (Biz, 2026-09-23). */
+export const CONTACT_PHONE = '(612) 703-8698'
+export const CONTACT_PHONE_TEL = 'tel:+16127038698'
+
+/**
+ * Her policy (2026-09-23): no refunds for a missed pickup — she brings the
+ * bread to the club on her next shift instead. Deliberately about a missed
+ * pickup only, not "all sales final": if she ever has to cancel, the site has
+ * not promised a customer they cannot get their money back.
+ */
+export const MISSED_PICKUP = `Can't make your pickup? No refunds — but text ${CONTACT_PHONE} and she'll bring your bread to ${PICKUP_PLACE} on her next shift.`
 
 /**
  * Reservation abuse. A checkout is free and holds bread for up to
