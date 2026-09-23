@@ -332,7 +332,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 the earlier messages in that conversation, and a summary of your map —
               </p>
               <ul className={LIST}>
-                <li>your first name, your age, whether you are a woman or a man, and your city</li>
+                <li>your age range, whether you are a woman or a man, and your city</li>
                 <li>your timeline, where you are in your practice, and how central faith is</li>
                 <li>your family’s role, and children</li>
                 <li>how you lean in closeness, and what you said you feel safe with</li>

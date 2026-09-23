@@ -208,8 +208,8 @@ export default async function handler(req: Request) {
    * asking to be forgotten should take the sheet with them.
    *
    * It deletes the sheet and nothing else. In particular it does not touch
-   * `reports`: those are deleted only by the cascade in keep.ts, at the
-   * request of the person who filed one. A man must never be able to erase a
+   * `reports`: a report is withdrawn only with the receipt its filer was
+   * handed (netlify/functions/safety.ts). A man must never be able to erase a
    * safety report about himself by tapping forget me.
    */
   if (req.method === 'DELETE') {

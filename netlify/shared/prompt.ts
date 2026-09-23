@@ -1,4 +1,5 @@
 import { DEALBREAKERS, GENDERS, GUIDE_MODES, HOOKS, SCENES, STAGES } from './vocab'
+import { bandOf, type AgeBand } from './age'
 
 /**
  * The Guide's system prompt, and the only place it is built.
@@ -141,8 +142,13 @@ function whole(value: unknown, min: number, max: number): number | undefined {
 
 /** Every slot the prompt can fill, after checking. Nothing else reaches the model. */
 export interface SafeContext {
-  firstName: string
-  age?: number
+  /**
+   * Her age as a range, never the age, and never her name: the guide speaks to
+   * "you", and a range carries all the advice needs (docs/PRIVACY.md, C5).
+   * Both used to be sent — an exact age and a first name beside a city and a
+   * practice, to a third party, on every message.
+   */
+  ageBand?: AgeBand
   gender: string
   scene: string
   timeline: string
@@ -173,8 +179,7 @@ export function sanitiseContext(raw: unknown): SafeContext {
   const i = (ctx.identity ?? {}) as Record<string, unknown>
   const a = (ctx.answers ?? {}) as Record<string, unknown>
   return {
-    firstName: line(i.firstName, MAX_SCALAR) ?? 'Unnamed',
-    age: whole(i.age, 18, 99),
+    ageBand: ((age) => (age === undefined ? undefined : bandOf(age)))(whole(i.age, 18, 99)),
     gender: oneOf(i.gender, GENDERS) ?? BLANK,
     scene: oneOf(i.scene, SCENES) ?? BLANK,
     timeline: line(a.timeline, MAX_SCALAR) ?? BLANK,
@@ -205,7 +210,7 @@ export function buildSystemPrompt(modeId: string, ctx: SafeContext): string {
     `You are one voice of Niyyah, the trusted marriage platform for the Somali diaspora: serious, culturally fluent (hooyo, wali, aunties, deen — used naturally, never performatively), warm but direct. Depth over dopamine; alignment over attraction; family honoured.`,
     ``,
     `THE PERSON YOU ARE GUIDING (their private map — use it, specifically):`,
-    `- ${ctx.firstName}${ctx.age ? `, ${ctx.age}` : ''}, ${ctx.gender}, scene: ${ctx.scene}`,
+    `- ${ctx.ageBand ? `Aged ${ctx.ageBand}, ` : ''}${ctx.gender}, scene: ${ctx.scene}`,
     `- Timeline: ${ctx.timeline} · Practice: ${ctx.practice} · Faith centrality: ${ctx.faithRole}/5`,
     `- Family involvement: ${ctx.familyRole} · Children: ${ctx.children}`,
     `- Attachment lean: ${ctx.attachment} · Feels safe with: ${ctx.commSafety}`,

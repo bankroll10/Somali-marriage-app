@@ -88,6 +88,16 @@ describe('the backup', () => {
     expect(body.joint).toEqual({ pairs: 2, topics: { 'money-home': { 'both-agree': 2 } } })
   })
 
+  it('leaves out a step count past its year — the backup keeps nothing the store has let go', async () => {
+    // docs/PRIVACY.md R3: the backup checked no date at all, so a record the
+    // store was done with went on into the founder's files and the artifact.
+    // A married record is kept by rule, lapsed or not.
+    memStore('progress').setJSON('QRTWXY34', { first: { arrived: '2025-01-01' }, expiresAt: '2025-09-01' })
+    memStore('progress').setJSON('KMNPQRTW', { first: { arrived: '2024-01-01', married: '2024-06-01' }, expiresAt: '2025-06-01' })
+    const body = await (await get()).json()
+    expect(Object.keys(body.progress).sort()).toEqual(['ACDEFG', 'HJKMNP', 'KMNPQRTW'])
+  })
+
   it('counts the door, country by city, without carrying a single map code', async () => {
     const body = await (await get()).json()
     expect(body.door.ca.toronto).toEqual({

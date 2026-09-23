@@ -1,6 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { CODE, mint, normalise } from '../shared/code'
-import { day } from '../shared/day'
+import { day, toDays } from '../shared/day'
 import { readJson } from '../shared/body'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import { stamp } from '../shared/record'
@@ -162,18 +162,25 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'missing_snapshot' }, { status: 400 })
   }
 
-  // The client promises never to send three things (src/lib/keep.ts): her
-  // conversations with the guide, the follow-ups the guide handed her, and her
-  // email or phone. The server refuses to hold them even if an older client
-  // still does — a promise about what is stored is kept where it is stored.
+  // The client promises never to send these (src/lib/keep.ts): her
+  // conversations with the guide, the follow-ups the guide handed her, her
+  // email or phone, the line she writes for the next person at the end, a
+  // last-seen time, and any moment finer than a day. The server refuses to hold
+  // them even if an older client still sends them — a promise about what is
+  // stored is kept where it is stored (docs/PRIVACY.md).
   const snap = body.snapshot as Record<string, unknown>
   delete snap.coachThreads
+  delete snap.updatedAt
   if (snap.waitlist && typeof snap.waitlist === 'object') delete (snap.waitlist as Record<string, unknown>).contact
+  if (snap.ending && typeof snap.ending === 'object') delete (snap.ending as Record<string, unknown>).advice
   if (Array.isArray(snap.followups)) {
-    snap.followups = snap.followups.filter(
-      (f) => !(f && typeof f === 'object' && (f as { source?: unknown }).source === 'guide'),
-    )
+    snap.followups = snap.followups
+      .filter((f) => !(f && typeof f === 'object' && (f as { source?: unknown }).source === 'guide'))
+      // Ids unique within her list, and nothing more — they were built from
+      // the moment each was written.
+      .map((f, i) => (f && typeof f === 'object' ? { ...f, id: `${(f as { source?: unknown }).source}:${(f as { topic?: unknown }).topic}:${i}` } : f))
   }
+  const snapshot = toDays(snap)
 
   // Re-keeping under the code she already has, so updating a map does not
   // hand her a second code to remember.
@@ -203,7 +210,7 @@ export default async function handler(req: Request) {
         // Re-keeping refreshes the year but keeps the day it was first kept. A
         // createdAt that moved on every save was a last-seen timestamp under
         // another name — an activity trace this store has no business holding.
-        const kept: KeptMap = { snapshot: body.snapshot, createdAt: was.createdAt ?? day(now), expiresAt: day(now + TTL_MS) }
+        const kept: KeptMap = { snapshot, createdAt: was.createdAt ?? day(now), expiresAt: day(now + TTL_MS) }
         const { modified } = await store.setJSON(code, stamp(kept), { onlyIfMatch: existing.etag })
         if (modified) return Response.json({ code })
       }
@@ -212,7 +219,7 @@ export default async function handler(req: Request) {
     // A code nobody holds yet: minted with `onlyIfNew`, so a collision costs a
     // retry instead of somebody's map — see netlify/shared/code.ts for why
     // that is not theoretical.
-    const kept: KeptMap = { snapshot: body.snapshot, createdAt: day(now), expiresAt: day(now + TTL_MS) }
+    const kept: KeptMap = { snapshot, createdAt: day(now), expiresAt: day(now + TTL_MS) }
     const minted = await mint((c, v: KeptMap) => store.setJSON(c, v, { onlyIfNew: true }), stamp(kept))
     if (!minted) {
       console.error('[niyyah] keep: every minted code collided')

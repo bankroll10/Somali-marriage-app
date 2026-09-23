@@ -180,9 +180,10 @@ export default async function handler(req: Request) {
     }
     if (!code) return Response.json({ error: 'bad_code' }, { status: 400 })
     try {
-      // Live while the map is. The vouch is not deleted when the map is absent:
-      // a map is re-kept under the same code, and the vouch must come back
-      // with it rather than be lost to one lapsed year.
+      // Live while the map is. A map past its year that the sweep has not yet
+      // reached can still be re-kept under its code, so a vouch is only hidden
+      // here, not deleted; the weekly sweep deletes it once the map is gone
+      // (netlify/functions/sweep.ts, docs/PRIVACY.md R1).
       const [map, record] = await Promise.all([
         getStore('maps').getMetadata(code),
         store.get(code, { type: 'json' }) as Promise<VouchRecord | null>,

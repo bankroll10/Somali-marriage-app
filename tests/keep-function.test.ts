@@ -57,6 +57,29 @@ function seed(code = 'ACDEFG', snapshot: unknown = { identity: {}, answers: {} }
 }
 
 describe('keeping a map', () => {
+  it('holds no moment finer than a day, no last-seen time and not her line for the next person — whatever an older client sends', async () => {
+    // docs/PRIVACY.md C1–C3, enforced where the map is stored, the way the
+    // guide threads and the contact already are.
+    const res = await post({
+      snapshot: {
+        identity: { firstName: 'Sagal' },
+        updatedAt: 1758612345678,
+        read: { at: '2026-09-23T10:11:12.345Z', answers: {} },
+        ending: { at: '2026-09-23T10:11:12.345Z', who: 'met-here', advice: 'Ask about money first.' },
+        followups: [{ id: 'read:public:2026-09-23T10:11:12.345Z', source: 'read', topic: 'public', at: '2026-09-23T10:11:12.345Z' }],
+      },
+    })
+    const { code } = await res.json()
+    const stored = stores.get('maps')!.get(code)!
+    expect(stored).not.toMatch(/T\d{2}:\d{2}/)
+    expect(stored).not.toContain('updatedAt')
+    expect(stored).not.toContain('Ask about money first.')
+    const { snapshot } = JSON.parse(stored)
+    expect(snapshot.read.at).toBe('2026-09-23')
+    expect(snapshot.ending).toEqual({ at: '2026-09-23', who: 'met-here' })
+    expect(snapshot.followups[0].id).toBe('read:public:0')
+  })
+
   it('stores the snapshot under a minted code and hands it back', async () => {
     const res = await post({ snapshot: { identity: { firstName: 'Sagal' }, answers: {} } })
     expect(res.status).toBe(200)
@@ -119,7 +142,7 @@ describe('keeping a map', () => {
     expect(stored).not.toContain('what it said')
     const back = JSON.parse(stored).snapshot
     expect(back.waitlist).toEqual({ scene: 'toronto', joinedAt: 'x' })
-    expect(back.followups).toEqual([{ id: 'r1', source: 'read', topic: 'public' }])
+    expect(back.followups).toEqual([{ id: 'read:public:0', source: 'read', topic: 'public' }])
   })
 
   it('re-keeping keeps the day it was first kept', async () => {
