@@ -1,15 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { NETLIFY_FORM_ENDPOINT, joinWaitlist, mailtoFor, waitlistConfigured } from './waitlist'
+import { NETLIFY_FORM_ENDPOINT, flushWaitlistQueue, joinWaitlist, mailtoFor, waitlistConfigured } from './waitlist'
 
-const entry = {
-  contact: 'hodan@example.com',
-  scene: 'twin-cities',
-  country: 'us',
-  reach: 'country',
-  gender: 'woman',
-  hardestPart: 'Trusting again after being hurt',
-  at: '2026-08-28T12:00:00.000Z',
-}
+const entry = { scene: 'twin-cities', at: '2026-08-28' }
 
 function stubEnv(vars: Record<string, string | undefined>) {
   for (const [k, v] of Object.entries(vars)) vi.stubEnv(k, v as string)
@@ -77,32 +69,43 @@ describe('the waitlist — the only line out of this app', () => {
     )
     const sent = new URLSearchParams(init.body as string)
     expect(sent.get('form-name')).toBe('niyyah-waitlist')
-    expect(sent.get('contact')).toBe(entry.contact)
-    // Her map code is the sole authenticator for her whole map — for reading
-    // it and for the cascading delete — and it used to travel here, into a
-    // third party's store, in the same row as the way to reach her, while
-    // Trust told her the code was "registered to nobody" (docs/BOARD.md).
-    expect(sent.get('code')).toBeNull()
-    expect([...sent.keys()]).not.toContain('code')
-    // The city signal — which city has enough serious people to open first —
-    // and, beside it, the country and how far she would go: the only way the
-    // founder can write to exactly the people whose pool has opened, since
-    // this form is the only place their contact lives.
+    // A ping, and nothing a person can be reached or known by: the city, so the
+    // founder sees which pool moved, and the day (docs/PRIVACY.md, C7).
+    expect([...sent.keys()].sort()).toEqual(['at', 'form-name', 'scene'])
     expect(sent.get('scene')).toBe('twin-cities')
-    expect(sent.get('country')).toBe('us')
-    expect(sent.get('reach')).toBe('country')
-    // How her map read is hers. It used to travel here as a number.
-    expect(sent.has('overall')).toBe(false)
-    // Why they came — the most useful thing a signup can carry, and sent as the
-    // human label rather than the id so a row reads as a finding.
-    expect(sent.get('hardest_part')).toBe('Trusting again after being hurt')
+    expect(sent.get('at')).toBe('2026-08-28')
   })
 
-  it('queues a failed signup instead of losing a real person', async () => {
+  it('never carries the way to reach her, even when a caller hands it one', async () => {
+    // It carried her email or phone, city, country, how far she would go, who
+    // she sought and her hardest part — a second copy at a third party that
+    // Forget me could not reach, which Trust needed a paragraph to confess.
+    // The way to reach her now lives in one place: our own store.
+    stubEnv({ VITE_WAITLIST_FORM: 'niyyah-waitlist' })
+    const spy = vi.fn(async (_u: string, _i: RequestInit) => new Response('', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    await joinWaitlist({ ...entry, contact: 'hodan@example.com', gender: 'woman', at: '2026-08-28T12:00:00.000Z' } as never)
+    const body = spy.mock.calls[0][1].body as string
+    expect(body).not.toContain('hodan')
+    expect(body).not.toContain('woman')
+    expect(new URLSearchParams(body).get('at')).toBe('2026-08-28')
+  })
+
+  it('queues a failed ping — and the queue holds no contact either', async () => {
     stubEnv({ VITE_WAITLIST_FORM: 'niyyah-waitlist' })
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     expect(await joinWaitlist(entry)).toBe('queued')
-    expect(localStorage.getItem('niyyah.waitlist.queue.v1')).toContain(entry.contact)
+    expect(JSON.parse(localStorage.getItem('niyyah.waitlist.queue.v1')!)).toEqual([entry])
+  })
+
+  it('sends an older queue on without the contact it used to hold', async () => {
+    stubEnv({ VITE_WAITLIST_FORM: 'niyyah-waitlist' })
+    localStorage.setItem('niyyah.waitlist.queue.v1', JSON.stringify([{ contact: 'hodan@example.com', scene: 'london', at: '2026-08-01T09:00:00.000Z' }]))
+    const spy = vi.fn(async (_u: string, _i: RequestInit) => new Response('', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    await flushWaitlistQueue()
+    expect(spy.mock.calls[0][1].body as string).not.toContain('hodan')
+    expect(localStorage.getItem('niyyah.waitlist.queue.v1')).toBe('[]')
   })
 
   it('queues on a server error too, not just a dead network', async () => {
@@ -111,27 +114,14 @@ describe('the waitlist — the only line out of this app', () => {
     expect(await joinWaitlist(entry)).toBe('queued')
   })
 
-  it('falls back to the JSON endpoint when no form is named', async () => {
+  it('falls back to the JSON endpoint when no form is named — with the same two fields', async () => {
     stubEnv({ VITE_WAITLIST_FORM: undefined, VITE_WAITLIST_URL: 'https://example.test/hook' })
     const spy = vi.fn(async (_u: string, _i: RequestInit) => new Response('', { status: 200 }))
     vi.stubGlobal('fetch', spy)
 
     expect(await joinWaitlist(entry)).toBe('joined')
     expect(spy.mock.calls[0][0]).toBe('https://example.test/hook')
-    expect(JSON.parse(spy.mock.calls[0][1].body as string).contact).toBe(entry.contact)
-  })
-
-  it('omits empty fields rather than filing blank columns', async () => {
-    stubEnv({ VITE_WAITLIST_FORM: 'niyyah-waitlist' })
-    const spy = vi.fn(async (_u: string, _i: RequestInit) => new Response('', { status: 200 }))
-    vi.stubGlobal('fetch', spy)
-    await joinWaitlist({ contact: 'x@y.z', at: entry.at })
-
-    const sent = new URLSearchParams(spy.mock.calls[0][1].body as string)
-    expect(sent.has('scene')).toBe(false)
-    expect(sent.has('country')).toBe(false)
-    expect(sent.has('reach')).toBe(false)
-    expect(sent.has('gender')).toBe(false)
+    expect(JSON.parse(spy.mock.calls[0][1].body as string)).toEqual(entry)
   })
 
   it('offers a mailto that still reaches a human', () => {

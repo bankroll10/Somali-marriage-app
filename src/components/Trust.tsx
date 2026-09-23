@@ -103,7 +103,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
 
           <Control
             title="Tell us which steps you reach"
-            desc="Opening Niyyah is counted once. After that, each step above is counted the first time you reach it."
+            desc="On unless you turn it off. Opening Niyyah is counted once; after that, each step above, the first time you reach it."
             icon={<LockGlyph />}
             on={countMe}
             onToggle={() => onCountMe(!countMe)}
@@ -111,9 +111,9 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               <>
                 <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                   The step, the date, and for a few steps how it came out, in a word from a list we
-                  wrote — under a random code that is not your map code. No answer in your words, no
-                  name, nothing that leads back to you. It is how we find out whether any of this
-                  helps. Turn it off and nothing is sent.
+                  wrote — under a random code that is not your map code. No answer in your words, and
+                  no name. It is how we find out whether any of this helps. Turn it off and nothing
+                  is sent.
                 </p>
               </>
             }
@@ -138,10 +138,8 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
             <div className="min-w-0 flex-1">
               <h2 className="font-display text-[1.08rem] font-medium text-ink">Where your answers live</h2>
               <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
-                Your map and every answer you gave are stored on this device, not on our servers, and
-                no one at Niyyah can read them. A read you take on someone and Before you say yes stay
-                here too, and we never ask their name. Six things can change that, each only if you
-                tap it.
+                Everything you answer stays on this phone. It leaves only if you tap one of the six
+                things below, and each says exactly what goes. We never ask anyone else’s name.
               </p>
             </div>
           </div>
@@ -194,17 +192,6 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 your city and country beside it, so you can be reached if your pool opens or if the
                 people you’d travel for are counted. Nothing writes to anyone yet. It lives exactly as
                 long as your kept map does: when the map lapses, so does the way to reach you.
-              </p>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                The same tap also sends the way to reach you, your city, your country, how far you’d
-                go, whether you are a woman or a man, and the hardest part in your own words to the
-                form service this site runs on — a second copy, so that a list this small cannot be
-                lost with one account. Your map code is not in it, and nothing about your answers
-                is. That copy is the one thing
-                Forget me cannot reach on its own; ask at{' '}
-                <span className="font-medium text-ink">{CONTACT_EMAIL}</span>, and it is deleted by
-                hand the same week. Niyyah is run by one founder, and that address reaches the
-                person.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 Your kept map lives in one place, with the company we rent storage from, and the founder’s
@@ -332,7 +319,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 the earlier messages in that conversation, and a summary of your map —
               </p>
               <ul className={LIST}>
-                <li>your first name, your age, whether you are a woman or a man, and your city</li>
+                <li>your age range, whether you are a woman or a man, and your city</li>
                 <li>your timeline, where you are in your practice, and how central faith is</li>
                 <li>your family’s role, and children</li>
                 <li>how you lean in closeness, and what you said you feel safe with</li>
@@ -362,19 +349,14 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               above, which is the least likely place a person reads them. They
               are the same words, under a name that says what they are. */}
           <Disclose
-            summary="The two things it cannot reach"
-            hint="A count with no code, and a second copy"
+            summary="The one thing it cannot reach"
+            hint="A count with no code"
             className="mt-3"
           >
             <p className="text-[0.88rem] leading-snug text-muted text-pretty">
               {fix('If {he} answered your eleven,')} your pair was already added to a count of how
               pairs come out, and that count carries no code, so it cannot be found again — by us
               or by you.
-            </p>
-            <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-              The second copy with the form service this site runs on, described under Asking to be
-              counted — ask at <span className="font-medium text-ink">{CONTACT_EMAIL}</span>, and it
-              is deleted by hand.
             </p>
           </Disclose>
           <div className="mt-4 flex flex-wrap items-center gap-3">
@@ -417,7 +399,8 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               <p role="status" className="w-full text-[0.85rem] leading-snug text-clay text-pretty">
                 This phone is cleared. We could not reach {stillHeld.join(' and ')} just now, so
                 {stillHeld.length > 1 ? ' they are' : ' it is'} still held — that is us, not you.
-                Tap Forget me again in a moment, or write to us and it goes by hand.
+                Tap Forget me again in a moment, or write to{' '}
+                <span className="font-medium">{CONTACT_EMAIL}</span> and it goes by hand.
               </p>
             )}
             {forgetting === 'working' && <span className="text-[0.88rem] text-muted">Forgetting…</span>}

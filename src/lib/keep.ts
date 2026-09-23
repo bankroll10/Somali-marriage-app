@@ -30,21 +30,46 @@ const ENDPOINT = '/.netlify/functions/keep'
  *  - Not her email or phone. The way to reach her goes to the founder's form
  *    on its own, and Trust says it is never stored next to her answers. Until
  *    this type existed, every re-keep after joining the door put it there.
+ *  - Not the line she writes for the next person at the end. Ending says it
+ *    never leaves; it went with every keep (docs/PRIVACY.md, C3).
+ *  - No moment finer than a day. Every other store has kept that rule since
+ *    docs/LEARNING.md; this one carried millisecond timestamps, a follow-up id
+ *    built from one, and `updatedAt` — a last-seen time under another name
+ *    (docs/PRIVACY.md, C1–C2). What comes back after a restore is used only in
+ *    days.
  *
- * The type is the guarantee: the fields do not exist on what is sent.
+ * The type is the guarantee for the first three: the fields do not exist on
+ * what is sent. The server applies the same rules again, for older clients.
  */
 export type KeptSnapshot = Omit<PersistedState, 'coachThreads' | 'waitlist'> & {
   waitlist: Omit<WaitlistState, 'contact'> | null
 }
 
+const MOMENT = /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?$/
+
+/** Every timestamp in a value, cut to its day. */
+function toDays<T>(value: T): T {
+  if (typeof value === 'string') return (value.match(MOMENT)?.[1] ?? value) as T
+  if (Array.isArray(value)) return value.map(toDays) as T
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, toDays(v)])) as T
+  }
+  return value
+}
+
 export function keptSnapshot(state: PersistedState): KeptSnapshot {
-  const { coachThreads: _threads, waitlist, followups, ...rest } = state
+  const { coachThreads: _threads, waitlist, followups, ending, ...rest } = state
+  delete (rest as { updatedAt?: number }).updatedAt
   const { contact: _contact, ...place } = waitlist ?? { contact: '', joinedAt: '' }
-  return {
+  const { advice: _advice, ...ended } = ending ?? { at: '' }
+  return toDays({
     ...rest,
     waitlist: waitlist ? place : null,
-    followups: followups.filter((f) => f.source !== 'guide'),
-  }
+    ending: ending ? ended : null,
+    // Ids unique within her list, and nothing more: they were built from the
+    // moment each was written.
+    followups: followups.filter((f) => f.source !== 'guide').map((f, i) => ({ ...f, id: `${f.source}:${f.topic}:${i}` })),
+  })
 }
 
 /** Where her own code is remembered, so she is shown it rather than asked for it. */

@@ -20,13 +20,13 @@
       Fields must match what postToNetlifyForm in src/lib/waitlist.ts sends
       (submissions POST to "/", where Netlify's handler listens).
     -->
+    <!--
+      A ping, not a signup sheet: which city, which day. The way to reach a
+      person lives only in the site's own store, which Forget me reaches
+      (docs/PRIVACY.md, C7).
+    -->
     <form name="niyyah-waitlist" data-netlify="true" hidden>
-      <input type="text" name="contact" />
       <input type="text" name="scene" />
-      <input type="text" name="country" />
-      <input type="text" name="reach" />
-      <input type="text" name="gender" />
-      <input type="text" name="hardest_part" />
       <input type="text" name="at" />
     </form>
   </body>

@@ -15,7 +15,8 @@
 # secret the request is a 401 and the job fails too, which is the prompt to add
 # it (docs/DEPLOY.md).
 #
-# The monthly job saves /export as a 90-day artifact, replacing the by-hand
+# The monthly job saves /export as a 35-day artifact — one month and a margin,
+# since each run replaces the last (docs/PRIVACY.md, R5) — replacing the by-hand
 # step in docs/OPERATING.md. It runs only when the repository variable
 # BACKUP_TO_ARTIFACT is "true": the export holds pseudonymous learning records,
 # and an artifact on a public repository can be downloaded by anyone signed in
@@ -101,5 +102,5 @@ jobs:
         with:
           name: ${{ steps.save.outputs.name }}
           path: ${{ steps.save.outputs.name }}
-          retention-days: 90
+          retention-days: 35
           if-no-files-found: error

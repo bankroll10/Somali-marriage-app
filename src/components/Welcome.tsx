@@ -85,7 +85,7 @@ export default function Welcome({
               The one thing to say next is two minutes away.
             </p>
             <p className="mt-1 text-[0.88rem] leading-snug text-cream/55 text-pretty">
-              In words, not a score. No one else ever sees it — not your family, not a match, not us.
+              In words, not a score. No one else sees it — not your family, not a match.
             </p>
           </div>
 

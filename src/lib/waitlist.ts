@@ -17,43 +17,32 @@
 
 const QUEUE_KEY = 'niyyah.waitlist.queue.v1'
 
+/**
+ * What the founder's form is told when someone is counted: which city, and
+ * which day. Nothing a person can be reached or known by.
+ *
+ * It used to carry her email or phone, her city, country and how far she would
+ * go, who she was seeking and the hardest part she named — a second copy of the
+ * way to reach her, at a third party, that Forget me could not reach, and that
+ * Trust and the door needed some hundred and fifty words to confess
+ * (docs/PRIVACY.md, C7). The way to reach her now lives in one place, the
+ * `contacts` store (netlify/functions/cohort.ts), which Forget me deletes and
+ * the founder exports by hand (docs/OPERATING.md). What the form is still for
+ * is the email Netlify sends when a row lands: someone joined in Toronto today.
+ *
+ * Before that, the map code travelled here too (docs/BOARD.md); it was the sole
+ * authenticator for a map, and it is not here either.
+ */
 export interface WaitlistEntry {
-  /** Email or phone — whichever she chose to give. */
-  contact: string
-  /**
-   * The map code used to travel here too, so a row on the form could be
-   * matched to a map in the store. It no longer does.
-   *
-   * A map code is the sole authenticator for a kept map — for
-   * reading it back and for the cascading delete in
-   * netlify/functions/keep.ts — and sending it here put it in a third party's
-   * store, in the same row as the way to reach her, while Trust told her the
-   * code "is registered to nobody". The `contacts` store we own is keyed by
-   * the code already, so the link still exists where it belongs
-   * (docs/BOARD.md, the reality-sprint pass).
-   */
-  /** Diaspora community id (see data/scenes.ts) — this is the city signal. */
+  /** Diaspora community id (see data/scenes.ts) — which pool moved. */
   scene?: string
-  /**
-   * Country id (see data/countries.ts), and how far she would go for the right
-   * person (see data/reach.ts). Together with the city these are what let the
-   * founder write to exactly the people whose pool has opened — and this form
-   * is the only place their contact lives, so they have to travel with it.
-   */
-  country?: string
-  reach?: string
-  gender?: string
-  /**
-   * What they named as the hardest part, in their own words rather than as an
-   * id — "Trusting again after being hurt" is a finding; `trust` is a lookup.
-   *
-   * This is the most useful thing a signup can carry. It is the second question
-   * the app asks, it decides how the whole experience speaks to them, and read
-   * across a handful of people it says what Niyyah is actually for: which guide
-   * voice to make real first, and what the landing page should lead with.
-   */
-  hardestPart?: string
+  /** The day. A moment would be one more thing to line up against a store. */
   at: string
+}
+
+/** Exactly the two fields, whatever a caller — or an older queue — hands over. */
+function ping(entry: WaitlistEntry): WaitlistEntry {
+  return { ...(entry.scene ? { scene: entry.scene } : {}), at: String(entry.at ?? '').slice(0, 10) }
 }
 
 import { CONTACT_EMAIL } from './site'
@@ -95,7 +84,8 @@ export function waitlistConfigured(): boolean {
 
 export type JoinResult = 'joined' | 'queued' | 'unconfigured'
 
-async function post(entry: WaitlistEntry): Promise<boolean> {
+async function post(raw: WaitlistEntry): Promise<boolean> {
+  const entry = ping(raw)
   const form = formName()
   if (form) return postToNetlifyForm(form, entry)
 
@@ -114,12 +104,7 @@ async function post(entry: WaitlistEntry): Promise<boolean> {
 async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<boolean> {
   const body = new URLSearchParams({ 'form-name': form })
   // Only send what we have; an empty field is noise in the submissions table.
-  if (entry.contact) body.set('contact', entry.contact)
   if (entry.scene) body.set('scene', entry.scene)
-  if (entry.country) body.set('country', entry.country)
-  if (entry.reach) body.set('reach', entry.reach)
-  if (entry.gender) body.set('gender', entry.gender)
-  if (entry.hardestPart) body.set('hardest_part', entry.hardestPart)
   body.set('at', entry.at)
   const res = await send(NETLIFY_FORM_ENDPOINT, {
     method: 'POST',
@@ -131,7 +116,9 @@ async function postToNetlifyForm(form: string, entry: WaitlistEntry): Promise<bo
 
 function readQueue(): WaitlistEntry[] {
   try {
-    return JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]') as WaitlistEntry[]
+    // An older version queued the whole signup, contact and all; what is sent
+    // on is only ever the ping.
+    return (JSON.parse(localStorage.getItem(QUEUE_KEY) ?? '[]') as WaitlistEntry[]).map(ping)
   } catch {
     return []
   }
@@ -154,7 +141,7 @@ export async function joinWaitlist(entry: WaitlistEntry): Promise<JoinResult> {
   if (!waitlistConfigured()) return 'unconfigured'
   const ok = await post(entry)
   if (ok) return 'joined'
-  writeQueue([...readQueue(), entry])
+  writeQueue([...readQueue(), ping(entry)])
   return 'queued'
 }
 
@@ -172,7 +159,7 @@ export async function flushWaitlistQueue(): Promise<void> {
 }
 
 /** The honest fallback when nothing is wired up yet. */
-export function mailtoFor(entry: Pick<WaitlistEntry, 'scene' | 'gender'>): string {
+export function mailtoFor(entry: { scene?: string; gender?: string }): string {
   const subject = encodeURIComponent('Niyyah — count me in')
   const body = encodeURIComponent(
     `Salaam,\n\nPlease count me in when Niyyah opens.\n\nCity: ${(entry.scene && getScene(entry.scene)?.label) ?? entry.scene ?? '—'}\n\n`,

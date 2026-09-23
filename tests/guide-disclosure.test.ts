@@ -29,8 +29,7 @@ const trust = readFileSync('src/components/Trust.tsx', 'utf8').replace(/\s+/g, '
  * words, not the field's.
  */
 const SENT: { slot: string; marker: string; named: RegExp }[] = [
-  { slot: 'firstName', marker: 'Khadija', named: /your first name/i },
-  { slot: 'age', marker: '31', named: /your\s+age/i },
+  { slot: 'age', marker: '30-34', named: /your age range/i },
   { slot: 'gender', marker: 'woman', named: /whether you are a woman or a man/i },
   { slot: 'scene', marker: 'toronto', named: /your city|city,/i },
   { slot: 'timeline', marker: '1-2', named: /timeline/i },
@@ -75,6 +74,12 @@ describe('what the Guide sends, and what Trust says it sends', () => {
       expect(named.test(trust), `${slot} is sent and Trust does not name it`).toBe(true)
     })
   }
+
+  it('never sends her name, and never says it does', () => {
+    // docs/PRIVACY.md, C5. The guide speaks to "you".
+    expect(prompt).not.toContain('Khadija')
+    expect(trust).not.toMatch(/your first name, your age/i)
+  })
 
   it('says the thread goes too, not only the newest message', () => {
     // netlify/functions/guide.ts forwards up to ten prior turns. Trust used to

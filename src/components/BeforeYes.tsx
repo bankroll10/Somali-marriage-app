@@ -475,7 +475,7 @@ function Result({
       </div>
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
-        Not a verdict on anyone. Your answers stay on this device.
+        Not a verdict on anyone.
       </p>
     </div>
   )

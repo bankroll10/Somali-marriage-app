@@ -86,6 +86,22 @@ Put your situation against those three.`
  * to let a slow success through, still bounded so a hung function can never
  * become an open-ended typing indicator on a shared screen.
  */
+/**
+ * The answers the guide's prompt reads (netlify/shared/prompt.ts
+ * `sanitiseContext`), and nothing else. Every other answer stays on the phone.
+ */
+const GUIDE_ANSWERS = [
+  'timeline',
+  'practice',
+  'faith-role',
+  'family-role',
+  'children',
+  'attachment',
+  'comm-safety',
+  'dealbreakers',
+  'hardest-part',
+] as const
+
 const LIVE_GUIDE_TIMEOUT_MS = 20_000
 
 /**
@@ -191,8 +207,12 @@ async function askLiveGuide(
       body: JSON.stringify({
         mode: modeId,
         context: {
-          identity: ctx.identity,
-          answers: ctx.answers,
+          // Only what netlify/shared/prompt.ts reads — never her name, and
+          // never an answer in her own words. The whole identity and every
+          // answer used to go, and the server threw most of it away
+          // (docs/PRIVACY.md, C4).
+          identity: { age: ctx.identity.age, gender: ctx.identity.gender, scene: ctx.identity.scene },
+          answers: Object.fromEntries(GUIDE_ANSWERS.filter((k) => k in ctx.answers).map((k) => [k, ctx.answers[k]])),
           stage: ctx.stage,
           readNote: ctx.readNote,
           beforeYesNote: ctx.beforeYesNote,

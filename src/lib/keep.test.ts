@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { adoptMap, codeFromUrl, keepMap, rememberedCode, restoreLink, restoreMap } from './keep'
+import { adoptMap, codeFromUrl, keepMap, keptSnapshot, rememberedCode, restoreLink, restoreMap } from './keep'
 import { loadProgress, saveProgress } from './storage'
 import { defaultGuideUse, defaultTrust } from '../types'
 
@@ -102,8 +102,9 @@ describe('keeping a map', () => {
     expect(body).not.toContain('on a Tuesday')
     // Her place on the door survives without the way to reach her.
     expect(sent.waitlist).toEqual({ scene: 'toronto', code: 'ACDEFG', joinedAt: '2026-01-01' })
-    // The read's follow-up is not the guide's, and stays.
-    expect(sent.followups.map((f: { id: string }) => f.id)).toEqual(['r1'])
+    // The read's follow-up is not the guide's, and stays — under an id that
+    // carries no moment (docs/PRIVACY.md, C2).
+    expect(sent.followups.map((f: { source: string }) => f.source)).toEqual(['read'])
   })
 
   it('sends everything else the app needs to bring her back', async () => {
@@ -112,7 +113,9 @@ describe('keeping a map', () => {
     vi.stubGlobal('fetch', spy)
     await keepMap()
     const sent = JSON.parse(spy.mock.calls[0][1]?.body as string).snapshot
-    const expected = Object.keys(loadProgress()!).filter((k) => k !== 'coachThreads').sort()
+    // Everything but the guide's threads and `updatedAt`, a last-seen time the
+    // server has no use for (docs/PRIVACY.md, C1).
+    const expected = Object.keys(loadProgress()!).filter((k) => k !== 'coachThreads' && k !== 'updatedAt').sort()
     expect(Object.keys(sent).sort()).toEqual(expected)
   })
 
@@ -234,5 +237,40 @@ describe('a patch laid over the device', () => {
     expect(sent.snapshot?.identity).toMatchObject({ firstName: 'Sagal', age: 28 })
     // The patch is for the copy on the server; nothing on the phone moved.
     expect(loadProgress()?.identity.age).toBeUndefined()
+  })
+})
+
+describe('what a kept map carries — only what bringing her back needs (docs/PRIVACY.md)', () => {
+  const full = {
+    ...state,
+    updatedAt: 1758612345678,
+    read: { at: '2026-09-23T10:11:12.345Z', answers: { a: 'b' }, checkedAt: '2026-09-24T08:00:00.000Z' },
+    couple: { code: 'HJKMNPQR', at: '2026-09-23T10:11:12.345Z' },
+    ending: { at: '2026-09-23T10:11:12.345Z', who: 'met-here', advice: 'Ask about money before the nikah.' },
+    followups: [
+      { id: 'read:public:2026-09-23T10:11:12.345Z', source: 'read' as const, topic: 'public', at: '2026-09-23T10:11:12.345Z' },
+      { id: 'read:public:2026-09-23T11:00:00.000Z', source: 'read' as const, topic: 'public', at: '2026-09-23T11:00:00.000Z', outcome: 'had' as const, outcomeAt: '2026-09-23T12:00:00.000Z' },
+    ],
+  }
+
+  it('keeps no moment finer than a day, anywhere in it', () => {
+    // LEARNING's rule — "every stored date is a day" — held for every store
+    // but this one: the map carried millisecond timestamps, and `updatedAt`
+    // was a last-seen time under another name.
+    const kept = keptSnapshot(full as never)
+    expect(JSON.stringify(kept)).not.toMatch(/T\d{2}:\d{2}/)
+    expect(kept).not.toHaveProperty('updatedAt')
+    expect(kept.read?.at).toBe('2026-09-23')
+    expect(kept.couple?.at).toBe('2026-09-23')
+  })
+
+  it('keeps follow-ups apart without a time in their ids', () => {
+    const ids = keptSnapshot(full as never).followups.map((f) => f.id)
+    expect(new Set(ids).size).toBe(2)
+  })
+
+  it('leaves her line for the next person on this phone — Ending says it never leaves', () => {
+    const kept = keptSnapshot(full as never)
+    expect(kept.ending).toEqual({ at: '2026-09-23', who: 'met-here' })
   })
 })

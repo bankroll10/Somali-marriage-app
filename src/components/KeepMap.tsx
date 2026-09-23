@@ -93,8 +93,8 @@ export default function KeepMap({ onKept }: Props = {}) {
           )}
         </button>
         <p className="mt-3 text-[0.78rem] leading-relaxed text-muted text-pretty">
-          Kept: your answers and your map, nothing else. No name is attached to
-          the code, and anyone without it cannot reach it.
+          Kept, under a code with no name on it. Anyone without the code cannot
+          reach it.
         </p>
       </div>
     )

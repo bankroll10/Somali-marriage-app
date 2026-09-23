@@ -86,14 +86,22 @@ const OMITTED = [
   'cohort records — their keys carry map codes, which are keys to maps. The counts below teach the same thing.',
 ]
 
-/** Every progress record, whole. Small values, so reading them all is fine at this scale. */
-async function allProgress(store: Store): Promise<Record<string, ProgressRecord>> {
+/**
+ * Every progress record the store still keeps, whole. Small values, so reading
+ * them all is fine at this scale. A record past its year is left out unless it
+ * reached `married` — the same rule the store and the weekly sweep keep. This
+ * checked no date at all, so a record the store had let go lived on in the
+ * founder's files and the backup artifact (docs/PRIVACY.md, R3).
+ */
+async function allProgress(store: Store, now = Date.now()): Promise<Record<string, ProgressRecord>> {
   const { blobs } = await store.list()
   const out: Record<string, ProgressRecord> = {}
   await Promise.all(
     blobs.map(async ({ key }) => {
       const record = (await store.get(key, { type: 'json' })) as ProgressRecord | null
-      if (record?.first) out[key] = record
+      if (!record?.first) return
+      if (!('married' in record.first) && Date.parse(record.expiresAt) < now) return
+      out[key] = record
     }),
   )
   return out

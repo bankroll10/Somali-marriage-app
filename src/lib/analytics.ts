@@ -1,7 +1,7 @@
 /**
  * Minimal event tracking for the first-100 phase.
  *
- * Events land in a local ring buffer (inspect with `niyyahEvents()` in the
+ * Events land in a session buffer (inspect with `niyyahEvents()` in the
  * console) and in dev console output — enough to pair hallway-test interviews
  * with what testers actually did. Nothing here leaves the device, and that is
  * the design rather than a stage before the real thing.
@@ -21,18 +21,34 @@
  * words travelling). Nothing here counts sends per person; the ladder store
  * counts arrivals by source, and that is the metric.
  */
-const KEY = 'niyyah.events.v1'
+/**
+ * Kept for the session, not on the phone (docs/PRIVACY.md, C6). This used to
+ * be a 300-event ring buffer in localStorage, each event stamped to the
+ * millisecond and read by nothing in the product — an activity diary of
+ * "safety_reported", "stage_changed: married" and "door_hesitated" that anyone
+ * holding her phone could open. The hallway test only ever needed what happened
+ * in the session in front of it.
+ */
+const OLD_KEY = 'niyyah.events.v1'
 const MAX_EVENTS = 300
+const events: { event: string; props?: Record<string, unknown>; t: number }[] = []
+
+// What an older version wrote, cleared on the next visit.
+try {
+  localStorage.removeItem(OLD_KEY)
+} catch {
+  /* storage refused — then there is nothing written to clear either */
+}
 
 export function track(event: string, props?: Record<string, unknown>) {
-  try {
-    const buf = JSON.parse(localStorage.getItem(KEY) ?? '[]') as unknown[]
-    buf.push({ event, ...(props ? { props } : {}), t: Date.now() })
-    localStorage.setItem(KEY, JSON.stringify(buf.slice(-MAX_EVENTS)))
-  } catch {
-    // never let telemetry break the product
-  }
+  events.push({ event, ...(props ? { props } : {}), t: Date.now() })
+  if (events.length > MAX_EVENTS) events.splice(0, events.length - MAX_EVENTS)
   if (import.meta.env.DEV) console.debug('[niyyah]', event, props ?? '')
+}
+
+/** This session's events, for the console helper below and nothing else. */
+export function sessionEvents(): unknown[] {
+  return [...events]
 }
 
 declare global {
@@ -41,12 +57,4 @@ declare global {
   }
 }
 
-if (typeof window !== 'undefined') {
-  window.niyyahEvents = () => {
-    try {
-      return JSON.parse(localStorage.getItem(KEY) ?? '[]')
-    } catch {
-      return []
-    }
-  }
-}
+if (typeof window !== 'undefined') window.niyyahEvents = sessionEvents

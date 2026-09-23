@@ -3,6 +3,7 @@ import { isFounder, notFounder } from '../shared/founder'
 import { COUNTRIES, SCENES, STAGES as VOCAB_STAGES } from '../shared/vocab'
 import { floorRows } from '../shared/floor'
 import { blocked } from '../shared/gate'
+import { AGE_BANDS, bandOf } from '../shared/age'
 import { COHORT_TARGET, SEGMENTS, countryOf, sideOf } from './cohort'
 import type { KeptMap } from './keep'
 
@@ -46,8 +47,9 @@ import type { KeptMap } from './keep'
  * is gone or expired loses her member key and its index; an expired map goes
  * too, so the next join cannot count her and this read cannot sweep her again
  * (one expiry rule — netlify/functions/keep.ts's — applied in both readers).
- * Her `contacts` row stays: lapsed is not forgotten, and the customer list is
- * swept by hand (docs/OPERATING.md). Like progress.ts's readout, a founder GET
+ * Her `contacts` row goes with it — the way to reach her lives as long as her
+ * kept map, and this read deletes it (below) exactly as the weekly sweep does
+ * (netlify/functions/sweep.ts). Like progress.ts's readout, a founder GET
  * is where the sweep happens; the public door stays keys-only.
  *
  * ─── What is supply ─────────────────────────────────────────────────────────
@@ -70,8 +72,9 @@ import type { KeptMap } from './keep'
  * docs/SCALE.md already names for the progress readout.
  */
 
-export const AGE_BANDS = ['18-24', '25-29', '30-34', '35-39', '40+'] as const
-export type AgeBand = (typeof AGE_BANDS)[number]
+// The bands live beside the guide's use of them (netlify/shared/age.ts);
+// re-exported so this readout's callers and tests read them from here as before.
+export { AGE_BANDS, bandOf, type AgeBand } from '../shared/age'
 
 /** He may be this much older than her, and this much younger. An assumption — see above. */
 export const AGE_GAP = { olderBy: 10, youngerBy: 3 } as const
@@ -82,10 +85,6 @@ const STAGES = [...VOCAB_STAGES] as const
 
 type Side = 'women' | 'men'
 type Row = Record<string, number>
-
-export function bandOf(age: number): AgeBand {
-  return age < 25 ? '18-24' : age < 30 ? '25-29' : age < 35 ? '30-34' : age < 40 ? '35-39' : '40+'
-}
 
 function bucketOf(n: number): (typeof INVENTORY)[number] {
   return n === 0 ? '0' : n <= 2 ? '1-2' : n <= 5 ? '3-5' : '6+'

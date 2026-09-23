@@ -68,7 +68,7 @@ describe('the weekly sweep', () => {
 
     const res = await run()
     expect(res.status).toBe(200)
-    expect((await res.json()).swept).toEqual({ entries: 2, maps: 2, contacts: 2 })
+    expect((await res.json()).swept).toMatchObject({ entries: 2, maps: 2, contacts: 2 })
 
     const cohort = stores.get('cohort')!
     expect(cohort.has(live)).toBe(true)
@@ -95,18 +95,50 @@ describe('the weekly sweep', () => {
     seed('HJKMNP', 'man', null)
     await run()
     const again = await run()
-    expect((await again.json()).swept).toEqual({ entries: 0, maps: 0, contacts: 0 })
+    expect((await again.json()).swept).toEqual({ entries: 0, maps: 0, contacts: 0, vouches: 0, couples: 0, progress: 0 })
     expect([...stores.get('cohort')!.keys()].sort()).toEqual(['index/ACDEFG', 'us/twin-cities/woman/city/serious/ACDEFG'])
   })
 
-  it('touches nothing but door entries, their contacts and lapsed maps', async () => {
-    seed('HJKMNP', 'man', null)
-    memStore('couples').setJSON('HJKMNP', { creator: 'man', first: {} })
-    memStore('vouches').set('HJKMNP', '{}')
-    memStore('progress').set('anything', '{}')
+  // docs/PRIVACY.md, R1–R3. This test used to be "touches nothing but door
+  // entries, their contacts and lapsed maps" — which pinned the gap: a lapsed
+  // map's vouch (a relative's name, sentence and phone) lived for ever, an
+  // expired couple sheet stayed unless someone opened it, and a step count
+  // past its year stayed unless the founder opened the readout.
+  it('takes a vouch, its ask and its token once the map they were about is gone or lapsed — and leaves a live one', async () => {
+    memStore('maps').setJSON('ACDEFG', { snapshot: {}, createdAt: 'd', expiresAt: LIVE })
+    memStore('maps').setJSON('QRTWXY', { snapshot: {}, createdAt: 'd', expiresAt: LAPSED })
+    for (const code of ['ACDEFG', 'HJKMNP', 'QRTWXY']) {
+      memStore('vouches').setJSON(code, { relationship: 'father', firstName: 'Cabdi', sentence: 's', phone: '+1 555', at: 'd' })
+      memStore('vouches').set(`asked/${code}`, `TOK${code}X`)
+      memStore('vouches').set(`token/TOK${code}X`, code)
+    }
+    const res = await run()
+    expect((await res.json()).swept.vouches).toBe(2)
+    expect([...stores.get('vouches')!.keys()].sort()).toEqual(['ACDEFG', 'asked/ACDEFG', 'token/TOKACDEFGX'])
+  })
+
+  it('takes a couple sheet past its ninety days, and leaves one inside them', async () => {
+    memStore('couples').setJSON('ACDEFG', { creator: 'woman', first: {}, createdAt: 'd', expiresAt: LIVE })
+    memStore('couples').setJSON('HJKMNP', { creator: 'woman', first: {}, createdAt: 'd', expiresAt: LAPSED })
+    const res = await run()
+    expect((await res.json()).swept.couples).toBe(1)
+    expect([...stores.get('couples')!.keys()]).toEqual(['ACDEFG'])
+  })
+
+  it('takes a step count past its year — unless it reached married, which is kept by rule', async () => {
+    memStore('progress').setJSON('ACDEFGHJ', { first: { arrived: 'd' }, expiresAt: LIVE })
+    memStore('progress').setJSON('HJKMNPQR', { first: { arrived: 'd' }, expiresAt: LAPSED })
+    memStore('progress').setJSON('QRTWXY34', { first: { arrived: 'd', married: 'd' }, expiresAt: LAPSED })
+    const res = await run()
+    expect((await res.json()).swept.progress).toBe(1)
+    expect([...stores.get('progress')!.keys()].sort()).toEqual(['ACDEFGHJ', 'QRTWXY34'])
+  })
+
+  it('never touches a report, a tally or a limit', async () => {
+    memStore('reports').set('HJKMNP-woman-ACDEFGHJKM', '{}')
+    memStore('tallies').set('joint', '{}')
     await run()
-    expect(stores.get('couples')!.has('HJKMNP')).toBe(true)
-    expect(stores.get('vouches')!.has('HJKMNP')).toBe(true)
-    expect(stores.get('progress')!.has('anything')).toBe(true)
+    expect(stores.get('reports')!.size).toBe(1)
+    expect(stores.get('tallies')!.size).toBe(1)
   })
 })

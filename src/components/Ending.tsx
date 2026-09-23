@@ -267,7 +267,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
                 {ADVICE_PROMPT}
               </label>
               <p className="mt-1 text-[0.85rem] text-muted text-pretty">
-                Kept with your record. If you send the eleven above, it goes with it.
+                It stays on this phone, and goes only in a message you send yourself.
               </p>
               <textarea
                 id="ending-advice"

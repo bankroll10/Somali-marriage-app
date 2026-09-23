@@ -133,9 +133,21 @@ export function loadProgress(): Persisted | null {
  * The caller MUST surface a failure: silently pretending to save is how a user
  * spends ten minutes on their reflection and finds it gone tomorrow.
  */
+/**
+ * Messages kept per guide voice. The guide only ever reads the last ten turns
+ * (netlify/functions/guide.ts), and every thread was kept whole, for ever, on
+ * the phone — the most sensitive words in the product, in her own hand, for
+ * anyone holding it to scroll (docs/PRIVACY.md, R6). Forty is a long evening's
+ * conversation, and four times what the guide can see.
+ */
+export const THREAD_LIMIT = 40
+
 export function saveProgress(state: PersistedState): boolean {
   try {
-    const data: Persisted = { ...state, updatedAt: Date.now() }
+    const coachThreads = Object.fromEntries(
+      Object.entries(state.coachThreads ?? {}).map(([mode, thread]) => [mode, (thread ?? []).slice(-THREAD_LIMIT)]),
+    )
+    const data: Persisted = { ...state, coachThreads, updatedAt: Date.now() }
     localStorage.setItem(KEY, JSON.stringify(data))
     return true
   } catch {

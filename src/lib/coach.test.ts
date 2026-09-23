@@ -81,7 +81,20 @@ describe('askCoach — the local voice is the one that ships today', () => {
     // and hands over the map, and netlify/shared/prompt.ts builds the rest.
     expect(body.system).toBeUndefined()
     expect(body.mode).toBe('auntie')
-    expect(body.context.identity.firstName).toBe('Amina')
+  })
+
+  it('sends only the fields the guide reads — no name, and no answer in her own words', async () => {
+    // docs/PRIVACY.md, C4–C5: the whole identity and every answer used to go,
+    // including the free-text ones, and the server threw most of it away.
+    const spy = vi.fn(async (_url: string, _init: RequestInit) => new Response('ok', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    const words = { ...ctx, answers: { ...ctx.answers, 'working-on': 'my temper with my mother', healing: 'fresh' } }
+    await askCoach('so what do I say?', words, 'auntie')
+    const body = JSON.parse(spy.mock.calls[0][1].body as string)
+    expect(Object.keys(body.context.identity).sort()).toEqual(['age', 'gender', 'scene'])
+    expect(JSON.stringify(body)).not.toContain('Amina')
+    expect(JSON.stringify(body)).not.toContain('my temper with my mother')
+    expect(body.context.answers).not.toHaveProperty('healing')
   })
 
   it('always offers a way to stop — a guide ends conversations, a chat app extends them', async () => {

@@ -90,13 +90,33 @@ describe('Trust keeps what it collapsed', () => {
     for (const clause of [
       'the founder’s\n                backup does not include it',
       'a breakdown that would come back as one or two comes back blank instead',
-      'That copy is the one thing\n                Forget me cannot reach on its own',
       'never how far you got, never how long you spent',
       'It goes to Claude, made by Anthropic',
       'the whole thing expires after ninety days',
     ]) {
       expect(trust.includes(clause), `Trust lost: ${clause.slice(0, 48)}…`).toBe(true)
     }
+  })
+
+  it('gets shorter as the product holds less — the promise moves with the data (docs/PRIVACY.md)', () => {
+    // Privacy by Design: minimize, then say less. The second copy of the
+    // contact at the form service took a paragraph here and a clause in "the
+    // two things it cannot reach"; once the form stopped carrying it, both
+    // went. 2,176 words before that pass. A new disclosure should come from a
+    // new collection, and the first question about a new collection is whether
+    // the product can do without it.
+    const body = trust.slice(trust.indexOf('return (', trust.indexOf('export default function Trust')))
+    const visible = body
+      .replace(/\{\/\*[\s\S]*?\*\/\}/g, ' ')
+      .replace(/^\s*\/\/.*$/gm, ' ')
+      .replace(/className=(\{[^}]*\}|"[^"]*")/g, ' ')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/[{}()]/g, ' ')
+      .replace(/\s+/g, ' ')
+    const words = visible.split(' ').filter((w) => /[A-Za-z’']/.test(w)).length
+    expect(words).toBeLessThanOrEqual(2_050)
+    expect(visible).not.toMatch(/form service|second copy/)
+    expect(visible).not.toMatch(/nothing that leads back to you|no one at Niyyah can read them/)
   })
 
   it('keeps a real account behind every one of the six rows', () => {

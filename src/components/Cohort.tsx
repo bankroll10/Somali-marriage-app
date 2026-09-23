@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { MAX_AGE, MIN_AGE, type Identity, type Reach, type WaitlistState } from '../types'
 import { countryFor, getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
-import { getHookOption } from '../data/hook'
 import { hesitationOptions, type Hesitation } from '../data/hesitation'
 import { COHORT_TARGET, cohortCount, joinCohort, opensWhen, type CohortCount, type SideCount } from '../lib/cohort'
 import { joinWaitlist, mailtoFor, waitlistConfigured, CONTACT_EMAIL } from '../lib/waitlist'
@@ -291,33 +290,22 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
     }
     setCount(result)
 
-    // Then the way to reach her, to the founder's form. A bad connection here
-    // is queued and retried on the next visit rather than lost.
+    // Then a ping to the founder's form — the city and the day, nothing a
+    // person can be reached by (src/lib/waitlist.ts, docs/PRIVACY.md C7). A
+    // bad connection here is queued and retried on the next visit.
     const trimmed = contact.trim()
     const at = new Date().toISOString()
-    // Her map code stays out of this: it is the sole authenticator for the
-    // map, and the form is a third party's store (src/lib/waitlist.ts).
-    const sent = await joinWaitlist({
-      contact: trimmed,
-      scene,
-      country,
-      reach,
-      gender: identity.gender,
-      hardestPart: getHookOption(hookId)?.label,
-      at,
-    })
+    const sent = await joinWaitlist({ scene, at: at.slice(0, 10) })
     track('cohort_joined', { scene, queued: sent === 'queued', unconfigured: sent === 'unconfigured' })
-    // `sent` used to go to `track()` and nowhere else, so onJoined fired
-    // identically whether the form took her contact, queued it, or was never
-    // configured — and the card said "You're counted" either way. Our own
-    // store is the one that matters; the form is a copy. She is told the
-    // truth when neither of them has it (docs/FAIL.md).
+    // The way to reach her is held in one place, our own store; the form no
+    // longer carries it. She is told the truth when the store did not take it
+    // (docs/FAIL.md).
     onJoined({
       contact: trimmed,
       scene,
       code: result.code,
       joinedAt: at,
-      contactHeld: result.contactStored || sent === 'joined',
+      contactHeld: result.contactStored,
     })
   }
 
@@ -516,12 +504,9 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             its shape — how many of each age, how many pairs clear each other’s
             non-negotiables, how many have nobody here who does — never a map and never
             which person, and any breakdown that would come back as one or two comes back
-            blank. Your email or phone is kept apart from all of it, with only your city
-            beside it, so you can be reached if your pool ever opens — and it goes when you tap
-            forget. This same tap also sends your email or phone, your city, country, how
-            far you’d go, who you’re seeking and that hardest part to the form service this
-            site runs on, as a second copy — never your map code, and never your answers.
-            That copy is deleted by hand when you ask. Your answers stay yours.
+            blank. Your email or phone is kept apart from all of it, in one place, with only
+            your city and country beside it, so you can be reached if your pool ever opens —
+            and it goes when your map lapses or you tap forget.
           </p>
         </form>
       ) : (
