@@ -122,6 +122,7 @@ when the link is actually visible somewhere a stranger could find it.
 | 2026-09-19 | WardheerNews — editorial, worldwide Somali readership | email `admin@wardheernews.com` | **N1c** | `…/tools/before-you-say-yes?via=press` | topic inquiry sent 2026-09-19 | — |
 | 2026-09-23 | The Somali American — Minneapolis, English-language, "Ask a Scholar" column | contact form (editor) | **N1c**; the one-page **N2s** linked so the editor can judge it in two minutes | `…/tools/before-you-say-yes?via=press` | drafted, not yet sent | — |
 | 2026-09-23 | KALY-LP 101.7 FM — Somali-language, South Minneapolis, low-power noncommercial | email `Underwriting@kalyradio.org` (from the shortlist; the station's site is unreachable from the working session) | none yet — **rate inquiry only** | web placement would carry `…/tools/before-you-say-yes?via=press`; an on-air mention carries no `via` at all | drafted, not yet sent | — |
+| 2026-09-23 | Dr. Aneesah Nadir and Associates — *Before the Nikah*, a 13-week live virtual course (Fall 2026 cohort, Sep 14 – Dec 7), US Muslim, not Somali-specific | email `info@draneesah.com` | **N3-note**, pointing to **N3-1page** as a between-session handout | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no `via`, by design | drafted, not yet sent | — |
 
 **The 2026-09-23 shortlist, corrected before it was logged.** Two leads, and
 the same two mistakes as 2026-09-18, plus two that only a radio lead can make:
@@ -160,6 +161,26 @@ the same two mistakes as 2026-09-18, plus two that only a radio lead can make:
 And one thing about The Somali American: its newest dated material the
 shortlist found was October 2025. The send costs one form; the reply may
 never come. Log it and do not wait on it.
+
+**The same day's third lead, *Before the Nikah*, needed less.** It is the
+first placement for the N3 family, and the sheet claims in its draft all hold
+(four subjects kept apart, no figure or ruling, nothing collected, a Somali
+version). Three things changed before it was logged:
+
+1. **"Print-ready PDFs available" was a promise with nothing behind it.**
+   There are no PDFs; the sheets are HTML that print on Letter or A4, one
+   page or four (`docs/SHEET.md` has the renders). The email says that
+   instead. If she asks for PDFs, render them then, the way SHEET.md did.
+2. **"Returns to joinniyyah.com" cannot be measured, and should not be.**
+   The N3 family carries no `via` and records nothing, on purpose (above).
+   The only signal is her reply, and whether the sheet turns up in the
+   course materials.
+3. **The route and the timing.** Send to the business address,
+   `info@draneesah.com`, and not also to the personal one the shortlist
+   listed. The course began 2026-09-14 and its finances week is not
+   published, so the email asks which week it is: a handout that arrives
+   after that week is a handout nobody uses. The audience is US Muslim, not
+   Somali, so the Somali versions get one clause, not the lead.
 
 **The 2026-09-19 entry, and what it shows next to the one above it.** The
 shortlist again called the interactive tool N2. This time the *destination* is
