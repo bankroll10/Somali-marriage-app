@@ -48,6 +48,15 @@ const RELATIONSHIPS = new Set(['father', 'brother', 'uncle', 'mother', 'aunt', '
 const MAX_BODY = 4_000
 /** Links minted and vouches given in one hour, from everyone. A circuit breaker — see netlify/shared/limit.ts. */
 const DEFAULT_HOURLY_CAP = 100
+/**
+ * Vouches read by code or token in one hour, from everyone — the fifth read
+ * bucket. docs/HARD.md row 3 capped four reads because a six-character code is
+ * the sole authenticator for a map and an unmetered read is an enumeration
+ * surface; this one was missed, and it was the cheapest of the five: a 404
+ * against a 200 confirms a live map code as surely as `GET /keep` does, and
+ * `GET /keep` then returns the whole map. Found by docs/THREAT.md, T1.
+ */
+const DEFAULT_READ_CAP = 600
 
 interface VouchRecord {
   relationship: string
@@ -144,9 +153,15 @@ export default async function handler(req: Request) {
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
     }
+    // Shape first, so a malformed code spends nothing — the same rule as
+    // `GET /keep`. Then the cap, before `resolve`: the token lookup is itself
+    // the oracle, so it must be metered too, not only the read behind it.
+    const shaped = normalise(raw)
+    if (!CODE.test(shaped) && !TOKEN.test(shaped)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    if (await overHourlyCap('vouch-read', DEFAULT_READ_CAP)) return rateLimited()
     let code: string | null
     try {
-      code = await resolve(store, raw)
+      code = await resolve(store, shaped)
     } catch (err) {
       console.error('[niyyah] vouch: token lookup failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -160,8 +175,10 @@ export default async function handler(req: Request) {
         getStore('maps').getMetadata(code),
         store.get(code, { type: 'json' }) as Promise<VouchRecord | null>,
       ])
-      if (!map || !record) return Response.json({ vouched: false }, { status: 404 })
-      return Response.json(publicView(record))
+      // Never cached: a family member's name, keyed by a secret.
+      const headers = { 'Cache-Control': 'no-store' }
+      if (!map || !record) return Response.json({ vouched: false }, { status: 404, headers })
+      return Response.json(publicView(record), { headers })
     } catch (err) {
       console.error('[niyyah] vouch: read failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })

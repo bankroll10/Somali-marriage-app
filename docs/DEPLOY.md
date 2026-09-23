@@ -102,11 +102,13 @@ these live in the repository, and none should.
 | `KEEP_HOURLY_CAP` | Maps kept in one hour — the cheapest way to spend a free plan's storage, bounded. | `300` |
 | `VOUCH_HOURLY_CAP` | Vouch links minted and vouches given in one hour. | `100` |
 | `COUPLE_HOURLY_CAP` | Elevens *started* in one hour. | `200` |
-| `SAFETY_HOURLY_CAP` | Reports filed in one hour — a flood is the one way to bury a real one. | `30` |
+| `SAFETY_HOURLY_CAP` | Reports filed in one hour — a flood is the one way to bury a real one. Since 2026-09-23 it is spent only by a report against a pair that exists, so junk codes cannot bury a real report (`docs/THREAT.md` T2). | `30` |
+| `SAFETY_PROBE_HOURLY_CAP` | Report attempts of any kind in one hour, checked before the pair is looked up — bounds guessing couple codes through the report route. Past it, a miss is a 503, not a 404. | `600` |
 | `PROGRESS_HOURLY_CAP` | Rung reports in one hour — a loop of made-up install codes is the cheapest way to make the readout time out. | `1000` |
 | `RESTORE_HOURLY_CAP` | Maps **restored** in one hour. A six-character code is the sole authenticator for a map, so an unmetered read is an enumeration surface — see `docs/HARD.md`. | `600` |
 | `FORGET_HOURLY_CAP` | Maps **forgotten** in one hour. Possession of the code is the authority, so this one deletes across five stores. | `600` |
 | `COUPLE_READ_HOURLY_CAP` | Joint sheets read back in one hour. | `600` |
+| `VOUCH_READ_HOURLY_CAP` | Vouch lookups (`GET /vouch?code=` or `?token=`) in one hour. Was the one public read with no bucket — an existence oracle over the map code (`docs/THREAT.md` T1). The app reads it twice per open of a kept member nobody has vouched for yet (the read, and one recheck 20 s later), so this binds at roughly 300 such opens an hour; past it the client fails quiet and shows "nobody yet". | `600` |
 | `DOOR_HOURLY_CAP` | Public door counts in one hour — the one open route that walks a whole prefix of the store on every call. | `600` |
 | `COUPLE_ANSWER_HOURLY_CAP` | His answers to the eleven, in one hour. This row said *"his answer is never capped"* until 2026-09-20; it has been capped since the write-paths pass, and three live knobs were undocumented (`docs/FAIL.md`). | `600` |
 | `COUPLE_FORGET_HOURLY_CAP` | Joint sheets deleted in one hour — forget me reaches this store too. | `600` |
@@ -345,7 +347,11 @@ browser holding an old worker always checks for a new one rather than
 sitting on a stale shell indefinitely. Nothing to rotate or clean up by
 hand: the cache name is a hash of the build's own asset list, so a new
 deploy gets a new cache automatically and the worker's own `activate`
-handler deletes every cache but the current one.
+handler deletes every cache but the current one. Since 2026-09-23 the
+worker's own source is in that hash too, so a change to the worker alone
+still rotates the cache; and a page is cached under its path alone, so a
+`?map=`, `?couple=` or `?vouch=` code never lands on the phone's disk
+(`docs/THREAT.md` T3).
 
 ## At real launch
 

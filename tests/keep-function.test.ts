@@ -62,8 +62,13 @@ describe('keeping a map', () => {
     expect(res.status).toBe(200)
     const { code } = await res.json()
     expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{6}$/)
-    const back = await (await get(code)).json()
+    const restored = await get(code)
+    // Her whole map, keyed by a secret in the URL: never cached, by a browser
+    // or anything between (docs/THREAT.md, T4). Nor is "nothing here".
+    expect(restored.headers.get('cache-control')).toBe('no-store')
+    const back = await restored.json()
     expect(back.snapshot.identity.firstName).toBe('Sagal')
+    expect((await get('HJKMNP')).headers.get('cache-control')).toBe('no-store')
   })
 
   it('a supplied code is never created — nothing under it is a 404, and the client mints fresh', async () => {

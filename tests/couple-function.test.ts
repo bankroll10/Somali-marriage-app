@@ -126,7 +126,10 @@ describe('the handshake', () => {
     expect(body.joint['money-home']).toBe('both-not-talked')
     expect(body.joint.qabiil).toBe('differ-somewhere')
     expect(body.joint.children).toBe('both-agree')
-    const again = await (await get(code)).text()
+    const read = await get(code)
+    // Never cached: where two people agree and differ, keyed by a secret.
+    expect(read.headers.get('cache-control')).toBe('no-store')
+    const again = await read.text()
     expect(again).not.toMatch(/"(agree|differ|not-talked|unknown)"/)
   })
 

@@ -33,10 +33,24 @@
  *     would mean showing her a stale map or a stale answer as if it were
  *     current, which is a correctness and a trust problem this file is not
  *     worth causing to fix a loading one.
+ *  3. **A navigation is cached by its path alone, never its query.** The
+ *     first version keyed every response on the full URL, so opening
+ *     `/?map=ACDEFG` wrote a live map code — the sole authenticator for a
+ *     whole map — into Cache Storage on disk, where anyone with the phone
+ *     could list it until the next deploy. Same for `?couple=` and
+ *     `?vouch=`. Found by the STRIDE pass (docs/THREAT.md, T3); the shell a
+ *     navigation needs never depends on its query anyway. Hashed assets keep
+ *     their full URL — they carry no secret.
  *
- * `version` changes exactly when the built bundle does (vite.config.ts hashes
- * the asset list), so `activate` can drop every cache from a previous build
- * without a manifest to maintain by hand.
+ * `version` changes exactly when the built bundle or this worker does
+ * (vite.config.ts hashes the asset list and this file's output), so
+ * `activate` can drop every cache from a previous build — including the
+ * code-bearing keys the first version wrote — without a manifest to maintain
+ * by hand.
+ *
+ * Offline, a navigation to a path this device never cached falls back to the
+ * root shell as it was actually cached, at `/`. A member who only ever opened
+ * `/tools/<slug>` has that page under its own path instead, which serves.
  */
 export function serviceWorkerJs(version: string): string {
   return `const CACHE = 'niyyah-shell-${version}'
@@ -61,24 +75,26 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return
   // The API: live data only, never served from a cache.
   if (url.pathname.startsWith('/.netlify/')) return
+  // A navigation by its path alone — a code in the query never reaches disk.
+  const key = request.mode === 'navigate' ? new Request(url.origin + url.pathname) : request
 
   event.respondWith(
     fetch(request)
       .then((response) => {
         if (response.ok) {
           const copy = response.clone()
-          caches.open(CACHE).then((cache) => cache.put(request, copy))
+          caches.open(CACHE).then((cache) => cache.put(key, copy))
         }
         return response
       })
       .catch(async () => {
-        const cached = await caches.match(request)
+        const cached = await caches.match(key)
         if (cached) return cached
         // A navigation to a path this device never cached, offline: the app
-        // shell itself, so the SPA can at least render — matching what the
-        // single-page rewrite already does for every unknown path online.
+        // shell itself, as it was cached at the root, so the SPA can at least
+        // render — what the single-page rewrite does for any path online.
         if (request.mode === 'navigate') {
-          const shell = await caches.match('/index.html')
+          const shell = await caches.match('/')
           if (shell) return shell
         }
         return Response.error()

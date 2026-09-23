@@ -1,4 +1,5 @@
 import { Component, type ReactNode } from 'react'
+import { isChunkLoadError } from '../lib/chunkError'
 import { clearEverything } from '../lib/forget'
 
 interface Props {
@@ -28,6 +29,31 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (!this.state.error) return this.props.children
+
+    // A screen that never reached the phone — offline, or the connection went
+    // while it loaded. Her state is fine, so the one thing this screen must
+    // not offer is erasing it (src/lib/chunkError.ts, docs/THREAT.md T18).
+    if (isChunkLoadError(this.state.error)) {
+      return (
+        <div role="alert" className="flex min-h-dvh flex-col items-center justify-center bg-forest-deep px-6 text-center text-cream">
+          <div className="relative max-w-sm">
+            <h1 className="font-display text-2xl font-medium tracking-tight">
+              This screen hasn’t reached your phone yet.
+            </h1>
+            <p className="mt-3 text-[0.98rem] leading-relaxed text-cream/70">
+              There’s no signal, or it dropped while the screen was loading. Nothing is lost —
+              everything you’ve done is still on this phone. Try again once you’re connected.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-7 rounded-full bg-gold-soft px-7 py-3 text-[0.95rem] font-medium text-forest-deep transition hover:bg-gold"
+            >
+              Try again
+            </button>
+          </div>
+        </div>
+      )
+    }
 
     return (
       <div role="alert" className="flex min-h-dvh flex-col items-center justify-center bg-forest-deep px-6 text-center text-cream">
