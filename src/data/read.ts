@@ -323,6 +323,22 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
       { id: 'no-plans', label: '{He} does not really make plans', weight: 0, note: '{he} does not make plans in the first place' },
     ],
   },
+  // Not a measure of seriousness, and weighted as nothing: a man running a
+  // romance scam can look like the most serious man she has met. Asked
+  // because it is the one thing the worst people on a marriage platform do
+  // most, and nothing else in the product could see it (docs/ABUSE.md).
+  // src/lib/read.ts names `yes` whatever else he has shown.
+  {
+    id: 'money',
+    dimension: 'context',
+    prompt: 'Has {he} asked you for money — a loan, a bill, a ticket, an investment?',
+    helper: 'Before your families have met.',
+    options: [
+      { id: 'no', label: 'No', weight: 0, note: '{he} has not asked you for money' },
+      { id: 'once-small', label: 'Once, something small, and paid it back', weight: 0, note: '{he} once asked for something small, and paid it back' },
+      { id: 'yes', label: 'Yes', weight: 0, note: '{he} has asked you for money before your families have met' },
+    ],
+  },
   {
     id: 'nonneg',
     dimension: 'pressure',
@@ -497,4 +513,5 @@ export const EXAMPLE_ANSWERS: Record<string, string> = {
   plans: 'rescheduled',
   nonneg: 'untold',
   hard: 'defensive',
+  money: 'no',
 }

@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
+import { Fragment, useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import type { Answers, CoachMessage, Identity, ModeId, Stage } from '../types'
 import { getMode, modes, defaultModeFor, type CoachContext } from '../data/coach'
-import { askCoach, type Closer } from '../lib/coach'
+import { askCoach, needsHelpLine, type Closer } from '../lib/coach'
+import HelpLine from './HelpLine'
 import { shareOrCopy } from '../lib/share'
 import { wordsMessage } from '../lib/words'
 import { nextId } from '../lib/id'
@@ -474,8 +475,19 @@ export default function Coach({
               if that’s not it.
             </p>
           )}
-          {messages.map((m) => (
-            <MessageBubble key={m.id} message={m} glyph={activeMode.glyph} accent={activeMode.accent} />
+          {messages.map((m, i) => (
+            <Fragment key={m.id}>
+              <MessageBubble message={m} glyph={activeMode.glyph} accent={activeMode.accent} />
+              {/* The checked numbers for where she lives, under any answer to
+                  a threat, a money ask or force — or any answer that sends her
+                  to real-world help. The guide itself never states a number
+                  (netlify/shared/prompt.ts): a wrong one in a crisis is worse
+                  than none. */}
+              {m.role === 'coach' &&
+                (needsHelpLine(m.text, 'coach') || (messages[i - 1]?.role === 'user' && needsHelpLine(messages[i - 1].text))) && (
+                  <HelpLine urgent className="pl-12" />
+                )}
+            </Fragment>
           ))}
           {thinking && <Thinking glyph={activeMode.glyph} accent={activeMode.accent} />}
 

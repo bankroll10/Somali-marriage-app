@@ -25,7 +25,13 @@
       person lives only in the site's own store, which Forget me reaches
       (docs/PRIVACY.md, C7).
     -->
-    <form name="niyyah-waitlist" data-netlify="true" hidden>
+    <!--
+      The honeypot (docs/THREAT.md T5): a field no person sees and no real
+      signup fills. Netlify drops any submission that carries it, so a bot
+      filling every field cannot crowd the free tier's quota with rows.
+    -->
+    <form name="niyyah-waitlist" data-netlify="true" data-netlify-honeypot="bot-field" hidden>
+      <input type="text" name="bot-field" />
       <input type="text" name="scene" />
       <input type="text" name="at" />
     </form>

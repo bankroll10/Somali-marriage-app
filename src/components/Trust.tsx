@@ -21,7 +21,7 @@ interface Props {
   countMe: boolean
   onCountMe: (on: boolean) => void
   /** Delete everything kept under her codes, then start this phone over. */
-  onForget: () => Promise<{ map: boolean; progress: boolean; couple: boolean; reports: boolean }>
+  onForget: () => Promise<{ map: boolean; progress: boolean; couple: boolean }>
   onBack: () => void
 }
 
@@ -342,8 +342,9 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
           <h2 className="font-display text-[1.08rem] font-medium text-ink">Forget me</h2>
           <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
             Deletes your kept map, your family’s vouch and the link they used, your place on the
-            door, {fix('the eleven you sent {him}')}, any concern you reported from this phone, the
-            count of your steps, and your email or phone — then clears this phone. If you come back after this, you start as a stranger.
+            door, {fix('the eleven you sent {him}')}, the count of your steps, and your email or
+            phone — then clears this phone. If you come back after this, you start as a stranger. A
+            concern you reported stays with the founder until she has read it.
           </p>
           {/* The two honest limits used to sit in the middle of the paragraph
               above, which is the least likely place a person reads them. They
@@ -380,7 +381,6 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                         !result.map && 'your kept map',
                         !result.progress && 'the count of your steps',
                         !result.couple && 'the eleven you sent',
-                        !result.reports && 'the concern you reported',
                       ].filter((s): s is string => !!s),
                     )
                     setForgetting('idle')

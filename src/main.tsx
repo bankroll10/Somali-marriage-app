@@ -86,6 +86,7 @@ async function confirm({ code, snapshot }: Pending): Promise<void> {
             code={code}
             incoming={snapshot}
             current={loadProgress()}
+            ownCode={rememberedCode()}
             onDone={(mine) => {
               if (mine) adoptMap(code, snapshot)
               done()

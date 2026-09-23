@@ -4,6 +4,7 @@ import { day, toDays } from '../shared/day'
 import { readJson } from '../shared/body'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import { stamp } from '../shared/record'
+import { retire } from '../shared/sheet'
 
 /**
  * The first thing this business actually owns.
@@ -120,7 +121,8 @@ export default async function handler(req: Request) {
       const cohort = getStore('cohort')
       const contacts = getStore('contacts')
 
-      if (CODE.test(coupleCode)) await couples.delete(coupleCode)
+      // Retired, not erased: a report about it can still reach the founder.
+      if (CODE.test(coupleCode)) await retire(couples, coupleCode)
       const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
       if (token) await vouches.delete(`token/${token}`)
       await vouches.delete(`asked/${code}`)
@@ -138,7 +140,8 @@ export default async function handler(req: Request) {
       // throwaway map claiming to be her, forget it, and erase every report
       // she had filed about him (docs/SECURITY.md, O1). A report is withdrawn
       // only by the receipt the person who filed it was handed
-      // (netlify/functions/safety.ts); forget me on her phone sends it.
+      // (netlify/functions/safety.ts), and the app no longer keeps one: a
+      // report stays until the founder has read it (docs/ABUSE.md).
       await store.delete(code)
       return Response.json({ forgotten: true })
     } catch (err) {
@@ -147,9 +150,69 @@ export default async function handler(req: Request) {
     }
   }
 
+  // ── A new code, everything carried across ────────────────────────────────
+  // For a code someone else has seen. Possession is the authority here
+  // (docs/HARD.md), so a code read over her shoulder or taken from her phone
+  // let its holder read her map, write over it, vouch as her father, and put
+  // his own number on her door entry — so that an introduction would reach
+  // him. The only way to take it back was forget me, which cost her the map,
+  // the vouch and her place at the door (docs/THREAT.md T8, docs/ABUSE.md).
+  //
+  // This mints a new code, moves every store keyed by the old one under it,
+  // and only then deletes the old: a failure part-way leaves the old code
+  // working and some copies under a code nobody was told, which the weekly
+  // sweep takes (netlify/functions/sweep.ts). The couple sheet has its own
+  // code and is not moved; nor are reports, which are keyed by it.
+  if (req.method === 'PUT') {
+    const old = normalise(new URL(req.url).searchParams.get('code') ?? '')
+    if (!CODE.test(old)) return Response.json({ error: 'bad_code' }, { status: 400 })
+    // The forget bucket: it is a delete, and it is as rare.
+    if (await overHourlyCap('forget', DEFAULT_READ_CAP)) return rateLimited()
+    try {
+      const kept = (await store.get(old, { type: 'json' })) as KeptMap | null
+      if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
+      const code = await mint((c, v: KeptMap) => store.setJSON(c, v, { onlyIfNew: true }), stamp(kept))
+      if (!code) return Response.json({ error: 'unavailable' }, { status: 503 })
+
+      const vouches = getStore('vouches')
+      const cohort = getStore('cohort')
+      const contacts = getStore('contacts')
+
+      const vouch = await vouches.get(old, { type: 'json' })
+      if (vouch) await vouches.setJSON(code, vouch)
+      const token = (await vouches.get(`asked/${old}`, { type: 'text' })) as string | null
+      if (token) {
+        await vouches.set(`asked/${code}`, token)
+        await vouches.set(`token/${token}`, code)
+      }
+      // The door entry's key ends in the code: the same place, under the new one.
+      const member = (await cohort.get(`index/${old}`, { type: 'text' })) as string | null
+      const entry = member ? await cohort.get(member, { type: 'json' }) : null
+      const moved = member ? member.replace(/[^/]+$/, code) : null
+      if (moved && entry) {
+        await cohort.setJSON(moved, entry)
+        await cohort.set(`index/${code}`, moved)
+      }
+      const reach = await contacts.get(old, { type: 'json' })
+      if (reach) await contacts.setJSON(code, reach)
+
+      // Everything is across. Now the old code opens nothing.
+      await contacts.delete(old)
+      if (member) await cohort.delete(member)
+      await cohort.delete(`index/${old}`)
+      await vouches.delete(`asked/${old}`)
+      await vouches.delete(old)
+      await store.delete(old)
+      return Response.json({ code })
+    } catch (err) {
+      console.error('[niyyah] keep: new code failed', err)
+      return Response.json({ error: 'unavailable' }, { status: 503 })
+    }
+  }
+
   // ── Keep ─────────────────────────────────────────────────────────────────
   if (req.method !== 'POST') {
-    return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
+    return Response.json({ error: 'GET, POST, PUT or DELETE only' }, { status: 405 })
   }
 
   // Measured before it is parsed (netlify/shared/body.ts). This one used to

@@ -122,7 +122,10 @@ describe('the weekly sweep', () => {
     memStore('couples').setJSON('HJKMNP', { creator: 'woman', first: {}, createdAt: 'd', expiresAt: LAPSED })
     const res = await run()
     expect((await res.json()).swept.couples).toBe(1)
-    expect([...stores.get('couples')!.keys()]).toEqual(['ACDEFG'])
+    // The expired sheet is gone; what it leaves is its reporting window — a
+    // date, and nothing about either of them (netlify/shared/sheet.ts).
+    expect([...stores.get('couples')!.keys()].sort()).toEqual(['ACDEFG', 'gone/HJKMNP'])
+    expect(Object.keys(JSON.parse(stores.get('couples')!.get('gone/HJKMNP')!))).toEqual(['expiresAt'])
   })
 
   it('takes a step count past its year — unless it reached married, which is kept by rule', async () => {

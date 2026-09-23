@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { day } from '../shared/day'
 import { CODE } from '../shared/code'
+import { isGone, retire } from '../shared/sheet'
 import { SEGMENTS } from './cohort'
 import type { KeptMap } from './keep'
 
@@ -135,11 +136,17 @@ export async function sweepExpired(maps: Store, vouches: Store, couples: Store, 
     if (CODE.test(key)) v += 1
   }
 
+  // A sheet past its ninety days is retired, leaving its reporting window
+  // behind; a window past its own end is deleted (netlify/shared/sheet.ts).
   for (const { key } of (await couples.list()).blobs) {
-    if (lapsed((await couples.get(key, { type: 'json' })) as { expiresAt?: unknown } | null, now)) {
+    const record = (await couples.get(key, { type: 'json' })) as { expiresAt?: unknown } | null
+    if (!lapsed(record, now)) continue
+    if (isGone(key)) {
       await couples.delete(key)
-      c += 1
+      continue
     }
+    await retire(couples, key, Date.parse(record!.expiresAt as string))
+    c += 1
   }
 
   for (const { key } of (await progress.list()).blobs) {

@@ -74,7 +74,7 @@ export const TOOLS: Tool[] = [
     about: 'man',
  title: 'Is he serious? — a ninety-second read on what he has done',
     description:
-      'Eleven questions about behaviour, not promises — who knows you exist, what happens when you stop texting first, how he handles a hard conversation. One read, and the one question worth asking him next. No account. Nothing about him is asked by name.',
+      'Twelve questions about behaviour, not promises — who knows you exist, what happens when you stop texting first, how he handles a hard conversation. One read, and the one question worth asking him next. No account. Nothing about him is asked by name.',
     share:
  'Talking to someone? This reads what he’s done — not what he says — in ninety seconds, and gives you the one question to ask him next. Built for us. No account.',
     via: 'words',
@@ -85,7 +85,7 @@ export const TOOLS: Tool[] = [
     about: 'woman',
  title: 'Is she serious? — a ninety-second read on what she has done',
     description:
-      'Eleven questions about behaviour, not promises — who knows you exist, what happens when you stop texting first, how she handles a hard conversation. One read, and the one question worth asking her next. No account. Nothing about her is asked by name.',
+      'Twelve questions about behaviour, not promises — who knows you exist, what happens when you stop texting first, how she handles a hard conversation. One read, and the one question worth asking her next. No account. Nothing about her is asked by name.',
     share:
  'Talking to someone? This reads what she’s done — not what she says — in ninety seconds, and gives you the one question to ask her next. Built for us. No account.',
     via: 'words',

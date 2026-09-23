@@ -7,6 +7,7 @@ import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
+import HelpLine from './HelpLine'
 import { ArrowRight, Button, Disclose, ScreenHeader, TextButton, Words , NotSaving} from './ui'
 
 interface Props {
@@ -204,7 +205,7 @@ export default function Read({
             </div>
           )}
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
- Eleven questions about what {they} has <em>done</em> — not
+ Twelve questions about what {they} has <em>done</em> — not
             how you feel, and not what {they} has
             promised. At the end you get a read and the one question worth
             asking {subject} next, word for word.
@@ -414,6 +415,9 @@ function Result({
             Please read this one twice
           </h2>
           <p className="mt-2.5 text-[1rem] leading-relaxed text-ink text-pretty">{result.caution}</p>
+          {/* "Tell one person" is right, and it was the only door out of this
+              card. A line to call sits under it (src/data/help.ts). */}
+          <HelpLine urgent className="mt-3" />
         </div>
       )}
 

@@ -37,3 +37,21 @@ describe('the restore link', () => {
     expect(fetch).toBeGreaterThan(strip)
   })
 })
+
+describe('whose map it is, in words the sender cannot write', () => {
+  // The name on the confirm screen comes from the snapshot, which whoever kept
+  // it wrote: an ex keeps a map with her name and city in it, and the check
+  // reads as hers (docs/ABUSE.md, impersonation). The phone's own code is the
+  // one fact he cannot set — her own link carries that same code, and on this
+  // phone does nothing at all.
+  const confirm = readFileSync(new URL('../src/components/ConfirmRestore.tsx', import.meta.url), 'utf8')
+
+  it('is told this phone’s own code', () => {
+    expect(main).toMatch(/ownCode=\{rememberedCode\(\)\}/)
+  })
+
+  it('says plainly that a different code is someone else’s map', () => {
+    expect(confirm).toMatch(/ownCode && ownCode !== code/)
+    expect(confirm).toMatch(/this one is someone else’s/)
+  })
+})

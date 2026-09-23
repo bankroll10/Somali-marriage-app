@@ -22,6 +22,7 @@ function answers(over: Record<string, string> = {}) {
     plans: 'never',
     nonneg: 'straight',
     hard: 'listens',
+    money: 'no',
     ...over,
   }
 }
@@ -114,6 +115,34 @@ describe('the pattern it declines to coach', () => {
   it('does not fire on secrecy alone when everything else is healthy', () => {
     const r = buildRead(answers({ secret: 'explicit' }))!
     expect(r.band).not.toBe('caution')
+  })
+})
+
+describe('money asked for before the families meet', () => {
+  // The most common thing the worst people on a marriage platform do, and the
+  // read had no question that could see it (docs/ABUSE.md, romance scams).
+  it('is named as the shape scams take, whatever else he has shown', () => {
+    const r = buildRead(answers({ money: 'yes' }))!
+    expect(r.band).toBe('caution')
+    expect(r.summary).toMatch(/shape romance scams take/)
+    expect(r.caution).toMatch(/Send nothing more until your families have met/)
+  })
+
+  it('reads the same way for a man asked for money', () => {
+    const r = buildRead(answers({ money: 'yes' }), 'man')!
+    expect(r.band).toBe('caution')
+    expect(r.caution).toMatch(/a brother, a friend/)
+    expect(r.summary).not.toMatch(/\bhis\b|\bhim\b/)
+  })
+
+  it('does not fire on once, small, and paid back', () => {
+    expect(buildRead(answers({ money: 'once-small' }))!.band).not.toBe('caution')
+  })
+
+  it('a read kept before the question existed is still whole', () => {
+    const kept = answers() as Record<string, string>
+    delete kept.money
+    expect(buildRead(kept)).not.toBeNull()
   })
 })
 

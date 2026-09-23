@@ -1,4 +1,5 @@
-import { clearProgress, saveProgress } from './storage'
+import { clearProgress, loadProgress, saveProgress } from './storage'
+import { rememberedCode } from './keep'
 import { dayKey } from '../lib/dates'
 import { snapshotOf } from './reflection'
 import type { Answers, Identity } from '../types'
@@ -16,7 +17,8 @@ import type { Answers, Identity } from '../types'
  *
  * Neither combines with a link (`?read`, `?couple=`…): main.tsx strips the
  * query before this runs whenever a link is present. No minted link carries
- * them, so this is a note, not a bug.
+ * them — but anyone can type one, which is why the live site ignores them on a
+ * phone that holds anything (applyDemoParams, below).
  */
 
 const demoAnswers: Answers = {
@@ -100,9 +102,30 @@ export function clearForFresh() {
   clearProgress()
 }
 
-/** Handle ?demo / ?fresh before initial state loads. Returns true if handled. */
+/**
+ * Handle ?demo / ?fresh before initial state loads.
+ *
+ * On the founder's own machine they run exactly as the header says. Anywhere
+ * else they are a link a stranger can send, and they used to wipe whatever
+ * phone opened them — leaving the kept code behind, so the next save wrote the
+ * emptied map over the kept one (docs/ABUSE.md, sabotage). So on the live site
+ * they act only on a phone with nothing to lose, and leave the address bar
+ * either way, so a reload cannot repeat them.
+ */
 export function applyDemoParams(): void {
   const params = new URLSearchParams(window.location.search)
-  if (params.has('fresh')) clearForFresh()
-  if (params.has('demo')) seedDemo()
+  const fresh = params.has('fresh')
+  const demo = params.has('demo')
+  if (!fresh && !demo) return
+  const { hostname, pathname, hash } = window.location
+  const presenting = hostname === 'localhost' || hostname === '127.0.0.1'
+  if (!presenting) {
+    params.delete('fresh')
+    params.delete('demo')
+    const rest = params.toString()
+    window.history.replaceState({}, '', `${pathname}${rest ? `?${rest}` : ''}${hash}`)
+    if (loadProgress() || rememberedCode()) return
+  }
+  if (fresh) clearForFresh()
+  if (demo) seedDemo()
 }

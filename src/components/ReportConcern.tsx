@@ -4,6 +4,7 @@ import { SAFETY_REASONS } from '../data/safety'
 import { sendReport } from '../lib/safety'
 import { track } from '../lib/analytics'
 import { Spinner, TextButton } from './ui'
+import HelpLine from './HelpLine'
 
 interface Props {
   code: string
@@ -12,6 +13,9 @@ interface Props {
 }
 
 type State = 'closed' | 'open' | 'sending' | 'sent' | 'error'
+
+/** The two reasons that may not be able to wait a week for the founder. */
+const URGENT = new Set(['threats', 'sexual'])
 
 /**
  * The one place a member can raise a concern about a specific, real person —
@@ -38,9 +42,12 @@ export default function ReportConcern({ code, side }: Props) {
 
   if (state === 'sent') {
     return (
-      <p role="status" className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty">
-        Sent. Only the founder reads this, weekly, and what she does about it is written down.
-      </p>
+      <>
+        <p role="status" className="mt-6 text-[0.85rem] leading-relaxed text-muted text-pretty">
+          Sent. Only the founder reads this, weekly, and what she does about it is written down.
+        </p>
+        <HelpLine urgent={!!reason && URGENT.has(reason)} className="mt-2" />
+      </>
     )
   }
 
@@ -72,7 +79,11 @@ export default function ReportConcern({ code, side }: Props) {
       />
       <p className="mt-2 text-[0.78rem] leading-relaxed text-muted text-pretty">
         This reaches the founder only — not the other person, and not anything the app counts or learns from.
+        It is read within the week, so it is not an emergency line.
       </p>
+      {/* The report used to be the only thing on this screen, on a list whose
+          second reason is a threat (docs/ABUSE.md). */}
+      <HelpLine urgent={!!reason && URGENT.has(reason)} className="mt-2" />
       <div className="mt-3 flex items-center gap-3">
         <button
           disabled={!reason || state === 'sending'}

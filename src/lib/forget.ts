@@ -2,7 +2,6 @@ import { rememberedCode } from './keep'
 import { rememberedInstallId } from './progress'
 import { clearProgress, loadProgress } from './storage'
 import { send } from './net'
-import { rememberedReceipts, withdrawReport } from './safety'
 
 /**
  * Forget me.
@@ -44,6 +43,8 @@ export const LOCAL_KEYS = [
   'niyyah.draft.v1',
   // The coded link this device is part-way through — see src/lib/entry.ts.
   'niyyah.entry.v1',
+  // Receipts from before 2026-09-23, when forget me still withdrew reports.
+  // Nothing writes it now; it is cleared from phones that still hold it.
   'niyyah.reports.v1',
 ]
 
@@ -60,8 +61,6 @@ export interface Forgotten {
   progress: boolean
   /** The eleven she sent him — or true when she never sent one. */
   couple: boolean
-  /** Every concern she reported from this phone, withdrawn — or true when there were none. */
-  reports: boolean
 }
 
 export async function forgetMe(): Promise<Forgotten> {
@@ -71,17 +70,20 @@ export async function forgetMe(): Promise<Forgotten> {
   // already gone — the map cascade may well have taken the couple with it —
   // which is the same as done.
   const pair = loadProgress()?.couple?.code
-  const receipts = rememberedReceipts()
-  const [map, progress, couple, reports] = await Promise.all([
+  // Not her reports. They used to be withdrawn here, by the receipts this phone
+  // held — so a forget me made with someone standing over her erased the only
+  // record of what he did, and he never had to know there was one
+  // (docs/ABUSE.md, coercion). A report is a message to the founder, and like
+  // any sent message it is not taken back by clearing a phone: it stays until
+  // she has read it, and then only the kind of harm and what was done remain
+  // (netlify/functions/safety.ts). Trust says so.
+  const [map, progress, couple] = await Promise.all([
     code ? del(`${KEEP}?code=${encodeURIComponent(code)}`) : Promise.resolve(true),
     id ? del(`${PROGRESS}?id=${encodeURIComponent(id)}`) : Promise.resolve(true),
     pair ? del(`${COUPLE}?code=${encodeURIComponent(pair)}`) : Promise.resolve(true),
-    // Her reports go by their receipts, never by anything a kept map says —
-    // see netlify/functions/safety.ts.
-    Promise.all(receipts.map(withdrawReport)).then((all) => all.every(Boolean)),
   ])
   clearEverything()
-  return { map, progress, couple, reports }
+  return { map, progress, couple }
 }
 
 /**

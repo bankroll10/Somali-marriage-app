@@ -51,8 +51,11 @@ const BANDS: Record<string, Record<string, string>> = {
   early: answers('woman', 0, { duration: 'weeks-0' }),
   caution: answers('woman', 3, { duration: 'months-plus', secret: 'explicit', hard: 'blames' }),
   strong: answers('woman', 0, { duration: 'months-plus' }),
-  thin: answers('woman', 3, { duration: 'months-plus', secret: 'no', hard: 'quiet' }),
+  thin: answers('woman', 3, { duration: 'months-plus', secret: 'no', hard: 'quiet', money: 'no' }),
   mixed: answers('woman', 1, { duration: 'months-3', secret: 'no' }),
+  // Asked for money before the families have met (docs/ABUSE.md): its own
+  // caution, whatever else was shown.
+  money: answers('woman', 0, { duration: 'months-plus', money: 'yes' }),
 }
 
 /** Words that belong to the other side. Not "man"/"woman" alone — the
@@ -98,6 +101,7 @@ describe('the read speaks to whoever is reading', () => {
       strong: 'strong',
       thin: 'thin',
       mixed: 'mixed',
+      money: 'caution',
     })
   })
 })
