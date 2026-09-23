@@ -171,6 +171,12 @@ export interface AdminResponse {
     lastReconcileAt: string | null
     /** When Stripe last delivered a webhook; null if never. */
     lastWebhookAt: string | null
+    /** STRIPE_MODE: 'live' once switched, else 'test'. */
+    mode: 'test' | 'live'
+    /** Biz's live key is in the environment, ready for the switch. */
+    liveKeyStaged: boolean
+    /** The live webhook's signing secret is in the environment. */
+    liveWebhookSecretStaged: boolean
   }
 }
 
@@ -183,6 +189,41 @@ export interface AdminBlockResult {
 export interface AdminSession {
   token: string
   expiresAt: string
+}
+
+/** One row of a go-live check: what was asked, whether it passed, and what Stripe said. */
+export interface GoLiveCheck {
+  name: string
+  ok: boolean
+  detail: string
+}
+
+export interface GoLiveStaged {
+  mode: 'test' | 'live'
+  liveKeyStaged: boolean
+  liveWebhookSecretStaged: boolean
+}
+
+export interface GoLiveStatus {
+  checks: GoLiveCheck[]
+  /** An endpoint for this site already exists at Stripe. */
+  webhookExists: boolean
+  errors: { message: string; type: string }[]
+  staged: GoLiveStaged
+}
+
+export type GoLiveProbe = { ok: true; sessionId: string; livemode: boolean; expired: boolean } | { ok: false; step: 'create' | 'expire'; message: string; type: string }
+
+export type GoLiveWebhook =
+  | { ok: true; action: 'created'; id: string; secret: string }
+  | { ok: true; action: 'updated'; id: string; added: string[] }
+  | { ok: true; action: 'unchanged'; id: string }
+  | { ok: false; message: string; type: string }
+
+export interface ClearPracticeResult {
+  ok: true
+  before: { orders: number; paid: number }
+  after: { orders: number; dates: number; blocked: string[] }
 }
 
 export type AdminAction =

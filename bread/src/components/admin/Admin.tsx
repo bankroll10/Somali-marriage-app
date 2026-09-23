@@ -6,6 +6,7 @@ import { ApiError, adminAct, adminList } from '../../lib/api.ts'
 import { describeQty } from '../../lib/format.ts'
 import { Button, Notice, Page, Spinner, Title } from '../ui.tsx'
 import DayView, { PrintSheet } from './DayView.tsx'
+import GoLive from './GoLive.tsx'
 import type { OrderActions } from './OrderCard.tsx'
 import { clearSession, loadSession, saveSession } from './session.ts'
 import { BlockSheet, CancelPaidSheet } from './Sheets.tsx'
@@ -51,6 +52,7 @@ export default function Admin() {
   const [busy, setBusy] = useState<string | null>(null)
   const [notice, setNotice] = useState<{ tone: 'info' | 'warn' | 'ok' | 'error'; text: string } | null>(null)
   const [sheet, setSheet] = useState<Sheet>(null)
+  const [view, setView] = useState<'orders' | 'golive'>('orders')
   /** orderId → the remaining counts a markPaid was refused over, so she can choose to force it. */
   const [overCapacity, setOverCapacity] = useState<Record<string, Qty>>({})
 
@@ -271,6 +273,21 @@ export default function Admin() {
     )
   }
 
+  if (view === 'golive' && token) {
+    return (
+      <GoLive
+        token={token}
+        ops={load.ops}
+        onBack={() => {
+          setView('orders')
+          setLoad({ state: 'loading' })
+          refresh()
+        }}
+        onSessionEnded={() => endSession('expired')}
+      />
+    )
+  }
+
   const upcoming = load.days.filter((d) => d.date >= load.today)
   const past = load.days.filter((d) => d.date < load.today && d.orders.length > 0).reverse()
   const strip = showPast ? past : upcoming
@@ -304,6 +321,13 @@ export default function Admin() {
                   ? 'TEST MODE — Stripe is on its test keys. Orders here are practice orders and no real money moves. Card 4242 4242 4242 4242 pays.'
                   : 'Stripe is not configured on this site, so nobody can pay by card yet.'}
               </Notice>
+            </div>
+          )}
+          {load.ops.mode !== 'live' && (
+            <div className="mb-4">
+              <Button variant="secondary" onClick={() => setView('golive')}>
+                Going live →
+              </Button>
             </div>
           )}
           <p className="mb-3 text-[12px] text-cocoa-soft" title="The site checks abandoned card sessions with Stripe every half hour on its own; Stripe also sends the site a message about each payment, which is what normally frees held bread within the hour.">

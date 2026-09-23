@@ -36,7 +36,7 @@ import { recordAction } from './audit.ts'
 import { checkSession, issueSession, matches, recordAttempt, throttle } from './auth.ts'
 import { PG, pgCode, type Db, type Queryable } from './db/client.ts'
 import { env, error, json, readJson, siteOrigin } from './http.ts'
-import { healthReport, opsState, recordJobRun } from './ops.ts'
+import { clearOrders, healthReport, opsState, recordJobRun } from './ops.ts'
 import {
   cancel,
   cancelPaid,
@@ -56,7 +56,8 @@ import {
   type ProductRow,
   type ReserveLimits,
 } from './inventory.ts'
-import type { StripeGateway } from './stripe/gateway.ts'
+import { stagedStripe, type StripeGateway } from './stripe/gateway.ts'
+import { goLiveProbe, goLiveStatus, goLiveWebhook, type LiveStripe } from './stripe/golive.ts'
 import {
   dashboardPaymentUrl,
   ensureSession,
@@ -84,6 +85,11 @@ export interface AppDeps {
   clock: Clock
   /** null when Stripe is not configured: card checkout answers 503 and says so. */
   gateway: StripeGateway | null
+  /**
+   * The staged live key for the "Going live" panel. Absent, it is read from
+   * STRIPE_LIVE_SECRET_KEY; tests pass one with a recording HTTP client.
+   */
+  liveStripe?: { key: string | undefined; options?: LiveStripe['options'] }
 }
 
 export type Handler = (req: Request) => Promise<Response>
@@ -131,7 +137,14 @@ function guard<A extends unknown[]>(name: string, fn: (req: Request, ...args: A)
   }
 }
 
-export function createApp({ db, clock, gateway }: AppDeps) {
+export function createApp({ db, clock, gateway, liveStripe }: AppDeps) {
+  /** The staged live key, if there is a real one. */
+  const liveKey = (): LiveStripe | null => {
+    const key = liveStripe ? liveStripe.key : env.liveStripeKey
+    return key && key.includes('_live_') ? { key, options: liveStripe?.options } : null
+  }
+  /** What is staged for going live, as flags. */
+  const staged = () => ({ ...stagedStripe(), liveKeyStaged: liveKey() !== null })
   const payments = (): PaymentDeps | null => (gateway ? { db, clock, gateway } : null)
 
   async function summarise(order: Order): Promise<OrderSummary> {
@@ -386,7 +399,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
   // ── GET /api/health — is the deployed site wired up? Nothing about anyone. ─
   const health = guard('health', async (req) => {
     if (req.method !== 'GET') return error('method_not_allowed', 405)
-    return json(await healthReport(db, gateway, Boolean(env.adminPassword), clock.now()))
+    return json(await healthReport(db, gateway, Boolean(env.adminPassword), clock.now(), staged()))
   })
 
   // ── POST /api/admin-session — the password, once, for a session ───────
@@ -454,7 +467,7 @@ export function createApp({ db, clock, gateway }: AppDeps) {
         today,
         nextPickupDate: pickupDates(now)[0],
         days,
-        ops: { livemode: ops.livemode, lastReconcileAt: ops.lastReconcileAt, lastWebhookAt: ops.lastWebhookAt },
+        ops: { livemode: ops.livemode, lastReconcileAt: ops.lastReconcileAt, lastWebhookAt: ops.lastWebhookAt, ...staged() },
       }
       return json(body)
     }
@@ -462,6 +475,30 @@ export function createApp({ db, clock, gateway }: AppDeps) {
 
     const body = await readJson<Partial<AdminAction>>(req)
     if (body instanceof Response) return body
+
+    // ── Going live: run on the deployed site, which can reach Stripe ───────
+    const action = (body as { action?: unknown }).action
+    if (action === 'goLiveStatus' || action === 'goLiveProbe' || action === 'goLiveWebhook') {
+      const live = liveKey()
+      if (!live) return error('live_key_not_staged', 409)
+      if (action === 'goLiveStatus') return json({ ...(await goLiveStatus(live)), staged: staged() })
+      if (action === 'goLiveProbe') {
+        const result = await goLiveProbe(live, now)
+        await recordAction(db, { actor: ACTOR, action: 'goLiveProbe', detail: result.ok ? { ok: true, sessionId: result.sessionId } : { ok: false, step: result.step, type: result.type } }, now)
+        return json(result)
+      }
+      const result = await goLiveWebhook(live)
+      // The signing secret goes to her screen once and nowhere else — not the audit record.
+      await recordAction(db, { actor: ACTOR, action: 'goLiveWebhook', detail: result.ok ? { action: result.action, id: result.id } : { ok: false, type: result.type } }, now)
+      return json(result)
+    }
+    if (action === 'clearPractice') {
+      if ((body as { confirm?: unknown }).confirm !== 'CLEAR') return error('confirm_required', 400)
+      const out = await clearOrders(db, { includeLive: false })
+      if (!out.ok) return error('live_sales_present', 409, { liveSales: out.liveSales })
+      await recordAction(db, { actor: ACTOR, action: 'clearPractice', detail: { removed: out.before.orders } }, now)
+      return json(out)
+    }
 
     if (body.action === 'block' || body.action === 'unblock') {
       if (!isYmd(body.date)) return error('bad_date', 400)

@@ -41,7 +41,12 @@ finding out at the first real payment. Keep the text below for reference.
 
 ---
 
-## 1b — The live key (send next)
+## 1b — The live key ✅ sent; key received 2026-09-23
+
+She sent the restricted live key the same day. It is staged in Netlify as
+`STRIPE_LIVE_SECRET_KEY` — never in this repository, which is public — and the rest of the
+setup now happens from the admin page: `/admin` → **Going live →** (checklist section 5).
+No computer or terminal needed.
 
 Her account being ready is not the same as the site being able to use it: the live key and the
 webhook signing secret still have to reach Netlify.

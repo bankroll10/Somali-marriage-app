@@ -65,7 +65,13 @@ site and the server follow.
   hours). Every check is server-side; refreshing is always safe.
 - `/api/health` — how the deployed site is wired: database migrated, Stripe
   mode, admin configured, when the scheduled reconcile last ran and the last
-  webhook arrived, whether test data is present. Nothing about any customer.
+  webhook arrived, whether test data is present, which live credentials are
+  staged. Nothing about any customer, and no key values.
+- `/admin` → **Going live →** — everything before real payments, from a
+  phone: check Biz's Stripe account, test the checkout (charges nothing),
+  create the live webhook, clear practice orders, and the one-variable
+  switch (`STRIPE_MODE=live`). Runs on the site itself, which can reach
+  Stripe.
 - `/admin` — her page, one pickup date at a time, the next one first. Asks
   for the admin password once per phone and stays signed in for a month; the
   password itself is never sent again after that. Shows, per date, what to

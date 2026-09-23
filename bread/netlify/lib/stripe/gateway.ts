@@ -168,14 +168,46 @@ export function stripeGateway(secretKey: string, webhookSecret: string, options:
   }
 }
 
+/**
+ * Which Stripe credentials the site runs on. The test pair and the live pair
+ * sit side by side in the environment; STRIPE_MODE=live picks the live pair,
+ * anything else the test pair. So going live is adding one variable and
+ * redeploying, and going back is deleting it — no values are ever pasted over
+ * other values, which is where a cutover goes wrong.
+ *
+ * In live mode a missing live value, or a "live" key that is not actually a
+ * live key, gives NO gateway — card checkout then answers "payments not
+ * configured" — rather than quietly falling back to test keys and taking
+ * orders nobody pays for.
+ */
+export function selectStripeCredentials(e: NodeJS.ProcessEnv = process.env): { key: string; webhookSecret: string; mode: 'test' | 'live' } | null {
+  if (e.STRIPE_MODE === 'live') {
+    const key = e.STRIPE_LIVE_SECRET_KEY
+    const webhookSecret = e.STRIPE_LIVE_WEBHOOK_SECRET
+    if (!key || !webhookSecret || !key.includes('_live_')) return null
+    return { key, webhookSecret, mode: 'live' }
+  }
+  const key = e.STRIPE_SECRET_KEY
+  const webhookSecret = e.STRIPE_WEBHOOK_SECRET
+  if (!key || !webhookSecret) return null
+  return { key, webhookSecret, mode: key.includes('_live_') ? 'live' : 'test' }
+}
+
+/** What is staged for going live, as flags only — never a value. */
+export function stagedStripe(e: NodeJS.ProcessEnv = process.env): { mode: 'test' | 'live'; liveKeyStaged: boolean; liveWebhookSecretStaged: boolean } {
+  return {
+    mode: e.STRIPE_MODE === 'live' ? 'live' : 'test',
+    liveKeyStaged: Boolean(e.STRIPE_LIVE_SECRET_KEY && e.STRIPE_LIVE_SECRET_KEY.includes('_live_')),
+    liveWebhookSecretStaged: Boolean(e.STRIPE_LIVE_WEBHOOK_SECRET),
+  }
+}
+
 /** True when Stripe is configured for this deploy. */
 export function stripeConfigured(): boolean {
-  return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET)
+  return selectStripeCredentials() !== null
 }
 
 export function productionGateway(): StripeGateway | null {
-  const key = process.env.STRIPE_SECRET_KEY
-  const secret = process.env.STRIPE_WEBHOOK_SECRET
-  if (!key || !secret) return null
-  return stripeGateway(key, secret)
+  const creds = selectStripeCredentials()
+  return creds ? stripeGateway(creds.key, creds.webhookSecret) : null
 }

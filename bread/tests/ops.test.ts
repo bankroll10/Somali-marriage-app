@@ -65,7 +65,15 @@ describe('health and the job record', () => {
 
     const asAdmin = await adminHeaders(app, ADMIN)
     const admin = await (await get(app.admin, '/api/admin', asAdmin)).json()
-    expect(admin.ops).toEqual({ livemode: false, lastReconcileAt: new Date(NOW + 60 * MINUTE).toISOString(), lastWebhookAt: null })
+    expect(admin.ops).toEqual({
+      livemode: false,
+      lastReconcileAt: new Date(NOW + 60 * MINUTE).toISOString(),
+      lastWebhookAt: null,
+      // Nothing is staged for going live in this test's environment.
+      mode: 'test',
+      liveKeyStaged: false,
+      liveWebhookSecretStaged: false,
+    })
 
     await paid()
     expect((await (await get(app.health, '/api/health')).json()).lastWebhookAt).toBe(new Date(NOW + 60 * MINUTE).toISOString())

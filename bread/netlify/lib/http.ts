@@ -34,4 +34,8 @@ export const env = {
   get adminPassword() {
     return process.env.ADMIN_PASSWORD
   },
+  /** Biz's live key, staged for the "Going live" panel whether or not the site is live yet. */
+  get liveStripeKey() {
+    return process.env.STRIPE_LIVE_SECRET_KEY
+  },
 }

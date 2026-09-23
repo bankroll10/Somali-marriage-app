@@ -29,8 +29,16 @@ check you run; the two scripts exist so it takes minutes.
 | Name | Used by | Test today → live at cutover | Mark "contains secret values"? |
 |---|---|---|---|
 | `DATABASE_URL` | build (migrations) **and** functions | same database (after wiping test orders) | **No** — a secret-marked variable is withheld from the build, and the build must migrate |
-| `STRIPE_SECRET_KEY` | functions | `sk_test_…` → `sk_live_…` (a restricted `rk_live_…` key with Checkout Sessions read/write, Refunds read and webhook access also works) | Yes, at cutover (functions-only scope is fine) |
-| `STRIPE_WEBHOOK_SECRET` | functions | test endpoint's `whsec_…` → the **live** endpoint's `whsec_…` | Yes, at cutover |
+| `STRIPE_SECRET_KEY` | functions | the **test** key, and it stays that way | no change |
+| `STRIPE_WEBHOOK_SECRET` | functions | the **test** endpoint's secret, and it stays that way | no change |
+| `STRIPE_LIVE_SECRET_KEY` | functions | Biz's restricted live key — **staged 2026-09-23**, unused until the switch | stays readable so it can be checked |
+| `STRIPE_LIVE_WEBHOOK_SECRET` | functions | the live endpoint's secret, saved by the owner from the Going live panel (step 3) | as above |
+| `STRIPE_MODE` | functions | **absent = test.** `live` = the switch | — |
+
+Going live is **adding one variable**, `STRIPE_MODE=live`, and redeploying. Nothing is pasted
+over anything. In live mode, if either live value is missing, or the "live" key isn't a live
+key, the site refuses card payments with "payments not configured" and does **not** fall back
+to test keys.
 | `ADMIN_PASSWORD` | functions | unchanged | Yes, if you like — the API then cannot read it back |
 
 Nothing else is configurable by variable. Names, place, hours, prices, capacity, horizon and
@@ -93,6 +101,11 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
    paid for.
 
    **Never** text an unrestricted `sk_live_` key: it is full access to her money.
+
+   **Received 2026-09-23** and staged in Netlify as `STRIPE_LIVE_SECRET_KEY` (not in the
+   repository, which is public). Optional hardening after the webhook exists: the key no longer
+   needs **Webhook Endpoints: Write** — Biz can set that to None in Stripe → Developers → API
+   keys → the key → Edit, and the site loses nothing.
 8. **Apple Pay**: on Stripe's hosted Checkout page no domain registration is needed (the page is
    on Stripe's domain). The on-device check is in section 7.
 9. **Radar** (default rules) and **Disputes** need nothing.
@@ -119,7 +132,27 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
    `netlify.app` address (it keeps working), or be moved and the secret re-copied.
 4. HSTS is sent with `includeSubDomains`: put nothing on a subdomain that must serve plain HTTP.
 
-## 5. Cutover — test mode → live (about 20 minutes, owner + Biz on the phone)
+## 5. Cutover — test mode → live (about 20 minutes, from a phone)
+
+**Everything up to the switch is on the admin page now: `/admin` → Going live →.** The steps
+run on the deployed site, which can reach Stripe, so no computer is needed. The command-line
+scripts below remain for anyone with a terminal; the panel runs the same checks.
+
+1. **Going live → 1. Check Biz's Stripe account.** Every row ✓ except the two webhook rows.
+2. **Going live → 2. Test the checkout.** Makes the real Checkout Session and cancels it at
+   once; charges nothing. Do it **before** step 3.
+3. **Going live → 3. Create the live webhook.** Copy the secret it shows once into Netlify as
+   `STRIPE_LIVE_WEBHOOK_SECRET`.
+4. The test-mode rehearsal in section 7, if not already done.
+5. **Going live → 4. Clear practice orders** (type CLEAR). Refuses if any real sale exists.
+6. **The switch — with Biz's go-ahead only:** Netlify → Environment variables → add
+   `STRIPE_MODE` = `live` → Deploys → Trigger deploy. Then `/admin` no longer says TEST MODE
+   and `/api/health` reads `"stripeMode":"live","livemode":true`.
+
+**Rollback:** delete `STRIPE_MODE` → Trigger deploy. Both sets of keys stay where they are.
+Payments already taken stay in Stripe and orders stay in the database; see section 6.
+
+### The same cutover by command line (optional)
 
 Only with Biz's explicit go-ahead. Pick a moment with no customer mid-checkout (`/api/health`
 → `liveHolds: 0`).
@@ -156,8 +189,8 @@ Only with Biz's explicit go-ahead. Pick a moment with no customer mid-checkout (
 
 ## 6. Rollback — live → test, or last known good
 
-- **Payments misbehave after cutover**: in Netlify set `STRIPE_SECRET_KEY` and
-  `STRIPE_WEBHOOK_SECRET` back to the test values → *Trigger deploy*. Customers can then place
+- **Payments misbehave after cutover**: in Netlify delete `STRIPE_MODE` → *Trigger deploy*.
+  The test keys were never touched, so the site is instantly back on them. Customers can then place
   orders but no real money moves (the TEST MODE notice returns on `/admin`); nothing already paid
   is lost — payments live in Stripe, orders in the database, and a deploy touches neither.
 - **A bad code deploy**: Netlify → Deploys → pick the previous *Published* deploy → *Publish

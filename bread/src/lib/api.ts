@@ -1,4 +1,4 @@
-import type { AdminAction, AdminBlockResult, AdminOrder, AdminResponse, AdminSession, AvailabilityResponse, CheckoutRequest, CheckoutResponse, OrderSummary } from '../../shared/types.ts'
+import type { AdminAction, AdminBlockResult, AdminOrder, AdminResponse, AdminSession, AvailabilityResponse, CheckoutRequest, CheckoutResponse, ClearPracticeResult, GoLiveProbe, GoLiveStatus, GoLiveWebhook, OrderSummary } from '../../shared/types.ts'
 
 export class ApiError extends Error {
   code: string
@@ -50,3 +50,12 @@ type AdminActResult<A> = A extends { action: 'block' | 'unblock' } ? AdminBlockR
 
 export const adminAct = <A extends AdminAction>(token: string, action: A) =>
   call<AdminActResult<A>>('/api/admin', { method: 'POST', body: JSON.stringify(action), headers: bearer(token) })
+
+/** The "Going live" panel's four steps, each behind her session. */
+const goLivePost = <T>(token: string, body: Record<string, unknown>) => call<T>('/api/admin', { method: 'POST', body: JSON.stringify(body), headers: bearer(token) })
+export const goLive = {
+  status: (token: string) => goLivePost<GoLiveStatus>(token, { action: 'goLiveStatus' }),
+  probe: (token: string) => goLivePost<GoLiveProbe>(token, { action: 'goLiveProbe' }),
+  webhook: (token: string) => goLivePost<GoLiveWebhook>(token, { action: 'goLiveWebhook' }),
+  clearPractice: (token: string) => goLivePost<ClearPracticeResult>(token, { action: 'clearPractice', confirm: 'CLEAR' }),
+}

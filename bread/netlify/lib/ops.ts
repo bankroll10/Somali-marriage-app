@@ -35,8 +35,18 @@ export async function opsState(db: Queryable, gateway: StripeGateway | null): Pr
   }
 }
 
+export interface StagedFlags {
+  mode: 'test' | 'live'
+  liveKeyStaged: boolean
+  liveWebhookSecretStaged: boolean
+}
+
 export interface HealthReport extends OpsState {
   ok: true
+  /** STRIPE_MODE, and which live credentials are staged for the switch — flags only. */
+  stripeMode: 'test' | 'live'
+  liveKeyStaged: boolean
+  liveWebhookSecretStaged: boolean
   now: string
   /** Migrations applied to this database. */
   migrations: number
@@ -49,7 +59,13 @@ export interface HealthReport extends OpsState {
 }
 
 /** What a browser, a script or a person can read about the deployed site — nothing about any customer. */
-export async function healthReport(db: Queryable, gateway: StripeGateway | null, adminConfigured: boolean, nowMs: number): Promise<HealthReport> {
+export async function healthReport(
+  db: Queryable,
+  gateway: StripeGateway | null,
+  adminConfigured: boolean,
+  nowMs: number,
+  staged: StagedFlags = { mode: 'test', liveKeyStaged: false, liveWebhookSecretStaged: false },
+): Promise<HealthReport> {
   const ops = await opsState(db, gateway)
   const migrations = (await db.query<{ n: number }>('SELECT count(*)::int AS n FROM schema_migrations')).rows[0].n
   const holds = (await db.query<{ n: number }>("SELECT count(*)::int AS n FROM orders WHERE status = 'reserved' AND provider = 'stripe'")).rows[0].n
@@ -57,6 +73,9 @@ export async function healthReport(db: Queryable, gateway: StripeGateway | null,
     ok: true,
     now: iso(nowMs),
     ...ops,
+    stripeMode: staged.mode,
+    liveKeyStaged: staged.liveKeyStaged,
+    liveWebhookSecretStaged: staged.liveWebhookSecretStaged,
     migrations,
     stripeConfigured: gateway !== null,
     adminConfigured,
