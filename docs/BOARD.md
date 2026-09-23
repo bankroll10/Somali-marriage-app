@@ -727,7 +727,9 @@ not a proxy. Per-member guide caps. The limiter failing open, which is
 deliberate. Cutting `attachment` and `comm-safety` from the prompt — a product
 decision, after the sprint. Closed vocabularies for the six intake answers that
 have no server twin; the length cap and the flattening shut the slot. The
-`?fresh` / `?demo` params, which no posted link can carry. `GET /progress`
+`?fresh` / `?demo` params, "which no posted link can carry" — wrong: anyone can
+type one, and on 2026-09-23 one link wiped any phone that opened it
+(docs/ABUSE.md); the live site now ignores them on a phone that holds anything. `GET /progress`
 deleting year-stale records, when nothing is a year old. A follow-up written by
 `?families` or a guide commitment for someone with no Home: written, and never
 askable — out of scope because `?read` and `?eleven` are what is being posted,

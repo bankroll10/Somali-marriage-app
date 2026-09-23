@@ -142,9 +142,11 @@ spend on it yet is different from missing it.
   hit.** Both are readable only by opening `/safety` or `/guide` by hand —
   exactly the founder-must-remember-to-check pattern this whole audit is
   about. The safety half is fixed, 2026-09-12, with no new vendor:
-  `.github/workflows/watch.yml` reads `/safety` weekly with the founder's key
+  `.github/workflows/watch.yml` reads `/safety` with the founder's key
   and fails when anything is open, and GitHub — already on `docs/CONTROL.md`'s
-  list — emails the owner on a failed run (`docs/BOARD.md`). The guide-cap
+  list — emails the owner on a failed run (`docs/BOARD.md`). Since 2026-09-23
+  it runs daily, and a `threats` or `sexual` report fails it the same day
+  rather than the next Monday (`docs/ABUSE.md`). The guide-cap
   half still has no alert; an outbound channel for it is not in the
   dependency list, which deliberately has no email/notification vendor. **Trigger:
   the day a paid Netlify tier or a transactional-email vendor is added for

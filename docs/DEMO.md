@@ -9,7 +9,9 @@
 
 Reloading a `?demo` tab resets it to the same known state — safe to re-run mid-demo.
 (`?fresh` and `?demo` overwrite local data; don't use them in a browser profile whose
-Niyyah state you care about.)
+Niyyah state you care about.) They run like this on `localhost` only. On the live site
+they act only on a phone that holds nothing and then leave the address bar, because a
+link that wipes a phone is something anyone can send (docs/ABUSE.md).
 
 **The tools at their own addresses** (2026-09-17, `src/data/tools.ts`) — open any in a
 fresh tab; each survives a reload and previews as itself when pasted into a chat:

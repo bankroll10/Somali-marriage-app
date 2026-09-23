@@ -322,10 +322,19 @@ the hand changes** — not the founder's sleep.
    candidate; apply `eligible()` by hand exactly as `pool.ts` does — age band,
    both sides' checkable non-negotiables — and nothing it does not: no photo,
    no essay, no preference the map does not carry.
+   **Then the three checks from `docs/ABUSE.md`, before any mail:**
+   - Call both vouchers. Nobody is introduced on a vouch nobody has
+     confirmed, and a voucher's number on more than one map is a flag.
+   - Check both contacts, and both voucher numbers, against the
+     never-introduce record: keyed hashes, no names (`docs/ABUSE.md`, "At the
+     first introduction").
+   - Read the safety queue for either couple code they have ever held.
 4. **Write to both, from the owned address**, two mails, no name exchanged: who
    is on the other side in the map's own words (age, city, practice, children,
-   what they will not compromise on), and one question — *would you like to be
-   introduced?* — with a day to answer by. A reply of yes from both is the
+   what they will not compromise on), and two questions — *are you married
+   now, or engaged?* and *would you like to be introduced?* — with a day to
+   answer by. The first is on the record so that a lie is actionable
+   (`docs/ABUSE.md`, case 6). A reply of yes from both is the
    introduction; one no, or the day passing, closes it as `no-answer` and
    nobody is told why.
 5. **Record it** in the introductions record the moment it exists

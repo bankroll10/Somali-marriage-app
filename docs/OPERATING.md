@@ -31,9 +31,11 @@ week it falls in relative to the monthly hour below.
 curl -s -H "$K" $S/safety | jq .   # weekly — a report is a person waiting, not a metric
 ```
 
-Since 2026-09-12 `.github/workflows/watch.yml` makes the same read every
-Monday with the founder's key and fails — which emails the owner — when
-anything is open. It needs `FOUNDER_KEY` as a repository secret
+Since 2026-09-12 `.github/workflows/watch.yml` makes the same read with the
+founder's key and fails — which emails the owner — when anything is open.
+Since 2026-09-23 it runs **every morning**: it fails on any day an open report
+says `threats` or `sexual` — **read those the day the mail comes** — and on
+Mondays for everything else (`docs/ABUSE.md`). It needs `FOUNDER_KEY` as a repository secret
 (`docs/DEPLOY.md`). Before the first link is posted, `DELETE /progress?id=`
 each of the founder's own install ids (`installId()` in
 `src/lib/progress.ts`, in that device's localStorage), so the first twenty
@@ -54,9 +56,34 @@ no side, nothing of hers. That stub is what makes `resolved.byReason` in the
 readout possible, and it is the only reason the founder can ever answer
 "is this the same kind of harm as last time?" — see `docs/HARD.md`.
 
-**This route is the one thing here that fails closed.** With no `FOUNDER_KEY`
-set it refuses rather than opening, unlike every other readout: free text
-naming a person cannot be un-published.
+Every readout fails closed since 2026-09-12 (`netlify/shared/founder.ts`);
+this one first, because free text naming a person cannot be un-published.
+
+**What a report is, and the rules around it** (`docs/ABUSE.md`):
+
+- **It outlives the sheet.** A deleted, forgotten or expired couple sheet
+  leaves `gone/<code>` in the `couples` store — a date and nothing else — and
+  a report can still be made against it for ninety days
+  (`netlify/shared/sheet.ts`). The man she is reporting cannot silence her by
+  deleting the sheet.
+- **Forget me does not withdraw it,** and the app keeps no receipt. A member
+  who asks for one to be withdrawn writes in; read it, then resolve it as
+  `no-action`. A withdrawal asked for under someone's eye is the case this
+  exists for — if the report was a threat, read it before you resolve it.
+- **One report is not a verdict.** Before `never-introduce`, hear the other
+  side wherever there is a way to. A report with no way to reach anyone is
+  `not-enough`, not a mark.
+- **Never confirm to anyone whether a person uses Niyyah** — not to a brother,
+  a mother, a husband, or anyone else who calls. **Never send a code, a
+  contact or a map to anyone** but the member herself, at her request, from
+  the address she gave. The founder holds the contacts, the vouch numbers and
+  every map; the founder is the target.
+- **Once a year, re-check `src/data/help.ts`** — every emergency number and
+  helpline against the service's own site — and move `HELP_CHECKED`. Sweden's
+  line changed in 2025.
+- **A member who has changed her code** (`PUT /keep`, "Change my code") has
+  everything under the new one; the old code is gone from every store. Nothing
+  to do by hand.
 
 **The rest of the weekly pulse** rides alongside the safety check, five
 minutes, and does two things only: acts on an open report (above), and

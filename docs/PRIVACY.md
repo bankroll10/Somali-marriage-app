@@ -54,7 +54,7 @@ That is the honest limit of every row marked founder.
 | `niyyah.via.v1` | What kind of link brought her (one closed word) | Opening a link with `?via=` | Her; sent only inside step counts | Until forget | Forget me | Yes if Count me is off; harmless | keep |
 | `niyyah.draft.v1` (ids only) | A half-finished read survives a reload | Each answer | Her | 30 days, then cleared | Finishing; Start over; Forget me | No | keep |
 | `niyyah.entry.v1` | A couple or vouch link survives a reload | Opening one | Her | 24 hours | Leaving the screen; **Start over now too**; Forget me | No | keep |
-| `niyyah.reports.v1` | Receipts that withdraw her own reports (`docs/SECURITY.md` O1) | Filing a report | Her | Until forget | Forget me, after withdrawing | No: the receipt *is* the authority | keep |
+| `niyyah.reports.v1` | Nothing, since 2026-09-23: a receipt on her phone let whoever held the phone withdraw her report (`docs/ABUSE.md`, coercion) | No longer written | — | Cleared from older phones | Forget me | **Yes** | **removed** |
 | `niyyah.waitlist.queue.v1` | Retries a failed signup ping | A failed ping | Her | Until sent | Sending; Forget me | n/a | **minimized**: holds no contact (C7) |
 | `niyyah.events.v1` | Nothing: a hallway-test log read only by a console helper | Every tap, to the millisecond | Anyone holding the phone | 300 events, for ever | Forget me | **Yes** | **removed** (C6): in memory for the session; an old diary is cleared on the next visit |
 | Service worker cache | The app opens offline | Each visit | Her browser | Until the next deploy | A new deploy | No | keep (never holds a code or a `/.netlify/*` response; THREAT T3) |
@@ -109,7 +109,8 @@ turn it off", so the default is never a surprise.
 
 | Field | Why | When | Who reads | How long | Deleted by | Without it? | Verdict |
 |---|---|---|---|---|---|---|---|
-| Report: couple code, side, reason id, her words (≤500), day | The one free text about another person, so the founder can act | She reports | **Founder only** | Until resolved, or withdrawn | Her receipt (forget me); the founder's resolution | No | keep |
+| Report: couple code, side, reason id, her words (≤500), day | The one free text about another person, so the founder can act | She reports | **Founder only** | Until resolved — forget me no longer withdraws it (`docs/ABUSE.md`, coercion) | The founder's resolution; by hand, at her request | No | keep |
+| `gone/<code>` in `couples`: a day, nothing else | A report can still reach the founder after the sheet is deleted, forgotten or expired — the man she is reporting holds the code too (`netlify/shared/sheet.ts`) | The sheet goes | Nobody; `safety.ts` checks it exists | Ninety days | The weekly sweep | No: without it, deleting the sheet silenced her | **added** |
 | Resolved stub: reason, day, outcome | The taxonomy of harm, joined to nobody | The founder resolves | Founder | For ever | Cannot be: no code, no side, no words | It is the only way harm can be counted | keep |
 
 ## 8. Leaving the site
