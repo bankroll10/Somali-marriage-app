@@ -202,8 +202,8 @@ export default function ReflectionView({
             </p>
             <p className="mt-3 max-w-md text-[0.92rem] leading-relaxed text-cream/60 text-pretty">
               {firstReveal
-                ? 'A starting point, not a verdict, and not a measure of you as a person. No one sees this but you.'
-                : 'What decides who you meet is what you’ve done here and what you won’t compromise on, not this reading. No one sees it but you.'}
+                ? 'A starting point, not a verdict, and not a measure of you as a person.'
+                : 'What decides who you meet is what you’ve done here and what you won’t compromise on, not this reading.'}
             </p>
           </div>
 

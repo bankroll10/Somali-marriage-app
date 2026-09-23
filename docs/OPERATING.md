@@ -93,6 +93,7 @@ d="reach-$(date +%F)"; mkdir -p "$d"
 netlify blobs:list contacts --json | jq -r '.blobs[].key' \
   | while read -r k; do netlify blobs:get contacts "$k" > "$d/$k.json"; done
 ls "$d" | wc -l   # must match the door's counted total
+# Then delete the previous month's reach-* folder. Only the latest is kept.
 ```
 
 **Save both files every time.** The backup is the only copy of the learning
@@ -103,9 +104,24 @@ will ever return a member's contact (`docs/OWNED.md`), so the founder's own
 credentials are the only key to it. Use `netlify blobs:get contacts <code>` to
 read one.
 
+**Keep one `reach-` folder, the latest, and delete the one before it.** This
+used to say keep them all "as the history", and a folder of them was the one
+copy of a way to reach someone that neither Forget me nor a lapsed map could
+ever touch (docs/PRIVACY.md, R4). The store is the list. The export exists
+only so that losing one vendor does not lose the people waiting; last month's
+copy adds nothing to that and keeps everyone who has since left.
+
+The Netlify form (`niyyah-waitlist`) no longer holds anyone's contact. Each
+row is a city and a day, a notice that someone was counted. The way to reach
+them is only in the store (docs/PRIVACY.md, C7). Rows from before 2026-09-23
+still carry a contact. Export them into the store's folder once, then delete
+them from the form.
+
 **Save the backup every time.** It is the last line of the monthly hour, and
 it is the only copy of the learning record that exists outside one vendor's
 storage. Keep the files; they are small, and a folder of them is the history.
+It holds step counts only: no map, no contact. Since 2026-09-23 it also leaves
+out any count past its year (docs/PRIVACY.md, R3).
 What is in it and what is deliberately not is documented in
 `netlify/functions/export.ts` and `docs/CONTROL.md`.
 

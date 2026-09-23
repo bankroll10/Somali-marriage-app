@@ -504,12 +504,9 @@ export default function Cohort({ identity, hookId, ledger, joined, onJoined, onS
             its shape — how many of each age, how many pairs clear each other’s
             non-negotiables, how many have nobody here who does — never a map and never
             which person, and any breakdown that would come back as one or two comes back
-            blank. Your email or phone is kept apart from all of it, with only your city
-            beside it, so you can be reached if your pool ever opens — and it goes when you tap
-            forget. This same tap also sends your email or phone, your city, country, how
-            far you’d go, who you’re seeking and that hardest part to the form service this
-            site runs on, as a second copy — never your map code, and never your answers.
-            That copy is deleted by hand when you ask. Your answers stay yours.
+            blank. Your email or phone is kept apart from all of it, in one place, with only
+            your city and country beside it, so you can be reached if your pool ever opens —
+            and it goes when your map lapses or you tap forget.
           </p>
         </form>
       ) : (

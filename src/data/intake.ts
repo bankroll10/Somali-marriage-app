@@ -235,7 +235,7 @@ export const chapters: Chapter[] = [
     kicker: '03 · Heart',
     title: 'Heart',
     intro:
- 'The hardest part, and the one the apps skip. Not who you want, but how you handle closeness, and what you are still working on. This stays private to you.',
+ 'The hardest part, and the one the apps skip. Not who you want, but how you handle closeness, and what you are still working on.',
     questions: [
       {
         id: 'conflict',

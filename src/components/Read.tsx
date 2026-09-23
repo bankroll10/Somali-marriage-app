@@ -569,8 +569,7 @@ function Result({
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
         This reads what you told us about behaviour over time. It cannot read a
-        heart, and it is not a verdict on anyone — including you. Your answers
-        stay on this device.
+        heart, and it is not a verdict on anyone — including you.
       </p>
     </div>
   )
