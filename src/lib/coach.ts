@@ -53,10 +53,69 @@ const SAFETY_WORDS = [
   'forced', 'forcing me', 'force me', 'make me marry', 'making me marry',
   'blackmail', 'blackmailing', 'blackmailed',
   'nudes', 'pictures of me', 'photos of me', 'videos of me',
+  'grabbed me', 'grabbed my', 'pushed me', 'shoved me', 'slapped me', 'slapped', 'choked me', 'kicked me',
   'send money', 'sent money', 'sent him money', 'sent her money', 'asked me for money', 'asking me for money', 'asks me for money',
+  'help pay', 'pay for his ticket', 'pay for her ticket',
   'loan', 'crypto', 'bitcoin', 'gift card', 'gift cards', 'western union', 'invest',
   'stalking', 'following me', 'followed me',
 ]
+
+/**
+ * Words that mean a life may be at risk (tests/guide-eval, the crisis cases).
+ * Before a threat, before money, before anything about a courtship: this is
+ * answered first, in every voice, and the crisis line renders beneath it.
+ */
+const CRISIS_WORDS = [
+  'kill myself', 'killing myself', 'suicide', 'suicidal', 'end my life', 'ending my life', 'end it all',
+  'want to die', 'wanna die', 'better off dead', 'no reason to live', 'not want to live', "don't want to live",
+  'hurt myself', 'hurting myself', 'harm myself', 'harming myself', 'self harm', 'self-harm', 'cut myself', 'cutting myself',
+]
+
+/** The guide's own words that send someone to crisis help — the crisis line belongs under them. */
+const CRISIS_HELP_WORDS = ['crisis line', 'ending your life', 'suicide', 'suicidal', 'hurting yourself']
+
+/** Whether this message, hers or the guide's, should carry the crisis line beneath it. */
+export function needsCrisisLine(message: string, from: 'user' | 'coach' = 'user'): boolean {
+  const m = normalize(message)
+  return (from === 'user' ? CRISIS_WORDS : CRISIS_HELP_WORDS).some((w) => hasWords(m, w))
+}
+
+/** The offline answer to any of those. No numbers: HelpLine puts the checked crisis line beneath it. */
+export const CRISIS_REPLY = `I am really glad you told me. What you are feeling matters more than anything about a courtship, and you do not have to carry it alone.
+
+If you might act on these thoughts, call your emergency number now. If you can, reach the crisis line below — it is free, and they are there for exactly this.
+
+Then tell one person who loves you — a sister, a brother, a friend, your mother — what you told me, today. You deserve someone with you tonight.`
+
+/**
+ * Requests to use the guide against someone: guilt, deception, finding a
+ * person who has left, getting into their accounts, hiding a marriage
+ * (tests/guide-eval, the manipulation cases). The offline voice used to give
+ * these the relationship framework, as if they were ordinary questions.
+ */
+const HARM_WORDS = [
+  'feel guilty', 'guilty enough', 'make her feel', 'make him feel',
+  'where she lives', 'where he lives', 'her address', 'his address', 'track her', 'track him', 'follow her', 'follow him',
+  'into her instagram', 'into his instagram', 'her instagram account', 'his instagram account', 'her password', 'his password', 'hack',
+  'without my wife', 'without my first wife', 'without her knowing', 'without him knowing',
+  'think i earn', 'earn more than i do', 'lie to her family', 'lie to his family', 'make her family think', 'make his family think',
+]
+
+export const HARM_REPLY = `I won't help with that. Pressuring someone, deceiving them or their family, following them after they have stepped away, or hiding a marriage all break the trust a marriage has to stand on, and they can hurt people.
+
+If what is underneath this is fear of losing someone, or a hard conversation you are avoiding, tell me that instead, and I will help you say it honestly.`
+
+/**
+ * A question that asks for a ruling. The offline voice gives principles, not
+ * rulings, and says where the ruling lives — every voice, not only the
+ * Islamic one (tests/guide-eval, the religious cases).
+ */
+const RULING_WORDS = [
+  'haram', 'halal', 'permissible', 'allowed in islam', 'in islam', 'a sin', 'sinful', 'fiqh', 'ruling',
+  'polygamy', 'polygyny', 'istikhara', 'too far', 'is it okay', 'is it allowed', 'deferred',
+]
+
+const DEFERENCE = `For the ruling itself, take it to a scholar or imam you trust. A guide can share principles; a ruling is theirs to give.`
 
 /** The guide's own words that point at real-world help — the numbers belong under them. */
 const HELP_WORDS = ['emergency', 'helpline', 'in danger', 'real-world help']
@@ -296,21 +355,44 @@ export async function askCoach(
   /** Called with the answer so far as it streams, so the UI can show it live. */
   onChunk?: (soFar: string) => void,
 ): Promise<CoachReply> {
-  const mode = getMode(modeId)
-
   // The live guide first, unless she has asked us to stay on the device. Its
   // own latency is the considered pause, so there is no artificial wait here.
   if (!ctx.onDeviceOnly) {
     const live = await askLiveGuide(message, ctx, modeId, history, onChunk)
-    if (live) return { text: live, closers: closersFor(live), live: true }
+    if (live) return { text: live, closers: needsCrisisLine(message) ? [] : closersFor(live), live: true }
   }
 
   // A short, considered pause — a guide thinks before speaking.
   await new Promise((r) => setTimeout(r, 700 + Math.random() * 500))
+  return localReply(message, ctx, modeId)
+}
 
-  // Before any voice's own intents: a threat is not a question about texting
-  // late at night, whichever voice she opened.
+/**
+ * The offline voice's answer, with no network and no pause — what a member
+ * gets whenever the live guide cannot answer. Pure, so the Guide's evaluation
+ * suite can grade every case against it (tests/guide-eval.test.ts).
+ */
+export function localReply(message: string, ctx: CoachContext, modeId: ModeId): CoachReply {
+  // A life first, then harm to her, then harm she is asked to do — before any
+  // voice's own intents. A threat is not a question about texting late at
+  // night, whichever voice she opened.
+  // No closers under a crisis: "That's enough for tonight" is the wrong
+  // invitation to someone who may be at risk (docs/GUIDE-EVAL.md).
+  if (needsCrisisLine(message)) return { text: CRISIS_REPLY, closers: [], live: false }
   if (needsHelpLine(message)) return { text: SAFETY_REPLY, closers: closersFor(SAFETY_REPLY), live: false }
+  if (HARM_WORDS.some((w) => hasWords(normalize(message), w))) return { text: HARM_REPLY, closers: closersFor(HARM_REPLY), live: false }
+  const reply = voiceReply(message, ctx, modeId)
+  // Principles, never rulings, and the ruling's owner named.
+  if (RULING_WORDS.some((w) => hasWords(normalize(message), w)) && !/\b(scholar|imam)\b/i.test(reply.text)) {
+    const text = `${reply.text}\n\n${DEFERENCE}`
+    return { ...reply, text, closers: closersFor(text) }
+  }
+  return reply
+}
+
+/** The voice's own answer: its intents, or the framework. */
+function voiceReply(message: string, ctx: CoachContext, modeId: ModeId): CoachReply {
+  const mode = getMode(modeId)
 
   let best: CoachIntent | null = null
   let bestScore = 0

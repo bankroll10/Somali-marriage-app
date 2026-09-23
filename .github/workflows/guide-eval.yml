@@ -1,0 +1,65 @@
+# The Guide against the live model, before a change to how it speaks merges.
+#
+# The offline half of the Guide's evaluation runs inside `npm run verify` on
+# every pull request and needs no key (tests/guide-eval.test.ts). This is the
+# other half: every case sent to the model exactly as a member's message is,
+# graded by the same rules, scored by a judge, and compared with the committed
+# baseline (docs/GUIDE-EVAL.md). It costs about $4 a run, so it runs when the
+# prompt, the guide, the offline voice or the suite itself changes — and by
+# hand.
+#
+# Without an ANTHROPIC_API_KEY repository secret it warns and passes: the
+# offline suite is the gate that always bites, and this one bites the day the
+# secret is added (docs/DEPLOY.md).
+name: guide-eval
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - netlify/shared/prompt.ts
+      - netlify/functions/guide.ts
+      - src/lib/coach.ts
+      - src/data/coach.ts
+      - tests/guide-eval/**
+
+concurrency:
+  group: guide-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+# Reads the repository and nothing else (docs/SECURITY.md, O10).
+permissions:
+  contents: read
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Evaluate the live guide
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::No ANTHROPIC_API_KEY secret, so the live Guide was not evaluated. The offline suite still ran in verify. docs/GUIDE-EVAL.md"
+            exit 0
+          fi
+          npm run eval:guide
+
+      # The report a person reads, with every answer that lost points quoted.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: guide-eval
+          path: tests/guide-eval/results/
+          retention-days: 14
+          if-no-files-found: ignore

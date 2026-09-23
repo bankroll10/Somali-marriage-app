@@ -118,7 +118,12 @@ describe('the slots the caller fills', () => {
     expect(c.beforeYesNote!.length).toBeLessThanOrEqual(200)
     // Eight items at sixty characters each, not fifty at five thousand.
     expect(c.commSafety.split(', ')).toHaveLength(8)
-    expect(buildSystemPrompt('auntie', c).length).toBeLessThan(4_000)
+    // What the member's map can add to the prompt is bounded, whatever the
+    // fixed rules weigh: under two thousand characters over an empty map. (The
+    // whole prompt was held under 4,000 until the Guide's safety and
+    // no-reveal rules grew the fixed part — docs/GUIDE-EVAL.md.)
+    const empty = buildSystemPrompt('auntie', sanitiseContext({}))
+    expect(buildSystemPrompt('auntie', c).length - empty.length).toBeLessThan(2_000)
   })
 
   it('refuses an id it does not know, and renders the blank a member would have', () => {

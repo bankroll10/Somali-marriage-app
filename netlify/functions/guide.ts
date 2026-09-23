@@ -58,7 +58,7 @@ import { GUIDE_MODES, buildSystemPrompt, sanitiseContext } from '../shared/promp
 // advice back to what she had named as her hardest part, which the `medium`
 // reply never did. Replies here are capped at 180 words — exactly the shape
 // of route that does not repay deeper thinking. Raise it only with numbers.
-const EFFORT = 'low'
+const EFFORT = 'low' as const
 const MODEL = 'claude-opus-5'
 
 /**
@@ -113,7 +113,7 @@ const MAX_HISTORY_CHARS = 6_000
  */
 const MAX_TOKENS = 2_048
 
-interface Turn {
+export interface Turn {
   role: 'user' | 'coach'
   text: string
 }
@@ -149,6 +149,34 @@ export function trimHistory(turns: Turn[], limit: number): Turn[] {
     kept.unshift(t)
   }
   return kept
+}
+
+/**
+ * Exactly what the guide sends the model for one message: the model, the
+ * effort, the server-built prompt from the checked map, and the tail of the
+ * thread. The handler streams it; the Guide's live evaluation sends the same
+ * object (tests/guide-eval-live.test.ts), so what is measured is what members
+ * get. `mode` must already be one of GUIDE_MODES.
+ */
+export function guideRequest(mode: string, context: unknown, history: Turn[], message: string) {
+  return {
+    model: MODEL,
+    max_tokens: MAX_TOKENS,
+    system: buildSystemPrompt(mode, sanitiseContext(context)),
+    thinking: { type: 'adaptive' as const },
+    output_config: { effort: EFFORT },
+    messages: [
+      // Keep the tail of the thread only. The map is already in the system
+      // prompt, so old turns buy continuity, not context, and they are the
+      // cheapest thing to drop: the last ten turns, and within them the most
+      // recent characters.
+      ...trimHistory(history.slice(-10), MAX_HISTORY_CHARS).map((m) => ({
+        role: (m.role === 'coach' ? 'assistant' : 'user') as 'assistant' | 'user',
+        content: m.text,
+      })),
+      { role: 'user' as const, content: message },
+    ],
+  }
 }
 
 export default async function handler(req: Request, _context: Context) {
@@ -243,14 +271,9 @@ export default async function handler(req: Request, _context: Context) {
     return rateLimited()
   }
 
-  // Built here, from values checked here. Nothing the caller sends can reach
-  // the persona, the frame or the grounding rules.
-  const system = buildSystemPrompt(mode, sanitiseContext(body.context))
-
-  // Keep the tail of the thread only. The map is already in the system prompt,
-  // so old turns buy continuity, not context, and they are the cheapest thing
-  // to drop: the last ten turns, and within them the most recent characters.
-  const history = trimHistory((body.history ?? []).slice(-10), MAX_HISTORY_CHARS)
+  // Built from values checked here, in guideRequest above. Nothing the caller
+  // sends can reach the persona, the frame or the grounding rules.
+  const request = guideRequest(mode, body.context, body.history ?? [], message)
 
   /** Map an SDK error onto the 503 contract the client already understands. */
   function errorResponse(err: unknown): Response {
@@ -269,20 +292,7 @@ export default async function handler(req: Request, _context: Context) {
     return Response.json({ error: 'unexpected' }, { status: 503 })
   }
 
-  const stream = new Anthropic().messages.stream({
-    model: MODEL,
-    max_tokens: MAX_TOKENS,
-    system,
-    thinking: { type: 'adaptive' },
-    output_config: { effort: EFFORT },
-    messages: [
-      ...history.map((m) => ({
-        role: (m.role === 'coach' ? 'assistant' : 'user') as 'assistant' | 'user',
-        content: m.text,
-      })),
-      { role: 'user' as const, content: message },
-    ],
-  })
+  const stream = new Anthropic().messages.stream(request)
 
   // Pull events by hand until the first word of the answer.
   //
