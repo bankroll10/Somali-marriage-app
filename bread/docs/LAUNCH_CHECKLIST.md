@@ -35,6 +35,12 @@ check you run; the two scripts exist so it takes minutes.
 | `STRIPE_LIVE_WEBHOOK_SECRET` | functions | the live endpoint's secret, saved by the owner from the Going live panel (step 3) | as above |
 | `STRIPE_MODE` | functions | **absent = test.** `live` = the switch | — |
 
+**Scopes on this Netlify plan:** a variable created with a *functions-only* scope was accepted
+by the API ("upserted") and then **silently not saved** — observed 2026-09-23 when staging
+`STRIPE_LIVE_SECRET_KEY`. Create every variable with **all scopes**, as the existing four are,
+and read it back afterwards. Also: functions read variables **when they are deployed**, so any
+new or changed variable needs *Deploys → Trigger deploy* before the site sees it.
+
 Going live is **adding one variable**, `STRIPE_MODE=live`, and redeploying. Nothing is pasted
 over anything. In live mode, if either live value is missing, or the "live" key isn't a live
 key, the site refuses card payments with "payments not configured" and does **not** fall back
