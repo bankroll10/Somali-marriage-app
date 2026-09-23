@@ -120,6 +120,67 @@ when the link is actually visible somewhere a stranger could find it.
 | 2026-09-17 | Masjid Al-Israa, Fridley | email, nikah coordinator | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply | — |
 | 2026-09-18 | Abubakar As-Saddique Islamic Center, Minneapolis | email `aaic@abuubakar.org`, phone 612-871-8600 | **N2 + N2s attached**, N1c linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent | — |
 | 2026-09-19 | WardheerNews — editorial, worldwide Somali readership | email `admin@wardheernews.com` | **N1c** | `…/tools/before-you-say-yes?via=press` | topic inquiry sent 2026-09-19 | — |
+| 2026-09-23 | The Somali American — Minneapolis, English-language, "Ask a Scholar" column | contact form (editor) | **N1c**; the one-page **N2s** linked so the editor can judge it in two minutes | `…/tools/before-you-say-yes?via=press` | drafted, not yet sent | — |
+| 2026-09-23 | KALY-LP 101.7 FM — Somali-language, South Minneapolis, low-power noncommercial | email `Underwriting@kalyradio.org` (from the shortlist; the station's site is unreachable from the working session) | none yet — **rate inquiry only** | web placement would carry `…/tools/before-you-say-yes?via=press`; an on-air mention carries no `via` at all | drafted, not yet sent | — |
+| 2026-09-23 | Dr. Aneesah Nadir and Associates — *Before the Nikah*, a 13-week live virtual course (Fall 2026 cohort, Sep 14 – Dec 7), US Muslim, not Somali-specific | email `info@draneesah.com` | **N3-note**, pointing to **N3-1page** as a between-session handout | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no `via`, by design | drafted, not yet sent | — |
+
+**The 2026-09-23 shortlist, corrected before it was logged.** Two leads, and
+the same two mistakes as 2026-09-18, plus two that only a radio lead can make:
+
+1. **Neither link carried `?via=`, again.** The shortlist asked for
+   "Minneapolis-area activation" and "activation attributable to KALY"; without
+   a `via` neither is measurable. Both web links above carry `press`, which is
+   the kind an article or a station's page is. WardheerNews is `press` too; the
+   readout cannot separate them and is not meant to. The ledger carries the
+   placement, and the week an acceptance lands is the evidence. **Stagger the
+   sends** if a clean read of either matters.
+2. **"Destination: Before You Say Yes" names two assets.** An article's reader
+   clicks through and does it, so the asset is **N1c** (`/tools/…`). The
+   printable N2 is linked inside it. The one-page **N2s** belongs in the
+   *pitch*, not the article: an editor judges it in two minutes.
+3. **The eleven is in English, and KALY broadcasts in Somali.** An on-air
+   message in Somali that sends a listener to an English-only tool is a promise
+   the page does not keep. The only Somali asset today is the money sheet
+   (N3-so). So KALY is a **rate inquiry, not a spend**: no money moves until
+   there is a Somali destination for the eleven or the station says its
+   listeners read English. Ask about a slot on the station's talk programming
+   in the same email. It is the unpaid route, and it is in the listeners'
+   language.
+4. **Radio cannot carry a `via`.** A listener types what they heard, so an
+   on-air arrival is indistinguishable from a stranger typing the domain.
+   Only the station's *web* placement is measurable. If a pilot goes ahead,
+   a short spoken address is a product change, made before the first spot airs
+   (the same rule as `press`: the id lands before the placement, because a
+   `via` cannot be retrofitted). Not built until then.
+5. **An underwriting spot is not an advert.** KALY-LP is a noncommercial
+   low-power station, so FCC underwriting rules almost certainly apply:
+   identification, a neutral description and an address, and no call to
+   action or claim of quality. That rules out "Try it tonight". Confirm the
+   wording with the station; it writes to these rules every day.
+
+And one thing about The Somali American: its newest dated material the
+shortlist found was October 2025. The send costs one form; the reply may
+never come. Log it and do not wait on it.
+
+**The same day's third lead, *Before the Nikah*, needed less.** It is the
+first placement for the N3 family, and the sheet claims in its draft all hold
+(four subjects kept apart, no figure or ruling, nothing collected, a Somali
+version). Three things changed before it was logged:
+
+1. **"Print-ready PDFs available" was a promise with nothing behind it.**
+   There are no PDFs; the sheets are HTML that print on Letter or A4, one
+   page or four (`docs/SHEET.md` has the renders). The email says that
+   instead. If she asks for PDFs, render them then, the way SHEET.md did.
+2. **"Returns to joinniyyah.com" cannot be measured, and should not be.**
+   The N3 family carries no `via` and records nothing, on purpose (above).
+   The only signal is her reply, and whether the sheet turns up in the
+   course materials.
+3. **The route and the timing.** Send to the business address,
+   `info@draneesah.com`, and not also to the personal one the shortlist
+   listed. The course began 2026-09-14 and its finances week is not
+   published, so the email asks which week it is: a handout that arrives
+   after that week is a handout nobody uses. The audience is US Muslim, not
+   Somali, so the Somali versions get one clause, not the lead.
 
 **The 2026-09-19 entry, and what it shows next to the one above it.** The
 shortlist again called the interactive tool N2. This time the *destination* is
