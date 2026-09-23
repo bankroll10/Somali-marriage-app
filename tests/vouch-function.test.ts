@@ -70,7 +70,10 @@ describe('a family vouch', () => {
     expect(res.status).toBe(200)
     expect(JSON.parse(text)).toEqual({ vouched: true, relationship: 'brother', firstName: 'Ali' })
     expect(text).not.toMatch(/sentence|phone|sister|612/)
-    const read = await (await get('ACDEFG')).text()
+    const res2 = await get('ACDEFG')
+    // A family member's name, keyed by a secret: never cached.
+    expect(res2.headers.get('cache-control')).toBe('no-store')
+    const read = await res2.text()
     expect(JSON.parse(read)).toEqual({ vouched: true, relationship: 'brother', firstName: 'Ali' })
     expect(read).not.toMatch(/sentence|phone|sister|612/)
   })

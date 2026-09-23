@@ -51,16 +51,31 @@ import { CODE, newCode, normalise } from '../shared/code'
  *
  * And unlike every other readout, this one **fails closed** with no founder
  * key set. See `requireFounder` in netlify/shared/founder.ts.
+ *
+ * **Two buckets, in this order** (docs/THREAT.md, T2). The reporting cap used
+ * to be spent before the pair was checked, so thirty POSTs an hour with made-
+ * up codes — each one a 404 — spent the whole hour's cap, and every real
+ * report after them was refused. The cheapest denial of service in the
+ * product, aimed at the one channel for harm. Now any attempt spends the
+ * probe bucket, the pair is checked, and only a report against a pair that
+ * exists spends the reporting cap: burying real reports needs thirty live
+ * couple codes an hour, not thirty strings.
  */
 
 const MAX_BODY = 2_000
 const MAX_DETAILS = 500
 /**
- * Reports in one hour, from everyone. The queue is read by a person, so a
- * flood of them is the one way to bury a real one. A circuit breaker — see
- * netlify/shared/limit.ts.
+ * Reports in one hour, from everyone — against pairs that exist. The queue is
+ * read by a person, so a flood of them is the one way to bury a real one. A
+ * circuit breaker — see netlify/shared/limit.ts.
  */
 const DEFAULT_HOURLY_CAP = 30
+/**
+ * Attempts in one hour, real or not. The existence check is an oracle over a
+ * six-character couple code, so it is metered at the same shape as every
+ * other code-gated read (netlify/functions/keep.ts).
+ */
+const DEFAULT_PROBE_CAP = 600
 
 interface Report {
   /** This report's own id — the last segment of its key. */
@@ -112,8 +127,9 @@ export default async function handler(req: Request) {
       reports.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0))
       // Open reports in full, oldest first — a person may be waiting. Resolved
       // ones only as counts, because what is left of them is a fact about a
-      // kind of harm and not about anybody.
-      return Response.json({ reports, resolved: { byReason, byOutcome } })
+      // kind of harm and not about anybody. Never cached: the most sensitive
+      // body in the product, even behind the key.
+      return Response.json({ reports, resolved: { byReason, byOutcome } }, { headers: { 'Cache-Control': 'no-store' } })
     } catch (err) {
       console.error('[niyyah] safety: list failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -141,8 +157,9 @@ export default async function handler(req: Request) {
     if (!SAFETY_REASONS.has(body.reason ?? '')) return Response.json({ error: 'bad_reason' }, { status: 400 })
     const details = typeof body.details === 'string' ? body.details.trim().slice(0, MAX_DETAILS) : undefined
 
-    // Bounded, like every public write — after validation, before any read.
-    if (await overHourlyCap('safety', DEFAULT_HOURLY_CAP)) return rateLimited()
+    // Every attempt is metered, after validation: the check below is an
+    // oracle over a couple code.
+    if (await overHourlyCap('safety-probe', DEFAULT_PROBE_CAP)) return rateLimited()
 
     // Real only if it names a pair that exists. This never reads the pair's
     // answers — a metadata check, so the two-sided eleven's own guarantee
@@ -155,6 +172,10 @@ export default async function handler(req: Request) {
       console.error('[niyyah] safety: couple lookup failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
+
+    // Only a report against a real pair spends the reporting cap — so strings
+    // cannot bury the queue (see the header).
+    if (await overHourlyCap('safety', DEFAULT_HOURLY_CAP)) return rateLimited()
 
     const id = newCode()
     const record: Report = { id, code, side: body.side as 'woman' | 'man', reason: body.reason!, ...(details ? { details } : {}), at: day() }

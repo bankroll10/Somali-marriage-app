@@ -26,7 +26,7 @@ describe('the worker script', () => {
   it('tries the network before the cache, on every request', () => {
     const fetchHandler = js.slice(js.indexOf("addEventListener('fetch'"))
     const networkIndex = fetchHandler.indexOf('fetch(request)')
-    const cacheIndex = fetchHandler.indexOf('caches.match(request)')
+    const cacheIndex = fetchHandler.indexOf('caches.match(key)')
     expect(networkIndex).toBeGreaterThan(-1)
     expect(cacheIndex).toBeGreaterThan(networkIndex)
   })
@@ -34,6 +34,22 @@ describe('the worker script', () => {
   it('drops every cache but its own on activate, so an old deploy cannot linger', () => {
     expect(js).toContain("keys.filter((k) => k !== CACHE)")
     expect(js).toContain('caches.delete(k)')
+  })
+
+  // docs/THREAT.md, T3: the first version keyed every response on its full
+  // URL, so opening `/?map=ACDEFG` wrote a live map code into Cache Storage.
+  it('keys a navigation by path alone — no ?map=, ?couple= or ?vouch= code ever lands on disk', () => {
+    expect(js).toContain("request.mode === 'navigate' ? new Request(url.origin + url.pathname) : request")
+    expect(js).toContain('cache.put(key, copy)')
+    expect(js).not.toMatch(/cache\.put\(request/)
+    expect(js).not.toMatch(/caches\.match\(request\)/)
+  })
+
+  it('falls back to the shell as it was actually cached, at the root', () => {
+    // `/index.html` is never a key — the shell is cached under `/`, so that
+    // fallback could never hit.
+    expect(js).toContain("caches.match('/')")
+    expect(js).not.toContain("caches.match('/index.html')")
   })
 })
 
@@ -45,6 +61,10 @@ describe('what the build is wired to do', () => {
     expect(vite).toContain("fileName: 'sw.js'")
     expect(vite).toContain('serviceWorkerJs(version)')
     expect(vite).toMatch(/createHash\('sha256'\)/)
+    // The worker's own source is in the hash, so a change to the worker alone
+    // rotates the cache — otherwise a fix to what it stores would never evict
+    // what the old rules already wrote.
+    expect(vite).toContain(".update(serviceWorkerJs(''))")
   })
 })
 

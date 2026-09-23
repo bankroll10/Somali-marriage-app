@@ -139,8 +139,10 @@ describe('every public write is bounded', () => {
       expect(await res.json()).toEqual({ error: 'rate_limited' })
       expect(members(c.store)).toEqual(before)
 
-      // One live key per bucket, and it says how many were let through.
-      const hours = [...stores.get('limits')!.keys()].filter((k) => k.startsWith(`${c.bucket}-`))
+      // One live key per bucket, and it says how many were let through. The
+      // hour's own prefix, not the bare bucket: `safety-probe-h-…` is its own
+      // bucket and must not be counted as `safety`'s.
+      const hours = [...stores.get('limits')!.keys()].filter((k) => k.startsWith(`${c.bucket}-h-`))
       expect(hours).toHaveLength(1)
       expect(JSON.parse(stores.get('limits')!.get(hours[0])!)).toBe(1)
     })
@@ -245,6 +247,60 @@ describe('the read and delete paths are bounded', () => {
     const url = 'http://x/.netlify/functions/cohort?scene=toronto'
     expect((await cohort(new Request(url))).status).toBe(200)
     expect((await cohort(new Request(url))).status).toBe(503)
+  })
+
+  // docs/THREAT.md, T1: the fifth read. A 404 against a 200 here confirms a
+  // live map code exactly as `GET /keep` does, and it was the one public read
+  // docs/HARD.md row 3 did not meter.
+  it('reading a vouch spends the vouch-read bucket — the fifth read, the one row 3 missed', async () => {
+    vi.stubEnv('VOUCH_READ_HOURLY_CAP', '1')
+    memStore('vouches').setJSON('ACDEFG', { relationship: 'brother', firstName: 'Ali', sentence: 'x', at: '2026-01-01' })
+    const read = (code: string) => vouch(new Request(`http://x/.netlify/functions/vouch?code=${code}`))
+    expect((await read('ACDEFG')).status).toBe(200)
+    const refused = await read('ACDEFG')
+    expect(refused.status).toBe(503)
+    expect(await refused.json()).toEqual({ error: 'rate_limited' })
+    // A wrong shape is refused before the cap, so it spends nothing — and is
+    // still a 400, not a 503, even with the hour spent.
+    expect((await read('nope')).status).toBe(400)
+    // Writing is a different bucket, untouched by the reads above.
+    expect((await post(vouch, 'vouch', { side: 'ask', code: 'ACDEFG' })).status).toBe(200)
+  })
+
+  it('the token lookup is itself the oracle — the cap is spent before a token is resolved', async () => {
+    vi.stubEnv('VOUCH_READ_HOURLY_CAP', '1')
+    const read = (code: string) => vouch(new Request(`http://x/.netlify/functions/vouch?code=${code}`))
+    // A token-shaped string nobody minted: a 400, but the lookup behind it ran,
+    // so it counts.
+    expect((await read('ACDEFGHJ')).status).toBe(400)
+    expect((await read('ACDEFG')).status).toBe(503)
+  })
+
+  // docs/THREAT.md, T2: thirty made-up codes an hour used to spend the whole
+  // reporting cap and bury every real report after them.
+  it('a report against a pair that does not exist spends the probe bucket, not the reporting cap', async () => {
+    vi.stubEnv('SAFETY_HOURLY_CAP', '1')
+    const report = (code: string) => post(safety, 'safety', { code, side: 'woman', reason: 'harassment' })
+    expect((await report('HJKMNP')).status).toBe(404)
+    // The miss above spent no reporting cap, so a real report still lands.
+    expect((await report('QRTWXY')).status).toBe(200)
+    expect((await report('QRTWXY')).status).toBe(503)
+    const limits = stores.get('limits')!
+    const count = (prefix: string) => {
+      const keys = [...limits.keys()].filter((k) => k.startsWith(prefix))
+      expect(keys).toHaveLength(1)
+      return JSON.parse(limits.get(keys[0])!)
+    }
+    expect(count('safety-h-')).toBe(1)
+    expect(count('safety-probe-h-')).toBe(3)
+  })
+
+  it('past the probe cap a miss is a 503, not a 404 — the oracle is closed', async () => {
+    vi.stubEnv('SAFETY_PROBE_HOURLY_CAP', '1')
+    const report = (code: string) => post(safety, 'safety', { code, side: 'woman', reason: 'harassment' })
+    expect((await report('HJKMNP')).status).toBe(404)
+    expect((await report('ACDEFG')).status).toBe(503)
+    expect(members('reports')).toEqual([])
   })
 
   it('a hyphenated bucket reads the underscored variable docs/DEPLOY.md names', async () => {

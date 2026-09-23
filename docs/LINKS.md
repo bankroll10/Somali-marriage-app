@@ -164,6 +164,20 @@ renders, with the exact set of cached files printed and checked (the shell
 HTML, every JS chunk and font actually visited, and nothing under
 `/.netlify/`).
 
+**Correction, 2026-09-23.** That first worker cached every navigation under
+its full URL, query included, so opening a restore link left `/?map=CODE` on
+the phone's disk until the next deploy. On a shared phone that code is the
+whole map. The STRIDE pass (`docs/THREAT.md` T3) found it. A navigation is
+now cached under its path alone. The offline fallback is `/`, the key the
+shell is actually stored under; `/index.html` never was one. The worker's
+source is in the cache-name hash, so the old entries are dropped on the
+first visit after the fix. The same pass found that a screen whose chunk
+never arrived offline landed on the generic error screen, which offered to
+erase everything. It now gets its own screen with Try again only (T18).
+Confirmed live: after opening a `?map=`, `?couple=` and `?vouch=` link, no
+cache key carries a code, and with the server killed `/tools/door` shows
+that screen.
+
 ## The budget
 
 - **Every shared link opens the screen it was minted for**, confirmed by a

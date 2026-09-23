@@ -126,7 +126,10 @@ describe('the founder\'s queue', () => {
     }
 
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
-    const body = await (await get({ authorization: 'Bearer open-sesame' })).json()
+    const queue = await get({ authorization: 'Bearer open-sesame' })
+    // The most sensitive body in the product, even behind the key.
+    expect(queue.headers.get('cache-control')).toBe('no-store')
+    const body = await queue.json()
     expect(body.reports.map((r: { code: string }) => r.code)).toEqual([CODE, 'HJKMNP'])
   })
 

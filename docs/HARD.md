@@ -42,7 +42,7 @@ the safety catch off.
 |---|---|---|---|
 | **1** | Mint a code and write | Silent, irreversible overwrite of a member's map | **Chose Hard** — `netlify/shared/code.ts` |
 | **2** | One overwritable report, keyed by a code both parties hold | The accused deletes the accusation; repeat reports destroy each other | **Chose Hard** — append-only |
-| **3** | Cap writes, leave reads unmetered | `DELETE /keep?code=` was an unauthenticated, unmetered destruction primitive cascading across five stores — and it takes the *other* person's couple record with it. `GET /keep` was an enumeration surface over a 27-bit secret: at a hundred requests a second against fifty thousand members, a stranger's whole map roughly every thirty seconds | **Chose Hard** — four read buckets |
+| **3** | Cap writes, leave reads unmetered | `DELETE /keep?code=` was an unauthenticated, unmetered destruction primitive cascading across five stores — and it takes the *other* person's couple record with it. `GET /keep` was an enumeration surface over a 27-bit secret: at a hundred requests a second against fifty thousand members, a stranger's whole map roughly every thirty seconds | **Chose Hard** — four read buckets, five since 2026-09-23 (`vouch-read`, `docs/THREAT.md`) |
 | **4** | Refresh the record's year on every report | The refresh is **anti-correlated with the data's value**: marrying ends the reporting, so the one success outcome left every readout at day 366 while the blob persisted for ever | **Chose Hard** — married never expires, the year is swept |
 | **5** | Resolution is deletion | "Resolved" and "never happened" were the same byte. `docs/GAPS.md`'s own harm-taxonomy test was permanently uncomputable | **Chose Hard** — an anonymous stub survives |
 | **6** | Safety fails open with no founder key, like every readout | One misconfigured deploy publishes free text naming alleged harm — and unlike a tally it cannot be un-published | **Chose Hard** — `requireFounder`, one route; every route since 2026-09-12 (row 21) |
@@ -94,7 +94,9 @@ that does not exist.
 - `netlify/shared/code.ts` — one unbiased generator, and `mint`, which writes
   with `onlyIfNew` and returns null rather than overwrite. `keep.ts` and
   `couple.ts` mint through it; `vouch.ts` draws from it.
-- Four read buckets: `restore`, `forget`, `couple-read`, `door`.
+- Four read buckets: `restore`, `forget`, `couple-read`, `door` — and a fifth,
+  `vouch-read`, added 2026-09-23 when the STRIDE pass found the vouch lookup
+  was the one public read left unmetered (`docs/THREAT.md` T1).
 - `safety.ts` — append-only reports, resolution that leaves an anonymous stub,
   and `requireFounder`, the one route in the product that fails closed.
 - `keep.ts` — the forget cascade takes her reports; the body is measured before
@@ -130,3 +132,8 @@ _Dated, one line each: an inversion found or a trigger fired._
   first man met the door: a person counted under a sixteen-question toll and
   one counted under three are the same record, but the funnel that produced
   them is not, and the kill tests read the funnel.
+- 2026-09-23 — The STRIDE pass (`docs/THREAT.md`) found row 3 incomplete:
+  `GET /vouch` answered "does this map code exist" with no bucket. Capped
+  (`vouch-read`). The safety route spent its 30-an-hour reporting cap before
+  checking the pair existed, so junk could bury a real report; it now spends
+  a probe bucket first and the reporting cap only on a live pair.

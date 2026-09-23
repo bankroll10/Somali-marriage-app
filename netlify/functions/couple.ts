@@ -166,14 +166,17 @@ export default async function handler(req: Request) {
     // the joint. See the read cap in netlify/functions/keep.ts for why reads
     // needed one at all.
     if (await overHourlyCap('couple-read', DEFAULT_READ_CAP)) return rateLimited()
+    // Never cached: where two people agree and differ is the pair's own
+    // business, keyed by a secret (docs/THREAT.md, T4).
+    const headers = { 'Cache-Control': 'no-store' }
     try {
       const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
-      if (!record) return Response.json({ error: 'not_found' }, { status: 404 })
+      if (!record) return Response.json({ error: 'not_found' }, { status: 404, headers })
       if (Date.parse(record.expiresAt) < Date.now()) {
         await store.delete(code)
-        return Response.json({ error: 'expired' }, { status: 404 })
+        return Response.json({ error: 'expired' }, { status: 404, headers })
       }
-      return Response.json(view(record))
+      return Response.json(view(record), { headers })
     } catch (err) {
       console.error('[niyyah] couple: read failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })

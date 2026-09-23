@@ -75,11 +75,18 @@ export default defineConfig(({ mode }) => {
         generateBundle(_options, bundle) {
           this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robots(host) })
           this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapXml(host, PAGES) })
-          // A hash of the whole asset list, not a timestamp: the offline
-          // shell's cache is only worth invalidating when something in it
-          // actually changed, and two builds of the same commit should not
-          // force every online visitor to re-cache the shell for nothing.
-          const version = createHash('sha256').update(Object.keys(bundle).sort().join('\n')).digest('hex').slice(0, 12)
+          // A hash of the whole asset list and the worker's own source, not a
+          // timestamp: the offline shell's cache is only worth invalidating
+          // when something in it — or the rules that fill it — changed, and
+          // two builds of the same commit should not force every online
+          // visitor to re-cache the shell for nothing. The worker's source is
+          // in the hash so a change to the worker alone still rotates the
+          // cache and `activate` drops what the old rules wrote.
+          const version = createHash('sha256')
+            .update(Object.keys(bundle).sort().join('\n'))
+            .update(serviceWorkerJs(''))
+            .digest('hex')
+            .slice(0, 12)
           this.emitFile({ type: 'asset', fileName: 'sw.js', source: serviceWorkerJs(version) })
         },
         // One HTML document per tool, derived from the built index.html so the

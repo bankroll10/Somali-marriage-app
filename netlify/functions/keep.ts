@@ -72,14 +72,19 @@ export default async function handler(req: Request) {
     }
     // Bounded, after validation: a wrong-shaped code spends nothing.
     if (await overHourlyCap('restore', DEFAULT_READ_CAP)) return rateLimited()
+    // Never cached, by a browser or anything between: the body is her whole
+    // map, and the only thing protecting it is a code in the URL. A 404 is
+    // not cached either — "nothing here" for a code is a wrong answer the
+    // day it is kept (docs/THREAT.md, T4).
+    const headers = { 'Cache-Control': 'no-store' }
     try {
       const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
-      if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
+      if (!kept) return Response.json({ error: 'not_found' }, { status: 404, headers })
       if (Date.parse(kept.expiresAt) < Date.now()) {
         await store.delete(code)
-        return Response.json({ error: 'expired' }, { status: 404 })
+        return Response.json({ error: 'expired' }, { status: 404, headers })
       }
-      return Response.json({ snapshot: kept.snapshot })
+      return Response.json({ snapshot: kept.snapshot }, { headers })
     } catch (err) {
       console.error('[niyyah] keep: read failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
