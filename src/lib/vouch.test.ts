@@ -38,6 +38,14 @@ describe('a vouch, from her phone and theirs', () => {
     expect(link).toBe('https://getniyyah.netlify.app/?vouch=ACDEFGHJ')
     expect(link).not.toContain('ACDEFG"')
   })
+  it('takes a token as the server mints it now — ten characters — as well as the eight it used to', async () => {
+    // Codes became eight characters on 2026-09-23 and tokens ten; this check
+    // alone still said eight, which would have turned every new ask into "try
+    // again" (docs/SECURITY.md, O8).
+    vi.stubGlobal('fetch', vi.fn(async () => json({ token: 'ACDEFGHJKM' })))
+    expect(await askVouch('ACDEFGHJ')).toBe('ACDEFGHJKM')
+  })
+
   it('refuses a token that is not the right shape', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => json({ token: 'ACDEFG' })))
     expect(await askVouch('ACDEFG')).toBeNull()

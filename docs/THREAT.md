@@ -96,6 +96,28 @@ written.
 | T14 | Progress records last-writer-wins on a guessed install id; `keep` accepts `[A-Z0-9]{6}` rather than the alphabet; the 18+ gate is client-only | 1 | 1 | 2 | 2 | P2 |
 | T15 | No per-actor record, so a false report is indistinguishable from a true one | — | — | — | — | **by design** — a person decides (`docs/TIME.md`) |
 
+**Revised the same day by the OWASP audit (`docs/SECURITY.md`),** which read
+the implementation rather than this model. Changes to the table above:
+- **T10, T11 and T12 are built:**
+  - the code leaves the address bar before the round trip;
+  - the install id is rejection-sampled;
+  - the founder compare is tested.
+- **T14's alphabet note is closed:** codes are checked against the alphabet,
+  not just the length.
+- **T13 was wrong about one row.** "He answers first" is possession, and
+  stays by design. "He rewrites *her* side", done by claiming her gender, was
+  never by design (the comment said the opposite) and is fixed (SECURITY O6).
+
+Five findings this model did not see, all fixed there:
+- **O1:** forget me read a couple code and a side out of an attacker-written
+  snapshot, and erased the victim's reports.
+- **O2:** a `?map=` link silently replaced her phone's map and adopted the
+  sender's code.
+- **O3:** type-confused bodies crashed every handler.
+- **O7:** no framing protection on a two-tap "delete everything".
+- **O8:** six-character codes let one patient script find about 14% of kept
+  maps a year. New codes are eight characters.
+
 ## P0 — built in this pass
 
 1. **The fifth read bucket** (`netlify/functions/vouch.ts`). A shape check

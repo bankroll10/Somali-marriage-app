@@ -89,7 +89,10 @@ export async function askVouch(code: string): Promise<string | null> {
   if (!res?.ok) return null
   try {
     const { token } = (await res.json()) as { token?: string }
-    return typeof token === 'string' && token.length === 8 ? token : null
+    // Ten characters since codes became eight (netlify/shared/code.ts); eight
+    // before that. Never a code's length — that is what stops a link that
+    // vouches from ever being a link that opens a map.
+    return typeof token === 'string' && (token.length === 10 || token.length === 8) ? token : null
   } catch {
     return null
   }
