@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { restoreDetail, type RestoreProblem } from '../lib/keep'
+import { adoptMap, restoreDetail, type RestoreProblem } from '../lib/keep'
 import { CODE_LENGTH, EXAMPLE_CODE, cleanCode } from '../lib/code'
-import { saveProgress } from '../lib/storage'
 import { track } from '../lib/analytics'
 import { Spinner, fieldClass } from './ui'
 
@@ -39,7 +38,9 @@ export default function RestoreMap() {
       return
     }
     track('map_restored')
-    saveProgress(result)
+    // She typed this code herself, on the welcome screen — the consent a link
+    // someone else sent her cannot give (docs/SECURITY.md, O2).
+    adoptMap(code, result)
     window.location.href = window.location.pathname
   }
 

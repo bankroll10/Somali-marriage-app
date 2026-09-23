@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { CODE, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
 import { day } from '../shared/day'
+import { readJson } from '../shared/body'
 import { stamp } from '../shared/record'
 import { floor } from '../shared/floor'
 import { isFounder, notFounder } from '../shared/founder'
@@ -187,19 +188,8 @@ export default async function handler(req: Request) {
 
   if (req.method !== 'POST') return Response.json({ error: 'GET or POST only' }, { status: 405 })
 
-  let text: string
-  try {
-    text = await req.text()
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
-  if (text.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
-  let body: { side?: string; code?: string; relationship?: string; firstName?: string; sentence?: string; phone?: string }
-  try {
-    body = JSON.parse(text)
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
+  const body = await readJson<{ side?: string; code?: unknown; relationship?: unknown; firstName?: unknown; sentence?: unknown; phone?: unknown }>(req, MAX_BODY)
+  if (body instanceof Response) return body
 
   // ── She asks: mint the token her link will carry ──────────────────────────
   if (body.side === 'ask') {

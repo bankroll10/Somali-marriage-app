@@ -51,7 +51,7 @@ describe('forget me', () => {
     vi.stubGlobal('fetch', spy)
 
     const result = await forgetMe()
-    expect(result).toEqual({ map: true, progress: true, couple: true })
+    expect(result).toEqual({ map: true, progress: true, couple: true, reports: true })
     const calls = spy.mock.calls.map((c) => c[0]).sort()
     expect(calls).toEqual([
       '/.netlify/functions/couple?code=QRSTVW',
@@ -65,7 +65,7 @@ describe('forget me', () => {
     const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"forgotten":true}', { status: 200 }))
     vi.stubGlobal('fetch', spy)
     const result = await forgetMe()
-    expect(result).toEqual({ map: true, progress: true, couple: true })
+    expect(result).toEqual({ map: true, progress: true, couple: true, reports: true })
     const calls = spy.mock.calls.map((c) => [c[0], c[1]?.method]).sort()
     expect(calls).toEqual([
       ['/.netlify/functions/keep?code=ACDEFG', 'DELETE'],
@@ -78,14 +78,14 @@ describe('forget me', () => {
   it('treats already-gone as done', async () => {
     seed()
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{"error":"not_found"}', { status: 404 })))
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, reports: true })
   })
 
   it('with no codes on this phone, calls nobody and still clears', async () => {
     store.set('niyyah.intake.v1', '{"answers":{}}')
     const spy = vi.fn()
     vi.stubGlobal('fetch', spy)
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, reports: true })
     expect(spy).not.toHaveBeenCalled()
     expect(store.size).toBe(0)
   })
@@ -93,7 +93,26 @@ describe('forget me', () => {
   it('wipes the phone even when the server cannot be reached, and says so', async () => {
     seed()
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true })
+    expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true, reports: true })
+    expect(store.size).toBe(0)
+  })
+
+  it('withdraws each report by the receipt this phone was given — and says so when one did not go', async () => {
+    // Forget me used to take her reports server-side, by a prefix read out of
+    // her kept snapshot — which a reported man could forge (docs/SECURITY.md,
+    // O1). Only the receipt withdraws a report, and only this phone has it.
+    store.set('niyyah.intake.v1', '{"answers":{}}')
+    store.set('niyyah.reports.v1', JSON.stringify([{ code: 'QRTWXY', side: 'woman', id: 'ACDEFGHJ' }, { code: 'QRTWXY', side: 'woman', id: 'KMNPQRTW' }]))
+    const spy = vi.fn(async (url: string, _init?: RequestInit) =>
+      url.includes('KMNPQRTW') ? new Response('{}', { status: 503 }) : new Response('{"withdrawn":true}', { status: 200 }),
+    )
+    vi.stubGlobal('fetch', spy)
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, reports: false })
+    const calls = spy.mock.calls.map((c) => [c[0], c[1]?.method]).sort()
+    expect(calls).toEqual([
+      ['/.netlify/functions/safety?code=QRTWXY&side=woman&id=ACDEFGHJ', 'DELETE'],
+      ['/.netlify/functions/safety?code=QRTWXY&side=woman&id=KMNPQRTW', 'DELETE'],
+    ])
     expect(store.size).toBe(0)
   })
 
@@ -110,6 +129,7 @@ describe('forget me', () => {
         'niyyah.install.v1',
         'niyyah.intake.v1',
         'niyyah.keep.code.v1',
+        'niyyah.reports.v1',
         'niyyah.via.v1',
         'niyyah.waitlist.queue.v1',
       ].sort(),

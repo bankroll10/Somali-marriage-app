@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
 import { CODE_LENGTH, mint, normalise } from '../shared/code'
 import { day } from '../shared/day'
+import { readJson } from '../shared/body'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import { stamp } from '../shared/record'
 
@@ -106,18 +107,16 @@ export default async function handler(req: Request) {
     try {
       const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
       if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
-      const snapshot = (kept.snapshot ?? {}) as { couple?: { code?: unknown }; identity?: { gender?: unknown } }
+      // The one thing read out of the snapshot, and the one thing it may name:
+      // the sheet. Anyone holding a couple code can already delete it
+      // (netlify/functions/couple.ts), so a forged snapshot gains nothing here.
+      const snapshot = (kept.snapshot ?? {}) as { couple?: { code?: unknown } }
       const coupleCode = typeof snapshot.couple?.code === 'string' ? normalise(snapshot.couple.code) : ''
-      // Whose side this map is. Reports are keyed `${couple}-${side}-${id}` by
-      // the side that filed them, so this is what lets the cascade take hers
-      // and leave his (or the other way round).
-      const ownSide = snapshot.identity?.gender === 'woman' || snapshot.identity?.gender === 'man' ? snapshot.identity.gender : null
 
       const couples = getStore('couples')
       const vouches = getStore('vouches')
       const cohort = getStore('cohort')
       const contacts = getStore('contacts')
-      const reports = getStore('reports')
 
       if (coupleCode.length === CODE_LENGTH) await couples.delete(coupleCode)
       const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
@@ -130,34 +129,16 @@ export default async function handler(req: Request) {
       // The way to reach her, which used to be deleted by hand — see
       // netlify/functions/cohort.ts and docs/OWNED.md.
       await contacts.delete(code)
-      // Any report she filed — and only hers. Trust promises deletion of
-      // everything, and this store holds the one free text in the product,
-      // her own words about what happened. It was the only store the cascade
-      // missed (docs/HARD.md). Until 2026-09-17 it then took every report under
-      // the couple code, whichever side had filed it: both people hold that
-      // code, a man can keep a map too, so a reported man could erase the
-      // report about himself by tapping forget me — the exact thing
-      // netlify/functions/couple.ts says must never happen (docs/RISKS.md R4).
-      // Now the prefix carries the side, and an unknown side deletes nothing
-      // here. The couple record is deleted just above; a report left behind
-      // points at a sheet that is gone, which is what the founder's queue
-      // shows. Resolved stubs carry no code and nothing of hers, and stay.
-      // When the side is unknown there is no safe prefix to delete under, so
-      // her reports stay — and this used to answer `{ forgotten: true }`
-      // anyway. Trust's promise must not be reported kept when part of it was
-      // skipped, so the one case that leaves her words behind says so
-      // (docs/FAIL.md).
-      let reportsTaken = true
-      if (coupleCode.length === CODE_LENGTH) {
-        if (ownSide) {
-          const { blobs } = await reports.list({ prefix: `${coupleCode}-${ownSide}-` })
-          for (const { key } of blobs) await reports.delete(key)
-        } else {
-          reportsTaken = false
-        }
-      }
+      // Reports are not touched here, and cannot be. This cascade used to
+      // take every report under `${couple}-${side}-`, reading both the couple
+      // code and the side out of the snapshot — which is whatever the caller
+      // POSTed. The reported man holds the couple code, so he could keep a
+      // throwaway map claiming to be her, forget it, and erase every report
+      // she had filed about him (docs/SECURITY.md, O1). A report is withdrawn
+      // only by the receipt the person who filed it was handed
+      // (netlify/functions/safety.ts); forget me on her phone sends it.
       await store.delete(code)
-      return Response.json({ forgotten: true, reportsTaken })
+      return Response.json({ forgotten: true })
     } catch (err) {
       console.error('[niyyah] keep: forget failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -169,27 +150,12 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
   }
 
-  // Measured before it is parsed, like every other function here. This one
-  // used to `req.json()` first and `JSON.stringify` the result back to check
-  // its size — so an arbitrarily large body was fully buffered and parsed
-  // before the guard that exists to refuse it ever ran, and every honest keep
-  // paid for a second full pass over the object.
-  let raw: string
-  try {
-    raw = await req.text()
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
+  // Measured before it is parsed (netlify/shared/body.ts). This one used to
+  // `req.json()` first and `JSON.stringify` the result back to check its size.
   // A real map is a few kilobytes; anything far past that is a mistake or an
   // attempt to use us as free storage.
-  if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
-
-  let body: { snapshot?: unknown; code?: string }
-  try {
-    body = JSON.parse(raw) as { snapshot?: unknown; code?: string }
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
+  const body = await readJson<{ snapshot?: unknown; code?: unknown }>(req, MAX_BODY)
+  if (body instanceof Response) return body
   if (!body.snapshot || typeof body.snapshot !== 'object') {
     return Response.json({ error: 'missing_snapshot' }, { status: 400 })
   }

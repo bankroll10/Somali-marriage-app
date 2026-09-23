@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs'
-import { CODE } from '../shared/code'
+import { CODE, normalise } from '../shared/code'
+import { readJson } from '../shared/body'
 import { isFounder, notFounder } from '../shared/founder'
 // Validated against closed sets so a bad key can never be written — see netlify/shared/vocab.ts.
 import { COUNTRIES, GENDERS, HOOKS, LEDGER, REACH, SCENES, SCENE_COUNTRY } from '../shared/vocab'
@@ -244,8 +245,8 @@ export default async function handler(req: Request) {
     return Response.json({ error: 'GET or POST only' }, { status: 405 })
   }
 
-  let body: {
-    code?: string
+  const body = await readJson<{
+    code?: unknown
     scene?: string
     country?: unknown
     reach?: unknown
@@ -253,21 +254,10 @@ export default async function handler(req: Request) {
     hook?: string
     ledger?: unknown
     contact?: unknown
-  }
-  let raw: string
-  try {
-    raw = await req.text()
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
-  if (raw.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
-  try {
-    body = JSON.parse(raw)
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
+  }>(req, MAX_BODY)
+  if (body instanceof Response) return body
 
-  const code = (body.code ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '')
+  const code = normalise(body.code)
   const scene = body.scene ?? ''
   const gender = body.gender ?? ''
   const hook = HOOKS.has(body.hook ?? '') ? (body.hook as string) : 'none'

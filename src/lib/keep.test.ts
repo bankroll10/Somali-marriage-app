@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { codeFromUrl, keepMap, rememberedCode, restoreLink, restoreMap } from './keep'
+import { adoptMap, codeFromUrl, keepMap, rememberedCode, restoreLink, restoreMap } from './keep'
 import { loadProgress, saveProgress } from './storage'
 import { defaultGuideUse, defaultTrust } from '../types'
 
@@ -182,6 +182,23 @@ describe('bringing a map back', () => {
     expect(await restoreMap('ZZZZZZ')).toBeNull()
     // The map she already had is still exactly where it was.
     expect(localStorage.getItem('niyyah.intake.v1')).toContain('Sagal')
+  })
+
+  it('fetches without adopting — the code only becomes this phone’s after she says the map is hers', async () => {
+    // restoreDetail used to remember the code on fetch, so opening anyone's
+    // `?map=` link made their code this phone's own and every later keep wrote
+    // under it (docs/SECURITY.md, O2).
+    saveProgress(state)
+    localStorage.setItem('niyyah.keep.code.v1', 'HJKMNP')
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ snapshot: { ...state, identity: { firstName: 'Not her' } } }), { status: 200 })))
+    const fetched = await restoreMap('ACDEFG')
+    expect(fetched?.identity.firstName).toBe('Not her')
+    expect(rememberedCode()).toBe('HJKMNP')
+    expect(localStorage.getItem('niyyah.intake.v1')).toContain('Sagal')
+
+    adoptMap('acd-efg', fetched!)
+    expect(rememberedCode()).toBe('ACDEFG')
+    expect(localStorage.getItem('niyyah.intake.v1')).toContain('Not her')
   })
 
   it('builds a link that opens the map anywhere', () => {

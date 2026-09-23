@@ -23,9 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# local env
-.env.local
-.env*.local
+# local env — every file that could hold a key. `.env` itself was missing:
+# a local ANTHROPIC_API_KEY was one `git add -A` from the repository
+# (docs/SECURITY.md, O4). The example carries no values and stays tracked.
+.env
+.env.*
+!.env.example
 
 # Sibling projects in this workspace — not part of the Niyyah repo
 /rite

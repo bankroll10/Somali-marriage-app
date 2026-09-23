@@ -3,6 +3,7 @@ import { CODE, mint, normalise } from '../shared/code'
 import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, TOPICS, YES_STATES as STATES } from '../shared/vocab'
 import { day } from '../shared/day'
+import { readJson } from '../shared/body'
 import { stamp } from '../shared/record'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 
@@ -222,19 +223,8 @@ export default async function handler(req: Request) {
 
   if (req.method !== 'POST') return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
 
-  let text: string
-  try {
-    text = await req.text()
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
-  if (text.length > MAX_BODY) return Response.json({ error: 'too_large' }, { status: 413 })
-  let body: { side?: string; code?: string; gender?: string; states?: unknown }
-  try {
-    body = JSON.parse(text)
-  } catch {
-    return Response.json({ error: 'bad_json' }, { status: 400 })
-  }
+  const body = await readJson<{ side?: string; code?: unknown; gender?: string; states?: unknown }>(req, MAX_BODY)
+  if (body instanceof Response) return body
   if (!validSides(body.states)) return Response.json({ error: 'bad_states' }, { status: 400 })
 
   const now = Date.now()

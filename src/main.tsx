@@ -4,16 +4,16 @@ import './index.css'
 import App from './App.tsx'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
 import { entryFromUrl, rememberEntry, rememberedEntry, type Entry } from './lib/entry.ts'
-import { restoreMap } from './lib/keep.ts'
+import { adoptMap, rememberedCode, restoreMap } from './lib/keep.ts'
 import { rememberVia } from './lib/progress.ts'
-import { saveProgress } from './lib/storage.ts'
+import { loadProgress, type PersistedState } from './lib/storage.ts'
 
 /**
  * Links into Niyyah are resolved before React reads local storage, because
  * useNiyyah snapshots it once on mount.
  *
- *   /?map=CODE     — a kept map comes back; written into storage as if she had
- *                    always been on this device.
+ *   /?map=CODE     — a kept map comes back, once she has said it is hers
+ *                    (src/components/ConfirmRestore.tsx, docs/SECURITY.md O2).
  *   /?couple=CODE  — he is opening the eleven she sent; the app starts on his screen.
  *   /?vouch=CODE   — a family member is arriving to vouch for her.
  *   /?read · /?eleven · /?families
@@ -29,24 +29,36 @@ import { saveProgress } from './lib/storage.ts'
  * shared by accident when she sends someone the link. The path is kept: it
  * carries no code, and it is what makes a reload land where the link did.
  */
-async function resolveEntry(): Promise<Entry | null> {
+/** A map a link fetched, waiting for her to say whether it is hers. */
+interface Pending {
+  code: string
+  snapshot: PersistedState
+}
+
+async function resolveEntry(): Promise<{ entry: Entry | null; pending?: Pending }> {
   const entry = entryFromUrl(window.location.search, window.location.pathname)
   // No link in the bar: this may be a reload of one. The held entry is the
   // couple or vouch screen this device was part-way through.
-  if (!entry) return rememberedEntry()
+  if (!entry) return { entry: rememberedEntry() }
   // Before the query is stripped, and to its own key — storage the app reads
   // on mount is untouched.
   if (entry.via) rememberVia(entry.via)
   // A coded link survives the strip, so a reload lands back on the screen it
   // opened rather than on the marketing page (src/lib/entry.ts).
   rememberEntry(entry)
-  if (entry.kind === 'map' && entry.code) {
-    const snapshot = await restoreMap(entry.code)
-    if (snapshot) saveProgress(snapshot)
-  }
+  // Stripped before any round trip, so a code never sits in the bar (or in a
+  // screenshot of it) while the network answers — THREAT T10.
   window.history.replaceState({}, '', window.location.pathname)
-  // A restored map needs no screen of its own; every other kind does.
-  return entry.kind === 'map' ? null : entry
+  if (entry.kind === 'map' && entry.code) {
+    // Her own link, on the phone that already holds her map: nothing to
+    // bring. The phone is newer than the server's copy, which would only
+    // roll it back.
+    if (entry.code === rememberedCode()) return { entry: null }
+    const snapshot = await restoreMap(entry.code)
+    // Fetched, never applied here. She is asked first (docs/SECURITY.md, O2).
+    return { entry: null, ...(snapshot ? { pending: { code: entry.code, snapshot } } : {}) }
+  }
+  return { entry }
 }
 
 const root = createRoot(document.getElementById('root')!)
@@ -59,7 +71,39 @@ const render = (entry: Entry | null) =>
     </StrictMode>,
   )
 
-void resolveEntry().then(render, () => render(null))
+/**
+ * A restore link waits on her answer before the app reads storage — useNiyyah
+ * snapshots it once, on mount. The screen is its own chunk: almost nobody
+ * arrives by a restore link, so the first paint never pays for it.
+ */
+async function confirm({ code, snapshot }: Pending): Promise<void> {
+  const { default: ConfirmRestore } = await import('./components/ConfirmRestore.tsx')
+  await new Promise<void>((done) =>
+    root.render(
+      <StrictMode>
+        <ErrorBoundary>
+          <ConfirmRestore
+            code={code}
+            incoming={snapshot}
+            current={loadProgress()}
+            onDone={(mine) => {
+              if (mine) adoptMap(code, snapshot)
+              done()
+            }}
+          />
+        </ErrorBoundary>
+      </StrictMode>,
+    ),
+  )
+}
+
+void resolveEntry().then(
+  async ({ entry, pending }) => {
+    if (pending) await confirm(pending).catch(() => {})
+    render(entry)
+  },
+  () => render(null),
+)
 
 // The offline shell (src/lib/serviceWorker.ts, docs/LINKS.md). Production
 // only — a dev-server module graph has nothing in common with a built
