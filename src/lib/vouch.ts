@@ -1,5 +1,6 @@
 import type { VouchState } from '../types'
 import { send, whyOf, type Why } from './net'
+import { keepMap, rememberedCode } from './keep'
 
 /**
  * The client half of netlify/functions/vouch.ts. Nothing here ever handles the
@@ -81,11 +82,38 @@ export async function readVouch(code: string): Promise<VouchState | null> {
  * which also opens her map; the token opens nothing but the vouch screen.
  */
 export async function askVouch(code: string): Promise<string | null> {
-  const res = await send(ENDPOINT, {
+  return tokenOf(await postAsk(code))
+}
+
+function postAsk(code: string) {
+  return send(ENDPOINT, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ side: 'ask', code }),
   })
+}
+
+/**
+ * Ask for her family's link, from whatever this phone holds: the code it
+ * remembers, or a map kept now. When the server no longer has her map — it
+ * lapsed, or a store was lost — the ask is a 404, and it used to stay one for
+ * ever: "That didn't go through", every time, because nothing kept the map
+ * again (docs/RECOVERY.md). Now it does what the door join does: keep the map
+ * again from this phone, which holds all of it, and ask once more.
+ */
+export async function askFamily(): Promise<{ code: string; token: string } | null> {
+  let code = rememberedCode() ?? (await keepMap())
+  if (!code) return null
+  let res = await postAsk(code)
+  if (res?.status === 404) {
+    code = (await keepMap()) ?? code
+    res = await postAsk(code)
+  }
+  const token = await tokenOf(res)
+  return token ? { code, token } : null
+}
+
+async function tokenOf(res: Response | null): Promise<string | null> {
   if (!res?.ok) return null
   try {
     const { token } = (await res.json()) as { token?: string }

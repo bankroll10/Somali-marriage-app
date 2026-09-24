@@ -227,7 +227,7 @@ function preface(sample: boolean): string {
   ].join('\n')
 }
 
-function closing(guide: Guide, full: boolean): string {
+function closing(guide: Guide, full: boolean, host: string): string {
   const own = OWN_ANSWER_FIRST
   const all = ALL_AGREED
   return [
@@ -244,7 +244,7 @@ function closing(guide: Guide, full: boolean): string {
         ]
       : [
           '<h2>The other eight</h2>',
-          `<p>Whether you’d work, children, deen day to day, the aroos and the mahr, qabiil, going back, a second wife, and when the families disagree — each with its words, in the full guide at <a href="${guide.path}">${'joinniyyah.com' + guide.path}</a>.</p>`,
+          `<p>Whether you’d work, children, deen day to day, the aroos and the mahr, qabiil, going back, a second wife, and when the families disagree — each with its words, in the full guide at <a href="${guide.path}">${host + guide.path}</a>.</p>`,
         ]),
     `<a class="cta" href="${toolPath(guide.toolSlug)}" data-app>See which of the eleven you two have had →</a>`,
     '</section>',
@@ -287,7 +287,7 @@ function page(guide: Guide, opts: GuideOptions, sample: boolean): string {
     `<ol class="talks">`,
     ...topics.map((t, i) => talk(t, sample ? i + 1 : TOPICS.indexOf(t) + 1)),
     '</ol>',
-    closing(guide, !sample),
+    closing(guide, !sample, opts.host),
     '</main>',
     '<footer>',
     `<p>Niyyah — <a href="https://${opts.host}/">${opts.host}</a>. ${sample ? 'A one-page sample; the full guide is at ' + `<a href="${guide.path}">${opts.host}${guide.path}</a>.` : 'This page may be printed and shared as it is.'} No account, nothing recorded.</p>`,

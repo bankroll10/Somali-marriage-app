@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import type { VouchState } from '../types'
-import { keepMap, rememberedCode } from '../lib/keep'
 import { shareOrCopy } from '../lib/share'
 import { withVia } from '../lib/links'
 import { SITE_URL } from '../lib/site'
-import { askVouch, vouchLink } from '../lib/vouch'
+import { askFamily as askForVouch, vouchLink } from '../lib/vouch'
 import { relationshipLabel } from '../data/vouch'
 import { Announce, CheckIcon } from './ui'
 
@@ -31,18 +30,15 @@ export default function VouchRow({ vouch, onKept }: Props) {
 
   async function askFamily() {
     setAsking('working')
-    const code = rememberedCode() ?? (await keepMap())
-    if (!code) {
-      setAsking('error')
-      return
-    }
-    onKept(code)
     // The link carries a token made for this, not her code — see src/lib/vouch.ts.
-    const token = await askVouch(code)
-    if (!token) {
+    // It keeps her map again if the server has lost it.
+    const asked = await askForVouch()
+    if (!asked) {
       setAsking('error')
       return
     }
+    onKept(asked.code)
+    const { token } = asked
     const result = await shareOrCopy({ text: ASK, url: withVia(vouchLink(token, SITE_URL), 'family') }, 'vouch_asked')
     // 'failed' means the clipboard refused, so nothing is on its way — this
     // must not claim otherwise.
