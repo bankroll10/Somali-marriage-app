@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { memStore, stores } from './support/memory'
 
 /**
- * The weekly sweep: what the founder's `/pool?sweep=1` does, for every pool,
- * on a schedule — so the way to reach someone lives exactly as long as her
- * map whether or not anyone remembers (docs/RISKS.md R3).
+ * The weekly sweep: lapsed maps, expired couple sheets and step counts past
+ * their year go on a schedule, so what Trust says about how long each lives
+ * stays true whether or not anyone remembers (docs/RISKS.md R3).
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)

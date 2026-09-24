@@ -27,7 +27,7 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 7 | 2026-09-12 | **Twelve more cities are named** in `src/data/scenes.ts`: Seattle, San Diego, Birmingham, Bristol, Leicester, Gothenburg, Oslo, Copenhagen, Helsinki, Amsterdam, Nairobi, Melbourne. Each reads zero | A city not named before people arrive is recorded as `other` and cannot be re-placed later | Stands. A scene is the progress record's `scene` and picks the help line's country (`src/components/HelpLine.tsx`) |
 | 8 | 2026-09-12 | **The hook has "Something else"** (`other`), so `none` means only skipped | A skip and "none of these fit" both arrived as `none`, so the rule that a closed list's `other` share tests the list had nothing to read | Stands (`src/data/hook.ts`) |
 | 9 | 2026-09-12 | **Accounts and recovery are written down:** one table for 2FA, recovery codes, a second person, the registrar record and the Anthropic spend limit; rotate quarterly and on any new team member or tool. The founder fills it | One person held every login, with no 2FA record, no recovery codes, no second key-holder and an undocumented registrar | The table is in `docs/OPS.md`. The founder deferred it and 2FA ("later"); as of 2026-09-24 no spend limit is written down |
-| 10 | 2026-09-12 | **Trust says a kept map lives with one vendor** and that the founder's backup does not include it, instead of building an encrypted dump now | The honest sentence costs nothing; the dump waits for records | The backup still omits kept maps (`netlify/functions/export.ts`). The Trust sentence sat in the section on being counted and went with it on 2026-09-24 (`0bd7e96`); Trust no longer says it |
+| 10 | 2026-09-12 | **Trust says a kept map lives with one vendor** and that the founder's backup does not include it, instead of building an encrypted dump now | The honest sentence costs nothing; the dump waits for records | Stands. The backup still omits kept maps (`netlify/functions/export.ts`). The Trust sentence went with the section on being counted in `0bd7e96` and was put back under "Keeping your map" in part B the same day |
 | 11 | 2026-09-12 | **The learning loop's threshold splits:** a hundred records for weights, `consequence` and anything that changes a reading; twenty for script wording, order and labels | At a hundred records per row the loop turns in years; low-stakes constants can turn in months | Stands. The monthly loop is in `docs/RESEARCH.md` |
 | 12 | 2026-09-12 | **The code stays six characters,** the restore link keeps the code in its URL (the link is the feature), and moving `GET/DELETE /keep` to a header is declined | Six is easy to read on a phone, the read caps were taken to bound enumeration, and the product controls no log that would hold the query string | Superseded in part on 2026-09-23: the caps bound the rate, not the fraction, so codes are minted at eight characters (`netlify/shared/code.ts`, `docs/SECURITY.md` O8). Six-character codes still work; the code stays in the restore link |
 | 13 | 2026-09-12 | **The contact lives exactly as long as the map:** the pool's sweep deletes it with the lapsed entry, and Trust says so | Lapsed contacts, the only personal data the product held, were kept indefinitely | Retired 2026-09-24 with the feature. The sweep empties the `contacts` store (`netlify/functions/sweep.ts`) |
@@ -165,9 +165,10 @@ explained. It shipped as five commits, `0bd7e96` to `d41f879` (PR #69).
   then the Ending.
 - Earlier audits had asked for most of this, and it had not happened: see
   (AUDIT) and (TREE) below.
-- `docs/PROTOCOL.md`'s freeze on the door, the map and matching binds during
-  the ten-session sprint, which had not started. Cutting first means the
-  sessions test the product that will exist.
+- `docs/PROTOCOL.md`'s freeze (then on the door, the map and matching) binds
+  during the ten-session sprint, which had not started. Cutting first means
+  the sessions test the product that will exist. The freeze now names only
+  what exists.
 
 ### What was deleted
 

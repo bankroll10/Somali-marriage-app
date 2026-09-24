@@ -17,8 +17,8 @@ import type { Answers } from '../src/types'
  *
  *   A model may add a layer on top of something the product already does
  *   completely without it. It may never be the thing that produces the map,
- *   the read, the eleven, the match or the door. With no key set, a member
- *   loses a better sentence — never an instrument.
+ *   the read or the eleven. With no key set, a member loses a better
+ *   sentence — never an instrument.
  *
  * That is true today by construction, and nothing in `npm run build` would
  * notice the day it stopped being true. One import in the wrong file would do

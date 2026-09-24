@@ -96,10 +96,11 @@ gets a Home and a follow-up. **Activation**: one instrument's words in the
 first session, and one follow-up answered within fourteen days.
 
 **The follow-up.** Every result writes down what it told her to do. After three
-days the next open asks once, and "not yet" once more a week later unless she
-puts it away. Both phones in a pair are asked about the joint's conversation,
-and his keeps the pair (`couple.side = 'second'`).
-`tests/invariants/the-loop-closes.test.tsx` holds the loop.
+days the next open asks once, on Home, or on Welcome for someone with no Home;
+"not yet" is asked once more a week later unless she puts it away. Both phones
+in a pair are asked about the joint's conversation, and his keeps the pair
+(`couple.side = 'second'`). `tests/invariants/the-loop-closes.test.tsx` holds
+the loop.
 
 **The guide** closes every reply on an act ("I'll say this — ask me in three
 days" writes a follow-up) and is budgeted by progress: fifteen replies per rung
