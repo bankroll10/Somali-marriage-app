@@ -174,21 +174,21 @@ I love you too much to let you waste your time or your heart. Tell me what’s h
       respond: () =>
         `My dear, don’t confuse late-night texting with intention. A man who wants to marry you moves *toward* your family, not away from them. He talks about the future without sweating.
 
-Watch his feet, not his mouth — does he show up consistently? Does he want to meet your people? If he keeps everything vague and “fun,” walaal, that vagueness *is* his answer. Ask him plainly. A serious man will be glad you did.`,
+Watch his feet, not his mouth — does he show up consistently? Does he want to meet your people? If he keeps everything vague and “fun,” walaal, that vagueness *is* his answer. Ask him plainly. Asking is not too much.`,
     },
     {
       keywords: ['late', 'night', '2am', 'midnight', 'after dark', 'only texts', 'only when', 'booty'],
       respond: () =>
-        `Hmm. Let your auntie be honest with you: a man who only appears after midnight is not courting you — he is comforting himself. Good intentions keep daytime hours.
+        `Hmm. Let your auntie be honest with you: texting only after midnight is not courting, whatever it feels like at midnight. Good intentions keep daytime hours.
 
 You are not a secret. You are not a midnight habit. If he cannot text you at noon, plan to meet your family, and speak about marriage in daylight, that is your answer. Watch what he does next.`,
     },
     {
       keywords: ['family', 'wali', 'parents', 'mother', 'father', 'brother', 'scare him', 'tell my'],
       respond: () =>
-        `That instinct is the right one, and not everyone has it. A man worth having *expects* your family.
+        `That instinct is the right one. A man worth having *expects* your family.
 
-Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then watch his face. If it scares him off, walaal, he was hiding something, and you just saved yourself time. Your people protect you. Let them.`,
+Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then watch his face. If it scares him off, walaal, you have learned early that he was not ready for your family, and you just saved yourself time. Your people protect you. Let them.`,
     },
     {
       keywords: ['settling', 'too picky', 'standards', 'unrealistic', 'expecting too much', 'should i lower'],
@@ -233,7 +233,7 @@ I’m not here to hype you up — I’m here to keep you honest and effective. Y
       respond: () =>
         `Stop flirting in circles. State your intention clearly and respectfully — that’s strength.
 
-Try: “I want to be upfront — I’m looking for marriage, and I’d like to get to know you for that. Is that what you want too?” That one sentence filters out everyone who’s wasting your time and earns the respect of the one who isn’t. Vagueness is a coward’s game, akhi. You’re not that.`,
+Try: “I want to be upfront — I’m looking for marriage, and I’d like to get to know you for that. Is that what you want too?” That one sentence gets you an answer, and it is a respectful way to ask for one. Vagueness is a coward’s game, akhi. You’re not that.`,
     },
     {
       keywords: ['intention', 'desperate', 'awkward', 'too strong', 'scare her', 'come on strong'],
@@ -409,7 +409,7 @@ For a sister, the wali’s involvement is part of the path and a safeguard of he
       respond: () =>
         `In our deen, character — akhlaq — is the truest measure. “The most complete of believers in faith are the best of them in character, and the best of you are those best to their wives.”
 
-So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for fifty years.`,
+So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for a lifetime.`,
     },
   ],
   fallback: () =>

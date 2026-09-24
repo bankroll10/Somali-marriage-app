@@ -437,7 +437,7 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
     words:
       'When you picture being married — is that this year, next year, or further out? I am not trying to hold you to a date. I just need to know whether we are imagining the same thing.',
     tells:
-      'Someone who has thought about it will tell you, even if the answer is “further out than you want”. Someone who has not will make the question itself feel unreasonable. Watch which one happens.',
+      'An answer, even “further out than you want”, is something you can plan around. A reply that makes the question itself feel unreasonable is an answer too. Note which one you get.',
   },
   family: {
     why: 'This step is not a formality, and asking how they would take it is how you find out whether they have thought about it.',
@@ -454,18 +454,18 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
       'The reply matters less than the fortnight after it. Say it once, then stop starting, and watch what happens. That is your answer, and it does not require anyone to be honest with you.',
   },
   pressure: {
-    why: 'How someone handles you at your most inconvenient is one of the clearest signs of what marriage to them would be.',
+    why: 'How someone handles you at your most inconvenient is one of the clearest signs you can see before a marriage.',
     words:
       'When I bring up something that is bothering me, I come away feeling like I have done something wrong. I do not think you mean it that way — but I need you to hear that it lands like that.',
     tells:
-      'Someone who can sit inside that without turning it around has just shown you more than the rest of this list can. Someone who cannot has shown you that too.',
+      'Someone who can sit inside that without turning it around has just shown you one of the clearest signs this list can give. Someone who cannot has shown you that too.',
   },
   early: {
     why: 'You are early. That is not a problem — it is the best time to ask, before either of you has spent months.',
     words:
       'Before we go further — can I ask what you are looking for? I would rather know now than in three months.',
     tells:
-      'It is completely fair to ask this in week one, and it costs you nothing. Anyone who finds it too much this early was never going to find it comfortable later.',
+      'It is completely fair to ask this in week one, and it costs you nothing. If it is too much for them this early, you have learned that in week one rather than month six.',
   },
 }
 

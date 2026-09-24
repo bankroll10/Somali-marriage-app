@@ -172,7 +172,7 @@ function frameworkAnswer(ctx: CoachContext, modeId: ModeId): string {
 
 While you do, three things hold in almost every situation:
 
-• **Watch behaviour, not words.** Consistency over weeks tells the truth; a good speech tells you nothing.
+• **Watch behaviour, not words.** Consistency over weeks tells you more than a good speech.
 • **Apply the clarity test.** Do they move toward the future, family, and definition — or keep things comfortable and vague?
 • **Notice what it costs you.** If you have to shrink, over-explain, or keep managing your own worry, that is part of the answer.
 

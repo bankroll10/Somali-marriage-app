@@ -79,15 +79,15 @@ const STATE_RANK: Record<DimensionState, number> = { 'not-yet': 0, partly: 1, sh
 /** Why a gap in this dimension matters. The sentence that turns a score into a reason. */
 const WHY_IT_MATTERS: Record<ReadDimension, string> = {
   public:
-    'A person who intends to marry you lets you exist in their life. Being kept off to one side is not shyness, and it does not resolve on its own.',
+    'A person who intends to marry you lets you exist in their life. Being kept off to one side is something to ask about, not wait out.',
   intent:
     'Wanting to be married and intending to marry you are different things, and only one of them has a date attached.',
   family:
-    'Someone who means to approach your family has usually already thought about how. A vague answer here is an answer.',
+    'Asking how is the step before the step. A vague answer here is an answer.',
   consistency:
     'Words are cheap and everyone has good ones. What you are looking for is whether the behaviour underneath them is steady.',
   pressure:
-    'How someone treats you when you are inconvenient is as close to a preview of marriage as you get beforehand.',
+    'How someone treats you when you are inconvenient is one of the clearest signs you get beforehand.',
 }
 
 const DURATION_NOTE: Record<string, string> = {
