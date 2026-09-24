@@ -1,6 +1,6 @@
 import type { Gender } from '../types'
 import type { Script } from '../data/read'
-import { ALL_AGREED, beforeYesTopics, ownAnswerFirst, type Topic } from '../data/beforeYes'
+import { allHad as allHadScript, beforeYesTopics, ownAnswerFirst, type Topic } from '../data/beforeYes'
 import { send, whyOf, type Why } from './net'
 
 /**
@@ -222,10 +222,10 @@ export function coupleReading(jointMap: Record<string, Joint>, gender: Gender = 
           id: best.topic.id,
           label: best.topic.label,
           kind: best.kind,
-          script: allHad ? ALL_AGREED : best.kind === 'unknown-somewhere' ? ownAnswerFirst(gender) : best.topic.script,
+          script: allHad ? allHadScript(gender) : best.kind === 'unknown-somewhere' ? ownAnswerFirst(gender) : best.topic.script,
         }
       : lines.length
-        ? { id: lines[0].id, label: lines[0].label, kind: lines[0].kind, script: ALL_AGREED }
+        ? { id: lines[0].id, label: lines[0].label, kind: lines[0].kind, script: allHadScript(gender) }
         : null,
     counts,
   }

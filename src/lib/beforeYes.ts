@@ -1,6 +1,6 @@
 import type { Gender } from '../types'
 import type { Script } from '../data/read'
-import { ALL_AGREED, STATES, beforeYesTopics, ownAnswerFirst, type Topic, type YesState } from '../data/beforeYes'
+import { STATES, allHad as allHadScript, beforeYesTopics, scriptForState, type Topic, type YesState } from '../data/beforeYes'
 
 /**
  * The engine behind "Before you say yes".
@@ -125,13 +125,13 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
   const allHad = counts.agree + counts.settled === readings.length
 
   const open = allHad
-    ? { id: top.id, label: top.label, state: top.state, why: top.topic.why, script: ALL_AGREED }
+    ? { id: top.id, label: top.label, state: top.state, why: top.topic.why, script: allHadScript(gender) }
     : {
         id: top.id,
         label: top.label,
         state: top.state,
         why: top.topic.why,
-        script: top.state === 'unknown' ? ownAnswerFirst(gender) : top.topic.script,
+        script: scriptForState(top.topic, top.state, gender),
       }
 
   // ── Headline: about the conversations, never about him ───────────────────

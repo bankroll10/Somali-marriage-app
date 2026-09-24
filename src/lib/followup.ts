@@ -1,5 +1,5 @@
 import type { FollowUp, Gender, ReadRecord } from '../types'
-import { beforeYesTopics, type Topic } from '../data/beforeYes'
+import { beforeYesTopics, scriptForState, type Topic } from '../data/beforeYes'
 import { scriptFor, speak, type ReadDimension, type Script } from '../data/read'
 import { familyScript } from '../data/families'
 import type { WordsSource } from './words'
@@ -74,12 +74,18 @@ const READ_DIMENSIONS = new Set<string>(['public', 'intent', 'consistency', 'pre
  * One at a time, oldest question last: a person who has been given three
  * things to do is being given none.
  */
-export function openFollowUp(followups: FollowUp[], gender: Gender = 'woman', now = Date.now()): FollowUpAsk | null {
+export function openFollowUp(
+  followups: FollowUp[],
+  gender: Gender = 'woman',
+  now = Date.now(),
+  /** Her eleven as it stands now, so the words shown again are the words the result gave. */
+  sheet?: Record<string, string>,
+): FollowUpAsk | null {
   const ripe = followups
     .filter((f) => isOpen(f, now))
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
   for (const f of ripe) {
-    const ask = describe(f, gender)
+    const ask = describe(f, gender, sheet)
     if (ask) return ask
   }
   return null
@@ -114,7 +120,7 @@ const READ_TOPIC: Record<ReadDimension | 'early', string> = {
   early: 'what each of you is looking for',
 }
 
-function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
+function describe(f: FollowUp, gender: Gender, sheet?: Record<string, string>): FollowUpAsk | null {
   const say = speak(gender)
   if (f.source === 'guide') {
     // The guide's words live only in the reply she was given, so they travel
@@ -174,7 +180,11 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
     followUp: f,
     question: say(`Last time, the one to open was ${label}. Have the two of you had it?`),
     label,
-    script: topic.script,
+    // Her own sheet chooses its words by where the topic stands — a difference
+    // still open gets the words for after a difference, not the opening words
+    // again (src/data/beforeYes.ts scriptForState). The two-sided sheet keeps
+    // the opening words: one of them may not know there is a difference.
+    script: f.source === 'beforeYes' ? scriptForState(topic, sheet?.[f.topic], gender) : topic.script,
     writesBack: true,
     travel: f.source === 'couple' ? 'couple' : 'eleven',
   }

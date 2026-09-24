@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { beforeYesSummary, buildBeforeYes } from './beforeYes'
-import { BEFORE_YES_COUNT, beforeYesTopics } from '../data/beforeYes'
+import { BEFORE_YES_COUNT, beforeYesTopics, workItOut } from '../data/beforeYes'
 
 /**
  * Before you say yes tells a woman which conversation to open with a real man.
@@ -207,5 +207,24 @@ describe('a difference the two of you have worked out', () => {
   it('an open difference still comes first — it is the one conversation started and not finished', () => {
     const r = buildBeforeYes(answers({ 'aroos-mahr': 'differ', live: 'settled', work: 'not-talked' }))!
     expect(r.open.id).toBe('aroos-mahr')
+  })
+})
+
+describe('after a difference, the words are for after a difference', () => {
+  it('an open difference is not handed the words that open a conversation nobody has had', () => {
+    const r = buildBeforeYes(answers({ 'second-wife': 'differ' }))!
+    expect(r.open.id).toBe('second-wife')
+    expect(r.open.script.words).toBe(workItOut('woman').words)
+    expect(r.open.script.words).not.toBe(beforeYesTopics('woman').find((t) => t.id === 'second-wife')!.script.words)
+  })
+  it('asks what each could not live with before any middle', () => {
+    const w = workItOut('woman')
+    const couldnt = w.words.indexOf('couldn’t live with')
+    expect(couldnt).toBeGreaterThan(-1)
+    expect(couldnt).toBeLessThan(w.words.indexOf('a way of doing it'))
+    expect(w.tells).toMatch(/that is a line, and it is allowed to be one/)
+  })
+  it('reads the same from a man, with her in it', () => {
+    expect(workItOut('man').tells).toMatch(/whether she can name what she couldn’t live with/)
   })
 })

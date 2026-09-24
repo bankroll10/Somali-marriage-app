@@ -320,10 +320,35 @@ export const OWN_ANSWER_FIRST: ElevenScript = {
     'Write your own answer down before you ask for {his}. Otherwise {his} becomes yours by default, and you find out later that it never was.',
 }
 
-/** When every conversation has been had and agreed — the rarest result, and still not the end. */
-export const ALL_AGREED: ElevenScript = {
-  why: 'Agreement from six months ago is a memory, not a contract. Closer to the day, answers can move.',
+/**
+ * When a difference has been found and is still open. The topic's own words
+ * open a conversation nobody has had; handing them to a couple who have
+ * already had it asked them to start again (docs/DECISIONS.md Part 8).
+ *
+ * These ask each of them, first, what they could not live with — before any
+ * middle. That order is the point: a difference that can be arranged gets
+ * arranged, and a line shows itself as a line before anyone has been asked
+ * to bend it. Nothing here says a difference should end in agreement.
+ */
+export const WORK_IT_OUT: ElevenScript = {
+  why: 'You already know you see this differently. The next conversation is not about who is right. It is about what each of you could not live with, and whether there is an arrangement you would both keep.',
   words:
-    'Can we go back over the things we agreed on, now that it’s closer? Not because I doubt you — because I want to make sure we still mean the same things by them.',
+    'We know we see this differently, and I don’t want either of us to pretend we don’t. Can we each say what we couldn’t live with here, and what we could? Then let’s see whether there’s a way of doing it that we’d both keep — not just one that closes the subject.',
+  tells:
+    'Listen for whether {he} can name what {he} couldn’t live with, and whether {he} asks for yours. An arrangement is real when you could both say it back the same way. If what one of you couldn’t live with is the whole question, there is no middle to find: that is a line, and it is allowed to be one.',
+}
+
+/**
+ * When every conversation has been had, and each one agreed or worked out.
+ * Still not the end: an arrangement, like an agreement, is worth going back
+ * over closer to the day.
+ */
+export const ALL_HAD: ElevenScript = {
+  why: 'Agreement from six months ago is a memory, not a contract — and so is an arrangement. Closer to the day, answers can move.',
+  words:
+    'Can we go back over what we agreed on, and how we said we’d handle the things we see differently, now that it’s closer? Not because I doubt you — because I want to make sure we still mean the same things by them.',
   tells: 'Watch for which answers have changed. The ones that have are the ones to talk about; the ones that haven’t are the ground you are standing on.',
 }
+
+/** The name the printed guide knew it by (src/lib/guidePages.ts). */
+export const ALL_AGREED = ALL_HAD

@@ -83,9 +83,9 @@ export function isDifference(state: string | undefined): boolean {
 
 // The words themselves live in eleven.ts, import-free, so the build can write
 // the printable guide from them. Everything the app reads is re-exported here.
-export { ALL_AGREED, OWN_ANSWER_FIRST, TOPICS } from './eleven'
+export { ALL_AGREED, ALL_HAD, OWN_ANSWER_FIRST, TOPICS, WORK_IT_OUT } from './eleven'
 export type { ElevenScript, Topic, YourSide } from './eleven'
-import { OWN_ANSWER_FIRST, TOPICS, type Topic } from './eleven'
+import { ALL_HAD, OWN_ANSWER_FIRST, TOPICS, WORK_IT_OUT, type ElevenScript, type Topic } from './eleven'
 
 function resolve(topic: Topic, fix: (t: string) => string, memberGender: Gender): Topic {
   // A man's variant, where one exists, replaces the woman's before the
@@ -109,9 +109,35 @@ export function beforeYesTopics(memberGender: Gender = 'woman'): Topic[] {
   return TOPICS.map((t) => resolve(t, fix, memberGender))
 }
 
-export function ownAnswerFirst(memberGender: Gender = 'woman'): Script {
+function resolved(script: ElevenScript, memberGender: Gender): Script {
   const fix = speak(memberGender)
-  return { why: fix(OWN_ANSWER_FIRST.why), words: fix(OWN_ANSWER_FIRST.words), tells: fix(OWN_ANSWER_FIRST.tells) }
+  return { why: fix(script.why), words: fix(script.words), tells: fix(script.tells) }
+}
+
+export function ownAnswerFirst(memberGender: Gender = 'woman'): Script {
+  return resolved(OWN_ANSWER_FIRST, memberGender)
+}
+
+export function workItOut(memberGender: Gender = 'woman'): Script {
+  return resolved(WORK_IT_OUT, memberGender)
+}
+
+export function allHad(memberGender: Gender = 'woman'): Script {
+  return resolved(ALL_HAD, memberGender)
+}
+
+/**
+ * The words for one topic on her own sheet, by where it stands. The result
+ * and the follow-up three days later both read this, so the words she is
+ * shown again are the words she was shown (src/lib/followup.ts).
+ *
+ * Not for the two-sided sheet: there a difference may be one only one of
+ * them knows about, and the topic's own words, which open it, are right.
+ */
+export function scriptForState(topic: Topic, state: string | undefined, memberGender: Gender = 'woman'): Script {
+  if (state === 'unknown') return ownAnswerFirst(memberGender)
+  if (state === 'differ') return workItOut(memberGender)
+  return topic.script
 }
 
 export const BEFORE_YES_COUNT = TOPICS.length
