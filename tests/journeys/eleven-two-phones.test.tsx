@@ -156,6 +156,12 @@ describe('the eleven, on two phones', () => {
     reload()
     const hisHome = await mount(<App />)
     expect(hisHome.text()).toContain('You both answered')
+    // Answering her link is not a decision to marry. He is talking to
+    // someone; "Deciding together" is only ever his own tap
+    // (src/lib/inferStage.ts, docs/DECISIONS.md, the commitment audit).
+    expect(saved(hisPhone).stage).toBe('talking')
+    expect(hisHome.text()).toContain('Getting to know someone')
+    expect(hisHome.text()).not.toContain('Deciding together')
     await hisHome.press(/Where the two of you stand/)
     await hisHome.until(() => hisHome.text().includes(expected.man.headline), 'his joint, from Home')
     expect(hisHome.has(/^Ask her/)).toBe(false)

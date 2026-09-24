@@ -12,19 +12,23 @@ import type { Stage } from '../types'
  * for the one user the wedge is built around read zero by construction
  * (docs/DECISIONS.md).
  *
- * The instrument is the answer to the situation question. A read is eleven
- * questions about someone she is talking to; the eleven is what a couple asks
- * before saying yes. So finishing one, with nothing else said, is taken as
- * `talking` or `deciding`. Only when she has said nothing: `situated` stays
- * false — she did not answer the question, the product inferred it, and the
- * ladder's `situated` rung stays honest — and an explicit stage is never
- * overridden.
+ * Finishing either instrument, with nothing else said, is taken as `talking`:
+ * she is talking to someone. Never further. The eleven used to be taken as
+ * `deciding`, so a stranger curious about the list, or a man who had only
+ * answered her link, was placed at "Deciding together" without choosing it:
+ * the guide was told they were deciding, the deciding-only family words
+ * appeared, and the `deciding` rung, the product's one measure of an explicit
+ * decision, counted a tool being used (docs/DECISIONS.md, the commitment
+ * audit). Sliding into a more consequential state is what this product exists
+ * to help people notice; it must not do it to them. Moving to *deciding* is
+ * her own tap on the stage band. Only when she has said nothing: `situated`
+ * stays false, and an explicit stage is never overridden.
  */
 export type Instrument = 'read' | 'eleven'
 
-export function stageAfterInstrument(kind: Instrument, stage: Stage, situated: boolean): Stage | undefined {
+export function stageAfterInstrument(_kind: Instrument, stage: Stage, situated: boolean): Stage | undefined {
   if (situated || stage !== 'preparing') return undefined
-  return kind === 'read' ? 'talking' : 'deciding'
+  return 'talking'
 }
 
 /** Who has a Home: anyone with a map, and anyone who has said where she is. */

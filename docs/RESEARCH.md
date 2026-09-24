@@ -275,6 +275,8 @@ of the product nobody has walked on a phone.
 Eleven rungs (`src/lib/rungs.ts`; `RUNGS` in `netlify/shared/vocab.ts`),
 each counting who ever reached it, on its own: someone can be `deciding`
 without a read, so a ratio of rungs is a share, not a strict conversion.
+`deciding` counts only a stage she said. Until 2026-09-24 finishing the eleven
+set it too; there were no members, so no record carries the old meaning.
 
 | Stage | Here | Rung or field |
 |---|---|---|

@@ -93,8 +93,9 @@ happening right now" → by stage, the Hook and the map, the read, the eleven or
 the Ending. `?read`, `?eleven`, `?families` and the tool paths in
 `src/data/tools.ts` skip Welcome, and the read's chooser is folded into its
 start buttons. A read or eleven finished with nothing else said is taken as
-`talking` or `deciding` (`src/lib/inferStage.ts`), so the read-first person
-gets a Home and a follow-up. **Activation**: one instrument's words in the
+`talking` (`src/lib/inferStage.ts`), so the read-first person gets a Home and a
+follow-up. Nothing is ever inferred past `talking`: `deciding` and `married` are
+only said, so the `deciding` rung counts a decision, not a tool used. **Activation**: one instrument's words in the
 first session, and one follow-up answered within fourteen days.
 
 **The follow-up.** Every result writes down what it told her to do. After three
