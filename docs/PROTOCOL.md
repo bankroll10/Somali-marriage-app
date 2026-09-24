@@ -1,38 +1,38 @@
 # The reality sprint — the research protocol for the first ten
 
-*2026-09-12. Read once before session one; carried into every session as the
-checklist and the questions; never reinterpreted after the results arrive.*
+*2026-09-12; updated 2026-09-24. Read once before session one; carried into
+every session as the checklist and the questions; never reinterpreted.*
 
 ## Context
 
-Zero real people have used Niyyah. The hypothesis this first test is built
-around: **Niyyah is more valuable as the decision layer between "we're
-talking" and "we're getting married" than as a cold-start matchmaking
-marketplace.** So the sample leans toward people currently talking to
-someone, with singles as contrast, and the one behavioural outcome that
-outranks every opinion is: **did Niyyah cause a conversation that otherwise
-probably would not have happened?** That is the North Star in one person
-(`docs/NORTHSTAR.md`: followed-through per hundred arrived).
+Zero real people have used Niyyah. The hypothesis: **Niyyah is valuable as
+the decision layer between "we're talking" and "we're getting married", with
+no marketplace behind it** (cut 2026-09-24; the decision layer is the whole
+product). So the sample leans toward people currently talking to someone,
+with singles as contrast, and the one behavioural outcome that outranks
+every opinion is: **did Niyyah cause a conversation that otherwise probably
+would not have happened?** That is the North Star in one person
+(`docs/PRODUCT.md`: followed-through per hundred arrived).
 
 Everything below is anchored to the product as it is on `main` today and to
-the questions the documents already committed to asking (`docs/GAPS.md`
-method 3, `docs/REDTEAM.md`'s three bins, `docs/EXPERIMENTS.md` A3 and A5).
+the questions the documents already committed to asking (`docs/RESEARCH.md`:
+the ten conversations, the three bins, A3 and A5).
 
 **No code moved for this.** The protocol is a document; the product it tests
-is the one on `main`. Sessions are logged in `docs/FEEDBACK.md` using the
+is the one on `main`. Sessions are logged in `docs/RESEARCH.md` using the
 template below, and the decision rules here are executed, not debated
-(`docs/EXPERIMENTS.md`'s rule).
+(`docs/RESEARCH.md`'s rule).
 
 ---
 
 ## WHO TO RECRUIT
 
-Somali diaspora, 24–36, in one metro if possible (the wedge is a metro door;
-Minneapolis–St Paul first). People the founder can sit beside for half an
-hour, or hold on a video call while they hold their own phone. Not first-degree
-family, not anyone the founder is or has been romantically connected to, and
-at least three not from the founder's own close circle — a friend's friend,
-someone from a connector's room.
+Somali diaspora, 24–36, in one metro if possible (Minneapolis–St Paul
+first). People the founder can sit beside for half an hour, or hold on a
+video call while they hold their own phone. Not first-degree family, not
+anyone the founder is or has been romantically connected to, and at least
+three not from the founder's own close circle — a friend's friend, someone
+from a connector's room.
 
 Recruit through the ten connectors and the founder's own network with one
 message:
@@ -45,7 +45,7 @@ message:
 > hour this week?*
 
 Do not describe the product in the recruiting message beyond that. Do not
-send the link ahead. Ask them to come with the phone they actually use, not
+send the link ahead. Ask them to come with the phone they use every day, not
 in a private browsing window (the product keeps its state on the phone, and
 the three-day follow-up needs it to still be there).
 
@@ -56,7 +56,7 @@ Ten sessions. Deliberately mixed, not representative.
 | # | Who | Side | Why they are in the sample |
 |---|---|---|---|
 | 4 | **Currently talking to someone** (weeks to months in, families not yet formally involved) | women | The primary hypothesis. The read is for them tonight; the eleven is for them next month |
-| 2 | **Currently talking to someone** | men | The side the product had never been read from until yesterday. Whether a man is a member or a respondent is `docs/GAPS.md` gap 1 |
+| 2 | **Currently talking to someone** | men | The side the product had never been read from until 2026-09-11. Whether a man comes for himself or only answers her eleven is the men's gap in `docs/RESEARCH.md` |
 | 1 | **Recently ended** — a serious talking that stopped inside the last year | woman | The retrospective test: what became difficult, what was found out too late. Answers the read's premise from the far side |
 | 1 | **Recently ended** | man | Same, from his side |
 | 1 | **Preparing / single**, wants to marry, not talking to anyone | woman | Contrast. If the instruments feel like nothing to her, the decision-layer hypothesis strengthens. If she finds real value, the read-alone thesis has legs too |
@@ -64,12 +64,12 @@ Ten sessions. Deliberately mixed, not representative.
 
 Six women, four men. Six currently talking, two recently ended, two single.
 Of the six currently talking, **at least two must be people whose counterpart
-is genuinely reachable that week**, so the eleven's send can be tested for
+is reachable that week**, so the eleven's send can be tested for
 real rather than hypothetically.
 
 At least eight of ten Somali. Up to two may be non-Somali Muslim diaspora
 (Pakistani, Arab, other East African) — deliberately, as the specificity
-control: `docs/REDTEAM.md` conviction 1 needs to know which of the eleven a
+control: `docs/RESEARCH.md` conviction 1 needs to know which of the eleven a
 non-Somali friend would also need. If recruiting them is slow, run all ten
 Somali and do not wait.
 
@@ -122,14 +122,14 @@ The product must carry itself, because in the wild it will have to.
 - What a "stage" is, or that it was inferred for them.
 - What the Trust page says, or that one exists.
 - What the guide is, whether to use it, or what it sends.
-- That they can keep their map, be counted, or that there is a door at all.
+- That they can keep their map.
 - Any Somali word or line — if they ask what it means, ask what they think.
 - Why a question is asked the way it is. If they object to a question, note
   the objection; do not defend it.
 - Anything about the founder's intentions, the business, or the "vision".
 
 If they ask "what do I do now?", the only permitted answer is *"What do you
-think it wants you to do?"* If they are genuinely stuck for more than thirty
+think it wants you to do?"* If they are stuck for more than thirty
 seconds, say *"Do whatever you'd do if I weren't here"* — and record it as
 confusion. Never touch their phone.
 
@@ -139,11 +139,11 @@ A tick-and-timestamp list, one per session. Every line is something the
 readout can never show.
 
 **The first thirty seconds**
-- Which they tap at "who are you reading / deciding about" — and any pause.
-- Whether they read the intro sentence ("Eleven questions about what they
-  have actually done…") or skip it. Whether they react to the word "done".
+- Which side they pick at the start, read or eleven — and any pause.
+- Whether they read the intro sentence ("Twelve questions about what he has
+  done…") or skip it. Whether they react to the word "done".
 
-**The eleven questions of the read**
+**The twelve questions of the read**
 - Any question they re-read, or pause on for more than five seconds. Which.
 - Any question they answer and then change.
 - Any question that makes them laugh, wince, or say "hmm". Which, and which.
@@ -191,16 +191,16 @@ Behaviour and specific past events. Never "do you like it", "would you use
 it", or "is this a good idea". If they answer a "would" question, redirect
 to the last time.
 
-`docs/JOBS.md` is the hypothesis sheet these answers are read against: each
-stage's situation, jobs, alternatives, anxieties and habit, and every feature's
-claimed job. Question 4 fills its *alternatives* column; 7 and 15 test the
-functional and social jobs; the three-day text is the outcome.
+The jobs in `docs/PRODUCT.md` are the hypothesis sheet these answers are
+read against: each stage's situation, jobs, alternatives, anxieties and habit,
+and every feature's claimed job. Question 4 fills its *alternatives* column; 7
+and 15 test the functional and social jobs; the three-day text is the outcome.
 
 **A · Before the phone (min 2–8)**
 1. *The last person you seriously talked to about marriage — how did it start,
    and how long did it go on?* (If single: *the last time you seriously wanted
    to meet someone — what did you actually do, and who knew?* —
-   `docs/GAPS.md` method 3)
+   `docs/RESEARCH.md`, the ten conversations)
 2. *What became difficult? When did you first notice, and when did you say
    something?*
 3. *What did you find out about them, or about yourselves, that you wish you
@@ -208,7 +208,7 @@ functional and social jobs; the three-day text is the outcome.
 4. *What have you used, or tried, to meet someone or to figure out someone
    you were talking to — apps, aunties, friends, nothing? What happened, and
    why did it stop working: nobody there, you couldn't trust who was there,
-   or it didn't understand your situation?* (`docs/REDTEAM.md` — the three
+   or it didn't understand your situation?* (`docs/RESEARCH.md` — the three
    bins; record the bin)
 
 **B · The read (min 22–24)**
@@ -230,7 +230,7 @@ functional and social jobs; the three-day text is the outcome.
     at min 28. What they type is the invitation copy the product should
     have.)
 11. *Which of these would a Pakistani or Arab friend of yours also need, and
-    which are only ours?* (`docs/REDTEAM.md` conviction 1 — portability)
+    which are only ours?* (`docs/RESEARCH.md` conviction 1 — portability)
 
 **D · The words and the culture (min 26–27)**
 12. *Was anything on those screens said in a way that felt false, exaggerated,
@@ -248,10 +248,10 @@ functional and social jobs; the three-day text is the outcome.
 16. *Who in your family knows you're talking to someone? Who would you want
     to know before it goes further, and how would you tell them?*
 17. *At the last wedding in your family, was anyone paid for bringing the two
-    of them together — who paid, how much, and when?* (`docs/REDTEAM.md`
-    conviction 7, word for word; `docs/EXPERIMENTS.md` A5. Amounts, never
+    of them together — who paid, how much, and when?* (`docs/RESEARCH.md`
+    conviction 7, word for word, and A5. Amounts, never
     names.)
-18. *What would you never want a screenshot of from this?* (`docs/GAPS.md`)
+18. *What would you never want a screenshot of from this?* (`docs/RESEARCH.md`)
 
 **F · Three days later, by text**
 > *Salaam — one question from the other day. The thing it gave you to say, or
@@ -260,14 +260,14 @@ functional and social jobs; the three-day text is the outcome.
 > back or what got in the way. (And did you send them the link?)*
 
 Three answers, one message, no chasing. They are the product's own three
-(`docs/PRODUCT.md` §2); only "we talked" counts as followed through, exactly
-as `src/lib/followup.ts` counts it. A non-reply is a data point and is
-recorded as one.
+(`src/components/home/FollowUp.tsx`); only "we talked" counts as followed
+through, exactly as `src/lib/followup.ts` counts it. A non-reply is a data
+point and is recorded as one.
 
 ## WHAT I RECORD
 
 Per session, on paper or a notes app that never touches the repository,
-then transcribed the same day into `docs/FEEDBACK.md` in the template below.
+then transcribed the same day into `docs/RESEARCH.md` in the template below.
 No names, no phone numbers, no employer, no neighbourhood finer than the
 metro. The counterpart is "them", never a name, never a description that
 would identify them. The founder keeps one offline paper sheet mapping
@@ -290,12 +290,12 @@ What gets written for every session, whether or not it was interesting:
 - The send moment: did not / hesitated / sent.
 - Thursday: replied or not; said the words or not; which conversation, if
   any, happened; sent the link or not.
-- Bears on: the GAPS row, EXPERIMENTS id, or REDTEAM conviction it speaks
-  to, or `new`.
+- Bears on: the gap, experiment id (A-) or conviction in `docs/RESEARCH.md`
+  it speaks to, or `new`.
 
 ### The note template
 
-Compatible with `docs/FEEDBACK.md`'s existing entry shape — the same header,
+Compatible with `docs/RESEARCH.md`'s entry shape — the same header,
 Context, What they said, Bears on — with a structured block between.
 
 ```markdown
@@ -331,7 +331,7 @@ Real value: <…>. Polite praise (ignored): <…>.
 **Thursday.** <no reply | replied: said the words? which conversation? what
 came back? sent the link?>. **Caused a conversation: <yes|no|unclear>.**
 
-**Bears on.** <GAPS row / EXPERIMENTS id / REDTEAM #n / new> — <what changes,
+**Bears on.** <gap / A-id / conviction #n / new> — <what changes,
 if anything>.
 ```
 
@@ -364,7 +364,7 @@ every time; changed only if two or more people hit the same one.
 - Not realising the result has words to say on it. Not finding "Copy".
 - Not understanding that the eleven can be sent, or believing the other
   person would see their answers.
-- Misreading a stage label, a chip, or the door.
+- Misreading a stage label or a chip.
 - Asking what a Somali or Arabic word on screen means.
 - Thinking they have to make an account, or looking for a login.
 - Believing something was sent to the founder that was not.
@@ -454,7 +454,7 @@ of the sessions that reached the relevant screen.
 - **Three or more of the ten** report on Thursday a specific conversation
   that happened, which they attribute to the read or the eleven → the
   decision-layer hypothesis is supported. The eleven and the read lead the
-  next pass and the posts; the door waits.
+  next pass and the posts.
 - **One or two** → real but weak. The next pass is about the words and the
   moment of sending, not about features.
 - **Zero** → Niyyah is a reading people finish and set down. Nothing new is
@@ -465,24 +465,24 @@ of the sessions that reached the relevant screen.
 
 **The eleven's send.**
 - At least **three of the six** currently talking say they would send it
-  *and* at least **one actually does** by Thursday → the two-sided loop is
+  *and* at least **one does** by Thursday → the two-sided loop is
   real; it becomes the lead instrument in every post.
 - Nobody sends, in session or by Thursday → the "Ask them" moment is the
   product's largest unkept promise. What they typed at question 10 and said
   at question 12 rewrites that screen before session eleven.
 
-**Specificity** (`docs/REDTEAM.md` conviction 1, both rules carried as
+**Specificity** (`docs/RESEARCH.md` conviction 1, both rules carried as
 written): **fewer than four in ten** land in "it didn't understand our
 situation" → specificity is a cost the product is paying for the founder's
-comfort. **Six or more** in "nobody there" → the need is density and the
-expansion question moves to now. And question 11: if most say a non-Somali
-friend would need all eleven, the content is portable and the brand is a
-label on an institution.
+comfort. **Six or more** in "nobody there" → the need is density, which a
+product with no pool does not meet, and the expansion question moves to
+now. And question 11: if most say a non-Somali friend would need all eleven,
+the content is portable and the brand is a label on an institution.
 
 **The men.** If both talking men and the ended man describe the read as
 written for a woman, or cannot name what they would use it *for* → stop
-counting men as supply on her instruments; the men's side is designed from
-their answers or not at all (`docs/GAPS.md` gap 1).
+treating his read as done because it mirrors hers; the men's side is designed
+from their answers or not at all (the men's gap in `docs/RESEARCH.md`).
 
 **Cultural failure.** Any line two people independently call outsider,
 auntie-ish, performative, exaggerated or gender-inverted is changed or
@@ -495,25 +495,25 @@ would say the words as written, and their rewrites share a direction (too
 formal, too long, too English, too soft) → the scripts are rewritten in
 that direction after session ten, from their rewrites.
 
-**The guide** (`docs/EXPERIMENTS.md` A3 stays as written). If nobody opens it
+**The guide** (`docs/RESEARCH.md` A3 stays as written). If nobody opens it
 unprompted in ten sessions, that is recorded and A3's readout rule stands;
 nothing changes on ten.
 
-**Willingness to pay** (A5, and `docs/REDTEAM.md` conviction 7 as written):
+**Willingness to pay** (A5, and `docs/RESEARCH.md` conviction 7 as written):
 **fewer than three in ten** can name a payment at a family wedding, with an
-amount → the GAPS demotion to ASSUMED stands and the call after the joint
-view (formerly "Deciding together", `docs/MONETIZATION.md`) is re-examined as
-the first product rather than the matchmaker. Seven or more
-name one → the cultural half is attested. Neither is a price; no price is
-decided on ten.
+amount → the belief that families pay at the nikah stays ASSUMED, and the
+call after the joint view (formerly "Deciding together", `docs/PRODUCT.md`)
+is re-examined as the first product rather than a fee paid at the nikah.
+Seven or more name one → the cultural half is attested. Neither is a price;
+no price is decided on ten.
 
-**The connectors** (`docs/REDTEAM.md` conviction 12): recruiting these ten
+**The connectors** (`docs/RESEARCH.md` conviction 12): recruiting these ten
 runs through the ten connectors. **Fewer than three unconditional yeses** to
 "would you post it into the room this month" → the network channel does not
 exist, and the pivot to mosque young-adult circles happens now, not at week
-eight. Record yes / no / condition in `docs/FEEDBACK.md` beside the sessions.
+eight. Record yes / no / condition in `docs/RESEARCH.md` beside the sessions.
 
-**On the three-bin thresholds.** `docs/REDTEAM.md` sets two: fewer than four
+**On the three-bin thresholds.** `docs/RESEARCH.md` sets two: fewer than four
 in ten in "didn't understand our situation" (conviction 1) and six or more in
 "nobody there" (the fatal-three restatement). Both are carried above as
 written. At ten people either firing is a finding; neither firing is not a
@@ -521,8 +521,8 @@ pass — it is "specificity unproven", and the posts' via split decides it.
 
 **What the founder will not do**, whatever anyone says: implement any feature
 suggested in a session before all ten are done; change any copy mid-sprint
-except under the two rules above; touch the door, the map, matching, or
-the marketplace; recruit an eleventh before the ten are logged.
+except under the two rules above; touch the map; rebuild anything cut on
+2026-09-24; recruit an eleventh before the ten are logged.
 
 ## THE ONE OUTCOME, RESTATED
 
