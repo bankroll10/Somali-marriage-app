@@ -35,7 +35,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
     // A screen that never reached the phone — offline, or the connection went
     // while it loaded. Her state is fine, so the one thing this screen must
-    // not offer is erasing it (src/lib/chunkError.ts, docs/THREAT.md T18).
+    // not offer is erasing it (src/lib/chunkError.ts, docs/SECURITY.md T18).
     if (isChunkLoadError(this.state.error)) {
       return (
         <div role="alert" className="flex min-h-dvh flex-col items-center justify-center bg-forest-deep px-6 text-center text-cream">
@@ -94,7 +94,7 @@ export default class ErrorBoundary extends Component<Props, State> {
                 // whose map is gone, and the next tap re-keys it — overwriting
                 // the real map with the empty one, irreversibly. This button is
                 // offered to someone already in a broken state, so it was the
-                // worst place left to still reach it (docs/FAIL.md).
+                // worst place left to still reach it (docs/DESIGN.md).
                 clearEverything()
                 window.location.reload()
               }}

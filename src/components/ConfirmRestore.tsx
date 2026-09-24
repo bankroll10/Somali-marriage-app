@@ -35,7 +35,7 @@ interface Props {
  * a name that is not hers.
  *
  * Except that the name is the sender's to write: an ex keeps a map with her
- * name and city in it, and it reads as hers (docs/ABUSE.md). So when this phone
+ * name and city in it, and it reads as hers (docs/SECURITY.md). So when this phone
  * already keeps a map of its own, the screen says the one thing he cannot
  * fake — this link is a different code, and her own would not be.
  */

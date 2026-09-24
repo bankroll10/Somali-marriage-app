@@ -65,7 +65,7 @@ const STATE_CLASS: Record<GroundState, string> = {
   strong: 'border-forest/30 bg-forest/[0.08] text-forest',
 }
 
-/** A position she holds — faith, family, vision — is described, never rated (docs/ALIGNMENT.md S5). */
+/** A position she holds — faith, family, vision — is described, never rated (docs/PRODUCT.md S5). */
 function StateTag({ state }: { state: GroundState | null }) {
   if (state === null) {
     return (
@@ -222,7 +222,7 @@ export default function ReflectionView({
 
         {/* Everything above exists only in this browser — said the moment she
             has read the thing she would lose, not nine hundred words later
-            (docs/FOGG.md). */}
+            (docs/DESIGN.md). */}
         <section className="mb-12">
           <KeepMap onKept={onKept} />
         </section>

@@ -7,7 +7,7 @@
 # and would catch a type error, and nothing else.
 #
 # It also belongs to us. If the host ever changes, the gate leaves with the
-# repository, which is the whole point of docs/CONTROL.md.
+# repository, which is the whole point of docs/OPS.md.
 name: verify
 
 on:

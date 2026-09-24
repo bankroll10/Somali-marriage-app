@@ -262,7 +262,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onF
         {/* The ending asks for nothing. It used to close on "Sponsor a place for
             someone else" — money for a place that costs nothing, with no stated
             use, on the one screen the outcome is measured on. Removed by the
-            monetization audit (docs/MONETIZATION.md, sponsor-a-place). */}
+            monetization audit (docs/PRODUCT.md, sponsor-a-place). */}
 
         {/* What "you can delete the app" needs to be true: the server half.
             Last, after the record and the questions, because it clears them. */}

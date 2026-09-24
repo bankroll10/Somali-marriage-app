@@ -7,7 +7,7 @@
  * and it was invisible to the one person who has to type a code — the field
  * accepted every letter and digit, so `BOO12` was enterable, cost a network
  * round trip, and came back "No map found for that code", which blamed her
- * code for characters no code can contain (docs/NORMAN.md).
+ * code for characters no code can contain (docs/DESIGN.md).
  *
  * So the rule lives here too, and the field enforces it as she types. The
  * alphabet is asserted equal to the server's by tests/vocab-sync.test.ts, the

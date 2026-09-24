@@ -4,12 +4,12 @@ import type { Config } from '@netlify/edge-functions'
  * The close switch.
  *
  * This was the founding-preview gate, and it did that job until 2026-09-12,
- * when `PREVIEW_PASSWORD` was deleted and the site opened (`docs/DEPLOY.md`).
+ * when `PREVIEW_PASSWORD` was deleted and the site opened (`docs/OPS.md`).
  * It is dormant now, and kept on purpose: setting that variable in Netlify
  * shuts every route behind HTTP Basic within one deploy, and that is the only
  * way to close this site in a single action.
  *
- * Why keep a dormant lock. `docs/TIME.md` and `docs/WEDGE.md` both name the
+ * Why keep a dormant lock. `docs/OPS.md` and `docs/PRODUCT.md` both name the
  * same ending: one safety failure in a community this tight, amplified by the
  * reputation that is also the growth engine. If that day comes, the founder
  * needs the site closed in the minute she learns of it, not after a revert

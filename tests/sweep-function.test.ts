@@ -4,7 +4,7 @@ import { memStore, stores } from './support/memory'
 /**
  * The weekly sweep: lapsed maps, expired couple sheets and step counts past
  * their year go on a schedule, so what Trust says about how long each lives
- * stays true whether or not anyone remembers (docs/RISKS.md R3).
+ * stays true whether or not anyone remembers (docs/PRODUCT.md R3).
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)

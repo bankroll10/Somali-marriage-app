@@ -60,8 +60,8 @@ Niyyah doesn’t introduce anyone. It makes the next person you meet, wherever y
   },
   {
     // The list's own test. Without this, a skip and "none of these fit" both
-    // arrived on the server as `none`, and docs/GAPS.md's rule — a closed list's
-    // `other` share tests the list — had nothing to read (docs/BOARD.md).
+    // arrived on the server as `none`, and docs/RESEARCH.md's rule — a closed list's
+    // `other` share tests the list — had nothing to read (docs/DECISIONS.md).
     id: 'other',
     label: 'Something else',
     short: 'something else',

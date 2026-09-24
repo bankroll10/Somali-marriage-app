@@ -242,7 +242,7 @@ describe('forgetting the sheet', () => {
   // condition attached, and until the reality-sprint pass that was only true
   // of someone who had also kept a map: createCouple needs no map code, and
   // the cascade in keep.ts finds the couple code inside a kept snapshot
-  // (docs/BOARD.md).
+  // (docs/DECISIONS.md).
   it('deletes the sheet for whoever holds the code', async () => {
     const code = await pair(sides(), sides())
     expect((await get(code)).status).toBe(200)

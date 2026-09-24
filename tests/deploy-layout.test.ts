@@ -89,7 +89,7 @@ describe('Netlify deploy directories hold only deployable code', () => {
 
   it('the tests run before main deploys, on a node that matches the deploy', () => {
     // main auto-deploys on merge, so the gate has to be in the repository
-    // rather than in whoever remembered to look. See docs/CONTROL.md.
+    // rather than in whoever remembered to look. See docs/OPS.md.
     const workflow = join(process.cwd(), '.github/workflows/verify.yml')
     expect(existsSync(workflow), 'the verify workflow must exist').toBe(true)
     const yml = readFileSync(workflow, 'utf8')
@@ -129,7 +129,7 @@ describe('Netlify deploy directories hold only deployable code', () => {
     // crawler never read the noindex header meant to hide it, so the URL
     // stayed listed with nothing under it. The two settings cancelled and the
     // result looked like a broken site at exactly the moment the first links
-    // were about to be handed to strangers (docs/BOARD.md, the search pass).
+    // were about to be handed to strangers (docs/DECISIONS.md, the search pass).
     //
     // Both are gone. This holds them gone, because the way back is a
     // one-line "just while we test" that nobody remembers to remove.
@@ -139,7 +139,7 @@ describe('Netlify deploy directories hold only deployable code', () => {
       .split('\n')
       .filter((l) => !l.trim().startsWith('#'))
       .join('\n')
-    expect(config, 'netlify.toml must not send noindex — see docs/DEPLOY.md').not.toMatch(/X-Robots-Tag/i)
+    expect(config, 'netlify.toml must not send noindex — see docs/OPS.md').not.toMatch(/X-Robots-Tag/i)
     expect(config).not.toMatch(/noindex/i)
 
     // A file here would shadow the generated one and could disagree with it.

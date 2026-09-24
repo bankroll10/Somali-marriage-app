@@ -173,7 +173,7 @@ describe('who owns the prompt', () => {
   // function passed it through, which made the route a general-purpose Claude
   // endpoint on our key — sharing the global caps every member draws from, and
   // invisible when it emptied them, because the client reads every failure as
-  // "use the offline voice" (docs/BOARD.md).
+  // "use the offline voice" (docs/DECISIONS.md).
   const systemOf = () => ((stream.mock.calls[0] as unknown[])[0] as { system: string }).system
 
   it('ignores a system prompt the caller sends, and builds its own', async () => {
@@ -260,7 +260,7 @@ describe('the hourly cap', () => {
     // Every storage route fails open on a counter it cannot read, because a
     // refused write costs a person something and an allowed one costs nothing.
     // This route bills per call, so the same outage used to mean every call
-    // went through with no bound but a console limit (docs/RISKS.md R5).
+    // went through with no bound but a console limit (docs/PRODUCT.md R5).
     vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
     outage.on = true
     const res = await ask()
@@ -273,7 +273,7 @@ describe('the hourly cap', () => {
   it('bounds the day, not just the hour — the cap that makes an unattended month survivable', async () => {
     // An hourly counter resets 720 times a month, so "the worst hour is
     // survivable" and "the worst month is survivable" were different claims.
-    // The day binds even while the hour still has room. docs/ROADMAP.md.
+    // The day binds even while the hour still has room. docs/PRODUCT.md.
     vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
     vi.stubEnv('GUIDE_DAILY_CAP', '2')
     vi.stubEnv('GUIDE_HOURLY_CAP', '100')

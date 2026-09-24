@@ -72,7 +72,7 @@ const ID = CODE
  * the historical count changed retroactively — while the blob, and its cost,
  * stayed on disk for ever because nothing deleted it either. `export.ts` never
  * checked `expiresAt` at all, so the backup and the readout disagreed in both
- * directions with nothing reconciling them. docs/HARD.md.
+ * directions with nothing reconciling them. docs/SECURITY.md.
  *
  * A record that has reached `married` is kept and counted, whatever its date.
  * Everything else honours the year — and the year is now real: the tally
@@ -119,7 +119,7 @@ export interface ProgressRecord {
   /**
    * Which side this person is on — `woman` or `man`, as chosen at
    * Identity, last told wins like `scene`. The one split the men's funnel
-   * needs (docs/MACHINE.md); floored like every other quasi-identifier.
+   * needs (docs/RESEARCH.md); floored like every other quasi-identifier.
    */
   gender?: string
   /** How a few of the rungs came out. See `mergeFacts` for what may change. */
@@ -270,7 +270,7 @@ type Store = ReturnType<typeof getStore>
  * The founder's readout. Per rung, how many people reached it; the same split
  * by city, by what kind of link brought them, and by side — so the men's
  * funnel can be read apart from the women's, which is the one question
- * docs/MACHINE.md found the ladder could not answer — and so word of mouth can
+ * docs/RESEARCH.md found the ladder could not answer — and so word of mouth can
  * be told from every other arrival, by source, without an edge between two
  * people anywhere; and the month each person arrived, with how many of that
  * month have followed through since, so `followed-through` per hundred
@@ -278,7 +278,7 @@ type Store = ReturnType<typeof getStore>
  * via are crossed once, in `sidesByVia`, because a man who arrived through a
  * woman's eleven is already talking to someone and is not supply, and neither
  * split alone can tell him from a man the network channel produced
- * (docs/REDTEAM.md).
+ * (docs/RESEARCH.md).
  */
 async function tally(store: Store) {
   const { blobs } = await store.list()
@@ -416,14 +416,14 @@ function emptyFactsTally() {
     /**
      * Who began each questionnaire. Against `rungs` — which counts who finished
      * one — this is the completion rate, and both are whole-population counts
-     * that stay numbers at founding scale. See docs/EXPERIMENTS.md.
+     * that stay numbers at founding scale. See docs/RESEARCH.md.
      */
     began: {} as Counts,
     /** Who ever asked the guide. Whole-population, like `began`. */
     asked: {} as Counts,
     /**
      * Of the people who ever asked the guide, how many followed through on a
-     * conversation — against everyone. The reading docs/EXPERIMENTS.md A3 could
+     * conversation — against everyone. The reading docs/RESEARCH.md A3 could
      * not make before an ending; readable at twenty followed-through instead of
      * in years.
      */
@@ -511,7 +511,7 @@ export default async function handler(req: Request) {
     // Bounded like keep.ts's forget, and for the same reason: possession of
     // the id is the authority, so an unmetered DELETE is a destruction
     // primitive over a 27-bit secret. It was the one public write with no cap
-    // (docs/BOARD.md). A circuit breaker, far above any real hour.
+    // (docs/DECISIONS.md). A circuit breaker, far above any real hour.
     if (await overHourlyCap('progress-forget', DEFAULT_FORGET_CAP)) return rateLimited()
     try {
       const existing = await store.get(id, { type: 'json' })
@@ -530,7 +530,7 @@ export default async function handler(req: Request) {
   }
 
   // Its six siblings all guarded a truncated upload; this one did not
-  // (docs/FAIL.md). All seven now read the same way — netlify/shared/body.ts.
+  // (docs/DESIGN.md). All seven now read the same way — netlify/shared/body.ts.
   const body = await readJson<{ id?: unknown; rungs?: unknown; scene?: string; via?: string; gender?: string; facts?: unknown }>(req, MAX_BODY)
   if (body instanceof Response) return body
 
@@ -561,7 +561,7 @@ export default async function handler(req: Request) {
   try {
     // Written at the version it was read, three tries, like every
     // read-modify-write here. A bare write lost a rung whenever two tabs
-    // reported at once — and this record only ever adds (docs/INTEGRITY.md).
+    // reported at once — and this record only ever adds (docs/PRIVACY.md).
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       const held = (await store.getWithMetadata(id, { type: 'json' })) as { data: ProgressRecord; etag?: string } | null
       const existing = held?.data ?? null

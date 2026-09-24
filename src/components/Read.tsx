@@ -36,7 +36,7 @@ interface Props {
   /** The eleven — and, from there, asking them to answer their own side. */
   onOpenBeforeYes: () => void
   onBack: () => void
-  /** What leaves the phone and what never does — Trust, one tap from a public tool (docs/RISKS.md R4). */
+  /** What leaves the phone and what never does — Trust, one tap from a public tool (docs/PRODUCT.md R4). */
   onTrust?: () => void
 }
 
@@ -94,7 +94,7 @@ export default function Read({
   /**
    * `side` is the chooser, folded into the start buttons. The read used to
    * open on "Before we start — who are you reading?" — a question before any
-   * explanation, on the very link a friend forwards (docs/DIFFERENTIATION.md).
+   * explanation, on the very link a friend forwards (docs/PRODUCT.md).
    */
   function begin(fresh: boolean, side?: Gender) {
     const reader = side ?? gender
@@ -151,7 +151,7 @@ export default function Read({
           </h1>
           {/* Where she left off, above the explanation she has already read —
               she was one tap from the thing she came for, and the product used
-              to throw every answer away (docs/FOGG.md). Offered here and
+              to throw every answer away (docs/DESIGN.md). Offered here and
               nowhere else: no badge, no reminder, nothing that counts the
               things anybody has not finished. */}
           {draft && (
@@ -538,7 +538,7 @@ function Result({
           send, in the card above, and the eleven — and the rest behind one
           disclosure. This screen carried eight calls to action and nearly six
           hundred words before anyone outside the founder had reached it
-          (docs/RISKS.md R2). */}
+          (docs/PRODUCT.md R2). */}
       <div className="mt-9 flex flex-col gap-3">
         {/* The natural next thing after being told what {they} has not shown:
             the eleven, and from there the two-sided version {they} answers.
@@ -578,7 +578,7 @@ function Result({
         )}
 
         {/* The chevron affordance this screen worked out by hand is now
-            `<Disclose>` in ui.tsx, used by every screen (docs/LOAD.md). */}
+            `<Disclose>` in ui.tsx, used by every screen (docs/DESIGN.md). */}
         <Disclose summary="More you can do here" hint="Your guide, your family, a friend" divided={false}>
           <div className="flex flex-col gap-3">
           <button
@@ -727,7 +727,7 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
     <div className="animate-rise mt-7">
       {/* A heading, not a styled paragraph. This screen carried 483 rendered
           words under a single <h1> — the heaviest thing a person reads here
-          arriving as one undifferentiated column (docs/LOAD.md). */}
+          arriving as one undifferentiated column (docs/DESIGN.md). */}
       <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted">{title}</h2>
       <ul className="mt-3 flex flex-col gap-2">{children}</ul>
     </div>

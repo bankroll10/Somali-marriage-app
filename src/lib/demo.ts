@@ -94,7 +94,7 @@ export function clearForFresh() {
  * On the founder's own machine they run exactly as the header says. Anywhere
  * else they are a link a stranger can send, and they used to wipe whatever
  * phone opened them — leaving the kept code behind, so the next save wrote the
- * emptied map over the kept one (docs/ABUSE.md, sabotage). So on the live site
+ * emptied map over the kept one (docs/SECURITY.md, sabotage). So on the live site
  * they act only on a phone with nothing to lose, and leave the address bar
  * either way, so a reload cannot repeat them.
  */

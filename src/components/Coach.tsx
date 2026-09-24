@@ -193,7 +193,7 @@ export default function Coach({
   // An answer that stopped part-way through, and whether the last answer came
   // from the guide at all. Both were invisible: nine distinct failures — no
   // key, a 429, the cap, a safety decline, an outage — all rendered the same
-  // canned answer in the same bubble with the same glyph (docs/FAIL.md).
+  // canned answer in the same bubble with the same glyph (docs/DESIGN.md).
   const [cutOff, setCutOff] = useState(false)
   // True for the whole exchange, streaming included — unlike `thinking`.
   const [busy, setBusy] = useState(false)
@@ -204,7 +204,7 @@ export default function Coach({
     // `thinking` goes false on the first streamed chunk — the words become the
     // indicator — so gating on it left the whole reply sendable: two streams,
     // two charges, and the second asked without the first's context
-    // (docs/FAIL.md).
+    // (docs/DESIGN.md).
     if (!trimmed || thinking || busy || !mode || locked) return
     const userMsg: CoachMessage = { id: nextId(), role: 'user', text: trimmed }
     setThreads((prev) => ({ ...prev, [mode]: [...(prev[mode] ?? []), userMsg] }))
@@ -284,7 +284,7 @@ export default function Coach({
     // Charged only for an answer from the guide. This comment has always said
     // so and the code did the opposite: askCoach cannot return null, so every
     // fallback spent a reply too, and three taps during an outage cost three
-    // of the twenty and then showed her the wall (docs/FAIL.md).
+    // of the twenty and then showed her the wall (docs/DESIGN.md).
     if (reply.live) onSpendReply()
 
     // Words that arrived are never replaced by words that did not.
@@ -337,7 +337,7 @@ export default function Coach({
               Home has always said "You don't pick a guide — we read what you
               said and open the right one" (Home.tsx), and this screen then
               asked her to choose among five cards before she could ask
-              anything (docs/LOAD.md). `defaultModeFor` already computed the
+              anything (docs/DESIGN.md). `defaultModeFor` already computed the
               answer and the screen already badged it "For you" — it simply
               refused to act on it. Now the recommended voice is the thing on
               screen, and the other four are one tap away, unchanged, which is
@@ -423,7 +423,7 @@ export default function Coach({
             this one switched voice instead — so the guide was the one screen
             you could not leave in a tap. Switch keeps the pill beside the
             label and the inline link under the routing note; this is the way
-            out (docs/PLACE.md). */}
+            out (docs/DESIGN.md). */}
         <BackButton onClick={onBack} />
         <span
           className={`flex h-10 w-10 flex-none items-center justify-center rounded-2xl ${accentSoft[activeMode.accent]} ${accentText[activeMode.accent]}`}
@@ -502,7 +502,7 @@ export default function Coach({
 
           {/* Nine different failures used to arrive as the same canned answer
               in the same bubble, with nothing to tell her the guide was never
-              reached (docs/FAIL.md). It costs no reply, and the words are
+              reached (docs/DESIGN.md). It costs no reply, and the words are
               still worth reading, so this is a note rather than an error. */}
           {!reachedGuide && !cutOff && !thinking && !onDeviceOnly && (
             <p role="status" className="animate-fade px-1 text-[0.82rem] leading-relaxed text-muted text-pretty">
@@ -724,7 +724,7 @@ function GuideWords({ text }: { text: string }) {
           <button
             onClick={async () => {
               // Only on a copy that happened. This used to set it regardless,
-              // having caught the rejection (docs/NORMAN.md).
+              // having caught the rejection (docs/DESIGN.md).
               try {
                 if (!navigator.clipboard) throw new Error('no clipboard')
                 await navigator.clipboard.writeText(script)

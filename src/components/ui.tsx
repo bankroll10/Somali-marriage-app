@@ -40,7 +40,7 @@ export function Logo({
  * a five-percent forest ring on cream, which is to say nothing. Because it
  * carried a class it also beat the zero-specificity global focus outline in
  * index.css, so every text field in the product had a weaker focus indicator
- * than every button beside it (docs/NORMAN.md). Now the ring is visible, and
+ * than every button beside it (docs/DESIGN.md). Now the ring is visible, and
  * `outline-none` is gone so the global rule still applies where this does not.
  */
 export const fieldClass =
@@ -79,8 +79,8 @@ export function Button({ variant = 'primary', className = '', children, ...rest 
  * A same-weight text action — "Skip", "Cancel", "Not now" — that shouldn't
  * look like a Button. Every call site kept hand-rolling this as a bare
  * underlined string with little or no padding, which is how ~26 of them
- * across the app ended up 16-29px tall (docs/MOBILE.md), well under the
- * touch-target floor docs/NORMAN.md already set for BackButton.
+ * across the app ended up 16-29px tall (docs/DESIGN.md), well under the
+ * touch-target floor docs/DESIGN.md already set for BackButton.
  *
  * This adds only the invisible tap-target floor. Text size, color and hover
  * treatment all stay with the caller via `className`, on purpose — the
@@ -168,7 +168,7 @@ export function BackButton({
       onClick={onClick}
       aria-label={label}
       // 44px: this sits on fourteen screens and was 36, under every
-      // touch-target guideline there is (docs/NORMAN.md).
+      // touch-target guideline there is (docs/DESIGN.md).
       className={`flex h-11 w-11 flex-none items-center justify-center rounded-full transition ${tones[tone]} ${className}`}
     >
       <BackIcon />
@@ -330,7 +330,7 @@ export function TypingDots() {
  * nothing else — a swapped button label that clears itself after two seconds,
  * a coloured paragraph. The whole app contained one live region, on the
  * guide's thread, so tapping "Copy the words" put them on the clipboard and
- * announced nothing at all (docs/NORMAN.md).
+ * announced nothing at all (docs/DESIGN.md).
  *
  * Renders nothing visible. Keep it mounted across the state change rather than
  * mounting it with the message, or there is nothing there to announce into.
@@ -349,14 +349,14 @@ export function Announce({ message }: { message: string }) {
  * Progressive disclosure, made a primitive. Niyyah's most honest screens were
  * also its heaviest: Trust said everything true about where a person's answers
  * live, in 2,366 rendered words and nine phone screens of continuous prose,
- * two of its paragraphs 562 and 536 words long (docs/LOAD.md). Nothing there
+ * two of its paragraphs 562 and 536 words long (docs/DESIGN.md). Nothing there
  * could be cut — every sentence matches a line of code that sends something —
  * so the fix is not fewer words. It is fewer words *at once*.
  *
  * `Read.tsx` had already worked out the right affordance twice by hand: the
  * native marker stripped, a chevron that rotates, and a hint that disappears
  * once the thing is open, because on a phone there is no hover to fall back on
- * (docs/NORMAN.md). This is those two blocks, extracted, so every screen in
+ * (docs/DESIGN.md). This is those two blocks, extracted, so every screen in
  * the product opens the same way.
  *
  * `hint` is what the row says while it is closed: make it the *answer* rather
@@ -401,7 +401,7 @@ export function Disclose({
  * three screens — and not on the read, the eleven or the couple sheet, which
  * are the ones a stranger arrives on from somebody else's link and the only
  * ones carrying a draft to lose
- * (docs/FAIL.md).
+ * (docs/DESIGN.md).
  *
  * `what` names the thing at risk on this screen, because "your progress" means
  * nothing to a man answering eleven questions about his own marriage.

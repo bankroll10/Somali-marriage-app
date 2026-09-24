@@ -6,7 +6,7 @@ import { useEffect, type RefObject } from 'react'
  * A sighted user sees a whole new screen — or a whole new phase of one — at
  * once; a keyboard or screen-reader user is told nothing changed unless focus
  * moves. It otherwise stays wherever it was, on a now-unmounted element,
- * defaulting to `<body>` (docs/ACCESS.md). `tabIndex=-1` makes an otherwise
+ * defaulting to `<body>` (docs/DESIGN.md). `tabIndex=-1` makes an otherwise
  * inert heading a valid, one-time focus target without adding it to the tab
  * order, and is removed again once focus leaves it.
  *

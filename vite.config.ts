@@ -15,7 +15,7 @@ const DEFAULT_SITE_HOST = 'joinniyyah.com'
 
 /**
  * The brand strings index.html carries, filled from src/data/brand.ts at
- * build time so the community's name has one home (docs/BACKWARD.md's
+ * build time so the community's name has one home (docs/PRODUCT.md's
  * institution rule, made enforceable — see that file).
  */
 const BRAND: Record<string, string> = {

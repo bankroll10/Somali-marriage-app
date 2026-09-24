@@ -52,12 +52,12 @@ export const STAGES = new Set(['preparing', 'talking', 'deciding', 'married'])
  * Must match src/lib/entry.ts. What kind of link first brought a person here —
  * never who sent it; the link does not carry that. `group` is a link shared
  * into a community's chat rather than sent to one person: the kind of room,
- * never the room (docs/WEDGE.md). `alumni`, `professional` and `mosque` say
+ * never the room (docs/PRODUCT.md). `alumni`, `professional` and `mosque` say
  * which kind of room, so the eight-week pivot rule can be read from the
- * readout — still never which room, never a person (docs/BOARD.md). `press`
+ * readout — still never which room, never a person (docs/DECISIONS.md). `press`
  * is not a room at all: a publication that printed the link, never which one,
  * and deliberately outside the room kinds the pivot rule reads
- * (src/lib/entry.ts, docs/WEDGE.md).
+ * (src/lib/entry.ts, docs/PRODUCT.md).
  */
 export const VIAS = new Set(['words', 'eleven', 'couple', 'family', 'married', 'group', 'alumni', 'professional', 'mosque', 'press'])
 
@@ -175,7 +175,7 @@ export const SAFETY_REASONS = new Set(['harassment', 'threats', 'sexual', 'alrea
 export const SAFETY_OUTCOMES = new Set(['spoke-to-them', 'told-the-family', 'not-enough', 'no-action'])
 
 /**
- * The reasons that cannot wait for Monday (docs/ABUSE.md): an open report
+ * The reasons that cannot wait for Monday (docs/SECURITY.md): an open report
  * with one of these fails the founder's daily health check. Server-only — the
  * app never sends urgency, only the reason; `/health` decides.
  */

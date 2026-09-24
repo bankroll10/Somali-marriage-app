@@ -10,7 +10,7 @@ import { buildSystemPrompt, sanitiseContext } from '../netlify/shared/prompt'
  * most clinically sensitive answers in the intake — and up to ten earlier
  * turns of the conversation, none of which the sentence named. Nothing was
  * hidden on purpose; four fields were added to the prompt over time and the
- * disclosure was not (docs/BOARD.md, the reality-sprint pass).
+ * disclosure was not (docs/DECISIONS.md, the reality-sprint pass).
  *
  * So the disclosure is checked against the prompt itself rather than against a
  * list someone remembered to update. Every slot the prompt fills is built here

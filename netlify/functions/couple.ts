@@ -56,7 +56,7 @@ const DEFAULT_HOURLY_CAP = 200
  * Answers to a sent eleven in one hour, from everyone. This side used to be
  * uncapped on the reasoning that his answer is bounded by the links that
  * exist — but a guessed live code is also an answer, and one that freezes her
- * sheet for ever and pollutes the joint tally (docs/BOARD.md). Bounded like a
+ * sheet for ever and pollutes the joint tally (docs/DECISIONS.md). Bounded like a
  * read, well above any real hour, so refusing it never costs the one thing
  * she asked him to do.
  */
@@ -183,7 +183,7 @@ export default async function handler(req: Request) {
     // needed one at all.
     if (await overHourlyCap('couple-read', DEFAULT_READ_CAP)) return rateLimited()
     // Never cached: where two people agree and differ is the pair's own
-    // business, keyed by a secret (docs/THREAT.md, T4).
+    // business, keyed by a secret (docs/SECURITY.md, T4).
     const headers = { 'Cache-Control': 'no-store' }
     try {
       const record = (await store.get(code, { type: 'json' })) as CoupleRecord | null
@@ -208,7 +208,7 @@ export default async function handler(req: Request) {
    * code inside her kept snapshot, and `createCouple` needs no map code at
    * all. So a woman who sent him the eleven, kept nothing, and tapped forget
    * me was told it was done while both sheets sat here for the rest of the
-   * ninety days (docs/BOARD.md).
+   * ninety days (docs/DECISIONS.md).
    *
    * Possession of the couple code is the authority, exactly as it is for
    * reading the joint — and both of them hold it, which is right: either one
@@ -306,7 +306,7 @@ export default async function handler(req: Request) {
         expiresAt: day(now + TTL_MS),
       }
       // Never the code of a sheet that is gone: its reports, and the window to
-      // make one, belong to the pair they are about (docs/INTEGRITY.md).
+      // make one, belong to the pair they are about (docs/PRIVACY.md).
       const minted = await mintFree(store, stamp(record), async (c) => !!(await store.getMetadata(goneKey(c))))
       if (!minted) {
         await failed('couple', 'every minted code collided')
@@ -338,7 +338,7 @@ export default async function handler(req: Request) {
       // because the check above is not a lock: two taps landing together both
       // passed it, both wrote, and `countPair` ran twice — one pair counted
       // twice in a permanent tally that carries no code to reconcile against
-      // (docs/FAIL.md).
+      // (docs/DESIGN.md).
       const written = held?.etag
         ? await store.setJSON(code, stamp(updated), { onlyIfMatch: held.etag })
         : await store.setJSON(code, stamp(updated), { onlyIfNew: true })

@@ -99,7 +99,7 @@ export function buildEnding(i: EndingInput, today: string): Ending {
 
   // The read — what the other person had shown, before anyone was sure. Said
   // from whichever side is reading: a married man used to read "what he had
-  // done" about himself (docs/VOICE.md).
+  // done" about himself (docs/DESIGN.md).
   if (i.read) {
     lines.push({
       text: speak(i.gender)('You took a read on what {he} had done, rather than what {he} said.'),

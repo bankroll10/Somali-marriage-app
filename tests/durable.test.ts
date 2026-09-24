@@ -13,7 +13,7 @@ import type { Answers } from '../src/types'
  * marriage that lasts, reached without losing dignity, faith, time or peace.
  * Nothing in that sentence depends on a model.
  *
- * So the rule, in full — docs/DURABLE.md:
+ * So the rule, in full — docs/PRODUCT.md:
  *
  *   A model may add a layer on top of something the product already does
  *   completely without it. It may never be the thing that produces the map,
@@ -114,7 +114,7 @@ describe('the product survives its suppliers', () => {
       'A model may add to what this product already does; it may never be what ' +
         'produces it. Live-model code belongs in netlify/functions/guide.ts and ' +
         'src/lib/coach.ts, which have a complete local voice behind them. See ' +
-        `docs/DURABLE.md. Found: ${offenders.join(', ')}`,
+        `docs/PRODUCT.md. Found: ${offenders.join(', ')}`,
     ).toEqual([])
   })
 
@@ -132,7 +132,7 @@ describe('the product survives its suppliers', () => {
   it('the map builds with no network at all', async () => {
     // The map is the durable asset: it is what gets matched, and it is computed
     // on her own device from a question set that is ours. docs/PRODUCT.md once
-    // planned to put a model behind it; docs/DURABLE.md declines, and this is
+    // planned to put a model behind it; docs/PRODUCT.md declines, and this is
     // the assertion that keeps it declined.
     vi.stubGlobal('fetch', () => {
       throw new Error('the map must never need the network')
@@ -154,7 +154,7 @@ describe('the product survives its suppliers', () => {
     // Links do not come back to be corrected. Whatever address they carry is
     // the address they carry for ever, so it has to be one that DNS can move —
     // never a subdomain a supplier can reclaim, rename, or take with them.
-    // docs/CONTROL.md ranks this first of every dependency; docs/OWNED.md is
+    // docs/OPS.md ranks this first of every dependency; docs/OPS.md is
     // why it is the difference between renting and owning.
     const site = readFileSync(join(process.cwd(), 'src/lib/site.ts'), 'utf8')
     const host = site.match(/DEFAULT_SITE_HOST = '([^']+)'/)?.[1]
@@ -165,7 +165,7 @@ describe('the product survives its suppliers', () => {
       LANDLORDS.test(host!),
       `the default address is ${host}, which belongs to a platform rather than ` +
         'to us. Every link ever sent would die with that account and there is ' +
-        'no DNS to repoint. Use a domain we own — see docs/OWNED.md',
+        'no DNS to repoint. Use a domain we own — see docs/OPS.md',
     ).toBe(false)
 
     // And the address a member writes to should live on the same owned domain,
@@ -181,7 +181,7 @@ describe('the product survives its suppliers', () => {
     // it will outlive every one of them.
     const share = read('src/lib/share.ts')
     expect(share).toContain('navigator.share')
-    expect(share, 'sharing must name no third-party host — see docs/CONTROL.md').not.toMatch(
+    expect(share, 'sharing must name no third-party host — see docs/OPS.md').not.toMatch(
       /https?:\/\/(?!localhost)/,
     )
   })

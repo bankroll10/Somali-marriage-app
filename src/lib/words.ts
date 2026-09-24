@@ -21,7 +21,7 @@ export function wordsLink(source: WordsSource): string {
       // Which side to read is unknown here — a script carries no gender, and
       // threading one through would touch three call sites (ScriptCard,
       // Coach's guide words, home/FollowUp) for a card that still names the
-      // product correctly. Left as the query form; see docs/LINKS.md.
+      // product correctly. Left as the query form; see docs/DESIGN.md.
       return instrumentLink('read', 'words')
     case 'eleven':
       return toolLink('before-you-say-yes', 'eleven')

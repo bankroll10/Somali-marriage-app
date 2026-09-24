@@ -11,7 +11,7 @@ import { failed, note } from './ops'
  * see a bill spike until the statement arrived. Thirty days of that, unwatched,
  * is a real amount of money. That was the first cap, on the guide.
  *
- * The rest followed in the Scale pass (docs/SCALE.md), for a reason the guide
+ * The rest followed in the Scale pass (docs/OPS.md), for a reason the guide
  * did not have: every other public write lands in storage on a free plan. A
  * `keep` loop is the cheapest way to spend the plan's storage; a `progress`
  * loop the cheapest way to make the founder's readout time out. A cap does
@@ -24,7 +24,7 @@ import { failed, note } from './ops'
  * left a loop running against this endpoint for a month" survivable, not to
  * shape how any real member uses anything. Every default sits well above any
  * real hour this product has seen; a launch day is the one time to raise them
- * (docs/DEPLOY.md names the variables).
+ * (docs/OPS.md names the variables).
  *
  * Conditional writes lose a race now and then under real concurrency; a few
  * retries cover it, and exhausting them fails open. A rate limiter that could
@@ -85,7 +85,7 @@ export async function capState(bucket: string, cap: number, period: Period = 'h'
     // awaits this *outside* its own try, so a throw here was an unhandled
     // rejection and a platform 500 with a non-JSON body, on every capped
     // endpoint at once. That is precisely the failure the note above says a
-    // rate limiter must never cause (docs/FAIL.md).
+    // rate limiter must never cause (docs/DESIGN.md).
     const store = getStore({ name: 'limits', consistency: 'strong' })
     const key = periodKey(bucket, period)
     const counted = await bump(store, key, 1, cap)
@@ -138,7 +138,7 @@ export async function underLimit(bucket: string, cap: number, period: Period = '
  * The variable a bucket reads its cap from. A bucket name may carry a hyphen
  * (`couple-read`), and a hyphen is not a character an environment variable
  * name can hold — so it becomes an underscore, and `couple-read` reads
- * `COUPLE_READ_HOURLY_CAP`, the name docs/DEPLOY.md has always given it.
+ * `COUPLE_READ_HOURLY_CAP`, the name docs/OPS.md has always given it.
  * Until this existed the function looked for `COUPLE-READ_HOURLY_CAP`, which
  * nothing can set, so the documented variable silently never bound.
  */
@@ -166,7 +166,7 @@ export async function overHourlyCap(bucket: string, fallback: number): Promise<b
  * `netlify/functions/guide.ts`). A
  * storage outage under the guide used to mean every call went through and the
  * only bound left was a console spend limit nobody had written down
- * (docs/RISKS.md R5). The member sees the same 503 as at the cap, and the
+ * (docs/PRODUCT.md R5). The member sees the same 503 as at the cap, and the
  * offline voice answers her.
  */
 export async function overCapOrUnknown(bucket: string, fallback: number, period: Period): Promise<boolean> {

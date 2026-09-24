@@ -211,7 +211,7 @@ ratchet will show it.
 - **Run the live suite:** `ANTHROPIC_API_KEY=… npm run eval:guide`. That is
   about 108 calls (a guide call and a judge call per case), four at a time,
   roughly $4. The report states the tokens and the cost.
-- **In CI:** add `ANTHROPIC_API_KEY` as a repository secret (`docs/DEPLOY.md`).
+- **In CI:** add `ANTHROPIC_API_KEY` as a repository secret (`docs/OPS.md`).
   Until then the workflow warns and passes.
 - **Add a case:** append it to `cases.ts` in its category's run. Fill
   `expect` only with what is true of this message, write its `note`, then
@@ -225,7 +225,7 @@ ratchet will show it.
 
 ## What it cannot measure
 
-- **Whether a member is helped.** The ladder measures that (`docs/LEARNING.md`),
+- **Whether a member is helped.** The ladder measures that (`docs/PRIVACY.md`),
   and nothing here replaces it: a 5 from a judge is not a marriage.
 - **Every phrasing.** 54 cases are a sample. A failure in the wild becomes a
   case the day it is found, which is how the suite grows.

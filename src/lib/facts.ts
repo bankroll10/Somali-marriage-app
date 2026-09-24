@@ -50,7 +50,7 @@ export interface Facts {
    * What she asked, ever, as a set: today only `guide`. One bit, never a count
    * — the same shape as `began`, and for the same reason. The guide is the one
    * metered cost and, without this, the one thing unmeasurable before an
-   * ending (docs/EXPERIMENTS.md A3, docs/BOARD.md decision 15).
+   * ending (docs/RESEARCH.md A3, docs/DECISIONS.md decision 15).
    */
   asked?: string[]
 }

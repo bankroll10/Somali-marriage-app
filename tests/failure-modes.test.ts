@@ -13,7 +13,7 @@ vi.mock('@netlify/blobs', async () => (await import('./support/blobs')).blobsMod
  * Each passed on code that was wrong in a new way and failed on a harmless
  * rename. Here each
  * failure is made to happen, against every route it applies to, and the route
- * is held to what the member sees (docs/FAIL.md, docs/TESTING.md, "Pruned").
+ * is held to what the member sees (docs/DESIGN.md, docs/TESTING.md, "Pruned").
  */
 
 /** Every route that takes a body, with one a real client would send. */

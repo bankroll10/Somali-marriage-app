@@ -68,7 +68,7 @@ export type ReadAnswers = Record<string, string>
  * weight the five .26/.21/.20/.19/.14 and sum them into an `overall` that
  * decided the band — numbers nobody had measured, invisible to her, which
  * could call a man "strong" while her own screen said he had not yet shown
- * how he handles hard things (docs/ALIGNMENT.md S3). The band is now read from
+ * how he handles hard things (docs/PRODUCT.md S3). The band is now read from
  * the states she can see.
  */
 const PRIORITY: ReadDimension[] = ['public', 'pressure', 'intent', 'family', 'consistency']
@@ -193,7 +193,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
   // ── Money, before the families ───────────────────────────────────────────
   // Not a measure of how serious {he} is — the man running a romance scam is
   // often the most attentive man she has met — so it is not scored. It is
-  // named, above everything else, because it is what scams do (docs/ABUSE.md).
+  // named, above everything else, because it is what scams do (docs/SECURITY.md).
   if (answers.money === 'yes') {
     return {
       band: 'caution',

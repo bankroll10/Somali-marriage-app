@@ -14,11 +14,11 @@
  * one person. Never who sent it. It is the only attribution this product
  * records, and it is validated here so that nothing else can ride along under
  * that name. `group` is the one the first forty are found through — see
- * docs/WEDGE.md — and it names the kind of room, never the room. Its three
+ * docs/PRODUCT.md — and it names the kind of room, never the room. Its three
  * siblings — `alumni`, `professional`, `mosque` — name the kind of room more
  * exactly, because the eight-week rule pivots "channel first" and a single
  * `group` cell could not tell which kind of room produced the men
- * (docs/BOARD.md). A kind of room is still not a person, and never which
+ * (docs/DECISIONS.md). A kind of room is still not a person, and never which
  * room; added before the first post because it cannot be retrofitted.
  *
  * `press` is a third kind rather than a finer split of the second. The first
@@ -28,7 +28,7 @@
  * never names the room. It exists because an article is not a room: nobody in
  * it was asked by name, the readership is whatever the publication has, and it
  * is read from anywhere in the world. Filed as `group` it would sit in the one
- * cell docs/WEDGE.md's eight-week rule reads — `sidesByVia.man.group.arrived`
+ * cell docs/PRODUCT.md's eight-week rule reads — `sidesByVia.man.group.arrived`
  * — and the pivot on the wedge channel would be decided partly by strangers
  * who never saw the wedge. Added on 2026-09-19 for the same reason as the
  * three above and with the same urgency: an article link is minted once, into
@@ -38,7 +38,7 @@
  * in src/data/tools.ts — so that a link can be understood before it is opened
  * and survives a reload. `families` joined the original three on 2026-09-21,
  * once an audit found it still query-only and previewing as the homepage in
- * every messaging app (`docs/LINKS.md`). A path is recognised
+ * every messaging app (`docs/DESIGN.md`). A path is recognised
  * here too, before the query, because a tool path is minted deliberately and
  * no link this product hands out puts a code on one. The query-string forms
  * stay, unchanged, for every link already sitting in someone's messages.
@@ -141,7 +141,7 @@ export function pathFor(screen: string, reader: ToolSide | undefined, current: s
  * who backgrounded the tab mid-eleven, or whose phone reloaded it, came back
  * to a marketing page with his answers gone and no way to reach the sheet
  * again: the link was no longer in the bar, and it was on her phone, not his
- * (docs/FAIL.md).
+ * (docs/DESIGN.md).
  *
  * Only `couple` is held. `map` needs no screen, and the
  * instruments already survive by their own path or their draft.

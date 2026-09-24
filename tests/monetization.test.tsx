@@ -10,13 +10,13 @@ import { audit } from './support/a11y'
 import { mount, type Mounted } from './support/render'
 
 /**
- * Nothing is for sale — held to docs/MONETIZATION.md.
+ * Nothing is for sale — held to docs/PRODUCT.md.
  *
  * There is no price and no paid line: the Plus screen that described what
  * might one day cost money went on 2026-09-24, and its three promises moved
  * to Trust. What stops the rest drifting back is here: the one screen a
  * marriage is reported from asks for nothing, the guide never sells, and no
- * payment code arrives before a gate in docs/MONETIZATION.md has passed.
+ * payment code arrives before a gate in docs/PRODUCT.md has passed.
  */
 
 let screen: Mounted | undefined
@@ -47,7 +47,7 @@ describe('what she is promised', () => {
 
   it('the guide never sells: no voice mentions a payment, a price or an upgrade', () => {
     // The guide is the thing members trust most. The day it says a human one
-    // costs money, the advice is a funnel (docs/MONETIZATION.md, the
+    // costs money, the advice is a funnel (docs/PRODUCT.md, the
     // incentive audit).
     const ctx = { answers: {}, identity: { firstName: 'Hodan', gender: 'woman' as const } }
     const said = modes.flatMap((m) => [m.greeting(ctx as never), m.fallback(ctx as never), ...m.intents.map((i) => i.respond(ctx as never)), ...m.starters.map((s) => s.prompt)])
@@ -74,7 +74,7 @@ describe('what she is promised', () => {
 
 describe('no payment code before a gate passes', () => {
   it('package.json carries no payment SDK', () => {
-    // docs/MONETIZATION.md, "No payment infrastructure": payments start by
+    // docs/PRODUCT.md, "No payment infrastructure": payments start by
     // hand — an invoice, a bank transfer, a hosted link — once a gate in its
     // section B has passed, and code only when collecting by hand is the
     // bottleneck. Adding one of these means that page records the gate that
@@ -82,8 +82,8 @@ describe('no payment code before a gate passes', () => {
     const pkg = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'))
     const deps = Object.keys({ ...pkg.dependencies, ...pkg.devDependencies })
     const payment = deps.filter((d) => /stripe|paypal|braintree|square|lemon-?squeezy|paddle|chargebee|recurly|adyen/i.test(d))
-    expect(payment, 'no gate in docs/MONETIZATION.md has passed').toEqual([])
-    const doc = readFileSync(join(process.cwd(), 'docs/MONETIZATION.md'), 'utf8')
+    expect(payment, 'no gate in docs/PRODUCT.md has passed').toEqual([])
+    const doc = readFileSync(join(process.cwd(), 'docs/PRODUCT.md'), 'utf8')
     expect(doc).toMatch(/No gate has passed/)
   })
 })

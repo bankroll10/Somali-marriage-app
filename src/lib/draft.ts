@@ -14,7 +14,7 @@ import type { Gender } from '../types'
  * question nine motivation is as high as it will ever be — she has spent
  * ninety seconds and is one tap from the thing she came for — and ability
  * drops to zero for a reason that has nothing to do with her
- * (docs/FOGG.md). Nothing here raises motivation. It removes an obstacle.
+ * (docs/DESIGN.md). Nothing here raises motivation. It removes an obstacle.
  *
  * Three rules, so this never becomes something else:
  *
@@ -45,7 +45,7 @@ const DAY_MS = 24 * 60 * 60 * 1000
  * no draft at all: every answer lived in React state until the eleventh, so a
  * reload, a backgrounded tab or a lost connection cost him all of them — and
  * the code went with them, because the query is stripped from the bar
- * (docs/FAIL.md).
+ * (docs/DESIGN.md).
  */
 export type DraftKind = 'read' | 'eleven' | 'couple'
 

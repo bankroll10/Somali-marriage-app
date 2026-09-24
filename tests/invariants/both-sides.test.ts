@@ -13,7 +13,7 @@ import { beforeYesAnswers, readAnswers } from '../support/arbitrary'
  *
  * Every instrument is read by one side about the other. A man reading a woman
  * must never be told what "he" intends; a woman must never be handed a script
- * about "her". It happened on the live site on 2026-09-12 (docs/BOARD.md), and
+ * about "her". It happened on the live site on 2026-09-12 (docs/DECISIONS.md), and
  * a sweep of fixed answers through the read and the eleven caught it (those
  * sets live on in src/lib/read.test.ts). This generalises it: *generated*
  * answers, on both sides, through every engine that writes prose about the

@@ -1,6 +1,6 @@
 /**
  * One in-memory Netlify Blobs, for the tests that break things on purpose
- * (tests/integrity.test.ts, docs/INTEGRITY.md).
+ * (tests/integrity.test.ts, docs/PRIVACY.md).
  *
  * What the real store does that the per-file doubles elsewhere only
  * approximate: an etag that changes on every write, so `onlyIfMatch` can

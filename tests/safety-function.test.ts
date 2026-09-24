@@ -49,7 +49,7 @@ describe('reporting a concern', () => {
     expect(answer.received).toBe(true)
 
     const stored = JSON.parse([...stores.get('reports')!.values()][0])
-    // Nothing comes back that could take it back (docs/ABUSE.md, coercion).
+    // Nothing comes back that could take it back (docs/SECURITY.md, coercion).
     expect(answer).toEqual({ received: true })
     expect(stored.reason).toBe('threats')
     expect(stored.details.length).toBe(500)
@@ -79,7 +79,7 @@ describe('the founder\'s queue', () => {
     // Every other readout here fails open, so a missing variable never locks
     // the founder out of her own numbers. That trade is wrong for free text
     // naming a specific person: one misconfigured deploy publishes it, and
-    // unlike a tally it cannot be un-published. docs/HARD.md.
+    // unlike a tally it cannot be un-published. docs/SECURITY.md.
     await post({ code: CODE, side: 'woman', reason: 'harassment' })
     expect((await get()).status).toBe(401)
 
@@ -162,7 +162,7 @@ describe('resolving a report', () => {
   })
 
   it('counts the resolved ones by kind of harm and by what was done', async () => {
-    // The taxonomy docs/GAPS.md names as its own test, which deleting made
+    // The taxonomy docs/RESEARCH.md names as its own test, which deleting made
     // permanently uncomputable.
     vi.stubEnv('FOUNDER_KEY', 'open-sesame')
     for (const reason of ['threats', 'threats', 'harassment']) {

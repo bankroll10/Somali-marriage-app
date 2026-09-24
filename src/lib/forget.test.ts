@@ -44,7 +44,7 @@ describe('forget me', () => {
     // snapshot. So a woman who sent him the eleven and kept nothing was told
     // forgetting was done while both sheets sat on the server for the rest of
     // the ninety days — while Trust says, with no condition, that this
-    // "deletes ... the eleven you sent him" (docs/BOARD.md).
+    // "deletes ... the eleven you sent him" (docs/DECISIONS.md).
     store.set('niyyah.intake.v1', JSON.stringify({ answers: {}, couple: { code: 'QRSTVW', sentAt: 'x' } }))
     store.set('niyyah.install.v1', 'HJKMNP')
     const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"ok":true}', { status: 200 }))
@@ -93,7 +93,7 @@ describe('forget me', () => {
   it('wipes everything but the codes still to delete when the server cannot be reached, and says which', async () => {
     seed()
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    // The code is named, so she can write in with it (docs/INTEGRITY.md).
+    // The code is named, so she can write in with it (docs/PRIVACY.md).
     expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true, code: 'ACDEFG' })
     // One key is left: the codes, and none of her answers.
     expect([...store.keys()]).toEqual(['niyyah.forget.pending.v1'])
@@ -128,7 +128,7 @@ describe('forget me', () => {
     // Forget me used to send every receipt this phone held and withdraw each
     // report. So "delete that app in front of me" erased the only record of a
     // threat — without the man standing over her ever knowing there was one
-    // (docs/ABUSE.md, coercion). A report is a message to a person now, like
+    // (docs/SECURITY.md, coercion). A report is a message to a person now, like
     // any sent message: it stays until the founder has read it, and then only
     // the kind of harm and what was done are kept.
     store.set('niyyah.intake.v1', '{"answers":{}}')
@@ -145,7 +145,7 @@ describe('forget me', () => {
     // The list itself; tests/forget-keys.test.ts is what proves it is complete, by
     // reading src/ for every key the app actually writes. A hand-written list
     // alone cannot do that, which is how `niyyah.draft.v1` would have been
-    // missed (docs/FOGG.md).
+    // missed (docs/DESIGN.md).
     expect(LOCAL_KEYS.sort()).toEqual(
       [
         'niyyah.draft.v1',

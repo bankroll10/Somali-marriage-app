@@ -41,7 +41,7 @@ interface Props {
   couple: CoupleState | null
   onCouple: (state: CoupleState) => void
   onBack: () => void
-  /** Trust, one tap from a public tool (docs/RISKS.md R4). */
+  /** Trust, one tap from a public tool (docs/PRODUCT.md R4). */
   onTrust?: () => void
 }
 
@@ -121,7 +121,7 @@ export default function BeforeYes({
    * already solved the same problem by carrying the side in its address
    * (src/data/tools.ts) — the eleven's address has no side to carry, so it
    * explains itself first and folds the question into starting, rather than
-   * guessing at anybody (docs/VALUE.md).
+   * guessing at anybody (docs/DESIGN.md).
    */
   function startAbout(g: Gender) {
     setGender(g)
@@ -165,7 +165,7 @@ export default function BeforeYes({
               screen — a returning person had to scroll past two hundred words
               to get back to the thing she was four answers into. Offered here
               and nowhere else: no badge, no reminder, nothing counting what
-              anyone has not finished (docs/FOGG.md). */}
+              anyone has not finished (docs/DESIGN.md). */}
           {draft && (
             <div className="animate-rise mt-6 rounded-card border border-gold/30 bg-gold/[0.07] p-5">
               <Button onClick={resume} className="group">
@@ -406,9 +406,9 @@ function Result({
       {/* Where she can go from here — one thing, and then a disclosure.
           This screen offered eight next actions at once, under one heading,
           at the moment a person has just been told which marriage
-          conversations she and he have never had (docs/LOAD.md). The read's
+          conversations she and he have never had (docs/DESIGN.md). The read's
           result had the same problem and was collapsed to three in
-          docs/VALUE.md; this is the same shape. Nothing is removed: the
+          docs/DESIGN.md; this is the same shape. Nothing is removed: the
           primary is whichever of the two genuinely comes next, and the rest
           are one tap away, named. */}
       <div className="mt-9 flex flex-col gap-3">
@@ -501,7 +501,7 @@ function List({ title, items, tone }: { title: string; items: TopicReading[]; to
   return (
     <div className="animate-rise mt-7">
       {/* A heading. 434 rendered words under one <h1> until 2026-09-18
-          (docs/LOAD.md). */}
+          (docs/DESIGN.md). */}
       <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted">{title}</h2>
       <ul className="mt-3 flex flex-col gap-2">
         {items.map((x) => (
@@ -539,7 +539,7 @@ function Together({
   const [state, setState] = useState<'idle' | 'sending' | 'error'>('idle')
   // 'asking' until the read lands. Null used to mean both "we have not looked
   // yet or could not" and "he has not answered", so a 503 rendered "He hasn't
-  // answered yet" about a man who may have answered days ago (docs/FAIL.md).
+  // answered yet" about a man who may have answered days ago (docs/DESIGN.md).
   const [view, setView] = useState<CoupleView | 'asking' | 'unreachable' | null>('asking')
   const [shared, setShared] = useState(false)
   const he = pronoun === 'him' ? 'he' : 'she'

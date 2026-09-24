@@ -22,13 +22,13 @@
  * away and drawn again, so every symbol is exactly as likely as every other.
  *
  * **What a code is worth.** It is the *sole* authenticator for a kept map — a
- * deliberate trade for having no accounts (`docs/CONTROL.md`) — which is why
+ * deliberate trade for having no accounts (`docs/OPS.md`) — which is why
  * minting must never overwrite (see `mint` below) and why every route that
  * redeems a code is rate limited (`netlify/shared/limit.ts`).
  *
  * **Eight symbols, since 2026-09-23.** Six was 23⁶ ≈ 148 million, about 27
  * bits, kept on the premise that the read caps bound enumeration
- * (docs/BOARD.md decision 12). They bound the *rate*, not the *fraction*: six
+ * (docs/DECISIONS.md decision 12). They bound the *rate*, not the *fraction*: six
  * routes each answer "does this map code exist?" on their own hourly cap —
  * 2,400 guesses an hour, 21 million a year — so one patient script found about
  * 14% of all kept maps a year at any membership size, two of those routes

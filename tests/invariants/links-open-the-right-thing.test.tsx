@@ -18,7 +18,7 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 
 /**
  * INVARIANT — a link opens the thing it was sent for, for the person it was
- * sent to (docs/TESTING.md, docs/LINKS.md).
+ * sent to (docs/TESTING.md, docs/DESIGN.md).
  *
  * Every link here is built by the product's own builders — the ones the share
  * buttons call — and followed the whole way: the URL is parsed as main.tsx

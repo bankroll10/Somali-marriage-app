@@ -4,7 +4,7 @@
  * A report is read within the week, and the product said nothing about what
  * to do before then: no emergency number, no helpline, anywhere in the app,
  * on a screen whose second reason is "Threatened me, or someone I know"
- * (docs/ABUSE.md). This is that line — the country's emergency number, and one
+ * (docs/SECURITY.md). This is that line — the country's emergency number, and one
  * national, free, round-the-clock line for abuse in a relationship.
  *
  * Every number was checked against the service's own site, or a government

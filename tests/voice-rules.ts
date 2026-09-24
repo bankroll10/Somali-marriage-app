@@ -1,5 +1,5 @@
 /**
- * The voice, as a list of things it does not say (docs/VOICE.md). Shared by
+ * The voice, as a list of things it does not say (docs/DESIGN.md). Shared by
  * the copy scan in tests/voice.test.ts and the Guide's tone grader in
  * tests/guide-eval/graders.ts, so the product's words and the guide's words
  * are held to one list.
@@ -28,7 +28,7 @@ export const BANNED: [RegExp, string][] = [
   [/\bplatform\b/i, 'startup — it is Niyyah, or nothing'],
   [/\bI want in\b/i, 'scarcity language put in her mouth'],
   [/\bsituationship/i, 'internet'],
-  [/decides? a Somali marriage/i, 'docs/PROTOCOL.md:386 — the example of an exaggerated claim'],
+  [/decides? a Somali marriage/i, 'docs/PROTOCOL.md, "Exaggerated" — its example of an exaggerated claim'],
   [/\bthe whole road\b/i, 'a sweeping claim about every family, made four times'],
   [/\bsingle (best|most)\b/i, 'a verdict from eleven taps'],
   [/\bno other app\b/i, 'a claim about every other app'],

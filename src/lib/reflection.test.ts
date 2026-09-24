@@ -4,7 +4,7 @@ import { allQuestions } from '../data/intake'
 import type { Answers, GroundState } from '../types'
 
 const STATES: GroundState[] = ['thin', 'steady', 'strong']
-/** Positions she holds — described, never rated (docs/ALIGNMENT.md S5). */
+/** Positions she holds — described, never rated (docs/PRODUCT.md S5). */
 const POSITIONS = ['faith', 'family', 'vision']
 
 /** The seeded demo member, kept in sync with lib/demo.ts. */
@@ -225,7 +225,7 @@ describe('what changed between readings', () => {
     const snap = snapshotOf({ ...demoAnswers, 'hardest-part': 'serious', household: 'near-family' }, '2026-06-20')
     // The hook is asked before the map and is not part of it.
     expect(snap.answers['hardest-part']).toBeUndefined()
-    // How you'd live moved into chapter two (docs/NORTHSTAR.md), so a change in
+    // How you'd live moved into chapter two (docs/PRODUCT.md), so a change in
     // whose house she pictures is now a change the next reading can name.
     expect(snap.answers['household']).toBe('near-family')
     expect(snap.answers['healing']).toBe('healing')
@@ -233,7 +233,7 @@ describe('what changed between readings', () => {
   })
 })
 
-// Moved from tests/alignment-audit.test.ts (docs/ALIGNMENT.md), when matching went.
+// Moved from tests/alignment-audit.test.ts (docs/PRODUCT.md), when matching went.
 describe('the map describes positions; it rates only readiness', () => {
   // Faith kept private, lighter in practice, no children in view, a long
   // timeline, family kept informed. Every one a position a person may hold.

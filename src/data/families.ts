@@ -19,7 +19,7 @@ import { speak, type Script } from './read'
  * asking him to send his people. The mirror of the second is his to walk, so
  * `approach-her-family` carries `for: 'man'`: it is the words for the step the
  * read now tells him is his, and until 2026-09-12 nothing in the product gave
- * them to him (docs/BOARD.md, "What the founder's own walk found").
+ * them to him (docs/DECISIONS.md, "What the founder's own walk found").
  */
 
 export interface FamilyScript {
@@ -119,7 +119,7 @@ const SCRIPTS: FamilyScript[] = [
   },
   // The two below were promised before they existed: "words for two families
   // meeting", and married Home's "the in-law conversations do not end at the
-  // nikah" (docs/DIFFERENTIATION.md).
+  // nikah" (docs/PRODUCT.md).
   {
     id: 'families-meet',
     title: 'Before the two families sit down',

@@ -121,7 +121,7 @@ describe('the pattern it declines to coach', () => {
 
 describe('money asked for before the families meet', () => {
   // The most common thing the worst people on a marriage platform do, and the
-  // read had no question that could see it (docs/ABUSE.md, romance scams).
+  // read had no question that could see it (docs/SECURITY.md, romance scams).
   it('is named as the shape scams take, whatever else he has shown', () => {
     const r = buildRead(answers({ money: 'yes' }))!
     expect(r.band).toBe('caution')
@@ -339,7 +339,7 @@ describe('the example on the introduction', () => {
   }
 })
 
-// Moved from tests/alignment-audit.test.ts (docs/ALIGNMENT.md), when matching went.
+// Moved from tests/alignment-audit.test.ts (docs/PRODUCT.md), when matching went.
 describe('the read summarises her answers; it does not predict', () => {
   // He named marriage, gave a date, his family knows, never asked for secrecy,
   // asked how to approach her family, and is steady — and he pushed back on

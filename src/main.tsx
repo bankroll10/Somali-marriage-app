@@ -104,7 +104,7 @@ void resolveEntry().then(
   () => render(null),
 )
 
-// The offline shell (src/lib/serviceWorker.ts, docs/LINKS.md). Production
+// The offline shell (src/lib/serviceWorker.ts, docs/DESIGN.md). Production
 // only — a dev-server module graph has nothing in common with a built
 // shell, and a worker left registered from `npm run dev` would keep
 // serving a stale localhost cache after the server stops. After `load`,

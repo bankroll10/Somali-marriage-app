@@ -16,7 +16,7 @@ interface Props {
   /**
    * A conversation someone was handed words for, days ago, with no Home to be
    * asked about it on — a stranger who took the family words, say. Asked here,
-   * where they land, instead of never (docs/DIFFERENTIATION.md).
+   * where they land, instead of never (docs/PRODUCT.md).
    */
   followUpAsk?: FollowUpAsk | null
   onAnswerFollowUp?: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
@@ -87,7 +87,7 @@ export default function Welcome({
               first sentence on the page was still selling it. Now the promise
               matches the routing, and the read — the one thing aimed at the
               highest-pain problem we can solve today — is in the first breath
-              rather than a card at the bottom. docs/NORTHSTAR.md.
+              rather than a card at the bottom. docs/PRODUCT.md.
 
               What is withheld is the real thing. This used to be a ring with
               "??" in it and "Your number is two minutes away" — a quiz-funnel
@@ -126,7 +126,7 @@ export default function Welcome({
               These three lines used to be written against a dating app — built
               by a Somali, stage-first, the conversations that break marriages —
               and every competitor in this category can say the first and third
-              (docs/DIFFERENTIATION.md). What none of them does is what these
+              (docs/PRODUCT.md). What none of them does is what these
               say now: work on the relationship she already has, put the same
               questions to him on his own phone, and come back to ask whether
               the conversation happened. The test is Situation.tsx's: a sentence
@@ -166,7 +166,7 @@ export default function Welcome({
                 </Button>
                 {/* The second door, beside the first. It was a card below the
                     fold — the one thing aimed at the highest-pain job, for the
-                    person who already has someone (docs/JOBS.md). */}
+                    person who already has someone (docs/PRODUCT.md). */}
                 <button
                   onClick={onRead}
                   className="group inline-flex items-center justify-center gap-2 rounded-full border border-cream/30 px-5 py-3 text-[0.95rem] font-medium text-cream transition hover:bg-cream/10"

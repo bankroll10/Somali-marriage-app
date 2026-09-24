@@ -28,7 +28,7 @@ describe('the Somali gate', () => {
   })
   it('pairs every Somali sentence with its own English gloss, as two fields, so an unread line is never a wall', () => {
     // Two fields rather than one string with a full stop between them
-    // (docs/ACCESS.md) — so a caller can mark just the Somali span lang="so"
+    // (docs/DESIGN.md) — so a caller can mark just the Somali span lang="so"
     // without a screen reader trying to pronounce the English as Somali too.
     for (const [key, { somali: line, english }] of Object.entries(SOMALI)) {
       expect(line.length, key).toBeGreaterThan(3)
@@ -53,7 +53,7 @@ describe('the money conversation sheet’s Somali translation', () => {
 
   it('the reference record itself still lives outside public/, where Vite’s publicDir can’t serve it', () => {
     // The built HTML is the public artifact; this table is documentation
-    // about it, same as docs/SHEET.md is for the English sheet — it isn't
+    // about it, same as docs/ASSETS.md is for the English sheet — it isn't
     // meant to be served on its own either way.
     expect(REF_PATH.startsWith('internal/')).toBe(true)
     expect(REF_PATH.startsWith('public/')).toBe(false)

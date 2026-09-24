@@ -257,7 +257,7 @@ export async function countStores(): Promise<Sizes> {
  * Did a store lose records it should not have? Compares today with the last
  * day on record. The weekly sweep removes lapsed records a few at a time;
  * a store losing a quarter of itself between two days is not the sweep
- * (docs/RECOVERY.md, "Deleted data"). The safety queue is held tighter: a
+ * (docs/OPS.md, "Deleted data"). The safety queue is held tighter: a
  * resolved report leaves a stub and nothing withdraws one, so its count only
  * falls when the queue is lost.
  */
@@ -285,7 +285,7 @@ export function dataCheck(now: Sizes, before: { day: string; sizes: Sizes } | nu
     summary:
       drops.length === 0
         ? `No store is smaller than on ${before.day}.`
-        : `Smaller than on ${before.day}: ${drops.join(', ')}. docs/RECOVERY.md, “Deleted data”, says what to do.`,
+        : `Smaller than on ${before.day}: ${drops.join(', ')}. docs/OPS.md, “Deleted data”, says what to do.`,
     numbers: { ...now, since: before.day, ...Object.fromEntries(Object.entries(before.sizes).map(([k, v]) => [`${k}Before`, v])) },
   }
 }

@@ -4,7 +4,7 @@ import { mint } from './code'
 import { stamp } from './record'
 
 /**
- * The few rules every multi-step write here is built from (docs/INTEGRITY.md).
+ * The few rules every multi-step write here is built from (docs/PRIVACY.md).
  *
  * Netlify Blobs has no transactions. It has a write that only lands on a key
  * that does not exist (`onlyIfNew`), a write that only lands on the version
@@ -104,7 +104,7 @@ export const isBookkeeping = (key: string) => key.startsWith(ENDED) || key.start
  * Blobs has no conditional delete, so this re-reads the version and deletes
  * only if it matches. It narrows the race — a map read as lapsed, renewed by
  * its owner a moment later, then deleted anyway — from the whole of a sweep to
- * the gap between two calls. docs/INTEGRITY.md names that gap rather than
+ * the gap between two calls. docs/PRIVACY.md names that gap rather than
  * pretending it is closed.
  */
 export async function deleteIfUnchanged(store: Store, key: string, etag: string | undefined): Promise<boolean> {

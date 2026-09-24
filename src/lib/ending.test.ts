@@ -103,7 +103,7 @@ describe('the one thing only a married person can send', () => {
   it('claims the eleven only when she did them', () => {
     // The record refuses to claim anything she did not do; the share must not
     // either — a template testimonial is the one thing that would poison the
-    // married referral in a community this tight (docs/BOARD.md).
+    // married referral in a community this tight (docs/DECISIONS.md).
     const without = marriedShare('Ask early.')
     expect(without.text).not.toMatch(/we went through/)
     expect(without.text).toMatch(/There are eleven conversations/)

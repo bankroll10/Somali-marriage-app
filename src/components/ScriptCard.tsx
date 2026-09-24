@@ -41,7 +41,7 @@ export default function ScriptCard({ script, title, preface, travel, onTaken }: 
       setTimeout(() => setCopied(false), 2200)
     } catch {
       // The words are on screen, which is why this used to say nothing at all
-      // — but the tap still produced no response of any kind (docs/NORMAN.md).
+      // — but the tap still produced no response of any kind (docs/DESIGN.md).
       setFailed(true)
       setTimeout(() => setFailed(false), 3200)
     }

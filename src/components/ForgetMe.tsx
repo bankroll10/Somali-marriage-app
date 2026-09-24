@@ -13,7 +13,7 @@ export type Forgot = () => Promise<{ map: boolean; progress: boolean; couple: bo
  * It lived only on Trust, which a married person could no longer reach. So the
  * Ending said "You can delete the app" while everything kept on
  * our server outlived the uninstall: the kept map for a year, the eleven for
- * ninety days, the step count for good (docs/DIFFERENTIATION.md). One block,
+ * ninety days, the step count for good (docs/PRODUCT.md). One block,
  * on both screens, so the two can never say different things about what it
  * deletes.
  */

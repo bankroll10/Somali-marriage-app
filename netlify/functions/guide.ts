@@ -25,11 +25,11 @@ interface Usage {
  * the same global caps every member draws from — and because the client reads
  * every failure as "fall back to the offline voice", the first sign of it
  * would have been a fortnight of members quietly getting the local matcher
- * while we believed we were watching the live guide (docs/BOARD.md, the
+ * while we believed we were watching the live guide (docs/DECISIONS.md, the
  * reality-sprint pass). The caller now names a mode and fills named slots;
  * anything else it sends, a `system` field included, goes nowhere.
  *
- * **On in production, deliberately** (docs/ROADMAP.md, 2026-09-10). This used
+ * **On in production, deliberately** (docs/PRODUCT.md, 2026-09-10). This used
  * to say the guide was dormant and that Trust's promise "must be rewritten in
  * the same change that switches this on". Both halves have since stopped being
  * true and the comment was telling the next engineer the opposite of the
@@ -40,14 +40,14 @@ interface Usage {
  *
  * Dormancy is still the behaviour with no key: 503, and the app falls back to
  * its local matcher. That is the fallback the whole error contract below is
- * built on, and it is also what docs/EXPERIMENTS.md's A3 would return the
+ * built on, and it is also what docs/RESEARCH.md's A3 would return the
  * product to — fewer than one in five who reach an ending naming the guide and
  * the live half goes. Keeping the model on was a decision, not a default, and
  * A3 is still the rule that can undo it.
  *
  * The model may never become load-bearing: it adds a layer on top of something
  * the product already does completely without it, and never produces the map,
- * the read or the eleven. docs/DURABLE.md holds the rule
+ * the read or the eleven. docs/PRODUCT.md holds the rule
  * and tests/durable.test.ts asserts it.
  */
 
@@ -85,7 +85,7 @@ const MODEL = 'claude-opus-5'
  *
  * So the day is the real bound on *calls*: four hundred replies is thirty
  * times any founding-scale day. But a cap on calls is not a cap on spend, and
- * this file used to claim one (docs/BOARD.md): with no limit on the body, one
+ * this file used to claim one (docs/DECISIONS.md): with no limit on the body, one
  * call could carry a multi-megabyte history — ~900k input tokens, nearly $5 —
  * and four hundred of those a day was ~$1,900 a day, not $250 a month. The
  * three bounds below close that: the body is measured before it is parsed
@@ -94,7 +94,7 @@ const MODEL = 'claude-opus-5'
  * The worst call is then ~8k tokens in and ~2k out — about nine cents — so the
  * worst unattended day is ~$36 and the worst month ~$1,100, against an
  * ordinary month near $8. The Anthropic console's monthly spend limit is the
- * bound outside the code (docs/DEPLOY.md); this is the bound inside it.
+ * bound outside the code (docs/OPS.md); this is the bound inside it.
  *
  * The refusal is the ordinary 503 the client already reads as "fall back to
  * the offline voice", so a member who meets a cap gets the local guide rather
@@ -263,7 +263,7 @@ export default async function handler(req: Request, _context: Context) {
   // have refused anyway. Both checks fail closed: this is the one route that
   // bills per call, so a counter that cannot be read is a refusal here, where
   // on every storage route it is an allowance (netlify/shared/limit.ts,
-  // docs/RISKS.md R5). The member gets the offline voice either way.
+  // docs/PRODUCT.md R5). The member gets the offline voice either way.
   if (await overCapOrUnknown('guide', DEFAULT_DAILY_CAP, 'd')) {
     return rateLimited()
   }

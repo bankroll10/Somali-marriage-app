@@ -59,7 +59,7 @@ describe('keeping a map', () => {
     expect(code).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{8}$/)
     const restored = await get(code)
     // Her whole map, keyed by a secret in the URL: never cached, by a browser
-    // or anything between (docs/THREAT.md, T4). Nor is "nothing here".
+    // or anything between (docs/SECURITY.md, T4). Nor is "nothing here".
     expect(restored.headers.get('cache-control')).toBe('no-store')
     const back = await restored.json()
     expect(back.snapshot.identity.firstName).toBe('Sagal')
@@ -69,7 +69,7 @@ describe('keeping a map', () => {
   it('a supplied code is never created — nothing under it is a 404, and the client mints fresh', async () => {
     // This used to write whatever code the body carried, skipping mint's
     // onlyIfNew and letting a guessed code land on a stranger's map
-    // (docs/HARD.md row 3, docs/BOARD.md).
+    // (docs/SECURITY.md row 3, docs/DECISIONS.md).
     const res = await post({ snapshot: { identity: { firstName: 'Sagal' } }, code: 'ACDEFG' })
     expect(res.status).toBe(404)
     expect((await res.json()).error).toBe('not_found')
@@ -166,7 +166,7 @@ describe('keeping a map', () => {
     expect(stores.get('reports')!.has('resolved/QRTWXY')).toBe(true)
     expect(stores.get('couples')!.has('QRTWXY')).toBe(true)
     // Asking again finishes whatever a first attempt left, and says it is done
-    // (docs/INTEGRITY.md); the code opens nothing, and says why.
+    // (docs/PRIVACY.md); the code opens nothing, and says why.
     const again = await forget('ACDEFG')
     expect(again.status).toBe(200)
     expect(await again.json()).toEqual({ forgotten: true })

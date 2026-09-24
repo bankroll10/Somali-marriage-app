@@ -6,7 +6,7 @@
  * sheet existed (netlify/functions/safety.ts). But the sheet is not hers to
  * keep: both people hold the code, and either can delete it — so the man she
  * means to report could make every report she tried a 404 with one request,
- * and her screen said "Didn't send — try again" (docs/ABUSE.md, harassment).
+ * and her screen said "Didn't send — try again" (docs/SECURITY.md, harassment).
  * Forget me took it too, and the sweep takes every sheet at ninety days —
  * which is about when someone who was frightened decides to say so.
  *

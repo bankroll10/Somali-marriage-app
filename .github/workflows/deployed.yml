@@ -16,7 +16,7 @@
 # nobody holds answers "not found" — a 404 it could only give after asking
 # the store; a store that cannot answer is a 503). A
 # failure names the rollback — Netlify → Deploys → the last green deploy →
-# Publish deploy (docs/DEPLOY.md, "Rolling back"; docs/RECOVERY.md).
+# Publish deploy (docs/OPS.md, "Rolling back"; docs/OPS.md).
 name: deployed
 
 on:
@@ -61,8 +61,8 @@ jobs:
               if [ "$kept" != "404" ] || ! jq -e '.error == "not_found"' kept.json > /dev/null 2>&1; then broken="$broken a restore of an unused code answered $kept (storage or the keep route is broken);"; fi
               rm -f page.html kept.json
               if [ -n "$broken" ]; then
-                echo "::error::$WANT is live and broken:$broken Roll back: Netlify → Deploys → the last green deploy → Publish deploy. docs/DEPLOY.md, 'Rolling back'."
-                echo "**Live, and broken:**$broken Roll back — docs/DEPLOY.md, “Rolling back”." >> "$GITHUB_STEP_SUMMARY"
+                echo "::error::$WANT is live and broken:$broken Roll back: Netlify → Deploys → the last green deploy → Publish deploy. docs/OPS.md, 'Rolling back'."
+                echo "**Live, and broken:**$broken Roll back — docs/OPS.md, “Rolling back”." >> "$GITHUB_STEP_SUMMARY"
                 exit 1
               fi
               echo "The page, the functions and storage all answer." >> "$GITHUB_STEP_SUMMARY"

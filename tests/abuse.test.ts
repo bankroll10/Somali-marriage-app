@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { memStore, stores } from './support/memory'
 
 /**
- * The abuse cases in docs/ABUSE.md that a server can answer, each written
+ * The abuse cases in docs/SECURITY.md that a server can answer, each written
  * against the code before it was fixed and watched fail.
  */
 
@@ -95,7 +95,7 @@ describe('a report is filed as the side that files it', () => {
 
 describe('an urgent report does not wait for Monday', () => {
   // The only alert was a job that ran on Mondays. "Threatened me" filed on a
-  // Tuesday was read six days later at best (docs/ABUSE.md). The rule now
+  // Tuesday was read six days later at best (docs/SECURITY.md). The rule now
   // lives in /health, where it is tested as behaviour (tests/ops.test.ts:
   // urgent fails the daily run, anything open fails Monday's); what is left
   // here is that the job still runs through the 09:00 hour every day, and
@@ -111,10 +111,10 @@ describe('an urgent report does not wait for Monday', () => {
 })
 
 describe('changing a code someone has seen', () => {
-  // Possession is the authority (docs/HARD.md), so a code seen over her
+  // Possession is the authority (docs/SECURITY.md), so a code seen over her
   // shoulder, or taken from her phone, let its holder read her map and
   // overwrite it. The only remedy was forget me, which cost her the map
-  // (docs/THREAT.md, T8).
+  // (docs/SECURITY.md, T8).
   const rotate = (code = MAP) => keep(new Request(`http://x/.netlify/functions/keep?code=${code}`, { method: 'PUT' }))
 
   beforeEach(() => {
@@ -127,7 +127,7 @@ describe('changing a code someone has seen', () => {
     const { code } = await res.json()
     expect(code).toMatch(/^[A-Z0-9]{8}$/)
     expect(code).not.toBe(MAP)
-    // It opens nothing, and says why: moved (docs/INTEGRITY.md) — never where to.
+    // It opens nothing, and says why: moved (docs/PRIVACY.md) — never where to.
     const old = await keep(new Request(`http://x/.netlify/functions/keep?code=${MAP}`))
     expect(old.status).toBe(410)
     expect(await old.json()).toEqual({ error: 'moved' })

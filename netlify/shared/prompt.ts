@@ -11,7 +11,7 @@ import { DEALBREAKERS, GENDERS, GUIDE_MODES, HOOKS, SCENES, STAGES } from './voc
  * those caps run out the client falls back to the offline voice silently, by
  * design, so the first symptom would have been a fortnight of members getting
  * the local matcher while we believed we were watching the live guide
- * (docs/BOARD.md, the reality-sprint pass).
+ * (docs/DECISIONS.md, the reality-sprint pass).
  *
  * So the server is the authority. The caller names a mode and fills named
  * slots; the persona, the frame and the grounding rules are here and cannot be
@@ -163,7 +163,7 @@ export interface SafeContext {
  * Closed where a closed set exists (`gender`, `scene`, `hardest-part`, the
  * non-negotiables, the stage); bounded single lines everywhere else. Six of
  * the intake's answers have no server twin yet and are bounded rather than
- * closed — enough to shut the slot, and named in docs/BOARD.md as the
+ * closed — enough to shut the slot, and named in docs/DECISIONS.md as the
  * deferred half.
  */
 export function sanitiseContext(raw: unknown): SafeContext {
@@ -227,7 +227,7 @@ export function buildSystemPrompt(modeId: string, ctx: SafeContext): string {
     `- If you don't know, say so plainly and ask for the specific detail.`,
     `- Religious rulings: give general Islamic principles only; explicitly defer fiqh rulings to a trusted scholar.`,
     `- Never diagnose; you are a wise companion, not a clinician. For crisis or abuse, advise real-world help immediately.`,
-    // docs/ABUSE.md. The patterns the worst people on a marriage platform use,
+    // docs/SECURITY.md. The patterns the worst people on a marriage platform use,
     // named so the guide does not coach them as communication problems.
     `- SAFETY FIRST: If money is asked for before the families have met — a loan, a bill, a ticket, an investment, crypto — say plainly that this is the pattern romance scams follow and not to send it. If they describe threats, violence, being forced or pressured to marry, or someone holding intimate pictures or messages over them, treat it as a safety matter before anything else: take it seriously, do not argue fiqh and do not coach them to fix it, tell them to tell one trusted person today, and to get real-world help — in danger now, the emergency number.`,
     `- Never state a phone number: numbers change, and a wrong one in a crisis is worse than none. The app shows the checked numbers for where they live beneath any reply that mentions an emergency or a helpline.`,

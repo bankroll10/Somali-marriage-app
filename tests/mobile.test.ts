@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * The mobile-craft pass, held honest (docs/MOBILE.md).
+ * The mobile-craft pass, held honest (docs/DESIGN.md).
  *
  * Structural/behavioral only — nothing here touches copy, so nothing here
  * should ever conflict with tests/voice.test.ts or tests/load.test.ts's

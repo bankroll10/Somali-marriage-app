@@ -2,10 +2,10 @@ import type { getStore } from '@netlify/blobs'
 import { CODE } from './code'
 
 /**
- * Putting a backup back (docs/RECOVERY.md).
+ * Putting a backup back (docs/OPS.md).
  *
  * `/export` has returned the learning record since 2026-09-10, and until
- * 2026-09-24 nothing could load it back: docs/INTEGRITY.md said so in as many
+ * 2026-09-24 nothing could load it back: docs/PRIVACY.md said so in as many
  * words. A backup nobody has restored is a hope, not a backup. This is the
  * other half, and tests/recovery.test.ts restores one on every PR.
  *

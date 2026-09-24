@@ -17,7 +17,7 @@ import { ALL_AGREED, STATES, beforeYesTopics, ownAnswerFirst, type Topic, type Y
  * weight. The headline used to be: "where you don't, it isn't the ones that
  * carry the most weight" told a couple who differed on qabiil or going back
  * that theirs was a light difference, on a number we made up
- * (docs/ALIGNMENT.md S6). A difference is now named as a difference.
+ * (docs/PRODUCT.md S6). A difference is now named as a difference.
  */
 
 export interface TopicReading {

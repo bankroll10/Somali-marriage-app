@@ -28,7 +28,7 @@ export interface ReadOption {
   /**
    * 0–1. How much this answer says he is doing the thing this dimension
    * measures — an editorial ordering of the options, never measured against
-   * an outcome (docs/ALIGNMENT.md S4). `null` when the answer says nothing
+   * an outcome (docs/PRODUCT.md S4). `null` when the answer says nothing
    * about him at all, which is not scored rather than scored as half.
    */
   weight: number | null
@@ -331,7 +331,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
   // Not a measure of seriousness, and weighted as nothing: a man running a
   // romance scam can look like the most serious man she has met. Asked
   // because it is the one thing the worst people on a marriage platform do
-  // most, and nothing else in the product could see it (docs/ABUSE.md).
+  // most, and nothing else in the product could see it (docs/SECURITY.md).
   // src/lib/read.ts names `yes` whatever else he has shown.
   {
     id: 'money',

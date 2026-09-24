@@ -2,7 +2,7 @@
   # `verify` first: typecheck, lint and the whole suite, then the build. The
   # GitHub Action runs the same checks — but it runs *alongside* the deploy,
   # not before it: a push to main started Netlify's build in the same second,
-  # and a red run stopped nothing (docs/BOARD.md). With the suite in the
+  # and a red run stopped nothing (docs/DECISIONS.md). With the suite in the
   # build command a failing test cannot ship; the build fails and Netlify
   # keeps serving the last deploy that passed, which is the safe failure.
   command = "npm run verify && npm run build"
@@ -57,7 +57,7 @@
 # old sw.js past its check-for-updates window is a browser that cannot pick
 # up a fix to the shell itself. Every hashed asset it caches through Cache
 # Storage is unaffected; this header is only about the one file that decides
-# what those caches hold (src/lib/serviceWorker.ts, docs/LINKS.md).
+# what those caches hold (src/lib/serviceWorker.ts, docs/DESIGN.md).
 [[headers]]
   for = "/sw.js"
   [headers.values]
@@ -72,7 +72,7 @@
 # "No information is available for this page", which reads to a stranger as a
 # site that is broken or hiding something. Meanwhile a different Niyyah, a
 # Muslim matchmaking service in Toronto and Montreal, held the name in search
-# with a real title and description (docs/BOARD.md, the search pass).
+# with a real title and description (docs/DECISIONS.md, the search pass).
 #
 # Being absent from Google requires the opposite of what it looks like: let the
 # crawler in, and let the page tell it what to do. robots.txt and sitemap.xml

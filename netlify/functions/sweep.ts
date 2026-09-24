@@ -7,7 +7,7 @@ import { finishMove, rollBackMove } from './keep'
 
 /**
  * The weekly sweep — what makes every stated lifetime true without a person
- * remembering (docs/TIME.md).
+ * remembering (docs/OPS.md).
  *
  *  - **A kept map** past its year goes, with the bookkeeping beside it
  *    (netlify/functions/keep.ts).
@@ -16,7 +16,7 @@ import { finishMove, rollBackMove } from './keep'
  *  - **A step count** past its year, unless it reached `married`, which is
  *    kept by rule (netlify/functions/progress.ts).
  *  - **A change of code abandoned part-way** is rolled back or finished
- *    (docs/INTEGRITY.md).
+ *    (docs/PRIVACY.md).
  *  - **The three retired stores** — `cohort`, `contacts` and `vouches` — are
  *    emptied. The door and the family vouch were removed on 2026-09-24
  *    (docs/DECISIONS.md); what they held was a way to reach someone and a

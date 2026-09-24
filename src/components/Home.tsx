@@ -41,7 +41,7 @@ interface Props {
    * He has answered the eleven she sent. The hook has polled and recorded this
    * since the two-sided eleven shipped, and its only reader was the ladder —
    * so the one outcome the instrument exists to produce was invisible
-   * on the only screen she returns to (docs/NIELSEN.md N2).
+   * on the only screen she returns to (docs/DESIGN.md N2).
    */
   coupleAnswered?: boolean
   /** She sent him the eleven and he has not answered yet. */
@@ -464,9 +464,9 @@ export default function Home({
         <div className="mt-12 flex flex-col items-center gap-3 text-center">
           {/* The same destruction Trust guards behind two taps and a warning was
               one tap here, on the faintest text on the screen, directly under
-              another link. Now it asks (docs/NORMAN.md). */}
+              another link. Now it asks (docs/DESIGN.md). */}
           {/* The one route to a person from the screen she returns to
-              (docs/NIELSEN.md N5). */}
+              (docs/DESIGN.md N5). */}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
             className="px-3 py-2 text-[0.8rem] text-muted underline underline-offset-4 transition hover:text-ink"

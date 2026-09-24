@@ -23,7 +23,7 @@ export const scenes: Scene[] = [
   { id: 'columbus', label: 'Columbus', note: 'Northland to Morse Road.', country: 'us' },
   { id: 'stockholm', label: 'Stockholm', note: 'Rinkeby to Tensta.', country: 'se' },
   // Named before the first post, so a city with members is not read as
-  // `other` in the progress record (docs/BOARD.md, decision 7).
+  // `other` in the progress record (docs/DECISIONS.md, decision 7).
   { id: 'seattle', label: 'Seattle', note: 'Rainier Valley, Tukwila, SeaTac.', country: 'us' },
   { id: 'san-diego', label: 'San Diego', note: 'City Heights.', country: 'us' },
   { id: 'birmingham', label: 'Birmingham', note: 'Small Heath to Sparkhill.', country: 'uk' },

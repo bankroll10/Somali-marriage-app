@@ -18,7 +18,7 @@ export async function sendReport(code: string, side: Gender, reason: string, det
   if (res.status === 404) return 'not_found'
   if (!res.ok) return 'error'
   // Nothing comes back to keep: a way to take a report back, on this phone,
-  // would be held by whoever holds the phone (docs/ABUSE.md, coercion). A
+  // would be held by whoever holds the phone (docs/SECURITY.md, coercion). A
   // member who wants one dropped writes to the founder, who resolves it.
   return 'sent'
 }

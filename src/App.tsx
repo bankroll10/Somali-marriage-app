@@ -25,7 +25,7 @@ import { forgetEntry } from './lib/entry'
 // still finishing the paint this measured. Nothing here is on a path anyone
 // is actually waiting on — a lazy chunk is a few KB, fetched once, the first
 // time its screen is reached — so the fix is not fetching it before then.
-// See docs/PERFORMANCE.md.
+// See docs/DESIGN.md.
 const IdentityStep = lazy(() => import('./components/Identity'))
 const Situation = lazy(() => import('./components/Situation'))
 const Hook = lazy(() => import('./components/Hook'))
@@ -65,7 +65,7 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
   // A sighted user sees the whole new screen at once; a keyboard or
   // screen-reader user is told nothing changed unless focus moves — it
   // otherwise stays wherever it was, on a now-unmounted element, defaulting
-  // to <body> (docs/ACCESS.md). Every screen has exactly one h1 (or, failing
+  // to <body> (docs/DESIGN.md). Every screen has exactly one h1 (or, failing
   // that, its topmost heading), so that is what receives focus.
   const screenRef = useRef<HTMLDivElement>(null)
   useFocusHeading(screenRef, n.screen)
@@ -323,7 +323,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         <Couple
           saveOk={n.saveOk}
           code={n.entryCode}
-          // Her own link, opened on her own phone (docs/NIELSEN.md N1).
+          // Her own link, opened on her own phone (docs/DESIGN.md N1).
           yours={n.couple?.code === n.entryCode && !n.couple?.side}
           onAnswered={(states, g, joint) => n.answeredCouple(n.entryCode!, states, g, joint)}
           onBegan={() => n.noteBegan('couple')}
