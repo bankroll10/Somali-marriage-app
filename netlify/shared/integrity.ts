@@ -33,6 +33,12 @@ export interface KeptMap {
    * Absent on maps kept before 2026-09-24, and read as 0.
    */
   rev?: number
+  /**
+   * The first keep's once key, when there was one — so forgetting the map, or
+   * moving it, can take `once/<key>` with it rather than leave a pointer to
+   * her code for a day (tests/invariants/delete-means-deleted.test.ts).
+   */
+  once?: string
 }
 
 export const DAY_MS = 24 * 60 * 60 * 1000

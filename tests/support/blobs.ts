@@ -36,14 +36,32 @@ export interface Blob {
   etag: string
 }
 
+/** One call a route made, for asserting what it read — not only what it returned. */
+export interface Call {
+  store: string
+  op: Op
+  key: string
+}
+
 export class Blobs {
   readonly stores = new Map<string, Map<string, Blob>>()
+  /** Every call, in order, since the last reset. */
+  readonly log: Call[] = []
   private rules: Rule[] = []
   private clock = 0
+  /** Stores that cannot even be opened — `getStore` itself throws. */
+  private unopenable = new Set<string>()
 
   reset() {
     this.stores.clear()
     this.rules = []
+    this.log.length = 0
+    this.unopenable.clear()
+  }
+
+  /** Make opening a store throw, as Blobs does when its context is missing or the platform is down. */
+  failOpen(name: string) {
+    this.unopenable.add(name)
   }
 
   private data(name: string) {
@@ -63,6 +81,7 @@ export class Blobs {
   }
 
   private async hit(store: string, op: Op, key: string) {
+    this.log.push({ store, op, key })
     for (const r of this.rules) {
       if (r.spent || r.op !== op) continue
       if (r.store && r.store !== store) continue
@@ -94,6 +113,7 @@ export class Blobs {
   }
 
   store(name: string) {
+    if (this.unopenable.has(name)) throw new Error(`injected: the ${name} store cannot be opened`)
     const m = () => this.data(name)
     const write = async (op: Op, key: string, value: string, opts?: { onlyIfNew?: boolean; onlyIfMatch?: string }) => {
       await this.hit(name, op, key)

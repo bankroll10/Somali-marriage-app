@@ -142,7 +142,26 @@ export function loadProgress(): Persisted | null {
  */
 export const THREAD_LIMIT = 40
 
+/**
+ * Set once this page has put a different map in storage and is about to
+ * reload onto it (RestoreMap). Until the reload lands, the page still holds the
+ * map it started with — on a new phone, an empty one — and the autosave in
+ * useNiyyah would write that back over the map she just brought back: her
+ * code remembered, her map gone (found by tests/journeys/keep-and-restore).
+ * A reload is a new page, and a new page starts unheld.
+ */
+let replaced = false
+export function holdUntilReload(): void {
+  replaced = true
+}
+/** Tests reload by mounting again in the same page. */
+export function reloaded(): void {
+  replaced = false
+}
+
 export function saveProgress(state: PersistedState): boolean {
+  // Nothing to save: what is in storage is newer than anything this page holds.
+  if (replaced) return true
   try {
     const coachThreads = Object.fromEntries(
       Object.entries(state.coachThreads ?? {}).map(([mode, thread]) => [mode, (thread ?? []).slice(-THREAD_LIMIT)]),

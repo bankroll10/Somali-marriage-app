@@ -38,7 +38,7 @@ forgot it.
 | `maps` | `<code>` | Her kept map: snapshot, `createdAt`, `expiresAt`, `rev` | keep POST, PUT | A year from the last keep | Forget; the sweep at lapse; GET at lapse | ✓ |
 | `maps` | `ended/<code>` | A tombstone: `{why: moved \| forgotten, expiresAt}` | Forget; change of code | A year | The sweep | ✓ |
 | `maps` | `moving/<old>` | A journal: `{to, at}` | Change of code | Until the move ends | The move itself; the sweep after 2 days | ✓ |
-| `maps` | `once/<id>` | A first keep's key: `{code, expiresAt}` | keep POST | A day | The sweep | ✓ |
+| `maps` | `once/<id>` | A first keep's key: `{code, expiresAt}` | keep POST | A day | Forget; change of code; the sweep | ✓ |
 | `vouches` | `<code>` | Her family's vouch | vouch POST | As long as the map | Forget; the sweep | ✓ |
 | `vouches` | `asked/<code>` | The token of the link she sent | vouch ask | As long as the map | Forget; the sweep | pointer |
 | `vouches` | `token/<token>` | The code the link opens | vouch ask; change of code | As long as the map | Forget; the sweep | pointer |
@@ -109,6 +109,11 @@ it, and a retry minted a third copy.
   - The same `once` again is a re-keep of that code, not a second map.
   - If the `once` write fails after the mint, a retry mints again. That is
     the one duplicate window, and the client's single flight makes it rarer.
+  - The map records its `once` key, so forget me and a change of code take
+    `once/<id>` with them. Before 2026-09-24 they did not, and for up to a
+    day after she forgot, a key on the server still named her code; the
+    residue scan in `tests/invariants/delete-means-deleted.test.ts` found it
+    (`docs/TESTING.md`).
 
 ### Join the door: `POST /cohort` (`netlify/functions/cohort.ts`)
 
