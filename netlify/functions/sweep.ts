@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed, mark, pruneOps } from '../shared/ops'
 import { day } from '../shared/day'
 import { CODE } from '../shared/code'
 import { isGone, retire } from '../shared/sheet'
@@ -89,7 +90,7 @@ async function each(swept: Pick<Swept, 'errors'>, work: () => Promise<void>): Pr
     await work()
   } catch (err) {
     swept.errors += 1
-    console.error('[niyyah] sweep: one record failed; the rest go on', err)
+    await failed('sweep', 'one record failed; the rest go on', err)
   }
 }
 
@@ -263,12 +264,23 @@ export async function sweep(now = Date.now()): Promise<Swept> {
 export default async function handler(_req: Request) {
   try {
     const swept = await sweep()
+    // The operations counts past their thirty-five days (shared/ops.ts). Its
+    // own failure is one more error, never the sweep's.
+    let ops = 0
+    try {
+      ops = await pruneOps()
+    } catch (err) {
+      await failed('sweep', 'ops prune failed', err)
+      swept.errors += 1
+    }
+    // So /health can tell a sweep that ran from one that stopped (docs/OPS.md).
+    await mark('sweep', { errors: swept.errors })
     console.log(
-      `[niyyah] sweep: ${swept.entries} entries, ${swept.maps} maps, ${swept.contacts} contacts, ${swept.vouches} vouches, ${swept.couples} couples, ${swept.progress} step counts, ${swept.reconciled} reconciled, ${swept.journals} moves, ${swept.errors} errors on ${day()}`,
+      `[niyyah] sweep: ${swept.entries} entries, ${swept.maps} maps, ${swept.contacts} contacts, ${swept.vouches} vouches, ${swept.couples} couples, ${swept.progress} step counts, ${swept.reconciled} reconciled, ${swept.journals} moves, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
     )
     return Response.json({ swept, at: day() })
   } catch (err) {
-    console.error('[niyyah] sweep failed', err)
+    await failed('sweep', 'failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 }

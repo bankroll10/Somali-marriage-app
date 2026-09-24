@@ -1,4 +1,6 @@
 import { getStore } from '@netlify/blobs'
+import { bump } from './counter'
+import { failed, note } from './ops'
 
 /**
  * A circuit breaker, not a business rule.
@@ -31,8 +33,6 @@ import { getStore } from '@netlify/blobs'
  * itself take a function down on a blob hiccup would be a worse bug than the
  * one it exists to prevent.
  */
-
-const ATTEMPTS = 3
 
 /**
  * How long a counter lasts. `h` resets every hour, `d` every day.
@@ -67,7 +67,7 @@ async function sweep(store: Store, bucket: string, period: Period, keep: string)
     const { blobs } = await store.list({ prefix: `${bucket}-${period}-` })
     await Promise.all(blobs.filter(({ key }) => key !== keep).map(({ key }) => store.delete(key)))
   } catch (err) {
-    console.error(`[niyyah] limit: ${bucket}/${period} sweep failed; old periods linger`, err)
+    await failed('limit', `${bucket}/${period} sweep failed; old periods linger`, err)
   }
 }
 
@@ -90,19 +90,17 @@ export async function capState(bucket: string, cap: number, period: Period = 'h'
     // rate limiter must never cause (docs/FAIL.md).
     const store = getStore({ name: 'limits', consistency: 'strong' })
     const key = periodKey(bucket, period)
-    for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
-      const current = (await store.getWithMetadata(key, { type: 'json' })) as { data: number; etag?: string } | null
-      const count = current?.data ?? 0
-      if (count >= cap) return 'over'
-      const next = count + 1
-      const result = current?.etag
-        ? await store.setJSON(key, next, { onlyIfMatch: current.etag })
-        : await store.setJSON(key, next, { onlyIfNew: true })
-      if (result.modified) {
-        // A new period began: the ones before it are done with.
-        if (!current?.etag) await sweep(store, bucket, period, key)
-        return 'under'
-      }
+    const counted = await bump(store, key, 1, cap)
+    if (counted.state === 'over') {
+      // Counted where the founder can see it — by kind of cap, never by what
+      // the call was about (docs/OPS.md). The refusal itself writes nothing here.
+      await note(capSignal(bucket, period))
+      return 'over'
+    }
+    if (counted.state === 'counted') {
+      // A new period began: the ones before it are done with.
+      if (counted.fresh) await sweep(store, bucket, period, key)
+      return 'under'
     }
     // Lost the race three times under real concurrency — the store answered
     // every time, so this is a counting glitch, not an outage: let it through
@@ -110,9 +108,21 @@ export async function capState(bucket: string, cap: number, period: Period = 'h'
     console.error(`[niyyah] limit: ${bucket}/${period} lost the count three times in a row; allowing the call`)
     return 'under'
   } catch (err) {
-    console.error(`[niyyah] limit: ${bucket}/${period} check failed; the caller decides`, err)
+    await failed('limit', `${bucket}/${period} check failed; the caller decides`, err)
     return 'unknown'
   }
+}
+
+/**
+ * The operations signal a refusal is counted under (shared/ops.ts): the kind
+ * of cap, and nothing more. A city's own door cap is `door-city`, never the
+ * city; the guide's two caps are told apart, because only the day's means the
+ * guide is offline until midnight.
+ */
+export function capSignal(bucket: string, period: Period): string {
+  if (bucket.startsWith('door-city-')) return 'cap.door-city'
+  if (bucket === 'guide') return `cap.guide-${period}`
+  return `cap.${bucket}`
 }
 
 /**

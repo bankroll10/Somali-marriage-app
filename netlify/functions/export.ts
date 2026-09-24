@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed, mark } from '../shared/ops'
 import { isFounder, notFounder } from '../shared/founder'
 import { COUNTRIES, SCENES } from '../shared/vocab'
 import { SEGMENTS } from './cohort'
@@ -154,6 +155,9 @@ export default async function handler(req: Request) {
       door: cohortCounts,
       omitted: OMITTED,
     }
+    // A backup taken, by hand or by watch.yml: the one fact /health needs to
+    // say how long it has been since the last (docs/OPS.md).
+    await mark('export')
     return new Response(JSON.stringify(backup, null, 2), {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
@@ -163,7 +167,7 @@ export default async function handler(req: Request) {
       },
     })
   } catch (err) {
-    console.error('[niyyah] export: failed', err)
+    await failed('export', 'failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 }

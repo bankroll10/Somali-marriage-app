@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed } from '../shared/ops'
 import { CODE, LEGACY_TOKEN, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
 import { liveMap } from '../shared/integrity'
 import { day } from '../shared/day'
@@ -162,7 +163,7 @@ export default async function handler(req: Request) {
       try {
         return Response.json(await tally(store))
       } catch (err) {
-        console.error('[niyyah] vouch: tally failed', err)
+        await failed('vouch', 'tally failed', err)
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
     }
@@ -176,7 +177,7 @@ export default async function handler(req: Request) {
     try {
       code = await resolve(store, shaped)
     } catch (err) {
-      console.error('[niyyah] vouch: token lookup failed', err)
+      await failed('vouch', 'token lookup failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
     if (!code) return Response.json({ error: 'bad_code' }, { status: 400 })
@@ -196,7 +197,7 @@ export default async function handler(req: Request) {
       if (!map || !record) return Response.json({ vouched: false }, { status: 404, headers })
       return Response.json(publicView(record), { headers })
     } catch (err) {
-      console.error('[niyyah] vouch: read failed', err)
+      await failed('vouch', 'read failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -249,7 +250,7 @@ export default async function handler(req: Request) {
       }
       return Response.json({ error: 'unavailable' }, { status: 503 })
     } catch (err) {
-      console.error('[niyyah] vouch: ask failed', err)
+      await failed('vouch', 'ask failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -276,7 +277,7 @@ export default async function handler(req: Request) {
   try {
     code = await resolve(store, shaped)
   } catch (err) {
-    console.error('[niyyah] vouch: token lookup failed', err)
+    await failed('vouch', 'token lookup failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
   if (!code) return Response.json({ error: 'bad_code' }, { status: 400 })
@@ -286,7 +287,7 @@ export default async function handler(req: Request) {
   try {
     if (!(await liveMap(getStore('maps'), code))) return Response.json({ error: 'no_map' }, { status: 404 })
   } catch (err) {
-    console.error('[niyyah] vouch: map lookup failed', err)
+    await failed('vouch', 'map lookup failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 
@@ -314,7 +315,7 @@ export default async function handler(req: Request) {
     }
     return Response.json(publicView(record))
   } catch (err) {
-    console.error('[niyyah] vouch: write failed', err)
+    await failed('vouch', 'write failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 }

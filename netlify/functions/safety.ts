@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed } from '../shared/ops'
 import { reportable } from '../shared/sheet'
 import { notFounder, requireFounder } from '../shared/founder'
 import { GENDERS, SAFETY_OUTCOMES, SAFETY_REASONS } from '../shared/vocab'
@@ -154,7 +155,7 @@ export default async function handler(req: Request) {
       // body in the product, even behind the key.
       return Response.json({ reports, resolved: { byReason, byOutcome } }, { headers: { 'Cache-Control': 'no-store' } })
     } catch (err) {
-      console.error('[niyyah] safety: list failed', err)
+      await failed('safety', 'list failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -182,7 +183,7 @@ export default async function handler(req: Request) {
       // the man she is reporting can delete it (netlify/shared/sheet.ts).
       if (!(await reportable(getStore('couples'), code))) return Response.json({ error: 'not_found' }, { status: 404 })
     } catch (err) {
-      console.error('[niyyah] safety: couple lookup failed', err)
+      await failed('safety', 'couple lookup failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
 
@@ -201,7 +202,7 @@ export default async function handler(req: Request) {
         if ((await store.setJSON(keyFor(code, body.side!, candidate), stamp(record), { onlyIfNew: true })).modified) id = candidate
       }
     } catch (err) {
-      console.error('[niyyah] safety: write failed', err)
+      await failed('safety', 'write failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
     if (!id) return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -235,7 +236,7 @@ export default async function handler(req: Request) {
         if (!(await store.getMetadata(key))) return Response.json({ error: 'not_found' }, { status: 404 })
         await store.delete(key)
       } catch (err) {
-        console.error('[niyyah] safety: withdraw failed', err)
+        await failed('safety', 'withdraw failed', err)
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
       return Response.json({ withdrawn: true })
@@ -255,7 +256,7 @@ export default async function handler(req: Request) {
       await store.setJSON(`resolved/${id}`, stamp(stub))
       await store.delete(keyFor(code, side, id))
     } catch (err) {
-      console.error('[niyyah] safety: delete failed', err)
+      await failed('safety', 'delete failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
     return Response.json({ resolved: true })

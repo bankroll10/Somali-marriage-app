@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed } from '../shared/ops'
 import { CODE, TOKEN, normalise } from '../shared/code'
 import { day, toDays } from '../shared/day'
 import { readJson } from '../shared/body'
@@ -196,7 +197,7 @@ export default async function handler(req: Request) {
       }
       return Response.json({ snapshot: kept.data.snapshot, rev: kept.data.rev ?? 0 }, { headers })
     } catch (err) {
-      console.error('[niyyah] keep: read failed', err)
+      await failed('keep', 'read failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -252,7 +253,7 @@ export default async function handler(req: Request) {
       await store.delete(code)
       return Response.json({ forgotten: true })
     } catch (err) {
-      console.error('[niyyah] keep: forget failed', err)
+      await failed('keep', 'forget failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -335,7 +336,7 @@ export default async function handler(req: Request) {
       const moved = (await store.get(code, { type: 'json' })) as KeptMap | null
       return Response.json({ code, rev: moved?.rev ?? 0 })
     } catch (err) {
-      console.error('[niyyah] keep: new code failed', err)
+      await failed('keep', 'new code failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -454,7 +455,7 @@ export default async function handler(req: Request) {
     const kept: KeptMap = { snapshot, createdAt: day(now), expiresAt: day(now + TTL_MS), rev: 1, ...(once ? { once } : {}) }
     const minted = await mintFree(store, stamp(kept), async (c) => !!(await ended(store, c)))
     if (!minted) {
-      console.error('[niyyah] keep: every minted code collided')
+      await failed('keep', 'every minted code collided')
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
     if (once) {
@@ -473,7 +474,7 @@ export default async function handler(req: Request) {
     // Storage is unavailable. The app keeps working exactly as it did before
     // this function existed — her map is still on her device — so this degrades
     // to the old behaviour rather than to an error.
-    console.error('[niyyah] keep: write failed', err)
+    await failed('keep', 'write failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 }

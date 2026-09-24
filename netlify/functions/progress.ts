@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed } from '../shared/ops'
 import { CODE, normalise } from '../shared/code'
 import { readJson } from '../shared/body'
 import { isFounder, notFounder } from '../shared/founder'
@@ -530,7 +531,7 @@ export default async function handler(req: Request) {
     try {
       return Response.json(await tally(store))
     } catch (err) {
-      console.error('[niyyah] progress: tally failed', err)
+      await failed('progress', 'tally failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -554,7 +555,7 @@ export default async function handler(req: Request) {
       await store.delete(id)
       return Response.json({ forgotten: true })
     } catch (err) {
-      console.error('[niyyah] progress: forget failed', err)
+      await failed('progress', 'forget failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -630,7 +631,7 @@ export default async function handler(req: Request) {
   } catch (err) {
     // The app never depended on this and must never start. Failing to count
     // someone is a measurement problem, not her problem.
-    console.error('[niyyah] progress: write failed', err)
+    await failed('progress', 'write failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 }

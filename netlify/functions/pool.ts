@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed } from '../shared/ops'
 import { isFounder, notFounder } from '../shared/founder'
 import { COUNTRIES, SCENES, STAGES as VOCAB_STAGES } from '../shared/vocab'
 import { floorRows } from '../shared/floor'
@@ -79,8 +80,9 @@ import type { KeptMap } from './keep'
  * exists (designed, docs/LIQUIDITY.md), never from a tally: docs/LEARNING.md
  * forbids learning age.
  *
- * Founder-gated like every readout, fails open like every readout but
- * /safety, and uncapped like every founder route. One list and one map read
+ * Founder-gated like every readout — refused, like all of them, while
+ * FOUNDER_KEY is unset (shared/founder.ts) — and uncapped like every founder
+ * route. One list and one map read
  * per member; fine to a few hundred, and past that it meets the ceiling
  * docs/SCALE.md already names for the progress readout.
  */
@@ -341,7 +343,7 @@ export default async function handler(req: Request) {
       sweptForReal: sweep,
     })
   } catch (err) {
-    console.error('[niyyah] pool: read failed', err)
+    await failed('pool', 'read failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 }

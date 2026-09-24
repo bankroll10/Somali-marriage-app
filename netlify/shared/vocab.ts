@@ -220,3 +220,63 @@ export const USED = new Set(['read', 'eleven', 'couple', 'families', 'vouch', 'g
 export const SAFETY_REASONS = new Set(['harassment', 'threats', 'sexual', 'already-married', 'impersonation', 'other'])
 /** Must match src/data/safety.ts SAFETY_OUTCOMES. What the founder did about a report. */
 export const SAFETY_OUTCOMES = new Set(['spoke-to-them', 'told-the-family', 'never-introduce', 'not-enough', 'no-action'])
+
+/**
+ * The reasons that cannot wait for Monday (docs/ABUSE.md): an open report
+ * with one of these fails the founder's daily health check. Server-only — the
+ * app never sends urgency, only the reason; `/health` decides.
+ */
+export const URGENT_REASONS = new Set(['threats', 'sexual'])
+
+/**
+ * Must match src/lib/crash.ts CRASH_EVENTS. The only two things a phone ever
+ * tells the server about the app failing on it: that it crashed, or that a
+ * screen's code never arrived. No screen, no stack, no code (docs/OPS.md).
+ */
+export const CRASH_EVENTS = new Set(['crash', 'chunk'])
+
+/** The routes whose failures are counted as `fail.<route>`. */
+export const OPS_ROUTES = ['keep', 'cohort', 'couple', 'vouch', 'progress', 'safety', 'export', 'pool', 'guide', 'sweep', 'limit', 'health'] as const
+export type OpsRoute = (typeof OPS_ROUTES)[number]
+
+/** Every rate-limit bucket in netlify/functions, as the kind of cap it is (shared/limit.ts capSignal). */
+export const CAP_FAMILIES = [
+  'guide-h',
+  'guide-d',
+  'door',
+  'door-city',
+  'cohort',
+  'keep',
+  'restore',
+  'forget',
+  'couple',
+  'couple-read',
+  'couple-forget',
+  'couple-answer',
+  'vouch',
+  'vouch-read',
+  'safety',
+  'safety-probe',
+  'progress',
+  'progress-forget',
+  'health',
+] as const
+
+/** What the guide's call to Claude came to. `ok` is a whole answer. */
+export const CLAUDE_OUTCOMES = ['ok', 'rate_limited', 'auth', 'upstream', 'unexpected', 'empty', 'stream_ended', 'not_configured'] as const
+
+/**
+ * Every operations signal there is (shared/ops.ts, docs/OPS.md). A closed list,
+ * so nothing free-text and nothing about a person can ever be counted: each
+ * one names an operation of the service — a route failing, a cap refusing, a
+ * call to Claude and its tokens, a phone reporting a crash. `note()` drops
+ * anything not here.
+ */
+export const OPS_SIGNALS = new Set<string>([
+  ...OPS_ROUTES.map((r) => `fail.${r}`),
+  ...CAP_FAMILIES.map((c) => `cap.${c}`),
+  ...CLAUDE_OUTCOMES.map((o) => `claude.${o}`),
+  'claude.in',
+  'claude.out',
+  ...[...CRASH_EVENTS].map((e) => `client.${e}`),
+])

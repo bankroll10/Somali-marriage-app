@@ -3,7 +3,15 @@ import type { Context } from '@netlify/functions'
 import { isFounder, notFounder } from '../shared/founder'
 import { overCapOrUnknown, rateLimited } from '../shared/limit'
 import { readJson } from '../shared/body'
+import { note } from '../shared/ops'
 import { GUIDE_MODES, buildSystemPrompt, sanitiseContext } from '../shared/prompt'
+
+/** The usage block a stream's first event carries (the SDK's own shape, narrowed to what is read). */
+interface Usage {
+  input_tokens?: number
+  cache_creation_input_tokens?: number | null
+  cache_read_input_tokens?: number | null
+}
 
 /**
  * The live Guide.
@@ -187,10 +195,10 @@ export default async function handler(req: Request, _context: Context) {
   // there is otherwise no way to tell "the key is wrong" from "this route was
   // never reachable". Reports booleans and error names only; never the key.
   if (req.method === 'GET') {
-    // Founder-only once FOUNDER_KEY is set: every open call here spends a
-    // little Anthropic credit, and a loop over it is the cheapest way anyone
-    // could run up the bill. Unset, it is as open as it always was — set both
-    // keys in the same deploy.
+    // Founder-only: every call here spends a little Anthropic credit, and a
+    // loop over it is the cheapest way anyone could run up the bill. With
+    // FOUNDER_KEY unset it refuses, like every readout (shared/founder.ts).
+    // For a check that costs nothing, see /health (docs/OPS.md).
     if (!isFounder(req)) return notFounder()
     const key = process.env.ANTHROPIC_API_KEY
     const diagnostic: Record<string, unknown> = {
@@ -230,7 +238,9 @@ export default async function handler(req: Request, _context: Context) {
   }
 
   if (!process.env.ANTHROPIC_API_KEY) {
-    // Not an error — the guide simply isn't switched on yet.
+    // Not an error — the guide simply isn't switched on yet. Counted, because
+    // "switched off" and "the key went missing" look the same from outside.
+    await note('claude.not_configured')
     return Response.json({ error: 'guide_not_configured' }, { status: 503 })
   }
 
@@ -276,20 +286,44 @@ export default async function handler(req: Request, _context: Context) {
   const request = guideRequest(mode, body.context, body.history ?? [], message)
 
   /** Map an SDK error onto the 503 contract the client already understands. */
-  function errorResponse(err: unknown): Response {
+  // Each outcome is counted as `claude.<outcome>` (shared/ops.ts, docs/OPS.md)
+  // — never with the message, the mode or anything the member wrote.
+  async function errorResponse(err: unknown): Promise<Response> {
     if (err instanceof Anthropic.RateLimitError) {
+      await note('claude.rate_limited')
       return Response.json({ error: 'rate_limited' }, { status: 503 })
     }
     if (err instanceof Anthropic.AuthenticationError) {
       console.error('[niyyah] guide: bad API key')
+      await note('claude.auth')
       return Response.json({ error: 'auth' }, { status: 503 })
     }
     if (err instanceof Anthropic.APIError) {
       console.error('[niyyah] guide: API error', err.status, err.message)
+      await note('claude.upstream')
       return Response.json({ error: 'upstream' }, { status: 503 })
     }
     console.error('[niyyah] guide: unexpected', err)
+    await note('claude.unexpected')
     return Response.json({ error: 'unexpected' }, { status: 503 })
+  }
+
+  // What the call cost, in tokens, summed into the day's totals — the only
+  // way "are costs abnormal?" can be answered without the Anthropic console.
+  // Read from the stream's own usage events; a call that ends early still
+  // spent what it spent.
+  let tokensIn = 0
+  let tokensOut = 0
+  function tally(event: { type: string; message?: { usage?: Usage }; usage?: { output_tokens?: number } }) {
+    if (event.type === 'message_start' && event.message?.usage) {
+      const u = event.message.usage
+      tokensIn = (u.input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0) + (u.cache_read_input_tokens ?? 0)
+    }
+    if (event.type === 'message_delta' && typeof event.usage?.output_tokens === 'number') tokensOut = event.usage.output_tokens
+  }
+  async function spent() {
+    await note('claude.in', tokensIn)
+    await note('claude.out', tokensOut)
   }
 
   const stream = new Anthropic().messages.stream(request)
@@ -309,19 +343,25 @@ export default async function handler(req: Request, _context: Context) {
     for (;;) {
       const { value, done } = await iterator.next()
       if (done) break
+      tally(value)
       if (value.type === 'content_block_delta' && value.delta.type === 'text_delta') {
         first = value.delta.text
         break
       }
     }
   } catch (err) {
+    await spent()
     return errorResponse(err)
   }
 
   // No text at all: an empty completion, or a safety decline, which is a real
   // outcome rather than a crash. Either way the app falls back to its local
   // voice instead of showing the member an error.
-  if (first === null) return Response.json({ error: 'empty' }, { status: 503 })
+  if (first === null) {
+    await spent()
+    await note('claude.empty')
+    return Response.json({ error: 'empty' }, { status: 503 })
+  }
 
   const encoder = new TextEncoder()
   const answer = new ReadableStream<Uint8Array>({
@@ -331,16 +371,21 @@ export default async function handler(req: Request, _context: Context) {
         for (;;) {
           const { value, done } = await iterator.next()
           if (done) break
+          tally(value)
           if (value.type === 'content_block_delta' && value.delta.type === 'text_delta') {
             controller.enqueue(encoder.encode(value.delta.text))
           }
         }
+        await note('claude.ok')
       } catch (err) {
         // Mid-answer failure. The member keeps the words that arrived, which is
         // better than replacing a partial answer with an error; nothing else
         // can be done once the status line has gone.
         console.error('[niyyah] guide: stream ended early', err)
+        await note('claude.stream_ended')
       }
+      // Counted before the stream closes: after it, the function may be frozen.
+      await spent()
       controller.close()
     },
     cancel() {
