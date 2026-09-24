@@ -2,7 +2,9 @@
 
 What was decided, when, why, and whether it still holds. Part 1 keeps the
 board audit's numbered decisions with their numbers. Part 2 records the
-subtraction of 2026-09-24. Part 3 says where each of the 58 old docs went.
+subtraction of 2026-09-24. Part 3 is the completion review of the same day,
+with decision 19, the product freeze. Part 4 says where each of the 58 old
+docs went.
 
 Every old doc's full text is in git at commit `43295a4`:
 `git show 43295a4:docs/NAME.md`.
@@ -12,7 +14,8 @@ Every old doc's full text is in git at commit `43295a4`:
 Decisions 0–18 were made on 2026-09-12 in the board audit, which read the
 code through MJ DeMarco's principles (Need, Entry, Control, Scale, Time and
 others) and labelled every claim FACT, INFERENCE or HYPOTHESIS. The founder
-asked that they not be delegated back. Code cites them as `decision N`. A
+asked that they not be delegated back. Decision 19 came from the completion
+review of 2026-09-24 (Part 3). Code cites them as `decision N`. A
 decision about a feature deleted on 2026-09-24 keeps its number and says so.
 
 | # | Date | Decided | Why | Now |
@@ -36,6 +39,7 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 16 | 2026-09-12 | **The $99 line is sold at the joint view** of the two-sided eleven, never at the stage she declares; `deciding` stays a free word | The joint view is when value has been delivered (both answered blind); `deciding` is a measured word and must not carry a price | Stands as a rule. Nothing is sold: there is no payment code. On 2026-09-24 the line was narrowed to the call alone, once per person for life (`docs/PRODUCT.md`) |
 | 17 | 2026-09-12 | **The by-hand introduction is a one-page runbook,** with an hour-per-introduction limit that changes the target or the window if exceeded, and a timed pool-opened test mail | The first pool would be run by hand and no page said how | Retired 2026-09-24 with the feature. The runbook is at `git show 43295a4:docs/LIQUIDITY.md` |
 | 18 | 2026-09-12 | **Somali-first stays.** The brand names the community; the institution rule (nothing that would need renaming for a second community lives outside `src/data`) holds for the brand strings | A second community should be a one-file change, and that day is not now | Stands (`src/data/brand.ts`; `tests/brand.test.ts` holds the manifest to it) |
+| 19 | 2026-09-24 | **The product freeze.** No new feature without observed user evidence, a production failure, a safety or security requirement, or a measurable business requirement (Part 3) | The product is complete enough to learn from, with no members; the completion review found its three blockers where features had been added without anyone watching | Stands |
 
 ### The top ten actions
 
@@ -240,7 +244,114 @@ clear first is in (ATOMIC) below.
 (`.ts`, `.tsx`, `.css`, `.mjs`) between `43295a4` and `d41f879`. The docs went
 from 58 to 11 in the same pass.
 
-## Part 3: Where every old doc went
+## Part 3: The completion review (2026-09-24)
+
+The founder asked for one last review of the whole product, with no new
+building: classify every remaining issue, allow at most three launch
+blockers, set a product freeze, and end in one decision. Three reviewers read
+`main` at `1c0628d` end to end across eighteen dimensions. Every serious claim
+was then re-checked against the source, and a fourth reviewer argued the
+blocker list in both directions. "Launch" means strangers enter personal data:
+the sessions in `docs/PROTOCOL.md`, and public tool links.
+
+**Decision: not ready.** There were three blockers. All three were fixed in
+the PR that records this.
+
+### Launch blockers, fixed
+
+| # | What was wrong | The fix | Held by |
+|---|---|---|---|
+| B1 | Past the guide's reply budget, `send()` returned on `locked`. A message from Home's ask box ("I want to die", "he threatened me") was marked handed over and vanished under the wall. The phone's own crisis and safety replies, which cost nothing, never ran | Past the budget, the answer comes from the phone (`onDeviceOnly`), and nothing is charged or sent | `tests/ui/guide-floor.test.tsx` |
+| B2 | The guide's header said "· private" while every message went to Anthropic. Home's ask box, the hand-offs and "It went differently" sent with no word about where. Her first name travelled in the thread through the greeting and four fallbacks (PRIVACY C5). Nobody was named as running Niyyah. The link preview promised "Minneapolis opens first" and thirteen questions. The families tool said "nothing recorded". The man answering a couple link was not told his answers are kept | The header names Claude and Anthropic. `GUIDE_SOURCE` appears wherever a tap sends. History goes from her first message (client) and from her first turn (server). The fallbacks no longer use her name. Trust names `VITE_OPERATOR_NAME` with a contact and the right to complain. `public/og.png` is re-rendered. Both lines are corrected | `tests/guide-disclosure.test.ts`, `tests/ui/where-words-go.test.tsx` |
+| B3 | A tool link, then the read or the eleven, then "Now the other half of it", then Back landed on Welcome. There the only forward button was "Start where you are", which wiped the read, the pair code and the follow-up without asking | Welcome treats a Home as completed and offers "Enter Niyyah" | `tests/journeys/tool-link-read.test.tsx` |
+
+### Important after launch
+
+Fixing a defect needs no evidence under decision 19. These are ordered by
+when they are due.
+
+**Week 1**
+- **I1.** "Ask him" ignores a `'failed'` share, so nothing tells her. Fix on day 0 if the iPhone walk reproduces it.
+- **I2.** Guide spend caps:
+  - a lost counter write counts as under the cap (`netlify/shared/limit.ts`);
+  - `GUIDE_DAILY_CAP=0` reads as the default.
+- **I3.** The Anthropic key is reachable at build time, and `founder-routes-fail-closed` makes a live call in every Netlify build.
+- **I4.** A thread over 32 KB is refused before it is trimmed. The rest of that thread is offline and uncounted.
+- **I5.** Kept maps:
+  - a kept map is frozen at its first keep;
+  - its year is renewed only on writes;
+  - KeepMap reads as if it were a live copy.
+- **I6.** An expired or deleted pair is a dead end on her side.
+- **I7.** Her own couple link, opened after he answered, shows his side, and a report filed there is recorded as his.
+- **I8.** A report filed after the 90-day window says "try again" forever.
+- **I9.** Married Home never asks the follow-ups that the family words and the guide promise.
+- **I10.** After a courtship ends, Home still shows "He answered".
+- **I11.** Navigation dead ends:
+  - Back from "Build your map" lands on Identity;
+  - the couple joint screen has no way Home;
+  - a failed `?map=` restore shows no message;
+  - pasting the displayed, spaced code is cut by `maxLength`.
+- **I12.** 18+ is asked only on the map path.
+- **I13.** "Start over" leaves server copies that Forget me can no longer reach, and a completed Forget me re-creates an install id.
+
+**Month 1**
+- **I14.** One hour with a UK privacy adviser:
+  - faith answers going to Anthropic (Article 9);
+  - counting on by default (PECR);
+  - whether an Article 27 representative is needed;
+  - report retention.
+- **I15.** `safety.ts` spends its hourly probe bucket on made-up codes, so real reports can be jammed for an hour.
+- **I16.** Decision 5: the repository is still public.
+- **I17.** `restore.ts` brings back forgotten step counts.
+- **I18.** Alarms:
+  - daily and weekly alarms need a run inside hour 09 UTC;
+  - no drill proves the failure email arrives.
+- **I19.** The live guide eval has never run, and `guide-eval.yml` passes without a key.
+
+**Before their dates or scale triggers**
+- **I21.** Fixture dates make the suite fail from 2027-09-02.
+- **I22.** The sweep is sequential and would pass Netlify's 30 s limit near 1–2k keys.
+- **I23.** The dormant edge gate, once on, also blocks the Bearer founder routes.
+- **I24.** Unverified: are the `netlify.toml` headers served alongside the edge function? `curl -sI` settles it.
+
+**Cosmetic.** Stale copy from deleted features, for example:
+- "Name it, and it is counted";
+- "Every member is held to the same standard";
+- "Four others";
+- Trust lines about a question that is gone.
+
+Also:
+- dead code (`codeFromUrl`, `guideLine`, `recommendedFor`, `Ending.began`);
+- two assertions that cannot fail;
+- server nits: `no-store` on three readouts, `stop_reason` accounting, `atob` on a non-ASCII password.
+
+**Speculative.**
+- The API rejecting a thread that opens with the assistant: it worked on 2026-09-02, and B2 removed the shape.
+- Races between change-my-code and Forget me.
+- Store limits at thousands of records.
+- The model id being retired. Change it only with a live eval.
+
+### Decision 19: the product freeze
+
+**No new feature enters the build without one of these:**
+1. **Observed user evidence:** a dated entry in `docs/RESEARCH.md` (a session, feedback, or a readout number).
+2. **A production failure:** a red `/health` check, a crash, or a named incident.
+3. **A safety or security requirement:** a `docs/SECURITY.md` or `docs/PRIVACY.md` id, or a legal duty.
+4. **A measurable business requirement:** an experiment id in `docs/RESEARCH.md` with its decision rule already written.
+
+**What counts as a feature:** a new screen, instrument, route, store, stored field, setting, or outbound flow of data.
+
+**What does not:**
+- fixing behaviour that is broken, or a claim that is untrue;
+- deletions;
+- security updates to dependencies;
+- tests and docs.
+
+Every PR names which of the four it rests on (`.github/pull_request_template.md`). The freeze replaces `docs/PRODUCT.md` §10's older rule ("records a vote that would otherwise be lost"), which falls under (4).
+
+**Why:** the product is complete enough to learn from and has no members. Every feature built before the first ten sessions is built on inference, and the subtraction of the same day showed what that costs.
+
+## Part 4: Where every old doc went
 
 The eleven docs now are PRODUCT, DECISIONS, RESEARCH, OPS, SECURITY, PRIVACY,
 DESIGN, ASSETS, PROTOCOL, GUIDE-EVAL and TESTING. A citation of a retired doc

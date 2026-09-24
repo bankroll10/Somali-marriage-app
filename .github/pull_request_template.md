@@ -8,6 +8,17 @@
 
 <!-- One or two sentences. If this tests a hypothesis, name it. -->
 
+## Why this may be built (decision 19)
+
+<!-- Tick one. A fix, a deletion, a security update, tests or docs need none:
+     tick the first box. Anything else names its evidence. -->
+
+- [ ] Not a feature: a fix to something broken or untrue, a deletion, a security update, tests or docs
+- [ ] Observed user evidence: the dated entry in `docs/RESEARCH.md` is ...
+- [ ] A production failure: the failing check, crash or incident is ...
+- [ ] A safety or security requirement: the `docs/SECURITY.md` / `docs/PRIVACY.md` id or legal duty is ...
+- [ ] A measurable business requirement: the experiment id, with its decision rule, is ...
+
 ## Checklist
 
 - [ ] `npm run verify` is green (typecheck, lint, tests)

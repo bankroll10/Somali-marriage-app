@@ -100,6 +100,7 @@ Set these in Netlify under Site configuration → Environment variables, unless 
 | `FOUNDER_KEY` | The bearer token on every readout (`netlify/shared/founder.ts`). Also a GitHub Actions secret with the same value, so `watch.yml` can read `/health`. Generate it with `openssl rand -base64 32` | **Every readout answers 401** (fails closed since 2026-09-12), and every health run is red. The fix is to set it |
 | `VITE_SITE_HOST` | The host used in every link the app hands out, every share card, `robots.txt` and `sitemap.xml`. Set it in every context | `joinniyyah.com` |
 | `VITE_CONTACT_EMAIL` | The contact link on Home and Trust | `salaam@joinniyyah.com`, which does not receive mail yet. Keep this set (above) |
+| `VITE_OPERATOR_NAME` | Who Trust names as running Niyyah: a full legal name, or a company's registered name. A setting so that a name stays out of the public repository | "its founder", which names nobody. Set it before strangers arrive (`docs/DECISIONS.md`, the completion review) |
 | `OPS_COST_ALERT_USD` | The estimated guide spend in a day at which `/health`'s `cost` check turns red | `20`, about half of the worst possible day under the caps |
 | `SITE_URL` (GitHub → Variables) | The site that `watch.yml` and `deployed.yml` check | `https://joinniyyah.com` |
 | `BACKUP_TO_ARTIFACT` (GitHub → Variables) | Set it to `true` to have the monthly job save `/export` as a 35-day artifact. Set it only once the repository is private: an artifact on a public repository can be downloaded by anyone signed in to GitHub | No artifact. Back up by hand |

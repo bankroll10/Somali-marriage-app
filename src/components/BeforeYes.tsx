@@ -8,7 +8,7 @@ import { somali } from '../data/somali'
 import { coupleLink, coupleReading, createCouple, readCouple, type CoupleView } from '../lib/couple'
 import { shareOrCopy } from '../lib/share'
 import { withVia } from '../lib/links'
-import { SITE_URL } from '../lib/site'
+import { GUIDE_SOURCE, SITE_URL } from '../lib/site'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
@@ -452,7 +452,7 @@ function Result({
             >
               <span className="flex-1">
                 <span className="font-display text-[1.15rem] font-medium text-ink">Talk it through with your guide</span>
-                <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">It already knows which conversations you’ve had.</span>
+                <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">It already knows which conversations you’ve had. {GUIDE_SOURCE}</span>
               </span>
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
             </button>

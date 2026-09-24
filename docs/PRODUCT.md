@@ -430,9 +430,33 @@ The rule's other half, twenty women counted, read the door, which is gone.
 
 ## 10. What is next
 
-No feature here has been chosen by a stranger. Until one is, **a feature may be
-built now only if it records a vote that would otherwise be lost for ever**, as
-the `kept` rung, the room-kind vias and `v` on every record were.
+**The product freeze (decision 19).** No new feature enters the build without
+one of:
+1. observed user evidence, as a dated entry in `docs/RESEARCH.md`;
+2. a production failure;
+3. a safety or security requirement, as a `docs/SECURITY.md` or `docs/PRIVACY.md` id, or a legal duty;
+4. a measurable business requirement, as an experiment id in `docs/RESEARCH.md` with its decision rule already written.
+
+A feature is a new screen, instrument, route, store, stored field, setting, or
+outbound flow of data. Fixing what is broken or untrue, deleting, security
+updates, tests and docs are not features. The older rule, "records a vote that
+would otherwise be lost", is now case 4. Every PR names its case. The list
+below is gated by the same rule.
+
+**Definition of done for this version.** It is ready for real use when:
+1. The three blockers of the completion review are merged (`docs/DECISIONS.md`, Part 3). `npm run verify` and `npm run build` pass, and the deploy smoke check is green.
+2. On a real iPhone, in Safari and as an installed app:
+   - a tool link, then the read, then "Now the other half of it", then Back, lands on "Enter Niyyah";
+   - "Ask him" opens the share sheet on the first tap;
+   - a second phone answers, and the first sees where they stand;
+   - the guide gives two live answers;
+   - "he threatened me" and "I want to die" on Home each show a help line.
+3. The founder's facts:
+   - `VITE_OPERATOR_NAME` is set in Netlify, redeployed, and shown on Trust;
+   - a test email to the contact address arrives;
+   - the Anthropic console's monthly spend limit is set and written into `docs/OPS.md`.
+4. `npm run eval:guide` has run once and its hard gates pass.
+5. The first 3-hourly `/health` run is green, GitHub's failed-workflow email is on, and `curl -sI` on the site shows the CSP and `frame-ancestors` headers.
 
 | # | Item | Gate |
 |---|---|---|

@@ -154,6 +154,16 @@ export function trimHistory(turns: Turn[], limit: number): Turn[] {
 }
 
 /**
+ * The turns from her first on. A trimmed tail can begin with the guide's own
+ * words, and an old client sends the greeting, which carries her first name;
+ * either way the conversation the model is handed opens with her.
+ */
+export function fromHerTurn(turns: Turn[]): Turn[] {
+  const first = turns.findIndex((t) => t.role === 'user')
+  return first === -1 ? [] : turns.slice(first)
+}
+
+/**
  * Exactly what the guide sends the model for one message: the model, the
  * effort, the server-built prompt from the checked map, and the tail of the
  * thread. The handler streams it; the Guide's live evaluation sends the same
@@ -172,7 +182,7 @@ export function guideRequest(mode: string, context: unknown, history: Turn[], me
       // prompt, so old turns buy continuity, not context, and they are the
       // cheapest thing to drop: the last ten turns, and within them the most
       // recent characters.
-      ...trimHistory(history.slice(-10), MAX_HISTORY_CHARS).map((m) => ({
+      ...fromHerTurn(trimHistory(history.slice(-10), MAX_HISTORY_CHARS)).map((m) => ({
         role: (m.role === 'coach' ? 'assistant' : 'user') as 'assistant' | 'user',
         content: m.text,
       })),

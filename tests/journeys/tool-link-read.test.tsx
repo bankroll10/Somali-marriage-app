@@ -71,4 +71,28 @@ describe('/tools/is-she-serious, walked', () => {
     expect(kept().identity.gender).toBe('man')
     m.unmount()
   })
+
+  it('Back from "Now the other half of it" offers the way in, never a fresh start over his read', async () => {
+    // Welcome's only forward button used to be "Start where you are" for
+    // anyone without a map, and it wiped the read he had just taken
+    // (docs/DECISIONS.md, the completion review, B3).
+    const phone = onPhone(new Phone('his'))
+    const u = new URL(toolLink('is-she-serious', 'words'))
+    const m = await mount(<App entry={entryFromUrl(u.search, u.pathname)} />)
+    await m.press('Start the read')
+    for (const q of readQuestions('man')) await m.press(new RegExp(`^${escape(q.options[0].label)}`))
+    const kept = () => JSON.parse(phone.storage.get('niyyah.intake.v1') ?? '{}')
+    await m.until(() => kept().read, 'the read is saved')
+    const read = kept().read
+
+    await m.press(/^Now the other half of it/)
+    await m.press(/^Back/)
+    expect(m.text()).not.toContain('Start where you are')
+    await m.press(/^Enter Niyyah/)
+    expect(kept().read).toEqual(read)
+    // Home, with his read on it, and nothing on the phone gone.
+    expect(m.text()).toContain('Your read on someone')
+    expect(kept().identity.gender).toBe('man')
+    m.unmount()
+  })
 })

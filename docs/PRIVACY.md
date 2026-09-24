@@ -125,7 +125,7 @@ things below." One row per thing.
 | She sends him the eleven | `POST /couple` | Eleven closed states and her side; later her owner key, to change them, and the code alone (`GET`) to see whether he answered | `couples` |
 | He answers | `POST /couple` | The code and his eleven states. Only the joint comes back | `couples`, `tallies` |
 | The steps switch is on | `POST /progress` | Install id, rung ids, city, via, side, facts; 4 KB at most | `progress` |
-| She asks the live guide | `POST /guide` → Anthropic | The voice; her message; up to 10 earlier turns (6,000 characters); woman or man; city; nine answers (timeline, practice, faith's role, family's role, children, closeness, what feels safe, non-negotiables, hardest part); stage; a line each for a read and the eleven (C4, C5) | Not stored by us; Anthropic's retention is under its API terms |
+| She asks the live guide | `POST /guide` → Anthropic | The voice; her message; up to 10 earlier turns from her first message on (6,000 characters); woman or man; city; nine answers (timeline, practice, faith's role, family's role, children, closeness, what feels safe, non-negotiables, hardest part); stage; a line each for a read and the eleven (C4, C5) | Not stored by us; Anthropic's retention is under its API terms |
 | She reports a concern | `POST /safety` | Couple code, her side, reason id, up to 500 characters | `reports` |
 | The app crashes | `POST /health` | `crash` or `chunk`, once per page load; no stack, screen, code or id | `ops`, a day's total |
 | She taps Forget me | `DELETE` keep, progress, couple | Her three codes | — |
@@ -351,7 +351,7 @@ protects against a leaked key, not against the founder, who holds the stores.
 | C2 | Millisecond timestamps across the kept map, and follow-up ids built from them | Cut to the day; ids renumbered. Closes the clock join of `couple.at` with the sheet's `createdAt` |
 | C3 | `ending.advice` in the kept map, while the Ending promised it never leaves | Stays on the phone |
 | C4 | The guide's request carried the whole identity and every answer, free text too | Two identity fields and the nine answers the prompt reads |
-| C5 | Her first name and exact age, to Anthropic, on every message | Neither goes: the name went, the age became a range, and the range went with age on 2026-09-24 |
+| C5 | Her first name and exact age, to Anthropic, on every message | Neither goes: the name went, the age became a range, and the range went with age on 2026-09-24. The name still travelled inside the thread (the greeting and the offline fallbacks carry it); since the completion review the history starts at her first message, on the phone and on the server, and no fallback uses her name |
 | C6 | A 300-event local diary with ms timestamps, read by nothing | Gone with `analytics.ts` on 2026-09-24; an old one is cleared by Forget me |
 | C7 | A second copy of each contact at Netlify Forms | Gone with the door and its form on 2026-09-24 |
 

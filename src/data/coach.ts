@@ -50,6 +50,12 @@ export interface GuidanceMode {
   greeting: (ctx: CoachContext) => string
   starters: Starter[]
   intents: CoachIntent[]
+  /**
+   * Never her name: a fallback sits in the thread after her first message, and
+   * the thread goes to the live guide as history. The greeting may use it — it
+   * comes before her first message and never leaves the phone (src/lib/coach.ts,
+   * docs/PRIVACY.md C5).
+   */
   fallback: (ctx: CoachContext) => string
 }
 
@@ -198,8 +204,8 @@ The wish-list — the height, the salary, the perfect family — soften that. No
     },
     ...fit,
   ],
-  fallback: (ctx) =>
-    `Come, ${name(ctx) || 'my dear'}, tell your auntie properly — what did he say, what did you feel, what are you afraid of? Give me the real story and I’ll tell you what I see, the way someone who loves you does.`,
+  fallback: () =>
+    `Come, my dear, tell your auntie properly — what did he say, what did you feel, what are you afraid of? Give me the real story and I’ll tell you what I see, the way someone who loves you does.`,
 }
 
 // ── Big Brother ──────────────────────────────────────────────────────────────
@@ -267,8 +273,8 @@ You’re not asking to date her. You’re declaring serious, honourable intent. 
     },
     ...fit,
   ],
-  fallback: (ctx) =>
-    `Talk to me straight, ${name(ctx) || 'akhi'} — what’s the actual situation? What did you say, what did she say, where’s it stuck? Give me the details and I’ll tell you the move.`,
+  fallback: () =>
+    `Talk to me straight, akhi — what’s the actual situation? What did you say, what did she say, where’s it stuck? Give me the details and I’ll tell you the move.`,
 }
 
 // ── Therapist ────────────────────────────────────────────────────────────────
@@ -341,8 +347,8 @@ This passes. Nothing needs deciding while it is here. When it settles, we can th
 What matters is that your past doesn’t silently run the present. Notice when an old hurt is set off by a new person who has not earned that reaction. You can carry tenderness and still move forward, as long as you are honest about what is yours to carry. Be patient with yourself.`,
     },
   ],
-  fallback: (ctx) =>
-    `Whatever it is, ${name(ctx) || 'friend'}, you can put it down here. Tell me what you’re feeling and what set it off, and we’ll make sense of it slowly.`,
+  fallback: () =>
+    `Whatever it is, friend, you can put it down here. Tell me what you’re feeling and what set it off, and we’ll make sense of it slowly.`,
 }
 
 // ── Islamic Values ───────────────────────────────────────────────────────────
@@ -406,8 +412,8 @@ For a sister, the wali’s involvement is part of the path and a safeguard of he
 So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for fifty years.`,
     },
   ],
-  fallback: (ctx) =>
-    `Tell me what you’re navigating, ${name(ctx) || 'friend'}, and we’ll look at it through the lens of our deen — with intention, modesty, and mercy. (And for any ruling you need to be certain of, take it to a trusted scholar.)`,
+  fallback: () =>
+    `Tell me what you’re navigating, friend, and we’ll look at it through the lens of our deen — with intention, modesty, and mercy. (And for any ruling you need to be certain of, take it to a trusted scholar.)`,
 }
 
 export const modes: GuidanceMode[] = [

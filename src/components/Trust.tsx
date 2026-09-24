@@ -4,6 +4,7 @@ import { BackButton, Disclose, LockGlyph, Logo } from './ui'
 import ReportConcern from './ReportConcern'
 import ForgetMe, { type Forgot } from './ForgetMe'
 import { speak } from '../data/read'
+import { CONTACT_EMAIL, OPERATOR } from '../lib/site'
 
 interface Props {
   identity: Identity
@@ -251,6 +252,21 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
 
         {/* Forget me — the control that makes every sentence above enforceable. */}
         <ForgetMe gender={identity.gender} onForget={onForget} className="mt-6" />
+
+        {/* Who answers for all of the above, and how to reach them. Nothing on
+            any screen named anyone, and the contact link lived only on Home
+            (docs/DECISIONS.md, the completion review, B2). */}
+        <section className="mt-6 rounded-card border border-line bg-white/60 p-6">
+          <h2 className="font-display text-[1.08rem] font-medium text-ink">Who runs Niyyah</h2>
+          <p className="mt-2 text-[0.92rem] leading-relaxed text-ink-soft text-pretty">
+            Niyyah is run by {OPERATOR}. To ask what we hold about you, to correct it, or to delete it,
+            write to{' '}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-forest underline underline-offset-4">
+              {CONTACT_EMAIL}
+            </a>
+            . If we don’t put it right, you can complain to the data-protection authority where you live.
+          </p>
+        </section>
 
         {/* Community promise */}
         <section className="mt-6 rounded-card bg-forest p-6 text-cream">

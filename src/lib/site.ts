@@ -46,3 +46,22 @@ export const SITE_URL = `https://${SITE_HOST}`
  * provider's domain is the last rented thing a member uses to reach us.
  */
 export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'salaam@joinniyyah.com'
+
+/**
+ * Who runs Niyyah, as Trust names it: the person or company answerable for
+ * what is held (docs/DECISIONS.md, the completion review, B2). A setting, not a
+ * constant, like the contact address: a personal name stays out of this
+ * public repository's history, and becoming a company later needs no commit.
+ * Production must set it; the default says only that one person runs it.
+ */
+export const OPERATOR = import.meta.env.VITE_OPERATOR_NAME || 'its founder'
+
+/**
+ * Said wherever a tap sends her words to the live guide. The guide screen's
+ * header used to say "private" while it did, and Home's box, the results'
+ * hand-offs and "It went differently" sent without a word about where
+ * (docs/DECISIONS.md, the completion review, B2). Trust has the detail.
+ * Here rather than beside the guide, because Welcome shows it (under "It went
+ * differently") and the guide's library is not in the entry bundle.
+ */
+export const GUIDE_SOURCE = 'Answered by Claude, made by Anthropic, unless you keep the guide on this phone (Trust).'

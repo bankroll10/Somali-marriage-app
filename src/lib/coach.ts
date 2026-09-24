@@ -321,7 +321,10 @@ async function askLiveGuide(
           beforeYesNote: ctx.beforeYesNote,
         },
         message,
-        history: history.map((m) => ({ role: m.role, text: m.text })),
+        // From her first message on. What comes before it is the voice's
+        // greeting, which carries her first name — and a conversation the
+        // model is handed should open with her, not with itself.
+        history: fromFirstMessage(history).map((m) => ({ role: m.role, text: m.text })),
       }),
     })
     if (!res.ok || !res.body) return null
@@ -345,6 +348,12 @@ async function askLiveGuide(
   } finally {
     stopWaiting()
   }
+}
+
+/** The thread from her first message on; nothing if she has not written yet. */
+export function fromFirstMessage(history: CoachMessage[]): CoachMessage[] {
+  const first = history.findIndex((m) => m.role === 'user')
+  return first === -1 ? [] : history.slice(first)
 }
 
 export async function askCoach(

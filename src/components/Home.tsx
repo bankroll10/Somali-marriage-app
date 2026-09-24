@@ -6,7 +6,7 @@ import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
 import { SinceLastTime } from './home/FollowUp'
 import StageBand from './home/StageBand'
-import { CONTACT_EMAIL } from '../lib/site'
+import { CONTACT_EMAIL, GUIDE_SOURCE } from '../lib/site'
 import {
   CompassGlyph,
   GlyphTile,
@@ -254,7 +254,7 @@ export default function Home({
             </div>
           </form>
           <p className="mt-2.5 text-[0.8rem] text-muted text-pretty">
-            You don’t pick a guide — we read what you said and open the right one.
+            You don’t pick a guide — we read what you said and open the right one. {GUIDE_SOURCE}
           </p>
         </section>
         )}

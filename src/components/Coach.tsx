@@ -205,7 +205,12 @@ export default function Coach({
     // indicator — so gating on it left the whole reply sendable: two streams,
     // two charges, and the second asked without the first's context
     // (docs/DESIGN.md).
-    if (!trimmed || thinking || busy || !mode || locked) return
+    // Not `locked`: a spent budget used to return here without a word, and a
+    // message handed over from Home — "I want to die", "he threatened me" —
+    // vanished under the wall. Past the budget the answer comes from the phone
+    // (below), which costs nothing and puts the crisis and safety replies,
+    // with their help lines, before anything else.
+    if (!trimmed || thinking || busy || !mode) return
     const userMsg: CoachMessage = { id: nextId(), role: 'user', text: trimmed }
     setThreads((prev) => ({ ...prev, [mode]: [...(prev[mode] ?? []), userMsg] }))
     setInput('')
@@ -265,7 +270,7 @@ export default function Coach({
 
     // The thread so far, so the live guide picks up mid-conversation instead of
     // meeting them fresh on every message.
-    const reply = await askCoach(trimmed, ctx, mode, threads[mode] ?? [], (soFar) => {
+    const reply = await askCoach(trimmed, locked ? { ...ctx, onDeviceOnly: true } : ctx, mode, threads[mode] ?? [], (soFar) => {
       // `streamedText` stays exact on every chunk — only the render is
       // deferred, never the record of what actually arrived.
       streamedText = soFar
@@ -434,7 +439,9 @@ export default function Coach({
           <h1 className="font-display text-[1.05rem] font-medium leading-tight text-ink">
             {activeMode.label}
           </h1>
-          <p className="text-[0.78rem] text-muted">{activeMode.tagline} · private</p>
+          <p className="text-[0.78rem] text-muted">
+            {activeMode.tagline} · {onDeviceOnly || locked ? 'answers on this phone' : 'answered by Claude, made by Anthropic'}
+          </p>
           {/* No counter here. One used to appear from halfway — "6 replies left
               this month" — and open the subscription screen. A counter on a
               guide is a pressure gauge, and the thing it sold was the guide
@@ -504,7 +511,7 @@ export default function Coach({
               in the same bubble, with nothing to tell her the guide was never
               reached (docs/DESIGN.md). It costs no reply, and the words are
               still worth reading, so this is a note rather than an error. */}
-          {!reachedGuide && !cutOff && !thinking && !onDeviceOnly && (
+          {!reachedGuide && !cutOff && !thinking && !onDeviceOnly && !locked && (
             <p role="status" className="animate-fade px-1 text-[0.82rem] leading-relaxed text-muted text-pretty">
               We couldn’t reach the guide just now, so that answer came from this phone. It cost you nothing. Ask again
               in a moment for the fuller one.
