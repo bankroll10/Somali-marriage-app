@@ -1,18 +1,13 @@
 import { useState } from 'react'
-import type { Gender, Stage } from '../../types'
+import type { Stage } from '../../types'
 import { getStage, stages } from '../../data/stages'
 import { ArrowRight, TextButton } from '../ui'
 
 interface Props {
   stage: Stage
   onSetStage: (s: Stage) => void
-  /** The instruments for each stage — the band is where the arc becomes doors. */
-  onOpenRead?: () => void
-  onOpenBeforeYes?: () => void
+  /** The family words: the one instrument no card on Home opens while she is talking or deciding. */
   onOpenFamilies?: () => void
-  onOpenGuide?: () => void
-  /** Which side the member is on — the read's door names the other. */
-  gender?: Gender
 }
 
 /**
@@ -20,25 +15,15 @@ interface Props {
  * follows you past the match instead of ending there. Moving stage is always
  * the member's own call, never inferred from who they've messaged.
  */
-export default function StageBand({ stage, onSetStage, onOpenRead, onOpenBeforeYes, onOpenFamilies, onOpenGuide, gender }: Props) {
+export default function StageBand({ stage, onSetStage, onOpenFamilies }: Props) {
   const [open, setOpen] = useState(false)
   const st = getStage(stage)
 
-  // What this stage has for her. The stage system used to be a paragraph and a
-  // picker; now each stage opens onto the thing built for it.
+  // The read, the eleven and the guide each have a card on Home, and married
+  // Home has its own doors, so the band used to repeat them. What it adds is
+  // the family words while she is talking or deciding.
   const doors: { label: string; go?: () => void }[] =
-    stage === 'talking'
-      ? [{ label: gender === 'man' ? 'Is she serious?' : 'Is he serious?', go: onOpenRead }, { label: 'The words for your family', go: onOpenFamilies }]
-      : stage === 'deciding'
-        ? [{ label: 'Before you say yes', go: onOpenBeforeYes }, { label: 'The words for your family', go: onOpenFamilies }]
-        : stage === 'married'
-          ? [
-              { label: 'Talk to your guide', go: onOpenGuide },
-              // The in-law conversations do not end at the nikah — this stage
-              // had one door, and the scripts for two families already exist.
-              { label: 'The words for your family', go: onOpenFamilies },
-            ]
-          : []
+    stage === 'talking' || stage === 'deciding' ? [{ label: 'The words for your family', go: onOpenFamilies }] : []
 
   return (
     <section className="animate-rise mt-8">

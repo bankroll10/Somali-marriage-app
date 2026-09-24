@@ -333,15 +333,7 @@ export default function Home({
           </button>
         )}
 
-        <StageBand
-          gender={identity.gender}
-          stage={stage}
-          onSetStage={onSetStage}
-          onOpenRead={onOpenRead}
-          onOpenBeforeYes={onOpenBeforeYes}
-          onOpenFamilies={onOpenFamilies}
-          onOpenGuide={() => onOpenGuide()}
-        />
+        <StageBand stage={stage} onSetStage={onSetStage} onOpenFamilies={onOpenFamilies} />
 
         {/* Did the thing we told her to do actually happen? The only question
             here about her life rather than about this app — and the reason a
