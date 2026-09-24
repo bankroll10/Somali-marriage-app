@@ -104,7 +104,7 @@ Plaintext `localStorage`, this browser only; every key is in `LOCAL_KEYS`,
 
 | Key | Holds | Lives | Cleared by |
 |---|---|---|---|
-| `niyyah.intake.v1` | Identity (first name, optional; woman or man; 18+; city; country only when the city is "other"); answers (`working-on` is free text); last 12 readings; latest read and the one before; the eleven; couple code and day, plus on this phone only its owner key, cached joint and side; the ending with her advice line; last 8 ended courtships; follow-ups; guide replies spent; the two switches; stage; `updatedAt` | Until cleared | Forget me; Start over; the browser |
+| `niyyah.intake.v1` | Identity (first name, optional; woman or man; 18+; city; country only when the city is "other"); answers (`working-on` is free text); last 12 readings; latest read and the one before; the eleven, with the topics she named as a line for her (`lines`, the pseudo-state `line` in a half-finished run); couple code and day, plus on this phone only its owner key, cached joint and side; the ending with her advice line; last 8 ended courtships; follow-ups; guide replies spent; the two switches; stage; `updatedAt` | Until cleared | Forget me; Start over; the browser |
 | `coachThreads` (in it) | Guide conversations, both sides' words | **Last 40 per voice** (R6); the guide reads 10 | Forget me; Start over |
 | `niyyah.keep.code.v1`, `.rev.v1`, `.once.v1` | Her map code; the revision last seen; a first keep's key until its code comes back | Until forget | Forget me; Start over (code, revision) |
 | `niyyah.install.v1`, `niyyah.via.v1` | The random id her steps go under, not her map code; one word for the link that first brought her | From the first report / `?via=` link | Forget me |
@@ -120,9 +120,9 @@ things below." One row per thing.
 
 | When | Route | What goes | Kept in |
 |---|---|---|---|
-| She taps Keep this map | `POST /keep` | The snapshot: `niyyah.intake.v1` minus the guide's threads and follow-ups, the advice line, `updatedAt`, the earlier read, and the couple's key, joint and side, every moment cut to its day (C1–C3); her code and revision, or a once key | `maps` |
+| She taps Keep this map | `POST /keep` | The snapshot: `niyyah.intake.v1` minus the guide's threads and follow-ups, the advice line, `updatedAt`, the earlier read, her eleven's `lines` (each stays a plain `differ`; `keep.ts` deletes them too, for an older client), and the couple's key, joint and side, every moment cut to its day (C1–C3); her code and revision, or a once key | `maps` |
 | She restores, or changes her code | `GET`, `PUT /keep?code=` | The code | — |
-| She sends him the eleven | `POST /couple` | Eleven closed states and her side; later her owner key, to change them, and the code alone (`GET`) to see whether he answered | `couples` |
+| She sends him the eleven | `POST /couple` | Eleven closed states and her side (a line she named goes as `differ`: `sheetOf`, `src/data/beforeYes.ts`); later her owner key, to change them, and the code alone (`GET`) to see whether he answered | `couples` |
 | He answers | `POST /couple` | The code and his eleven states. Only the joint comes back | `couples`, `tallies` |
 | The steps switch is on | `POST /progress` | Install id, rung ids, city, via, side, facts; 4 KB at most | `progress` |
 | She asks the live guide | `POST /guide` → Anthropic | The voice; her message; up to 10 earlier turns from her first message on (6,000 characters); woman or man; city; nine answers (timeline, practice, faith's role, family's role, children, closeness, what feels safe, non-negotiables, hardest part); stage; a line each for a read and the eleven (C4, C5) | Not stored by us; Anthropic's retention is under its API terms |

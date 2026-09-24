@@ -76,16 +76,56 @@ export const DIFFER_OUTCOMES: { id: 'differ' | 'settled'; label: string; hint?: 
   { id: 'settled', label: 'We’ve worked out how to live with it', hint: 'You see it differently, and you have an arrangement you both keep.' },
 ]
 
-/** True for the two states that say the two of them found a difference. */
+/**
+ * A line: a difference that is non-negotiable for her. Offered only on her
+ * own sheet — the person answering a sent link has no sheet of their own for
+ * it to live on (docs/DECISIONS.md Part 8).
+ *
+ * `line` is not a state. While she answers, and in a half-finished run, a
+ * topic may hold 'line'; the moment the sheet is saved it becomes `differ`
+ * in `answers` and the topic id in `lines` (sheetOf). So nothing that sends
+ * her answers anywhere — the two-sided link, a kept map — can carry it: the
+ * couple sheet says only that the two of them don't agree, and whether it is
+ * a line is hers to say to him in words.
+ */
+export const LINE = 'line'
+export const LINE_OUTCOME = {
+  id: LINE,
+  label: 'It’s a line for me',
+  hint: 'Not something to meet in the middle on. Kept off anything you send.',
+}
+export const SHEET_OUTCOMES = [...DIFFER_OUTCOMES, LINE_OUTCOME]
+
+/** True for the answers that say the two of them found a difference. */
 export function isDifference(state: string | undefined): boolean {
-  return state === 'differ' || state === 'settled'
+  return state === 'differ' || state === 'settled' || state === LINE
+}
+
+/** Her answers while she is still answering, split into what is saved and sent, and her lines. */
+export function sheetOf(picked: Record<string, string>): { answers: Record<string, string>; lines: string[] } {
+  const answers: Record<string, string> = {}
+  const lines: string[] = []
+  for (const [id, state] of Object.entries(picked)) {
+    if (state === LINE) {
+      answers[id] = 'differ'
+      lines.push(id)
+    } else answers[id] = state
+  }
+  return { answers, lines }
+}
+
+/** The other way: a saved sheet, back as she answered it. */
+export function pickedOf(record: { answers: Record<string, string>; lines?: string[] }): Record<string, string> {
+  const picked = { ...record.answers }
+  for (const id of record.lines ?? []) if (picked[id] === 'differ') picked[id] = LINE
+  return picked
 }
 
 // The words themselves live in eleven.ts, import-free, so the build can write
 // the printable guide from them. Everything the app reads is re-exported here.
-export { ALL_AGREED, ALL_HAD, OWN_ANSWER_FIRST, TOPICS, WORK_IT_OUT } from './eleven'
+export { ALL_AGREED, ALL_HAD, OWN_ANSWER_FIRST, SAY_THE_LINE, TOPICS, WORK_IT_OUT } from './eleven'
 export type { ElevenScript, Topic, YourSide } from './eleven'
-import { ALL_HAD, OWN_ANSWER_FIRST, TOPICS, WORK_IT_OUT, type ElevenScript, type Topic } from './eleven'
+import { ALL_HAD, OWN_ANSWER_FIRST, SAY_THE_LINE, TOPICS, WORK_IT_OUT, type ElevenScript, type Topic } from './eleven'
 
 function resolve(topic: Topic, fix: (t: string) => string, memberGender: Gender): Topic {
   // A man's variant, where one exists, replaces the woman's before the
@@ -124,6 +164,10 @@ export function workItOut(memberGender: Gender = 'woman'): Script {
 
 export function allHad(memberGender: Gender = 'woman'): Script {
   return resolved(ALL_HAD, memberGender)
+}
+
+export function sayTheLine(memberGender: Gender = 'woman'): Script {
+  return resolved(SAY_THE_LINE, memberGender)
 }
 
 /**

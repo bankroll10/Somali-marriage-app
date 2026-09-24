@@ -114,7 +114,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
   })()
   const beforeYesNote = (() => {
     if (!n.beforeYes) return undefined
-    const built = buildBeforeYes(n.beforeYes.answers, n.identity.gender ?? 'woman')
+    const built = buildBeforeYes(n.beforeYes.answers, n.identity.gender ?? 'woman', n.beforeYes.lines)
     return built ? beforeYesSummary(built) : undefined
   })()
   const backHome = () => {

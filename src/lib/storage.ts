@@ -1,4 +1,5 @@
 import type {
+  BeforeYesRecord,
   Answers,
   BegunInstruments,
   EndedRecord,
@@ -34,7 +35,7 @@ export interface PersistedState {
   /** The most recent read they took on someone. */
   read: ReadRecord | null
   /** Before you say yes — which of the eleven conversations they've had. */
-  beforeYes: ReadRecord | null
+  beforeYes: BeforeYesRecord | null
   /** The two-sided Before you say yes she started, if any. */
   couple: CoupleState | null
   /** What she told us on the way out, once she has married. The success state. */

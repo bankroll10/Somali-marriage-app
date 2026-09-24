@@ -1,5 +1,6 @@
 import type {
   Answers,
+  BeforeYesRecord,
   CoupleState,
   FollowUp,
   Gender,
@@ -52,7 +53,7 @@ export interface EndingInput {
   answers: Answers
   mapHistory: MapSnapshot[]
   read: ReadRecord | null
-  beforeYes: ReadRecord | null
+  beforeYes: BeforeYesRecord | null
   couple: CoupleState | null
   followups: FollowUp[]
   completed: boolean
@@ -109,7 +110,7 @@ export function buildEnding(i: EndingInput, today: string): Ending {
 
   // The eleven — the conversations to have before the families do.
   if (i.beforeYes) {
-    const r = buildBeforeYes(i.beforeYes.answers, i.gender)
+    const r = buildBeforeYes(i.beforeYes.answers, i.gender, i.beforeYes.lines)
     lines.push({
       text: r
         ? `You went through the eleven conversations before you said yes — ${words(r.counts.agree)} of them already talked through and agreed.`

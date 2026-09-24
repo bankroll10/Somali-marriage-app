@@ -136,8 +136,10 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>if you’ve married, what you told us on the way out</li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                Left out: your conversations with the guide, and anything the guide handed you to
-                say. Those stay on this phone.
+                Left out: your conversations with the guide, anything the guide handed you to
+                say, and which differences in the eleven you named as a line for you — the map
+                keeps each of those only as a difference. Those stay on this phone; a map brought
+                back on another phone shows them as still open.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 The code is registered to nobody, and without it nobody can reach the map.

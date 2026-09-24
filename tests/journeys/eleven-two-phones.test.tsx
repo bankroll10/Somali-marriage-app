@@ -3,7 +3,7 @@ import fc from 'fast-check'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
 import { inviteLink } from '../../src/data/invite'
-import { beforeYesTopics, DIFFER_OUTCOMES, isDifference, STATES } from '../../src/data/beforeYes'
+import { beforeYesTopics, isDifference, LINE, sayTheLine, SHEET_OUTCOMES, STATES } from '../../src/data/beforeYes'
 import { entryFromUrl } from '../../src/lib/entry'
 import { coupleReading } from '../../src/lib/couple'
 import { joint, type YesState } from '../../netlify/functions/couple'
@@ -42,7 +42,7 @@ async function answerEleven(m: Mounted, g: Gender, states: Record<string, string
     const state = states[t.id]
     if (isDifference(state)) {
       await m.press(new RegExp(`^${STATES.find((s) => s.id === 'differ')!.label}`))
-      await m.press(new RegExp(`^${DIFFER_OUTCOMES.find((o) => o.id === state)!.label}`))
+      await m.press(new RegExp(`^${SHEET_OUTCOMES.find((o) => o.id === state)!.label}`))
       continue
     }
     await m.press(new RegExp(`^${STATES.find((s) => s.id === state)!.label}`))
@@ -205,6 +205,34 @@ describe('the eleven, on two phones', () => {
     await gone.until(() => gone.text().includes(expected.woman.headline), 'the kept joint')
     expect(gone.text()).not.toMatch(/couldn’t check/)
     gone.unmount()
+  })
+
+  it('a line she names stays on her phone: the link carries it as a difference, nothing more', async () => {
+    const ids = beforeYesTopics('woman').map((t) => t.id)
+    const hers = { ...Object.fromEntries(ids.map((t) => [t, 'agree'])), 'second-wife': LINE, work: 'differ' }
+    const sheet = shareSheet()
+    const herPhone = onPhone(new Phone('hers'))
+    const her = await mount(open(inviteLink('beforeYes')))
+    await her.press('Start — about him')
+    await answerEleven(her, 'woman', hers)
+
+    // Her own result names it as hers, never offers it as the one to open,
+    // and gives the words for saying it plainly.
+    expect(her.text()).toContain('You’ve named one line the two of you don’t share.')
+    expect(her.text()).toContain('A line for you')
+    expect(her.text()).toContain('The one to open this week is whether you’d work.')
+    expect(her.text()).toContain(sayTheLine('woman').words)
+    await her.until(() => saved(herPhone).beforeYes, 'her sheet is saved on her phone')
+    expect(saved(herPhone).beforeYes.lines).toEqual(['second-wife'])
+    expect(saved(herPhone).beforeYes.answers['second-wife']).toBe('differ')
+
+    await her.press(/^Ask him/)
+    const code = new URL(sheet.sent.at(-1)!.url!).searchParams.get('couple')!
+    await her.until(() => blobs.read('couples', code), 'her sheet reached the server')
+    const held = blobs.read('couples', code) as { first: Record<string, string> }
+    expect(held.first['second-wife']).toBe('differ')
+    expect(JSON.stringify(held)).not.toMatch(/"line"|lines/)
+    her.unmount()
   })
 
   it('she goes through it again before he answers, and he is compared with the sheet she has now', async () => {

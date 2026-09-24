@@ -304,6 +304,16 @@ export interface ReadRecord {
 }
 
 /**
+ * Her eleven. `lines` are the topics she answered "we don't agree — it's a
+ * line for me": in `answers` they are `differ`, which is all anything sent
+ * from this phone ever says (src/data/beforeYes.ts, LINE). On this phone
+ * only — the kept map leaves them out (src/lib/keep.ts).
+ */
+export interface BeforeYesRecord extends ReadRecord {
+  lines?: string[]
+}
+
+/**
  * How much of the guide she has used, ever.
  *
  * This used to be a monthly allowance and a no-card trial: twenty replies a

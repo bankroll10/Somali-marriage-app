@@ -233,6 +233,15 @@ describe('what a kept map carries — only what bringing her back needs (docs/PR
     const kept = keptSnapshot(full as never)
     expect(kept.ending).toEqual({ at: '2026-09-23', who: 'met-here' })
   })
+
+  it('leaves the differences she named as a line on this phone — a kept map says only that they differ', () => {
+    const kept = keptSnapshot({
+      ...full,
+      beforeYes: { at: '2026-09-23T10:11:12.345Z', answers: { 'second-wife': 'differ', live: 'agree' }, lines: ['second-wife'] },
+    } as never)
+    expect(kept.beforeYes).toEqual({ at: '2026-09-23', answers: { 'second-wife': 'differ', live: 'agree' } })
+    expect(JSON.stringify(kept)).not.toContain('lines')
+  })
 })
 
 describe('a new code for a map someone has seen', () => {

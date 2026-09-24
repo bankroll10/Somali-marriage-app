@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
-import type { Answers, CoupleState, Gender, Identity, ReadRecord } from '../types'
+import type { Answers, BeforeYesRecord, CoupleState, Gender, Identity } from '../types'
 import type { ElevenAt } from '../hooks/useNiyyah'
-import { BEFORE_YES_COUNT, DIFFER_OUTCOMES, beforeYesTopics, isDifference } from '../data/beforeYes'
+import { BEFORE_YES_COUNT, SHEET_OUTCOMES, beforeYesTopics, isDifference, pickedOf, sayTheLine, sheetOf } from '../data/beforeYes'
 import ElevenChoices from './ElevenChoices'
 import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/beforeYes'
 import { somali } from '../data/somali'
@@ -22,7 +22,7 @@ interface Props {
   saveOk?: boolean
   /** Her own map, so "your side" can be read back where it already knows it. */
   answers: Answers
-  saved: ReadRecord | null
+  saved: BeforeYesRecord | null
   /**
    * Where to open. 'result' when she came from Home's "where you left it"
    * card; 'joint' from its "He answered" card — her result, with where the
@@ -30,7 +30,7 @@ interface Props {
    * screen's front page, one tap short of what they said.
    */
   opensAt?: ElevenAt
-  onSave: (record: ReadRecord) => void
+  onSave: (record: BeforeYesRecord) => void
   /** The eleven were begun — the denominator for whether they get finished. */
   onBegan: () => void
   onSetGender: (g: Gender) => void
@@ -83,7 +83,8 @@ export default function BeforeYes({
   const atResult = opensAt !== 'front' && !!saved
   const jointFirst = atResult && opensAt === 'joint' && !!couple
   const [phase, setPhase] = useState<Phase>(atResult ? 'result' : 'intro')
-  const [picked, setPicked] = useState<Record<string, string>>(() => (atResult && saved ? saved.answers : {}))
+  // As she answered it: a line is 'line' here, and only here (src/data/beforeYes.ts, LINE).
+  const [picked, setPicked] = useState<Record<string, string>>(() => (atResult && saved ? pickedOf(saved) : {}))
   const [index, setIndex] = useState(0)
   // A run she was pulled out of. Read on the way in, and nowhere else.
   const [draft] = useState(() => loadDraft('eleven'))
@@ -141,7 +142,10 @@ export default function BeforeYes({
       return
     }
     clearDraft('eleven')
-    onSave({ at: new Date().toISOString(), answers: next })
+    // Saved as states, with her lines beside them: a line is `differ` in
+    // anything that could ever be sent.
+    const sheet = sheetOf(next)
+    onSave({ at: new Date().toISOString(), answers: sheet.answers, ...(sheet.lines.length ? { lines: sheet.lines } : {}) })
     setPhase('result')
   }
 
@@ -242,7 +246,7 @@ export default function BeforeYes({
           {saved && (
             <button
               onClick={() => {
-                setPicked(saved.answers)
+                setPicked(pickedOf(saved))
                 setPhase('result')
               }}
               className="animate-fade mt-4 text-sm font-medium text-forest underline-offset-4 transition hover:underline"
@@ -256,7 +260,8 @@ export default function BeforeYes({
   }
 
   if (phase === 'result') {
-    const result = buildBeforeYes(picked, gender)
+    const sheet = sheetOf(picked)
+    const result = buildBeforeYes(sheet.answers, gender, sheet.lines)
     if (!result) return null
     return (
       <Shell onBack={onBack} title="Before you say yes">
@@ -307,7 +312,7 @@ export default function BeforeYes({
           labelledBy={`before-yes-q-${t.id}`}
           chosen={chosen}
           chosenOutcome={isDifference(chosen) ? chosen : undefined}
-          outcomes={DIFFER_OUTCOMES}
+          outcomes={SHEET_OUTCOMES}
           onChoose={choose}
           onOutcome={choose}
         />
@@ -355,13 +360,17 @@ function Result({
   onOpenFamilies: () => void
   onBuildMap: () => void
 }) {
-  const title = result.allHad
+  const openIsLine = result.lines.some((l) => l.id === result.open.id)
+  const title = openIsLine
+    ? 'Saying a line plainly'
+    : result.allHad
     ? 'The one to go back over'
     : result.open.state === 'unknown'
       ? 'Start with your own answer'
       : 'The one to open this week'
 
-  const together = <Together gender={gender} pronoun={pronoun} picked={picked} couple={couple} onCouple={onCouple} />
+  // What he is compared with is her states alone: a line goes as `differ`.
+  const together = <Together gender={gender} pronoun={pronoun} picked={sheetOf(picked).answers} couple={couple} onCouple={onCouple} />
 
   return (
     <div className="py-8">
@@ -377,6 +386,7 @@ function Result({
           not drawn in clay, the colour this app keeps for errors: two people
           seeing something differently is not a fault (docs/DECISIONS.md
           Part 8). */}
+      <List title="A line for you" items={result.lines} tone="ink" />
       <List title="Still open between you" items={result.byState.differ} tone="gold" />
       <List title="Not talked about yet" items={result.byState['not-talked']} tone="gold" />
       <List title="Where you don’t know your own answer yet" items={result.byState.unknown} tone="gold" />
@@ -385,6 +395,13 @@ function Result({
 
       <ScriptCard script={result.open.script} title={title} travel="eleven" />
       <CheckBack what="you had this one" />
+
+      {/* A line is never the conversation to open. If she has not yet said
+          it to him plainly, these are the words for that — once, and not
+          to bargain over (docs/DECISIONS.md Part 8). */}
+      {result.lines.length > 0 && !openIsLine && (
+        <ScriptCard script={sayTheLine(gender)} title="Saying a line plainly" travel="eleven" />
+      )}
 
       {!jointFirst && together}
 
@@ -480,9 +497,9 @@ function Result({
   )
 }
 
-function List({ title, items, tone }: { title: string; items: TopicReading[]; tone: 'forest' | 'gold' }) {
+function List({ title, items, tone }: { title: string; items: TopicReading[]; tone: 'forest' | 'gold' | 'ink' }) {
   if (!items.length) return null
-  const dot = tone === 'forest' ? 'bg-forest' : 'bg-gold'
+  const dot = tone === 'forest' ? 'bg-forest' : tone === 'ink' ? 'bg-ink' : 'bg-gold'
   return (
     <div className="animate-rise mt-7">
       {/* A heading. 434 rendered words under one <h1> until 2026-09-18

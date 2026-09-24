@@ -35,6 +35,7 @@ import type {
   Stage,
   TrustSettings,
   ReadRecord,
+  BeforeYesRecord,
   CoupleState,
   EndingRecord,
   EndedRecord,
@@ -139,7 +140,7 @@ export function useNiyyah(entry: Entry | null = null) {
   // The last read she took on someone. Answers only; the reading is recomputed.
   const [read, setRead] = useState<ReadRecord | null>(saved?.read ?? null)
   // Before you say yes — which conversations she and he have actually had.
-  const [beforeYes, setBeforeYes] = useState<ReadRecord | null>(saved?.beforeYes ?? null)
+  const [beforeYes, setBeforeYes] = useState<BeforeYesRecord | null>(saved?.beforeYes ?? null)
   // The two-sided Before you say yes she started, or answered.
   const [couple, setCouple] = useState<CoupleState | null>(saved?.couple ?? null)
   // What she told us on the way out. The success state of this whole product.
@@ -547,7 +548,7 @@ export function useNiyyah(entry: Entry | null = null) {
   }
 
   /** The same for the eleven: the one it told her to open is the one we ask about. */
-  function saveBeforeYes(record: ReadRecord | null) {
+  function saveBeforeYes(record: BeforeYesRecord | null) {
     setBeforeYes(record)
     if (!record) return
     // She went through it again after sending it, and he has not answered:
@@ -557,7 +558,7 @@ export function useNiyyah(entry: Entry | null = null) {
     if (couple && !couple.answered && !couple.side && couple.key) {
       void updateCouple(couple.code, couple.key, record.answers, identity.gender ?? 'woman')
     }
-    const r = buildBeforeYes(record.answers, identity.gender ?? 'woman')
+    const r = buildBeforeYes(record.answers, identity.gender ?? 'woman', record.lines)
     if (r) setFollowups((prev) => noteFollowUp(prev, 'beforeYes', r.open.id))
     const inferred = stageAfterInstrument('eleven', stage, situated)
     if (inferred) setStageRaw(inferred)
@@ -601,7 +602,8 @@ export function useNiyyah(entry: Entry | null = null) {
     if (outcome !== 'asked' || agreed === undefined || !target) return
     if (target.source !== 'beforeYes' && target.source !== 'couple') return
     setBeforeYes((prev) =>
-      prev ? { at: new Date().toISOString(), answers: { ...prev.answers, [target.topic]: writeBackState(agreed) } } : prev,
+      // Spread, so her lines survive a write-back to another topic.
+      prev ? { ...prev, at: new Date().toISOString(), answers: { ...prev.answers, [target.topic]: writeBackState(agreed) } } : prev,
     )
   }
 

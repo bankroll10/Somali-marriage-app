@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { beforeYesSummary, buildBeforeYes } from './beforeYes'
-import { BEFORE_YES_COUNT, beforeYesTopics, workItOut } from '../data/beforeYes'
+import { BEFORE_YES_COUNT, LINE, allHad, beforeYesTopics, pickedOf, sayTheLine, sheetOf, workItOut } from '../data/beforeYes'
 
 /**
  * Before you say yes tells a woman which conversation to open with a real man.
@@ -34,6 +34,13 @@ describe('what it refuses to say', () => {
     answers({ live: 'differ', 'second-wife': 'differ', qabiil: 'not-talked' }),
     answers({ 'money-home': 'unknown' }),
   ]
+  it('never judges him or tells her to stay or go when she has named a line, or all eleven', () => {
+    for (const lines of [['second-wife'], IDS]) {
+      const a = lines.length === IDS.length ? all('differ') : answers({ 'second-wife': 'differ' })
+      const text = prose(buildBeforeYes(a, 'woman', lines))
+      for (const phrase of banned) expect(text).not.toContain(phrase)
+    }
+  })
   it('never judges him, and never tells her to stay or go', () => {
     for (const a of cases) {
       const text = prose(buildBeforeYes(a))
@@ -226,5 +233,62 @@ describe('after a difference, the words are for after a difference', () => {
   })
   it('reads the same from a man, with her in it', () => {
     expect(workItOut('man').tells).toMatch(/whether she can name what she couldn’t live with/)
+  })
+})
+
+describe('a line she has named', () => {
+  it('is never the conversation to open, even where it carries the most', () => {
+    const r = buildBeforeYes(answers({ 'second-wife': 'differ', 'aroos-mahr': 'not-talked' }), 'woman', ['second-wife'])!
+    expect(r.open.id).toBe('aroos-mahr')
+    expect(r.open.script.words).not.toBe(workItOut('woman').words)
+  })
+  it('is listed as hers, and not as a difference still open', () => {
+    const r = buildBeforeYes(answers({ 'second-wife': 'differ', work: 'differ' }), 'woman', ['second-wife'])!
+    expect(r.lines.map((l) => l.id)).toEqual(['second-wife'])
+    expect(r.byState.differ.map((l) => l.id)).toEqual(['work'])
+    expect(r.counts.differ).toBe(1)
+    expect(r.lines[0].note).toBe('you have talked about a second wife, and it is a line for you')
+  })
+  it('is named first, as what she said, and the summary says it will not be handed back', () => {
+    const r = buildBeforeYes(answers({ 'second-wife': 'differ', work: 'differ' }), 'woman', ['second-wife'])!
+    expect(r.headline).toBe('You’ve named one line the two of you don’t share.')
+    expect(r.summary).toMatch(/A line is not on this list to be worked out, and nothing here will hand it back to you as the conversation to open\./)
+  })
+  it('counts as had: with everything else agreed or worked out, what is left is going back over them', () => {
+    const r = buildBeforeYes(answers({ 'second-wife': 'differ', 'money-home': 'settled' }), 'woman', ['second-wife'])!
+    expect(r.allHad).toBe(true)
+    expect(r.open.id).toBe('money-home')
+    expect(r.open.script.words).toBe(allHad('woman').words)
+  })
+  it('when all eleven are lines, there is nothing to open — only the words for saying one plainly', () => {
+    const r = buildBeforeYes(all('differ'), 'woman', IDS)!
+    expect(r.lines).toHaveLength(IDS.length)
+    expect(r.open.script.words).toBe(sayTheLine('woman').words)
+    expect(r.summary).toMatch(/There is nothing here to open/)
+  })
+  it('is only ever a difference — a stale line on a topic now agreed is ignored', () => {
+    const r = buildBeforeYes(answers(), 'woman', ['second-wife'])!
+    expect(r.lines).toHaveLength(0)
+    expect(r.headline).toMatch(/agree on every one/)
+  })
+  it('says it plainly, once, and never asks her to bend it', () => {
+    const w = sayTheLine('woman')
+    expect(w.words).toMatch(/This one is a line for me/)
+    expect(w.words).toMatch(/not asking you to meet me halfway/)
+    expect(w.tells).toMatch(/You are not listening for agreement/)
+    expect(sayTheLine('man').tells).toMatch(/If she asks you to give it up/)
+  })
+})
+
+describe('a line lives only on her phone, as she answered it', () => {
+  it('splits into a plain difference and her own list when saved', () => {
+    expect(sheetOf({ 'second-wife': LINE, live: 'agree', work: 'settled' })).toEqual({
+      answers: { 'second-wife': 'differ', live: 'agree', work: 'settled' },
+      lines: ['second-wife'],
+    })
+  })
+  it('comes back as she answered it', () => {
+    const picked = { 'second-wife': LINE, live: 'agree', work: 'differ' }
+    expect(pickedOf(sheetOf(picked))).toEqual(picked)
   })
 })

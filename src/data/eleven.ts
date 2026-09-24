@@ -339,6 +339,21 @@ export const WORK_IT_OUT: ElevenScript = {
 }
 
 /**
+ * When she has said a difference is a line for her. Never offered as the
+ * conversation to open, and never given words to work it out: a
+ * non-negotiable handed back as the thing to work on is the product taking a
+ * position, and it takes none (docs/DECISIONS.md Part 8). These are for
+ * saying it plainly, once, if she has not.
+ */
+export const SAY_THE_LINE: ElevenScript = {
+  why: 'A line is not a position to bargain over, and nothing here will ask you to. What is left is whether {he} has heard it plainly, from you, and whether {his} answer is final too.',
+  words:
+    'I want to say something plainly, so it isn’t left open between us. This one is a line for me. I’m not asking you to meet me halfway on it, and I won’t ask you to pretend. I’d rather know now whether your answer is final too.',
+  tells:
+    'You are not listening for agreement. You are listening for a plain answer. If {his} is final too, you have both learned it before the families are involved, which is what this was for. If {he} asks you to give it up, you do not owe that conversation twice.',
+}
+
+/**
  * When every conversation has been had, and each one agreed or worked out.
  * Still not the end: an arrangement, like an agreement, is worth going back
  * over closer to the day.
