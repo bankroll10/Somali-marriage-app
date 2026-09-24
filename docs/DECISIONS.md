@@ -3,8 +3,8 @@
 What was decided, when, why, and whether it still holds. Part 1 keeps the
 board audit's numbered decisions with their numbers. Part 2 records the
 subtraction of 2026-09-24. Part 3 is the completion review of the same day,
-with decision 19, the product freeze. Part 4 says where each of the 58 old
-docs went.
+with decision 19, the product freeze. Part 4 is the Read, reviewed by an
+outside critic. Part 5 says where each of the 58 old docs went.
 
 Every old doc's full text is in git at commit `43295a4`:
 `git show 43295a4:docs/NAME.md`.
@@ -353,7 +353,133 @@ Every PR names which of the four it rests on (`.github/pull_request_template.md`
 
 **Why:** the product is complete enough to learn from and has no members. Every feature built before the first ten sessions is built on inference, and the subtraction of the same day showed what that costs.
 
-## Part 4: Where every old doc went
+## Part 4: The Read, reviewed as an outside critic (2026-09-24)
+
+The founder asked for an independent relationship-science critique of the
+Read: every question, option, weight, dimension, band, script, tell and
+follow-up, with no defence of the product. Findings only; nothing was changed.
+Each item below that becomes work is either an *untrue claim* (fixable under
+decision 19 with no evidence) or a *new option* (waits for the sessions).
+
+**The verdict in one sentence.** The Read is disciplined about what it says
+and undisciplined about how it counts. The headlines, the "not a verdict, not
+a prediction" lines and the two caution rules are honest. Underneath them,
+eleven editorial decimals are averaged into five three-word states by two
+arbitrary cut-offs, and the band is read from those states as if they were
+observations. The instrument is good at spotting a man who is absent, and
+blind to the man who is eager, and the eager one is the higher-harm case.
+
+### Structural findings
+
+1. **It reads her report, not him.** Every answer is her recollection. The
+   evidence ledger (`docs/RESEARCH.md`, row 2) concedes this; the screen's
+   "What he has shown you" and "What he has done" do not.
+2. **Ordinal labels are averaged as measurements.** `stateOf` averages
+   weights like 0.85, 0.75, 0.7 and 0.6 and cuts at .7 and .35. Nobody measured
+   any of them. "Defensive, but comes back" (0.7) is *shown*; "met properly
+   once" (0.6) is not. A move from .69 to .71 between reads is reported as
+   movement under "Since [date]".
+3. **Three of five dimensions rest on one or two answers.** `family` is one
+   question. `pressure` is one question whenever she has not told him her
+   non-negotiables. One tap sets a whole state.
+4. **Duration gates only the first two weeks.** From day 15 the same band
+   rule applies to a three-week and a three-year courtship. Family knowing,
+   a dated timeline and "asked how to approach your family" are unlikely at
+   six weeks here, so *thin* at 2–6 weeks is produced by the calendar. The
+   copy then says "it changes because he does something, not because more
+   time passes", which is false at three weeks.
+5. **Caution fires before the early gate.** `money` and the isolating pattern
+   are checked before `weeks-0`. Ten days in, "let's keep it between us for
+   now" said twice plus nobody knowing yet produces "Please read this one
+   twice", "Tell one person… this week" and the emergency number. That is a
+   plausible discreet start, delivered as an abuse alarm.
+6. **The eager pursuer scores best.** Same-day texts, met several times, said
+   marriage early, gave a date, told friends, never cancels: *strong*. That is
+   also love-bombing, and the shape of the scam. Only `money` catches him.
+   `src/lib/read.ts` says "every other signal can be produced by a man who is
+   enjoying himself", then weights them anyway.
+7. **The share line overclaims.** "This reads what he's done — not what he
+   says." Five of eleven scored answers are about what he said: `named`,
+   `timeline`, `known` ("as far as I know" is his report), `secret` (a
+   request), `nonneg` (his answer). "Behaviour, not promises": a timeline is
+   a promise.
+8. **Gender variants are partial.** `secret`, `initiative` and `family` have a
+   man's variant; `named`, `timeline`, `known`, `in-person`, `plans` and
+   `hard` do not. A man reading a woman scores her at 0 for "nobody in her
+   life knows" and 0.5 for "only after I brought it up", both ordinary for a
+   woman before his people have gone to hers.
+9. **It is calibrated for one courtship shape.** A family-introduced pair gets
+   `public` and `family` *shown* on day one for free, so an introduced man
+   reaches *strong* with nothing known about his conduct. A long-distance pair
+   gets `in-person: never` and `plans: no-plans` at 0 for reasons that are not
+   about him.
+
+### Signal by signal
+
+| Signal | Alternative explanations the score ignores | Serious scores poorly? | Unserious scores well? | Classification |
+|---|---|---|---|---|
+| `duration` | Cliff at day 14 | — | — | **Keep, calibrate**: let time shape the band to three months |
+| `named` | Intention sent through a cousin or family; a woman not raising it out of modesty | Yes | Yes: a word is free | **Keep, calibrate language**; the man's variant is a *new option* |
+| `timeline` | Visa, study, a sibling's wedding, her family's timing: honest people give conditions | Yes, at .25 | Yes: a date costs nothing | **Conversation prompt only**; the script is the best part of the dimension |
+| `known` | Estranged or distant family; converts; a clan objection he is managing (`qabiil` is one of the eleven); a woman protecting her name | Yes | Yes: telling friends is easy | **Strong signal** for a woman reading a man past three months (Lehmiller 2009, modest, correlational). **Needs user evidence** under three months and for a man reading a woman |
+| `secret` | Her reputation (allowed for men only); his family; discretion before istikhara | Sometimes | Rarely | **Strong in combination** (the isolating pattern); alone, **keep, calibrate** |
+| `family` | Too early; he assumes his family handles it; waiting for her cue; her family is the danger | Yes, under three months | Yes: curiosity is cheap | **Conversation prompt only**: one answer cannot be a dimension state |
+| `initiative` | A withdrawal test she may never have run, which the helper encourages; shift work; not chasing out of respect; he read silence as a no | Yes | Yes: the paradigm signal of a man enjoying himself | **Remove from scoring; keep as prompt** |
+| `in-person` | Different cities or countries; mahram norms; she declined | Yes: long distance at 0 | Yes: pursuers meet eagerly | **Keep, calibrate**: a distance answer is a *new option* |
+| `plans` | A count with no denominator; "more than once" in six months is life | Yes | Yes: he keeps the plans he enjoys | **Keep, calibrate** |
+| `money` | A real emergency | Not scored | Not scored | **Strong signal** (safety, not seriousness). Unscored, hedged, class A (FTC). The one thing that catches the eager man |
+| `nonneg` | "Pushed back" (.1) scores below "changed the subject" (.2): honest disagreement punished more than evasion | Yes: the man who disagrees openly | Yes: the agreeable manipulator | **Keep, calibrate**: pushing back is a prompt, not a low score; `untold` as `null` is right |
+| `hard` | "I end up feeling like the problem" is her feeling, which breaks the file's own rule 1; her attachment lean (asked by the map, ignored here); a quiet processor | Yes: the quiet man at .3 | Yes: the smooth talker | **Keep, calibrate language**: reword `blames` as his behaviour, keep her feeling as her data |
+
+### Dimensions, bands and interpretation
+
+| Element | Finding | Classification |
+|---|---|---|
+| `PRIORITY` | An honest value judgement stated as an order. But `WHY_IT_MATTERS.public`, "A person who intends to marry you lets you exist in their life", infers intention from behaviour | **Calibrate language**: say what being unknown costs her, not what it proves about him |
+| `stateOf` .7/.35 | Two unmeasured cut-offs turn an ordering into categories described as things "she can see" | **Needs user evidence**, or a coarser rule: count answers at the top and bottom of each question, and name how many questions a dimension rests on |
+| Band `strong` | Reachable with `pressure` resting on `hard` alone. The headline is descriptive and fair | Keep the headline; the rule inherits the above |
+| Band `thin` | A fair description of her answers, but produced by time at 2–6 weeks | **Calibrate**: duration-aware copy |
+| Band `mixed` | The most honest band | Keep |
+| `caution: hidden` | The one true pattern here (Stark 2007), and refusing to coach it is right. Evaluated before the two-week gate, on her feeling | **Strong signal**, with the early gate applied to this branch, never to money |
+| `caution: money` | Correct in every respect | **Strong signal** |
+| "Since [date]" | The right idea; threshold flips report movement that is not there | **Calibrate** |
+| Scripts | The strongest part: real sentences, framed as questions | **Strong signal**, as prompts |
+| `tells` | Several read one reply as a trait: "has just shown you, live…" (pressure), "That is your answer…" (consistency), "Curiosity about the how is the tell" (family). `docs/RESEARCH.md` row 11 flagged this class the same day and these survived | **Calibrate language**: describe what to note, never what it proves |
+| Follow-up | About her own behaviour, once, stale at 30 days | **Strong signal** |
+| `readSummary` to the guide | Passes "a pattern of being kept hidden" as a label, so the model speaks from a verdict the screen refused to make | **Calibrate language** |
+| Tool page and share line | Untrue for five of eleven scored answers | **Untrue claim**: fix needs no evidence |
+
+### The ten questions, for the whole instrument
+
+1. Observable behaviour: about half. The rest is his reported words, or her feeling.
+2. Alternative explanations: distance, estrangement, clan, her reputation, visa and money, work, attachment. None asked; none discounts a score.
+3. Correlation for intention: yes, in `WHY_IT_MATTERS` and the tells.
+4. Motive from behaviour: the headlines avoid it; the tells and the guide summary do it.
+5. Equal across genders: no.
+6. Culturally specific: yes, mostly declared. Undeclared: it assumes a met-online courtship.
+7. A serious person scoring poorly: the distant, the estranged, the honest about constraints, the quiet.
+8. An unserious person scoring well: yes, better than anyone. Only money catches him.
+9. Useful without predicting success: yes, as a way to write down what happened and eleven sentences to say aloud. As a band, less so.
+10. Evidence or verdict: the frame is evidence; the counting and the tells deliver verdicts through the side door.
+
+### What would make it honest without making it vague
+
+Candidates, not work. *Untrue claim* items need no evidence under decision 19;
+*new option* items wait for the sessions.
+
+- Count, do not average; show how many answers a dimension rests on. (*untrue claim*: the states are presented as hers)
+- Let duration shape the band up to three months. (*untrue claim*: "not because more time passes")
+- Apply the early gate to the hidden caution, never to money. (*untrue claim*: a ten-day alarm)
+- Reword the four `tells` that turn one reply into a trait. (*untrue claim*)
+- Make the share line true: "what he has done and said, as you remember it". (*untrue claim*)
+- Replace `WHY_IT_MATTERS.public` with what being unknown costs her. (*untrue claim*)
+- Give every scored question a man's variant, or a stated reason it needs none. (*new option*)
+- Add a distance answer to `in-person`; make `plans` a rate. (*new option*)
+
+**Not done:** no test against outcomes, since none exists; the eleven, the
+family words and the guide were not reviewed.
+
+## Part 5: Where every old doc went
 
 The eleven docs now are PRODUCT, DECISIONS, RESEARCH, OPS, SECURITY, PRIVACY,
 DESIGN, ASSETS, PROTOCOL, GUIDE-EVAL and TESTING. A citation of a retired doc
