@@ -233,6 +233,22 @@ describe('the eleven, on two phones', () => {
     expect(held.first['second-wife']).toBe('differ')
     expect(JSON.stringify(held)).not.toMatch(/"line"|lines/)
     her.unmount()
+    reload()
+
+    // Days later she is asked about the one she was told to open. Not
+    // agreeing is an answer, in three kinds, and none is drawn as the lesser
+    // one; she says this one is a line too, and her first line stays.
+    later(herPhone, 4)
+    onPhone(herPhone)
+    const home = await mount(<App />)
+    expect(home.text()).toContain('the one to open was whether you’d work')
+    await home.press(/^We talked about it/)
+    for (const l of ['We agree', 'We see it differently, and we’ve worked out how', 'It’s still open']) expect(home.has(l)).toBe(true)
+    await home.press(/^It’s a line for me/)
+    await home.until(() => saved(herPhone).beforeYes.lines?.length === 2, 'both lines are kept')
+    expect(saved(herPhone).beforeYes.answers.work).toBe('differ')
+    expect([...saved(herPhone).beforeYes.lines].sort()).toEqual(['second-wife', 'work'])
+    home.unmount()
   })
 
   it('she goes through it again before he answers, and he is compared with the sheet she has now', async () => {

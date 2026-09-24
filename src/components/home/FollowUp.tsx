@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FollowUp as FollowUpRecord } from '../../types'
-import type { FollowUpAsk } from '../../lib/followup'
+import type { FollowUpAsk, Landed } from '../../lib/followup'
 import { GUIDE_SOURCE } from '../../lib/site'
 import { shareOrCopy } from '../../lib/share'
 import { wordsMessage } from '../../lib/words'
@@ -9,7 +9,7 @@ import { Announce, ArrowRight, CheckIcon, TextButton } from '../ui'
 
 interface Props {
   ask: FollowUpAsk
-  onAnswer: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
+  onAnswer: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, landed?: Landed, putAway?: boolean) => void
   onAskGuide: (text: string) => void
 }
 
@@ -22,6 +22,13 @@ interface Props {
  * later, unless she puts it away; every other answer closes it. Nothing here
  * congratulates her and nothing counts.
  */
+const LANDED: { id: Landed; label: string }[] = [
+  { id: 'agree', label: 'We agree' },
+  { id: 'settled', label: 'We see it differently, and we’ve worked out how' },
+  { id: 'differ', label: 'It’s still open' },
+  { id: 'line', label: 'It’s a line for me' },
+]
+
 export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
   const [phase, setPhase] = useState<'asking' | 'howd-it-go' | 'the-words'>('asking')
   const id = ask.followUp.id
@@ -76,23 +83,23 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
             <p className="text-[0.9rem] leading-snug text-ink-soft text-pretty">
               And where did the two of you land?
             </p>
+            {/* Four answers, drawn alike. "We agree" was the filled button and
+                "We don't agree" the outline one, which said which answer was
+                the good one (docs/DECISIONS.md Part 8). */}
             <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                onClick={() => onAnswer(id, 'asked', true)}
-                className="rounded-full border border-forest bg-forest px-4 py-2 text-[0.85rem] font-medium text-cream transition-all hover:bg-forest-deep"
-              >
-                We agree
-              </button>
-              <button
-                onClick={() => onAnswer(id, 'asked', false)}
-                className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
-              >
-                We don’t agree
-              </button>
+              {LANDED.map((l) => (
+                <button
+                  key={l.id}
+                  onClick={() => onAnswer(id, 'asked', l.id)}
+                  className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
+                >
+                  {l.label}
+                </button>
+              ))}
             </div>
             <p className="mt-3 text-[0.82rem] leading-snug text-muted text-pretty">
-              Either way it goes into your sheet, so the list stays true to where you
- are.
+              Not agreeing is an answer too. Wherever it landed goes into your sheet, so the list
+              stays true to where you are. A line stays on this phone.
             </p>
           </div>
         )}

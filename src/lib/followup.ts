@@ -211,9 +211,18 @@ export function conversationsHad(
     .filter((x): x is { label: string; at: string } => x !== null)
 }
 
-/** What "we talked" writes back into her eleven, so the sheet stays true. */
-export function writeBackState(agreed: boolean): 'agree' | 'differ' {
-  return agreed ? 'agree' : 'differ'
+/**
+ * Where a conversation landed, as she says it. "We don't agree" used to be the
+ * only answer after "we talked" that wasn't agreement — so a couple who had
+ * worked a difference out were recorded as open, and a line was recorded as
+ * something to reopen (docs/DECISIONS.md Part 8). Not agreeing is an answer,
+ * and it comes in three kinds.
+ */
+export type Landed = 'agree' | 'settled' | 'differ' | 'line'
+
+/** What "we talked" writes back into her eleven, so the sheet stays true. A line is `differ`, and hers. */
+export function writeBackState(landed: Landed): { state: 'agree' | 'settled' | 'differ'; line: boolean } {
+  return landed === 'line' ? { state: 'differ', line: true } : { state: landed, line: false }
 }
 
 /** She actually had one of them. The one outcome this product exists to cause. */

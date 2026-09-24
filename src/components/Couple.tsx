@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Gender } from '../types'
-import { DIFFER_OUTCOMES, beforeYesTopics, isDifference } from '../data/beforeYes'
+import { SHEET_OUTCOMES, beforeYesTopics, isDifference, sheetOf } from '../data/beforeYes'
 import ElevenChoices from './ElevenChoices'
 import { answerCouple, coupleReading, readCoupleDetail, type CoupleView, type Joint } from '../lib/couple'
 import type { Why } from '../lib/net'
@@ -26,7 +26,7 @@ interface Props {
    * His eleven, kept on his own device as his own Before you say yes — and the
    * joint he was just shown, so his Home knows there is a pair.
    */
-  onAnswered: (states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>) => void
+  onAnswered: (states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>, lines?: string[]) => void
   /**
    * He began her eleven. The one instrument whose abandonment was invisible on
    * both devices — see src/data/instruments.ts and docs/RESEARCH.md.
@@ -105,7 +105,9 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
       return
     }
     setSending(true)
-    const result = await answerCouple(code, next)
+    // A line is his to say in words; the server is sent a plain difference.
+    const sheet = sheetOf(next)
+    const result = await answerCouple(code, sheet.answers)
     setSending(false)
     if (result === 'answered') {
       setPhase('answered-already')
@@ -126,7 +128,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
     }
     setSendFailed(null)
     clearDraft('couple')
-    onAnswered(next, answerFor, result.status === 'joint' ? result.joint : undefined)
+    onAnswered(sheet.answers, answerFor, result.status === 'joint' ? result.joint : undefined, sheet.lines)
     setView(result)
     setPhase('joint')
   }
@@ -267,10 +269,9 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                   labelledBy={`couple-q-${t.id}`}
                   chosen={chosen}
                   chosenOutcome={isDifference(chosen) ? chosen : undefined}
-                  // His side says where a difference stands, but not that it is
-                  // a line: a line is hers to say to him in words, and his phone
-                  // has no single-sided result to hold one (docs/DECISIONS.md Part 8).
-                  outcomes={DIFFER_OUTCOMES}
+                  // A line is offered on his side too, and kept on his phone:
+                  // the server is sent a plain difference (docs/DECISIONS.md Part 8).
+                  outcomes={SHEET_OUTCOMES}
                   disabled={sending}
                   onChoose={choose}
                   onOutcome={choose}

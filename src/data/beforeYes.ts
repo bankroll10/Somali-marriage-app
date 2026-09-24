@@ -77,9 +77,9 @@ export const DIFFER_OUTCOMES: { id: 'differ' | 'settled'; label: string; hint?: 
 ]
 
 /**
- * A line: a difference that is non-negotiable for her. Offered only on her
- * own sheet — the person answering a sent link has no sheet of their own for
- * it to live on (docs/DECISIONS.md Part 8).
+ * A line: a difference that is non-negotiable for whoever is answering —
+ * her on her own sheet, him answering her link. Each is kept on that
+ * person's phone (docs/DECISIONS.md Part 8).
  *
  * `line` is not a state. While she answers, and in a half-finished run, a
  * topic may hold 'line'; the moment the sheet is saved it becomes `differ`

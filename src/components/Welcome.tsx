@@ -1,6 +1,6 @@
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
 import { SinceLastTime } from './home/FollowUp'
-import type { FollowUpAsk } from '../lib/followup'
+import type { FollowUpAsk, Landed } from '../lib/followup'
 import type { FollowUp as FollowUpRecord } from '../types'
 import RestoreMap from './RestoreMap'
 import { EYEBROW } from '../data/brand'
@@ -19,7 +19,7 @@ interface Props {
    * where they land, instead of never (docs/PRODUCT.md).
    */
   followUpAsk?: FollowUpAsk | null
-  onAnswerFollowUp?: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
+  onAnswerFollowUp?: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, landed?: Landed, putAway?: boolean) => void
   onAskGuide?: (text: string) => void
 }
 

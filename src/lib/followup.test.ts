@@ -162,9 +162,12 @@ describe('keeping the record', () => {
     expect(noted[0].source).toBe('guide')
   })
 
-  it('writes the talk back into the eleven as it actually went', () => {
-    expect(writeBackState(true)).toBe('agree')
-    expect(writeBackState(false)).toBe('differ')
+  it('writes the talk back into the eleven as it actually went — not agreeing comes in three kinds', () => {
+    expect(writeBackState('agree')).toEqual({ state: 'agree', line: false })
+    expect(writeBackState('settled')).toEqual({ state: 'settled', line: false })
+    expect(writeBackState('differ')).toEqual({ state: 'differ', line: false })
+    // A line is a plain difference in the sheet, and hers beside it.
+    expect(writeBackState('line')).toEqual({ state: 'differ', line: true })
   })
 })
 
