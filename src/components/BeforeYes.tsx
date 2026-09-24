@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import type { Answers, CoupleState, Gender, Identity, ReadRecord } from '../types'
+import type { ElevenAt } from '../hooks/useNiyyah'
 import { BEFORE_YES_COUNT, STATES, beforeYesTopics } from '../data/beforeYes'
 import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/beforeYes'
 import { somali } from '../data/somali'
@@ -22,6 +23,13 @@ interface Props {
   /** Her own map, so "your side" can be read back where it already knows it. */
   answers: Answers
   saved: ReadRecord | null
+  /**
+   * Where to open. 'result' when she came from Home's "where you left it"
+   * card; 'joint' from its "He answered" card — her result, with where the
+   * two of them stand at the top of it. Both cards used to land on this
+   * screen's front page, one tap short of what they said.
+   */
+  opensAt?: ElevenAt
   onSave: (record: ReadRecord) => void
   /** The eleven were begun — the denominator for whether they get finished. */
   onBegan: () => void
@@ -55,6 +63,7 @@ export default function BeforeYes({
   identity,
   answers,
   saved,
+  opensAt = 'front',
   onSave,
   onBegan,
   onSetGender,
@@ -69,8 +78,12 @@ export default function BeforeYes({
   saveOk = true,
 }: Props) {
   const [gender, setGender] = useState<Gender | undefined>(identity.gender)
-  const [phase, setPhase] = useState<Phase>('intro')
-  const [picked, setPicked] = useState<Record<string, string>>({})
+  // Only ever onto a result that exists: the sheet she sent him was made from
+  // her result, so a joint always has one to sit on.
+  const atResult = opensAt !== 'front' && !!saved
+  const jointFirst = atResult && opensAt === 'joint' && !!couple
+  const [phase, setPhase] = useState<Phase>(atResult ? 'result' : 'intro')
+  const [picked, setPicked] = useState<Record<string, string>>(() => (atResult && saved ? saved.answers : {}))
   const [index, setIndex] = useState(0)
   // A run she was pulled out of. Read on the way in, and nowhere else.
   const [draft] = useState(() => loadDraft('eleven'))
@@ -262,6 +275,7 @@ export default function BeforeYes({
           hasMap={hasMap}
           couple={couple}
           onCouple={onCouple}
+          jointFirst={jointFirst}
           onAgain={begin}
           onAskGuide={onAskGuide}
           onOpenFamilies={onOpenFamilies}
@@ -346,6 +360,7 @@ function Result({
   hasMap,
   couple,
   onCouple,
+  jointFirst = false,
   onAgain,
   onAskGuide,
   onOpenFamilies,
@@ -358,6 +373,7 @@ function Result({
   hasMap: boolean
   couple: CoupleState | null
   onCouple: (state: CoupleState) => void
+  jointFirst?: boolean
   onAgain: () => void
   onAskGuide: (text: string) => void
   onOpenFamilies: () => void
@@ -370,8 +386,12 @@ function Result({
       ? 'Start with your own answer'
       : 'The one to open this week'
 
+  const together = <Together gender={gender} pronoun={pronoun} picked={picked} couple={couple} onCouple={onCouple} />
+
   return (
     <div className="py-8">
+      {/* What she came for, first, when she came for it. */}
+      {jointFirst && <div className="-mt-9 mb-9">{together}</div>}
       <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">The conversations you have had</p>
       <h1 className="animate-rise mt-3 font-display text-[1.85rem] font-medium leading-tight tracking-tight text-ink text-balance">
         {result.headline}
@@ -385,7 +405,7 @@ function Result({
 
       <ScriptCard script={result.open.script} title={title} source="beforeYes" travel="eleven" />
 
-      <Together gender={gender} pronoun={pronoun} picked={picked} couple={couple} onCouple={onCouple} />
+      {!jointFirst && together}
 
       {/* Where she can go from here — one thing, and then a disclosure.
           This screen offered eight next actions at once, under one heading,
@@ -581,7 +601,7 @@ function Together({
     return (
       <div className="animate-rise mt-9 rounded-card border border-forest/25 bg-forest/[0.05] p-6">
         <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-forest">Where the two of you stand</p>
-        <p className="mt-2 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">{r.headline}</p>
+        <h2 className="mt-2 font-display text-[1.25rem] font-medium leading-snug tracking-tight text-ink text-balance">{r.headline}</h2>
         <ul className="mt-4 flex flex-col gap-2.5">
           {r.lines.map((l) => (
             <li key={l.id} className="flex gap-2.5 text-[0.95rem] leading-snug text-ink-soft text-pretty">

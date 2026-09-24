@@ -177,7 +177,8 @@ case. The fix is one condition and one branch.
    - when he has answered, her own link shows the joint sheet rather than a
      block;
    - Home says *He answered*, names what she gets, and the card opens the
-     eleven;
+     eleven — since 2026-09-24 straight onto the joint, at the top of her
+     result, rather than the eleven's front page (`docs/TESTING.md`);
    - the door names a domain typo, keeps Count me in off, names a short number
      as short, names "neither yet" as neither, and clears on a real address;
    - Home carries a mailto.
