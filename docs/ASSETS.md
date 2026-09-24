@@ -109,6 +109,7 @@ is visible somewhere a stranger could find it.
 | 2026-09-23 | The Somali American, Minneapolis, "Ask a Scholar" column | contact form (editor) | N1c; N2s linked for the editor | `…/tools/before-you-say-yes?via=press` | drafted, not yet sent |
 | 2026-09-23 | KALY-LP 101.7 FM, Somali-language, South Minneapolis | email `Underwriting@kalyradio.org` | none — rate inquiry only | web: `…/tools/before-you-say-yes?via=press`; on air: none | drafted, not yet sent |
 | 2026-09-23 | Dr. Aneesah Nadir and Associates, *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7) | email `info@draneesah.com` | N3-note, pointing to N3-1page | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | drafted, not yet sent |
+| 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent |
 
 **Rules the ledger has taught**, each a correction made before a row was
 logged:
@@ -132,6 +133,10 @@ logged:
 7. **Send while the handout is useful.** *Before the Nikah* does not publish
    its finances week, so the email asks which it is; business address only;
    the Somali versions get one clause for a US Muslim audience.
+8. **A general Muslim room is told which conversations are Somali.** Qabiil,
+   going back and a second wife are named in the pitch, so a reviewer is not
+   surprised on page two. Its arrivals share `via=mosque` with the Minneapolis
+   mosques, so it is not sent in the same week as another mosque pitch.
 
 Masjid Al-Israa is the only 2026-09-17 send with the sample attached; if it
 alone answers, suspect the attachment. The Somali American's newest dated
