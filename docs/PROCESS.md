@@ -114,6 +114,15 @@ whether anyone reads the rest:
    `tests/vocab-sync.test.ts` proves the two match.
 4. A new file in `netlify/functions/` is added to the allowlist in
    `tests/deploy-layout.test.ts`, or the build silently deploys it wrong.
+   If it has a founder readout, it gets rows in
+   `tests/invariants/founder-routes-fail-closed.test.ts`, which fails until
+   it does. A new link kind gets a row in
+   `tests/invariants/links-open-the-right-thing.test.tsx`, and a new screen a
+   row in `tests/ui/screens.test.tsx`. A new test file is entered in
+   `tests/catalog.ts` with what it is for, or `tests/catalog.test.ts` fails.
+   A test that reads source text instead of behaviour needs a reason no
+   behaviour can reach it, and raises a number that is meant only to fall
+   (`docs/TESTING.md`).
 5. Trust screen copy moves in the **same commit** as the payload it
    describes. This is the oldest standing rule in the repository
    (`docs/LEARNING.md`) and the one most likely to drift if skipped.
