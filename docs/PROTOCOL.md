@@ -290,8 +290,8 @@ What gets written for every session, whether or not it was interesting:
 - The send moment: did not / hesitated / sent.
 - Thursday: replied or not; said the words or not; which conversation, if
   any, happened; sent the link or not.
-- Bears on: the gap, experiment id (A-) or conviction in `docs/RESEARCH.md`
-  it speaks to, or `new`.
+- Bears on: the gap, experiment id (A-), conviction or ledger row (L-) in
+  `docs/RESEARCH.md` it speaks to, or `new`.
 
 ### The note template
 
@@ -331,7 +331,7 @@ Real value: <…>. Polite praise (ignored): <…>.
 **Thursday.** <no reply | replied: said the words? which conversation? what
 came back? sent the link?>. **Caused a conversation: <yes|no|unclear>.**
 
-**Bears on.** <gap / A-id / conviction #n / new> — <what changes,
+**Bears on.** <gap / A-id / conviction #n / L-id / new> — <what changes,
 if anything>.
 ```
 
@@ -373,7 +373,9 @@ every time; changed only if two or more people hit the same one.
 
 A line that a Somali person of the target age says is wrong about us. The
 most expensive class, and the one no test could catch. One person saying it
-is a flag; two people saying it independently is a verdict.
+is a flag; two people saying it independently is a verdict. A verdict about a
+line in `docs/RESEARCH.md`'s evidence ledger is class D evidence on its row:
+name the L-id under "Bears on".
 
 - **Outsider-ish.** "Nobody would say it like that." "That's how a non-Somali
   would describe us." A Somali word used wrongly, or explained as if to a
@@ -501,7 +503,7 @@ nothing changes on ten.
 
 **Willingness to pay** (A5, and `docs/RESEARCH.md` conviction 7 as written):
 **fewer than three in ten** can name a payment at a family wedding, with an
-amount → the belief that families pay at the nikah stays ASSUMED, and the
+amount → the belief that families pay at the nikah stays class F, and the
 call after the joint view (formerly "Deciding together", `docs/PRODUCT.md`)
 is re-examined as the first product rather than a fee paid at the nikah.
 Seven or more name one → the cultural half is attested. Neither is a price;

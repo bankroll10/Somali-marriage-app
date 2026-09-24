@@ -15,7 +15,8 @@ Decisions 0–18 were made on 2026-09-12 in the board audit, which read the
 code through MJ DeMarco's principles (Need, Entry, Control, Scale, Time and
 others) and labelled every claim FACT, INFERENCE or HYPOTHESIS. The founder
 asked that they not be delegated back. Decision 19 came from the completion
-review of 2026-09-24 (Part 3). Code cites them as `decision N`. A
+review of 2026-09-24 (Part 3), and decision 20 from the evidence pass the
+same day. Code cites them as `decision N`. A
 decision about a feature deleted on 2026-09-24 keeps its number and says so.
 
 | # | Date | Decided | Why | Now |
@@ -40,6 +41,7 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 17 | 2026-09-12 | **The by-hand introduction is a one-page runbook,** with an hour-per-introduction limit that changes the target or the window if exceeded, and a timed pool-opened test mail | The first pool would be run by hand and no page said how | Retired 2026-09-24 with the feature. The runbook is at `git show 43295a4:docs/LIQUIDITY.md` |
 | 18 | 2026-09-12 | **Somali-first stays.** The brand names the community; the institution rule (nothing that would need renaming for a second community lives outside `src/data`) holds for the brand strings | A second community should be a one-file change, and that day is not now | Stands (`src/data/brand.ts`; `tests/brand.test.ts` holds the manifest to it) |
 | 19 | 2026-09-24 | **The product freeze.** No new feature without observed user evidence, a production failure, a safety or security requirement, or a measurable business requirement (Part 3) | The product is complete enough to learn from, with no members; the completion review found its three blockers where features had been added without anyone watching | Stands |
+| 20 | 2026-09-24 | **Every relationship claim has a class.** Claims about people, relationships and Somali families are classed A–H in `docs/RESEARCH.md`, and the copy says no more than its class allows; the ledger lists each one, and `tests/voice.test.ts` keeps the patterns out | The copy said as fact what the research doc called assumed (the eleven as what breaks marriages), gave frequencies nobody had counted, and read a person's character from one reply | Stands. Man-only lines wait for decision 4; the live prompt waits for its first live eval |
 
 ### The top ten actions
 

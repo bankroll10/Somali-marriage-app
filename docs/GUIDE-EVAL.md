@@ -219,6 +219,19 @@ ratchet will show it.
   gold answer that passes it, and a bad answer it catches.
 - **Change the prompt:** run `npm run eval:guide` before and after, and put
   both summary tables in the PR.
+- **Three prompt changes wait for that first run** (`docs/RESEARCH.md`, the
+  evidence ledger). They were found on 2026-09-24 in a session with no key,
+  so none was made:
+  - "the trusted marriage platform for the Somali diaspora" becomes "a guide
+    for the Somali diaspora on the way to marriage". Nothing has earned
+    "trusted", and `tests/voice-rules.ts` bans "platform" in `src/`;
+  - "alignment over attraction" becomes "character and deen before chemistry".
+    The first reads as a finding, and similarity has none behind it (L13);
+    the second is a value, said as one;
+  - a new grounding rule: "Never say what most Somali people, families or
+    couples do, or how a marriage will turn out. Never read a person's
+    character from one message or reply: say what it held, and what to ask
+    next." (L9–L12).
 - **Calibrate the judge, once.** The founder scores ten live answers by hand
   on the nine anchors. If the judge is within one point on fewer than eight,
   the rubric changes before the judge's numbers are trusted.
