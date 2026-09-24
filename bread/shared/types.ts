@@ -1,4 +1,4 @@
-import type { ProductId } from './config.ts'
+import { PRODUCT_IDS, type ProductId } from './config.ts'
 
 /** Quantity of each product. Every key present, zero when none. */
 export type Qty = Record<ProductId, number>
@@ -237,7 +237,7 @@ export type AdminAction =
   | { action: 'resolveException'; orderId: string; exceptionId: number }
 
 export function zeroQty(): Qty {
-  return { sourdough: 0, banana: 0 }
+  return Object.fromEntries(PRODUCT_IDS.map((id) => [id, 0])) as Qty
 }
 
 /** Orders are identified by a long id; humans get the first six characters. */

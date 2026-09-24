@@ -56,7 +56,7 @@ describe('the Stripe gateway, through the real SDK', () => {
         expiresAt: 1_800_000_000,
         successUrl: 'https://bread-pickup.netlify.app/thanks?order=' + ORDER,
         cancelUrl: 'https://bread-pickup.netlify.app/?canceled=' + ORDER,
-        description: 'Pickup Wed, Sep 23, 5–11 PM at Life Time',
+        description: 'Pickup Wed, Sep 23, 5–11 PM · Local pickup',
       },
       ORDER,
     )

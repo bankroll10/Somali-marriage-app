@@ -214,7 +214,7 @@ describe('a verified payment converts the hold exactly once', () => {
     expect(await refs(orderId)).toEqual([{ status: 'succeeded', external_id: 'cs_test_1', payment_intent_id: 'pi_cs_test_1' }])
     expect((await db.query('SELECT count(*)::int AS n FROM webhook_events')).rows[0]).toEqual({ n: 2 })
     expect(await committed()).toBe(2)
-    expect((await dayOf(WED)).toBake).toEqual({ sourdough: 2, banana: 1 })
+    expect((await dayOf(WED)).toBake).toEqual({ sourdough: 2, banana: 1, banana_large: 0 })
     expect(await page(orderId)).toMatchObject({ status: 'paid', checking: false, attention: false })
   })
 

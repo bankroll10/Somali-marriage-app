@@ -10,18 +10,16 @@ export const TAGLINE = 'Baked to order, paid up front, picked up on your way out
 /** Where the site lives — for social previews and absolute links. */
 export const SITE_URL = 'https://bread-pickup.netlify.app'
 
-/** Where customers collect. Shown on the order page and the confirmation. */
-export const PICKUP_PLACE = 'Life Time Fridley'
-/** Where inside the place to go. */
-export const PICKUP_PLACE_WHERE = 'the front desk'
 /**
- * Life Time is only where the hand-over happens. Nothing on the site may
- * suggest the gym runs, sells or endorses the bread; this sentence appears
- * wherever the place is named prominently.
+ * Where customers collect, in her words (Biz, 2026-09-24). There is no fixed
+ * venue: customers text her number for the spot. Shown on the order page,
+ * the review and the confirmation.
  */
-export const PICKUP_PLACE_NOTE = `${PICKUP_PLACE} is the pickup spot only — this bread is not sold by, or affiliated with, the gym.`
+export const PICKUP_LOCATION = 'Local pickup — text for pickup location'
+/** The short form, where there is room for two words. */
+export const PICKUP_SHORT = 'Local pickup'
 
-export type ProductId = 'sourdough' | 'banana'
+export type ProductId = 'sourdough' | 'banana' | 'banana_large'
 
 export interface Product {
   id: ProductId
@@ -31,6 +29,8 @@ export interface Product {
    */
   image?: string
   name: string
+  /** The name in a tight spot: a day tile, a count on the admin summary. */
+  short: string
   blurb: string
   /** What is in it, in her words — shown on the order page so anyone with an allergy can check. */
   ingredients: string
@@ -39,16 +39,18 @@ export interface Product {
   capacityPerDay: number
 }
 
+const BANANA_INGREDIENTS = 'Bananas, brown sugar, vanilla, eggs, sourdough starter, flour, baking soda, salt, milk, neutral oil, butter.'
+
+/**
+ * Banana bread comes in two sizes (Biz, 2026-09-24): small $3, at most 4 a
+ * pickup day; large $7, at most 1. The small loaf keeps the id 'banana' it
+ * has always had, so every order placed before the large one existed still
+ * reads correctly.
+ */
 export const PRODUCTS: readonly Product[] = [
-  { id: 'sourdough', name: 'Sourdough', blurb: 'A full loaf', ingredients: 'Flour, water, salt, sourdough starter.', priceCents: 500, capacityPerDay: 3 },
-  {
-    id: 'banana',
-    name: 'Banana bread',
-    blurb: 'Small loaf',
-    ingredients: 'Bananas, brown sugar, vanilla, eggs, sourdough starter, flour, baking soda, salt, milk, neutral oil, butter.',
-    priceCents: 300,
-    capacityPerDay: 4,
-  },
+  { id: 'sourdough', name: 'Sourdough', short: 'sourdough', blurb: 'A full loaf', ingredients: 'Flour, water, salt, sourdough starter.', priceCents: 500, capacityPerDay: 3 },
+  { id: 'banana', name: 'Small banana bread', short: 'small banana', blurb: 'Small loaf', ingredients: BANANA_INGREDIENTS, priceCents: 300, capacityPerDay: 4 },
+  { id: 'banana_large', name: 'Large banana bread', short: 'large banana', blurb: 'Large loaf', ingredients: BANANA_INGREDIENTS, priceCents: 700, capacityPerDay: 1 },
 ]
 
 export const PRODUCT_IDS: readonly ProductId[] = PRODUCTS.map((p) => p.id)
@@ -59,13 +61,13 @@ export function product(id: ProductId): Product {
   return found
 }
 
-/** All times are wall-clock in this zone. Life Time is a Minnesota company. */
+/** All times are wall-clock in this zone: she is in the Twin Cities. */
 export const TIMEZONE = 'America/Chicago'
 
 /** 0 = Sunday … 6 = Saturday. Monday, Wednesday, Thursday. */
 export const PICKUP_WEEKDAYS: readonly number[] = [1, 3, 4]
 
-/** Her shift: 5–11 PM. */
+/** Pickup hours: 5–11 PM. */
 export const PICKUP_START_HOUR = 17
 export const PICKUP_END_HOUR = 23
 export const PICKUP_PREFERRED_AFTER_HOUR = 21
@@ -118,14 +120,17 @@ export const ZELLE_HANDLE = '(612) 703-8698'
 /** Her number, on the site for customer questions and order problems (Biz, 2026-09-23). */
 export const CONTACT_PHONE = '(612) 703-8698'
 export const CONTACT_PHONE_TEL = 'tel:+16127038698'
+/** Opens a text to her — the pickup spot is arranged by text. */
+export const CONTACT_PHONE_SMS = 'sms:+16127038698'
 
 /**
- * Her policy (2026-09-23): no refunds for a missed pickup — she brings the
- * bread to the club on her next shift instead. Deliberately about a missed
- * pickup only, not "all sales final": if she ever has to cancel, the site has
- * not promised a customer they cannot get their money back.
+ * Her policy (2026-09-23): no refunds for a missed pickup — she holds the
+ * bread for another pickup instead (it was "on my next shift" at the club
+ * until pickup moved, 2026-09-24). Deliberately about a missed pickup only,
+ * not "all sales final": if she ever has to cancel, the site has not
+ * promised a customer they cannot get their money back.
  */
-export const MISSED_PICKUP = `Can't make your pickup? No refunds — but text ${CONTACT_PHONE} and she'll bring your bread to ${PICKUP_PLACE} on her next shift.`
+export const MISSED_PICKUP = `Can't make your pickup? No refunds — but text me at ${CONTACT_PHONE} and we'll set up another pickup.`
 
 /**
  * Reservation abuse. A checkout is free and holds bread for up to
@@ -133,7 +138,7 @@ export const MISSED_PICKUP = `Can't make your pickup? No refunds — but text ${
  * able to hold the shop with requests alone. Per address, in the database
  * (function instances share no memory): at most this many checkouts in the
  * window, and at most this many card orders on hold at once. The numbers
- * leave room for several customers behind one gym Wi-Fi address; they are
+ * leave room for several customers behind one shared Wi-Fi address; they are
  * a ceiling on abuse, not a guess at real traffic.
  */
 export const CHECKOUT_WINDOW_MINUTES = 15

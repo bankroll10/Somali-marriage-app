@@ -146,6 +146,32 @@ Everything here is content the site needs but cannot invent. Each answer is a se
 
 ---
 
+## 2b — Her updates ✅ done 2026-09-24
+
+Her text, verbatim:
+
+> 1. Pickup: We actually can't use Life Time as the pickup location, so can you remove all the
+>    Life Time references and change it to "Local pickup — text for pickup location." My phone
+>    number can stay on the site.
+> 2. Banana bread: I have two sizes: Small — $3, max 4 per pickup day; Large — $7, max 1 per
+>    pickup day. Can those be separate options, with the admin side tracking the small and large
+>    separately in the "To Bake" totals?
+> 3. Wording: Where it says "So she knows whose bread this is," can we change it to "So I know
+>    whose bread this is."
+> 4. QR code: Can you make me a QR code that goes directly to the ordering site so I can use it on
+>    signs/cards?
+
+What changed: `PICKUP_LOCATION` replaces the venue everywhere; a new `banana_large` product
+(migration `006_banana-sizes`; the small loaf keeps its id so past orders stay right); the name
+hint and the two other customer lines that spoke of her as "she" are now first person;
+`bread/marketing/qr.png` and `qr.svg`, plus a refreshed sign and phone card.
+
+Asked back (not yet answered): the missed-pickup line now reads *"Can't make your pickup? No
+refunds — but text me at (612) 703-8698 and we'll set up another pickup."* — is that right? And do
+Mon / Wed / Thu, 5–11 PM, best after 9 PM still hold now that pickup isn't at the gym?
+
+---
+
 ## 3 — Once she's signed in to the admin (send at cutover)
 
 > The orders page is https://bread-pickup.netlify.app/admin — I'll text you the password

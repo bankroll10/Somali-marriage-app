@@ -8,11 +8,11 @@ const day = (over: Partial<DayAvailability> = {}): DayAvailability => ({
   blocked: false,
   cutoffAt: '2026-09-19T22:00:00.000Z',
   open: true,
-  remaining: { sourdough: 3, banana: 4 },
-  held: { sourdough: 0, banana: 0 },
+  remaining: { sourdough: 3, banana: 4, banana_large: 1 },
+  held: { sourdough: 0, banana: 0, banana_large: 0 },
   ...over,
 })
-const q = (sourdough = 0, banana = 0): Qty => ({ sourdough, banana })
+const q = (sourdough = 0, banana = 0, banana_large = 0): Qty => ({ sourdough, banana, banana_large })
 
 describe('does the whole cart fit', () => {
   it('reports every short line and never trims anything', () => {
@@ -24,7 +24,7 @@ describe('does the whole cart fit', () => {
   it('reduce-to-fit is explicit and exact', () => {
     expect(reduceToFit(q(2, 2), day({ remaining: q(3, 1) }))).toEqual(q(2, 1))
     expect(reduceToFit(q(2, 2), day({ remaining: q(0, 0) }))).toEqual(q(0, 0))
-    expect(shortCopy([{ id: 'banana', asked: 2, free: 1 }])).toBe('only 1 banana bread free (you asked for 2)')
+    expect(shortCopy([{ id: 'banana', asked: 2, free: 1 }])).toBe('only 1 small banana bread free (you asked for 2)')
     expect(shortCopy([{ id: 'sourdough', asked: 1, free: 0 }])).toBe('no sourdough free (you asked for 1)')
   })
 })
@@ -57,7 +57,7 @@ describe('dates, in words', () => {
     expect(longDate('2026-09-21', '2026-09-18')).toBe('Monday, September 21')
     expect(longDate('2026-09-21', '2026-09-18', 'always')).toBe('Monday, September 21, 2026')
     expect(longDate('2027-01-04', '2026-12-30')).toBe('Monday, January 4, 2027')
-    expect(linesCopy(q(2, 1))).toBe('2 sourdough · 1 banana bread')
+    expect(linesCopy(q(2, 1))).toBe('2 sourdough · 1 small banana bread')
   })
   it('states the deadline in Chicago time, on both sides of daylight saving', () => {
     expect(deadlineCopy('2026-09-19T22:00:00.000Z', '2026-09-18')).toBe('Saturday, September 19 at 5:00 PM')

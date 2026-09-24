@@ -30,7 +30,7 @@ import type {
   PaymentException,
   PublicProduct,
 } from '../../shared/types.ts'
-import { shortId } from '../../shared/types.ts'
+import { shortId, zeroQty } from '../../shared/types.ts'
 import { addDays, isYmd, ymdInZone } from '../../shared/zoned.ts'
 import { recordAction } from './audit.ts'
 import { checkSession, issueSession, matches, recordAttempt, throttle } from './auth.ts'
@@ -218,8 +218,8 @@ export function createApp({ db, clock, gateway, liveStripe }: AppDeps) {
           blocked: s?.blocked ?? false,
           cutoffAt: new Date(cutoff).toISOString(),
           open: cardCheckoutOpen(date, now),
-          remaining: s?.remaining ?? { sourdough: 0, banana: 0 },
-          held: held.get(date) ?? { sourdough: 0, banana: 0 },
+          remaining: s?.remaining ?? zeroQty(),
+          held: held.get(date) ?? zeroQty(),
         }
       }),
     }
@@ -431,10 +431,10 @@ export function createApp({ db, clock, gateway, liveStripe }: AppDeps) {
       blocked,
       cutoffAt: new Date(cutoff).toISOString(),
       open: !blocked && cardCheckoutOpen(date, now),
-      capacity: s?.capacity ?? { sourdough: 0, banana: 0 },
+      capacity: s?.capacity ?? zeroQty(),
       toBake,
       held,
-      remaining: s?.remaining ?? { sourdough: 0, banana: 0 },
+      remaining: s?.remaining ?? zeroQty(),
       activeCheckouts: orders.filter((o) => o.status === 'reserved').length,
       orders: await adminOrders(orders, blocked, now),
     }

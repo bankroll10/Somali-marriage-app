@@ -5,6 +5,7 @@ import { cutoffFor, pickupStart } from '../shared/schedule.ts'
 import { partsInZone } from '../shared/zoned.ts'
 import { createApp } from '../netlify/lib/app.ts'
 import type { Db } from '../netlify/lib/db/client.ts'
+import { applyMigrations, loadMigrations } from '../netlify/lib/db/migrate.ts'
 import { assertLedger, freshDb } from './db.ts'
 import { adminHeaders } from './adminSession.ts'
 import { fakeStripe } from './fakeStripe.ts'
@@ -41,7 +42,7 @@ beforeEach(async () => {
 })
 afterEach(() => assertLedger(db))
 
-type Cart = { date?: string; qty?: Partial<Record<'sourdough' | 'banana', number>>; name?: string; phone?: string; checkoutKey?: string }
+type Cart = { date?: string; qty?: Partial<Record<'sourdough' | 'banana' | 'banana_large', number>>; name?: string; phone?: string; checkoutKey?: string }
 let customers = 0
 /** A fresh customer each time: their own phone, their own key, from their own address unless one is named. */
 function checkout(cart: Cart = {}, ip?: string) {
@@ -79,7 +80,7 @@ describe('S1 — the first order', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.amountCents).toBe(1100)
-    expect(body.qty).toEqual({ sourdough: 1, banana: 2 })
+    expect(body.qty).toEqual({ sourdough: 1, banana: 2, banana_large: 0 })
     expect(body).not.toHaveProperty('zelle')
     expect(JSON.stringify(body)).not.toMatch(/tax/i)
     expect((await db.query('SELECT total_cents FROM orders')).rows[0]).toEqual({ total_cents: 1100 })
@@ -100,20 +101,21 @@ describe('S2, S3 — sold out per product, per date, with paid orders', () => {
     expect(await day(WED)).toMatchObject({ remaining: { sourdough: 0, banana: 4 }, held: { sourdough: 0, banana: 0 } })
     const fourth = await checkout({ qty: { sourdough: 1 } })
     expect(fourth.status).toBe(409)
-    expect(await fourth.json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4 } })
+    expect(await fourth.json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4, banana_large: 1 } })
     expect((await checkout({ qty: { banana: 1 } })).status).toBe(200)
-    expect((await adminDay(WED)).toBake).toEqual({ sourdough: 3, banana: 0 })
+    expect((await adminDay(WED)).toBake).toEqual({ sourdough: 3, banana: 0, banana_large: 0 })
     expect(await day(THU)).toMatchObject({ remaining: { sourdough: 3, banana: 4 } })
   })
 
   it('four paid banana bread sell out independently of sourdough; then the whole day is spoken for', async () => {
     for (let i = 0; i < 4; i++) await paid({ qty: { banana: 1 } })
     expect(await day(WED)).toMatchObject({ remaining: { sourdough: 3, banana: 0 } })
-    expect(await (await checkout({ qty: { banana: 1 } })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 3, banana: 0 } })
-    expect(await (await checkout({ qty: { sourdough: 1, banana: 1 } })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 3, banana: 0 } })
+    expect(await (await checkout({ qty: { banana: 1 } })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 3, banana: 0, banana_large: 1 } })
+    expect(await (await checkout({ qty: { sourdough: 1, banana: 1 } })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 3, banana: 0, banana_large: 1 } })
     for (let i = 0; i < 3; i++) await paid({ qty: { sourdough: 1 } })
-    expect(await day(WED)).toMatchObject({ remaining: { sourdough: 0, banana: 0 } })
-    expect((await adminDay(WED)).toBake).toEqual({ sourdough: 3, banana: 4 })
+    await paid({ qty: { banana_large: 1 } })
+    expect((await day(WED)).remaining).toEqual({ sourdough: 0, banana: 0, banana_large: 0 })
+    expect((await adminDay(WED)).toBake).toEqual({ sourdough: 3, banana: 4, banana_large: 1 })
   })
 
   it('a date’s capacity is fixed the first time it is touched; a later capacity change applies to untouched dates only', async () => {
@@ -121,7 +123,66 @@ describe('S2, S3 — sold out per product, per date, with paid orders', () => {
     await db.query("UPDATE products SET daily_capacity = 5 WHERE id = 'sourdough'")
     expect((await day(WED)).remaining.sourdough).toBe(2) // 3 − 1, as it was when first sold against
     expect((await day(THU)).remaining.sourdough).toBe(5) // nobody has touched Thursday yet
-    expect((await adminDay(WED)).capacity).toEqual({ sourdough: 3, banana: 4 })
+    expect((await adminDay(WED)).capacity).toEqual({ sourdough: 3, banana: 4, banana_large: 1 })
+  })
+})
+
+describe('S14 — banana bread in two sizes (Biz, 2026-09-24)', () => {
+  it('small is $3 and at most 4 a day, large is $7 and at most 1, each selling out on its own, and to bake counts them apart', async () => {
+    const res = await checkout({ qty: { banana: 1, banana_large: 1 } })
+    expect(res.status).toBe(200)
+    const { orderId, amountCents } = await res.json()
+    expect(amountCents).toBe(1000)
+    expect(stripe.created[0].params.lines).toEqual([
+      { name: 'Small banana bread', unitAmountCents: 300, quantity: 1 },
+      { name: 'Large banana bread', unitAmountCents: 700, quantity: 1 },
+    ])
+    const sid = await sessionOf(orderId)
+    stripe.pay(sid)
+    const ev = stripe.event('checkout.session.completed', sid)
+    expect((await post(app.webhook, '/api/stripe-webhook', ev.body, ev.headers)).status).toBe(200)
+
+    // The one large loaf is gone; small and sourdough are untouched by it.
+    expect((await day(WED)).remaining).toEqual({ sourdough: 3, banana: 3, banana_large: 0 })
+    expect(await (await checkout({ qty: { banana_large: 1 } })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 3, banana: 3, banana_large: 0 } })
+    for (let i = 0; i < 3; i++) await paid({ qty: { banana: 1 } })
+    expect(await (await checkout({ qty: { banana: 1 } })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 3, banana: 0, banana_large: 0 } })
+    expect((await checkout({ qty: { sourdough: 1 } })).status).toBe(200)
+    // Thursday is a different day with its own large loaf.
+    expect((await day(THU)).remaining).toEqual({ sourdough: 3, banana: 4, banana_large: 1 })
+
+    const wed = await adminDay(WED)
+    expect(wed.toBake).toEqual({ sourdough: 0, banana: 4, banana_large: 1 })
+    expect(wed.capacity).toEqual({ sourdough: 3, banana: 4, banana_large: 1 })
+  })
+
+  it('two large loaves in one order are refused outright, not half-filled', async () => {
+    const res = await checkout({ qty: { banana_large: 2 } })
+    expect(res.status).toBe(400)
+    expect(await res.json()).toEqual({ error: 'bad_quantity' })
+    expect((await db.query('SELECT count(*)::int AS n FROM orders')).rows[0]).toEqual({ n: 0 })
+  })
+
+  it('on a database that sold before the large loaf existed, the migration keeps every sale and the large loaf goes on sale on dates already touched', async () => {
+    // Rebuild the database as it stood before migration 006, with real sales on it.
+    await db.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;')
+    await applyMigrations(db, loadMigrations().filter((m) => m.name < '006'))
+    const before = await paid({ qty: { sourdough: 1, banana: 2 } })
+    expect((await db.query("SELECT product_id FROM date_inventory WHERE date = $1::date ORDER BY product_id", [WED])).rows).toEqual([{ product_id: 'banana' }, { product_id: 'sourdough' }])
+
+    expect(await applyMigrations(db)).toEqual(['006_banana-sizes'])
+
+    // The old sale is intact and now reads as the small loaf it always was.
+    expect((await db.query('SELECT oi.product_id, p.name, oi.quantity, oi.unit_price_cents FROM order_items oi JOIN products p ON p.id = oi.product_id WHERE oi.order_id = $1::uuid ORDER BY oi.product_id', [before])).rows).toEqual([
+      { product_id: 'banana', name: 'Small banana bread', quantity: 2, unit_price_cents: 300 },
+      { product_id: 'sourdough', name: 'Sourdough', quantity: 1, unit_price_cents: 500 },
+    ])
+    // Wednesday was touched before the large loaf existed: it still shows one free, and sells it.
+    expect((await day(WED)).remaining).toEqual({ sourdough: 2, banana: 2, banana_large: 1 })
+    await paid({ qty: { banana_large: 1 } })
+    expect((await day(WED)).remaining).toEqual({ sourdough: 2, banana: 2, banana_large: 0 })
+    expect(await (await checkout({ qty: { banana_large: 1 } })).json()).toMatchObject({ error: 'sold_out' })
+    expect((await adminDay(WED)).toBake).toEqual({ sourdough: 1, banana: 2, banana_large: 1 })
   })
 })
 
@@ -142,7 +203,7 @@ describe('S4, S5 — dates apart, competing buyers, all-or-nothing', () => {
     expect([a.status, b.status].sort()).toEqual([200, 409])
     expect((await db.query("SELECT committed FROM date_inventory WHERE date = $1::date AND product_id = 'sourdough'", [WED])).rows[0]).toEqual({ committed: 3 })
     const mixed = await checkout({ qty: { sourdough: 1, banana: 2 } })
-    expect(await mixed.json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4 } })
+    expect(await mixed.json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4, banana_large: 1 } })
     expect((await db.query("SELECT committed FROM date_inventory WHERE date = $1::date AND product_id = 'banana'", [WED])).rows[0]).toEqual({ committed: 0 })
   })
 })
@@ -278,7 +339,7 @@ describe('S13 — her totals through a real evening', () => {
     const ev = stripe.event('checkout.session.expired', await sessionOf(held))
     await post(app.webhook, '/api/stripe-webhook', ev.body, ev.headers)
     expect(await day(WED)).toMatchObject({ remaining: { sourdough: 1, banana: 1 }, held: { sourdough: 0, banana: 0 } })
-    expect((await adminDay(WED)).toBake).toEqual({ sourdough: 2, banana: 1 })
+    expect((await adminDay(WED)).toBake).toEqual({ sourdough: 2, banana: 1, banana_large: 0 })
     expect(d).toMatch(UUID)
     expect((await adminDay(WED)).orders.map((o: { fulfillment: string }) => o.fulfillment).sort()).toEqual(['cancelled', 'cancelled', 'owed', 'owed', 'picked_up'])
   })

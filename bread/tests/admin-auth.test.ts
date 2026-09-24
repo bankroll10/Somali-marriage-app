@@ -39,7 +39,7 @@ const code = async (res: Response) => ((await res.json()) as { error?: string })
 
 async function paidOrder() {
   const products = await listProducts(db)
-  const out = await reserve(db, { date: MON, qty: { sourdough: 1, banana: 0 }, name: 'Amina Ali', phone: '6125550199', checkoutKey: crypto.randomUUID() }, products, clock, zelleTerms(clock.now()))
+  const out = await reserve(db, { date: MON, qty: { sourdough: 1, banana: 0, banana_large: 0 }, name: 'Amina Ali', phone: '6125550199', checkoutKey: crypto.randomUUID() }, products, clock, zelleTerms(clock.now()))
   if (!out.ok) throw new Error('reserve refused')
   await post({ action: 'markPaid', orderId: out.order.id }, await adminHeaders(app, ADMIN))
   return out.order.id

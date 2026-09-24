@@ -33,7 +33,7 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
     await applyMigrations(db)
   })
 
-  const cart = (qty: Partial<Qty>, i: number) => ({ date: WED, qty: { sourdough: 0, banana: 0, ...qty }, name: `Buyer ${i}`, phone: `612555${String(i).padStart(4, '0')}`, checkoutKey: crypto.randomUUID() })
+  const cart = (qty: Partial<Qty>, i: number) => ({ date: WED, qty: { sourdough: 0, banana: 0, banana_large: 0, ...qty }, name: `Buyer ${i}`, phone: `612555${String(i).padStart(4, '0')}`, checkoutKey: crypto.randomUUID() })
 
   it('twenty buyers on ten connections for three loaves: three win, no errors, ledger exact', async () => {
     const products = await listProducts(db)
@@ -43,6 +43,7 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
     const rows = (await db.query('SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id', [WED])).rows
     expect(rows).toEqual([
       { product_id: 'banana', committed: 3 },
+      { product_id: 'banana_large', committed: 0 },
       { product_id: 'sourdough', committed: 3 },
     ])
     await assertLedger(db)
@@ -136,6 +137,7 @@ describe.skipIf(!URL)('contention on a real Postgres', () => {
     expect((await db.query("SELECT count(*)::int AS n FROM payment_references WHERE order_id = $1::uuid AND status = 'succeeded'", [orderId])).rows[0]).toEqual({ n: 1 })
     expect((await db.query('SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id', [WED])).rows).toEqual([
       { product_id: 'banana', committed: 1 },
+      { product_id: 'banana_large', committed: 0 },
       { product_id: 'sourdough', committed: 2 },
     ])
     await assertLedger(db)

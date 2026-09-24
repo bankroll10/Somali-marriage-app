@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { CONTACT_PHONE, CONTACT_PHONE_TEL, MISSED_PICKUP, PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, PRODUCTS, SHOP_NAME, TAGLINE, TIMEZONE, formatMoney, type ProductId } from '../../shared/config.ts'
+import { CONTACT_PHONE, CONTACT_PHONE_SMS, CONTACT_PHONE_TEL, MISSED_PICKUP, PICKUP_LOCATION, PICKUP_SHORT, PRODUCTS, SHOP_NAME, TAGLINE, TIMEZONE, formatMoney, type ProductId } from '../../shared/config.ts'
 import { formatPhone, normalisePhone } from '../../shared/phone.ts'
-import type { DayAvailability, PublicProduct, Qty } from '../../shared/types.ts'
+import { zeroQty, type DayAvailability, type PublicProduct, type Qty } from '../../shared/types.ts'
 import { addDays, formatYmd, weekdayOf, ymdInZone } from '../../shared/zoned.ts'
 import { ApiError, cancelCheckout, getAvailability, startCheckout } from '../lib/api.ts'
 import { ERROR_COPY, dayState, daysThatFit, deadlineCopy, fit, hasBread, linesCopy, longDate, productState, reduceToFit, selectable, shortCopy, type DayState, type Short } from '../lib/cart.ts'
@@ -176,7 +176,7 @@ export default function Order() {
   const nearestSmaller = useMemo(() => {
     if (!bread || anyFit.length > 0) return []
     return days
-      .filter((d) => selectable(dayState(d, { sourdough: 0, banana: 0 })))
+      .filter((d) => selectable(dayState(d, zeroQty())))
       .map((d) => ({ day: d, reduced: reduceToFit(qty, d) }))
       .filter((x) => hasBread(x.reduced))
       .slice(0, 3)
@@ -262,7 +262,11 @@ export default function Order() {
         {SHOP_NAME}
       </Title>
       <p className="-mt-3 mb-6 text-[14px] leading-relaxed text-cocoa-soft">
-        Pickup {PICKUP_WINDOW} on Mondays, Wednesdays and Thursdays, {PICKUP_PREFERRED}, at {PICKUP_PLACE} — {PICKUP_PLACE_WHERE}. {PICKUP_PLACE_NOTE}
+        Pickup {PICKUP_WINDOW} on Mondays, Wednesdays and Thursdays, {PICKUP_PREFERRED}. {PICKUP_SHORT} — text{' '}
+        <a className="font-semibold text-crust-dark underline underline-offset-2" href={CONTACT_PHONE_SMS}>
+          {CONTACT_PHONE}
+        </a>{' '}
+        for the pickup location.
       </p>
 
       <div aria-live="polite">
@@ -344,7 +348,7 @@ export default function Order() {
 
       {/* ── 2 ── */}
       <div id="step-day" className="scroll-mt-4">
-        <Section step={2} title="Pick a day" aside={PICKUP_PLACE}>
+        <Section step={2} title="Pick a day" aside={PICKUP_SHORT}>
           {load.state === 'loading' && <Spinner label="Checking what's available…" />}
           {load.state === 'error' && (
             <Notice tone="error" role="alert">
@@ -434,7 +438,7 @@ export default function Order() {
                 )}
                 {selectedDay && daySelectable && !fitIssue && (
                   <p className="text-[14px] leading-relaxed text-cocoa">
-                    <b>{longDate(selectedDay.date, today)}</b>, {PICKUP_WINDOW} ({PICKUP_PREFERRED}), at {PICKUP_PLACE}, {PICKUP_PLACE_WHERE}.
+                    <b>{longDate(selectedDay.date, today)}</b>, {PICKUP_WINDOW} ({PICKUP_PREFERRED}). {PICKUP_LOCATION}.
                     <br />
                     <span className="text-cocoa-soft">Order by {deadlineCopy(selectedDay.cutoffAt, today)}.</span>
                   </p>
@@ -461,7 +465,7 @@ export default function Order() {
       <div id="step-details" className="scroll-mt-4">
         <Section step={3} title="Your details">
           <div className="space-y-4">
-            <Field label="Name" error={touched && !nameOk ? ERROR_COPY.bad_name : undefined} hint="So she knows whose bread this is.">
+            <Field label="Name" error={touched && !nameOk ? ERROR_COPY.bad_name : undefined} hint="So I know whose bread this is.">
               {(a) => <input {...a} ref={nameRef} className={inputClass} autoComplete="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={80} enterKeyHint="next" />}
             </Field>
             <Field label="Phone" error={touched && !phoneOk ? ERROR_COPY.bad_phone : undefined} hint="Only used if there is a question about your order.">
@@ -517,7 +521,11 @@ export default function Order() {
                 <div className="flex gap-3">
                   <dt className="w-16 shrink-0 text-cocoa-soft">Where</dt>
                   <dd>
-                    {PICKUP_PLACE}, {PICKUP_PLACE_WHERE}. <span className="text-cocoa-soft">{PICKUP_PLACE_NOTE}</span>
+                    {PICKUP_SHORT} — text{' '}
+                    <a className="font-semibold text-crust-dark underline underline-offset-2" href={CONTACT_PHONE_SMS}>
+                      {CONTACT_PHONE}
+                    </a>{' '}
+                    for the pickup location.
                   </dd>
                 </div>
                 <div className="flex gap-3">
@@ -636,7 +644,7 @@ function DayChip({ day, qty, today, selected, tabbable, onSelect }: { day: DayAv
               : withCart
                 ? 'Fits your order'
                 : PRODUCTS.map((p) => {
-                    const short = p.id === 'banana' ? 'banana' : p.name.toLowerCase()
+                    const short = p.short
                     if (day.remaining[p.id] > 0) return `${day.remaining[p.id]} ${short}`
                     return day.held[p.id] > 0 ? `${short}: none free now` : `${short} sold out`
                   }).join(' · ')

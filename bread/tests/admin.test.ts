@@ -69,7 +69,7 @@ async function paidCard(date = WED, qty: Partial<Qty> = { sourdough: 2, banana: 
 }
 async function zelle(qty: Partial<Qty>, date = WED, name = 'Zed Zelle') {
   const products = await listProducts(db)
-  const out = await reserve(db, { date, qty: { sourdough: 0, banana: 0, ...qty }, name, phone: '6125550000', checkoutKey: crypto.randomUUID() }, products, clock, zelleTerms(clock.now()))
+  const out = await reserve(db, { date, qty: { sourdough: 0, banana: 0, banana_large: 0, ...qty }, name, phone: '6125550000', checkoutKey: crypto.randomUUID() }, products, clock, zelleTerms(clock.now()))
   if (!out.ok) throw new Error(`zelle reserve refused: ${out.reason}`)
   return out.order
 }

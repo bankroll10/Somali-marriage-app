@@ -1,4 +1,4 @@
-import { PICKUP_PLACE, SESSION_MINUTES, SESSION_MIN_MINUTES, SITE_URL, STRIPE_HOLD_MARGIN_MINUTES } from '../../../shared/config.ts'
+import { PICKUP_SHORT, SESSION_MINUTES, SESSION_MIN_MINUTES, SITE_URL, STRIPE_HOLD_MARGIN_MINUTES } from '../../../shared/config.ts'
 import type { Clock } from '../../../shared/clock.ts'
 import { cardCheckoutOpen, cutoffFor } from '../../../shared/schedule.ts'
 import type { Order } from '../../../shared/types.ts'
@@ -175,7 +175,7 @@ export async function ensureSession(deps: PaymentDeps, orderId: string): Promise
     lines: items.map((i) => ({ name: i.name, unitAmountCents: i.unit_price_cents, quantity: i.quantity })),
     expiresAt: Math.floor(expiresMs / 1000),
     ...returnUrls(ref.return_origin ?? defaultOrigin(), orderId),
-    description: `Pickup ${formatYmd(order.date)}, 5–11 PM at ${PICKUP_PLACE}`,
+    description: `Pickup ${formatYmd(order.date)}, 5–11 PM · ${PICKUP_SHORT}`,
   }
   let session: GatewaySession
   try {

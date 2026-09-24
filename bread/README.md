@@ -39,19 +39,19 @@ site and the server follow.
 
 | Rule | Where |
 |---|---|
-| Sourdough $5 (3 per day), banana bread $3 (4 per day) | `PRODUCTS` |
+| Sourdough $5 (3 per day); banana bread small $3 (4 per day) and large $7 (1 per day) — Biz, 2026-09-24 | `PRODUCTS`, and the `products` table (migration `006_banana-sizes`) |
 | Monday, Wednesday, Thursday | `PICKUP_WEEKDAYS` |
 | 5–11 PM, "best after 9 PM" | `PICKUP_START_HOUR`, `PICKUP_END_HOUR`, `PICKUP_PREFERRED_AFTER_HOUR` |
 | Orders close at 5 PM the day before pickup (Mon → Sun 5 PM, Wed → Tue 5 PM, Thu → Wed 5 PM) — Biz, 2026-09-23 | `ORDER_CUTOFF_DAYS_BEFORE`, `ORDER_CUTOFF_HOUR` |
-| Pickup at Life Time Fridley, the front desk | `PICKUP_PLACE`, `PICKUP_PLACE_WHERE` |
+| Local pickup — customers text her for the spot (Biz, 2026-09-24; no venue is named anywhere) | `PICKUP_LOCATION`, `PICKUP_SHORT`, `CONTACT_PHONE_SMS` |
 | Ingredients shown on each product, her words | `ingredients` on each of `PRODUCTS` |
-| Missed pickup: no refund, she brings it on her next shift; her number on the site | `MISSED_PICKUP`, `CONTACT_PHONE` |
+| Missed pickup: no refund, text her to set up another pickup; her number on the site | `MISSED_PICKUP`, `CONTACT_PHONE` |
 | A reservation holds bread for 3 hours awaiting Zelle | `PAYMENT_HOLD_HOURS` |
 | Her Zelle name and handle (manual path only) | `ZELLE_NAME` (blank until she gives it; the page then shows the handle alone), `ZELLE_HANDLE` (set to `(612) 703-8698`) |
 | Card checkout closes this many minutes before the deadline | `CARD_CHECKOUT_LEAD_MINUTES` (32: Stripe's page needs 30) |
 | Reservation limits per address, and how often the page may ask Stripe | `MAX_CHECKOUTS_PER_IP`, `MAX_LIVE_HOLDS_PER_IP`, `CHECKOUT_WINDOW_MINUTES`, `RECONCILE_MIN_INTERVAL_MS` |
 | Customers see the next 4 weeks | `WEEKS_AHEAD` |
-| Name, tagline, pickup place and the not-affiliated note | `SHOP_NAME`, `TAGLINE`, `PICKUP_PLACE`, `PICKUP_PLACE_WHERE`, `PICKUP_PLACE_NOTE` |
+| Name and tagline | `SHOP_NAME`, `TAGLINE` |
 | All times are Chicago time | `TIMEZONE` |
 
 ## Pages

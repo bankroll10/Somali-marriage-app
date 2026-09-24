@@ -42,7 +42,7 @@ const post = (fn: (r: Request) => Promise<Response>, path: string, body: unknown
   fn(new Request(`https://bread.example${path}`, { method: 'POST', body: typeof body === 'string' ? body : JSON.stringify(body), headers }))
 const get = (fn: (r: Request) => Promise<Response>, path: string, headers: Record<string, string> = {}) =>
   fn(new Request(`https://bread.example${path}`, { headers }))
-type Buy = { date: string; qty: Partial<Record<'sourdough' | 'banana', number>>; name: string; phone: string; checkoutKey: string }
+type Buy = { date: string; qty: Partial<Record<'sourdough' | 'banana' | 'banana_large', number>>; name: string; phone: string; checkoutKey: string }
 const good = (): Buy => ({ date: WED, qty: { sourdough: 2, banana: 1 }, name: '  Amina   Ali ', phone: '(612) 555-0199', checkoutKey: crypto.randomUUID() })
 const buy = (over: Partial<Buy> & Record<string, unknown> = {}) => post(app.checkout, '/api/checkout', { ...good(), ...over })
 /** A different customer: a live card hold is one per phone number, so competing buyers need their own. */
@@ -55,7 +55,7 @@ const dbStatus = async (id: string) => (await db.query<{ status: string }>('SELE
 /** A hand-confirmed (Zelle) reservation, the manual path that stays beside card checkout. */
 async function zelle(qty: Partial<Qty>, date = WED, name = 'Zed Zelle') {
   const products = await listProducts(db)
-  const out = await reserve(db, { date, qty: { sourdough: 0, banana: 0, ...qty }, name, phone: '6125550000', checkoutKey: crypto.randomUUID() }, products, clock, zelleTerms(clock.now()))
+  const out = await reserve(db, { date, qty: { sourdough: 0, banana: 0, banana_large: 0, ...qty }, name, phone: '6125550000', checkoutKey: crypto.randomUUID() }, products, clock, zelleTerms(clock.now()))
   if (!out.ok) throw new Error(`zelle reserve refused: ${out.reason}`)
   return out.order
 }
@@ -73,7 +73,8 @@ describe('availability', () => {
     expect(body.days[1]).toMatchObject({ date: WED, remaining: { sourdough: 1, banana: 3 } })
     expect(body.products).toEqual([
       { id: 'sourdough', name: 'Sourdough', blurb: 'A full loaf', priceCents: 500, capacityPerDay: 3 },
-      { id: 'banana', name: 'Banana bread', blurb: 'Small loaf', priceCents: 300, capacityPerDay: 4 },
+      { id: 'banana', name: 'Small banana bread', blurb: 'Small loaf', priceCents: 300, capacityPerDay: 4 },
+      { id: 'banana_large', name: 'Large banana bread', blurb: 'Large loaf', priceCents: 700, capacityPerDay: 1 },
     ])
     expect(text).not.toMatch(/Amina|6125550199|checkout|customer|cs_test|"id":"[0-9a-f-]{36}"/)
   })
@@ -108,7 +109,7 @@ describe('availability', () => {
   it('hides a product she stops selling', async () => {
     await db.query("UPDATE products SET active = false WHERE id = 'banana'")
     const body = await (await get(app.availability, '/api/availability')).json()
-    expect(body.products.map((p: { id: string }) => p.id)).toEqual(['sourdough'])
+    expect(body.products.map((p: { id: string }) => p.id)).toEqual(['sourdough', 'banana_large'])
     expect(await (await buy({ qty: { banana: 1 } })).json()).toEqual({ error: 'bad_product' })
   })
 })
@@ -123,7 +124,7 @@ describe('checkout', () => {
       orderId: expect.any(String),
       shortId: body.orderId.slice(0, 6).toUpperCase(),
       date: WED,
-      qty: { sourdough: 2, banana: 1 },
+      qty: { sourdough: 2, banana: 1, banana_large: 0 },
       amountCents: 1300,
       holdExpiresAt: expect.any(String),
       replayed: false,
@@ -138,11 +139,12 @@ describe('checkout', () => {
     const ref = (await db.query('SELECT provider, status, amount_cents, idempotency_key, external_id FROM payment_references')).rows[0]
     expect(ref).toEqual({ provider: 'stripe', status: 'pending', amount_cents: 1300, idempotency_key: body.orderId, external_id: 'cs_test_1' })
     expect(stripe.created[0].params.lines).toEqual([
-      { name: 'Banana bread', unitAmountCents: 300, quantity: 1 },
+      { name: 'Small banana bread', unitAmountCents: 300, quantity: 1 },
       { name: 'Sourdough', unitAmountCents: 500, quantity: 2 },
     ])
     expect((await db.query("SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id", [WED])).rows).toEqual([
       { product_id: 'banana', committed: 1 },
+      { product_id: 'banana_large', committed: 0 },
       { product_id: 'sourdough', committed: 2 },
     ])
   })
@@ -196,9 +198,9 @@ describe('checkout', () => {
     expect((await buy({ qty: { sourdough: 3 } })).status).toBe(200)
     const res = await buy({ qty: { sourdough: 1 }, ...someoneElse(1) })
     expect(res.status).toBe(409)
-    expect(await res.json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4 } })
+    expect(await res.json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4, banana_large: 1 } })
     expect((await buy({ qty: { banana: 4 }, ...someoneElse(2) })).status).toBe(200)
-    expect(await (await buy({ qty: { banana: 1 }, ...someoneElse(3) })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 0 } })
+    expect(await (await buy({ qty: { banana: 1 }, ...someoneElse(3) })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 0, banana_large: 1 } })
     await post(app.admin, '/api/admin', { action: 'block', date: MON }, asAdmin)
     const blocked = await buy({ date: MON, ...someoneElse(4) })
     expect(blocked.status).toBe(409)
@@ -207,9 +209,10 @@ describe('checkout', () => {
 
   it('reserves a mixed cart entirely or not at all', async () => {
     await buy({ qty: { sourdough: 3 } })
-    expect(await (await buy({ qty: { sourdough: 1, banana: 2 }, ...someoneElse(1) })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4 } })
+    expect(await (await buy({ qty: { sourdough: 1, banana: 2 }, ...someoneElse(1) })).json()).toEqual({ error: 'sold_out', remaining: { sourdough: 0, banana: 4, banana_large: 1 } })
     expect((await db.query("SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id", [WED])).rows).toEqual([
       { product_id: 'banana', committed: 0 },
+      { product_id: 'banana_large', committed: 0 },
       { product_id: 'sourdough', committed: 3 },
     ])
     expect((await db.query('SELECT count(*)::int AS n FROM orders')).rows[0]).toEqual({ n: 1 })
@@ -218,17 +221,17 @@ describe('checkout', () => {
   })
 
   it('treats each date independently — a full Monday leaves Wednesday whole', async () => {
-    await buy({ date: MON, qty: { sourdough: 3, banana: 4 } })
+    await buy({ date: MON, qty: { sourdough: 3, banana: 4, banana_large: 1 } })
     expect(await (await buy({ date: MON, qty: { sourdough: 1 }, ...someoneElse(1) })).json()).toMatchObject({ error: 'sold_out' })
-    expect((await buy({ date: WED, qty: { sourdough: 3, banana: 4 }, ...someoneElse(2) })).status).toBe(200)
-    expect((await buy({ date: THU, qty: { sourdough: 3, banana: 4 }, ...someoneElse(3) })).status).toBe(200)
+    expect((await buy({ date: WED, qty: { sourdough: 3, banana: 4, banana_large: 1 }, ...someoneElse(2) })).status).toBe(200)
+    expect((await buy({ date: THU, qty: { sourdough: 3, banana: 4, banana_large: 1 }, ...someoneElse(3) })).status).toBe(200)
     const avail = await (await get(app.availability, '/api/availability')).json()
     expect(avail.days.slice(0, 3).map((d: { remaining: unknown }) => d.remaining)).toEqual([
-      { sourdough: 0, banana: 0 },
-      { sourdough: 0, banana: 0 },
-      { sourdough: 0, banana: 0 },
+      { sourdough: 0, banana: 0, banana_large: 0 },
+      { sourdough: 0, banana: 0, banana_large: 0 },
+      { sourdough: 0, banana: 0, banana_large: 0 },
     ])
-    expect(avail.days[3].remaining).toEqual({ sourdough: 3, banana: 4 })
+    expect(avail.days[3].remaining).toEqual({ sourdough: 3, banana: 4, banana_large: 1 })
   })
 
   it('replays a retried request instead of reserving twice, with the same Stripe session', async () => {
@@ -247,7 +250,7 @@ describe('Zelle holds (the manual path)', () => {
     const { id } = await zelle({ sourdough: 3 })
     clock.advance(PAYMENT_HOLD_HOURS * HOUR)
     const avail = await (await get(app.availability, '/api/availability')).json()
-    expect(avail.days[1].remaining).toEqual({ sourdough: 3, banana: 4 })
+    expect(avail.days[1].remaining).toEqual({ sourdough: 3, banana: 4, banana_large: 1 })
     expect(await (await get(app.order, `/api/order?order=${id}`)).json()).toMatchObject({ status: 'expired', provider: 'zelle' })
     expect(await dbStatus(id)).toBe('reserved')
     expect((await buy({ qty: { sourdough: 3 } })).status).toBe(200)
@@ -269,15 +272,15 @@ describe('Zelle holds (the manual path)', () => {
     expect(await dbStatus(late)).toBe('expired')
     const refused = await markPaid(late)
     expect(refused.status).toBe(409)
-    expect(await refused.json()).toEqual({ error: 'would_exceed_capacity', remaining: { sourdough: 0, banana: 4 } })
+    expect(await refused.json()).toEqual({ error: 'would_exceed_capacity', remaining: { sourdough: 0, banana: 4, banana_large: 1 } })
     const forced = await markPaid(late, true)
     expect(await forced.json()).toMatchObject({ status: 'paid', forced: true })
     expect((await db.query("SELECT capacity, overflow, committed FROM date_inventory WHERE product_id = 'sourdough'")).rows[0]).toEqual({ capacity: 3, overflow: 3, committed: 6 })
-    expect((await dayOf(WED)).remaining).toEqual({ sourdough: 0, banana: 4 })
+    expect((await dayOf(WED)).remaining).toEqual({ sourdough: 0, banana: 4, banana_large: 1 })
     await expect(db.query("UPDATE date_inventory SET committed = 7 WHERE product_id = 'sourdough'")).rejects.toMatchObject({ code: '23514' })
     // Cancelling the card order (its session is ended first) reveals no phantom slot.
     await cancel(other)
-    expect((await dayOf(WED)).remaining).toEqual({ sourdough: 0, banana: 4 })
+    expect((await dayOf(WED)).remaining).toEqual({ sourdough: 0, banana: 4, banana_large: 1 })
   })
 
   it('marks an order paid idempotently, cancels once, and keeps one succeeded reference', async () => {
@@ -314,8 +317,8 @@ describe('admin', () => {
     const { orderId } = await (await buy()).json()
     const wed = await dayOf(WED)
     expect(wed.orders[0]).toMatchObject({ id: orderId, status: 'reserved', provider: 'stripe', name: 'Amina Ali', phone: '6125550199', exceptions: [] })
-    expect(wed.toBake).toEqual({ sourdough: 0, banana: 0 })
-    expect(wed.remaining).toEqual({ sourdough: 1, banana: 3 })
+    expect(wed.toBake).toEqual({ sourdough: 0, banana: 0, banana_large: 0 })
+    expect(wed.remaining).toEqual({ sourdough: 1, banana: 3, banana_large: 1 })
   })
 
   it('lists orders by pickup date with what to bake, and tracks pickup', async () => {
@@ -326,8 +329,8 @@ describe('admin', () => {
     await buy({ date: MON, qty: { sourdough: 1 } })
     const body = await (await get(app.admin, '/api/admin', asAdmin)).json()
     const wed = body.days.find((d: { date: string }) => d.date === WED)
-    expect(wed.toBake).toEqual({ sourdough: 2, banana: 3 })
-    expect(wed.remaining).toEqual({ sourdough: 1, banana: 1 })
+    expect(wed.toBake).toEqual({ sourdough: 2, banana: 3, banana_large: 0 })
+    expect(wed.remaining).toEqual({ sourdough: 1, banana: 1, banana_large: 1 })
     expect(wed.orders.map((o: { name: string; status: string }) => [o.name, o.status])).toEqual([
       ['Amina Ali', 'paid'],
       ['Bob', 'paid'],

@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { existsSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { PRODUCTS } from '../shared/config.ts'
@@ -59,5 +59,11 @@ describe('deploy layout', () => {
     const { db } = await freshDb()
     const rows = (await db.query<{ id: string; name: string; blurb: string; price_cents: number; daily_capacity: number }>('SELECT id, name, blurb, price_cents, daily_capacity FROM products WHERE active ORDER BY sort_order')).rows
     expect(rows).toEqual(PRODUCTS.map((p) => ({ id: p.id, name: p.name, blurb: p.blurb, price_cents: p.priceCents, daily_capacity: p.capacityPerDay })))
+  })
+  it('the site names no pickup venue: pickup is local and arranged by text (Biz, 2026-09-24)', () => {
+    const files = (dir: string): string[] =>
+      readdirSync(join(process.cwd(), dir), { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? files(join(dir, d.name)) : /\.(ts|tsx|html)$/.test(d.name) ? [join(dir, d.name)] : []))
+    const offenders = [...files('src'), ...files('shared'), ...files('netlify'), 'index.html'].filter((f) => /Life ?Time|Fridley/i.test(readFileSync(join(process.cwd(), f), 'utf8')))
+    expect(offenders).toEqual([])
   })
 })

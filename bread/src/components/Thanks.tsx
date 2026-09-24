@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CONTACT_PHONE, CONTACT_PHONE_TEL, MISSED_PICKUP, PICKUP_PLACE, PICKUP_PLACE_NOTE, PICKUP_PLACE_WHERE, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/config.ts'
+import { CONTACT_PHONE, CONTACT_PHONE_SMS, CONTACT_PHONE_TEL, MISSED_PICKUP, PICKUP_LOCATION, SHOP_NAME, TIMEZONE, formatMoney } from '../../shared/config.ts'
 import type { OrderSummary } from '../../shared/types.ts'
 import { formatInstant, ymdInZone } from '../../shared/zoned.ts'
 import { ApiError, getOrder } from '../lib/api.ts'
@@ -99,7 +99,9 @@ export default function Thanks() {
   const { order } = state
   const where = (
     <>
-      {PICKUP_PLACE}, {PICKUP_PLACE_WHERE} · {PICKUP_WINDOW}, {PICKUP_PREFERRED}
+      {PICKUP_WINDOW}, {PICKUP_PREFERRED}
+      <br />
+      {PICKUP_LOCATION}
     </>
   )
 
@@ -111,7 +113,7 @@ export default function Thanks() {
         </div>
         <Notice tone="warn" role="status">
           Stripe reported your payment, but something about it needs a person to look before the order is confirmed.
-          Nothing more is needed from you; she has this flagged and will sort it out. Keep your order code{' '}
+          Nothing more is needed from you; I have this flagged and will sort it out. Keep your order code{' '}
           <span className="font-mono font-semibold">{order.shortId}</span> handy.
         </Notice>
         <Contact />
@@ -189,7 +191,7 @@ export default function Thanks() {
           sub={
             paid
               ? `Thank you, ${firstName}. Your payment went through and your bread is reserved.`
-              : `Send the Zelle below and your order confirms itself — this page updates on its own once she's marked it received.`
+              : `Send the Zelle below and your order confirms itself — this page updates on its own once I've marked it received.`
           }
         >
           {paid ? "You're all set" : "You're holding your bread"}
@@ -239,11 +241,17 @@ export default function Thanks() {
           {paid && <span className="ml-2 rounded-full bg-sage/10 px-2 py-0.5 text-[12px] font-semibold text-sage">Paid</span>}
         </Row>
       </div>
-      <p className="mt-2 text-[12px] leading-relaxed text-cocoa-soft">{PICKUP_PLACE_NOTE}</p>
+      <p className="mt-2 text-[14px] leading-relaxed text-cocoa-soft">
+        Text{' '}
+        <a className="font-semibold text-crust-dark underline underline-offset-2" href={CONTACT_PHONE_SMS}>
+          {CONTACT_PHONE}
+        </a>{' '}
+        for the pickup location.
+      </p>
 
       <p className="mt-4 text-[14px] leading-relaxed text-cocoa-soft">
         {paid
-          ? `This page is your confirmation — screenshot it if you like, and give your name and order code at ${PICKUP_PLACE_WHERE} when you come for it. If Stripe sends a receipt, it goes to the email you gave on the payment page.`
+          ? `This page is your confirmation — screenshot it if you like, and give your name and order code when you pick it up. If Stripe sends a receipt, it goes to the email you gave on the payment page.`
           : 'Keep this page open, or come back to it any time — it will show "Paid" once your Zelle is confirmed.'}
       </p>
       {paid && <p className="mt-3 text-[14px] leading-relaxed text-cocoa-soft">{MISSED_PICKUP}</p>}

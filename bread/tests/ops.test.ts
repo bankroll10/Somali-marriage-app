@@ -117,7 +117,7 @@ describe('the launch chores', () => {
       expect((await db.query(`SELECT count(*)::int AS n FROM ${t}`)).rows[0], t).toEqual({ n: 0 })
     }
     expect((await db.query('SELECT sum(committed)::int AS c, sum(overflow)::int AS o FROM date_inventory')).rows[0]).toEqual({ c: 0, o: 0 })
-    expect((await db.query("SELECT count(*)::int AS n FROM products")).rows[0]).toEqual({ n: 2 })
+    expect((await db.query("SELECT count(*)::int AS n FROM products")).rows[0]).toEqual({ n: 3 })
     expect((await db.query("SELECT blocked_reason FROM pickup_dates WHERE date = '2026-09-28'")).rows[0]).toEqual({ blocked_reason: 'away' })
   })
 

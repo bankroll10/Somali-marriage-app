@@ -23,7 +23,7 @@ beforeEach(async () => {
 })
 afterEach(() => assertLedger(db))
 
-const cart = (qty: Partial<Qty>, i: number) => ({ date: WED, qty: { sourdough: 0, banana: 0, ...qty }, name: `Buyer ${i}`, phone: `612555${String(i).padStart(4, '0')}`, checkoutKey: crypto.randomUUID() })
+const cart = (qty: Partial<Qty>, i: number) => ({ date: WED, qty: { sourdough: 0, banana: 0, banana_large: 0, ...qty }, name: `Buyer ${i}`, phone: `612555${String(i).padStart(4, '0')}`, checkoutKey: crypto.randomUUID() })
 
 describe('concurrent purchases', () => {
   it('ten buyers for three loaves: exactly three win', async () => {
@@ -43,6 +43,7 @@ describe('concurrent purchases', () => {
     const rows = (await db.query('SELECT product_id, committed FROM date_inventory WHERE date = $1::date ORDER BY product_id', [WED])).rows
     expect(rows).toEqual([
       { product_id: 'banana', committed: 3 },
+      { product_id: 'banana_large', committed: 0 },
       { product_id: 'sourdough', committed: 3 },
     ])
   })
