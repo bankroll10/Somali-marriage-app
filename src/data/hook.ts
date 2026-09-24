@@ -66,7 +66,7 @@ Niyyah doesn’t introduce anyone. It makes the next person you meet, wherever y
     label: 'Something else',
     short: 'something else',
     insight: (name) =>
- `${name ? `${name}, t` : 'T'}hat is allowed. The five things people name most are not everyone’s, and what you carry is what your map should start from — nothing here presumes your problem.
+ `${name ? `${name}, t` : 'T'}hat is allowed. The five above are not everyone’s, and what you carry is what your map should start from — nothing here presumes your problem.
 
 Your map will show where you stand, in words, and your guide will take the rest in your own.`,
   },

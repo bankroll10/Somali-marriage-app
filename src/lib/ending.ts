@@ -183,7 +183,7 @@ export function marriedShare(advice?: string, did: MarriedDid = { eleven: false 
   const line = advice?.trim()
   const lead = did.eleven
     ? 'Before we said yes, we went through eleven conversations — where we’d live, money home, all of it. I wish someone had handed me that list earlier.'
-    : 'There are eleven conversations most of us have too late — where you’d live, money home, a second wife. I wish someone had handed me that list before we said yes.'
+    : 'There are eleven conversations to have before the families do — where you’d live, money home, a second wife. I wish someone had handed me that list before we said yes.'
   return {
     text: [lead, line ? `\n${line}` : '', '\nIt is free, and there is no account.'].join(''),
     url: toolLink('before-you-say-yes', 'married'),

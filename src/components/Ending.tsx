@@ -174,7 +174,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onF
             is over.{' '}
             {didEleven
               ? '“Before we said yes, we had these eleven conversations”'
-              : '“There are eleven conversations most of us have too late”'}{' '}
+              : '“There are eleven conversations to have before the families do”'}{' '}
             is a thing a married {gender === 'man' ? 'man' : 'woman'} can say to anyone — a cousin, a
             friend, the one at the wedding who is where you were.
           </p>

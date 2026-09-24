@@ -11,9 +11,11 @@
  * is static JSON and `tests/brand.test.ts` holds it equal to what is here.
  *
  * What still names the community outside this file, on purpose: the
- * instruments' own copy — "the eleven conversations that decide a Somali
- * marriage" in BeforeYes, Couple, Home and Read. Those are content, and the day a second
- * community is served they are a second `src/data` of content, not a rename.
+ * instruments' own content, such as "Somali at home" in the eleven
+ * (src/data/eleven.ts). That is content, and the day a second community is
+ * served it is a second `src/data` of content, not a rename. The instruments
+ * no longer say the eleven "decide a Somali marriage": that was class F said
+ * as fact (docs/RESEARCH.md, L5).
  * The rule is enforceable by test for the brand strings only, and
  * docs/PRODUCT.md now says so.
  *
@@ -40,7 +42,7 @@ export const TITLE = `${NAME} — marriage for the Somali diaspora, done in the 
 
 /** The meta description and the manifest's description. */
 export const DESCRIPTION =
-  'For someone you are already talking to: what they have done, the conversations that decide a marriage, and the words for them. For the Somali diaspora. No account.'
+  'For someone you are already talking to: what they have done, the conversations to have before you marry, and the words for them. For the Somali diaspora. No account.'
 
 /** What the social card says when a link is pasted into a chat. */
 export const TAGLINE =

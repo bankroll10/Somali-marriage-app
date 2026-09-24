@@ -569,7 +569,7 @@ function Result({
               Before you say yes
             </span>
             <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-              Eleven conversations most couples have too late. You can send them to
+              Eleven conversations to have before the families do. You can send them to
               {' '}{subject} too — {they} answers on {subject === 'him' ? 'his' : 'her'} own phone, and
               neither of you sees the other’s answers, only where you match.
             </span>

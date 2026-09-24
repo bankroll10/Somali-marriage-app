@@ -68,7 +68,7 @@ export default function Ended({ identity, from, saved, onSave, onDone }: Props) 
             It ended. That is allowed, and it is progress.
           </h1>
           <p className="mt-4 max-w-lg text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-            Many people end one or two of these before the one that holds. Nothing you did
+            Ending one is not failing at this. Nothing you did
             here is lost — your map, your reads, what you learned about what you need. Take a breath.
           </p>
         </section>

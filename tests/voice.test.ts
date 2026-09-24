@@ -36,6 +36,17 @@ const OVERCLAIMS: [RegExp, string][] = [
   [/rarer than you would think/i, 'a statistic we do not have'],
   [/Grounded and ready/, 'a verdict of "ready"'],
   [/We’ll look for someone|will find you someone/i, 'an introduction nobody makes'],
+  // docs/RESEARCH.md, the evidence ledger (decision 20). A frequency nobody
+  // counted (L9, L10), a date on a future (L12), similarity as the outcome
+  // (L13), the eleven as what breaks marriages (L5).
+  [/\bmost (of (us|our|this)|people|couples|parents|first-year)\b/i, 'a count we do not have (L9, L10)'],
+  [/\bmany (of us|people|couples)\b/i, 'a count we do not have (L9, L10)'],
+  [/\bmore common than\b|\bmost common\b|\bthe rarest\b|\bname most\b/i, 'a count we do not have (L10)'],
+  [/\brarer than\b|\brarely (have|talked|admit)\b/i, 'a count we do not have (L10)'],
+  [/\bended the most\b|\bthan any other answer\b/i, 'a count we do not have (L10)'],
+  [/\byear (two|three|ten)\b/i, 'a date on a future nobody can see (L12)'],
+  [/keeps you married|strongest marriages/i, 'similarity as the outcome, against the evidence (L13)'],
+  [/marriages? (break|breaks) on\b/i, 'the eleven as what breaks marriages: class F (L5)'],
 ]
 
 /**
@@ -63,6 +74,11 @@ const ALLOWED: [RegExp, string][] = [
   [/Actually, it’s something else/, 'a button in the person’s own voice, correcting us'],
   [/navigator\.platform|process\.platform/, 'code, not copy'],
   [/^\s*\/\\b\(/, 'a routing regex reads what she typed; it is not something we say'],
+  // Man-only lines wait for ten men (decision 4); each is ledgered with its
+  // rewrite in docs/RESEARCH.md ("Deferred, by name").
+  [/the answer that comes back in year two/, 'decision 4: a man-only variant, deferred (L12)'],
+  [/the one that becomes a fight in year two — and the same is true of hers/, 'decision 4: a man-only variant, deferred (L12)'],
+  [/Asked for their part, most parents give it/, 'decision 4: a man-only script, deferred (L9)'],
 ]
 
 /** Comment lines, including the continuation lines of a block comment, which carry no marker of their own. */

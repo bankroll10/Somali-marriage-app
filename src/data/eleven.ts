@@ -147,9 +147,9 @@ export const TOPICS: Topic[] = [
     label: 'Money sent home',
     prompt: 'Money — who pays for what, and what each of you sends home to family every month.',
     consequence: 0.85,
-    why: 'Many of us send money home, and many couples find out each other’s obligations after the wedding instead of before. It is not about generosity. It is two families’ expectations landing on one income, unspoken.',
+    why: 'Money sent home is easy to leave unsaid until after the wedding. It is not about generosity. It is two families’ expectations landing on one income, unspoken.',
     script: {
-      why: 'Our parents rarely talked about money with us, which is why you have to talk about it with {him}.',
+      why: 'If nobody talked about money with you growing up, that is a reason to talk about it with {him}, not a reason to skip it.',
       words:
         'Can we talk about money plainly, the way our parents never did with us? What do you send home each month, and to whom? I’ll tell you mine. And once we’re married — do we decide that together, or is each of ours separate?',
       tells:
@@ -203,7 +203,7 @@ export const TOPICS: Topic[] = [
       },
     },
     script: {
-      why: 'An expectation {he} “assumed you’d know” is exactly the one that becomes a fight in year two.',
+      why: 'An expectation {he} “assumed you’d know” is one you never got to agree to.',
       words:
         'We both say deen matters. Can I ask what that looks like for you on a normal day — prayer, and the things you’d want in the house and not in it? And is there anything you’d expect of me that you haven’t said, because you assumed I’d know?',
       tells: 'The second question is the real one. Note whether the answer is specific, and whether it is about {him} as much as about you.',
@@ -237,7 +237,7 @@ export const TOPICS: Topic[] = [
     label: 'Qabiil',
     prompt: 'Qabiil — whether either of your families will make it a question, and what the two of you have said to each other about it.',
     consequence: 0.7,
-    why: 'Most of us say it doesn’t matter to us, and most of us are telling the truth about ourselves. The question was never about you two. It is whether either family will raise it — and whether {he} will stand next to you when they do.',
+    why: '“It doesn’t matter to me” can be true of both of you and still not settle it. The question was never only about you two. It is whether either family will raise it — and whether {he} will stand next to you when they do.',
     script: {
       why: 'You are not asking whether it matters to {him}. You are asking what happens if it matters to someone at {his} table.',
       words:
@@ -251,7 +251,7 @@ export const TOPICS: Topic[] = [
     label: 'Going back',
     prompt: 'Going back — whether {he} plans to move back one day, or spend long stretches away, and whether you would go.',
     consequence: 0.65,
-    why: '“One day I’ll go back” is something many of us say and mean, and the other person finds out what “one day” means when the ticket is booked. Whether you go together, one of you stays, or you split the year is a marriage-shaped decision.',
+    why: '“One day I’ll go back” can be said, and meant, for years, and the other person finds out what “one day” means when the ticket is booked. Whether you go together, one of you stays, or you split the year is a marriage-shaped decision.',
     script: {
       why: 'You need to know whether you are in {his} picture, and where.',
       words:
@@ -313,11 +313,11 @@ export const TOPICS: Topic[] = [
  * Handing her a question for {him} would make {his} answer hers by default.
  */
 export const OWN_ANSWER_FIRST: ElevenScript = {
-  why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is the most common state on this list, and the most fixable.',
+  why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is the most fixable state on this list.',
   words:
  'Before I raise this with you, I’m working out what I want here. Give me a week. Then I’ll tell you plainly, and I’ll want the same back.',
   tells:
-    'Write your own answer down before you ask for {his}. Otherwise {his} becomes yours by default, and you find out in year three that it never was.',
+    'Write your own answer down before you ask for {his}. Otherwise {his} becomes yours by default, and you find out later that it never was.',
 }
 
 /** When every conversation has been had and agreed — the rarest result, and still not the end. */

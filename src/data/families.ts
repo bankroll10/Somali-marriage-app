@@ -152,7 +152,7 @@ const SCRIPTS: FamilyScript[] = [
     when: 'The first time one of your families expects something the two of you did not agree to.',
     stages: ['married'],
     script: {
-      why: 'Most first-year arguments are not between the two of you. They are between two families, carried home by one of you. The couples who come through it are the ones who decided early to talk to each other first, and to their families second.',
+      why: 'Some of the hardest arguments in a first year are not between the two of you. They are between two families, carried home by one of you. Decide now to talk to each other first, and to your families second.',
       words:
         'Something came up with my family, and before I answer them I want to talk to you. I don’t want either of our families to hear about something between us before we have heard it from each other. Can we agree we always do it in that order — us first, then them?',
       tells:

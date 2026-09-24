@@ -99,34 +99,34 @@ function readMap(ctx: CoachContext): string {
   const a = ctx.answers
   const bits: string[] = []
   const faith = a['faith-role']
-  if (typeof faith === 'number' && faith >= 4) bits.push('someone for whom deen is a shared center')
+  if (typeof faith === 'number' && faith >= 4) bits.push('deen at the centre of your home')
   const fam = a['family-role']
-  if (fam === 'central' || fam === 'guided') bits.push('a family-minded match who welcomes your people')
+  if (fam === 'central' || fam === 'guided') bits.push('your family in the story')
   const tl = a['timeline']
-  if (tl === 'within-1' || tl === '1-2') bits.push('someone ready to move with intention, not drift')
+  if (tl === 'within-1' || tl === '1-2') bits.push('marriage within a year or two')
   if (Array.isArray(a['value-most']) && a['value-most'].length)
-    bits.push(`a character built on what you value most`)
- return bits.length ? bits.join(', ') : 'someone aligned with the life you described'
+    bits.push(`the character you said you value most`)
+ return bits.length ? bits.join(', ') : 'the life you described'
 }
 
 const fit: GuidanceMode['intents'] = [
   {
     keywords: ['fits me', 'right for me', 'kind of person', 'my type', 'compatible', 'match me', 'suited'],
     respond: (ctx) =>
-      `From your map, the person who fits you is ${readMap(ctx)}.
+      `Your map says what you are looking for: ${readMap(ctx)}. No map can tell you who will fit. It tells you what to ask about first.
 
-Don’t shop for a feeling — recognise a fit. The strongest marriages aren’t the ones with the most spark on day one; they’re the ones where two people are walking toward the same horizon. When you meet someone, ask yourself less “do I feel butterflies?” and more “do we want the same life, and is this someone I respect?” That’s the question that’s still true in year ten.`,
+Don’t shop for a feeling. When you meet someone, ask yourself less “do I feel butterflies?” and more “do we want the same life, and is this someone I respect?” Ask it early, and ask it again once you know them.`,
   },
   {
     keywords: ['look for first', 'prioritise', 'prioritize', 'what matters', 'most important', 'first thing'],
     respond: () =>
-      `Prioritise in this order — it’ll save you years:
+      `An order worth holding to:
 • **Character & deen** first. Honesty, kindness, God-consciousness. Non-negotiable.
 • **Direction & alignment** second. Same horizon on faith, family, children, where you’ll live.
 • **Emotional availability** third. Can they show up, communicate, repair?
-• **Attraction** fourth — it matters, but it’s the easiest to mistake for compatibility.
+• **Attraction** fourth — it matters, and it is easy to mistake for more than it is.
 
-Most people run that list upside down and wonder why it hurts. Get the top right and attraction grows. Get only the bottom right and it fades into resentment.`,
+Put the top first, and test attraction against it rather than the other way round.`,
   },
   {
     keywords: ['green flag', 'green flags', 'good sign', 'good signs', 'what to seek'],
@@ -143,9 +143,9 @@ Notice: none of these show up in a photo.`,
   {
     keywords: ['alignment', 'attraction', 'chemistry', 'spark', 'butterflies'],
     respond: () =>
-      `Attraction gets you interested; alignment keeps you married. Chemistry is real, but it’s a terrible *filter* — it lights up just as bright for the wrong person as the right one.
+      `Attraction is real, and it matters. What it cannot tell you is whether your lives fit.
 
-Alignment is whether your lives fit: faith, family, finances, children, pace, values. When those line up, attraction tends to *grow*, because respect is the deepest kind of attraction there is. When they don’t, no amount of spark survives the friction. So feel the spark — but choose on the fit.`,
+That — faith, family, money, children, pace — you find out by asking, not by feeling. So feel the spark, then ask, and choose on what you find out, with deen and character first.`,
   },
 ]
 
@@ -231,7 +231,7 @@ I’m not here to hype you up — I’m here to keep you honest and effective. Y
     {
       keywords: ['flirting', 'in circles', 'going nowhere', 'banter', 'small talk', 'vague', 'dragging'],
       respond: () =>
-        `Stop flirting in circles. State your intention clearly and respectfully — that’s strength, and it’s rarer than you think.
+        `Stop flirting in circles. State your intention clearly and respectfully — that’s strength.
 
 Try: “I want to be upfront — I’m looking for marriage, and I’d like to get to know you for that. Is that what you want too?” That one sentence filters out everyone who’s wasting your time and earns the respect of the one who isn’t. Vagueness is a coward’s game, akhi. You’re not that.`,
     },

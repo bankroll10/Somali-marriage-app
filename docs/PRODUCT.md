@@ -58,8 +58,8 @@ name. The product is Niyyah, an intention, not "the Somali app", and a
 community's content (its cities, its eleven, its lines) lives in `src/data/` as
 data. The brand strings live in `src/data/brand.ts`; `vite.config.ts` fills
 `index.html` from it, and `tests/brand.test.ts` holds every surface to it. The
-rule is enforceable by test for the brand strings only: BeforeYes, Couple, Home
-and Read still name the community as content, and a second community gets a
+rule is enforceable by test for the brand strings only: the eleven
+(`src/data/eleven.ts`) still names the community as content, and a second community gets a
 second `src/data`, not a rename.
 
 Why: some 20,000 Somali diaspora marriages a year (asserted, not derived) cap a

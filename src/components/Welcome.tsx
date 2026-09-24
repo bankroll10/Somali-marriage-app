@@ -75,7 +75,7 @@ export default function Welcome({
           >
             Say what’s happening — getting ready, talking to someone, deciding
             with the families — and we start there. A read on what they have done.
-            The eleven conversations most of us have too late. Or two minutes on
+            The eleven conversations to have before the families do. Or two minutes on
             where you stand, and one thing to do about it.
           </p>
 
@@ -119,7 +119,7 @@ export default function Welcome({
             style={{ animationDelay: '200ms' }}
           >
             You are not behind, and being here is not an admission of anything.
-            Most people have simply never been asked these questions.
+            Not knowing yet is where these questions start.
           </p>
 
           {/* What kind of thing this is.

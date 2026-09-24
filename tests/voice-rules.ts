@@ -28,7 +28,7 @@ export const BANNED: [RegExp, string][] = [
   [/\bplatform\b/i, 'startup — it is Niyyah, or nothing'],
   [/\bI want in\b/i, 'scarcity language put in her mouth'],
   [/\bsituationship/i, 'internet'],
-  [/decides? a Somali marriage/i, 'docs/PROTOCOL.md, "Exaggerated" — its example of an exaggerated claim'],
+  [/decides? a (Somali )?marriage/i, 'docs/PROTOCOL.md, "Exaggerated" — its example of an exaggerated claim'],
   [/\bthe whole road\b/i, 'a sweeping claim about every family, made four times'],
   [/\bsingle (best|most)\b/i, 'a verdict from eleven taps'],
   [/\bno other app\b/i, 'a claim about every other app'],

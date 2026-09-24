@@ -175,8 +175,8 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
           : 'You said the expectation comes from around you rather than from inside you. That is an honest place to start, and the reason to go slowly is that a marriage entered to quiet the questions is the hardest one to leave.'
       if (why === 'ready')
         return soon
-          ? 'You know why you are here and roughly when. Wanting to build a life with someone, and being able to say it plainly, is rarer than the people around you make it seem.'
- : 'You feel ready, and you are giving yourself room on the timing. That combination — clear on the why, unhurried on the when — is the strongest place anyone starts from.'
+          ? 'You know why you are here and roughly when, and you can say it plainly. Say it early.'
+ : 'You feel ready, and you are giving yourself room on the timing. That combination — clear on the why, unhurried on the when — leaves room to choose calmly.'
       if (why === 'lonely')
         return 'You were honest that companionship is a real part of this. It is not a lesser reason, but it is worth watching: loneliness makes almost anyone look like an answer, so let your standards do the filtering rather than your evenings.'
       return 'You are still working out whether you are ready, and you said so instead of performing certainty. Arriving honestly is worth more than arriving fast.'
@@ -190,7 +190,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       if (p === 'consistent')
         return central
           ? 'You hold the core steadily and you want faith at the center of your home. Say that early; it filters more honestly than any list of qualities.'
- : 'You are consistent in the core and growing in the rest — the place most people are, and rarely admit to.'
+ : 'You are consistent in the core and growing in the rest, and you said so plainly.'
       if (p === 'returning')
         return 'You said you are on the way back to your deen. That is a harder thing to write down than to feel, and the right person will meet you on that road rather than judge you for being on it.'
       return 'You were honest that faith sits lighter in practice than in identity. That clarity protects you from the specific heartbreak of marrying someone who expected a different home than the one you want.'
@@ -201,7 +201,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
         case 'central':
           return 'You want your people in this from the beginning. That is not old-fashioned — it is protection, and it tells us to look for someone who expects to meet them rather than someone who flinches.'
         case 'guided':
- return 'You bring family in once it is serious. That is the balance most of this community is looking for, and it needs saying out loud early — quietly assuming it is how the first real clash starts.'
+ return 'You bring family in once it is serious. Say that out loud early; the other person may be assuming something different.'
         case 'informed':
           return 'You keep your family informed and you lead the decision yourself. Hold that clearly: the person who respects it will respect it from day one, and the person who does not will test it slowly.'
         default:
@@ -212,13 +212,13 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
     case 'vision': {
       switch (a('children')) {
         case 'want':
-          return 'You want children, God willing, and you said it without hedging. That single line quietly rules out more mismatches than any other answer on this map.'
+          return 'You want children, God willing, and you said it without hedging. Say it that plainly to anyone you are serious about.'
         case 'no':
           return 'You do not see children in your future, and you said so plainly. That takes more courage to write than to think — and it belongs in the first serious conversation, not the fifth.'
         case 'open':
           return 'You are open to children with the right person. Watch for the version of that which is really "I will decide later" — the people this hurts are the ones who never said which they meant.'
         default:
-          return 'You are still unsure about children. That is an honest place to be at any age, and it is the one question where "we will figure it out" has ended the most marriages.'
+          return 'You are still unsure about children. That is an honest place to be at any age, and it is the one question where "we will figure it out" cannot stay the answer.'
       }
     }
 
@@ -341,11 +341,11 @@ function growthNote(answers: Answers): string {
     'serious|settling':
       'You said the hardest part is knowing if someone is serious, and that you have settled before. That combination has a specific danger: when you have accepted less once, "serious enough" starts to sound like serious.',
     'family|rushing':
-      'You named family pressure as the hardest part, and rushing as the pattern you want to leave. Those are connected — a clock you did not set is the most common reason good people choose fast. The pace can be yours even when the questions are not.',
+      'You named family pressure as the hardest part, and rushing as the pattern you want to leave. Those are connected — a clock you did not set can make anyone choose fast. The pace can be yours even when the questions are not.',
     'family|settling':
       'You said the pressure from family is the hardest part, and that you have settled before. Nobody settles in a vacuum. Your non-negotiables below exist precisely so that a decision made under that weight is still your own.',
     'ready|none':
-      'You are asking whether you are ready, and you have already changed the pattern you had. People who have not usually do not ask.',
+      'You are asking whether you are ready, and you have already changed the pattern you had. Asking is part of the answer.',
     'finding|settling':
       'You said the hardest part is finding anyone serious at all, and that you have settled before. Scarcity is what makes settling feel reasonable. A thin room is a reason to wait, not a reason to lower the bar.',
   }

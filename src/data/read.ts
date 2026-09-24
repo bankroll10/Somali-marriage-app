@@ -280,7 +280,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     id: 'initiative',
     dimension: 'consistency',
     prompt: 'If you stop texting first, what happens?',
-    helper: 'Be honest. Most of us have tested this at least once.',
+    helper: 'Be honest. It is a fair thing to have tested.',
     options: [
       { id: 'same-day', label: '{He} reaches out the same day', weight: 1, note: '{he} reaches out first when you stop' },
       { id: 'day-two', label: 'Within a day or two', weight: 0.75, note: '{he} comes back within a day or two on {his} own' },
@@ -440,7 +440,7 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
       'Someone who has thought about it will tell you, even if the answer is “further out than you want”. Someone who has not will make the question itself feel unreasonable. Watch which one happens.',
   },
   family: {
-    why: 'For most of us this step is not a formality. Someone who intends to take it has already thought about how.',
+    why: 'This step is not a formality, and asking how they would take it is how you find out whether they have thought about it.',
     words:
       'How would you want to approach my family? I would rather hear how you would do it than wonder whether you would.',
     tells:

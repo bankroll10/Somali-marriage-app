@@ -36,7 +36,7 @@ export const STATES: (ReadOption & { id: YesState })[] = [
   {
     id: 'unknown',
     label: 'I don’t know my own answer yet',
-    hint: 'Honest, and more common than the other three.',
+    hint: 'Honest, and worth sitting with.',
     weight: 0.25,
     note: 'you don’t yet know your own answer on {topic}',
   },
