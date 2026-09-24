@@ -35,10 +35,9 @@ beliefs by danger to the company, differently; read both.
 50–60,000, UK 176,645, Toronto ~20,000): KNOWN, census. A small city's
 members are re-identifiable from their facts: KNOWN, and why every split is
 floored at five (`netlify/shared/floor.ts`). Seriousness is behaviour, not
-words: ASSUMED; `ending.mattered.shown`, `marriedBy`. The fear is exposure
-and screenshots; the target segments; why people hesitate: ASSUMED, and only
-conversations test them since age, the hesitation question and the door's
-hook tally went on 2026-09-24. The hook's answer reaches no readout.
+words: ASSUMED; `ending.mattered.shown`, `marriedBy`. The fear of exposure,
+the target segments, why people hesitate: ASSUMED, and only conversations
+test them now that age, the hesitation question and the hook's tally are gone.
 
 ## How we learn
 
@@ -48,7 +47,7 @@ In order of credibility, the only order in which a claim is promoted:
    experiment; the monthly hour reads them.
 2. **One tap at the moment, from a closed list.** Never free text, never
    about a person. Its one instance, the hesitation question, went with the
-   door.
+   door on 2026-09-24.
 3. **Ten conversations**, run as `docs/PROTOCOL.md`, logged under
    "Feedback". What people did, never what they would do:
    - The last time you wanted to meet someone seriously, what did you do? Who knew?
@@ -57,8 +56,7 @@ In order of credibility, the only order in which a claim is promoted:
    - Who in your family knows you are looking? Who would you want to know?
    - When has anyone in your family paid a matchmaker, and what for?
    - What would you never want a screenshot of?
-4. **Founder opinion.** ASSUMED, dated, never promoted without one of the
-   three above.
+4. **Founder opinion.** ASSUMED, dated, never promoted on its own.
 
 **Lists.** Every closed list's `other` or `none` share is the test of the
 list: for the hook, `none` above a third meant the five hardest parts were
@@ -74,113 +72,47 @@ recording willingness to pay in the app.
 **Reclassification log** (date, claim, from → to, evidence):
 
 - 2026-09-12 — *Families already pay matchmakers, at the nikah*: LIKELY →
-  ASSUMED. No source in the repository. Amounts, without names, in the
+  ASSUMED. No source in the repository; amounts, without names, in the
   feedback log would move it back.
 
 ## Experiments
 
-Each has a hypothesis, a measure, a decision rule written before the numbers
-exist, and a status. A new one copies the shape and adds the smallest test:
-no build if the data exists, one field if not. A rule that fires is
-executed, not debated.
+Each rule is written before the numbers exist, and a rule that fires is
+executed, not debated. A new experiment copies a row and names its smallest
+test: no build if the data exists, one field if not.
 
-### A1 · Onboarding length and map depth
+| Id | Hypothesis | Measure | Decision rule | Status |
+|---|---|---|---|---|
+| **A1** · Onboarding length | A serious person answers sixteen questions about herself before receiving anything (one optional; twenty-three were cut on two testers who stopped, then three "how you'd live" questions came back) | `rungs.mapped / facts.began.map`, and the same for `read` and `eleven`. His side: `rungs['he-answered'] / rungs['asked-him']`, both from her phone; `facts.began.couple` against `he-answered` tells "opened and quit" from "never opened" | At twenty arrivals. Read under 60% → shorten the read first. Map under 50% → cut to one chapter, the one with the "how you'd live" questions. Couple under 50% → fix the two-sided flow, not the channel. Above those, length is not the constraint. Followed-through per hundred arrived must not fall as completion rises | Built (`facts.began`). No readings |
+| **A2** · A family vouch as verification | — | — | — | Retired with the vouch, 2026-09-24 |
+| **A3** · The guide is worth opening the app for | Guidance carries the first people. It is the only live cost: `netlify/functions/guide.ts` calls a model under hourly and daily caps | `facts.followedThroughBy.asked.guide`: of everyone who ever asked the guide (one bit, `facts.asked`), how many followed through, against everyone who did not. Later `facts.ending.used.guide` | At twenty `followed-through`: askers not above non-askers → the live model goes and the local voice stays. At the first endings, fewer than one in five naming the guide confirms it | Built (`src/lib/facts.ts`; `docs/DECISIONS.md` decision 15). Kept on by the founder's choice, 2026-09-10. No readings |
+| **A4** · Family-oriented progression | People want family in the room and will use written words to put them there | `facts.through['family:<id>']` per hundred who reached `mapped` | No family script confirmed as said by twenty people who built maps → the family path is aspiration, not product | Nothing to build. No readings |
+| **A5** · Willingness to pay | Families pay a matchmaker at the nikah, as they always have; couples pay once for a call after the joint view. No price exists in code | The wedding-payment question in the ten conversations; three practising matchmakers on what they charge and who pays | The gates in `docs/PRODUCT.md`, written before any sale; conviction 7's three-in-ten. Until a sale, `ending.who.family`. No pre-order, no fake price | No conversation logged. No gate has passed |
+| **A6** · The door, for men | — | — | — | Retired with the door, 2026-09-24 |
+| **A7** · Forty and forty is a market | — | — | — | Retired with the pool, 2026-09-24 |
+| **A8** · The Ending's door share reaches unattached men | — | — | — | Retired with the door. The Ending shares the eleven alone, A8's own fallback |
+| **A9** · The eleven travels through institutions | A mosque's nikah packet, a counselling service or a resource list carries the eleven to couples, and some open the app | `vias.<via>.arrived`, `.eleven`, `.asked-him`, `.he-answered` for the placement's via; not page opens. The test is `/guides/before-you-say-yes` and its one-page sample, sent with two pitches | Eight weeks after two accepted placements: five or more `eleven` under that via → add a `partner` via, ask for the next. Fewer than five arrivals → no more building for institutions; the printed page stays, outreach moves to the rooms | Built. Waiting on two placements |
 
-- **Hypothesis.** A serious person answers sixteen questions about herself
-  before receiving anything (one optional; cut from twenty-three on two
-  testers who stopped, then three "how you'd live" questions added).
-- **Measure.** `rungs.mapped / facts.began.map`, and the same for `read` and
-  `eleven`. His side: `rungs['he-answered'] / rungs['asked-him']`, both from
-  her phone; `facts.began.couple` against `he-answered` tells "opened and
-  quit" from "never opened".
-- **Decision rule.** At twenty arrivals. Read under 60% → shorten the read
-  first. Map under 50% → cut to one chapter, the one with the "how you'd
-  live" questions. Couple under 50% → fix the two-sided flow, not the
-  channel. Above those, length is not the constraint. Counter-metric:
-  followed-through per hundred arrived must not fall as completion rises.
-- **Status.** Built (`facts.began`). No readings.
-
-### A2 · Verification is a family vouch
-
-Retired with the vouch, 2026-09-24.
-
-### A3 · The guide is worth opening the app for
-
-- **Hypothesis.** Guidance carries the first people. It is also the only
-  live cost: `netlify/functions/guide.ts` calls a model, under hourly and
-  daily caps.
-- **Measure.** `facts.followedThroughBy.asked.guide`: of everyone who ever
-  asked the guide (one bit, `facts.asked`), how many followed through,
-  against everyone who did not. Later, `facts.ending.used.guide`.
-- **Decision rule.** At twenty `followed-through`: if those who asked the
-  guide follow through no more often than those who did not, the live model
-  goes and the local voice stays. At the first endings, fewer than one in
-  five naming the guide confirms it.
-- **Status.** Built (`src/lib/facts.ts`; `docs/DECISIONS.md` decision 15).
-  Kept on by the founder's choice, 2026-09-10. No readings.
-
-### A4 · Family-oriented progression
-
-- **Hypothesis.** People want family in the room and will use written words
-  to put them there.
-- **Measure.** `facts.through['family:<id>']` per hundred who reached `mapped`.
-- **Decision rule.** No family script confirmed as said by twenty people who
-  built maps → the family path is aspiration, not product.
-- **Status.** Nothing to build. No readings.
-
-### A5 · Willingness to pay
-
-- **Hypothesis.** Families pay a matchmaker at the nikah, as they always
-  have; couples pay once for a call after the joint view. No price exists in
-  code.
-- **Measure.** The wedding-payment question in the ten conversations; three
-  practising matchmakers on what they charge and who pays.
-- **Decision rule.** The gates in `docs/PRODUCT.md`, written before any
-  sale; below three in ten, conviction 7's rule. Until a sale,
-  `ending.who.family`. A pre-order or a fake price is ruled out.
-- **Status.** No conversation logged. No gate has passed.
-
-### A6, A7, A8
-
-Retired 2026-09-24: A6 (the door for men) and A7 (forty and forty is a
-market) with the door and the pool; A8 (the Ending's door share) with the
-door. The Ending shares the eleven alone, which was A8's own fallback.
-
-### A9 · The eleven travels through institutions
-
-- **Hypothesis.** A mosque's nikah packet, a counselling service or a
-  resource list carries the eleven to couples, and some open the app.
-- **Measure.** `vias.<via>.arrived`, `.eleven`, `.asked-him`, `.he-answered`
-  for the placement's via. Not page opens. The test is
-  `/guides/before-you-say-yes` and its one-page sample, sent with two pitches.
-- **Decision rule.** Eight weeks after two accepted placements: five or more
-  `eleven` under that via → add a `partner` via and ask for the next
-  placement. Fewer than five arrivals → no more building for institutions;
-  the printed page stays and outreach moves to the rooms.
-- **Status.** Built. Waiting on two accepted placements.
-
-### `began`: the denominator
-
-Every instrument is all-or-nothing, so the ladder recorded finishing and
-nothing recorded starting: a man who quit her eleven at topic five left
-nothing on either phone. `facts.began` is one bit per instrument per person,
-for ever; against `rungs` it is the completion rate. It is a set with a union
-merge, so how often she opened something cannot be computed. It must never
-be widened into a counter. Recording where she stopped was declined: a write
-on every question is a behavioural stream (`docs/PRIVACY.md`).
+**`began`, the denominator.** Every instrument is all-or-nothing, so the
+ladder recorded finishing and nothing recorded starting: a man who quit her
+eleven at topic five left nothing on either phone. `facts.began` is one bit
+per instrument per person, for ever; against `rungs` it is the completion
+rate. It is a set with a union merge, so how often she opened something
+cannot be computed, and it must never be widened into a counter. Recording
+where she stopped was declined: a write on every question is a behavioural
+stream (`docs/PRIVACY.md`).
 
 **Results log** (date, experiment, reading, rule fired): _(none yet)_
 
 ## Feedback
 
 One entry per session, conversation, email or comment, from outreach or the
-passive channel (`CONTACT_EMAIL`, `src/lib/site.ts`). The ten sessions use
+passive channel (`CONTACT_EMAIL`, `src/lib/site.ts`); sessions use
 `docs/PROTOCOL.md`'s template, which keeps this shape. **No name, ever**: a
 city and a stage are enough. **Paraphrase any quote that could identify
-someone**: this log is committed. Every entry says what it bears on (a gap,
-an experiment id, a conviction) or `new`, and a `new` gets a row before
-anything else. The app's no-free-text rule governs what the app asks, not
-what the founder writes about a conversation they chose to have.
+someone**: this log is committed. Every entry says what it bears on, or
+`new`, and a `new` gets a row before anything else. The app's no-free-text
+rule governs what the app asks, not what the founder writes down.
 
 ```markdown
 ### <date> · <session | conversation | email | comment>
@@ -192,19 +124,18 @@ what the founder writes about a conversation they chose to have.
 ### 2026-09-12 · walk
 
 **Context.** The founder on a phone, on the live site. Not a member.
-**What they said.** Asked, at question 7 of the read as a man, whether the
-answers were a bug. They were right; three things behind them were not. His
-result called her "he"; three of the eleven questions graded him backwards,
-the family question worst; no family script was his. Fixed: results pass
-through `speak()`, `approach-her-family` exists, and
-`tests/invariants/both-sides.test.ts` holds it.
+**What they said.** At question 7 of the read as a man, asked whether the
+answers were a bug. They were right; three things behind them were not: his
+result called her "he", three of the eleven questions graded him backwards,
+and no family script was his. Fixed (`speak()`, `approach-her-family`,
+`tests/invariants/both-sides.test.ts`).
 **Bears on.** Gap 1, conviction 1; an answer to neither. **New rule:**
 nothing ships to a side of the product nobody has walked on a phone.
 
 ## What the ladder can and cannot answer
 
-Eleven rungs (`src/lib/rungs.ts`; `RUNGS` in `netlify/shared/vocab.ts`).
-Each counts people who ever reached it, on its own: someone can be
+Eleven rungs (`src/lib/rungs.ts`; `RUNGS` in `netlify/shared/vocab.ts`),
+each counting people who ever reached it, on its own: someone can be
 `deciding` without a read, so a ratio of rungs is a share, not a strict
 conversion.
 
@@ -227,14 +158,14 @@ leave at the read" read the same. `gender` on the progress record (chosen at
 Identity, last told wins) gives `sides`, floored: `sides.man` is `null` until
 five men arrive, the first moment a conclusion about men is worth drawing.
 `facts` are never split by side; facts × gender × city would only narrow who
-a record could be. `sidesByVia`: see conviction 12.
+a record could be. For `sidesByVia`, see conviction 12.
 
 **It cannot answer:** who saw or opened a link; where she stopped inside a
 questionnaire; why anyone stopped; who sent a link (a via is a kind, never a
 person); time, sessions, returns; one person's timeline; which guide
-conversation was had (the guide's follow-ups count toward `followed-through`
-and never enter `facts.through`); facts by city, via or side; marriages
-nobody reports. Any split under five reads `null`, not zero.
+conversation was had (its follow-ups count toward `followed-through`, never
+`facts.through`); facts by city, via or side; marriages nobody reports. A
+split under five reads `null`, not zero.
 
 **Work on the weakest link, or on nothing.** The last one named, a looking
 man with no link to the door, went with the door. None is named now; A1's
@@ -243,9 +174,9 @@ rates are the first candidate at twenty arrivals.
 ## The convictions
 
 The case against each belief the company rests on. Evidence is a census
-figure, a readout field, a code comment recording two testers or three
-timed calls, or *none*; nearly all of it is *none*. A failure the company
-survives ranks below one it does not. Every test waits on the first post.
+figure, a readout field, a code comment recording two testers or three timed
+calls, or *none*; nearly all of it is *none*. A failure the company survives
+ranks below one it does not. Every test waits on the first post.
 
 | # | Conviction | What kills or validates it |
 |---|---|---|
@@ -262,74 +193,67 @@ survives ranks below one it does not. Every test waits on the first post.
 | 11 | The first geography and user are right | The wedge's rule in the kill table; `scenes[city].arrived` |
 | 12 | Distribution works without paid levers | "First", below |
 
-3, 4, 9, 10 and 11 change the product's shape and it goes on. Three leave
-no company:
+3, 4, 9, 10 and 11 change the product's shape and it goes on. Three leave no
+company:
 
-### First · Distribution cannot bring people (12)
-
-The model forbids paid acquisition, referral rewards, boosting and a feed,
-and relies on forwarding, which says "I am looking". **Why the readout
-crosses side with via:** a man who arrived through a woman's eleven is
-already talking to her and says nothing about whether a room brings men.
-`sides` and `vias` alone cannot tell him from a man the group link brought;
-`sidesByVia.man.group` can.
-
-- **Ten connectors.** Ask ten people who could post the group link whether
+**First · Distribution cannot bring people (12).** The model forbids paid
+acquisition, referral rewards, boosting and a feed, and relies on
+forwarding, which says "I am looking". *Why the readout crosses side with
+via:* a man who arrived through a woman's eleven is already talking to her
+and says nothing about whether a room brings men; `sides` and `vias` alone
+cannot tell him from a man the group link brought, `sidesByVia.man.group`
+can.
+- *Ten connectors:* ask ten people who could post the group link whether
   they would, this month; log yes, no or a condition. Fewer than three
   unconditional yeses → pivot to mosque young-adult circles now. Set for
   2026-09-15; nothing logged.
-- **Two weeks after the first post.** `vias.group.arrived` and the room
-  kinds (`alumni`, `professional`, `mosque`) `null` → change the room. Read
-  `sidesByVia.man.group` beside them; a man who leaves before choosing a
-  side is `unsaid`.
-- **Eight weeks.** The wedge's rule. And the five one-to-one vias (`words`,
+- *Two weeks after the first post:* `vias.group.arrived` and the room kinds
+  (`alumni`, `professional`, `mosque`) `null` → change the room. A man who
+  leaves before choosing a side is `unsaid`, so read both.
+- *Eight weeks:* the wedge's rule. The five one-to-one vias (`words`,
   `eleven`, `couple`, `family`, `married`; `src/lib/entry.ts`) under a tenth
   of arrivals → "the words travel, the product is the footnote"
   (`docs/PRODUCT.md`) is demoted to ASSUMED.
-- **Validates:** five or more men through the group link by week two.
+- *Validates:* five or more men through the group link by week two.
 
-### Second · The market is small, and specificity keeps it small (2 with 1)
+**Second · The market is small, and specificity keeps it small (2 with 1).**
+The way out, the wider Muslim diaspora, is conviction 1 failing. The
+arithmetic, every fraction assumed: Twin Cities ~84,000 → aged 22–36 ~21,000
+(25%) → unmarried ~11,500 (55%) → looking this year ~4,600 (40%) → ~2,300 a
+side → ~700 a side reachable through alumni and professional networks
+(30%). Across about two million (unsourced), paid once in five percent of
+marriages, it is half a million to a few million a year at full reach: a
+good business, not a large company.
+- *This month:* six or more in ten say *nobody there* → the need is density,
+  which a product with no pool does not meet; expansion moves to now.
+- *Weeks 1–8:* the sum of `cohorts[*].arrived` plateaus under seventy while
+  the link is posted → the market is the ceiling. Restate by `scenes` once a
+  second city is posted.
+- *Validates:* six or more in ten in the third bin.
 
-The way out, the wider Muslim diaspora, is conviction 1 failing, and the
-brand's first line forbids it. **The arithmetic, every fraction assumed:**
-Twin Cities ~84,000 → aged 22–36 ~21,000 (25%) → unmarried ~11,500 (55%) →
-looking this year ~4,600 (40%) → ~2,300 a side → ~700 a side reachable
-through alumni and professional networks (30%). Across about two million
-(unsourced), five percent of marriages paid once at a few hundred to a
-couple of thousand is half a million to a few million a year at full reach:
-a good business, not a large company.
-
-- **This month.** Six or more in ten say *nobody there* → the need is
-  density, which a product with no pool does not meet; expansion moves to now.
-- **Weeks 1–8.** The sum of `cohorts[*].arrived` against ~700 a side:
-  a plateau under seventy while the link is posted → the market is the
-  ceiling. With a second city posted, restate it by `scenes`.
-- **Validates:** six or more in ten in the third bin.
-
-### Third · Nobody pays (7 with 8)
-
-- **This month.** "At the last wedding in your family, was anyone paid for
+**Third · Nobody pays (7 with 8).**
+- *This month:* "At the last wedding in your family, was anyone paid for
   bringing the two of them together — who paid, how much, and when?"
   Amounts, never names. Fewer than three in ten name a payment → it stays
   ASSUMED, and the call after the joint view is re-examined as the first
   product rather than a fee at the nikah.
-- **Decided.** The price is a written prediction, dated 2026-09-11
-  (`docs/PRODUCT.md`), so a sale tests a belief.
-- **When endings exist.** `ending.who.family`.
-- **Validates:** seven or more in ten name a payment with an amount, and a
+- *Decided:* the price is a written prediction, dated 2026-09-11
+  (`docs/PRODUCT.md`), so a sale tests a belief. *When endings exist:*
+  `ending.who.family`.
+- *Validates:* seven or more in ten name a payment with an amount, and a
   sale completes at the written price more than once.
 
 ## The process
 
 Observe and measure: the weekly pulse and the monthly hour. Identify: a new
-problem gets a row in "The open questions" before it gets a build.
-Hypothesise: an experiment with its rule. Build: the smallest slice, one
-commit. Ship: a PR against `main`, `.github/workflows/verify.yml` green. Talk:
-"Feedback". Learn: the three logs. Iterate: the roadmap in `docs/PRODUCT.md`.
+problem gets a row in "The open questions" before a build. Hypothesise: an
+experiment row. Build the smallest slice; ship a PR against `main` with
+`.github/workflows/verify.yml` green. Talk: "Feedback". Learn: the three
+logs. Iterate: the roadmap in `docs/PRODUCT.md`.
 
 **Precedence.** A rule written before its build (A1's twenty arrivals, the
 ten conversations, the three-in-ten thresholds) overrides the hundred-record
-floor. The floor governs constants and class moves no rule names.
+floor, which governs constants and class moves no rule names.
 
 **The weekly pulse**, beside the safety check in `docs/OPS.md`, does two
 things: acts on an open report, and notices a cliff, a number that was
@@ -350,9 +274,9 @@ In front of every PR (`.github/pull_request_template.md`); CI enforces 2 and 3.
    with its `src/` twin (`tests/vocab-sync.test.ts`). Old records keep old
    ids; stored records are never migrated.
 5. A new `netlify/functions/` file joins `tests/deploy-layout.test.ts`'s
-   allowlist; a founder readout, `tests/invariants/founder-routes-fail-closed.test.ts`;
-   a link kind, `tests/invariants/links-open-the-right-thing.test.tsx`; a
-   screen, `tests/ui/screens.test.tsx` (`docs/TESTING.md`).
+   allowlist; a founder readout gets rows in
+   `tests/invariants/founder-routes-fail-closed.test.ts`; a link kind, in
+   `links-open-the-right-thing`; a screen, in `tests/ui/screens.test.tsx`.
 6. Trust copy moves in the same commit as the payload it describes.
 7. A new closed list or readout field is documented in `docs/PRIVACY.md`.
 8. A hypothesis bigger than a copy fix has an experiment here, rule written.
@@ -362,11 +286,10 @@ In front of every PR (`.github/pull_request_template.md`); CI enforces 2 and 3.
     — does it earn more if she stays single longer, opens the app more, or
     is having a worse night? First run 2026-09-24, in `docs/PRODUCT.md`.
 
-**What comes next** is judged on learning value (does it answer a gap?),
-business importance, runnable now, durable (would it matter without the
-model supplier?), and recorded-or-lost: a feature jumps the queue only if it
-records a vote otherwise lost for ever. No numeric score: it would claim
-precision over questions classed ASSUMED.
+**What comes next** is weighed on learning value, business importance,
+runnable now, durable (would it matter without the model supplier?), and
+recorded-or-lost: a feature jumps the queue only if it records a vote
+otherwise lost for ever. No numeric score: false precision over ASSUMED.
 
 ### Kill criteria
 
@@ -393,9 +316,8 @@ deciding often is what the monthly hour prevents.
 The constants in `src/data/` ship in the bundle and can be copied; the
 process that revises them from what happened cannot, and exists only if it
 runs. Read monthly: read daily, a readout becomes a dashboard, then a
-metric, then what the product optimises for. The ladder is the only metric;
-everything else is calibration. `docs/OPS.md` says how to reach each
-readout; `docs/PRIVACY.md` says what each field means.
+metric, then what the product optimises for. `docs/OPS.md` says how to
+reach each readout; `docs/PRIVACY.md` says what each field means.
 
 **The number.** Open `/progress` and read `cohorts`: per arrival month,
 `{arrived, followedThrough}`. Compute `100 × followedThrough / arrived` for
@@ -443,8 +365,8 @@ counter-metric.
 **Rules.** One revision a month: two moves at once cannot be told apart. A
 hundred records for a weight, a `consequence` or anything that changes a
 reading; twenty for wording, order or a label (`docs/DECISIONS.md` decision
-11). The ladder decides, not the facts. A rule written before its build
-overrides the floor. Nothing here becomes a score on a person.
+11). The ladder decides, not the facts. Nothing here becomes a score on a
+person.
 
 **Revisions log** (month, readout row, constant, move, the month's number):
 _(none yet)_

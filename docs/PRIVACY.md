@@ -29,14 +29,11 @@ or ranking; it has a few considered decisions, each with a reason from a
 closed list. **It learns about pairings, conversations and questions, never
 about a person.** What it revises are the constants in `src/data/` and
 `src/lib/`, for everyone at once, on the monthly loop in `docs/RESEARCH.md`.
-
-| Question | Signal | The trap refused |
-|---|---|---|
-| Stated preferences vs behaviour | Which non-negotiable *ended* a courtship × whether she later married | "You say X but choose Y." A non-negotiable is never overridden; if one is aspirational, the **question** changes, for everyone |
-| Which dimensions matter | The eleven's joint tally; grounds and the read's thinnest ground × outcome | A per-person compatibility vector, or a sum |
-| Conversation progression | Stage rungs, to the day; follow-ups confirmed | Message counts, reply latency, who initiated |
-| Why courtships end, what decides a marriage | `ended` reason and which; `ending.mattered` | Free text about him; a "success factors" model fed back as pressure |
-| Which instruments are real; outcomes | `through`; `ending.used`; `ending.who` | Ratings, NPS, surveys; inferring marriage from silence |
+The traps refused: a stated non-negotiable overridden by inferred behaviour
+(if one proves aspirational, the **question** changes, for everyone); a
+per-person compatibility vector or sum; message counts or reply latency;
+ratings and surveys; a "success factors" model fed back as pressure;
+inferring marriage from silence.
 
 ### The tiers: how close each piece of data may get to a person
 
@@ -246,20 +243,18 @@ move take it along.
 If she forgot the code mid-move, forgetting wins and the copy goes. The
 couple sheet has its own code and does not move; nor do reports.
 
-**Other sequences.** *He answers:* a conditional write of the sheet, then the
-joint tally (three tries). **Accepted:** a failure leaves the tally one
-short, logged; exactly-once would need pair ids in `tallies`. *A report:* one
-`onlyIfNew` write on a fresh id. *Resolve:* the stub, then the delete;
-idempotent. *Retire:* `gone/`, then the delete; the pair stays reportable.
-*A step:* one conditional write, so two tabs at once both land.
+**Other sequences.** *He answers:* the sheet, then the joint tally (three
+tries). **Accepted:** a failure leaves the tally one short, logged;
+exactly-once would need pair ids in `tallies`. *A report:* `onlyIfNew` on a
+fresh id. *Resolve:* the stub, then the delete; idempotent. *Retire:*
+`gone/`, then the delete. *A step:* one conditional write; two tabs both land.
 
 **Remaining windows:** `deleteIfUnchanged` leaves the gap between its read
-and its delete (Blobs has no conditional delete). A mint that lands before a
-journal write fails leaves one unjournaled copy. A keep landing between a
-move's re-read and its tombstone is lost with the old code, and that phone's
-next keep gets 410 moved. A finished move whose answer is lost leaves the
-copy under `to` unreachable until its year ends. A first keep whose once
-write fails after its mint makes one duplicate map.
+and delete (Blobs has no conditional delete). A mint that lands before a
+failed journal write leaves an unjournaled copy. A keep between a move's
+re-read and tombstone is lost with the old code; that phone's next keep gets
+410 moved. A finished move whose answer is lost leaves `to` unreachable until
+its year ends. A once write failing after its mint makes a duplicate map.
 
 ### Versions on stored records
 
@@ -268,18 +263,14 @@ Every member record carries `v` (`netlify/shared/record.ts`, `RECORD_VERSION`
 journals and once keys; progress; couple sheets; reports and stubs. Not
 `gone/`, the joint tally, counters or `ops`.
 
-- **Add a field:** the reader defaults it. A missing `rev` reads as 0; a
-  sheet with no `owner` (before 2026-09-23) can no longer be changed.
-- **Change what a field means, or require one:** bump `v`; readers branch.
-- **Bookkeeping keys** have their own prefixes; `isBookkeeping` keeps them
-  out of every count of maps.
-- **The backup** writes version 3; `netlify/shared/restore.ts` reads 2 and 3.
-  The phone's `niyyah.intake.v1` defaults each field on read.
-
+**Add a field:** the reader defaults it (a missing `rev` reads as 0; a sheet
+with no `owner`, from before 2026-09-23, can no longer be changed). **Change
+what a field means:** bump `v`, and readers branch on it. Bookkeeping keys
+have their own prefixes, and `isBookkeeping` keeps them out of every count of
+maps. The backup writes version 3; `netlify/shared/restore.ts` reads 2 and 3.
+The phone's `niyyah.intake.v1` defaults each field on read.
 `tests/integrity.test.ts` proves a six-character map with no `v` or `rev`
-still opens and is upgraded on its next keep, and a progress record with no
-`v` is added to. A rollback deploy writes maps without `rev`; the next keep
-reads 0 and moves on.
+still opens and is upgraded on its next keep.
 
 ### Strong and eventual consistency
 
@@ -349,28 +340,25 @@ heavier lifting.
 
 ## Linkability and honest limits
 
-- **Kept map ↔ couple sheet ↔ reports.** The map names her couple code;
-  reports sit under it. They cannot be deleted through that link
-  (`docs/SECURITY.md` O1); the founder can follow it in storage.
+- **Kept map ↔ couple sheet ↔ reports.** The map names her couple code, and
+  reports sit under it; they cannot be deleted through that link
+  (`docs/SECURITY.md` O1), and the founder can follow it in storage.
 - **The two codes are unjoinable by key and name, not by content.** The facts
-  are functions of the kept map's answers, so anyone holding both stores can
-  match a progress record within a city, in a small city often uniquely.
-  Trust says only what is true: "a random code that is not your map code. No
-  answer in your words, and no name."
+  are functions of the kept map's answers, so anyone with both stores can
+  match a progress record within a city, in a small one often uniquely. Trust
+  says only what is true: "a random code that is not your map code".
 - **The kept map is the most sensitive record** (first name, city, answers
   with `working-on` in her words, couple code, read, eleven, ended
-  courtships): minimized (C1–C3), still readable by the founder. **The
-  guide's context** (side, city, faith, children, closeness, non-negotiables,
-  her message about a man) goes to a third party, without name or age (C5).
-- **Backups outlive a forget.** One taken before she forgot holds her step
-  count: the artifact up to 35 days (R5), a hand-saved copy while kept.
-  `restore.ts` writes what is missing, so restoring an older backup would
-  bring a forgotten step count back.
+  courtships), still readable by the founder. **The guide's context** goes to
+  a third party with her message about a man, without name or age (C5).
+- **Backups outlive a forget:** the artifact up to 35 days (R5), a hand-saved
+  copy while kept. `restore.ts` writes what is missing, so restoring an older
+  backup would bring a forgotten step count back.
 - **Secret variables are not on this plan:** every Netlify site key is
   readable by anyone on the team (`docs/OPS.md`).
 - **Two copies the sweep cannot reach:** Netlify Form rows from before
-  2026-09-23 carry a contact (C7), and a `reach-<date>/` export may sit on
-  the founder's machine (R4). Both go by hand.
+  2026-09-23 carry a contact (C7), and a `reach-<date>/` export may sit on the
+  founder's machine (R4). Both go by hand.
 
 ## Minimization record
 
@@ -397,19 +385,15 @@ heavier lifting.
 ## Next: encryption, after minimization (P2)
 
 The kept map is the one record the founder can read whole. Encrypt it in the
-browser (AES-GCM, WebCrypto) under a key carried only in the restore link's
-`#fragment`, which browsers never send; a typed restore takes the code plus
-that key. The server keeps ciphertext under the code; Forget me, lapse and
-the sweep work unchanged; Trust says nobody at Niyyah can read it.
-**Trigger:** 100 kept maps. It waits because it changes the restore flow,
-and minimizing first shrinks what would need encrypting.
+browser (AES-GCM) under a key carried only in the restore link's `#fragment`,
+which browsers never send; the server keeps ciphertext under the code, and
+Forget me, lapse and the sweep are unchanged. **Trigger:** 100 kept maps. It
+waits because it changes the restore flow, and minimizing first shrinks
+what would need encrypting.
 
-## Held by
-
-`src/lib/keep.test.ts`, `tests/keep-function.test.ts` (kept map);
+**Held by** `src/lib/keep.test.ts`, `tests/keep-function.test.ts`,
 `tests/guide-prompt.test.ts`, `tests/guide-disclosure.test.ts`,
-`src/lib/coach.test.ts` (guide); `src/lib/storage.test.ts` (threads);
-`tests/forget-keys.test.ts`, `src/lib/forget.test.ts`,
-`tests/invariants/delete-means-deleted.test.ts` (Forget me);
-`tests/integrity.test.ts`; `tests/sweep-function.test.ts`;
-`tests/export-function.test.ts`; `tests/floor.test.ts`.
+`src/lib/coach.test.ts`, `src/lib/storage.test.ts`, `src/lib/forget.test.ts`,
+`tests/forget-keys.test.ts`, `tests/invariants/delete-means-deleted.test.ts`,
+`tests/integrity.test.ts`, `tests/sweep-function.test.ts`,
+`tests/export-function.test.ts` and `tests/floor.test.ts`.

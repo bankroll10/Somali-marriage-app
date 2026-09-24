@@ -3,18 +3,17 @@
 The rules every screen and every sentence in Niyyah is built to, and the
 budgets that hold them. Each rule names the test or file that enforces it, or
 says that nothing does. The passes that set them (2026-09-18 to 2026-09-23,
-Chromium at 400 px, functions stubbed) are in git at commit `43295a4`.
-`docs/PROTOCOL.md` overrides all of it; record what the sessions show in
-`docs/RESEARCH.md`.
+Chromium at 400 px, functions stubbed) are in git at commit `43295a4`. A fixed
+finding keeps its id and gains a date, so a citation from code still resolves.
+`docs/PROTOCOL.md` overrides all of it; the sessions go in `docs/RESEARCH.md`.
 
 ## 1 · Voice
 
-What it never says is `tests/voice-rules.ts`. `tests/voice.test.ts` scans every
-non-comment line of `src/components`, `src/data` and `src/lib`, then each file
-again with line breaks folded (JSX wraps prose mid-phrase); the guide's tone
-grader (`tests/guide-eval/graders.ts`) reads the same list. A line that
-participants call outsider-ish, auntie-ish, performative, exaggerated or
-gender-inverted goes (`docs/PROTOCOL.md`, "WHAT COUNTS AS A CULTURAL FAILURE").
+What it never says is `tests/voice-rules.ts`, read by `tests/voice.test.ts`
+(every non-comment line of `src/components`, `src/data`, `src/lib`, and again
+with line breaks folded) and by the guide's tone grader. A line participants
+call outsider-ish, performative, exaggerated or gender-inverted goes
+(`docs/PROTOCOL.md`, "WHAT COUNTS AS A CULTURAL FAILURE").
 
 | The voice is | So it does not |
 |---|---|
@@ -36,16 +35,12 @@ gender-inverted goes (`docs/PROTOCOL.md`, "WHAT COUNTS AS A CULTURAL FAILURE").
 6. **The text names the side reading it**: a man gets a man's `why`, `words`
    and `tells` (`tests/invariants/both-sides.test.ts`).
 
-The banned list has four families, each entry with its reason in the file: the
-tic and announced sincerity (`actually`, `on purpose`, `deliberately`),
-sweeping claims (`the whole road`, `single best`, `no other app`,
-`decide a Somali marriage` — PROTOCOL's own example), therapy outside the
-therapist (`your peace`, `inner work`, `regulate`, `journey`), and startup
-nouns (`founding cohort`, `platform`, `I want in`). `voice.test.ts` adds
-**overclaims** (`predicts`, "most couples never", "will find you someone" —
-nothing here is measured against an outcome) and **promises the code cannot
-keep** (photos, "we write to", "when your city opens", blocking, "powered by
-AI"). Allowed: *"Actually, it's something else"*, her own voice correcting us.
+The banned list, each entry with its reason: the tic (`actually`,
+`deliberately`), sweeping claims (`the whole road`, `single best`,
+`decide a Somali marriage`), therapy outside the therapist (`your peace`,
+`regulate`, `journey`) and startup nouns (`founding cohort`, `platform`).
+`voice.test.ts` adds **overclaims** (`predicts`, "will find you someone") and
+**promises the code cannot keep** ("we write to", blocking, "powered by AI").
 
 The standard: *"A month is an answer."* · *"Hosting is honour, and it is also
 labour, and somebody carries it."* · *"It ended. That is allowed, and it is
@@ -72,11 +67,9 @@ screen and audits it with `tests/support/a11y.ts`; a new screen gets a row.
 | The crash screen is `role="alert"` | `ErrorBoundary.tsx` |
 
 Every interactive element is a native `<button>`, `<a>`, `<select>` or
-`<input>`; `Disclose` is a native `<details>`. Chip selectors (~30 px) clear
-WCAG 2.5.8's 24 px; the 44 px floor in §3 is craft. **Open:** `TypingDots` has
-no accessible name (an `sr-only` "The guide is replying" fixes it); the
-guide's `role="log"` reply grows in place and may re-announce; no VoiceOver,
-NVDA, TalkBack or keyboard-only walk has been done.
+`<input>`. Chip selectors (~30 px) clear WCAG 2.5.8's 24 px. **Open:**
+`TypingDots` has no accessible name; the guide's `role="log"` reply grows in
+place and may re-announce; no screen-reader or keyboard-only walk yet.
 
 ## 3 · Mobile
 
@@ -89,11 +82,9 @@ NVDA, TalkBack or keyboard-only walk has been done.
 | **Forms** | `inputMode` fits the field; `autoCapitalize="words"` on names; `enterKeyHint`; textareas capped so a keyboard cannot push Continue off screen | review |
 | **Async buttons say what they are doing** | a `Spinner` and a verb: "Sending…", "Checking…" | review |
 
-The composer is `flex h-dvh`, not `position: fixed`. No copy is truncated;
-there are no modals and no landscape layout. **Held:** the primary button sits
-below real copy on Welcome, Home and Reflection — a question for §8 and §11.
-**Needs a real iPhone:** insets in a tab versus standalone, the keyboard
-resizing the composer, and whether 16 px stops the zoom.
+The composer is `flex h-dvh`, not `position: fixed`; no copy is truncated; no
+modals, no landscape layout. **Needs a real iPhone:** insets in a tab versus
+standalone, the keyboard resizing the composer, whether 16 px stops the zoom.
 
 ## 4 · Performance budget
 
@@ -109,19 +100,18 @@ Chromium against `vite preview` at 390×844, 4× CPU, 150 ms, 1.5 Mbps down.
 | CLS under 0.1 | 0.0127 on Welcome (2026-09-20); no raster images; fonts self-hosted, `unicode-range`, `font-display: swap` | re-measure before adding either |
 | One render-blocking resource | the stylesheet, 48.73 KB (9.01 gzip); no third-party script | review |
 
-Largest lazy chunk: `Coach`, 22.74 KB (8.06 gzip). `@anthropic-ai/sdk` and
-`@netlify/*` are imported only under `netlify/` and `tests/`. `saveProgress`
-is debounced 250 ms. A screen whose chunk never arrived gets Try again, never
-the erase button (`src/lib/chunkError.ts`). No fix without the number that
-justifies it.
+Largest lazy chunk: `Coach`, 22.74 KB (8.06 gzip). Server SDKs are imported
+only under `netlify/` and `tests/`. `saveProgress` is debounced 250 ms. No fix
+without the number that justifies it.
 
 ## 5 · Links
 
 **Every link opens the right instrument for the right reader, and nobody needs
-to understand the product first.** Links are recognised in one place,
-`src/lib/entry.ts`, and minted in `src/lib/links.ts` (`instrumentLink`,
-`toolLink`, `withVia`), `words.ts`, `src/data/invite.ts`, `couple.ts`,
-`keep.ts` and `ending.ts`.
+to understand the product first.** Recognised in `src/lib/entry.ts`; minted in
+`src/lib/links.ts`, `words.ts`, `src/data/invite.ts`, `couple.ts`, `keep.ts`
+and `ending.ts`; held by `tests/invariants/links-open-the-right-thing.test.tsx`
+(every builder's link, mounted, lands on its instrument about the right person)
+and `tests/tools.test.ts`.
 
 | Kind | Form | Opens |
 |---|---|---|
@@ -146,28 +136,22 @@ to understand the product first.** Links are recognised in one place,
   sits in the bar, history or a screenshot; Share mints a fresh link. A
   `couple` link survives a reload for 24 hours (`rememberEntry`).
 - **Failure is a no-op**: a bad code or no network renders the app she would
-  have seen. An in-app browser is its own storage origin; harmless.
-- **Back:** `App.tsx` only calls `replaceState`, so the browser's Back leaves
-  the site; the in-app Back navigates inside a tool.
-- **Offline shell** (`src/lib/serviceWorker.ts`): network first; never
-  `/.netlify/*`, never a write; navigations cached by path alone, so no code
-  lands on disk (`docs/SECURITY.md` T3); `/sw.js` served `no-cache`.
-- Held by `tests/invariants/links-open-the-right-thing.test.tsx` (every
-  builder's link, mounted, lands on its instrument about the right person),
-  `tests/tools.test.ts`, `tests/service-worker.test.ts`, `src/lib/entry.test.ts`.
+  have seen. **Back**: `App.tsx` only calls `replaceState`, so the browser's
+  Back leaves the site; the in-app Back navigates inside a tool.
+- **Offline shell** (`src/lib/serviceWorker.ts`, `tests/service-worker.test.ts`):
+  network first; never `/.netlify/*`, never a write; navigations cached by path
+  alone, so no code lands on disk (`docs/SECURITY.md` T3); `/sw.js` is `no-cache`.
 
 ## 6 · Failure states
 
 **No important failure leaves her wondering whether something happened.** Most
-of what broke had one cause: every call collapsed a timeout, an offline phone,
-a 404, a lapsed record, a 409 and a 503 into one `null`, and a screen holding
-a `null` can only guess or say nothing. So every call goes through `send()` in
-`src/lib/net.ts` (a clock on every request), and a failure keeps its reason as
-a `Why`: `unreachable`, `refused`, `not-a-code`, `not-found`, `expired`,
-`taken`, `garbled`. The one exception is the guide's stream in
-`src/lib/coach.ts`, with its own signal (`tests/fail.test.ts`). Every route
-answers a failure with a status and JSON, never a crash page
-(`tests/failure-modes.test.ts`, which causes each one).
+of what broke had one cause: a timeout, an offline phone, a 404, a lapse, a 409
+and a 503 all became one `null`, and a screen holding a `null` can only guess.
+So every call goes through `send()` in `src/lib/net.ts`, with a clock, and a
+failure keeps its reason as a `Why`: `unreachable`, `refused`, `not-a-code`,
+`not-found`, `expired`, `taken`, `garbled` — the guide's stream in
+`src/lib/coach.ts` is the one exception (`tests/fail.test.ts`). Every route
+answers a failure with a status and JSON (`tests/failure-modes.test.ts`).
 
 ### Every failure state, and what it costs
 
@@ -194,16 +178,14 @@ answers a failure with a status and JSON, never a crash page
 
 ### The four that mattered most
 
-1. **The guide deleted an answer it had given**, replacing streamed words with
-   the offline voice and charging a reply for it. `CoachReply` now carries
-   `live`; arrived words are never overwritten; only a live answer costs.
+1. **The guide deleted an answer it had given** and charged a reply for it.
+   `CoachReply` carries `live`: arrived words stay; only a live answer costs.
 2. **She was told it worked when nobody could reach her.** Never say a write
    worked unless the server said so.
-3. **The link was blamed for the network**, and his answers thrown away on the
-   eleventh tap. `Couple.tsx` tells not-found, expired and not-a-code apart
-   from unreachable.
-4. **The limiter could take down what it protects**: its store opened outside
-   its `try`, so a Blobs hiccup was a 500 on every capped endpoint.
+3. **The link was blamed for the network**, and his answers thrown away.
+   `Couple.tsx` tells not-found, expired and not-a-code from unreachable.
+4. **The limiter could take down what it protects**: a Blobs hiccup was a 500
+   on every capped endpoint. Its store now opens inside its `try`.
 
 ### The line
 
@@ -218,13 +200,12 @@ wants its own decision in `docs/OPS.md`.
 
 ## 7 · Fogg: remove obstacles, never nudge
 
-B = MAP: a behaviour happens when motivation, ability and a prompt meet.
-Raising motivation is the one move Niyyah must not make — these are decisions
-about marriage — so the model is read one way only: **find where she had
-already decided and the product got in the way.** **The eight, scored:** sound
-— asking the difficult question, sending the eleven, involving family, deleting
-data (its guard was not); fixed — the four below; joining the pool went with
-the door on 2026-09-24.
+A behaviour happens when motivation, ability and a prompt meet. Raising
+motivation is the one move Niyyah must not make, so the model is read one way:
+**find where she had already decided and the product got in the way.** **The
+eight, scored:** four sound (asking the difficult question, sending the
+eleven, involving family, deleting data), four fixed below; joining the pool
+went with the door on 2026-09-24.
 
 ### The four defects
 
@@ -245,17 +226,13 @@ re-offered after thirty (`READ_STALE_DAYS`); the guide is never pushed.
 
 ### The line
 
-- **No badge, no streak, no count of unfinished things.** A draft is read on
-  the way into its instrument and nowhere else. Rungs cannot be named for
-  sessions, time or streaks (`src/lib/rungs.test.ts`); follow-ups never say
-  "come back" (`src/lib/followup.test.ts`).
-- **No re-engagement**: no reminder, no notification.
-- **Drafts expire after thirty days** and never leave the device.
-- **Nothing raises motivation.** A change removes an obstacle or moves a prompt
-  to where a decision was already made.
-
-If drafts are made often and resumed rarely, the instruments are too long:
-that is `docs/RESEARCH.md` A1.
+**No badge, no streak, no count of unfinished things**: a draft is read on the
+way into its instrument and nowhere else; rungs cannot be named for sessions,
+time or streaks (`src/lib/rungs.test.ts`); follow-ups never say "come back"
+(`src/lib/followup.test.ts`). **No re-engagement**: no reminder, no
+notification. **Drafts expire after thirty days** and never leave the device.
+**Nothing raises motivation.** If drafts are made often and resumed rarely,
+the instruments are too long: `docs/RESEARCH.md` A1.
 
 ## 8 · Load: how much a screen asks at once
 
@@ -285,15 +262,10 @@ the 1,400 ms pause and Home's controls.
 
 **Rules.** Every tap gets a visible response. An error says what is wrong. The
 irreversible asks first (Forget me, Start over, a `?map=` link). What looks
-disabled is disabled. Targets 44 px (§3); focus visible (§2). Already right:
-every `onClick` is on a `<button>`; scroll resets before paint
-(`useLayoutEffect` in `App.tsx`); Trust returns to where she came from
-(`trustReturn`).
-
-**Conceptual model.** Several things can leave the phone — a kept map, the
-couple sheet, the steps, the guide — and Trust lists each. One store would be
-a privacy regression; the model that holds is *nothing leaves unless you tap
-something that says it will*. The code was where it became her homework.
+disabled is disabled. Targets 44 px (§3); focus visible (§2); scroll resets
+before paint (`App.tsx`). **Conceptual model:** a kept map, the couple sheet,
+the steps and the guide can each leave the phone, and Trust lists each; the
+model is *nothing leaves unless you tap something that says it will*.
 
 | # | Fix | Principle | Where |
 |---|---|---|---|
@@ -352,11 +324,10 @@ order. A fixed issue keeps its id and gains a date.
 
 Every screen answers a stranger's five questions: where am I, what can I do,
 why would I, how do I go back, what happens afterward. Walk in as the person
-who was sent a link: every screen that trapped someone was reached from
-another person's phone. Leaving goes through `backHome` in `App.tsx` (Home if
-she has one), never a hard-coded Welcome. By `docs/PROTOCOL.md`, a **bug** (a
-tap that does nothing, a back that lands elsewhere) is fixed before the next
-session; a **confusion** changes only when two people hit it.
+sent a link: every screen that trapped someone was reached from another
+person's phone. Leaving goes through `backHome` (`App.tsx`), never a hard-coded
+Welcome. Per `docs/PROTOCOL.md`, a bug is fixed before the next session; a
+confusion changes only when two people hit it.
 
 **Seven ways to be stuck, fixed 2026-09-20:** (1) her own eleven link's Back
 went to Welcome — now `backHome`; (2) the vouch screen, the same — gone with
@@ -369,16 +340,13 @@ vouch; (7) the guide's header chevron switched voice — it is Back, to Home.
 {name}.") do not name the place; question screens are titled only
 "{i} of {n}".
 
-**Predicted confusions:**
-- **C1** "counted" meant three things. Resolved 2026-09-20: "Tell us which
-  steps you reach".
-- **C2** "the eleven" is a name no button says; the screen is "Before you say
-  yes". Open.
-- **C3** "Send the door". Gone with the door.
-- **C4** "your space" named nothing on screen. Resolved: "Home".
-- **C5** "guide" had no lexicon entry; **C6** Trust defined none of its words.
-  Both went with the glossary on 2026-09-24.
-- **C7** "reading" collided on Trust. The sentence went with the door.
+**Predicted confusions:** **C1** "counted" meant three things — resolved
+2026-09-20 ("Tell us which steps you reach"). **C2** "the eleven" is a name no
+button says; the screen is "Before you say yes" — open. **C3** "Send the door"
+— gone with the door. **C4** "your space" named nothing — resolved, "Home".
+**C5** "guide" had no lexicon entry and **C6** Trust defined none of its words
+— both gone with the glossary. **C7** "reading" collided on Trust — gone with
+the door.
 
 **Designed and held:** Home ordered by where she is tonight, one label per
 destination, held because Home is the first thing a participant sees. On
@@ -387,17 +355,15 @@ destination, held because Home is the first thing a participant sees. On
 ## 12 · Value: time to the first useful thing
 
 Work before value is what costs — decisions, composed fields, words read,
-waits, permissions. Screens are free when they carry the value. Value is: for
-a read link or **talking**, the read and the one question to ask next; for the
-eleven or **deciding**, the conversation to open and its words; for the
-families link, the words for hooyo or a wali; for **preparing**, the map; for
-**married**, the Ending.
+waits, permissions; screens carry no cost when they carry the value. Value is
+the read and its next question (**talking**), the conversation to open and its
+words (**deciding**), the family words, the map (**preparing**), the Ending
+(**married**).
 
 **Measured 2026-09-18** (re-measure before quoting): no path asks a permission
-before value, and no instrument link needs a typed field. The read's link was
-the benchmark, nearly every tap an answer; the families link was one tap. The
-front door added six taps and ~500 words for the same read; **deciding** read
-2,291 words before anything; **preparing** took 41 taps and 21 decisions.
+before value; the read's link was the benchmark, nearly every tap an answer;
+the front door added six taps and ~500 words for the same read; **deciding**
+read 2,291 words first; **preparing** took 41 taps and 21 decisions.
 
 A gate stays when the value cannot be computed without it, when what comes
 next needs it, or when removing it would make a promise untrue.
@@ -411,8 +377,3 @@ next needs it, or when removing it would make a promise untrue.
 | 5 | Identity before Situation | Held for the sessions (18 taps would become 14) |
 | 6 | The 1,400 ms pause after the intake (`src/lib/reflection.ts`) | Held |
 | 7 | Welcome's copy on a path already chosen | Held |
-
-## Keeping this true
-
-A rule changes in the commit that changes its code. A fixed finding keeps its
-id and gains a date; it is never deleted, so a citation from code resolves.

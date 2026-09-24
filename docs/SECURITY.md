@@ -75,7 +75,7 @@ had no mechanism. First pass 2026-09-08; rows 17–21 from the board audit.
 | 14 | No schema version on any record | `export.ts` versioned the wrapper and nothing inside it, exactly backwards | Every member record carries `v`, stamped last (`netlify/shared/record.ts`), since 2026-09-11; the backup wrapper is version 3 |
 | 15 | Vouch token of eight, no `onlyIfNew` | — | The vouch went 2026-09-24; report ids and owner keys are ten, report ids written `onlyIfNew` |
 | 16 | The man answering the eleven has no identity | Unidentifiable and unblockable by construction | **Live Easy**, on purpose: the scarce side arrives through her, and anonymity is what makes that work |
-| 17 | `POST /keep` with a supplied code wrote whatever the body carried | A code created on demand; a guessed code overwrote a stranger's map | Nothing under the code is a 404; something is written at the etag read, by a phone that has seen the latest revision |
+| 17 | `POST /keep` with a supplied code wrote whatever the body carried | A code created on demand; a guessed code overwrote a stranger's map | Nothing under the code is a 404; something under it is written at the etag read, and never over a revision the phone has not seen |
 | 18 | Key layouts carry no version | A positional parse breaks silently | **Live Easy, with a rule:** a reader of keys reads the value's `v`; a key change is a named migration |
 | 19 | `couple side=second` and `DELETE /progress` uncapped | A guessed couple code froze her sheet and polluted the joint tally | Their own buckets, at the read-cap shape |
 | 20 | The `never-introduce` stub named nobody | — | The outcome went with introductions 2026-09-24 |
@@ -144,7 +144,7 @@ then mutation-tested: undo the fix, watch the test fail, restore it.
 | O1 | Forget me erased the victim's safety reports | A01 | **27** | Below |
 | O2 | A restore link took over her device | A07 | **18** | Below |
 | O3 | Type-confused bodies crashed every handler: `JSON.parse('null')`, `{"code": 1}`, `through: ["constructor:x"]`; the guide spent its caps before validating | A03 / A09 | 9 | `readJson` (`netlify/shared/body.ts`) refuses anything but a plain object with `400 bad_json`; `normalise()` takes any type; `Object.hasOwn` guards vocabulary lookups; the guide validates before it spends a cap |
-| O4 | `.env` not ignored; `.env.example` said an unset founder key fails open | A05 | 6 | `.gitignore` takes `.env` and `.env.*` but the example, which says unset means closed. Rotate any key a local `.env` held before 2026-09-23 |
+| O4 | `.env` not ignored; `.env.example` said an unset founder key fails open | A05 | 6 | `.gitignore` ignores `.env` and every `.env.*` except the example, which now says unset means closed. Rotate any key a local `.env` held before 2026-09-23 |
 | O5 | The family vouch looked a token up before checking the body or spending the cap: a free existence oracle | A07 | 12 | Fixed 2026-09-23 (shape, cap, then lookup, the rule on every route); the route went 2026-09-24 |
 | O6 | He could rewrite her side of the eleven | A01 | 12 | Below |
 | O7 | Nothing stopped a page being framed, and "Forget me → Yes, delete everything" is two taps | A05 | 6 | `netlify.toml` on `/*`: `X-Frame-Options: DENY`, `frame-ancestors 'none'`, `nosniff`, `strict-origin-when-cross-origin`, camera, microphone, geolocation and payment off, one year of HSTS |
@@ -249,8 +249,8 @@ wipe erased the only record of a threat. **Built:** Forget me never takes
 reports (`src/lib/forget.ts`), the app keeps no receipt (`src/lib/safety.ts`),
 and there is no withdrawal route. Sent is sent: "A concern you reported stays
 with the founder until she has read it." A member who wants one dropped writes
-in; the founder reads it first. **D** urgent reports alert the same day. **R**
-the help line. **C** coercion inside a family.
+in; the founder reads it first. **D** an urgent report fails the next 09:00
+health run. **R** the help line. **C** coercion inside a family.
 
 ### The other cases
 

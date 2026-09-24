@@ -50,7 +50,7 @@ The board audit ranked ten actions by expected impact. State on 2026-09-24:
 | 5 | Flip the repository to private | Open (decision 5) |
 | 6 | Truthful shares | Done: the married share claims the eleven only when she did them (`src/lib/ending.test.ts`) |
 | 7 | Bound the guide before the gate comes off | Done: 32 KB body, 6,000-character thread, 2,048 output tokens (`netlify/functions/guide.ts`). The console spend limit is the founder's |
-| 8 | The safety check and the monthly backup on a schedule | Done in `.github/workflows/watch.yml`; needs `FOUNDER_KEY` as a repository secret |
+| 8 | The safety check and the monthly backup on a schedule | Done in `.github/workflows/watch.yml`: `/health`, waiting reports included, every three hours; the backup monthly once `BACKUP_TO_ARTIFACT` is set |
 | 9 | Correct the money, and bound the free-year promise | Arithmetic done; the promise retired with Plus (decision 0) |
 | 10 | Close the cheap irreversibles before member one | Done. `country` on the progress record was dropped again on 2026-09-24 |
 
@@ -242,8 +242,8 @@ from 58 to 11 in the same pass.
 ## Part 3: Where every old doc went
 
 The eleven docs now are PRODUCT, DECISIONS, RESEARCH, OPS, SECURITY, PRIVACY,
-DESIGN, ASSETS, PROTOCOL, GUIDE-EVAL and TESTING. Every old doc's text is at
-`43295a4`. A citation of a retired doc reads `docs/DECISIONS.md (NAME)`.
+DESIGN, ASSETS, PROTOCOL, GUIDE-EVAL and TESTING. A citation of a retired doc
+reads `docs/DECISIONS.md (NAME)`.
 
 | Old doc | Now in | What it was |
 |---|---|---|
@@ -332,12 +332,14 @@ held the vouch.
 
 ### (BETS)
 
-Twenty bets, scored 2026-09-07 onward. What stays is the list of permanent
-constraints a bet may not break: no photos, no free text on the server, no
-attention traces, no messaging, no referral reward or invite counter, no paid
-acquisition, no seeded count, no location finer than the city. Built and
-still here: B5 (`kept` is a rung) and B6 (resume a part-finished read or
-eleven, `src/lib/draft.ts`).
+Twenty bets, scored while there were no members. What stays is what a bet
+may not break: no photos, no free text on the server, no attention traces,
+no messaging, no referral reward or invite counter, no paid acquisition, no
+seeded count, no location finer than the city. Declined on those grounds:
+B13 (a referral reward or invite counter), B15 (push or email re-engagement),
+B16 ("the pool moved since you were here"), B19 (photos or any appearance
+signal, permanently) and B20 (a seeded or boosted count). Built and still
+here: B5 (`kept` is a rung) and B6 (resume a part-finished read or eleven).
 
 ### (ATOMIC)
 
@@ -355,18 +357,17 @@ first build, if a pool is ever real, is the introductions record.
 
 The flywheel's ten transitions, from a better match to more success, turn
 through the instruments, not a matcher: no matching system has shown it
-predicts marriage outcomes, so better data means better questions. Never
-built, and still refused: a referral reward, an invite counter,
-share-to-unlock, a link carrying who sent it, a named testimonial or success
-feed, a nudge to the married to share again, any count of how a person was
-received.
+predicts marriage outcomes, so better data means better questions. Still
+refused: a referral reward, an invite counter, share-to-unlock, a link
+carrying who sent it, a named testimonial or success feed, a nudge to the
+married to share again, any count of how a person was received.
 
 ### (LIQUIDITY)
 
 Registration is not liquidity. Liquidity is eligible, live, reachable pairs
 per member of the scarce side, in one pool. Age is the fragmenter that
-strands people, and only two of seven non-negotiables may ever gate a pool;
-the rest are the first question, not a filter. Its by-hand introduction
+strands people. Only two of seven non-negotiables gated a pool, by design;
+the rest were the first question, not a filter. Its by-hand introduction
 runbook (decision 17) is at `git show 43295a4:docs/LIQUIDITY.md`.
 
 ### (DEMO)

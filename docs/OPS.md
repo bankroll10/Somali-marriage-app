@@ -22,7 +22,7 @@ The test for each supplier is: if it disappeared tomorrow, would we still have t
 
 | Dependency | If it goes | Position |
 |---|---|---|
-| **The hostname** | Nothing: DNS can point at any host | **Owned.** `joinniyyah.com` is registered to the founder and is the site's primary URL. It ranks first because links already sent cannot be corrected. `src/lib/site.ts` and `vite.config.ts` default to it, and `tests/durable.test.ts` refuses a `netlify.app` default |
+| **The hostname** | Nothing: DNS can point at any host | **Owned.** `joinniyyah.com` is registered to the founder and is the site's primary URL. It ranks first because links already sent cannot be corrected. `src/lib/site.ts` and `vite.config.ts` default to it, and `tests/durable.test.ts` refuses a hosting supplier's subdomain as the default |
 | **Netlify Blobs**, seven stores | Every kept map, sheet and report, and the learning record | The data is ours, and `/export` is its copy (Recovery, below). The storage surface is get, set, delete, list and one conditional write, so moving is a few hundred lines |
 | **Netlify build and deploy** | The last deploy keeps serving | The build is `npm run build` producing a static `dist`, with handlers written on the web-standard `Request`. The test gate is `verify.yml`, which lives in the repository and leaves with it |
 | **The secrets** | — | The free plan refuses to mark variables secret, so each one is plaintext to the team. Rotation is the control |
@@ -43,7 +43,7 @@ The test for each supplier is: if it disappeared tomorrow, would we still have t
 
 ### The mailbox: the one open step
 
-`VITE_CONTACT_EMAIL` points at a Gmail inbox that a person reads. The code's default is `salaam@joinniyyah.com`, which does not receive mail yet, so production must keep the variable set. Move it over in this order:
+`VITE_CONTACT_EMAIL` points at a Gmail inbox that a person reads. An address on a mail provider's domain is the last rented thing a member uses to reach us: it cannot be repointed or handed on. The code's default is `salaam@joinniyyah.com`, which does not receive mail yet, so production must keep the variable set. Move it over in this order:
 
 1. **Choose how mail arrives.** Forwarding is enough and costs nothing: ImprovMX, or Cloudflare Email Routing if the zone is on Cloudflare. A real mailbox (Fastmail, Migadu, Google Workspace) is worth paying for only if replies should come *from* the address.
 2. **Add the provider's records** (MX, usually SPF, sometimes DKIM) wherever the `joinniyyah.com` zone lives. Nothing in this repository can reach DNS.
@@ -304,6 +304,10 @@ NETLIFY_AUTH_TOKEN=… npx tsx scripts/restore.ts backup.json --site <site-id> -
 
 Every quarter, run `scripts/restore.ts` with the last real backup against a **scratch Netlify site**, never production. Do a dry run, then `--write`, then export the scratch site and compare. This is the one restore that exercises the real Blobs API and a real token. **Not yet run:** it needs a scratch site and a token.
 
+### The ten scenarios
+
+Each scenario gives detection, the first hour, recovery, how much can be lost, what members see, and prevention.
+
 ### 1. Netlify outage
 
 - **Detect:** the health run (the page does not answer), status.netlify.com, members writing to a mailbox that does not depend on Netlify.
@@ -453,11 +457,11 @@ Onboarding, every instrument, recovery by code (keep, restore, forget, change my
 - **Acting on a report.** There are no accounts, so no ban button would mean anything. The real levers are social: a conversation, or a word to the person's family (`src/data/safety.ts`). Resolving a report records which lever was used. Automating it further would mean building an identity system, or pretending consequences exist that do not.
 - **Support mail.** It all goes to one inbox. At today's volume that costs nothing. The trigger to change it is under Scale.
 
-A report is a person who may be waiting, not a constant to calibrate. That is why the safety queue has its own weekly cadence and an urgent report emails the same morning, while the readouts stay monthly.
+A report is a person who may be waiting, not a constant to calibrate. That is why the safety queue has its own weekly cadence and an urgent report emails the same morning, while the readouts stay monthly. The ending this plans for is one safety failure in a community this close. If a failure has to be stopped the minute it is learned of, the close switch (Deploy, above) shuts the site within one deploy.
 
 ## Scale triggers
 
-The architecture is Netlify Functions over Blobs on a free plan, and the only query is listing by prefix. There is no secondary index, there are no transactions, and every founder readout rebuilds itself from every record in one invocation. That holds for a product with zero to a few hundred members. The readouts reach their ceiling near a thousand records, and the public routes around a hundred thousand.
+The architecture is Netlify Functions over Blobs on a free plan, and the only query is listing by prefix. There is no secondary index, there are no transactions, and every founder readout rebuilds itself from every record in one invocation. That holds for a product with zero to a few hundred members. The readouts reach their ceiling near a thousand records, and the public routes around a hundred thousand. Every public write already sits behind an hourly cap (Deploy, above). A `keep` loop is the cheapest way to spend the free plan's storage, and a `progress` loop the cheapest way to make a readout time out. A cap does not stop a patient script, but it makes one slow and visible.
 
 | When | Change |
 |---|---|

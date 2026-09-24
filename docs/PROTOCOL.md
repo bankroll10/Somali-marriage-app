@@ -199,7 +199,7 @@ and 15 test the functional and social jobs; the three-day text is the outcome.
 **A · Before the phone (min 2–8)**
 1. *The last person you seriously talked to about marriage — how did it start,
    and how long did it go on?* (If single: *the last time you seriously wanted
-   to meet someone — what did you actually do, and who knew?* —
+   to meet someone — what did you do, and who knew?* —
    `docs/RESEARCH.md`, the ten conversations)
 2. *What became difficult? When did you first notice, and when did you say
    something?*
@@ -217,13 +217,13 @@ and 15 test the functional and social jobs; the three-day text is the outcome.
    to you? What, exactly?* (If nothing: *what did it say that you already
    knew?* — that answer is data too)
 7. *The words it gave you to say. Read them back to me in your own voice.* —
-   then: *Would you actually say that, to them, this week? What would you
+   then: *Would you say that, to them, this week? What would you
    change first?* (Any change they make, write down word for word)
 8. *If you'd had this the last time — at which point in that story would you
    have opened it, and what would you have done differently?*
 
 **C · The eleven (if reached; min 24–26)**
-9. *Of the eleven, which had you two actually talked about? Which surprised
+9. *Of the eleven, which had you two talked about? Which surprised
    you by being on the list? Which is missing?*
 10. *Would you send that to them — the real person — from your own phone?
     What would you type above the link when you did?* (Then the send moment
