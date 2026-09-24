@@ -216,7 +216,7 @@ opportunity each one is evidence *about*, which is what was missing.
 | **A2** vouch asked vs given | **O7.2** | Readout built, unrun |
 | **A3** the guide's worth | **O4.1, O4.2** | Written, needs endings |
 | **A4** family scripts confirmed | **O3** | Written, runs slowly |
-| **A5** willingness to pay | Neither — a business question | Blocked by the free-year promise |
+| **A5** willingness to pay | Neither — a business question | Gated in `docs/MONETIZATION.md`; the bounded free-year promise no longer blocks it |
 | **A6** the door, for men | **O8** | In `docs/MACHINE.md`; the one experiment on the most dangerous gap |
 | **A7** forty and forty | **O5** | `/pool` built; needs a full door |
 | **A8** the couple reaches men | **O8** + O10 | Second share built; needs endings |

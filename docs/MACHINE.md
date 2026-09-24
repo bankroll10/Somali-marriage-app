@@ -35,7 +35,7 @@ the thirteen stages:
 | **Mutual interest** | Two yeses on one introduction. **Designed, not built** | none — designed (`docs/LEARNING.md` row 1) |
 | **Conversation** | Off-platform, on purpose. The product's part is the instruments: the read, the eleven, the eleven sent to him, the words | `read`, `eleven`, `asked-him`, `he-answered`, `followed-through`; `facts.through`; the couple tally |
 | **Serious progression** | Talking → deciding; the family scripts; the vouch | `deciding`, `vouched`; `facts.ended`; `through['family:*']` |
-| **Monetization** | "Deciding together", paid at the joint view of the two-sided eleven — never at the stage she declares (`docs/STRATEGY.md` §5; the matchmaker line is what is paid at the nikah) — `docs/EXPERIMENTS.md` A5. No price exists in the code | none — blocked by the free-for-a-year promise |
+| **Monetization** | The call with a matchmaker, paid once per person after the joint view of the two-sided eleven — never at the stage she declares (`docs/STRATEGY.md` §5; the matchmaker line is what is paid at the nikah) — `docs/EXPERIMENTS.md` A5, gated in `docs/MONETIZATION.md`. No price exists in the code | none — no gate has passed |
 | **Success** | `married`, and the ending: who, what mattered, what here was real | `married`; `facts.ending`; `marriedBy` |
 | **Referral** | The one share only she can make — `via: 'married'` from the ending — and every forwarded word | `vias.married`, `vias.words`, `vias.eleven`, `vias.couple` |
 
@@ -198,10 +198,11 @@ actually see; where it is not, the failure is invisible and that is said.
 
 ### 10 · Serious progression → Monetization
 
-- **Metric.** Paid conversions on "Deciding together" — *none exists*.
-  Proxy until then: `facts.ending.who.family`.
-- **Friction.** The free-for-a-year promise to everyone here before launch;
-  no price anywhere in the code (`src/data/plus.ts`).
+- **Metric.** Paid calls after the joint view, and fees at a nikah — *none
+  exists*. Proxy until then: `facts.ending.who.family`.
+- **Friction.** No price anywhere in the code (`src/data/plus.ts`), and the
+  gates in `docs/MONETIZATION.md`, none passed. The free-year promise binds
+  only what a member is charged (bounded 2026-09-12).
 - **Failure state.** People reach the nikah and nobody pays — fatal to
   revenue, not to the marketplace, and later in time.
 - **Dependencies.** An open pool, a real checkout, a real price.

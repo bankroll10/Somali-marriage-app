@@ -124,7 +124,9 @@
   prices "are set at launch, not here."
 - **WHAT WOULD CONFIRM IT.** A real checkout completes at a real price.
 - **WHAT WOULD DISPROVE IT.** People reach the point of sale and do not buy.
-- **METRIC.** Paid conversions on "Deciding together" at the first pool.
+- **METRIC.** Of ten couples offered the paid call at launch, how many buy
+  (`docs/MONETIZATION.md`, challenge 1: three or more); fees paid at the
+  first nikahs.
 - **SMALLEST CREDIBLE TEST.** Two, neither a fake price. This month, before
   any member: the wedding-payment question in the ten conversations, and three
   practising matchmakers on what they charge and who pays (`docs/BOARD.md`).

@@ -106,7 +106,7 @@ half joins it when a pool passes the opening checklist.
 | Social proof | The door's count — and, at the first marriage, the marriages on it. Never a testimonial with a name | Nothing |
 | Paid reach for the scarce side | The married couple's door share, through the spouse. Never boosting, never paying a man to arrive | Nothing |
 | Lifecycle mail | One notification, ever: the pool you are counted in opened (`docs/SCALE.md`) | One vendor, later |
-| Funding the next cohort | Sponsor a place: the auntie's part, taken up at the ending by the person who no longer needs it (`src/data/ending.ts`) | Opens at launch |
+| Funding the next cohort | Not asked for. "Sponsor a place" asked a woman who had just married for money for a place that costs nothing, with no stated use, on the screen the outcome is counted from — removed 2026-09-24 (`docs/MONETIZATION.md`). The ending asks for nothing | Nothing |
 
 ## The success story on the door — designed, at the first marriage
 

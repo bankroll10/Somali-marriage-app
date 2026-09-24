@@ -501,8 +501,9 @@ nothing changes on ten.
 
 **Willingness to pay** (A5, and `docs/REDTEAM.md` conviction 7 as written):
 **fewer than three in ten** can name a payment at a family wedding, with an
-amount → the GAPS demotion to ASSUMED stands and "Deciding together" is
-re-examined as the first product rather than the matchmaker. Seven or more
+amount → the GAPS demotion to ASSUMED stands and the call after the joint
+view (formerly "Deciding together", `docs/MONETIZATION.md`) is re-examined as
+the first product rather than the matchmaker. Seven or more
 name one → the cultural half is attested. Neither is a price; no price is
 decided on ten.
 
