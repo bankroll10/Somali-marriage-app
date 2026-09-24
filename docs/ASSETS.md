@@ -110,6 +110,7 @@ is visible somewhere a stranger could find it.
 | 2026-09-23 | KALY-LP 101.7 FM, Somali-language, South Minneapolis | email `Underwriting@kalyradio.org` | none — rate inquiry only | web: `…/tools/before-you-say-yes?via=press`; on air: none | drafted, not yet sent |
 | 2026-09-23 | Dr. Aneesah Nadir and Associates, *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7) | email `info@draneesah.com` | N3-note, pointing to N3-1page | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | drafted, not yet sent |
 | 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent |
+| 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent, awaiting reply |
 
 **Rules the ledger has taught**, each a correction made before a row was
 logged:
@@ -137,6 +138,10 @@ logged:
    going back and a second wife are named in the pitch, so a reviewer is not
    surprised on page two. Its arrivals share `via=mosque` with the Minneapolis
    mosques, so it is not sent in the same week as another mosque pitch.
+9. **An N3 pitch has no measure but the reply.** Its links carry no via, and
+   nobody counts opens of a static page, so the reply goes here and in
+   `docs/RESEARCH.md`. A PDF offered in the pitch is rendered on the day it
+   is asked for (rule 6).
 
 Masjid Al-Israa is the only 2026-09-17 send with the sample attached; if it
 alone answers, suspect the attachment. The Somali American's newest dated
