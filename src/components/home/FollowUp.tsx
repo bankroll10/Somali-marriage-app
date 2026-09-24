@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { FollowUp as FollowUpRecord } from '../../types'
 import type { FollowUpAsk } from '../../lib/followup'
-import { GUIDE_SOURCE } from '../../lib/coach'
+import { GUIDE_SOURCE } from '../../lib/site'
 import { shareOrCopy } from '../../lib/share'
 import { wordsMessage } from '../../lib/words'
 import ScriptCard from '../ScriptCard'

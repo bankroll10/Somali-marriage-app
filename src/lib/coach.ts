@@ -350,14 +350,6 @@ async function askLiveGuide(
   }
 }
 
-/**
- * Said wherever a tap sends her words to the live guide. The guide screen's
- * header used to say "private" while it did, and Home's box, the results'
- * hand-offs and "It went differently" sent without a word about where
- * (docs/DECISIONS.md, the completion review, B2). Trust has the detail.
- */
-export const GUIDE_SOURCE = 'Answered by Claude, made by Anthropic, unless you keep the guide on this phone (Trust).'
-
 /** The thread from her first message on; nothing if she has not written yet. */
 export function fromFirstMessage(history: CoachMessage[]): CoachMessage[] {
   const first = history.findIndex((m) => m.role === 'user')

@@ -6,8 +6,7 @@ import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
 import { SinceLastTime } from './home/FollowUp'
 import StageBand from './home/StageBand'
-import { CONTACT_EMAIL } from '../lib/site'
-import { GUIDE_SOURCE } from '../lib/coach'
+import { CONTACT_EMAIL, GUIDE_SOURCE } from '../lib/site'
 import {
   CompassGlyph,
   GlyphTile,

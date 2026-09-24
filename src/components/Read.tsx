@@ -3,7 +3,7 @@ import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../li
 import type { Gender, Identity, ReadRecord } from '../types'
 import { EXAMPLE_ANSWERS, readQuestions, scriptFor } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
-import { GUIDE_SOURCE } from '../lib/coach'
+import { GUIDE_SOURCE } from '../lib/site'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
