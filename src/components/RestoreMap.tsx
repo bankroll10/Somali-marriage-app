@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { adoptMap, restoreDetail, type RestoreProblem } from '../lib/keep'
+import { holdUntilReload } from '../lib/storage'
 import { CODE_LENGTH, EXAMPLE_CODE, cleanCode, formatCode, isCode } from '../lib/code'
 import { track } from '../lib/analytics'
 import { Spinner, fieldClass } from './ui'
@@ -41,6 +42,8 @@ export default function RestoreMap() {
     // She typed this code herself, on the welcome screen — the consent a link
     // someone else sent her cannot give (docs/SECURITY.md, O2).
     adoptMap(code, result)
+    // And nothing this page still holds is written over it before the reload.
+    holdUntilReload()
     window.location.href = window.location.pathname
   }
 
