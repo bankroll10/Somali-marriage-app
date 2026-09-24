@@ -1,12 +1,31 @@
 import type { Gender } from '../types'
 import {
   DIMENSION_LABEL,
+  NONNEG_SCRIPT,
   readQuestions,
   scriptFor,
   speak,
   type ReadDimension,
   type Script,
 } from '../data/read'
+
+/**
+ * The words for the thinnest ground. For `pressure`, which of its two answers
+ * made it thin decides them: a man who meets a complaint by turning it around
+ * gets SCRIPTS.pressure; a man who changes the subject on her non-negotiables,
+ * or keeps trying to talk her out of them, while meeting a complaint well, gets
+ * NONNEG_SCRIPT — a plain answer asked for, not agreement (docs/DECISIONS.md
+ * Part 8). Shared with the follow-up, so the words shown again are the same.
+ */
+export function gapScript(key: ReadDimension | 'early', answers: Record<string, string> | undefined, gender: Gender = 'woman'): Script {
+  if (
+    key === 'pressure' &&
+    (answers?.nonneg === 'pushed' || answers?.nonneg === 'deflected') &&
+    (answers?.hard === 'listens' || answers?.hard === 'defensive')
+  )
+    return NONNEG_SCRIPT
+  return scriptFor(key, gender)
+}
 
 /**
  * The engine behind the read.
@@ -203,7 +222,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
       missing,
       dimensions,
       thin,
-      script: scriptFor(thin, gender),
+      script: gapScript(thin, answers, gender),
       concern: 'money',
       caution: fix(
         `Send nothing more until your families have met — not a loan, not a ticket, not an investment. Tell ${CONFIDANTE[gender]} exactly what {he} asked for, this week. If {he} is serious, the families meeting first costs {him} nothing.`,
@@ -229,7 +248,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
       missing,
       dimensions,
       thin,
-      script: scriptFor(thin, gender),
+      script: gapScript(thin, answers, gender),
       concern: 'hidden',
       caution: fix(
         `Tell one person who knows you — ${CONFIDANTE[gender]} — exactly what you have just told us. Out loud, to a human being, this week. Not for advice. So that someone other than {him} knows the shape of it.`,
@@ -312,7 +331,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     missing,
     dimensions,
     thin,
-    script: scriptFor(thin, gender),
+    script: gapScript(thin, answers, gender),
   }
 }
 

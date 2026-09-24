@@ -212,8 +212,8 @@ export function useNiyyah(entry: Entry | null = null) {
   )
   // The one open thing to ask her about, or — usually — nothing.
   const followUpAsk = useMemo(
-    () => openFollowUp(followups, identity.gender ?? 'woman', Date.now(), beforeYes?.answers),
-    [followups, identity.gender, beforeYes],
+    () => openFollowUp(followups, identity.gender ?? 'woman', Date.now(), { eleven: beforeYes?.answers, read: read?.answers }),
+    [followups, identity.gender, beforeYes, read],
   )
   const answeredCount = Object.keys(answers).length
   const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome

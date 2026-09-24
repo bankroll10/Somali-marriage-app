@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildRead, readSummary } from './read'
-import { DIMENSION_LABEL, EXAMPLE_ANSWERS, READ_QUESTION_COUNT, readQuestions, scriptFor } from '../data/read'
+import { DIMENSION_LABEL, EXAMPLE_ANSWERS, NONNEG_SCRIPT, READ_QUESTION_COUNT, readQuestions, scriptFor } from '../data/read'
 import { familyScripts, familyScriptsLine } from '../data/families'
 
 /**
@@ -384,6 +384,50 @@ describe('the read summarises her answers; it does not predict', () => {
     expect(`${r.headline} ${r.summary}`).not.toMatch(/\bpredicts?\b|passing time produces|rarer than/i)
     expect(r.summary).toMatch(/not a prediction/)
     expect(readSummary({ band: 'strong', thin: 'public' })).not.toMatch(/predict/i)
+  })
+})
+
+describe('a difference is not pressure, and a pause is not a gap (docs/DECISIONS.md Part 8)', () => {
+  const base = {
+    duration: 'months-3',
+    named: 'early',
+    timeline: 'dated',
+    known: 'family',
+    secret: 'no',
+    family: 'how',
+    initiative: 'same-day',
+    'in-person': 'several',
+    plans: 'never',
+    money: 'no',
+  }
+  const option = (q: string, id: string) => readQuestions('woman').find((x) => x.id === q)!.options.find((o) => o.id === id)!
+
+  it('a plain answer that is not hers is still a straight answer', () => {
+    expect(readQuestions('woman').find((q) => q.id === 'nonneg')!.helper).toMatch(/A plain answer counts, even one that isn’t yours/)
+    expect(option('nonneg', 'straight').note).toMatch(/whatever it was/)
+  })
+  it('names pressure as pressure, not disagreement', () => {
+    expect(option('nonneg', 'pushed').label).toBe('Yes — and he keeps trying to talk me out of them')
+    expect(option('nonneg', 'pushed').label).not.toMatch(/pushed back/)
+  })
+  it('reads a pause that comes back the way her own map does — as coming back', () => {
+    expect(option('hard', 'defensive').label).toBe('Gets defensive or goes quiet, but comes back')
+    expect(option('hard', 'defensive').weight).toBe(0.7)
+    expect(option('hard', 'quiet').label).toBe('Goes quiet, and it doesn’t come back up')
+  })
+  it('when her non-negotiables are the gap, the words ask for a plain answer, not agreement', () => {
+    for (const nonneg of ['pushed', 'deflected']) {
+      const r = buildRead({ ...base, nonneg, hard: 'listens' })!
+      expect(r.thin).toBe('pressure')
+      expect(r.script.words).toBe(NONNEG_SCRIPT.words)
+    }
+    expect(NONNEG_SCRIPT.words).toMatch(/not agreement, and not an argument/)
+    expect(NONNEG_SCRIPT.tells).toMatch(/“That isn’t me” is another, and it is one you can decide with/)
+  })
+  it('when being made to feel like the problem is the gap, the words are for that', () => {
+    const r = buildRead({ ...base, nonneg: 'straight', hard: 'blames' })!
+    expect(r.thin).toBe('pressure')
+    expect(r.script.words).toBe(scriptFor('pressure').words)
   })
 })
 

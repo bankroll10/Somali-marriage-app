@@ -1,6 +1,7 @@
 import type { FollowUp, Gender, ReadRecord } from '../types'
 import { beforeYesTopics, scriptForState, type Topic } from '../data/beforeYes'
-import { scriptFor, speak, type ReadDimension, type Script } from '../data/read'
+import { speak, type ReadDimension, type Script } from '../data/read'
+import { gapScript } from './read'
 import { familyScript } from '../data/families'
 import type { WordsSource } from './words'
 
@@ -78,14 +79,14 @@ export function openFollowUp(
   followups: FollowUp[],
   gender: Gender = 'woman',
   now = Date.now(),
-  /** Her eleven as it stands now, so the words shown again are the words the result gave. */
-  sheet?: Record<string, string>,
+  /** Her eleven and her read as they stand now, so the words shown again are the words each result gave. */
+  current?: { eleven?: Record<string, string>; read?: Record<string, string> },
 ): FollowUpAsk | null {
   const ripe = followups
     .filter((f) => isOpen(f, now))
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
   for (const f of ripe) {
-    const ask = describe(f, gender, sheet)
+    const ask = describe(f, gender, current)
     if (ask) return ask
   }
   return null
@@ -120,7 +121,7 @@ const READ_TOPIC: Record<ReadDimension | 'early', string> = {
   early: 'what each of you is looking for',
 }
 
-function describe(f: FollowUp, gender: Gender, sheet?: Record<string, string>): FollowUpAsk | null {
+function describe(f: FollowUp, gender: Gender, current?: { eleven?: Record<string, string>; read?: Record<string, string> }): FollowUpAsk | null {
   const say = speak(gender)
   if (f.source === 'guide') {
     // The guide's words live only in the reply she was given, so they travel
@@ -163,7 +164,7 @@ function describe(f: FollowUp, gender: Gender, sheet?: Record<string, string>): 
     // script up in her table, so three days later a man was asked whether he
     // had put "How would you want to approach my family?" to a woman.
     const key = f.topic as ReadDimension | 'early'
-    const script = scriptFor(key, gender)
+    const script = gapScript(key, current?.read, gender)
     return {
       followUp: f,
       question: say('Last time, this was the question to put to {him}. Have you asked it?'),
@@ -184,7 +185,7 @@ function describe(f: FollowUp, gender: Gender, sheet?: Record<string, string>): 
     // still open gets the words for after a difference, not the opening words
     // again (src/data/beforeYes.ts scriptForState). The two-sided sheet keeps
     // the opening words: one of them may not know there is a difference.
-    script: f.source === 'beforeYes' ? scriptForState(topic, sheet?.[f.topic], gender) : topic.script,
+    script: f.source === 'beforeYes' ? scriptForState(topic, current?.eleven?.[f.topic], gender) : topic.script,
     writesBack: true,
     travel: f.source === 'couple' ? 'couple' : 'eleven',
   }

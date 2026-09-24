@@ -11,6 +11,7 @@ import {
 } from './followup'
 import type { FollowUp } from '../types'
 import { beforeYesTopics, workItOut } from '../data/beforeYes'
+import { NONNEG_SCRIPT } from '../data/read'
 
 const DAY = 24 * 60 * 60 * 1000
 const NOW = Date.parse('2026-06-01T12:00:00.000Z')
@@ -188,17 +189,25 @@ describe('a read a month old', () => {
 describe('the words shown again are the words she was given', () => {
   it('a difference still open on her sheet comes back with the words for after a difference', () => {
     const f = noteFollowUp([], 'beforeYes', 'money-home', ago(5))
-    const ask = openFollowUp(f, 'woman', NOW, { 'money-home': 'differ' })!
+    const ask = openFollowUp(f, 'woman', NOW, { eleven: { 'money-home': 'differ' } })!
     expect(ask.script.words).toBe(workItOut('woman').words)
   })
   it('an unopened one comes back with its own opening words', () => {
     const f = noteFollowUp([], 'beforeYes', 'money-home', ago(5))
-    const ask = openFollowUp(f, 'woman', NOW, { 'money-home': 'not-talked' })!
+    const ask = openFollowUp(f, 'woman', NOW, { eleven: { 'money-home': 'not-talked' } })!
     expect(ask.script.words).toBe(beforeYesTopics('woman').find((t) => t.id === 'money-home')!.script.words)
   })
   it('the two-sided sheet keeps the opening words — one of them may not know there is a difference', () => {
     const f = noteFollowUp([], 'couple', 'money-home', ago(5))
-    const ask = openFollowUp(f, 'woman', NOW, { 'money-home': 'differ' })!
+    const ask = openFollowUp(f, 'woman', NOW, { eleven: { 'money-home': 'differ' } })!
     expect(ask.script.words).toBe(beforeYesTopics('woman').find((t) => t.id === 'money-home')!.script.words)
+  })
+})
+
+describe('the read’s words shown again are the read’s words', () => {
+  it('a pressure gap that was her non-negotiables comes back with the words for that', () => {
+    const f = noteFollowUp([], 'read', 'pressure', ago(5))
+    const ask = openFollowUp(f, 'woman', NOW, { read: { nonneg: 'pushed', hard: 'listens' } })!
+    expect(ask.script.words).toBe(NONNEG_SCRIPT.words)
   })
 })

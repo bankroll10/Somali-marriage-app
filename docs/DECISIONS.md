@@ -480,6 +480,14 @@ Candidates, not work. *Untrue claim* items need no evidence under decision 19;
 **Not done:** no test against outcomes, since none exists; the family words
 and the guide were not reviewed. The eleven were, in Part 7.
 
+**Later (Part 8, 2026-09-24):** `nonneg` and `hard` relabelled, ids and
+weights unchanged. "Pushed back" had put an honest "that isn't me" in the
+same box as pressure; it now reads "keeps trying to talk me out of them",
+and the helper says a plain answer counts even when it isn't hers. His
+pause that comes back now sits with "comes back", where her own map puts
+hers. When `nonneg` is what made pressure thin, the words ask for a plain
+answer, not agreement.
+
 ## Part 5: Commitment: dedication, constraint, sliding and deciding (2026-09-24)
 
 The founder asked for Niyyah to be audited through commitment research. The

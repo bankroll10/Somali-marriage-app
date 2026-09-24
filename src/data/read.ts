@@ -355,11 +355,25 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     id: 'nonneg',
     dimension: 'pressure',
     prompt: 'Does {he} know what you will not compromise on?',
-    helper: 'The one or two things that decide it for you.',
+    // A plain answer that is not hers is still a straight answer. "Pushed back"
+    // put honest disagreement ("that isn't me") in the same box as pressure,
+    // and scored it below changing the subject (docs/DECISIONS.md Part 8).
+    // The ids and weights are unchanged; the labels say what each measures.
+    helper: 'The one or two things that decide it for you. A plain answer counts, even one that isn’t yours.',
     options: [
-      { id: 'straight', label: 'Yes — and {he} answered straight', weight: 1, note: '{he} knows your non-negotiables and answered them straight' },
+      {
+        id: 'straight',
+        label: 'Yes — and {he} answered straight',
+        weight: 1,
+        note: '{he} knows your non-negotiables and gave you a straight answer, whatever it was',
+      },
       { id: 'deflected', label: 'Yes — but {he} changed the subject', weight: 0.2, note: '{he} moved away from your non-negotiables rather than answering them' },
-      { id: 'pushed', label: 'Yes — and {he} pushed back on them', weight: 0.1, note: '{he} has pushed back on the things you said you would not compromise on' },
+      {
+        id: 'pushed',
+        label: 'Yes — and {he} keeps trying to talk me out of them',
+        weight: 0.1,
+        note: '{he} keeps trying to talk you out of the things you said you would not compromise on',
+      },
       // Says nothing about {him}, so it is not scored — it used to count as 0.5.
       { id: 'untold', label: 'I have not told {him}', weight: null, note: 'you have not told {him} your non-negotiables yet' },
     ],
@@ -370,8 +384,22 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     prompt: 'When you raise something difficult, what does {he} do?',
     options: [
       { id: 'listens', label: 'Listens, and comes back to it', weight: 1, note: '{he} can sit with a hard conversation and return to it' },
-      { id: 'defensive', label: 'Gets defensive, but comes back', weight: 0.7, note: '{he} gets defensive at first but does come back' },
-      { id: 'quiet', label: 'Goes quiet for a while', weight: 0.3, note: '{he} goes quiet when something hard is raised' },
+      // A pause that comes back is the same thing her own map calls "workable
+      // and healthy" in her (src/lib/reflection.ts); "Goes quiet for a while"
+      // scored it as a gap in him. Coming back is what this measures, so the
+      // pause sits with coming back, and withdrawal is named as withdrawal.
+      {
+        id: 'defensive',
+        label: 'Gets defensive or goes quiet, but comes back',
+        weight: 0.7,
+        note: '{he} can get defensive or go quiet at first, but does come back',
+      },
+      {
+        id: 'quiet',
+        label: 'Goes quiet, and it doesn’t come back up',
+        weight: 0.3,
+        note: '{he} goes quiet when something hard is raised, and it is not raised again',
+      },
       { id: 'blames', label: 'I end up feeling like the problem', weight: 0, note: 'you come away from hard conversations feeling like the problem' },
     ],
   },
@@ -500,6 +528,22 @@ const SCRIPTS_MAN: Partial<Record<ReadDimension | 'early', Script>> = {
  * The script for this gap, for whoever is reading. Falls back to the shared
  * one, so a new dimension needs a man's variant only where the road differs.
  */
+/**
+ * The words when the thin ground is her non-negotiables — he changed the
+ * subject, or keeps trying to talk her out of them — rather than how he meets
+ * a complaint. SCRIPTS.pressure is written for being made to feel like the
+ * problem; handed to a woman whose line he is arguing with, it asked the wrong
+ * thing. Not a key of SCRIPTS: the server's list of read topics is unchanged
+ * (netlify/shared/vocab.ts READ_TOPICS). Chosen in src/lib/read.ts.
+ */
+export const NONNEG_SCRIPT: Script = {
+  why: 'What you will not compromise on is not a position to be argued down. What you need is a plain answer about where the other person stands.',
+  words:
+    'I’ve told you the things I won’t compromise on, and I need a plain answer — not agreement, and not an argument. Just where you stand.',
+  tells:
+    'Listen for a plain answer. “That’s where I am too” is one. “That isn’t me” is another, and it is one you can decide with. Changing the subject again, or arguing you out of it again, is an answer as well.',
+}
+
 export function scriptFor(key: ReadDimension | 'early', gender: Gender = 'woman'): Script {
   return (gender === 'man' ? SCRIPTS_MAN[key] : undefined) ?? SCRIPTS[key]
 }
