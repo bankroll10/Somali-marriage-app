@@ -439,7 +439,9 @@ export default function Coach({
           <h1 className="font-display text-[1.05rem] font-medium leading-tight text-ink">
             {activeMode.label}
           </h1>
-          <p className="text-[0.78rem] text-muted">{activeMode.tagline} · private</p>
+          <p className="text-[0.78rem] text-muted">
+            {activeMode.tagline} · {onDeviceOnly || locked ? 'answers on this phone' : 'answered by Claude, made by Anthropic'}
+          </p>
           {/* No counter here. One used to appear from halfway — "6 replies left
               this month" — and open the subscription screen. A counter on a
               guide is a pressure gauge, and the thing it sold was the guide

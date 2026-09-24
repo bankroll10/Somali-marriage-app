@@ -1,6 +1,10 @@
 import { readFileSync } from 'node:fs'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import { fromHerTurn, guideRequest } from '../netlify/functions/guide'
 import { buildSystemPrompt, sanitiseContext } from '../netlify/shared/prompt'
+import { modes, type CoachContext } from '../src/data/coach'
+import { askCoach, fromFirstMessage } from '../src/lib/coach'
+import type { CoachMessage } from '../src/types'
 
 /**
  * Trust says "here is exactly what it sends". This is what keeps that word.
@@ -122,5 +126,65 @@ describe('what the Guide sends, and what Trust says it sends', () => {
         'Timeline',
       ].sort(),
     )
+  })
+})
+
+describe('her first name never leaves the phone with the thread', () => {
+  // docs/PRIVACY.md, C5. The prompt never carried it, but the thread did: the
+  // greeting opens every conversation with her name, and the thread went as
+  // history from its first turn (docs/DECISIONS.md, the completion review, B2).
+  const her: CoachContext = { identity: { firstName: 'Khadija', gender: 'woman', adult: true }, answers: {} }
+
+  it('no voice’s fallback line uses it, since a fallback sits after her first message', () => {
+    for (const mode of modes) {
+      expect(mode.greeting(her), mode.id).toContain('Khadija')
+      expect(mode.fallback(her), mode.id).not.toContain('Khadija')
+    }
+  })
+
+  it('sends the thread from her first message, so the greeting stays behind', async () => {
+    const bodies: string[] = []
+    vi.stubGlobal('fetch', async (_url: string, init: RequestInit) => {
+      bodies.push(String(init.body))
+      return new Response('Say it to him plainly.')
+    })
+    try {
+      for (const mode of modes) {
+        const thread: CoachMessage[] = [
+          { id: 'g', role: 'coach', text: mode.greeting(her) },
+          { id: 'u', role: 'user', text: 'He only texts me late at night' },
+          { id: 'f', role: 'coach', text: mode.fallback(her) },
+        ]
+        const reply = await askCoach('What do I say?', her, mode.id, thread)
+        expect(reply.live).toBe(true)
+      }
+    } finally {
+      vi.unstubAllGlobals()
+    }
+    expect(bodies).toHaveLength(modes.length)
+    for (const body of bodies) {
+      expect(body).not.toContain('Khadija')
+      const sent = JSON.parse(body) as { history: { role: string }[] }
+      expect(sent.history[0].role).toBe('user')
+      expect(sent.history).toHaveLength(2)
+    }
+  })
+
+  it('sends no history at all before she has written', () => {
+    expect(fromFirstMessage([{ id: 'g', role: 'coach', text: 'Salaam, Khadija.' }])).toEqual([])
+  })
+
+  it('opens what the model is handed with her, whatever an older client sends', () => {
+    // The server's own floor: an old client still sends the greeting, and a
+    // trimmed tail can begin with the guide's own words.
+    const old = guideRequest('auntie', {}, [
+      { role: 'coach', text: 'Kaalay, Khadija. Sit with your auntie a moment.' },
+      { role: 'user', text: 'He only texts me late at night' },
+      { role: 'coach', text: 'Then ask him why.' },
+    ], 'What do I say?')
+    expect(old.messages[0].role).toBe('user')
+    expect(JSON.stringify(old)).not.toContain('Khadija')
+    expect(fromHerTurn([{ role: 'coach', text: 'only me' }])).toEqual([])
+    expect(guideRequest('auntie', {}, [], 'hi').messages).toEqual([{ role: 'user', content: 'hi' }])
   })
 })

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { FollowUp as FollowUpRecord } from '../../types'
 import type { FollowUpAsk } from '../../lib/followup'
+import { GUIDE_SOURCE } from '../../lib/coach'
 import { shareOrCopy } from '../../lib/share'
 import { wordsMessage } from '../../lib/words'
 import ScriptCard from '../ScriptCard'
@@ -63,6 +64,11 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
               It went differently
             </button>
           </div>
+        )}
+        {phase === 'asking' && (
+          <p className="mt-2.5 text-[0.8rem] leading-snug text-muted text-pretty">
+            “It went differently” opens your guide. {GUIDE_SOURCE}
+          </p>
         )}
 
         {phase === 'howd-it-go' && (

@@ -103,7 +103,7 @@ export const TOOLS: Tool[] = [
     kind: 'families',
     title: 'Bringing the families in — the words, word for word',
     description:
-      'The conversations with your family, written to be said out loud by a real person — not read off a card. No account, nothing recorded.',
+      'The conversations with your family, written to be said out loud by a real person — not read off a card. No account.',
     share: 'The conversations with your family, word for word. No account.',
     via: 'family',
   },

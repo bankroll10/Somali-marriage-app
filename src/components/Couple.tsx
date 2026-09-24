@@ -215,6 +215,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
               {[
                 `${sender} never sees your answers. Neither of you sees the other’s — only where you match.`,
                 'No account. Nobody asks your name.',
+                'Your answers are kept under this link’s code, with no name, for ninety days — then deleted.',
                 'Answer honestly. The only thing this can do is show you both which conversation to have next.',
               ].map((line) => (
                 <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>

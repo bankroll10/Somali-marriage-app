@@ -3,6 +3,7 @@ import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../li
 import type { Gender, Identity, ReadRecord } from '../types'
 import { EXAMPLE_ANSWERS, readQuestions, scriptFor } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
+import { GUIDE_SOURCE } from '../lib/coach'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
@@ -596,7 +597,7 @@ function Result({
                 Talk it through with your guide
               </span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                It already knows what this read said. Ask it the thing you did not want to ask a friend.
+                It already knows what this read said. Ask it the thing you did not want to ask a friend. {GUIDE_SOURCE}
               </span>
             </span>
             <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
