@@ -458,7 +458,7 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
     words:
       'When I bring up something that is bothering me, I come away feeling like I have done something wrong. I do not think you mean it that way — but I need you to hear that it lands like that.',
     tells:
-      'Someone who can sit inside that without turning it around has just shown you one of the clearest signs this list can give. Someone who cannot has shown you that too.',
+      'Someone who can sit inside that without turning it around has just shown you, live, what this list could only ask about. Someone who cannot has shown you that too.',
   },
   early: {
     why: 'You are early. That is not a problem — it is the best time to ask, before either of you has spent months.',

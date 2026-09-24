@@ -286,7 +286,7 @@ export default function Home({
           </button>
         )}
 
-        {/* Deciding together: the conversations most of us have too late,
+        {/* Deciding together: the conversations to have before the families do,
             asked in month two, and the words for the families. Also at
             "talking", once she has been through them or sent them: the
             read-first person — whose relationship began somewhere else — used

@@ -107,7 +107,7 @@ export function buildEnding(i: EndingInput, today: string): Ending {
     })
   }
 
-  // The eleven — the conversations most people have too late.
+  // The eleven — the conversations to have before the families do.
   if (i.beforeYes) {
     const r = buildBeforeYes(i.beforeYes.answers, i.gender)
     lines.push({

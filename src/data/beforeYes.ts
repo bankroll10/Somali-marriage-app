@@ -4,9 +4,9 @@ import { speak, type ReadOption, type Script } from './read'
 /**
  * Before you say yes.
  *
- * The Need audit named it: "we discovered too late that…". The things that
- * actually break Somali marriages are almost never the things the apps ask
- * about. They are where you'll live and whether his mother is in the house,
+ * The Need audit named it: "we discovered too late that…". The bet is that
+ * what comes between Somali couples is not what the apps ask about (class F,
+ * docs/RESEARCH.md, L5). It is where you'll live and whether his mother is in the house,
  * money sent home, whether she keeps working, what "practising" means on a
  * Tuesday, qabiil at somebody's table, a second wife. They get found out after
  * the families are involved, when saying no has become expensive.

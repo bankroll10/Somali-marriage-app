@@ -26,8 +26,9 @@ import type { Chapter, Question } from '../types'
  * so the cap is policed by a number rather than a memory.
  */
 /**
- * How you'd live — the three things Somali marriages actually break on that no
- * app asks: whose house, whether she works, and money sent home.
+ * How you'd live — three of the eleven, which no app asks: whose house,
+ * whether she works, and money sent home. That these are what Somali
+ * marriages break on is class F (docs/RESEARCH.md, L5), not a finding.
  *
  * These used to sit outside the chapters, on a screen she may never open.
  * docs/PRODUCT.md found that inverted against the one thing this product is

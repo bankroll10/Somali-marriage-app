@@ -87,7 +87,7 @@ const WHY_IT_MATTERS: Record<ReadDimension, string> = {
   consistency:
     'Words are cheap and everyone has good ones. What you are looking for is whether the behaviour underneath them is steady.',
   pressure:
-    'How someone treats you when you are inconvenient is one of the clearest signs you get beforehand.',
+    'How someone treats you when you are inconvenient is the part of them you most need to see before anything is decided.',
 }
 
 const DURATION_NOTE: Record<string, string> = {
