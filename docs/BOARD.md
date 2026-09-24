@@ -205,6 +205,7 @@ Ranked by how much of the plan rests on each.
   `docs/MONETIZATION.md`: only the call is sold, once per person.)*
 - **FACT** — The claimed cultural-depth skew does not ship: all ten Somali
   lines are `approved: false` and every caller falls back to English.
+  *(Superseded: nine were approved on review — "The Somali lines", below.)*
 - **INFERENCE** — The honest door is a skew only once its number is
   non-trivially positive; at zero and zero it is `docs/REDTEAM.md` #6's reason
   to leave.
