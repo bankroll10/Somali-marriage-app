@@ -114,7 +114,10 @@ describe('Trust keeps what it collapsed', () => {
       .replace(/[{}()]/g, ' ')
       .replace(/\s+/g, ' ')
     const words = visible.split(' ').filter((w) => /[A-Za-z’']/.test(w)).length
-    expect(words).toBeLessThanOrEqual(2_050)
+    // 2,050 until 2026-09-24, when the crash count began to leave the phone
+    // (src/lib/crash.ts) and Trust said so in one clause: a new collection,
+    // a new disclosure, and the budget raised by exactly its words.
+    expect(words).toBeLessThanOrEqual(2_060)
     expect(visible).not.toMatch(/form service|second copy/)
     expect(visible).not.toMatch(/nothing that leads back to you|no one at Niyyah can read them/)
   })

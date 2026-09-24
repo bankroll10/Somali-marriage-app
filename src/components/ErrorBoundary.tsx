@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react'
 import { isChunkLoadError } from '../lib/chunkError'
 import { clearEverything } from '../lib/forget'
+import { reportCrash } from '../lib/crash'
 
 interface Props {
   children: ReactNode
@@ -23,8 +24,10 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error) {
-    // In production this is where we'd report to an error tracker.
     console.error('[niyyah] render error:', error)
+    // That it happened, and which of two kinds — nothing else leaves the
+    // phone: no stack, no screen, nothing of hers (src/lib/crash.ts).
+    reportCrash(isChunkLoadError(error) ? 'chunk' : 'crash')
   }
 
   render() {
