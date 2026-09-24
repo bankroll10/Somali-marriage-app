@@ -320,8 +320,8 @@ export default function Home({
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
                 {coupleAnswered
                   ? coupleSecond
-                    ? `You answered ${answerer === 'He' ? 'his' : 'her'} eleven on your own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
-                    : `${answerer} answered the eleven on ${answerer === 'He' ? 'his' : 'her'} own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
+                    ? `You answered ${answerer === 'He' ? 'his' : 'her'} eleven on your own phone. Neither of you sees the other’s answers — only where the two of you stand, and the one to open together.`
+                    : `${answerer} answered the eleven on ${answerer === 'He' ? 'his' : 'her'} own phone. Neither of you sees the other’s answers — only where the two of you stand, and the one to open together.`
                   : coupleWaiting
                     ? `You sent ${answerer === 'He' ? 'him' : 'her'} the eleven. When ${answerer === 'He' ? 'he answers' : 'she answers'}, where the two of you stand shows up here — and nowhere else.`
                     : hasBeforeYes

@@ -139,7 +139,7 @@ export default function Welcome({
           >
             {[
               'It works on the relationship you already have — however you met, with no account.',
-              'Send them the same eleven questions. Each of you answers on your own phone; you both see only where you match.',
+              'Send them the same eleven questions. Each of you answers on your own phone; you both see only where the two of you stand.',
               'A few days later, we ask whether the conversation happened. When you marry, we let you go.',
             ].map((line) => (
               <li key={line} className="flex gap-3 text-[0.93rem] leading-snug text-cream/70 text-pretty">

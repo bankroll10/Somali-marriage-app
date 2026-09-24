@@ -7,7 +7,7 @@ import { send, whyOf, type Why } from './net'
  * The client half of netlify/functions/couple.ts.
  *
  * She sends him the eleven; he answers without an account; both see only where
- * they match. Nothing in here can show either of them the other's sheet,
+ * they stand. Nothing in here can show either of them the other's sheet,
  * because the server never sends it — this file only ever handles the joint.
  */
 

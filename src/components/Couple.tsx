@@ -44,7 +44,7 @@ type Phase = 'loading' | 'dead' | 'unreachable' | 'answered-already' | 'intro' |
  *
  * He arrives with a link and no account. Nobody asks his name. He is told
  * exactly one thing before he starts: she never sees his answers, only where
- * they match. That sentence is what makes his answers honest, and honest
+ * they stand. That sentence is what makes his answers honest, and honest
  * answers are the entire value of the instrument.
  *
  * When he finishes he sees the same joint she will, and he is offered the two
@@ -190,7 +190,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
               It works — this is what {senderObj === 'her' ? 'he' : 'she'} sees when {senderObj === 'her' ? 'he' : 'she'} opens
               it. {senderObj === 'her' ? 'He' : 'She'} has not answered yet. When {senderObj === 'her' ? 'he' : 'she'} does,
-              Home will say so, and you will both see where you match — not each other’s answers.
+              Home will say so, and you will both see where the two of you stand — not each other’s answers.
             </p>
             <p className="animate-rise mt-3 text-[0.92rem] leading-relaxed text-muted text-pretty">
               Answering it here yourself would put your own answers on {senderObj === 'her' ? 'his' : 'her'} side of the
@@ -214,7 +214,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             </p>
             <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
               {[
-                `${sender} never sees your answers. Neither of you sees the other’s — only where you match.`,
+                `${sender} never sees your answers. Neither of you sees the other’s — only where the two of you stand.`,
                 'No account. Nobody asks your name.',
                 'Your answers are kept under this link’s code, with no name, for ninety days — then deleted.',
                 'Answer honestly. The only thing this can do is show you both which conversation to have next.',
@@ -312,7 +312,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             </h1>
             <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
               Your answers are in. {sender} can see where the two of you stand — and neither of
-              you sees the other’s answers, only where you match. Nothing more to do here.
+              you sees the other’s answers, only where the two of you stand. Nothing more to do here.
             </p>
             <Button onClick={onHome} variant="outline" className="mt-7">
               What Niyyah is

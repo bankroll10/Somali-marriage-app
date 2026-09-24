@@ -16,7 +16,7 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
  *
  * She sends him the eleven. He answers with no account, no name, and no
  * knowledge of what she said. Then both of them see one thing: where they
- * match — and, most importantly, where one of them thinks a conversation has
+ * stand — and, most importantly, where one of them thinks a conversation has
  * happened and the other does not.
  *
  * The whole value depends on one guarantee: neither person ever sees the

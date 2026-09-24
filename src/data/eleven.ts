@@ -66,7 +66,7 @@ export const TOPICS: Topic[] = [
     label: 'Where you’d live',
     prompt: 'Where you’d live — which city, and whether with {his} mother, near her, or on your own.',
     consequence: 0.95,
-    why: 'This is rarely decided by two people alone, and it is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and still come apart on that in the first year.',
+    why: 'This is rarely decided by two people alone, and it is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and find out only once the lease is signed that they pictured different homes.',
     script: {
       why: 'Where you live decides who is in your home every day, and it is easy not to ask until the lease is signed.',
       words:

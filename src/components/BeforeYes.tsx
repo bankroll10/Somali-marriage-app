@@ -504,7 +504,7 @@ function List({ title, items, tone }: { title: string; items: TopicReading[]; to
  * The two-sided version.
  *
  * Her eleven go up under a code; he opens a link and answers without an
- * account; both then see only where they match. Her side is frozen the moment
+ * account; both then see only where they stand. Her side is frozen the moment
  * he answers, his after once — so neither can flip a topic and read the other.
  * The joint here is read from the server, never from her live local answers.
  */
@@ -559,7 +559,7 @@ function Together({
   async function share(code: string) {
     const result = await shareOrCopy(
       {
-        text: `I’ve been through the eleven conversations on Niyyah — would you do them too? You answer on your own; I never see your answers, only where we match.`,
+        text: `I’ve been through the eleven conversations on Niyyah — would you do them too? You answer on your own; I never see your answers, only where we stand.`,
         url: withVia(coupleLink(code, SITE_URL), 'couple'),
       },
     )
@@ -624,10 +624,10 @@ function Together({
       </p>
       <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
         {!couple
-          ? `Send ${pronoun} a link. ${he === 'he' ? 'He' : 'She'} answers the same eleven on ${he === 'he' ? 'his' : 'her'} own — no account, no name — and ${he} never sees your answers. Neither of you sees the other’s. You both see only where you match, and which conversation one of you thinks you’ve had that the other doesn’t.`
+          ? `Send ${pronoun} a link. ${he === 'he' ? 'He' : 'She'} answers the same eleven on ${he === 'he' ? 'his' : 'her'} own — no account, no name — and ${he} never sees your answers. Neither of you sees the other’s. You both see only where the two of you stand, and which conversation one of you thinks you’ve had that the other doesn’t.`
           : view === 'unreachable'
             ? `That is us, not ${pronoun} — the link is fine and your answers are safe. ${he === 'he' ? 'He' : 'She'} may well have answered. Try again in a moment.`
-            : `When ${he} does, you both see only where you match — and where one of you thinks a conversation happened and the other doesn’t. Send the link again if it got lost.`}
+            : `When ${he} does, you both see only where the two of you stand — and where one of you thinks a conversation happened and the other doesn’t. Send the link again if it got lost.`}
       </p>
       {view === 'unreachable' && (
         <button

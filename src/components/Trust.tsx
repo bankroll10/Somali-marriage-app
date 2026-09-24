@@ -149,11 +149,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               </p>
             </Disclose>
 
-            <Disclose summary={fix('Asking {him} to do the eleven too')} hint="Only where you match comes back">
+            <Disclose summary={fix('Asking {him} to do the eleven too')} hint="Only where you stand comes back">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                 {fix(`If you send {him} the link, your eleven answers go to our server under a
                 code with no name on it, and {his} go there when {he} answers. The server
-                sends back only where you match — not your sheet to {him}, and not {his}
+                sends back only where the two of you stand — not your sheet to {him}, and not {his}
                 to you. From your own answer you can still tell whether {he} thinks a
                 conversation happened; that is the point, and {he} can tell the same
                 about you.`)}

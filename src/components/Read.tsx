@@ -571,7 +571,7 @@ function Result({
             <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
               Eleven conversations to have before the families do. You can send them to
               {' '}{subject} too — {they} answers on {subject === 'him' ? 'his' : 'her'} own phone, and
-              neither of you sees the other’s answers, only where you match.
+              neither of you sees the other’s answers, only where the two of you stand.
             </span>
           </span>
           <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
