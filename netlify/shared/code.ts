@@ -45,7 +45,7 @@ export const CODE_LENGTH = 8
 /** What every code was before that, and still is for anyone who kept one. */
 export const LEGACY_CODE_LENGTH = 6
 /**
- * A report receipt, a couple owner key, a first keep's once key. Ten, never
+ * A report's id, a couple owner key, a first keep's once key. Ten, never
  * eight: a token is not a code and must never be mistaken for one.
  */
 export const TOKEN_LENGTH = 10

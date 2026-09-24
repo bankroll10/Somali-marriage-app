@@ -174,9 +174,9 @@ explained. It shipped as five commits, `0bd7e96` to `d41f879`.
 | What | Why it went |
 |---|---|
 | The door, count-me, the short map, the waitlist and its form, contacts, reach, age, the hesitation question, `netlify/functions/cohort.ts` | A 40/40 goal with nobody in it, holding the product's only personal data for introductions that do not exist |
-| The pool readout and matching gate (`pool.ts`, `netlify/shared/gate.ts`, `docs/atomic-sim.mjs`) | They decide when a pool may open; none can |
+| The pool readout and matching gate (`netlify/functions/pool.ts`, `netlify/shared/gate.ts`, `docs/atomic-sim.mjs`) | They decide when a pool may open; none can |
 | The sample introduction, the invented candidates, matching, HowYoudLive | An invented person; HowYoudLive repeated intake questions |
-| Profile, Plus, Philosophy, the glossary and `<Words>` | Profile said "nobody is introduced here yet"; Plus described a business with nothing for sale. Its three promises moved to Trust as "What's free" |
+| Profile, Plus, Philosophy, the glossary and `<Words>` | Profile said "nobody is introduced here yet"; Plus described a business with nothing for sale, and its three promises moved to Trust as "What's free". Philosophy was a manifesto and a second glossary; each instrument's own intro now explains its words |
 | The family vouch (screen, lib, function, `vouches` store) and the `vouched` rung | It verified one side, unverified, for introductions that do not happen, and stored a relative's name and phone that no code read. The family words do the family job |
 | The ledger, the `counted` rung, the work steps | Social proof with no audience; the work steps were fired by the product, not her life |
 | The Matchmaker guide voice | It could only say there was nobody to introduce. Its four real answers moved to the auntie and the brother; four voices remain |
@@ -184,7 +184,7 @@ explained. It shipped as five commits, `0bd7e96` to `d41f879`.
 | The report withdrawal route and receipts | Nothing in the app called it, and only the founder resolves a report |
 | The couple sheet's pre-owner-key fallback | Claiming the creator's gender could change her side (`docs/SECURITY.md` O6) |
 | `country` and the eleven's state histograms on the progress record | A quasi-identifier with nothing left to read it; histograms no readout step read |
-| Dead exports, and tests of deleted code: the catalogue, `load`, `wayout`, `alignment-audit`, `gate-sync`, the non-negotiables invariant | Unused, or they counted source text |
+| Dead exports, and tests of deleted code: the catalogue, `load`, `wayout`, `alignment-audit`, `gate-sync`, the non-negotiables invariant | Unused; the tests' subject was deleted, or they counted source text |
 
 ### What was kept, and narrowed
 

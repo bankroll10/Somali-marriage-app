@@ -251,7 +251,7 @@ export default async function handler(req: Request, _context: Context) {
   if (!message) return Response.json({ error: 'missing_message' }, { status: 400 })
 
   // The mode is the only thing the caller chooses about how the guide speaks,
-  // and it chooses from five. Anything else is not a voice this product has.
+  // and it chooses from four. Anything else is not a voice this product has.
   const mode = typeof body.mode === 'string' ? body.mode : ''
   if (!GUIDE_MODES.has(mode)) return Response.json({ error: 'bad_mode' }, { status: 400 })
 

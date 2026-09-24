@@ -93,7 +93,7 @@ Chromium against `vite preview` at 390×844, 4× CPU, 150 ms, 1.5 Mbps down.
 
 | Budget | Measured | Held by |
 |---|---|---|
-| Every screen but Welcome loads behind `lazy()`, inside one `<Suspense>` whose full-height fallback cannot shift layout | 15 lazy screens in `src/App.tsx` | `tests/performance.test.ts` |
+| Every screen but Welcome loads behind `lazy()`, inside one `<Suspense>` whose full-height fallback cannot shift layout | 15 `lazy()` imports in `src/App.tsx`; `ConfirmRestore` from `src/main.tsx` | `tests/performance.test.ts` |
 | Initial JS under ~400 KB raw / ~130 KB gzip | 2026-09-24: entry chunk 302.41 KB (98.90 gzip); with the ten modulepreloaded chunks, 360.4 KB (119.9 gzip). Was one 611.63 KB chunk before the split | build output; Vite warns at 500 KB |
 | A stream writes state at most once per frame, and flushes once more at the end | `Coach.tsx` coalesces every `text_delta` through `requestAnimationFrame` | `tests/performance.test.ts`, mutation-tested |
 | No blanket idle-prefetch | tried twice: FCP 1,940–1,960 ms became 2,164–2,204 ms (~12% slower) | this row |
@@ -123,7 +123,7 @@ and `tests/tools.test.ts`.
 
 `?via=` names what carried a link (`words`, `eleven`, `couple`, `family`,
 `married`, `group`, `alumni`, `professional`, `mosque`, `press`), never who.
-`?demo` and `?fresh` are developer switches, not links anyone is sent.
+`?demo` and `?fresh` are demo switches (`src/lib/demo.ts`), never sent to anyone.
 
 - **A tool has its own address and preview.** `vite.config.ts` writes a
   static page per row of `src/data/tools.ts`, because messaging crawlers run
@@ -162,8 +162,8 @@ answers a failure with a status and JSON (`tests/failure-modes.test.ts`).
 | **API unavailable** (503) | "that is us, not you", with the action still offered | everything | yes |
 | **Claude unavailable** | "We couldn’t reach the guide just now, so that answer came from this phone. It cost you nothing." | the thread | yes, free |
 | **Claude drops mid-answer** | The words that arrived stay: "That answer was cut off." | the partial answer | yes |
-| **Storage unavailable** | `NotSaving` on the read, the eleven, the couple sheet, the intake and Home | the session, until the tab closes | n/a |
-| **Restore code** | One sentence per reason: not a code, nothing under it, moved, forgotten, lapsed, or "that is us, not your code" | the phone's own map | only if unreachable |
+| **Storage unavailable** | "This browser isn’t saving…": `NotSaving` on the read, the eleven and the couple sheet; its own line on the intake and Home | the session, until the tab closes | n/a |
+| **Restore code** | One sentence per reason: not a code, nothing under it, moved, forgotten, lapsed, or "that is us, not your code" | the phone's own map | retype; retry only if unreachable |
 | **Expired couple link** | "they last ninety days", only when the server says so | her answers | no |
 | **Failed keep** | "That didn’t save — nothing is lost." The old code is dropped only once a new one exists | map, answers, code | yes |
 | **Failed couple answer** | "That didn’t send — the link is fine and your answers are still here." | his answers, in the draft | yes |
@@ -193,9 +193,9 @@ answers a failure with a status and JSON (`tests/failure-modes.test.ts`).
 later (`RECHECK_MS`), then waits for her next visit. **Failure is not loud**: a
 rate limit reads as an outage, and the guide's fallback note is one grey line.
 **Nothing is written back after forget me**: `forgotten` is set before the
-first await and stops the autosave, and the crash screen calls
-`clearEverything()` (`tests/journeys/forget-offline.test.tsx`,
-`tests/fail.test.ts`). There is no server-side timeout in `netlify/`; that
+first await, and the autosave checks it when a save is scheduled and again when
+it fires; the crash screen calls `clearEverything()`
+(`tests/journeys/forget-offline.test.tsx`, `tests/fail.test.ts`). There is no server-side timeout in `netlify/`; that
 wants its own decision in `docs/OPS.md`.
 
 ## 7 · Fogg: remove obstacles, never nudge

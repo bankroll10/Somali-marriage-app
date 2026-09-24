@@ -215,8 +215,8 @@ export default async function handler(req: Request) {
    * asking to be forgotten should take the sheet with them.
    *
    * It deletes the sheet and nothing else. In particular it does not touch
-   * `reports`: a report is withdrawn only with the receipt its filer was
-   * handed (netlify/functions/safety.ts). A man must never be able to erase a
+   * `reports`: only the founder resolves a report
+   * (netlify/functions/safety.ts). A man must never be able to erase a
    * safety report about himself by tapping forget me — nor stop one being
    * made: the sheet is retired, not erased, and a report can still be made
    * against it for ninety days (netlify/shared/sheet.ts).

@@ -4,11 +4,9 @@ The ledger for every piece of data Niyyah touches: what stays on her phone,
 what leaves it and when, what each server store holds and for how long, how
 deletion works when a step fails, and what each founder readout field is.
 `src/components/Trust.tsx` is the promise; this file holds the code to it.
-Who could take the data is `docs/SECURITY.md`.
-
-**"The founder"** means one person holding Netlify credentials. She can read
-every store, but not the phone and not Anthropic. "No endpoint returns it"
-means no URL returns it; she can still open the store.
+Who could take the data is `docs/SECURITY.md`. **"The founder"** is one
+person holding Netlify credentials: she can open every store, but not the
+phone or Anthropic. "No endpoint returns it" means no URL returns it.
 
 ## Standing rules
 
@@ -95,12 +93,10 @@ kept. It reaches the server only inside a kept map ("where you said you are").
 The test for any future field: *does this describe a person, or a pairing, a
 conversation, or a question?* Only the last three are collected.
 
-**What she controls.** The steps switch gates the call itself (`useNiyyah`
-skips `reportRungs` when it is off). It is **on by default** and says "On
-unless you turn it off"; `arrived` posts on first render. The honest word is
-opt-out, not consent (`docs/DECISIONS.md`). "Keep the Guide on this device"
-stops every guide call. The ended screen says nothing about him is recorded.
-Forget me is on Trust and on the married Ending.
+**What she controls.** The steps switch gates the call itself; it is **on by
+default**, says "On unless you turn it off", and `arrived` posts on first
+render: opt-out, not consent (`docs/DECISIONS.md`). "Keep the Guide on this
+device" stops every guide call. Forget me is on Trust and the married Ending.
 
 ## On her phone
 
@@ -196,40 +192,33 @@ it cannot reach"); the sheet's `gone/` window, a date.
 ### The weekly sweep (`netlify/functions/sweep.ts`, `@weekly`)
 
 Each record is its own step; one it cannot read or delete is counted in
-`errors` and tried next week. In order:
-
-1. **Journals older than 2 days**: rolled back (no tombstone yet) or finished.
-2. **Maps, tombstones and once keys past `expiresAt`**, only if unchanged
-   since read (`deleteIfUnchanged`), so a map renewed meanwhile stays.
-3. **Couple sheets past 90 days** are retired; ended `gone/` windows go.
-4. **Step counts past their year**, unless they reached `married`.
-5. **`cohort`, `contacts`, `vouches`** are emptied, so ways to reach people
-   and relatives' phone numbers do not outlive the feature.
-6. **`ops` counts** past 35 days.
-
-It answers `{swept: {maps, couples, progress, journals, retired, errors},
-at}`, never touches reports, tallies or limits, and needs no key.
+`errors` and tried next week. In order: (1) journals older than 2 days,
+rolled back if no tombstone yet, else finished; (2) maps, tombstones and once
+keys past `expiresAt`, only if unchanged since read (`deleteIfUnchanged`);
+(3) couple sheets past 90 days, retired, and ended `gone/` windows; (4) step
+counts past their year, unless `married`; (5) every key in `cohort`,
+`contacts` and `vouches`, so ways to reach people and relatives' phone
+numbers do not outlive the feature; (6) `ops` counts past 35 days. It answers
+`{swept: {maps, couples, progress, journals, retired, errors}, at}`, never
+touches reports, tallies or limits, and needs no key.
 
 ## Integrity: every write over more than one key
 
 Netlify Blobs has no transactions: only `onlyIfNew`, `onlyIfMatch: etag` and
-an unconditional `delete`. Every multi-key operation is a sequence that must
-end **resumable** (a retry finishes it), **reconciled** (the sweep does) or
-**accepted** (harmless, named here), and never leave a map nobody can reach,
-a person counted twice or not at all, or a code that returns after she
-forgot it. `tests/integrity.test.ts` breaks each step with the
-fault-injecting store in `tests/support/blobs.ts`; the primitives are in
-`netlify/shared/integrity.ts`.
+an unconditional `delete`. So every multi-key operation must end
+**resumable** (a retry finishes it), **reconciled** (the sweep does) or
+**accepted** (harmless, named here), never leaving a map nobody can reach, a
+person counted twice or not at all, or a code that returns after she forgot
+it. `tests/integrity.test.ts` breaks each step with `tests/support/blobs.ts`;
+the primitives are in `netlify/shared/integrity.ts`.
 
 **Keep.** A re-keep is one conditional write, three tries. A closed code
 answers 410 and the phone drops it, never minting a replacement unless she
 asks. A `rev` older than the stored one gets **409 stale** and nothing is
-written; no `rev` (an older client) is accepted. A code with nothing under it
-is a 404, and the phone drops it only once a new code is in hand. **Once
-keys:** a first keep carries a key made on the phone, reused until a code
-comes back; the server mints, then writes `once/<id>` → code (`onlyIfNew`).
-The same key again is a re-keep, and the map records it so Forget me and a
-move take it along.
+written; no `rev` (an older client) is accepted. **Once keys:** a first keep
+carries a key made on the phone, reused until a code comes back; the server
+mints, then writes `once/<id>` → code (`onlyIfNew`). The same key again is a
+re-keep, and the map records it so Forget me and a move take it along.
 
 **Change my code (`PUT /keep`),** journaled:
 
@@ -289,13 +278,12 @@ doubles (`tests/support/memory.ts`, `blobs.ts`) are strongly consistent.
 ## The readouts, field by field
 
 All sit behind `FOUNDER_KEY` (`netlify/shared/founder.ts`); all but the
-safety queue are aggregate. How and when to read them is `docs/OPS.md`; the
-monthly questions are `docs/RESEARCH.md`.
+safety queue are aggregate. How and when to read them is `docs/OPS.md`.
 
 ### `GET /progress`: `rungs, scenes, vias, sides, sidesByVia, cohorts, facts`
 
-Computed from every record on each read; a record past its year that never
-reached `married` is deleted as the tally walks past, so a forget un-counts.
+Computed from every record on each read (a forget is an un-count); a record
+past its year that never reached `married` is deleted as the tally walks.
 
 | Field | What it is | Why |
 |---|---|---|
@@ -320,15 +308,13 @@ histograms, `facts.hesitated`, `facts.countedBy`.
 
 ### Reading `null`: the k-floor
 
-Every cell in a split by a quasi-identifier (city, via, side, side × via) and
-every `marriedBy` or `followedThroughBy` row under five (`K_FLOOR`,
-`netlify/shared/floor.ts`) reads `null`: zero to four, never omitted, since a
-missing key is itself a count. Whole-population counts (`rungs`, `cohorts`,
-the other facts) are never floored, so a lone `ending.who.brought: 1` shows.
-A `null` beside an unfloored total can be recovered by subtraction when every
-other cell in its row shows, and the floor protects against a leaked key, not
-against the founder, who holds the stores. Days and Trust's sentence do the
-heavier lifting.
+Every cell of a split by a quasi-identifier (city, via, side, side × via) and
+of a `marriedBy` or `followedThroughBy` row under five (`K_FLOOR`,
+`netlify/shared/floor.ts`) reads `null`, never omitted. Whole-population
+counts (`rungs`, `cohorts`, the other facts) are never floored, so a lone
+`ending.who.brought: 1` shows. A `null` beside an unfloored total can be
+recovered by subtraction when the rest of its row shows, and the floor
+protects against a leaked key, not against the founder, who holds the stores.
 
 ### The other readouts
 
