@@ -21,7 +21,7 @@ interface Props {
   countMe: boolean
   onCountMe: (on: boolean) => void
   /** Delete everything kept under her codes, then start this phone over. */
-  onForget: () => Promise<{ map: boolean; progress: boolean; couple: boolean }>
+  onForget: () => Promise<{ map: boolean; progress: boolean; couple: boolean; code?: string }>
   onBack: () => void
 }
 
@@ -45,6 +45,8 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
   const [forgetting, setForgetting] = useState<'idle' | 'sure' | 'working'>('idle')
   // What a failed server delete left behind, named rather than hidden.
   const [stillHeld, setStillHeld] = useState<string[]>([])
+  // The code still held on the server, so she can write in with it.
+  const [heldCode, setHeldCode] = useState<string | undefined>()
 
   return (
     <div className="min-h-dvh bg-cream pb-20 pt-safe">
@@ -375,6 +377,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                   onClick={async () => {
                     setForgetting('working')
                     const result = await onForget()
+                    setHeldCode(result.code)
                     // A full success replaces the page and never gets here.
                     setStillHeld(
                       [
@@ -399,8 +402,15 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               <p role="status" className="w-full text-[0.85rem] leading-snug text-clay text-pretty">
                 This phone is cleared. We could not reach {stillHeld.join(' and ')} just now, so
                 {stillHeld.length > 1 ? ' they are' : ' it is'} still held — that is us, not you.
-                Tap Forget me again in a moment, or write to{' '}
-                <span className="font-medium">{CONTACT_EMAIL}</span> and it goes by hand.
+                This phone keeps only what it needs to finish, and tries again every time Niyyah
+                opens; or tap Forget me again in a moment. Or write to{' '}
+                <span className="font-medium">{CONTACT_EMAIL}</span>
+                {heldCode ? (
+                  <>
+                    {' '}with the code <span className="font-medium tracking-[0.15em]">{heldCode}</span>
+                  </>
+                ) : null}{' '}
+                and it goes by hand.
               </p>
             )}
             {forgetting === 'working' && <span className="text-[0.88rem] text-muted">Forgetting…</span>}

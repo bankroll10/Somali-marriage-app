@@ -165,7 +165,10 @@ describe('changing a code someone has seen', () => {
     const { code } = await res.json()
     expect(code).toMatch(/^[A-Z0-9]{8}$/)
     expect(code).not.toBe(MAP)
-    expect((await keep(new Request(`http://x/.netlify/functions/keep?code=${MAP}`))).status).toBe(404)
+    // It opens nothing, and says why: moved (docs/INTEGRITY.md) — never where to.
+    const old = await keep(new Request(`http://x/.netlify/functions/keep?code=${MAP}`))
+    expect(old.status).toBe(410)
+    expect(await old.json()).toEqual({ error: 'moved' })
     expect(JSON.parse(store('maps').get(code)!).snapshot.identity.firstName).toBe('Hodan')
   })
 
@@ -179,7 +182,8 @@ describe('changing a code someone has seen', () => {
     expect(JSON.parse(store('cohort').get(member)!).at).toBe('2026-09-03')
     expect(JSON.parse(store('contacts').get(code)!).contact).toBe('h@example.com')
     for (const s of ['maps', 'vouches', 'cohort', 'contacts'])
-      expect([...store(s).keys()].filter((k) => k.includes(MAP)), s).toEqual([])
+      // The tombstone that closes the old code is not hers: a reason and a date.
+      expect([...store(s).keys()].filter((k) => k.includes(MAP) && k !== `ended/${MAP}`), s).toEqual([])
   })
 
   it('a code with nothing under it is a 404, and a bad one a 400', async () => {

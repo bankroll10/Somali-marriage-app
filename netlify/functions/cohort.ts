@@ -8,6 +8,7 @@ import { day } from '../shared/day'
 import { floor } from '../shared/floor'
 import { overHourlyCap, rateLimited, underLimit } from '../shared/limit'
 import { stamp } from '../shared/record'
+import { liveMap } from '../shared/integrity'
 
 /**
  * The number on the door.
@@ -287,9 +288,11 @@ export default async function handler(req: Request) {
   if (!(await underLimit(`door-city-${scene}`, cityCap))) return rateLimited()
 
   // The count is of kept maps, not of taps. A code nobody has kept a map under
-  // is not a person we could ever introduce, so it is not counted.
+  // is not a person we could ever introduce, so it is not counted — nor one
+  // past its year, or closed by forget me or a change of code
+  // (netlify/shared/integrity.ts `liveMap`).
   try {
-    const kept = await getStore('maps').getMetadata(code)
+    const kept = await liveMap(getStore('maps'), code)
     if (!kept) return Response.json({ error: 'no_map' }, { status: 404 })
   } catch (err) {
     console.error('[niyyah] cohort: map lookup failed', err)
@@ -316,10 +319,21 @@ export default async function handler(req: Request) {
     // One person, one entry. Joining again after moving city, changing how far
     // she would go, or changing an answer replaces the old entry rather than
     // counting her twice.
+    //
+    // In this order, so that a failure at any step leaves her counted at
+    // least once and never not at all (docs/INTEGRITY.md). It used to delete
+    // the old entry first: a write that failed after it took her off the door
+    // entirely. Now the new entry and its index land first, the index is read
+    // back — a second join at the same moment may have written its own, and
+    // the one the index names is the one that stays — and only then does the
+    // old entry go. The worst a failure leaves is one entry too many, which
+    // the weekly sweep reconciles (netlify/functions/sweep.ts).
     const previous = (await store.get(indexKey, { type: 'text' })) as string | null
-    if (previous && previous !== key) await store.delete(previous)
     await store.setJSON(key, stamp(record))
     await store.set(indexKey, key)
+    const named = (await store.get(indexKey, { type: 'text' })) as string | null
+    if (named !== key) await store.delete(key)
+    else if (previous && previous !== key) await store.delete(previous)
 
     // The way to reach her, to its own store. After the count, and in its own
     // try: being counted is what she asked for, and it must not fail because

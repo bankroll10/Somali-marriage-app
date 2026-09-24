@@ -18,7 +18,7 @@ import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
 import { factsFrom } from '../lib/facts'
-import { forgetMe, type Forgotten } from '../lib/forget'
+import { forgetMe, retryPendingForget, type Forgotten } from '../lib/forget'
 import { clearAllDrafts } from '../lib/draft'
 import { coupleReading, readCouple } from '../lib/couple'
 import { forgetEntry, type Entry, type EntryKind } from '../lib/entry'
@@ -267,6 +267,10 @@ export function useNiyyah(entry: Entry | null = null) {
   // per load until the server takes it.
   useEffect(() => {
     void flushWaitlistQueue()
+    // The same for a Forget me the server did not receive: its codes are sent
+    // again every time the app opens, until every delete has landed
+    // (src/lib/forget.ts, docs/INTEGRITY.md).
+    void retryPendingForget()
   }, [])
 
   // What the rungs were made of, in words from closed lists — which grounds

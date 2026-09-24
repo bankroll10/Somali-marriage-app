@@ -174,7 +174,7 @@ describe('keeping a map', () => {
     for (const bad of ['HJKMNPQ', 'HJKMN', 'HJKMNPQRT', 'OOOOOO', 'H0KMNP']) expect((await get(bad)).status).toBe(400)
   })
 
-  it('forgetting a code removes the map, the pair, the vouch and its token, and the door entry — and a second time is a quiet 404', async () => {
+  it('forgetting a code removes the map, the pair, the vouch and its token, and the door entry — and asking again is done, not an error', async () => {
     // Everything one person can leave behind, seeded as the functions write it.
     seed('ACDEFG', { identity: { firstName: 'Sagal', gender: 'woman' }, couple: { code: 'HJKMNP', at: 'x' } })
     memStore('couples'); memStore('vouches'); memStore('cohort')
@@ -211,9 +211,12 @@ describe('keeping a map', () => {
     expect(stores.get('reports')!.has('HJKMNP-woman-ACDEFG')).toBe(true)
     expect(stores.get('reports')!.has('resolved/QRTWXY')).toBe(true)
     expect(stores.get('couples')!.has('QRTWXY')).toBe(true)
-    // Nothing left to forget.
-    expect((await forget('ACDEFG')).status).toBe(404)
-    expect((await get('ACDEFG')).status).toBe(404)
+    // Asking again finishes whatever a first attempt left, and says it is done
+    // (docs/INTEGRITY.md); the code opens nothing, and says why.
+    const again = await forget('ACDEFG')
+    expect(again.status).toBe(200)
+    expect(await again.json()).toEqual({ forgotten: true })
+    expect((await get('ACDEFG')).status).toBe(410)
   })
 
   it('takes no report on either side, whatever the snapshot claims — a report goes only by its receipt', async () => {

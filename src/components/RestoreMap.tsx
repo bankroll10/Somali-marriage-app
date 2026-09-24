@@ -48,6 +48,8 @@ export default function RestoreMap() {
   const problem: Record<RestoreProblem, string> = {
     'not-a-code': `A code is ${CODE_LENGTH} characters, like ${formatCode(EXAMPLE_CODE)} (six, if you kept yours before September 2026) — check for a missing one.`,
     'not-found': 'No map is kept under that code. Check it against the one you saved.',
+    moved: 'That code was changed from another phone, so it opens nothing now. Open your map on that phone, or use the new code it shows.',
+    forgotten: 'That map was deleted — someone asked for it to be forgotten. There is nothing left under this code to bring back.',
     expired: 'That code has lapsed. A kept map is held for a year after the last time it was kept, and this one is past that, so there is nothing left to bring back.',
     unreachable: 'We could not reach the map just now — that is us, not your code. Nothing has been changed; try again in a moment.',
   }
