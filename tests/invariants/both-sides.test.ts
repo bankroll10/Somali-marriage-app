@@ -14,16 +14,15 @@ import { beforeYesAnswers, readAnswers } from '../support/arbitrary'
  * Every instrument is read by one side about the other. A man reading a woman
  * must never be told what "he" intends; a woman must never be handed a script
  * about "her". It happened on the live site on 2026-09-12 (docs/BOARD.md), and
- * tests/mens-read.test.ts caught that one by sweeping fixed answers through the
- * read and the eleven. This generalises it: *generated* answers, on both
- * sides, through every engine that writes prose about the other person — the
- * read, Before you say yes, the couple reading and every script — so a new
- * band, topic or template that
- * speaks from the wrong side fails here the day it is written.
+ * a sweep of fixed answers through the read and the eleven caught it (those
+ * sets live on in src/lib/read.test.ts). This generalises it: *generated*
+ * answers, on both sides, through every engine that writes prose about the
+ * other person — the read, Before you say yes, the couple reading and every
+ * script — so a new band, topic or template that speaks from the wrong side
+ * fails here the day it is written.
  *
- * The rules are mens-read's, and so is the allowlist: the confidante is a
- * brother for him and a sister for her, on purpose, and "near her" in the
- * eleven is his mother, on both sides.
+ * The allowlist: the confidante is a brother for him and a sister for her, on
+ * purpose, and "near her" in the eleven is his mother, on both sides.
  */
 
 /** Words about the other person that belong to the reader's own side. */

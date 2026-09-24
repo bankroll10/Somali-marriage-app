@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TOPICS } from '../netlify/shared/vocab'
 import { RECORD_VERSION, stamp } from '../netlify/shared/record'
+import { memStore, stores } from './support/memory'
 
 /**
  * Every record about a member carries the version it was written in, and
@@ -9,43 +10,7 @@ import { RECORD_VERSION, stamp } from '../netlify/shared/record'
  * shape changes, this is the test that says every writer moved with it.
  */
 
-const stores = new Map<string, Map<string, string>>()
-function memStore(name: string) {
-  const m = stores.get(name) ?? new Map<string, string>()
-  stores.set(name, m)
-  return {
-    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
-      blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: 'x' })),
-      directories: [],
-    }),
-    get: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
-    },
-    getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
-    getWithMetadata: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      if (v === null) return null
-      return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
-    },
-    // Conditional options work here too: the real store returns { modified }
-    // from `set` exactly as it does from `setJSON`.
-    set: async (key: string, value: string, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, value)
-      return { modified: true }
-    },
-    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, JSON.stringify(value))
-      return { modified: true }
-    },
-    delete: async (key: string) => void m.delete(key),
-  }
-}
-vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
+vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
 
 const keep = (await import('../netlify/functions/keep')).default
 const progress = (await import('../netlify/functions/progress')).default

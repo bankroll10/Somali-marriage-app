@@ -56,7 +56,7 @@ export interface ReadQuestion {
  * answer says and what it is worth but can never change which answers exist.
  * A read kept from either side therefore stays readable by the other, and
  * `src/lib/read.ts`'s named cases (`explicit`, `blames`, `nobody`) keep
- * meaning what they mean. Held by tests/mens-read.test.ts.
+ * meaning what they mean. Held by tests/invariants/both-sides.test.ts.
  */
 interface ManVariant {
   prompt?: string

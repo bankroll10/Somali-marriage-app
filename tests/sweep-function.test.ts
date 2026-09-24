@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { memStore, stores } from './support/memory'
 
 /**
  * The weekly sweep: what the founder's `/pool?sweep=1` does, for every pool,
@@ -6,39 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
  * map whether or not anyone remembers (docs/RISKS.md R3).
  */
 
-const stores = new Map<string, Map<string, string>>()
-function memStore(name: string) {
-  const m = stores.get(name) ?? new Map<string, string>()
-  stores.set(name, m)
-  return {
-    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
-      blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: 'x' })),
-      directories: [],
-    }),
-    get: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
-    },
-    // The version is the value itself: enough for the sweep to see that a
-    // map read as lapsed has not changed before it deletes it.
-    getMetadata: async (key: string) => (m.has(key) ? { etag: m.get(key)!, metadata: {} } : null),
-    getWithMetadata: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      return v === null ? null : { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
-    },
-    // Conditional options work here too: the real store returns { modified }
-    // from `set` exactly as it does from `setJSON`.
-    set: async (key: string, value: string, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, value)
-      return { modified: true }
-    },
-    setJSON: async (key: string, value: unknown) => void m.set(key, JSON.stringify(value)),
-    delete: async (key: string) => void m.delete(key),
-  }
-}
-vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
+vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
 
 const { default: handler, config } = await import('../netlify/functions/sweep')
 const run = () => handler(new Request('http://x/.netlify/functions/sweep', { method: 'POST', body: '{"next_run":"2026-09-27T00:00:00Z"}' }))

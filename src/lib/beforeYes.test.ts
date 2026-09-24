@@ -142,6 +142,13 @@ describe('a man reading a woman', () => {
     const r = buildBeforeYes(answers({ live: 'unknown' }), 'man')!
     expect(r.summary).toMatch(/starts with you, not her/i)
   })
+  it('asks a man about a second wife as the one who would take one', () => {
+    const his = beforeYesTopics('man').find((t) => t.id === 'second-wife')!
+    expect(his.prompt).toMatch(/what you believe/i)
+    expect(his.script.words).toMatch(/what I want for my own life/i)
+    const hers = beforeYesTopics('woman').find((t) => t.id === 'second-wife')!
+    expect(hers.script.words).toMatch(/whether you’d ever want that/i)
+  })
 })
 
 describe('what the Guide is told', () => {

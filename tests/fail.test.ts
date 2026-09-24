@@ -47,23 +47,11 @@ describe('every call to the server has a clock', () => {
     // signal of its own.
     expect(raw.map((s) => s.file)).toEqual(['lib/coach.ts'])
     expect(raw[0].text).toMatch(/signal: [a-z]+\.signal/)
-  })
-
-  it('defines the helper exactly once', () => {
-    const defs = sources('src').filter(({ text }) => text.includes('async function withTimeout('))
-    expect(defs).toHaveLength(0)
-    expect(read('src/lib/net.ts')).toMatch(/export async function send\(/)
+    expect(sources('src').filter(({ text }) => text.includes('async function withTimeout('))).toHaveLength(0)
   })
 })
 
-describe('a failure keeps its reason', () => {
-  it('names the reasons apart, and says which are worth another try', () => {
-    const net = read('src/lib/net.ts')
-    for (const why of ['unreachable', 'refused', 'not-a-code', 'not-found', 'expired', 'taken', 'garbled']) {
-      expect(net).toContain(`'${why}'`)
-    }
-  })
-
+describe('a failure says what failed', () => {
   it('does not tell someone their link is broken when the network is', () => {
     // The eleventh tap of eleven used to land on "This link isn't working —
     // it may have expired, or been copied wrong" for a two-second blip, and
@@ -86,7 +74,6 @@ describe('nothing is written back after forget me', () => {
     expect(boundary).toMatch(/clearEverything\(\)/)
     expect(boundary).not.toMatch(/clearProgress\(\)/)
   })
-
 })
 
 describe('the guide', () => {

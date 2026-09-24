@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { memStore, stores } from './support/memory'
 
 /**
  * The maps store holds what brings a person back, and nothing she said to the
@@ -6,37 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
  * them even when an older client still sends them.
  */
 
-const stores = new Map<string, Map<string, string>>()
-function memStore(name: string) {
-  const m = stores.get(name) ?? new Map<string, string>()
-  stores.set(name, m)
-  return {
-    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
-      blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: 'x' })),
-      directories: [],
-    }),
-    get: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
-    },
-    getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
-    getWithMetadata: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      if (v === null) return null
-      return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
-    },
-    // Conditional writes behave like the real store's, so the hourly cap in
-    // shared/limit.ts counts here the way it does in production.
-    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, JSON.stringify(value))
-      return { modified: true }
-    },
-    delete: async (key: string) => void m.delete(key),
-  }
-}
-vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
+vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
 
 const { default: handler } = await import('../netlify/functions/keep')
 

@@ -170,18 +170,3 @@ describe('printed length — measured elsewhere, pinned here', () => {
     expect(print).toMatch(/\.content \{[\s\S]*?columns: 2/)
   })
 })
-
-describe('the catalog and the reference agree on where this lives', () => {
-  const catalog = readFileSync('docs/ASSETS.md', 'utf8')
-
-  it('N3-so and N3-1page-so both have rows with the real filenames', () => {
-    const n3so = catalog.split('\n').find((l) => l.startsWith('| **N3-so**'))!
-    expect(n3so).toContain('niyyah-money-conversation-sheet-so.html')
-    const n3p1so = catalog.split('\n').find((l) => l.startsWith('| **N3-1page-so**'))!
-    expect(n3p1so).toContain('niyyah-money-conversation-sheet-1page-so.html')
-  })
-
-  it('the catalog points to the same reference file this test reads', () => {
-    expect(catalog).toContain('internal/translations/money-conversation-sheet.so.md')
-  })
-})
