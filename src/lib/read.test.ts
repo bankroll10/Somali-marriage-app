@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { buildRead, readSummary } from './read'
-import { EXAMPLE_ANSWERS, READ_QUESTION_COUNT, readQuestions } from '../data/read'
+import { EXAMPLE_ANSWERS, READ_QUESTION_COUNT, readQuestions, scriptFor } from '../data/read'
+import { familyScripts, familyScriptsLine } from '../data/families'
 
 /**
  * The read says things about a real man to a woman who is already anxious. The
@@ -215,6 +216,87 @@ describe('a man reading a woman', () => {
     expect(r.band).toBe('strong')
     expect(r.summary).not.toMatch(/\bhis\b/)
   })
+
+  it('reaches every band from both sides, naming only the right one', () => {
+    // On 2026-09-12 a man who finished the read on the live site was told "we
+    // cannot tell you what he intends" and to go and tell "an older woman you
+    // trust". tests/invariants/both-sides.test.ts sweeps generated answers;
+    // these fixed sets make sure the rare bands are in the sweep at all.
+    const pick = (i: number, over: Record<string, string>) =>
+      Object.fromEntries(readQuestions('woman').map((q) => [q.id, over[q.id] ?? (q.options[i] ?? q.options.at(-1)!).id]))
+    const bands: [string, Record<string, string>][] = [
+      ['early', pick(0, { duration: 'weeks-0' })],
+      ['caution', pick(3, { duration: 'months-plus', secret: 'explicit', hard: 'blames' })],
+      ['strong', pick(0, { duration: 'months-plus' })],
+      ['thin', pick(3, { duration: 'months-plus', secret: 'no', hard: 'quiet', money: 'no' })],
+      ['mixed', pick(1, { duration: 'months-3', secret: 'no' })],
+      ['caution', pick(0, { duration: 'months-plus', money: 'yes' })],
+    ]
+    const wrong = { man: /\b(he|him|his|women|sister)\b/i, woman: /\b(she|her|hers)\b/i }
+    for (const [band, set] of bands) {
+      for (const g of ['woman', 'man'] as const) {
+        const r = buildRead(set, g)!
+        expect(r.band, `${band}, read by a ${g}`).toBe(band)
+        const text = [r.headline, r.summary, r.caution ?? '', ...(r.watch ?? []), ...r.shown, ...r.missing,
+          ...r.dimensions.map((d) => d.label), r.script.why, r.script.words, r.script.tells, readSummary(r, g)].join('\n')
+        expect(wrong[g].exec(text)?.[0] ?? null, `${band}, read by a ${g}`).toBeNull()
+      }
+    }
+  })
+
+  it('offers the same answers to both sides, so a kept read stays readable', () => {
+    const his = readQuestions('man')
+    const hers = readQuestions('woman')
+    expect(his.map((x) => x.id)).toEqual(hers.map((x) => x.id))
+    for (const [i, x] of his.entries()) {
+      expect(x.options.map((o) => o.id), x.id).toEqual(hers[i].options.map((o) => o.id))
+      expect(x.dimension, x.id).toBe(hers[i].dimension)
+    }
+  })
+
+  it('never grades him on the step the product gives him', () => {
+    // A serious man asks how to approach HER family. His read cannot ask
+    // whether she was asked about hers: it would mark him down for her
+    // waiting on the step that is his to take.
+    const family = (g: 'man' | 'woman') => readQuestions(g).find((q) => q.id === 'family')!
+    expect(family('woman').prompt).toMatch(/asked about your family/i)
+    expect(family('man').prompt).not.toBe(family('woman').prompt)
+    const best = family('man').options.find((o) => o.weight === 1)!
+    expect(best.note).toMatch(/her family/i)
+    expect(best.note).not.toMatch(/your family/i)
+    expect(scriptFor('family', 'man').words).toMatch(/approach your family/i)
+    expect(scriptFor('family', 'woman').words).toMatch(/approach my family/i)
+  })
+
+  it('hands him the words for that step, and advertises only scripts he can open', () => {
+    expect(familyScripts('man').map((s) => s.id)).toContain('approach-her-family')
+    expect(familyScripts('woman').map((s) => s.id)).not.toContain('approach-her-family')
+    for (const g of ['woman', 'man'] as const) {
+      const mine = new Set(familyScripts(g).map((s) => s.title.split(',')[0].toLowerCase()))
+      for (const part of familyScriptsLine(g).replace(/ — word for word\.$/, '').split(', ')) {
+        expect(mine.has(part), `${g}: ${part}`).toBe(true)
+      }
+    }
+  })
+
+  it('gives a man as many family scripts as a woman, including telling his own', () => {
+    const hers = familyScripts('woman').map((s) => s.id)
+    const his = familyScripts('man').map((s) => s.id)
+    expect(his).toHaveLength(hers.length)
+    expect(his).toContain('tell-family-online')
+    expect(hers).toContain('tell-wali-online')
+  })
+
+  it('does not read her restraint as his red flag', () => {
+    // Never texting first, and asking for discretion before the families have
+    // met, are ordinary on her side and the two sharpest signals on his.
+    const opt = (g: 'man' | 'woman', id: string, o: string) =>
+      readQuestions(g).find((q) => q.id === id)!.options.find((x) => x.id === o)!
+    expect(opt('man', 'initiative', 'silence').weight).toBeGreaterThan(0)
+    expect(opt('man', 'secret', 'explicit').weight).toBeGreaterThan(0)
+    expect(opt('woman', 'initiative', 'silence').weight).toBe(0)
+    expect(opt('woman', 'secret', 'explicit').weight).toBe(0)
+  })
 })
 
 describe('what the Guide is told', () => {
@@ -255,4 +337,52 @@ describe('the example on the introduction', () => {
       expect(r!.script.words.length).toBeGreaterThan(20)
     })
   }
+})
+
+// Moved from tests/alignment-audit.test.ts (docs/ALIGNMENT.md), when matching went.
+describe('the read summarises her answers; it does not predict', () => {
+  // He named marriage, gave a date, his family knows, never asked for secrecy,
+  // asked how to approach her family, and is steady — and he pushed back on
+  // what she will not compromise on, and goes quiet when something is hard.
+  // The old weights summed that past 0.72 and told her he had "shown you the
+  // things that predict it". The states on her screen say pressure: not yet.
+  const answers = {
+    duration: 'months-3',
+    named: 'early',
+    timeline: 'dated',
+    known: 'family',
+    secret: 'no',
+    family: 'how',
+    initiative: 'same-day',
+    'in-person': 'several',
+    plans: 'never',
+    money: 'no',
+    nonneg: 'pushed',
+    hard: 'quiet',
+  }
+
+  it('the band follows the dimension states she can see', () => {
+    const r = buildRead(answers)!
+    expect(r.dimensions.find((d) => d.dimension === 'pressure')!.state).toBe('not-yet')
+    expect(r.band).not.toBe('strong')
+  })
+
+  it('a read she can check: strong only when being known is shown, nothing is not-yet, and four of five are shown', () => {
+    const r = buildRead({ ...answers, nonneg: 'straight', hard: 'listens' })!
+    expect(r.band).toBe('strong')
+    expect(r.dimensions.every((d) => d.state !== 'not-yet')).toBe(true)
+  })
+
+  it('"I have not told him" says nothing about him, so it is not scored', () => {
+    // Scored at 0.5 it dragged "gets defensive, but comes back" under the line.
+    const r = buildRead({ ...answers, nonneg: 'untold', hard: 'defensive' })!
+    expect(r.dimensions.find((d) => d.dimension === 'pressure')!.state).toBe('shown')
+  })
+
+  it('never claims to predict, in the result or in what the guide is told', () => {
+    const r = buildRead({ ...answers, nonneg: 'straight', hard: 'listens' })!
+    expect(`${r.headline} ${r.summary}`).not.toMatch(/\bpredicts?\b|passing time produces|rarer than/i)
+    expect(r.summary).toMatch(/not a prediction/)
+    expect(readSummary({ band: 'strong', thin: 'public' })).not.toMatch(/predict/i)
+  })
 })

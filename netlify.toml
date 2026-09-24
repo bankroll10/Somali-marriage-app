@@ -25,13 +25,8 @@
   # clone; this flag is what makes it pass.
   NPM_FLAGS = "--include=dev"
 
-  # Names the Netlify form src/lib/waitlist.ts posts to. Unset this and the app
-  # falls back to a mailto rather than pretending anyone joined a list.
-  VITE_WAITLIST_FORM = "niyyah-waitlist"
-
 # A single-page app: every path that isn't a real file or a function is the app.
-# Kept below the automatic /.netlify/functions/* handling, and POSTs to "/" are
-# left alone so Netlify Forms can capture them.
+# Kept below the automatic /.netlify/functions/* handling.
 [[redirects]]
   from = "/*"
   to = "/index.html"

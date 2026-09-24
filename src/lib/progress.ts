@@ -16,7 +16,7 @@ import type { RungId } from './rungs'
 import { VIAS, type Via } from './entry'
 import type { Facts } from './facts'
 import type { Gender } from '../types'
-import { ALPHABET, CODE_LENGTH } from './code'
+import { newCode } from './code'
 import { send } from './net'
 
 const ENDPOINT = '/.netlify/functions/progress'
@@ -29,7 +29,7 @@ const VIA_KEY = 'niyyah.via.v1'
 
 /**
  * Remember what kind of link brought this person here — words a friend sent,
- * the eleven, a couple's link, the door, a family link. First arrival wins and
+ * the eleven, a couple's link, a family link. First arrival wins and
  * it is never overwritten: the question is how she found this, not how she
  * last opened it. Never who sent it; the link does not carry that.
  */
@@ -51,27 +51,6 @@ export function rememberedVia(): Via | null {
   }
 }
 
-/**
- * Same alphabet and length as a map code (src/lib/code.ts) — a different code.
- *
- * Rejection-sampled, like the server's generator (netlify/shared/code.ts).
- * This was the last copy of `ALPHABET[b % 23]`: 256 is not a multiple of 23,
- * so A, C and D came up 12 times in 256 and every other symbol 11 — the bias
- * docs/HARD.md row 9 said was gone everywhere (docs/SECURITY.md, O11).
- */
-const LIMIT = 256 - (256 % ALPHABET.length)
-function newId(): string {
-  const out: string[] = []
-  while (out.length < CODE_LENGTH) {
-    for (const b of crypto.getRandomValues(new Uint8Array(CODE_LENGTH))) {
-      if (b >= LIMIT) continue
-      out.push(ALPHABET[b % ALPHABET.length])
-      if (out.length === CODE_LENGTH) break
-    }
-  }
-  return out.join('')
-}
-
 /** The install code if this phone has one — never made here. For forgetting. */
 export function rememberedInstallId(): string | null {
   try {
@@ -90,7 +69,7 @@ export function installId(): string | null {
   try {
     const existing = localStorage.getItem(ID_KEY)
     if (existing) return existing
-    const id = newId()
+    const id = newCode()
     localStorage.setItem(ID_KEY, id)
     return id
   } catch {
@@ -110,7 +89,6 @@ export async function reportRungs(
   scene?: string,
   facts?: Facts,
   gender?: Gender,
-  country?: string,
 ): Promise<void> {
   const id = installId()
   if (!id || rungs.length === 0) return
@@ -118,7 +96,7 @@ export async function reportRungs(
   // The facts are part of the signature: a re-render with the same facts posts
   // nothing, and a new fact — a read taken, a conversation confirmed — posts once.
   // So is which side she is on, so a correction at Identity posts once too.
-  const signature = `${scene ?? ''}:${country ?? ''}:${gender ?? ''}:${rungs.join(',')}:${some ? JSON.stringify(some) : ''}`
+  const signature = `${scene ?? ''}:${gender ?? ''}:${rungs.join(',')}:${some ? JSON.stringify(some) : ''}`
   if (signature === lastSent) return
   lastSent = signature
 
@@ -134,10 +112,6 @@ export async function reportRungs(
         id,
         rungs,
         ...(scene ? { scene } : {}),
-        // The country the scene sits in, or the one she named for "somewhere
-        // else" — so the ladder can be read for the nine countries with no
-        // named city (docs/BOARD.md). A closed id, floored on the server.
-        ...(country ? { country } : {}),
         ...(via ? { via } : {}),
         ...(gender ? { gender } : {}),
         ...(some ? { facts: some } : {}),

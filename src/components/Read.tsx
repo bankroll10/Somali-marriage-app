@@ -3,12 +3,11 @@ import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../li
 import type { Gender, Identity, ReadRecord } from '../types'
 import { EXAMPLE_ANSWERS, readQuestions, scriptFor } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
-import { track } from '../lib/analytics'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import HelpLine from './HelpLine'
-import { ArrowRight, Button, Disclose, ScreenHeader, TextButton, Words , NotSaving} from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, TextButton, NotSaving } from './ui'
 
 interface Props {
   identity: Identity
@@ -100,7 +99,6 @@ export default function Read({
   function begin(fresh: boolean, side?: Gender) {
     const reader = side ?? gender
     if (side) setGender(side)
-    track('read_started', { again: !fresh })
     // A side the address supplied — or she just chose — becomes hers on the
     // act of starting, never on page load.
     if (!identity.gender && reader) onSetGender(reader)
@@ -115,7 +113,6 @@ export default function Read({
   /** Back in at the first question she never answered. */
   function resume() {
     if (!draft) return
-    track('read_started', { again: false })
     if (!identity.gender && draft.gender) onSetGender(draft.gender)
     setGender(draft.gender)
     onBegan()
@@ -136,8 +133,6 @@ export default function Read({
     }
     clearDraft('read')
     const record: ReadRecord = { at: new Date().toISOString(), answers: next }
-    const built = buildRead(next, gender ?? 'woman')
-    track('read_completed', { band: built?.band, thin: built?.thin })
     onSave(record)
     setPhase('result')
   }
@@ -530,7 +525,6 @@ function Result({
       <ScriptCard
         script={result.script}
         title="The one question to ask next"
-        source="read"
         travel="read"
         preface={
           result.caution
@@ -653,9 +647,6 @@ function Result({
           </div>
         </Disclose>
 
-        {/* This screen says a read, thin, the eleven and your map — and the
-            definitions of all four lived on a different screen. */}
-        <Words ids={['read', 'thin', 'eleven', 'map']} />
       </div>
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">

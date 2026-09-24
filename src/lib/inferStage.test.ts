@@ -1,12 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { countsAsArrival, hasHomeFor, marriedOpensEnding, stageAfterInstrument } from './inferStage'
+import { hasHomeFor, marriedOpensEnding, stageAfterInstrument } from './inferStage'
 
 describe('who has a Home', () => {
-  it('a map, a said stage, or being counted — a counted man with three answers is not sent back to Welcome', () => {
-    expect(hasHomeFor({ completed: false, stage: 'preparing', counted: false })).toBe(false)
-    expect(hasHomeFor({ completed: true, stage: 'preparing', counted: false })).toBe(true)
-    expect(hasHomeFor({ completed: false, stage: 'talking', counted: false })).toBe(true)
-    expect(hasHomeFor({ completed: false, stage: 'preparing', counted: true })).toBe(true)
+  it('a map, or a said stage', () => {
+    expect(hasHomeFor({ completed: false, stage: 'preparing' })).toBe(false)
+    expect(hasHomeFor({ completed: true, stage: 'preparing' })).toBe(true)
+    expect(hasHomeFor({ completed: false, stage: 'talking' })).toBe(true)
   })
 })
 
@@ -35,22 +34,5 @@ describe('saying you are married', () => {
     expect(marriedOpensEnding('talking', true)).toBe(false)
     expect(marriedOpensEnding('married', false)).toBe(false)
     expect(marriedOpensEnding('married', true)).toBe(false)
-  })
-})
-
-describe('who counts as an arrival', () => {
-  it('a relative on a vouch link does not — he was asked to attest, and never offered a conversation', () => {
-    expect(countsAsArrival('vouch', false)).toBe(false)
-  })
-
-  it('he does once this phone has a map of its own, because then he is here for himself', () => {
-    expect(countsAsArrival('vouch', true)).toBe(true)
-  })
-
-  it('every other arrival counts, map or no map — that is what the denominator is for', () => {
-    for (const kind of ['read', 'eleven', 'couple', 'families', 'door', null]) {
-      expect(countsAsArrival(kind, false)).toBe(true)
-      expect(countsAsArrival(kind, true)).toBe(true)
-    }
   })
 })

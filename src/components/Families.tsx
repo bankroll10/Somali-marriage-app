@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { Gender, Stage } from '../types'
 import { familyScripts } from '../data/families'
 import { somali } from '../data/somali'
-import { track } from '../lib/analytics'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import { ArrowRight, ScreenHeader } from './ui'
 
@@ -88,7 +87,6 @@ export default function Families({ gender, stage, onTaken, onSetGender, onBack }
                 <button
                   onClick={() => {
                     setOpen(isOpen ? null : s.id)
-                    if (!isOpen) track('family_script_opened', { id: s.id, stage })
                   }}
                   aria-expanded={isOpen}
                   className="group flex w-full items-center gap-4 p-5 text-left"
@@ -104,7 +102,6 @@ export default function Families({ gender, stage, onTaken, onSetGender, onBack }
                     <ScriptCard
                       script={s.script}
                       title={s.title}
-                      source={`families:${s.id}`}
                       travel="family"
                       onTaken={() => {
                         onTaken(s.id)

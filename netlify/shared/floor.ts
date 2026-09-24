@@ -1,17 +1,16 @@
 /**
  * The floor under every small cell.
  *
- * A readout split by city or by door is a table of quasi-identifiers, and a
+ * A readout split by city, side or source is a table of quasi-identifiers, and a
  * cell of one or two in a city of forty is a person wearing a number. So every
  * cell in such a split that falls under the floor reads as `null` — never as a
  * number, and never omitted, because a missing key is itself a count of
  * zero-to-four with the sign changed.
  *
- * Applied only where a split exists: per-city and per-door rungs, the
- * married-by cross-tabs, a city's hardest parts and ledger. Never to a
- * whole-population count, which combines with nothing — a lone
- * `ending.who.here = 1` is exactly what the operating loop must see. Nor to the
- * door's own women/men count, which is public by design.
+ * Applied only where a split exists: per-city, per-side and per-source rungs
+ * and the married-by cross-tabs. Never to a whole-population count, which
+ * combines with nothing — a lone `ending.who.brought = 1` is exactly what the
+ * operating loop must see.
  *
  * What this is and is not. Members never see a tally. The founder holds every
  * store and could count by hand, so this does not protect against the founder;

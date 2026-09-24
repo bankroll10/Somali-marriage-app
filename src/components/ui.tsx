@@ -1,5 +1,4 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { terms, type TermId } from '../data/lexicon'
 
 /** The Niyyah mark — a small flame/seed for intention. */
 export function Logo({
@@ -201,30 +200,6 @@ export function ScreenHeader({
   )
 }
 
-/** Initial-letter avatar — flat clay, revealed post-mutual-interest. */
-export function InitialAvatar({
-  name,
-  size = 'md',
-  className = '',
-}: {
-  name: string
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
-}) {
-  const sizes = {
-    sm: 'h-9 w-9 text-sm',
-    md: 'h-10 w-10 text-base',
-    lg: 'h-14 w-14 text-lg',
-  }
-  return (
-    <span
-      className={`flex flex-none items-center justify-center rounded-full bg-clay ${sizes[size]} ${className}`}
-    >
-      <span className="font-display font-medium text-cream">{name.charAt(0)}</span>
-    </span>
-  )
-}
-
 /* ── Glyph system ─────────────────────────────────────────────────────────────
    Monochrome, in-palette, stroke-based icons. No emoji as UI — emoji appear
    only as the user's own expressive content (e.g. check-in moods). */
@@ -271,27 +246,10 @@ export function SeedGlyph({ className }: GlyphProp) {
   )
 }
 
-export function SparkGlyph({ className }: GlyphProp) {
-  return (
-    <svg {...gcls(className)}>
-      <path d="M12 3.5 13.8 9 19.5 11 13.8 13 12 18.5 10.2 13 4.5 11 10.2 9 12 3.5Z" />
-    </svg>
-  )
-}
-
 export function HeartGlyph({ className }: GlyphProp) {
   return (
     <svg {...gcls(className)}>
       <path d="M12 19.5c-4.5-3.2-7.5-6-7.5-9.2A3.9 3.9 0 0 1 8.4 6.4c1.5 0 2.8.8 3.6 2 .8-1.2 2.1-2 3.6-2a3.9 3.9 0 0 1 3.9 3.9c0 3.2-3 6-7.5 9.2Z" />
-    </svg>
-  )
-}
-
-export function PersonGlyph({ className }: GlyphProp) {
-  return (
-    <svg {...gcls(className)}>
-      <circle cx="12" cy="8.2" r="3.4" />
-      <path d="M5.5 19.5c1.2-3 3.6-4.6 6.5-4.6s5.3 1.6 6.5 4.6" />
     </svg>
   )
 }
@@ -316,34 +274,6 @@ export function CompassGlyph({ className }: GlyphProp) {
   )
 }
 
-export function ShieldGlyph({ className }: GlyphProp) {
-  return (
-    <svg {...gcls(className)}>
-      <path d="M12 3.5 5.5 6v5.2c0 4 2.6 6.9 6.5 9.3 3.9-2.4 6.5-5.3 6.5-9.3V6L12 3.5Z" />
-      <path d="m9.3 11.8 1.9 1.9 3.5-3.7" />
-    </svg>
-  )
-}
-
-export function RingGlyph({ className }: GlyphProp) {
-  return (
-    <svg {...gcls(className)}>
-      <circle cx="12" cy="14" r="5.6" />
-      <path d="m12 4.2 2.4 2.3L12 8.4 9.6 6.5 12 4.2Z" />
-    </svg>
-  )
-}
-
-export function EyeOffGlyph({ className }: GlyphProp) {
-  return (
-    <svg {...gcls(className)}>
-      <path d="M3 12s3.3-5.5 9-5.5S21 12 21 12s-3.3 5.5-9 5.5S3 12 3 12Z" />
-      <circle cx="12" cy="12" r="2.4" />
-      <path d="M4.5 19.5 19.5 4.5" />
-    </svg>
-  )
-}
-
 export function LockGlyph({ className }: GlyphProp) {
   return (
     <svg {...gcls(className)}>
@@ -357,15 +287,6 @@ export function CrescentGlyph({ className }: GlyphProp) {
   return (
     <svg {...gcls(className)}>
       <path d="M19.5 14.2A8 8 0 1 1 9.8 4.5a6.6 6.6 0 1 0 9.7 9.7Z" />
-    </svg>
-  )
-}
-
-export function PenGlyph({ className }: GlyphProp) {
-  return (
-    <svg {...gcls(className)}>
-      <path d="m4.5 19.5.9-3.6L16.6 4.7a2 2 0 0 1 2.8 2.8L8.1 18.6l-3.6.9Z" />
-      <path d="m14.5 6.8 2.8 2.8" />
     </svg>
   )
 }
@@ -474,42 +395,12 @@ export function Disclose({
 }
 
 /**
- * The words on this screen, defined, closed.
- *
- * Niyyah says "your map" 96 times, "vouch" 41, "the eleven" 35, "kept" 31 —
- * thirteen product words in live copy, six of which had a definition, all six
- * of them on one screen reached from Home's footer (docs/LOAD.md). A person
- * reading her own map had no way to find out what "thin" meant without leaving
- * the map.
- *
- * So the glossary comes to the screen instead: a closed row naming only the
- * words that screen uses. It costs a person who already knows them nothing —
- * which is the whole test of a disclosure.
- */
-export function Words({ ids, className = '' }: { ids: TermId[]; className?: string }) {
-  const list = terms(ids)
-  if (list.length === 0) return null
-  return (
-    <Disclose summary="The words on this page" hint={`${list.length} of them`} className={className}>
-      <dl className="space-y-3">
-        {list.map((t) => (
-          <div key={t.id}>
-            <dt className="text-[0.92rem] font-medium text-ink">{t.term}</dt>
-            <dd className="mt-0.5 text-[0.88rem] leading-snug text-muted text-pretty">{t.body}</dd>
-          </div>
-        ))}
-      </dl>
-    </Disclose>
-  )
-}
-
-/**
  * This browser is refusing to save anything.
  *
  * Private browsing, full storage, or a blocked origin. It used to appear on
- * three screens of twenty-three — and not on the read, the eleven, the couple
- * sheet or the vouch form, which are the four a stranger arrives on from
- * somebody else's link and the only ones carrying a draft to lose
+ * three screens — and not on the read, the eleven or the couple sheet, which
+ * are the ones a stranger arrives on from somebody else's link and the only
+ * ones carrying a draft to lose
  * (docs/FAIL.md).
  *
  * `what` names the thing at risk on this screen, because "your progress" means

@@ -9,14 +9,12 @@ import { floorRows } from '../shared/floor'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import {
   ASKED,
-  COUNTRIES,
   DIMENSIONS,
   ENDED_REASONS,
   ENDED_STAGES,
   ENDED_WHICH,
   GROUND_STATES,
   GENDERS,
-  HESITATIONS,
   INSTRUMENTS,
   MATTERED,
   READ_BANDS,
@@ -99,12 +97,10 @@ const ATTEMPTS = 3
 export interface Facts {
   grounds?: Record<string, string>
   read?: { band: string; thin: string }
-  eleven?: { agree: number; differ: number; notTalked: number; unknown: number; open: string }
+  eleven?: { open: string }
   through?: string[]
   ending?: { who?: string; mattered?: string; used?: string[] }
   ended?: { stage: string; reason: string; which?: string }[]
-  /** Why she stopped at the door, in one word about the door. */
-  hesitated?: string
   /** Which questionnaires she began — the denominator for a completion rate. */
   began?: string[]
   /** What she asked, ever, as a set — today only `guide`. */
@@ -118,18 +114,10 @@ export interface ProgressRecord {
   /** Rung id → when it was first reached. A rung never un-reaches. */
   first: Record<string, string>
   scene?: string
-  /**
-   * The country, last told wins like `scene`. Without it the North Star could
-   * not be read for any country: thirteen of fourteen have no named city, so
-   * every member outside the five cities collapsed into one `other` row. Added
-   * while there were zero records — a field is cheapest before member one
-   * (docs/BACKWARD.md, docs/BOARD.md). Floored like every quasi-identifier.
-   */
-  country?: string
   /** What kind of link brought this person here. First told wins; never a person. */
   via?: string
   /**
-   * Which side of the door this person is on — `woman` or `man`, as chosen at
+   * Which side this person is on — `woman` or `man`, as chosen at
    * Identity, last told wins like `scene`. The one split the men's funnel
    * needs (docs/MACHINE.md); floored like every other quasi-identifier.
    */
@@ -141,7 +129,6 @@ export interface ProgressRecord {
 
 const isPlain = (x: unknown): x is Record<string, unknown> => !!x && typeof x === 'object' && !Array.isArray(x)
 const onlyKeys = (x: Record<string, unknown>, allowed: string[]) => Object.keys(x).every((k) => allowed.includes(k))
-const count = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 0 && n <= 11
 
 /**
  * Accept facts, or none of them. Anything off the lists — an unknown ground, a
@@ -150,7 +137,7 @@ const count = (n: unknown): n is number => typeof n === 'number' && Number.isInt
  * a value nobody chose to allow.
  */
 function parseFacts(x: unknown): Facts | null {
-  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'hesitated', 'began', 'asked'])) return null
+  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'began', 'asked'])) return null
   const out: Facts = {}
 
   if (x.grounds !== undefined) {
@@ -171,12 +158,11 @@ function parseFacts(x: unknown): Facts | null {
 
   if (x.eleven !== undefined) {
     const e = x.eleven
+    // An older client also sends how many of the eleven were in each state.
+    // Nothing read those counts, so they are accepted and not kept.
     if (!isPlain(e) || !onlyKeys(e, ['agree', 'differ', 'notTalked', 'unknown', 'open'])) return null
-    const { agree, differ, notTalked, unknown, open } = e
-    if (!count(agree) || !count(differ) || !count(notTalked) || !count(unknown)) return null
-    if (agree + differ + notTalked + unknown !== TOPICS.size) return null
-    if (typeof open !== 'string' || !TOPICS.has(open)) return null
-    out.eleven = { agree, differ, notTalked, unknown, open }
+    if (typeof e.open !== 'string' || !TOPICS.has(e.open)) return null
+    out.eleven = { open: e.open }
   }
 
   if (x.through !== undefined) {
@@ -231,11 +217,6 @@ function parseFacts(x: unknown): Facts | null {
     out.ended = ended
   }
 
-  if (x.hesitated !== undefined) {
-    if (typeof x.hesitated !== 'string' || !HESITATIONS.has(x.hesitated)) return null
-    out.hesitated = x.hesitated
-  }
-
   if (x.began !== undefined) {
     if (!Array.isArray(x.began) || x.began.length > INSTRUMENTS.size) return null
     if (!x.began.every((id) => typeof id === 'string' && INSTRUMENTS.has(id))) return null
@@ -259,10 +240,7 @@ function parseFacts(x: unknown): Facts | null {
  * and the last word on the way out is the one that counts. Ended courtships
  * are replaced whole for the same reason, and for one more: the list on her
  * device is the record, so a reason she takes back leaves here too. A union
- * would make retraction impossible and let a stale device resurrect it. Why
- * she stopped at the door is overwritten too: she may change her mind, and if
- * she later walks through, the reason stays beside the `counted` rung so the
- * readout can say who came back.
+ * would make retraction impossible and let a stale device resurrect it.
  */
 function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): Facts | undefined {
   if (!existing) return incoming
@@ -280,7 +258,6 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
     ...(through.length ? { through } : {}),
     ...(incoming.ending ?? existing.ending ? { ending: incoming.ending ?? existing.ending } : {}),
     ...(incoming.ended ?? existing.ended ? { ended: incoming.ended ?? existing.ended } : {}),
-    ...(incoming.hesitated ?? existing.hesitated ? { hesitated: incoming.hesitated ?? existing.hesitated } : {}),
     ...(began.length ? { began } : {}),
     ...(asked.length ? { asked } : {}),
   }
@@ -293,10 +270,11 @@ type Store = ReturnType<typeof getStore>
  * The founder's readout. Per rung, how many people reached it; the same split
  * by city, by what kind of link brought them, and by side — so the men's
  * funnel can be read apart from the women's, which is the one question
- * docs/MACHINE.md found the ladder could not answer; and arrivals by week, so
- * `followed-through` per hundred `arrived` is computable over a cohort rather
- * than over all time — and so word of mouth can be told from every other
- * arrival, by source, without an edge between two people anywhere. Side and
+ * docs/MACHINE.md found the ladder could not answer — and so word of mouth can
+ * be told from every other arrival, by source, without an edge between two
+ * people anywhere; and the month each person arrived, with how many of that
+ * month have followed through since, so `followed-through` per hundred
+ * `arrived` reads for a cohort rather than over all time. Side and
  * via are crossed once, in `sidesByVia`, because a man who arrived through a
  * woman's eleven is already talking to someone and is not supply, and neither
  * split alone can tell him from a man the network channel produced
@@ -312,22 +290,27 @@ async function tally(store: Store) {
   const now = Date.now()
   const rungs: Record<string, number> = {}
   const scenes: Record<string, Record<string, number>> = {}
-  /** The ladder per country — the North Star for the nine countries with no named city. */
-  const countries: Record<string, Record<string, number>> = {}
   const vias: Record<string, Record<string, number>> = {}
   const sides: Record<string, Record<string, number>> = {}
   /**
    * Side × via. A man who arrives through a woman's eleven — `couple`, or the
    * eleven's own words — is already talking to someone, often someone counted
    * here; he is not supply for anyone else. `group` is the men the network
-   * channel produced; `door` is the men a member sent, some looking and some
-   * already talking. `sides` says how many men, `vias` says how many came
+   * channel produced. `sides` says how many men, `vias` says how many came
    * through a group, and neither can say whether they are the same men. This
    * can. Floored per cell like every other split by a quasi-identifier, and
    * never crossed with the facts.
    */
   const sidesByVia: Record<string, Record<string, Record<string, number>>> = {}
-  const arrivedByDay: Record<string, number> = {}
+  /**
+   * The North Star by the month people arrived: of those who came in a month,
+   * how many have followed through since. "Followed-through per hundred
+   * arrived, this month against last" is `followedThrough / arrived` on two
+   * rows here. The count of arrivals by day it replaces could not say it: a
+   * conversation had in October by someone who came in September had no row
+   * to be divided by. Whole-population, like `rungs`, so never floored.
+   */
+  const cohorts: Record<string, { arrived: number; followedThrough: number }> = {}
   const facts = emptyFactsTally()
 
   for (const { key, record } of records) {
@@ -341,30 +324,30 @@ async function tally(store: Store) {
       continue
     }
     const scene = record.scene && SCENES.has(record.scene) ? record.scene : 'unsaid'
-    const country = record.country && COUNTRIES.has(record.country) ? record.country : 'unsaid'
     const via = record.via && VIAS.has(record.via) ? record.via : 'unsaid'
     const side = record.gender && GENDERS.has(record.gender) ? record.gender : 'unsaid'
     const perScene = (scenes[scene] ??= {})
-    const perCountry = (countries[country] ??= {})
     const perVia = (vias[via] ??= {})
     const perSide = (sides[side] ??= {})
     const perSideVia = ((sidesByVia[side] ??= {})[via] ??= {})
-    for (const [id, at] of Object.entries(record.first)) {
+    for (const id of Object.keys(record.first)) {
       if (!RUNGS.has(id)) continue
       rungs[id] = (rungs[id] ?? 0) + 1
       perScene[id] = (perScene[id] ?? 0) + 1
-      perCountry[id] = (perCountry[id] ?? 0) + 1
       perVia[id] = (perVia[id] ?? 0) + 1
       perSide[id] = (perSide[id] ?? 0) + 1
       perSideVia[id] = (perSideVia[id] ?? 0) + 1
-      // Records written before dates were days still hold a moment; read the day off them.
-      if (id === 'arrived') {
-        const d = at.slice(0, 10)
-        arrivedByDay[d] = (arrivedByDay[d] ?? 0) + 1
-      }
+    }
+    // Records written before dates were days still hold a moment; the month
+    // reads the same off either.
+    const arrived = record.first.arrived
+    if (typeof arrived === 'string' && /^\d{4}-\d{2}/.test(arrived)) {
+      const row = (cohorts[arrived.slice(0, 7)] ??= { arrived: 0, followedThrough: 0 })
+      row.arrived += 1
+      if ('followed-through' in record.first) row.followedThrough += 1
     }
     if (record.facts) {
-      tallyFacts(facts, record.facts, 'married' in record.first, 'counted' in record.first, 'followed-through' in record.first)
+      tallyFacts(facts, record.facts, 'married' in record.first, 'followed-through' in record.first)
     }
   }
 
@@ -382,16 +365,14 @@ async function tally(store: Store) {
   // Whole-population counts as they are; every split by a quasi-identifier
   // floored — see netlify/shared/floor.ts. `sides.man` therefore reads null
   // until five men have arrived, which is also the first moment a conclusion
-  // about men is worth drawing; the door's own count stays the unfloored
-  // number for `counted`.
+  // about men is worth drawing.
   return {
     rungs,
     scenes: floorRows(scenes),
-    countries: floorRows(countries),
     vias: floorRows(vias),
     sides: floorRows(sides),
     sidesByVia: Object.fromEntries(Object.entries(sidesByVia).map(([s, rows]) => [s, floorRows(rows)])),
-    arrivedByDay,
+    cohorts,
     facts: {
       ...facts,
       marriedBy: {
@@ -399,9 +380,6 @@ async function tally(store: Store) {
         readThin: floorRows(facts.marriedBy.readThin),
         open: floorRows(facts.marriedBy.open),
         ended: floorRows(facts.marriedBy.ended),
-      },
-      countedBy: {
-        hesitated: floorRows(facts.countedBy.hesitated),
       },
       followedThroughBy: {
         asked: floorRows(facts.followedThroughBy.asked),
@@ -426,8 +404,8 @@ function emptyFactsTally() {
     grounds: {} as Record<string, Counts>,
     /** How reads come out, and where men here have typically not shown themselves. */
     read: { band: {} as Counts, thin: {} as Counts },
-    /** Which of the eleven the product most often tells people to open, and how many were in each state. */
-    eleven: { open: {} as Counts, agree: {} as Counts, differ: {} as Counts, notTalked: {} as Counts, unknown: {} as Counts },
+    /** Which of the eleven the product most often tells people to open. */
+    eleven: { open: {} as Counts },
     /** Which conversations actually get had, by source and by topic. Which scripts get said. */
     through: {} as Counts,
     throughByTopic: {} as Counts,
@@ -435,8 +413,6 @@ function emptyFactsTally() {
     ending: { who: {} as Counts, mattered: {} as Counts, used: {} as Counts },
     /** Why courtships end, from which stage, and which non-negotiable, topic or ground did it. */
     ended: { reason: {} as Counts, stage: {} as Counts, which: {} as Record<string, Counts> },
-    /** Why people stopped at the door — the one no this product records. */
-    hesitated: {} as Counts,
     /**
      * Who began each questionnaire. Against `rungs` — which counts who finished
      * one — this is the completion rate, and both are whole-population counts
@@ -454,12 +430,10 @@ function emptyFactsTally() {
     followedThroughBy: { asked: {} as Pair },
     /** The cross-tabs: each fact against whether the person went on to marry. */
     marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
-    /** Of the people who stopped at the door for a reason, how many were later counted after all. */
-    countedBy: { hesitated: {} as Pair },
   }
 }
 
-function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean, counted: boolean, followedThrough: boolean) {
+function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean, followedThrough: boolean) {
   const bump = (c: Counts, k: string) => void (c[k] = (c[k] ?? 0) + 1)
   const pair = (p: Pair, k: string, seen: string) => {
     const row = (p[k] ??= { [seen]: 0, married: 0 })
@@ -473,12 +447,6 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
     row.asked += 1
     if (followedThrough) row.followedThrough += 1
   }
-  if (f.hesitated) {
-    bump(t.hesitated, f.hesitated)
-    const row = (t.countedBy.hesitated[f.hesitated] ??= { hesitated: 0, counted: 0 })
-    row.hesitated += 1
-    if (counted) row.counted += 1
-  }
   for (const [dim, state] of Object.entries(f.grounds ?? {})) bump((t.grounds[dim] ??= {}), state)
   if (f.read) {
     bump(t.read.band, f.read.band)
@@ -487,10 +455,6 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
   }
   if (f.eleven) {
     bump(t.eleven.open, f.eleven.open)
-    bump(t.eleven.agree, String(f.eleven.agree))
-    bump(t.eleven.differ, String(f.eleven.differ))
-    bump(t.eleven.notTalked, String(f.eleven.notTalked))
-    bump(t.eleven.unknown, String(f.eleven.unknown))
     pair(t.marriedBy.open, f.eleven.open, 'eleven')
   }
   for (const entry of f.through ?? []) {
@@ -567,7 +531,7 @@ export default async function handler(req: Request) {
 
   // Its six siblings all guarded a truncated upload; this one did not
   // (docs/FAIL.md). All seven now read the same way — netlify/shared/body.ts.
-  const body = await readJson<{ id?: unknown; rungs?: unknown; scene?: string; country?: string; via?: string; gender?: string; facts?: unknown }>(req, MAX_BODY)
+  const body = await readJson<{ id?: unknown; rungs?: unknown; scene?: string; via?: string; gender?: string; facts?: unknown }>(req, MAX_BODY)
   if (body instanceof Response) return body
 
   const id = normalise(body.id)
@@ -578,9 +542,6 @@ export default async function handler(req: Request) {
   if (rungs.length !== body.rungs.length) return Response.json({ error: 'bad_rungs' }, { status: 400 })
   if (body.scene !== undefined && !SCENES.has(body.scene)) {
     return Response.json({ error: 'bad_scene' }, { status: 400 })
-  }
-  if (body.country !== undefined && !COUNTRIES.has(body.country)) {
-    return Response.json({ error: 'bad_country' }, { status: 400 })
   }
   if (body.via !== undefined && !VIAS.has(body.via)) {
     return Response.json({ error: 'bad_via' }, { status: 400 })
@@ -616,7 +577,6 @@ export default async function handler(req: Request) {
       const record: ProgressRecord = {
         first,
         ...(body.scene ? { scene: body.scene } : existing?.scene ? { scene: existing.scene } : {}),
-        ...(body.country ? { country: body.country } : existing?.country ? { country: existing.country } : {}),
         ...(via ? { via } : {}),
         ...(body.gender ? { gender: body.gender } : existing?.gender ? { gender: existing.gender } : {}),
         ...(merged && Object.keys(merged).length ? { facts: merged } : {}),

@@ -1,13 +1,11 @@
 /**
  * Every code this product mints, from one place.
  *
- * There used to be four copies of the same twelve lines — `keep.ts`,
- * `couple.ts`, `vouch.ts` and the client's install id — each with its own
- * spelling of the alphabet and its own regex. Four copies of a security
- * primitive is three chances to fix a bug in only some of them, so this is the
- * one that stays. (Two more regex copies survived that consolidation, in
- * `cohort.ts` and `progress.ts`; docs/BOARD.md found them and they now import
- * `CODE` from here. The client keeps its own twin in `src/lib/progress.ts`,
+ * There used to be four copies of the same twelve lines — in the functions
+ * and the client's install id — each with its own spelling of the alphabet and
+ * its own regex. Four copies of a security primitive is three chances to fix a
+ * bug in only some of them, so this is the one that stays. (The client keeps
+ * its own twin in `src/lib/progress.ts`,
  * because the browser bundle does not reach into `netlify/`; the length lives
  * in one place on each side.)
  *
@@ -47,20 +45,14 @@ export const CODE_LENGTH = 8
 /** What every code was before that, and still is for anyone who kept one. */
 export const LEGACY_CODE_LENGTH = 6
 /**
- * A vouch token, a report receipt, a couple owner key. Ten, never eight: a
- * token is not a code and must never be mistaken for one. Tokens were eight
- * until codes became eight; those already sent still resolve (`LEGACY_TOKEN`).
+ * A report receipt, a couple owner key, a first keep's once key. Ten, never
+ * eight: a token is not a code and must never be mistaken for one.
  */
 export const TOKEN_LENGTH = 10
 
 /** A map code, a couple code or an install id: six characters (kept before 2026-09-23) or eight. */
 export const CODE = /^(?:[ACDEFGHJKMNPQRTWXY34789]{6}|[ACDEFGHJKMNPQRTWXY34789]{8})$/
 export const TOKEN = /^[ACDEFGHJKMNPQRTWXY34789]{10}$/
-/**
- * A vouch token minted before 2026-09-23 — the same shape as a new map code.
- * Only netlify/functions/vouch.ts meets both, and it looks for a token first.
- */
-export const LEGACY_TOKEN = /^[ACDEFGHJKMNPQRTWXY34789]{8}$/
 
 /** The largest multiple of the alphabet that fits in a byte. Above it, draw again. */
 const LIMIT = 256 - (256 % ALPHABET.length)

@@ -34,24 +34,15 @@ const state = {
   stage: 'preparing' as const,
   situated: true,
   followups: [],
-  steps: [],
   guide: defaultGuideUse,
-  waitlist: null,
   read: null,
   beforeYes: null,
   couple: null,
-  vouch: null,
   ending: null,
   endings: [],
-  hesitated: null,
   began: [],
   completed: true,
-  matched: [],
-  pendingInterest: [],
-  passed: [],
-  conversations: {},
   coachThreads: {},
-  interestNotes: {},
 }
 
 beforeEach(() => {
@@ -83,10 +74,9 @@ describe('keeping a map', () => {
     expect(body).not.toContain('the secret thing')
   })
 
-  it('carries no email or phone, and nothing the guide handed her', async () => {
+  it('carries nothing the guide handed her', async () => {
     saveProgress({
       ...state,
-      waitlist: { contact: 'sagal@example.com', scene: 'toronto', code: 'ACDEFG', joinedAt: '2026-01-01' },
       followups: [
         { id: 'g1', source: 'guide', topic: 'should I tell hooyo about him', words: 'Tell her on a Tuesday, plainly.', at: '2026-01-01' },
         { id: 'r1', source: 'read', topic: 'public', at: '2026-01-02' },
@@ -97,11 +87,8 @@ describe('keeping a map', () => {
     await keepMap()
     const body = spy.mock.calls[0][1]?.body as string
     const sent = JSON.parse(body).snapshot
-    expect(body).not.toContain('sagal@example.com')
     expect(body).not.toContain('tell hooyo')
     expect(body).not.toContain('on a Tuesday')
-    // Her place on the door survives without the way to reach her.
-    expect(sent.waitlist).toEqual({ scene: 'toronto', code: 'ACDEFG', joinedAt: '2026-01-01' })
     // The read's follow-up is not the guide's, and stays — under an id that
     // carries no moment (docs/PRIVACY.md, C2).
     expect(sent.followups.map((f: { source: string }) => f.source)).toEqual(['read'])
@@ -158,13 +145,6 @@ describe('bringing a map back', () => {
     expect(restored?.identity.firstName).toBe('Sagal')
   })
 
-  it('comes back with her place on the door and no contact, whatever the snapshot held', async () => {
-    const old = { ...state, waitlist: { contact: 'kept-by-an-older-version', scene: 'toronto', joinedAt: 'x' } }
-    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ snapshot: old }), { status: 200 })))
-    const restored = await restoreMap('ACDEFG')
-    expect(restored?.waitlist).toEqual({ contact: '', scene: 'toronto', joinedAt: 'x' })
-  })
-
   it('comes back with empty guide threads, even from a snapshot kept before they were left out', async () => {
     const old = { ...state, coachThreads: { auntie: [{ id: '1', role: 'user', text: 'kept by an older version' }] } }
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ snapshot: old }), { status: 200 })))
@@ -217,26 +197,6 @@ describe('bringing a map back', () => {
 
   it('is absent when there is no code in the url', () => {
     expect(codeFromUrl()).toBeNull()
-  })
-})
-
-describe('a patch laid over the device', () => {
-  it('is sent under her existing code, and the device is left as it was', async () => {
-    saveProgress(state)
-    localStorage.setItem('niyyah.keep.code.v1', 'ACDEFG')
-    let sent: { code?: string; snapshot?: { identity?: { age?: number; firstName?: string } } } = {}
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async (_url: string, init?: RequestInit) => {
-        sent = JSON.parse(init!.body as string)
-        return new Response(JSON.stringify({ code: 'ACDEFG' }), { status: 200 })
-      }),
-    )
-    expect(await keepMap({ identity: { age: 28 } })).toBe('ACDEFG')
-    expect(sent.code).toBe('ACDEFG')
-    expect(sent.snapshot?.identity).toMatchObject({ firstName: 'Sagal', age: 28 })
-    // The patch is for the copy on the server; nothing on the phone moved.
-    expect(loadProgress()?.identity.age).toBeUndefined()
   })
 })
 
@@ -317,7 +277,7 @@ describe('two phones, one map (docs/INTEGRITY.md)', () => {
     rememberCode('ACDEFGHJ', 2)
     vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'stale', rev: 3 }), { status: 409 })))
     expect(await keepMapDetail()).toBe('stale')
-    // The door counts her under the code she already has; no second map.
+    // No second map: she keeps the code she already has.
     expect(await keepMap()).toBeNull()
     expect(rememberedCode()).toBe('ACDEFGHJ')
   })

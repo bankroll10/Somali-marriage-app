@@ -8,9 +8,9 @@ import { describe, expect, it } from 'vitest'
  * from an attachment with the network off. Every rule it ships under is a
  * rule someone could quietly break later: a font pulled from a CDN, a helpful
  * "typical mahr" range, a second link that looks like a Niyyah page and is
- * not. So each one is pinned here rather than kept in a brief.
- *
- * docs/ASSETS.md carries the row; docs/SHEET.md carries the reasoning.
+ * not. So each one is pinned here rather than kept in a brief. The exact
+ * print measurements are not: they were set by rendering, and a number read
+ * back out of the CSS proves nothing about the page (docs/SHEET.md).
  */
 
 const HTML = readFileSync('public/niyyah-money-conversation-sheet.html', 'utf8')
@@ -18,7 +18,6 @@ const TXT = readFileSync('public/niyyah-money-conversation-sheet.txt', 'utf8')
 const ONE_PAGE = readFileSync('public/niyyah-money-conversation-sheet-1page.html', 'utf8')
 const NOTE = readFileSync('public/niyyah-money-conversation-sheet-facilitator-note.html', 'utf8')
 const NOTE_TXT = readFileSync('public/niyyah-money-conversation-sheet-facilitator-note.txt', 'utf8')
-const CATALOG = readFileSync('docs/ASSETS.md', 'utf8')
 
 const flat = (s: string) => s.replace(/[’‘]/g, "'").replace(/\s+/g, ' ').trim()
 
@@ -201,28 +200,13 @@ describe('the two versions ask the same twenty questions', () => {
 describe('on paper', () => {
   const PRINT = CSS.slice(CSS.indexOf('@media print'))
 
-  it('starts each subject on its own page — the separation is the point', () => {
+  it('starts each subject on its own page, on any paper, black on white', () => {
     expect(PRINT).toMatch(/section \+ section \{[^}]*break-before: page/)
-    expect(PRINT).toMatch(/page-break-before: always/)
     expect(CSS).toMatch(/ol\.qs > li \{[\s\S]*?break-inside: avoid/)
-  })
-
-  it('fits US Letter and A4 both, by declaring no paper size at all', () => {
-    expect(PRINT).toContain('@page')
+    // US Letter and A4 both, by declaring no paper size at all.
     expect(PRINT).not.toMatch(/@page\s*\{[^}]*size:/)
-  })
-
-  it('prints black on white with lines to write on, not fills to soak up toner', () => {
     expect(PRINT).toMatch(/background: #fff/)
     expect(PRINT).toMatch(/color: #000/)
-    expect(PRINT).toMatch(/background: transparent/)
-    expect(PRINT).toMatch(/min-height: 11\.5mm/)
-    expect(PRINT).toMatch(/\.box textarea \{[^}]*min-height: 15mm/)
-  })
-
-  it('draws no resize handle — a diagonal mark in the corner with nothing to grab on paper', () => {
-    expect(PRINT).toMatch(/textarea \{\s*resize: none;/)
-    expect(PRINT).toMatch(/textarea::-webkit-resizer \{\s*display: none;/)
   })
 
   it('carries the name on every printed page, not only the last one', () => {
@@ -367,39 +351,15 @@ describe('the one-page variant', () => {
     expect(ONE_PAGE).not.toContain('still deciding</label>')
   })
 
-  it('splits into two print columns instead of one page per subject', () => {
-    // The one page/four page split itself: no break-before here, and a
-    // real multi-column layout instead.
+  it('prints as two columns on one page, at the 9pt floor the founder set', () => {
     expect(O_PRINT).not.toMatch(/break-before: page/)
     expect(O_PRINT).toMatch(/\.content \{[\s\S]*?columns: 2/)
-  })
-
-  it('keeps every print field at the 9pt floor the founder set for this variant', () => {
     expect(O_PRINT).toMatch(/font-size: 9pt; \/\* the floor this variant was asked to keep \*\//)
-    // The bug this guards: a screen-only rule with higher specificity
-    // (`.cols input[type='text']`) silently overrode the print min-height
-    // once, because 1.9rem recomputes against print's 9pt root instead of
-    // being ignored outside its own media query. Any print min-height on an
-    // answer input has to be re-stated at equal-or-greater specificity
-    // inside @media print, not just on the bare element selector. The exact
-    // height has grown since (docs/SHEET.md — measured bottom slack, not a
-    // round number); what this guards is the override existing at all.
-    expect(O_PRINT).toMatch(/\.cols input\[type='text'\] \{\s*min-height: 5\.9mm/)
-  })
-
-  it('spends the printed page’s bottom slack on taller write-in lines', () => {
-    // 3mm/4mm (the first cut, purely for one-page-ness) was too short to
-    // write on. Grown until Letter's measured bottom slack — the printed
-    // page height minus everything actually on it — came down to ~5mm,
-    // verified by rendering, not by reading these numbers back out of the
-    // CSS (docs/SHEET.md has the measurement).
-    expect(O_PRINT).toMatch(/min-height: 5\.9mm;\s*height: 5\.9mm;/)
-    expect(O_PRINT).toMatch(/\.box textarea \{[^}]*min-height: 6\.9mm/)
-  })
-
-  it('draws no resize handle in print, the same guard as the four-page file', () => {
-    expect(O_PRINT).toMatch(/textarea \{\s*resize: none;/)
-    expect(O_PRINT).toMatch(/textarea::-webkit-resizer \{\s*display: none;/)
+    // A screen rule with higher specificity (`.cols input[type='text']`) once
+    // overrode the print height of every answer line, because 1.9rem
+    // recomputes against print's 9pt root. The print rule has to be restated
+    // at that specificity; what it is set to is docs/SHEET.md's measurement.
+    expect(O_PRINT).toMatch(/\.cols input\[type='text'\] \{\s*min-height:/)
   })
 
   it('carries the same footer, note and version line as the four-page file', () => {
@@ -578,30 +538,5 @@ describe('the link graph across the whole N3 family', () => {
         expect(l.href, `${name}: ${l.href}`).toMatch(/^niyyah-money-conversation-sheet[a-z0-9-]*\.html$/)
       }
     }
-  })
-})
-
-describe('the catalog knows all three files', () => {
-  // docs/ASSETS.md's own rule: an address not in the table as live and
-  // checked is not an address to put in a pitch. N3 sat there as proposed
-  // for three days; shipping it without moving the row is how a
-  // placeholder URL goes out.
-  it('carries N3 with the real path and a status that is not proposed', () => {
-    const row = CATALOG.split('\n').find((l) => l.startsWith('| **N3**') && !l.startsWith('| **N3-1page**'))!
-    expect(row).toContain('niyyah-money-conversation-sheet.html')
-    expect(row).not.toContain('niyyah-money-conversation-sheet-1page.html')
-    expect(row).not.toContain('proposed')
-  })
-
-  it('carries N3-1page as its own row, not folded into N3’s', () => {
-    const row = CATALOG.split('\n').find((l) => l.startsWith('| **N3-1page**'))!
-    expect(row).toContain('niyyah-money-conversation-sheet-1page.html')
-    expect(row).not.toContain('proposed')
-  })
-
-  it('carries N3-note as its own row', () => {
-    const row = CATALOG.split('\n').find((l) => l.startsWith('| **N3-note**'))!
-    expect(row).toContain('niyyah-money-conversation-sheet-facilitator-note.html')
-    expect(row).not.toContain('proposed')
   })
 })

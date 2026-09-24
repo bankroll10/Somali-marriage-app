@@ -29,8 +29,7 @@ import { send } from './net'
  * it needed are kept — the codes and nothing else, none of her answers — as a
  * pending forget. The phone used to be wiped whatever happened, and Trust
  * told her to tap Forget me again: but the retry had no code left to send, so
- * it reported success while her map, her place at the door and the way to
- * reach her stayed on the server for a year, and she could not even write in
+ * it reported success while her map stayed on the server for a year, and she could not even write in
  * with the code, because it was gone too. Now the next Forget me sends the
  * pending codes first, the app sends them again every time it opens, and
  * Trust shows her the code so a person can do it by hand.
@@ -58,7 +57,10 @@ export const LOCAL_KEYS = [
   'niyyah.keep.once.v1',
   'niyyah.install.v1',
   'niyyah.via.v1',
+  // A place at the door not yet sent, from before 2026-09-24, when the door
+  // was removed. Nothing writes it now; it held a way to reach her.
   'niyyah.waitlist.queue.v1',
+  // The session event log an older version kept here. Nothing writes it now.
   'niyyah.events.v1',
   // A read or an eleven she was part-way through — see src/lib/draft.ts.
   // Forget me promises the phone is cleared, and this is on the phone.

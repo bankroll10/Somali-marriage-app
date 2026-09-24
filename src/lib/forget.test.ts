@@ -142,7 +142,7 @@ describe('forget me', () => {
   })
 
   it('names every key the app writes', () => {
-    // The list itself; tests/fogg.test.ts is what proves it is complete, by
+    // The list itself; tests/forget-keys.test.ts is what proves it is complete, by
     // reading src/ for every key the app actually writes. A hand-written list
     // alone cannot do that, which is how `niyyah.draft.v1` would have been
     // missed (docs/FOGG.md).

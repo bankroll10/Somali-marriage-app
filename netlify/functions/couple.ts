@@ -72,7 +72,8 @@ interface CoupleRecord {
    * The key the person who started it was handed, and the only thing that
    * lets her change her side before he answers (docs/SECURITY.md, O6). Never
    * in any response but the one that created it. Absent on sheets made before
-   * 2026-09-23, which keep the old gender check until they expire.
+   * 2026-09-23; those can no longer be changed, because nothing proves whose
+   * they are.
    */
   owner?: string
   first: Sides
@@ -270,10 +271,11 @@ export default async function handler(req: Request) {
         // used to be hers by the gender the request *said* — and the code is
         // six characters she texted him, so he could post as her with states
         // he chose, and the joint she read was his invention
-        // (docs/SECURITY.md, O6). Sheets from before the key keep the old
-        // check until they expire.
+        // (docs/SECURITY.md, O6). A sheet from before the key cannot be
+        // changed at all: the gender check it used to fall back on was the
+        // hole.
         const key = typeof body.key === 'string' ? body.key : ''
-        const hers = existing.owner ? sameSecret(key, existing.owner) : existing.creator === body.gender
+        const hers = !!existing.owner && sameSecret(key, existing.owner)
         if (!hers) return Response.json({ error: 'not_yours' }, { status: 409 })
         const record: CoupleRecord = {
           ...existing,

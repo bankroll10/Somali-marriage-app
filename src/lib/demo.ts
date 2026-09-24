@@ -10,7 +10,7 @@ import type { Answers, Identity } from '../types'
  *   ?fresh — clears saved state → the app opens on Welcome (tab 1 of a demo:
  *            show onboarding and the 30-second aha).
  *   ?demo  — seeds a complete, coherent member ("Hodan") → the app opens on
- *            Home (tab 2: show the work card, the map, the guide, the door).
+ *            Home (tab 2: show the map, the guide, the read).
  *
  * Reloading a ?demo URL re-seeds, so the demo tab always resets to a known
  * state. Both params overwrite whatever is in localStorage — by design.
@@ -38,7 +38,7 @@ const demoAnswers: Answers = {
   healing: 'healing',
   attachment: 'secure',
   pattern: 'walls',
-  // How she'd live — the three the sample introduction reads on.
+  // How she'd live — the eleven shows her side of these.
   household: 'near-family',
   work: 'both',
   'money-home': 'expected',
@@ -49,7 +49,6 @@ const demoIdentity: Identity = {
   firstName: 'Hodan',
   gender: 'woman',
   adult: true,
-  age: 27,
   scene: 'twin-cities',
 }
 
@@ -70,26 +69,15 @@ export function seedDemo() {
     ],
     // She's preparing — the stage band then shows the arc ahead of her.
     stage: 'preparing',
-    // Two things done, one still open — the work card demos in its live state,
-    // and the map has a record to show.
-    steps: [
-      { dimension: 'vision', taken: dayKey(5), done: dayKey(5) },
-      { dimension: 'family', taken: dayKey(3), done: dayKey(2) },
-      { dimension: 'emotional', taken: dayKey(1) },
-    ],
     // Some of the guide's budget spent. Three rungs reached (arrived, situated,
     // mapped) grant forty-five replies; she has used fourteen.
     guide: { replies: 14 },
-    // No saved place — the ask is part of the demo.
-    waitlist: null,
     // No read yet — taking one live is the demo's strongest moment.
     read: null,
     beforeYes: null,
     couple: null,
-    vouch: null,
     ending: null,
     endings: [],
-    hesitated: null,
     began: [],
     completed: true,
     coachThreads: {},
@@ -97,8 +85,6 @@ export function seedDemo() {
 }
 
 export function clearForFresh() {
-  // Clear app state only — the local analytics buffer survives ?fresh so
-  // hallway-test funnels aren't wiped between runs.
   clearProgress()
 }
 

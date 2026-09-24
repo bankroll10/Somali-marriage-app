@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
-import FollowUp, { FollowedThrough } from './home/FollowUp'
+import { SinceLastTime } from './home/FollowUp'
 import type { FollowUpAsk } from '../lib/followup'
 import type { FollowUp as FollowUpRecord } from '../types'
 import RestoreMap from './RestoreMap'
@@ -14,7 +13,6 @@ interface Props {
   completed: boolean
   onResume: () => void
   onEnter: () => void
-  onPhilosophy: () => void
   /**
    * A conversation someone was handed words for, days ago, with no Home to be
    * asked about it on — a stranger who took the family words, say. Asked here,
@@ -33,12 +31,10 @@ export default function Welcome({
   completed,
   onResume,
   onEnter,
-  onPhilosophy,
   followUpAsk = null,
   onAnswerFollowUp,
   onAskGuide,
 }: Props) {
-  const [hadIt, setHadIt] = useState<FollowUpAsk | null>(null)
   return (
     <div className="relative min-h-dvh overflow-hidden bg-forest-deep text-cream">
       <GeoBackdrop className="opacity-70" />
@@ -50,21 +46,13 @@ export default function Welcome({
         </header>
 
         <main className="flex flex-1 flex-col justify-center py-16">
-          {onAnswerFollowUp && (hadIt || followUpAsk) && (
-            <div className="-mt-8 mb-10 rounded-card bg-cream px-4 pb-4 text-ink">
-              {hadIt ? (
-                <FollowedThrough ask={hadIt} onDone={() => setHadIt(null)} />
-              ) : (
-                <FollowUp
-                  ask={followUpAsk!}
-                  onAnswer={(id, outcome, agreed, putAway) => {
-                    if (outcome === 'asked') setHadIt(followUpAsk)
-                    onAnswerFollowUp(id, outcome, agreed, putAway)
-                  }}
-                  onAskGuide={(text) => onAskGuide?.(text)}
-                />
-              )}
-            </div>
+          {onAnswerFollowUp && (
+            <SinceLastTime
+              ask={followUpAsk}
+              onAnswer={onAnswerFollowUp}
+              onAskGuide={(text) => onAskGuide?.(text)}
+              wrap="-mt-8 mb-10 rounded-card bg-cream px-4 pb-4 text-ink"
+            />
           )}
           <p className="animate-fade mb-5 text-sm font-medium uppercase tracking-[0.25em] text-gold-soft">
             {EYEBROW}
@@ -197,15 +185,12 @@ export default function Welcome({
               </>
             )}
           </div>
-          {/* "Then: find someone serious — without losing your dignity, faith,
-              time, or peace" sat here: a marketplace promise, with no pool open
-              and nobody to introduce (docs/DIFFERENTIATION.md). The line under
-              this one says what is true about that instead. */}
+          {/* What is true, in one line. */}
           <p
             className="animate-fade mt-5 text-xs text-cream/60"
             style={{ animationDelay: '300ms' }}
           >
-            Private to you · Minneapolis opens first · We never pretend a city is full
+            Private to you · No account · Free
           </p>
           {/* The second door used to be a card here, below the fold, for the
               person in the most pain — already talking to someone. It is now
@@ -213,15 +198,6 @@ export default function Welcome({
           {/* Quiet on purpose: someone arriving for the first time should meet
               the question this app exists to answer, not a login. */}
           <RestoreMap />
-
-          <button
-            onClick={onPhilosophy}
-            className="animate-fade mt-6 inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gold-soft underline-offset-4 transition hover:underline"
-            style={{ animationDelay: '340ms' }}
-          >
-            Why we’re different
-            <ArrowRight className="h-4 w-4" />
-          </button>
         </main>
 
       </div>

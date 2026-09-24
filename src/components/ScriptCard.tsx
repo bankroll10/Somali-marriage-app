@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import type { Script } from '../data/read'
-import { track } from '../lib/analytics'
 import { shareOrCopy } from '../lib/share'
 import { wordsMessage, type WordsSource } from '../lib/words'
 import { Announce, CheckIcon } from './ui'
@@ -10,13 +9,7 @@ interface Props {
   title: string
   /** A line above the words, for when something else must come first. */
   preface?: string
-  /** Which instrument produced this — the only thing the copy event records. */
-  source: string
-  /**
-   * Where these words came from, so the person she sends them to lands on
-   * that instrument. A prop rather than derived from `source`, which is a free
-   * string and, on the follow-up card, varies per record.
-   */
+  /** Where these words came from, so the person she sends them to lands on that instrument. */
   travel: WordsSource
   /** She took the words — copied them or sent them on. Some callers write that down. */
   onTaken?: () => void
@@ -35,7 +28,7 @@ interface Props {
  * handed to a friend who is talking to someone. The message is the words; the
  * product is the footnote. Nothing is counted and nothing is rewarded.
  */
-export default function ScriptCard({ script, title, preface, source, travel, onTaken }: Props) {
+export default function ScriptCard({ script, title, preface, travel, onTaken }: Props) {
   const [copied, setCopied] = useState(false)
   const [sent, setSent] = useState(false)
   const [failed, setFailed] = useState(false)
@@ -43,7 +36,6 @@ export default function ScriptCard({ script, title, preface, source, travel, onT
   async function copy() {
     try {
       await navigator.clipboard.writeText(script.words)
-      track('script_copied', { source })
       onTaken?.()
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
@@ -56,7 +48,7 @@ export default function ScriptCard({ script, title, preface, source, travel, onT
   }
 
   async function send() {
-    const result = await shareOrCopy(wordsMessage(script, travel), 'words_sent')
+    const result = await shareOrCopy(wordsMessage(script, travel))
     if (result === 'cancelled') return
     if (result === 'failed') {
       setFailed(true)

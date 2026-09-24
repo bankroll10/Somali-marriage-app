@@ -26,9 +26,8 @@ interface Usage {
  * every failure as "fall back to the offline voice", the first sign of it
  * would have been a fortnight of members quietly getting the local matcher
  * while we believed we were watching the live guide (docs/BOARD.md, the
- * reality-sprint pass). The caller now names a mode and fills named slots.
- * `body.system` is ignored rather than refused, so a client still cached on
- * someone's phone keeps working.
+ * reality-sprint pass). The caller now names a mode and fills named slots;
+ * anything else it sends, a `system` field included, goes nowhere.
  *
  * **On in production, deliberately** (docs/ROADMAP.md, 2026-09-10). This used
  * to say the guide was dormant and that Trust's promise "must be rewritten in
@@ -48,7 +47,7 @@ interface Usage {
  *
  * The model may never become load-bearing: it adds a layer on top of something
  * the product already does completely without it, and never produces the map,
- * the read, the eleven, the match or the door. docs/DURABLE.md holds the rule
+ * the read or the eleven. docs/DURABLE.md holds the rule
  * and tests/durable.test.ts asserts it.
  */
 
@@ -127,18 +126,13 @@ export interface Turn {
 }
 
 interface Body {
-  /** One of GUIDE_MODES — which of the five voices is answering. */
+  /** One of GUIDE_MODES — which of the four voices is answering. */
   mode?: string
   /** The member's map, checked against shared/prompt.ts before it reaches the prompt. */
   context?: unknown
   message?: string
   /** Prior turns in this thread, oldest first, so the guide remembers. */
   history?: Turn[]
-  /**
-   * Read by an older client only, and deliberately ignored. Kept in the type
-   * so the next reader knows it arrives and knows it goes nowhere.
-   */
-  system?: never
 }
 
 /**
@@ -244,7 +238,7 @@ export default async function handler(req: Request, _context: Context) {
     return Response.json({ error: 'guide_not_configured' }, { status: 503 })
   }
 
-  // Measured before it is parsed, like keep.ts and cohort.ts: the size of the
+  // Measured before it is parsed, like keep.ts: the size of the
   // body is the size of the bill, and this route used to accept any size.
   // Read, and checked, before either cap is spent: a body that could never
   // reach the model used to spend a call of the day's budget anyway — and a

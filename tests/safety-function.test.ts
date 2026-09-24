@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { stores } from './support/memory'
 
 /**
  * The one place a member can name a real person. These tests check the
@@ -8,35 +9,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * nothing here is a tally or a record that outlives being acted on.
  */
 
-const stores = new Map<string, Map<string, string>>()
-
-function memStore(name: string) {
-  const m = stores.get(name) ?? new Map<string, string>()
-  stores.set(name, m)
-  return {
-    get: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
-    },
-    getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
-    getWithMetadata: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      if (v === null) return null
-      return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
-    },
-    // Conditional writes behave like the real store's, so the hourly cap in
-    // shared/limit.ts counts here the way it does in production.
-    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, JSON.stringify(value))
-      return { modified: true }
-    },
-    delete: async (key: string) => void m.delete(key),
-    list: async () => ({ blobs: [...m.keys()].map((key) => ({ key })) }),
-  }
-}
-vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
+vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
 
 const { default: handler } = await import('../netlify/functions/safety')
 const { TOKEN } = await import('../netlify/shared/code')
@@ -76,9 +49,8 @@ describe('reporting a concern', () => {
     expect(answer.received).toBe(true)
 
     const stored = JSON.parse([...stores.get('reports')!.values()][0])
-    // The id is the receipt her phone keeps to withdraw it — a token's length,
-    // because it is a secret (docs/SECURITY.md, O1).
-    expect(answer.receipt).toBe(stored.id)
+    // Nothing comes back that could take it back (docs/ABUSE.md, coercion).
+    expect(answer).toEqual({ received: true })
     expect(stored.reason).toBe('threats')
     expect(stored.details.length).toBe(500)
     expect(stored.at).toMatch(/^\d{4}-\d{2}-\d{2}$/)
@@ -176,12 +148,12 @@ describe('resolving a report', () => {
     const report = JSON.parse([...stores.get('reports')!.values()][0])
 
     expect((await del(`code=${CODE}&side=woman&id=${report.id}&outcome=no-action`)).status).toBe(401)
-    expect((await resolve(report, 'never-introduce')).status).toBe(200)
+    expect((await resolve(report, 'told-the-family')).status).toBe(200)
 
     const keys = [...stores.get('reports')!.keys()]
     expect(keys).toEqual([`resolved/${report.id}`])
     const stub = JSON.parse(stores.get('reports')!.get(keys[0])!)
-    expect(stub).toEqual({ reason: 'threats', at: report.at, resolvedAt: expect.any(String), outcome: 'never-introduce', v: 1 })
+    expect(stub).toEqual({ reason: 'threats', at: report.at, resolvedAt: expect.any(String), outcome: 'told-the-family', v: 1 })
     // Nothing of hers, and nothing that points at anyone.
     const serialised = JSON.stringify(stub)
     for (const gone of ['He said he would come to my work.', CODE, 'woman']) {
@@ -215,38 +187,14 @@ describe('resolving a report', () => {
   })
 })
 
-describe('withdrawing a report', () => {
-  const openReports = () =>
-    [...stores.get('reports')!.entries()].filter(([k]) => !k.startsWith('resolved/')).map(([, v]) => JSON.parse(v))
-  const withdraw = (code: string, side: string, id: string) => del(`code=${code}&side=${side}&id=${id}`)
-
-  it('the receipt takes back exactly that report, and leaves nothing behind', async () => {
-    const { receipt } = await (await post({ code: CODE, side: 'woman', reason: 'threats', details: 'her words' })).json()
-    await post({ code: CODE, side: 'woman', reason: 'harassment' })
-    await post({ code: CODE, side: 'man', reason: 'other' })
-    expect(openReports()).toHaveLength(3)
-
-    const res = await withdraw(CODE, 'woman', receipt)
-    expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ withdrawn: true })
-    expect(openReports().map((r) => r.reason).sort()).toEqual(['harassment', 'other'])
-    // Her asking to be forgotten, not the founder deciding: no stub.
-    expect([...stores.get('reports')!.keys()].some((k) => k.startsWith('resolved/'))).toBe(false)
-    // Once.
-    expect((await withdraw(CODE, 'woman', receipt)).status).toBe(404)
-  })
-
-  it('without the receipt nothing moves — not the right code, not the right side, not a guess', async () => {
-    const { receipt } = await (await post({ code: CODE, side: 'woman', reason: 'threats' })).json()
-    // The other side of the pair holds the code, and can name her side; what
-    // he does not hold is the receipt.
-    expect((await withdraw(CODE, 'woman', 'ACDEFGHJKM')).status).toBe(404)
-    expect((await withdraw(CODE, 'man', receipt)).status).toBe(404)
-    // A six-character id is the founder's to resolve, never a withdrawal.
-    expect((await withdraw(CODE, 'woman', 'ACDEFG')).status).toBe(400)
-    expect((await withdraw('nope', 'woman', receipt)).status).toBe(400)
-    // An outcome, or a key, is resolution — which is the founder's alone.
-    expect((await del(`code=${CODE}&side=woman&id=${receipt}&outcome=no-action`)).status).toBe(401)
-    expect(openReports()).toHaveLength(1)
+describe('nobody but the founder takes a report back', () => {
+  it('a delete without the founder’s key moves nothing — there is no withdrawal', async () => {
+    await post({ code: CODE, side: 'woman', reason: 'threats', details: 'her words' })
+    const [key] = [...stores.get('reports')!.keys()]
+    const id = key.split('-').pop()!
+    // Everything a person holding the pair's code, her side and the id could send.
+    expect((await del(`code=${CODE}&side=woman&id=${id}`)).status).toBe(401)
+    expect((await del(`code=${CODE}&side=woman&id=${id}&outcome=no-action`)).status).toBe(401)
+    expect([...stores.get('reports')!.keys()]).toEqual([key])
   })
 })

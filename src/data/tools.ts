@@ -23,12 +23,10 @@
  * rule (`Read.tsx`) written down once. The eleven has no `about` — it is asked
  * on arrival, as it always was.
  *
- * `door` and `families` joined this table on 2026-09-21, for the same reason
- * the first three did rather than a new one: the audit that added them found
- * both still minted as query-only links (`?door`, `?families`), which carry
- * no static preview of their own — every one of them showed the same generic
- * homepage card in a messaging app, however the sender explained it. Neither
- * has an `about`; a person arrives at the door or the family words for
+ * `families` joined this table on 2026-09-21, for the same reason the first
+ * three did rather than a new one: the audit that added it found it still
+ * minted as a query-only link (`?families`), which carries no static preview
+ * of its own. It has no `about`; a person arrives at the family words for
  * themself, not to read someone else. See `docs/LINKS.md`.
  *
  * `via` is what a share of the blank tool records: the same id the invitation
@@ -44,7 +42,7 @@
  * twins by `src/lib/entry.ts` (`satisfies`) and `tests/tools.test.ts`.
  */
 
-export type ToolSlug = 'is-he-serious' | 'is-she-serious' | 'before-you-say-yes' | 'door' | 'families'
+export type ToolSlug = 'is-he-serious' | 'is-she-serious' | 'before-you-say-yes' | 'families'
 
 /** Which side a person is. Assignable to `Gender` in src/types.ts. */
 export type ToolSide = 'woman' | 'man'
@@ -52,7 +50,7 @@ export type ToolSide = 'woman' | 'man'
 export interface Tool {
   slug: ToolSlug
   /** The instrument the path opens. Assignable to `InstrumentKind` in src/lib/entry.ts. */
-  kind: 'read' | 'eleven' | 'door' | 'families'
+  kind: 'read' | 'eleven' | 'families'
   /** The person being read. Absent for the eleven, which asks on arrival. */
   about?: ToolSide
   /** `<title>`, and the title a messaging app shows under the link. */
@@ -62,7 +60,7 @@ export interface Tool {
   /** The sentence sent beside the link from "Share this tool". */
   share: string
   /** What kind of link a share of this tool is. An existing id in `VIAS`. */
-  via: 'words' | 'eleven' | 'door' | 'family'
+  via: 'words' | 'eleven' | 'family'
 }
 
 export const TOOLS_BASE = '/tools/'
@@ -99,16 +97,6 @@ export const TOOLS: Tool[] = [
     share:
       'Before you say yes — the eleven conversations most of us have too late: where you’d live, money home, a second wife. This asks which ones you two have had, and gives you the words to open the one that matters. Two minutes. No account.',
     via: 'eleven',
-  },
-  {
-    slug: 'door',
-    kind: 'door',
-    title: 'The door — where the pool for your city stands',
-    description:
-      'Nobody is introduced to anyone until both sides are here. Three answers, your age, and a way to reach you — no photos, no account. See where the pool for your city stands, and be counted in it.',
-    share:
-      'Niyyah is being built for us, one city at a time. No photos, no account: three answers, your age, and a way to reach you. See where it stands.',
-    via: 'door',
   },
   {
     slug: 'families',

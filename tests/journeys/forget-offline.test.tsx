@@ -51,10 +51,9 @@ describe('forget me, with the server down', () => {
     reload()
     expect(blobs.read('maps', code), 'kept on the server').not.toBeNull()
 
-    // Trust, from her profile. Then the network goes.
+    // Trust, from Home. Then the network goes.
     const m = await mount(<App />)
-    await m.press(/^What decides who you meet/)
-    await m.press(/^What you’ve done here/)
+    await m.press(/^Your privacy/)
     expect(m.text()).toContain('Forget me')
     server.down(true)
     await m.press(/^Forget me$/)

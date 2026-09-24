@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Identity } from '../types'
-import type { LedgerEntry } from '../lib/ledger'
-import { BackButton, CheckIcon, Disclose, LockGlyph, Logo } from './ui'
+import { BackButton, Disclose, LockGlyph, Logo } from './ui'
 import ReportConcern from './ReportConcern'
 import ForgetMe, { type Forgot } from './ForgetMe'
 import { speak } from '../data/read'
@@ -14,8 +13,6 @@ interface Props {
    * can be filed against.
    */
   coupleCode?: string | null
-  /** What she has actually done here — see src/lib/ledger.ts. */
-  ledger: LedgerEntry[]
   guideOnDevice: boolean
   onGuideOnDevice: (on: boolean) => void
   countMe: boolean
@@ -33,14 +30,13 @@ interface Props {
  * wali-friendly, blur photos, a privacy shield. Nothing enforced any of them.
  * A screen full of protections that do not exist is the opposite of trust.
  *
- * What is here now is true by construction: the ledger of what she has done
- * (which cannot be tapped), the one control that does what it says, and the
- * exact account of where her answers live.
+ * What is here now is true by construction: the controls that do what they
+ * say, and the exact account of where her answers live.
  */
 /** A list inside a disclosure — the same size and colour as the paragraph it follows. */
 const LIST = 'mt-2 list-disc space-y-1 pl-5 text-[0.88rem] leading-snug text-muted'
 
-export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
+export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
   const fix = speak(identity.gender)
 
   return (
@@ -56,33 +52,19 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
       <main className="mx-auto max-w-2xl px-6">
         <section className="py-10">
           <h1 className="animate-rise font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
-            What you have done here.
+            What leaves your phone, and what we promise.
           </h1>
-          <p className="animate-rise mt-4 max-w-lg text-[1.04rem] leading-relaxed text-ink-soft text-pretty">
-            Not a badge you tap. Each of these costs a little time and a little honesty, and none can
-            be faked. If a pool ever opens here, this is what would decide who you meet, and nothing
-            is deciding it yet. Every one is yours to do or not.
-          </p>
-
-          {/* The ledger. Facts, in order; no number anywhere. */}
-          <ul className="animate-rise mt-8 divide-y divide-line overflow-hidden rounded-card border border-line bg-white/60">
-            {ledger.map((e) => (
-              <li key={e.id} className="flex items-start gap-3.5 px-5 py-4">
-                <span
-                  className={`mt-0.5 flex h-6 w-6 flex-none items-center justify-center rounded-full border ${
-                    e.done ? 'border-forest bg-forest text-cream' : 'border-line bg-cream'
-                  }`}
-                  aria-hidden
-                >
-                  {e.done && <CheckIcon size={12} />}
-                </span>
-                <span className="min-w-0 flex-1">
-                  <span className={`block text-[0.98rem] font-medium ${e.done ? 'text-ink' : 'text-ink-soft'}`}>
-                    {e.label}
-                  </span>
-                  <span className="mt-0.5 block text-[0.85rem] leading-snug text-muted text-pretty">{e.line}</span>
-                </span>
-                <span className="sr-only">{e.done ? 'done' : 'not yet'}</span>
+          {/* What's free, in three sentences. A whole screen used to say this,
+              beside a list of paid products nobody can buy yet
+              (docs/MONETIZATION.md is the plan; this is the promise). */}
+          <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
+            {[
+              'Everything here is free. Nothing that protects you is ever paid, at any price.',
+              'Nothing is priced by the reply, the message or the month, and staying single never earns us more.',
+              'We will never sell your data, and never charge you without asking first.',
+            ].map((line) => (
+              <li key={line} className="text-[0.98rem] leading-snug text-ink-soft text-pretty">
+                {line}
               </li>
             ))}
           </ul>
@@ -100,7 +82,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
 
           <Control
             title="Tell us which steps you reach"
-            desc="On unless you turn it off. Opening Niyyah is counted once; after that, each step above, the first time you reach it."
+            desc="On unless you turn it off. Opening Niyyah is counted once; after that, each step you reach, the first time you reach it."
             icon={<LockGlyph />}
             on={countMe}
             onToggle={() => onCountMe(!countMe)}
@@ -118,15 +100,8 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
         </div>
 
         {/* Where the data lives — the skeptic's first question, answered plainly.
-            Every sentence here must match the code that sends something.
-
-            Until 2026-09-18 every sentence was also *open*, in seven stacked
-            paragraphs (docs/LOAD.md); that pass folded them into six rows and
-            kept every word. The voice pass (docs/VOICE.md) then cut what was
-            said twice — the second copy, "turn it off", "never" seven times in
-            two sentences — and turned the four longest sentences into lists.
-            Each clause still matches a line of code that sends something;
-            tests/load.test.ts pins the six that were hardest to say. */}
+            Every sentence here must match the code that sends something: one
+            row per thing that leaves the phone, and nothing else. */}
         <section className="mt-6">
           <div className="flex items-start gap-4 rounded-card border border-line bg-white/50 p-5">
             <span className="flex h-11 w-11 flex-none items-center justify-center rounded-2xl bg-sand text-ink-soft">
@@ -135,80 +110,33 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
             <div className="min-w-0 flex-1">
               <h2 className="font-display text-[1.08rem] font-medium text-ink">Where your answers live</h2>
               <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
-                Everything you answer stays on this phone. It leaves only if you tap one of the six
-                things below, and each says exactly what goes. If the app crashes, it tells us only
+                Everything you answer stays on this phone. It leaves only for the things below, and
+                each says exactly what goes. If the app crashes, it tells us only
                 that it did. We never ask anyone else’s name.
               </p>
             </div>
           </div>
 
           <div className="mt-3 space-y-2.5">
-            <Disclose summary="Keeping your map" hint="Your answers — not your email">
+            <Disclose summary="Keeping your map" hint="Your answers, under a code only you have">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                 If you ask us to keep it, what the app needs to bring you back is copied to our server
                 under your code:
               </p>
               <ul className={LIST}>
-                <li>the first name you gave, and your age</li>
+                <li>the first name you gave</li>
                 <li>your answers, and every reading of your map</li>
-                <li>where you said you are, and how far you’d go</li>
-                <li>the work you took on</li>
+                <li>where you said you are</li>
                 <li>any read or Before you say yes you’ve done</li>
-                <li>your couple code, and your family’s vouch</li>
-                <li>that you asked to be counted</li>
+                <li>your couple code</li>
                 <li>if you’ve married, what you told us on the way out</li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                Left out: your email or phone, your conversations with the guide, and anything the
-                guide handed you to say. Those stay on this phone.
+                Left out: your conversations with the guide, and anything the guide handed you to
+                say. Those stay on this phone.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 The code is registered to nobody, and without it nobody can reach the map.
-              </p>
-            </Disclose>
-
-            <Disclose summary="Asking to be counted" hint="Your city and how to reach you, kept apart">
-              <p className="text-[0.88rem] leading-snug text-muted text-pretty">
-                If you ask to be counted, your map is kept as above — kept again that day, as it is
-                then. If you have not given your age we ask it first, because an introduction cannot
-                be made without one; it goes into your map and not onto the door. Under that same
-                code, with no name on it, we also record:
-              </p>
-              <ul className={LIST}>
-                <li>your city and country</li>
-                <li>how far you said you’d go for the right person</li>
-                <li>who you’re seeking</li>
-                <li>the hardest part you named</li>
-                <li>which of the things above you’ve done</li>
-              </ul>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                Nothing about how your map read, and nothing about how you use the app, goes
-                anywhere.
-              </p>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                Your email or phone is kept apart from all of that, in a store of its own, with only
-                your city and country beside it, so you can be reached if your pool opens or if the
-                people you’d travel for are counted. Nothing writes to anyone yet. It lives exactly as
-                long as your kept map does: when the map lapses, so does the way to reach you.
-              </p>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                Your kept map lives in one place, with the company we rent storage from, and the founder’s
-                backup does not include it. If that storage were lost, the map would be too, which is
-                why it also stays on your phone.
-              </p>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                Once you are counted, the founder can read your kept map along with everyone else’s
-                in your pool, to count the pool’s shape: how many women and men of each age, how many
-                are still looking, how many pairs clear each other’s non-negotiables both ways, and
-                how many have nobody here who does.
-              </p>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                What comes back has no code on it and is not a map or a person: how many are here in
-                total, and beyond that only groups of five or more —
-                a breakdown that would come back as one or two comes back blank instead.
-              </p>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                A map nobody has kept for a year lapses, and the same reading takes it off the door.
               </p>
             </Disclose>
 
@@ -231,29 +159,15 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               </p>
             </Disclose>
 
-            <Disclose summary="Asking your family to vouch" hint="The link carries a token, not your code">
-              <p className="text-[0.88rem] leading-snug text-muted text-pretty">
-                If you send a family member the link, your map is kept as above. The link carries a
-                token made for them, not your code, so nobody holding it can open your map.
-              </p>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                What they write — who they are to you, their first name, one sentence, and a phone
-                number if they leave one — is stored under your code, and goes when your map goes.
-                Only their first name and who they are to you come back to any screen. Their sentence
-                and their number are read by the founder alone, who may call to confirm, and are not
-                shown to anyone you meet.
-              </p>
-            </Disclose>
-
             <Disclose summary="The steps you reach" hint="One word per step, once">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                 While <span className="font-medium text-ink">Tell us which steps you reach</span> is
                 on, the first time you reach one of the steps above — you said what was happening,
                 you built a map, you kept it, you took a read, you went through the eleven,{' '}
-                {fix('you asked {him}, {he} answered')}, you had the conversation, your family
-                vouched, you were counted, you’re deciding, you’re married — that step and the date
-                reach us, with your city if you gave one, and whether you said you are a woman or a
-                man, so we can tell whether men are reaching the door at all.
+                {fix('you asked {him}, {he} answered')}, you had the conversation, you’re deciding,
+                you’re married — that step and the date reach us, with your city if you gave one, and
+                whether you said you are a woman or a man, so we can tell whether men are reaching
+                any of this at all.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 A few of those steps also say, in a word, how they came out:
@@ -261,10 +175,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               <ul className={LIST}>
                 <li>which of your map’s seven grounds read thin, steady or strong</li>
                 <li>how the read came out, and which ground it found thinnest</li>
-                <li>
-                  how many of the eleven you had agreed on, differed on, not had, or did not yet know
-                  your own answer to, and which one it told you to open
-                </li>
+                <li>which of the eleven it told you to open</li>
                 <li>which conversation you later confirmed you had</li>
                 <li>
                   at the end, the three things you tap on the way out — who you married, what decided
@@ -279,12 +190,6 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 did, or something you’d rather not say.`)}
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                If you reach the door and tap “not now”, and say why, that one word too — you’d
-                rather not leave an email or phone, someone might see you here, your family doesn’t
-                know, you want to see who’s here first, you’re not sure you’re ready, or something
-                else. Every one of those is a choice from a list we wrote.
-              </p>
-              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 It also says which of the four — the map, a read, the eleven, or the eleven someone
                 sent you — you <span className="font-medium text-ink">began</span>, so we can tell
                 whether they are too long to finish.
@@ -297,7 +202,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 If you opened Niyyah from a link someone sent you, it also says what kind of link
-                that was — words, the eleven, a couple’s link, the door, a family link, a link shared
+                that was — words, the eleven, a couple’s link, a family link, a link shared
                 into a community’s group, or a link from someone this worked for — and not who sent
                 it, or which group.
               </p>
@@ -317,7 +222,7 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
                 the earlier messages in that conversation, and a summary of your map —
               </p>
               <ul className={LIST}>
-                <li>your age range, whether you are a woman or a man, and your city</li>
+                <li>whether you are a woman or a man, and your city</li>
                 <li>your timeline, where you are in your practice, and how central faith is</li>
                 <li>your family’s role, and children</li>
                 <li>how you lean in closeness, and what you said you feel safe with</li>
@@ -372,17 +277,15 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
           >
             <p className="text-[0.95rem] leading-relaxed text-cream/90 text-pretty">
               It reaches the founder, who reads these every week. She can speak
-              to them, tell the family who vouched for them, and decide that
-              nobody here will ever introduce them. What she did is written
-              down, though until introductions exist that decision is a note in
-              her queue, not a mark on a person, because nobody here has an
+              to them, or to their family. What she did is written down in her
+              queue, not as a mark on a person, because nobody here has an
               account to mark.
             </p>
             <p className="mt-2.5 text-[0.95rem] leading-relaxed text-cream/90 text-pretty">
               There are no accounts here, so nobody can be thrown off a list
               that doesn’t exist; whoever answered your eleven left no account
-              behind either. That is why the vouch and the introduction are
-              where the weight sits.
+              behind either. The weight sits with the founder, who reads every
+              one.
             </p>
           </Disclose>
         </section>

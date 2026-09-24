@@ -13,7 +13,7 @@ import { useEffect, type RefObject } from 'react'
  * Used at the app's own screen-swap (`App.tsx`, keyed on `n.screen`) and
  * locally wherever a component swaps its own full "screen" — a set of
  * mutually exclusive phases with their own `<h1>` each — without going
- * through that top-level swap (`Vouch.tsx`, keyed on `phase`).
+ * through that top-level swap.
  */
 export function useFocusHeading(ref: RefObject<HTMLElement | null>, dep: unknown) {
   useEffect(() => {

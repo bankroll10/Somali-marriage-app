@@ -4,7 +4,6 @@ import { STATES, beforeYesTopics } from '../data/beforeYes'
 import { answerCouple, coupleReading, readCoupleDetail, type CoupleView, type Joint } from '../lib/couple'
 import type { Why } from '../lib/net'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
-import { track } from '../lib/analytics'
 import ScriptCard from './ScriptCard'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
@@ -126,7 +125,6 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
     }
     setSendFailed(null)
     clearDraft('couple')
-    track('couple_answered')
     onAnswered(next, answerFor, result.status === 'joint' ? result.joint : undefined)
     setView(result)
     setPhase('joint')
@@ -225,7 +223,6 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Button
                 onClick={() => {
-                  track('couple_started')
                   onBegan()
                   // Back to the first he has not answered, never a count.
                   setIndex(resumeIndex(topics.map((t) => t.id), picked))
@@ -348,7 +345,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                   </li>
                 ))}
               </ul>
-              {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" travel="couple" />}
+              {r.open && <ScriptCard script={r.open.script} title="The one to open together" travel="couple" />}
               <div className="mt-9 flex flex-col gap-3">
                 <button onClick={onRead} className="group flex items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5">
                   <span className="flex-1">

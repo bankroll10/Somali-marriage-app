@@ -32,9 +32,7 @@ import {
  *
  * This gives her map a home on our side, and it is a trade rather than a
  * favour: she gets a map that survives a lost phone, we get a record that a
- * real person completed one. That is the difference between a demo and a
- * business, and it is the precondition for everything else — retention,
- * measurement, and eventually matching two real people to each other.
+ * real person completed one.
  *
  * Deliberately NOT an account. No password, no email required, no profile. A
  * code she keeps, and nothing else, because the cheapest way to keep a promise
@@ -60,8 +58,8 @@ const DEFAULT_HOURLY_CAP = 300
  * unmetered GET is an enumeration surface: at a hundred requests a second
  * against fifty thousand members, a stranger's whole map roughly every thirty
  * seconds. And DELETE is worse than a read — possession of the code is the
- * authority, so an unmetered DELETE is a destruction primitive that cascades
- * across five stores and takes the *other* person's couple record with it.
+ * authority, so an unmetered DELETE is a destruction primitive that takes the
+ * *other* person's couple record with it.
  *
  * Higher than the write cap because a real member restores more often than she
  * keeps, and because being unable to open your own map is a bad hour. It is a
@@ -84,82 +82,25 @@ function carried(kept: KeptMap, now: number): KeptMap {
 }
 
 /**
- * Everything kept under `from`, written under `to` as well — the vouch, the
- * link her family was sent, her place at the door and the way to reach her.
- * Every write is an overwrite of the same value, so running it twice is the
- * same as running it once.
- */
-async function copyAcross(from: string, to: string) {
-  const vouches = getStore('vouches')
-  const cohort = getStore('cohort')
-  const contacts = getStore('contacts')
-  const vouch = await vouches.get(from, { type: 'json' })
-  if (vouch) await vouches.setJSON(to, vouch)
-  const token = (await vouches.get(`asked/${from}`, { type: 'text' })) as string | null
-  if (token) {
-    await vouches.set(`asked/${to}`, token)
-    await vouches.set(`token/${token}`, to)
-  }
-  // The door entry's key ends in the code: the same place, under the new one.
-  const member = (await cohort.get(`index/${from}`, { type: 'text' })) as string | null
-  const entry = member ? await cohort.get(member, { type: 'json' }) : null
-  if (member && entry) {
-    const moved = member.replace(/[^/]+$/, to)
-    await cohort.setJSON(moved, entry)
-    await cohort.set(`index/${to}`, moved)
-  }
-  const reach = await contacts.get(from, { type: 'json' })
-  if (reach) await contacts.setJSON(to, reach)
-}
-
-/**
- * Everything kept under a code, except the map itself and anything it points
- * at through another code (the couple sheet has its own). Every step is a
- * delete, so it is safe to run again after any of them failed.
- */
-async function clearUnder(code: string, opts: { token?: boolean } = {}) {
-  const vouches = getStore('vouches')
-  const cohort = getStore('cohort')
-  const contacts = getStore('contacts')
-  if (opts.token) {
-    const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
-    if (token && (await vouches.get(`token/${token}`, { type: 'text' })) === code) await vouches.delete(`token/${token}`)
-  }
-  await vouches.delete(`asked/${code}`)
-  await vouches.delete(code)
-  const member = (await cohort.get(`index/${code}`, { type: 'text' })) as string | null
-  if (member) await cohort.delete(member)
-  await cohort.delete(`index/${code}`)
-  await contacts.delete(code)
-}
-
-/**
- * Finish a move whose copies are all written: close the old code, clear what
- * was under it, and put the journal away. Shared with the sweep, which rolls
- * an abandoned move forward from here once the old code is closed.
+ * Finish a move whose copy is written: close the old code and put the journal
+ * away. Shared with the sweep, which rolls an abandoned move forward from
+ * here once the old code is closed.
  */
 export async function finishMove(maps: Store, old: string, now = Date.now()) {
   await tombstone(maps, old, 'moved', now)
   const was = (await maps.get(old, { type: 'json' })) as KeptMap | null
   if (was?.once) await maps.delete(onceKey(was.once))
-  // Not the token: it already points at the new code, and the link her
-  // family holds must keep working.
-  await clearUnder(old)
   await maps.delete(old)
   await maps.delete(movingKey(old))
 }
 
 /**
- * Undo a move that was abandoned before the old code was closed: everything
- * written under the new code goes, and her family's link points home again.
- * The new code was never handed to anyone — a move answers only once it is
- * finished — so nothing that anyone holds stops working.
+ * Undo a move that was abandoned before the old code was closed: the copy
+ * under the new code goes. The new code was never handed to anyone — a move
+ * answers only once it is finished — so nothing that anyone holds stops
+ * working.
  */
 export async function rollBackMove(maps: Store, old: string, to: string) {
-  const vouches = getStore('vouches')
-  const token = (await vouches.get(`asked/${old}`, { type: 'text' })) as string | null
-  if (token) await vouches.set(`token/${token}`, old)
-  await clearUnder(to)
   await maps.delete(to)
   await maps.delete(movingKey(old))
 }
@@ -203,20 +144,17 @@ export default async function handler(req: Request) {
   }
 
   // ── Forget ───────────────────────────────────────────────────────────────
-  // Everything kept under her code, gone: the map, the eleven she sent him,
-  // her family's vouch and the token that pointed at it, her place on the
-  // door, and the way to reach her. Possession of the code is the authority,
-  // exactly as it is for restoring — and it is safe only because the vouch
-  // link no longer carries the code. What cannot be undone is not here at
-  // all: a count with no code in it.
+  // Everything kept under her code, gone: the map and the eleven she sent
+  // him. Possession of the code is the authority, exactly as it is for
+  // restoring. What cannot be undone is not here at all: a count with no code
+  // in it.
   //
   // In this order, so that any step can fail and a retry finishes it
   // (docs/INTEGRITY.md): the code is closed first, so from that moment it
-  // restores nothing and cannot be kept again from another phone; then every
-  // store is cleared, each step a delete; the map goes last, because it is
-  // the one thing that says which couple sheet was hers. A retry after the map
-  // went, with the code closed as forgotten, runs the clearing again and
-  // answers that it is done.
+  // restores nothing and cannot be kept again from another phone; then the
+  // sheet is retired; the map goes last, because it is the one thing that
+  // says which couple sheet was hers. A retry after the map went, with the
+  // code closed as forgotten, answers that it is done.
   if (req.method === 'DELETE') {
     const code = normalise(new URL(req.url).searchParams.get('code') ?? '')
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
@@ -235,10 +173,6 @@ export default async function handler(req: Request) {
       const coupleCode = typeof snapshot.couple?.code === 'string' ? normalise(snapshot.couple.code) : ''
       // Retired, not erased: a report about it can still reach the founder.
       if (CODE.test(coupleCode)) await retire(getStore('couples'), coupleCode)
-      // The vouch, its ask and the token that pointed at it; her place at the
-      // door and its index; the way to reach her, which used to be deleted by
-      // hand — see netlify/functions/cohort.ts and docs/OWNED.md.
-      await clearUnder(code, { token: true })
       // The first keep's once key, which names this code for a day.
       if (kept?.once) await store.delete(onceKey(kept.once))
       // Reports are not touched here, and cannot be. This cascade used to
@@ -246,10 +180,9 @@ export default async function handler(req: Request) {
       // code and the side out of the snapshot — which is whatever the caller
       // POSTed. The reported man holds the couple code, so he could keep a
       // throwaway map claiming to be her, forget it, and erase every report
-      // she had filed about him (docs/SECURITY.md, O1). A report is withdrawn
-      // only by the receipt the person who filed it was handed
-      // (netlify/functions/safety.ts), and the app no longer keeps one: a
-      // report stays until the founder has read it (docs/ABUSE.md).
+      // she had filed about him (docs/SECURITY.md, O1). A report stays until
+      // the founder has read and resolved it (netlify/functions/safety.ts,
+      // docs/ABUSE.md).
       await store.delete(code)
       return Response.json({ forgotten: true })
     } catch (err) {
@@ -261,10 +194,9 @@ export default async function handler(req: Request) {
   // ── A new code, everything carried across ────────────────────────────────
   // For a code someone else has seen. Possession is the authority here
   // (docs/HARD.md), so a code read over her shoulder or taken from her phone
-  // let its holder read her map, write over it, vouch as her father, and put
-  // his own number on her door entry — so that an introduction would reach
-  // him. The only way to take it back was forget me, which cost her the map,
-  // the vouch and her place at the door (docs/THREAT.md T8, docs/ABUSE.md).
+  // let its holder read her map and write over it. The only way to take it
+  // back was forget me, which cost her the map (docs/THREAT.md T8,
+  // docs/ABUSE.md).
   //
   // Journaled, so that a failure at any step is finished by a retry or undone
   // by the sweep, and never leaves a whole copy of her map under a code nobody
@@ -273,11 +205,11 @@ export default async function handler(req: Request) {
   //   1. `moving/<old>` names the new code before anything is copied. A retry
   //      finds it and resumes the same move — the same new code, never a
   //      second copy.
-  //   2. Everything is copied under the new code; each copy is an overwrite.
+  //   2. The map is copied under the new code.
   //   3. The old map is read again: a save that landed while this ran is
   //      carried across, not lost with the old code.
-  //   4. The old code is closed, what was under it cleared, the journal put
-  //      away, and only then is the new code handed back.
+  //   4. The old code is closed, the journal put away, and only then is the
+  //      new code handed back.
   //
   // A move abandoned before step 4 is rolled back by the sweep; one abandoned
   // during it is rolled forward. The couple sheet has its own code and is not
@@ -313,7 +245,6 @@ export default async function handler(req: Request) {
       // Forgotten while it was moving: forgetting wins. What was copied under
       // the new code goes with everything else.
       if (why === 'forgotten') {
-        await clearUnder(code, { token: true })
         await store.delete(code)
         await store.delete(movingKey(old))
         return closed(why)
@@ -322,7 +253,6 @@ export default async function handler(req: Request) {
       if (!why) {
         // A resumed move whose mint was lost: write the copy again.
         if (read && !(await store.getMetadata(code))) await store.setJSON(code, stamp(carried(read.data, now)), { onlyIfNew: true })
-        await copyAcross(old, code)
         // The old map, read again. A save that landed since it was copied is
         // carried across now, not deleted with the old code a moment later.
         for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
@@ -357,15 +287,18 @@ export default async function handler(req: Request) {
   }
 
   // The client promises never to send these (src/lib/keep.ts): her
-  // conversations with the guide, the follow-ups the guide handed her, her
-  // email or phone, the line she writes for the next person at the end, a
-  // last-seen time, and any moment finer than a day. The server refuses to hold
-  // them even if an older client still sends them — a promise about what is
-  // stored is kept where it is stored (docs/PRIVACY.md).
+  // conversations with the guide, the follow-ups the guide handed her, the
+  // line she writes for the next person at the end, a last-seen time, and
+  // any moment finer than a day. The server refuses to hold them even if an
+  // older client still sends them — a promise about what is stored is kept
+  // where it is stored (docs/PRIVACY.md). An older client may also send its
+  // place at the door, with her email or phone, and a relative's vouch; both
+  // went with the door (2026-09-24), and neither is held.
   const snap = body.snapshot as Record<string, unknown>
   delete snap.coachThreads
   delete snap.updatedAt
-  if (snap.waitlist && typeof snap.waitlist === 'object') delete (snap.waitlist as Record<string, unknown>).contact
+  delete snap.waitlist
+  delete snap.vouch
   if (snap.ending && typeof snap.ending === 'object') delete (snap.ending as Record<string, unknown>).advice
   if (Array.isArray(snap.followups)) {
     snap.followups = snap.followups

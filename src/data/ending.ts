@@ -33,9 +33,11 @@ export interface EndingQuestion {
 }
 
 /**
- * The question this company cannot answer any other way: did the marketplace
- * cause this marriage, or did the instruments help a relationship that already
- * existed? Everything about where to spend the next year of work turns on it.
+ * The question this company cannot answer any other way: did the instruments
+ * help a relationship she brought with her, one her family brought, or one
+ * she found some other way? Everything about who the product is for turns on
+ * it. There used to be a fourth answer, "someone Niyyah introduced me to";
+ * nobody is introduced here, so it went with the door (2026-09-24).
  */
 const WHO: EndingQuestion = {
   id: 'who',
@@ -44,7 +46,6 @@ const WHO: EndingQuestion = {
   options: [
     { id: 'brought', label: 'Someone I was already talking to when I came here' },
     { id: 'family', label: 'Someone my family or community brought to me' },
-    { id: 'here', label: 'Someone Niyyah introduced me to' },
     { id: 'elsewhere', label: 'Someone I met another way' },
   ],
 }
@@ -72,7 +73,6 @@ const USED: EndingQuestion = {
     { id: 'eleven', label: 'Before you say yes' },
     { id: 'couple', label: 'Asking {him} to answer the eleven too' },
     { id: 'families', label: 'The words for my family' },
-    { id: 'vouch', label: 'My family vouching for me' },
     { id: 'guide', label: 'The guide' },
     { id: 'map', label: 'My map' },
   ],

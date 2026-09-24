@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { memStore, stores } from './support/memory'
 
 /**
  * docs/SECURITY.md, written as attacks.
@@ -12,46 +13,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
  * impossible, which is why they are tests and not comments.
  */
 
-const stores = new Map<string, Map<string, string>>()
-function memStore(name: string) {
-  const m = stores.get(name) ?? new Map<string, string>()
-  stores.set(name, m)
-  return {
-    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
-      blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: 'x' })),
-      directories: [],
-    }),
-    get: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
-    },
-    getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
-    getWithMetadata: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      if (v === null) return null
-      return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
-    },
-    set: async (key: string, value: string, opts?: { onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      m.set(key, value)
-      return { modified: true }
-    },
-    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, JSON.stringify(value))
-      return { modified: true }
-    },
-    delete: async (key: string) => void m.delete(key),
-  }
-}
-vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
+vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
 
 const { default: keep } = await import('../netlify/functions/keep')
 const { default: safety } = await import('../netlify/functions/safety')
-const { default: vouch } = await import('../netlify/functions/vouch')
 const { default: couple } = await import('../netlify/functions/couple')
-const { default: cohort } = await import('../netlify/functions/cohort')
 const { default: progress } = await import('../netlify/functions/progress')
 const { isFounder } = await import('../netlify/shared/founder')
 const { sameSecret } = await import('../netlify/shared/secret')
@@ -94,7 +60,7 @@ describe('O3 — a hostile body is a 400, never a crash', () => {
   // number where a string was expected hit `.toUpperCase()`; a `constructor:`
   // prefix found Object's own prototype in a lookup table. Each threw past the
   // handler's own error contract and left the platform to answer.
-  const routes = { keep, vouch, couple, cohort, progress, safety } as const
+  const routes = { keep, couple, progress, safety } as const
   const raw = (h: (r: Request) => Promise<Response>, name: string, body: string) =>
     h(new Request(`http://x/.netlify/functions/${name}`, { method: 'POST', body }))
 
@@ -111,7 +77,6 @@ describe('O3 — a hostile body is a 400, never a crash', () => {
   it('a number where a code belongs is a bad code, not a TypeError', async () => {
     for (const [name, h, extra] of [
       ['safety', safety, { side: 'woman', reason: 'threats' }],
-      ['cohort', cohort, { scene: 'toronto', gender: 'woman' }],
       ['progress', progress, { rungs: [] }],
     ] as const) {
       const res = await raw(h, name, JSON.stringify({ code: 1, id: 1, ...extra }))
@@ -148,29 +113,6 @@ describe('O4 — no key is one `git add -A` from the repository', () => {
   })
 })
 
-describe('O5 — the family vouch does not say which tokens are live', () => {
-  // The family branch resolved the token before anything else and before the
-  // cap: an unknown token answered `bad_code`, a live one went on to
-  // `bad_relationship` — an existence oracle over vouch tokens, unmetered.
-  const vouchWith = (code: string, relationship: string) =>
-    call(vouch, 'vouch', json({ code, relationship, firstName: 'Cabdi', sentence: 'She is who she says.' }))
-
-  it('a live token and a dead one get the same answer to a bad body', async () => {
-    memStore('maps').setJSON('ACDEFG', { snapshot: {}, createdAt: 'd', expiresAt: '2099-01-01' })
-    await memStore('vouches').set('token/HJKMNPQR', 'ACDEFG')
-    const live = await vouchWith('HJKMNPQR', 'not-a-relationship')
-    const dead = await vouchWith('QRTWXY34', 'not-a-relationship')
-    expect(live.status).toBe(dead.status)
-    expect(await live.json()).toEqual(await dead.json())
-  })
-
-  it('every token lookup spends the cap', async () => {
-    vi.stubEnv('VOUCH_HOURLY_CAP', '1')
-    expect((await vouchWith('QRTWXY3479', 'father')).status).toBe(400)
-    expect((await vouchWith('QRTWXY4789', 'father')).status).toBe(503)
-  })
-})
-
 describe('O6 — the man she sent the eleven to cannot rewrite her side of it', () => {
   // Re-posting `side: first` was gated on `creator === body.gender` — a gender
   // the caller simply states. He holds the code (she texted it to him), so
@@ -197,10 +139,11 @@ describe('O6 — the man she sent the eleven to cannot rewrite her side of it', 
     expect(JSON.stringify(read)).not.toContain(created.key)
   })
 
-  it('a sheet from before the key keeps the old check until it expires', async () => {
+  it('a sheet from before the key cannot be changed at all — nothing proves whose it is', async () => {
     memStore('couples').setJSON('HJKMNP', { creator: 'woman', first: TOPICS_ALL, createdAt: 'd', expiresAt: '2099-01-01' })
     expect((await sheet(differ, { code: 'HJKMNP', gender: 'man' })).status).toBe(409)
-    expect((await sheet(differ, { code: 'HJKMNP' })).status).toBe(200)
+    expect((await sheet(differ, { code: 'HJKMNP' })).status).toBe(409)
+    expect(JSON.parse(stores.get('couples')!.get('HJKMNP')!).first).toEqual(TOPICS_ALL)
   })
 
   it('a code nobody minted is never created on demand', async () => {
@@ -254,7 +197,7 @@ describe('O11 — the founder key is compared whole, and in constant time', () =
 
 describe('O8 — codes minted from now on are eight characters, and six still work', () => {
   it('the server mints eight, accepts six and eight, and keeps tokens at ten so nothing collides', async () => {
-    const { CODE, TOKEN, LEGACY_TOKEN, newCode, CODE_LENGTH, TOKEN_LENGTH } = await import('../netlify/shared/code')
+    const { CODE, TOKEN, newCode, CODE_LENGTH, TOKEN_LENGTH } = await import('../netlify/shared/code')
     expect(CODE_LENGTH).toBe(8)
     expect(TOKEN_LENGTH).toBe(10)
     expect(newCode()).toMatch(CODE)
@@ -264,7 +207,6 @@ describe('O8 — codes minted from now on are eight characters, and six still wo
     for (const bad of ['HJKMN', 'HJKMNPQ', 'HJKMNPQRT', 'HJKMNPQRTW']) expect(CODE.test(bad)).toBe(false)
     expect(TOKEN.test(newCode(TOKEN_LENGTH))).toBe(true)
     expect(CODE.test(newCode(TOKEN_LENGTH))).toBe(false)
-    expect(LEGACY_TOKEN.test('HJKMNPQR')).toBe(true)
   })
 
   it('the client agrees, and shows an eight as two groups of four', async () => {

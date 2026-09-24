@@ -10,16 +10,13 @@ import { blobs } from './support/blobs'
  * before it succeeded — or be overtaken by another request. Each test below
  * picks a step, makes it fail or makes something happen just before it, and
  * checks that what is left is either whole, or finished by a retry, or
- * reconciled by the weekly sweep — never a map nobody can reach, a contact
- * with no map behind it, a person counted twice or not at all, or a code
- * that comes back after she forgot it.
+ * reconciled by the weekly sweep — never a map nobody can reach, two copies
+ * of one map, or a code that comes back after she forgot it.
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/blobs')).blobsModule)
 
 const keep = (await import('../netlify/functions/keep')).default
-const cohort = (await import('../netlify/functions/cohort')).default
-const vouch = (await import('../netlify/functions/vouch')).default
 const couple = (await import('../netlify/functions/couple')).default
 const safety = (await import('../netlify/functions/safety')).default
 const progress = (await import('../netlify/functions/progress')).default
@@ -39,17 +36,10 @@ const LIVE = '2099-01-01'
 const HER = 'HJKMNPQR'
 const TOKEN = 'ACDEFGHJKM'
 const PAIR = 'TWXY3478'
-const ENTRY = `us/twin-cities/woman/city/serious/${HER}`
 
-/** A member with something in every store keyed by her code. */
+/** A member with a kept map and the eleven she sent him. */
 function seedMember(code = HER) {
   blobs.put('maps', code, { snapshot: { identity: { firstName: 'Hodan' }, couple: { code: PAIR } }, createdAt: '2026-09-01', expiresAt: LIVE, v: 1 })
-  blobs.put('vouches', code, { relationship: 'father', firstName: 'Abdi', sentence: 'She is ready.', at: '2026-09-02', v: 1 })
-  blobs.put('vouches', `asked/${code}`, TOKEN)
-  blobs.put('vouches', `token/${TOKEN}`, code)
-  blobs.put('cohort', ENTRY.replace(HER, code), { at: '2026-09-03', ledger: ['map'], v: 1 })
-  blobs.put('cohort', `index/${code}`, ENTRY.replace(HER, code))
-  blobs.put('contacts', code, { contact: 'hodan@example.com', scene: 'twin-cities', country: 'us', at: '2026-09-03', v: 1 })
   blobs.put('couples', PAIR, { creator: 'woman', first: {}, createdAt: '2026-09-04', expiresAt: LIVE, v: 1 })
 }
 
@@ -84,12 +74,6 @@ afterEach(() => vi.restoreAllMocks())
 describe('forget me, failing at every step of its cascade', () => {
   const steps = [
     { store: 'couples', op: 'delete' as const, key: PAIR },
-    { store: 'vouches', op: 'delete' as const, key: `token/${TOKEN}` },
-    { store: 'vouches', op: 'delete' as const, key: `asked/${HER}` },
-    { store: 'vouches', op: 'delete' as const, key: HER },
-    { store: 'cohort', op: 'delete' as const, key: ENTRY },
-    { store: 'cohort', op: 'delete' as const, key: `index/${HER}` },
-    { store: 'contacts', op: 'delete' as const, key: HER },
     { store: 'maps', op: 'delete' as const, key: HER },
   ]
   for (const step of steps) {
@@ -120,80 +104,53 @@ describe('forget me, failing at every step of its cascade', () => {
 
 // ─── Change my code ────────────────────────────────────────────────────────
 describe('a new code, failing part-way', () => {
-  const copies = [
-    { store: 'vouches', op: 'setJSON' as const },
-    { store: 'vouches', op: 'set' as const, key: `token/${TOKEN}` },
-    { store: 'cohort', op: 'setJSON' as const },
-    { store: 'contacts', op: 'setJSON' as const },
-  ]
-  const deletions = [
-    { store: 'contacts', op: 'delete' as const, key: HER },
-    { store: 'cohort', op: 'delete' as const, key: ENTRY },
-    { store: 'vouches', op: 'delete' as const, key: HER },
-    { store: 'maps', op: 'delete' as const, key: HER },
-  ]
-
-  for (const step of copies) {
-    it(`fails copying at ${step.store}:${step.op} — the old code still opens her map, and a retry makes one copy, not two`, async () => {
-      seedMember()
-      blobs.failOn(step)
-      expect((await call(keep, 'PUT', `keep?code=${HER}`)).status).toBe(503)
-      expect((await call(keep, 'GET', `keep?code=${HER}`)).status).toBe(200)
-      const res = await call(keep, 'PUT', `keep?code=${HER}`)
-      expect(res.status).toBe(200)
-      const { code } = await res.json()
-      expect(mapCodes()).toEqual([code])
-      expect(blobs.read('vouches', `token/${TOKEN}`)).toBe(code)
-      expect(blobs.keys('maps').filter((k) => k.startsWith('moving/'))).toEqual([])
-    })
-  }
-
-  for (const step of deletions) {
-    it(`fails clearing at ${step.store}:${step.key} — the old code is already closed, and a retry finishes under the same new code`, async () => {
-      seedMember()
-      blobs.failOn(step)
-      expect((await call(keep, 'PUT', `keep?code=${HER}`)).status).toBe(503)
-      expect((await call(keep, 'GET', `keep?code=${HER}`)).status).toBe(410)
-      const res = await call(keep, 'PUT', `keep?code=${HER}`)
-      // A retry against a closed code has nothing to move; the sweep finishes it.
-      expect([200, 410]).toContain(res.status)
-      await sweep(Date.now() + 2 * DAY)
-      expect(mapCodes()).toHaveLength(1)
-      expect(underCode(HER)).toEqual([])
-    })
-  }
-
-  it('an attempt nobody retries is rolled back by the sweep — one map, and her family’s link points home again', async () => {
+  it('fails before the old code is closed — the old code still opens her map, and a retry makes one copy, not two', async () => {
     seedMember()
-    blobs.failOn({ store: 'contacts', op: 'setJSON' })
+    blobs.failOn({ store: 'maps', op: 'setJSON', key: `ended/${HER}` })
+    expect((await call(keep, 'PUT', `keep?code=${HER}`)).status).toBe(503)
+    expect((await call(keep, 'GET', `keep?code=${HER}`)).status).toBe(200)
+    const res = await call(keep, 'PUT', `keep?code=${HER}`)
+    expect(res.status).toBe(200)
+    const { code } = await res.json()
+    expect(mapCodes()).toEqual([code])
+    expect(blobs.keys('maps').filter((k) => k.startsWith('moving/'))).toEqual([])
+  })
+
+  it('fails removing the old map — the old code is already closed, and the sweep finishes it under the same new code', async () => {
+    seedMember()
+    blobs.failOn({ store: 'maps', op: 'delete', key: HER })
+    expect((await call(keep, 'PUT', `keep?code=${HER}`)).status).toBe(503)
+    expect((await call(keep, 'GET', `keep?code=${HER}`)).status).toBe(410)
+    const res = await call(keep, 'PUT', `keep?code=${HER}`)
+    // A retry against a closed code has nothing to move; the sweep finishes it.
+    expect([200, 410]).toContain(res.status)
+    await sweep(Date.now() + 2 * DAY)
+    expect(mapCodes()).toHaveLength(1)
+    expect(underCode(HER)).toEqual([])
+  })
+
+  it('an attempt nobody retries is rolled back by the sweep — one map, under the code she has', async () => {
+    seedMember()
+    blobs.failOn({ store: 'maps', op: 'setJSON', key: `ended/${HER}` })
     expect((await call(keep, 'PUT', `keep?code=${HER}`)).status).toBe(503)
     await sweep(Date.now() + 2 * DAY)
     expect(mapCodes()).toEqual([HER])
-    expect(blobs.read('vouches', `token/${TOKEN}`)).toBe(HER)
-    expect(blobs.keys('cohort')).toEqual([`index/${HER}`, ENTRY].sort())
-    expect(blobs.keys('contacts')).toEqual([HER])
-    expect(blobs.keys('vouches')).toEqual([HER, `asked/${HER}`, `token/${TOKEN}`].sort())
+    expect((await call(keep, 'GET', `keep?code=${HER}`)).status).toBe(200)
   })
 
   it('a save that lands mid-move is carried to the new code, not lost with the old one', async () => {
     seedMember()
-    // Just as the contact is copied under the new code, the old phone saves.
+    // Just after the copy is made under the new code, the old phone saves.
     let fired = false
-    const original = blobs.store.bind(blobs)
-    vi.spyOn(blobs, 'store').mockImplementation((name: string) => {
-      const s = original(name)
-      if (name !== 'contacts') return s
-      return {
-        ...s,
-        setJSON: async (key: string, value: unknown, opts?: { onlyIfNew?: boolean; onlyIfMatch?: string }) => {
-          if (!fired && key !== HER) {
-            fired = true
-            await call(keep, 'POST', 'keep', { code: HER, snapshot: { identity: { firstName: 'Newer' } } })
-          }
-          return s.setJSON(key, value, opts)
-        },
-      }
-    })
+    blobs.before(
+      'setJSON',
+      `moving/${HER}`,
+      async () => {
+        fired = true
+        await call(keep, 'POST', 'keep', { code: HER, snapshot: { identity: { firstName: 'Newer' } } })
+      },
+      'maps',
+    )
     const res = await call(keep, 'PUT', `keep?code=${HER}`)
     expect(res.status).toBe(200)
     const { code } = await res.json()
@@ -251,85 +208,28 @@ describe('keeping from two phones', () => {
   })
 })
 
-// ─── The door ──────────────────────────────────────────────────────────────
-describe('joining the door', () => {
-  const join = (scene: string) => call(cohort, 'POST', 'cohort', { code: HER, scene, gender: 'woman' })
-  const entries = () => blobs.keys('cohort').filter((k) => k.split('/').length === 6 && k.endsWith(HER))
-
-  it('a move of city that fails half-way leaves her counted somewhere, never nowhere', async () => {
-    seedMember()
-    blobs.failOn({ store: 'cohort', op: 'setJSON' })
-    expect((await join('london')).status).toBe(503)
-    expect(entries().length).toBeGreaterThanOrEqual(1)
-    expect((await join('london')).status).toBe(200)
-    expect(entries()).toEqual([`uk/london/woman/city/none/${HER}`])
-  })
-
-  it('two joins at once count her once, after the sweep', async () => {
-    seedMember()
-    blobs.stores.get('cohort')!.clear()
-    blobs.before('set', `index/${HER}`, async () => {
-      await join('london')
-    })
-    await join('twin-cities')
-    await sweep(Date.now() + 2 * DAY)
-    expect(entries()).toHaveLength(1)
-    expect(blobs.read('cohort', `index/${HER}`)).toBe(entries()[0])
-  })
-
-  it('a join that races her forget leaves no entry and no contact once the sweep has run', async () => {
-    seedMember()
-    blobs.stores.get('cohort')!.clear()
-    blobs.stores.get('contacts')!.clear()
-    blobs.before('set', `index/${HER}`, async () => {
-      await call(keep, 'DELETE', `keep?code=${HER}`)
-    })
-    await call(cohort, 'POST', 'cohort', { code: HER, scene: 'twin-cities', gender: 'woman', contact: 'hodan@example.com' })
-    await sweep(Date.now() + 2 * DAY)
-    expect(underCode(HER)).toEqual([])
-  })
-
-  it('a lapsed map is not counted', async () => {
-    seedMember()
-    blobs.put('maps', HER, { snapshot: {}, createdAt: '2025-01-01', expiresAt: '2025-06-01', v: 1 })
-    expect((await join('twin-cities')).status).toBe(404)
-  })
-})
-
 // ─── The sweep ─────────────────────────────────────────────────────────────
 describe('the weekly sweep', () => {
   it('one record it cannot read is counted, and everything else is still swept', async () => {
     blobs.put('maps', 'ACDEFGHJ', 'not json {')
     blobs.put('maps', HER, { snapshot: {}, createdAt: '2025-01-01', expiresAt: '2025-06-01', v: 1 })
-    blobs.put('contacts', 'CDEFGHJK', { contact: 'orphan@example.com', scene: 'london', country: 'uk', at: '2026-01-01' })
     const swept = await sweep(Date.now())
     expect(swept.errors).toBeGreaterThanOrEqual(1)
     expect(mapCodes()).toEqual(['ACDEFGHJ'])
-    expect(blobs.keys('contacts')).toEqual([])
   })
 
-  it('takes a way to reach someone whose map is gone, however it was left behind', async () => {
+  it('empties what the door and the vouch left behind — a way to reach someone, a relative’s name and phone', async () => {
+    // Removed on 2026-09-24 (docs/DECISIONS.md). Nothing reads these stores
+    // any more, so nothing in them is kept.
     blobs.put('contacts', HER, { contact: 'hodan@example.com', scene: 'twin-cities', country: 'us', at: '2026-01-01' })
-    await sweep(Date.now())
-    expect(blobs.keys('contacts')).toEqual([])
-  })
-
-  it('takes an index that points at nothing', async () => {
-    blobs.put('cohort', `index/${HER}`, ENTRY)
-    await sweep(Date.now())
-    expect(blobs.keys('cohort')).toEqual([])
-  })
-
-  it('leaves a door entry written today alone, even before its index lands', async () => {
-    seedMember()
-    const today = new Date().toISOString().slice(0, 10)
-    const second = `uk/london/woman/city/serious/${HER}`
-    blobs.put('cohort', second, { at: today, ledger: [], v: 1 })
-    await sweep(Date.now())
-    expect(blobs.keys('cohort')).toContain(second)
-    await sweep(Date.now() + 2 * DAY)
-    expect(blobs.keys('cohort')).not.toContain(second)
-    expect(blobs.keys('cohort')).toContain(ENTRY)
+    blobs.put('cohort', `us/twin-cities/woman/city/serious/${HER}`, { at: '2026-09-03', ledger: [], v: 1 })
+    blobs.put('cohort', `index/${HER}`, `us/twin-cities/woman/city/serious/${HER}`)
+    blobs.put('vouches', HER, { relationship: 'father', firstName: 'Abdi', sentence: 's', phone: '07000', at: '2026-09-02' })
+    blobs.put('vouches', `token/${TOKEN}`, HER)
+    const swept = await sweep(Date.now())
+    expect(swept.retired).toBe(5)
+    for (const store of ['contacts', 'cohort', 'vouches']) expect(blobs.keys(store), store).toEqual([])
+    expect((await sweep(Date.now())).retired).toBe(0)
   })
 
   it('never deletes a map renewed between reading it as lapsed and deleting it', async () => {
@@ -359,29 +259,15 @@ describe('small writes that must not lose or overwrite', () => {
     expect(Object.keys(record.first).sort()).toEqual(['mapped', 'situated'])
   })
 
-  it('a vouch token that collides never re-points another family’s link', async () => {
-    blobs.put('maps', HER, { snapshot: {}, createdAt: '2026-09-01', expiresAt: LIVE, v: 1 })
-    blobs.put('vouches', `token/${TOKEN}`, 'CDEFGHJK')
-    vi.spyOn(crypto, 'getRandomValues').mockImplementation(drawing(TOKEN, 'CDEFGHJKMN') as never)
-    const res = await call(vouch, 'POST', 'vouch', { side: 'ask', code: HER })
-    expect((await res.json()).token).toBe('CDEFGHJKMN')
-    expect(blobs.read('vouches', `token/${TOKEN}`)).toBe('CDEFGHJK')
-  })
-
-  it('a vouch on a lapsed map is not shown', async () => {
-    seedMember()
-    blobs.put('maps', HER, { snapshot: {}, createdAt: '2025-01-01', expiresAt: '2025-06-01', v: 1 })
-    expect((await call(vouch, 'GET', `vouch?code=${TOKEN}`)).status).toBe(404)
-  })
-
   it('a report id that collides never overwrites another report', async () => {
     blobs.put('couples', PAIR, { creator: 'woman', first: {}, createdAt: '2026-09-04', expiresAt: LIVE, v: 1 })
     const theirs = { id: TOKEN, code: PAIR, side: 'woman', reason: 'threats', at: '2026-09-05', v: 1 }
     blobs.put('reports', `${PAIR}-woman-${TOKEN}`, theirs)
     vi.spyOn(crypto, 'getRandomValues').mockImplementation(drawing(TOKEN, 'CDEFGHJKMN') as never)
     const res = await call(safety, 'POST', 'safety', { code: PAIR, side: 'woman', reason: 'harassment' })
-    expect((await res.json()).receipt).toBe('CDEFGHJKMN')
+    expect(res.status).toBe(200)
     expect(blobs.read('reports', `${PAIR}-woman-${TOKEN}`)).toEqual(theirs)
+    expect(blobs.read('reports', `${PAIR}-woman-CDEFGHJKMN`)).toMatchObject({ reason: 'harassment' })
   })
 
   it('a new pair never takes the code of a sheet that is gone — its reports stay with the pair they are about', async () => {
@@ -410,12 +296,5 @@ describe('records written before revisions, tombstones and once keys', () => {
     blobs.put('progress', 'CDEFGHJK', { first: { arrived: '2026-01-01' }, expiresAt: LIVE })
     await call(progress, 'POST', 'progress', { id: 'CDEFGHJK', rungs: ['mapped'] })
     expect(blobs.read('progress', 'CDEFGHJK')).toMatchObject({ v: 1, first: { arrived: '2026-01-01', mapped: expect.any(String) } })
-  })
-
-  it('a door entry and a vouch with no version still count and still show', async () => {
-    blobs.put('maps', HER, { snapshot: {}, createdAt: '2026-09-01', expiresAt: LIVE })
-    blobs.put('vouches', HER, { relationship: 'mother', firstName: 'Faadumo', sentence: 's', at: '2026-09-02' })
-    expect((await call(vouch, 'GET', `vouch?code=${HER}`)).status).toBe(200)
-    expect((await call(cohort, 'POST', 'cohort', { code: HER, scene: 'twin-cities', gender: 'woman' })).status).toBe(200)
   })
 })

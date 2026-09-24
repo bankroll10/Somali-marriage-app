@@ -142,6 +142,13 @@ describe('a man reading a woman', () => {
     const r = buildBeforeYes(answers({ live: 'unknown' }), 'man')!
     expect(r.summary).toMatch(/starts with you, not her/i)
   })
+  it('asks a man about a second wife as the one who would take one', () => {
+    const his = beforeYesTopics('man').find((t) => t.id === 'second-wife')!
+    expect(his.prompt).toMatch(/what you believe/i)
+    expect(his.script.words).toMatch(/what I want for my own life/i)
+    const hers = beforeYesTopics('woman').find((t) => t.id === 'second-wife')!
+    expect(hers.script.words).toMatch(/whether you’d ever want that/i)
+  })
 })
 
 describe('what the Guide is told', () => {
@@ -151,5 +158,22 @@ describe('what the Guide is told', () => {
     expect(s).toMatch(/^agreed on nine of eleven; differ on where you’d live; open next: where you’d live$/)
     expect(s.length).toBeLessThan(120)
     expect(s).not.toMatch(/\d/)
+  })
+})
+
+// Moved from tests/alignment-audit.test.ts (docs/ALIGNMENT.md), when matching went.
+describe('Before you say yes never ranks a difference as a light one', () => {
+  it('a single difference on qabiil is named, not weighed', () => {
+    const topics = beforeYesTopics('woman')
+    const answers = Object.fromEntries(topics.map((t) => [t.id, t.id === 'qabiil' ? 'differ' : 'agree']))
+    const r = buildBeforeYes(answers)!
+    expect(r.headline).not.toMatch(/weight|heav|light|mostly/i)
+    expect(r.headline).toMatch(/one/i)
+  })
+
+  it('all eleven agreed is said as what it is, without a statistic about other couples', () => {
+    const topics = beforeYesTopics('woman')
+    const r = buildBeforeYes(Object.fromEntries(topics.map((t) => [t.id, 'agree'])))!
+    expect(r.headline).not.toMatch(/most couples/i)
   })
 })

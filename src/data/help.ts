@@ -39,7 +39,7 @@ export const HELP: Record<string, Help> = {
   // thehotline.org — also text START to 88788.
   us: { emergency: '911', line: { name: 'National Domestic Violence Hotline', number: '1-800-799-7233' }, crisis: { name: '988 Suicide & Crisis Lifeline', number: '988' } },
   // awhl.org. Ontario only — Canada has no national line, and Toronto is the
-  // city the door names.
+  // city scenes.ts names.
   ca: { emergency: '911', line: { name: 'Assaulted Women’s Helpline (Ontario)', number: '1-866-863-0511' }, crisis: { name: '9-8-8 Suicide Crisis Helpline', number: '988' } },
   // nationaldahelpline.org.uk (Refuge).
   uk: { emergency: '999', line: { name: 'National Domestic Abuse Helpline', number: '0808 2000 247' }, crisis: { name: 'Samaritans', number: '116 123' } },
@@ -65,13 +65,10 @@ export const HELP: Record<string, Help> = {
   other: {},
 }
 
-/**
- * The crisis lines were checked the same way, on 2026-09-24, for the Guide's
- * evaluation (docs/GUIDE-EVAL.md). Three are not open round the clock and say
- * so: Denmark's, Kenya's and the UAE's. Outside those hours, and wherever there
- * is no line, the emergency number is the line.
- */
-export const CRISIS_CHECKED = '2026-09-24'
+// The crisis lines were checked the same way, on 2026-09-24, for the Guide's
+// evaluation (docs/GUIDE-EVAL.md). Three are not open round the clock and say
+// so: Denmark's, Kenya's and the UAE's. Outside those hours, and wherever there
+// is no line, the emergency number is the line.
 
 /** When the country is not known — the answerer on a couple link has told us nothing. */
 export const EMERGENCY_ANYWHERE = '911 in the US and Canada, 999 in the UK, 112 across Europe, 000 in Australia'

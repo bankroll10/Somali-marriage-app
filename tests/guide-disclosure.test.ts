@@ -29,7 +29,6 @@ const trust = readFileSync('src/components/Trust.tsx', 'utf8').replace(/\s+/g, '
  * words, not the field's.
  */
 const SENT: { slot: string; marker: string; named: RegExp }[] = [
-  { slot: 'age', marker: '30-34', named: /your age range/i },
   { slot: 'gender', marker: 'woman', named: /whether you are a woman or a man/i },
   { slot: 'scene', marker: 'toronto', named: /your city|city,/i },
   { slot: 'timeline', marker: '1-2', named: /timeline/i },
@@ -75,10 +74,12 @@ describe('what the Guide sends, and what Trust says it sends', () => {
     })
   }
 
-  it('never sends her name, and never says it does', () => {
-    // docs/PRIVACY.md, C5. The guide speaks to "you".
+  it('never sends her name or her age, even from an older client that still sends both — and never says it does', () => {
+    // docs/PRIVACY.md, C5. The guide speaks to "you". Age was asked only by
+    // the door, and went with it on 2026-09-24.
     expect(prompt).not.toContain('Khadija')
-    expect(trust).not.toMatch(/your first name, your age/i)
+    expect(prompt).not.toMatch(/\b31\b|30-34|Aged/)
+    expect(trust).not.toMatch(/your first name|your age/i)
   })
 
   it('says the thread goes too, not only the newest message', () => {
@@ -105,8 +106,8 @@ describe('what the Guide sends, and what Trust says it sends', () => {
     const labels = block
       .flatMap((l) => l.split('·'))
       .map((part) => part.replace(/^-\s*/, '').split(':')[0].trim())
-      // The first line is the identity line — a name, an age, a side and a
-      // city — and each of its fields is covered row by row above.
+      // The first line is the identity line — a side and a city — and each
+      // of its fields is covered row by row above.
       .filter((label) => /^[A-Z]/.test(label) && !label.includes(','))
     expect(labels.sort()).toEqual(
       [

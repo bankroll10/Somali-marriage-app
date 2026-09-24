@@ -27,7 +27,7 @@ describe('the cases', () => {
   })
 
   it('cover every voice and both sides', () => {
-    expect(new Set(CASES.map((c) => c.mode)).size).toBe(5)
+    expect(new Set(CASES.map((c) => c.mode)).size).toBe(4)
     expect(new Set(CASES.map((c) => c.context.identity.gender))).toEqual(new Set(['woman', 'man']))
   })
 })

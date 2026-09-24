@@ -1,4 +1,3 @@
-import { track } from './analytics'
 
 interface SharePayload {
   text: string
@@ -27,8 +26,7 @@ export type ShareResult = 'shared' | 'copied' | 'cancelled' | 'failed'
  * sometimes false is worse than none, because it stops her checking
  * (docs/NORMAN.md).
  */
-export async function shareOrCopy(payload: SharePayload, event: string): Promise<ShareResult> {
-  track(event)
+export async function shareOrCopy(payload: SharePayload): Promise<ShareResult> {
   const full = payload.url ? `${payload.text}\n\n${payload.url}` : payload.text
 
   if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {

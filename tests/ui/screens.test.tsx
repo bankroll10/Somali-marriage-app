@@ -10,8 +10,6 @@ import { readQuestions } from '../../src/data/read'
 import { beforeYesTopics } from '../../src/data/beforeYes'
 import { wordsLink } from '../../src/lib/words'
 import { coupleLink } from '../../src/lib/couple'
-import { keepMap } from '../../src/lib/keep'
-import { askVouch, vouchLink } from '../../src/lib/vouch'
 import { audit } from '../support/a11y'
 import { sheet } from '../support/arbitrary'
 import { Phone, onPhone, reload } from '../support/device'
@@ -53,7 +51,6 @@ const HOOK = [...START, /^I’m not talking to anyone/, /^Continue/]
 
 const VISITS: Record<string, Visit> = {
   welcome: { who: 'stranger', lands: /What’s in your way\?/ },
-  philosophy: { who: 'stranger', taps: ['Why we’re different'], lands: /Our philosophy/ },
   identity: { who: 'stranger', taps: ['Start where you are'], lands: /Let’s start with you/ },
   situation: { who: 'stranger', taps: START, lands: /What’s happening right now\?/ },
   'situation — getting ready': { who: 'stranger', taps: [...START, /^I’m not talking to anyone/], lands: /Get yourself ready first/ },
@@ -63,10 +60,7 @@ const VISITS: Record<string, Visit> = {
   restore: { who: 'stranger', taps: [/Already have a code/], lands: /Your code/ },
   home: { who: 'member', lands: /Salaam, Hodan\./ },
   reflection: { who: 'member', taps: [/^Your map/], lands: /Hodan · your map/ },
-  profile: { who: 'member', taps: [/^What decides who you meet/], lands: /Not a photo, not a bio/ },
-  trust: { who: 'member', taps: [/^What decides who you meet/, /^What you’ve done here/], lands: /Forget me/ },
-  sample: { who: 'member', taps: [/^What decides who you meet/, /^How an introduction will look/], lands: /A sample — not a real member/ },
-  plus: { who: 'member', taps: [/^What decides who you meet/, /^What’s free/], lands: /We never earn more because you’re having a hard night/ },
+  trust: { who: 'member', taps: [/^Your privacy/], lands: /Forget me/ },
   coach: { who: 'member', taps: [/^Talk to your guide/], lands: /Different moments need different wisdom/ },
   'read — the chooser': { who: 'stranger', link: () => instrumentLink('read', 'words'), lands: /Are they serious\?/ },
   'read — a question': { who: 'stranger', link: () => toolLink('is-he-serious', 'words'), taps: ['Start the read'], lands: /1 of 12/ },
@@ -85,18 +79,6 @@ const VISITS: Record<string, Visit> = {
     lands: /Ask him to do this too/,
   },
   families: { who: 'stranger', link: () => wordsLink('family'), lands: /Bringing the families in/ },
-  door: { who: 'stranger', link: () => toolLink('door', 'door'), lands: /The door/ },
-  'vouch — the family member’s side': {
-    who: 'stranger',
-    link: async () => {
-      // Hers, on her own phone: a kept map, and a link for her family.
-      onPhone(new Phone('hers'))
-      seedDemo()
-      const token = await askVouch((await keepMap())!)
-      return vouchLink(token!, 'https://niyyah.test')
-    },
-    lands: /A family request/,
-  },
   'couple — his side': {
     who: 'stranger',
     link: async () => {

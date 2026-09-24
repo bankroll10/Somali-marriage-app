@@ -23,7 +23,7 @@ import {
  *
  * Every sentence this file returns passes through `speak(gender)` before it
  * leaves, because a man reading a woman must not be told what "he" intends.
- * `tests/mens-read.test.ts` holds that: no result may name the wrong side.
+ * `tests/invariants/both-sides.test.ts` holds that: no result may name the wrong side.
  */
 
 export type ReadBand = 'early' | 'strong' | 'mixed' | 'thin' | 'caution'

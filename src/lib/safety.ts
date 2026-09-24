@@ -17,9 +17,8 @@ export async function sendReport(code: string, side: Gender, reason: string, det
   if (!res) return 'error'
   if (res.status === 404) return 'not_found'
   if (!res.ok) return 'error'
-  // The server hands back a receipt. It is not kept: a receipt on this phone
-  // is a way to take the report back, and whoever holds the phone holds that
-  // too (docs/ABUSE.md, coercion). A member who wants one withdrawn writes to
-  // the founder, who can resolve it as `no-action`.
+  // Nothing comes back to keep: a way to take a report back, on this phone,
+  // would be held by whoever holds the phone (docs/ABUSE.md, coercion). A
+  // member who wants one dropped writes to the founder, who resolves it.
   return 'sent'
 }

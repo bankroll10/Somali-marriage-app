@@ -96,7 +96,7 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
             <p className="mt-3 text-[0.9rem] leading-snug text-ink-soft text-pretty">
               Then here they are again. There’s no hurry in this — the words keep.
             </p>
-            <ScriptCard script={ask.script} title="The words, again" source="followup" travel={ask.travel} />
+            <ScriptCard script={ask.script} title="The words, again" travel={ask.travel} />
             <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
               <button
                 onClick={() => onAnswer(id, 'not-yet')}
@@ -135,7 +135,7 @@ export function FollowedThrough({ ask, onDone }: { ask: FollowUpAsk; onDone: () 
   const [sent, setSent] = useState(false)
 
   async function send() {
-    const result = await shareOrCopy(wordsMessage(ask.script, ask.travel), 'words_sent')
+    const result = await shareOrCopy(wordsMessage(ask.script, ask.travel))
     if (result === 'copied') {
       setSent(true)
       window.setTimeout(() => setSent(false), 2200)
@@ -186,4 +186,34 @@ export function FollowedThrough({ ask, onDone }: { ask: FollowUpAsk; onDone: () 
       </div>
     </section>
   )
+}
+
+/**
+ * The follow-up, and the beat after it. Answering "we talked" resolves the
+ * record at once (the ladder counts it); this keeps the card on screen for one
+ * more beat, because the moment she had the conversation is the moment worth
+ * handing the words to someone else. Welcome and Home each used to hold this
+ * state and this switch. `wrap` frames it where the page around it is dark.
+ */
+export function SinceLastTime({
+  ask,
+  onAnswer,
+  onAskGuide,
+  wrap,
+}: Omit<Props, 'ask'> & { ask: FollowUpAsk | null; wrap?: string }) {
+  const [hadIt, setHadIt] = useState<FollowUpAsk | null>(null)
+  if (!hadIt && !ask) return null
+  const card = hadIt ? (
+    <FollowedThrough ask={hadIt} onDone={() => setHadIt(null)} />
+  ) : (
+    <FollowUp
+      ask={ask!}
+      onAnswer={(id, outcome, agreed, putAway) => {
+        if (outcome === 'asked') setHadIt(ask)
+        onAnswer(id, outcome, agreed, putAway)
+      }}
+      onAskGuide={onAskGuide}
+    />
+  )
+  return wrap ? <div className={wrap}>{card}</div> : card
 }

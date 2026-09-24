@@ -13,11 +13,9 @@ import {
   Disclose,
   CrescentGlyph,
   HeartGlyph,
-  PenGlyph,
   PeopleGlyph,
   ScreenHeader,
   SeedGlyph,
-  SparkGlyph,
   TextButton,
   TypingDots,
   fieldClass,
@@ -32,10 +30,6 @@ function ModeGlyph({ id, className }: { id: string; className?: string }) {
       return <HeartGlyph className={className} />
     case 'crescent':
       return <CrescentGlyph className={className} />
-    case 'spark':
-      return <SparkGlyph className={className} />
-    case 'pen':
-      return <PenGlyph className={className} />
     default:
       return <SeedGlyph className={className} />
   }
@@ -747,7 +741,7 @@ function GuideWords({ text }: { text: string }) {
           </button>
           <button
             onClick={async () => {
-              const result = await shareOrCopy(wordsMessage({ why: '', words: script, tells: '' }, 'guide'), 'words_sent')
+              const result = await shareOrCopy(wordsMessage({ why: '', words: script, tells: '' }, 'guide'))
               if (result === 'copied') {
                 setSent(true)
                 window.setTimeout(() => setSent(false), 2000)

@@ -3,10 +3,8 @@
  * is a belonging signal, not just a location field: it lets Home and (later)
  * discovery feel like *your* world, not a generic marketplace.
  *
- * Each named city sits in a country (src/data/countries.ts), and the door
- * counts both: the city she can meet someone in this week, and the country she
- * would move within for the right person. `other` is not a city — two people
- * in it may be continents apart — so it carries no country of its own; she
+ * Each named city sits in a country (src/data/countries.ts), which picks her
+ * help line. `other` is not a city, so it carries no country of its own; she
  * names one when she picks it.
  */
 export interface Scene {
@@ -14,7 +12,7 @@ export interface Scene {
   label: string
   /** A short, warm line that makes the place feel seen. */
   note: string
-  /** The country this city is in. Absent only for `other`. Must match vocab.ts SCENE_COUNTRY. */
+  /** The country this city is in, for its help line. Absent only for `other`. */
   country?: string
 }
 
@@ -24,9 +22,8 @@ export const scenes: Scene[] = [
   { id: 'london', label: 'London', note: 'From Woolwich to Wembley.', country: 'uk' },
   { id: 'columbus', label: 'Columbus', note: 'Northland to Morse Road.', country: 'us' },
   { id: 'stockholm', label: 'Stockholm', note: 'Rinkeby to Tensta.', country: 'se' },
-  // Named before the first post, so nobody is counted as `other` in a city
-  // that gets a door of its own a month later — a cohort key is written once,
-  // and a member counted as `other` stays `other` (docs/BOARD.md, decision 7).
+  // Named before the first post, so a city with members is not read as
+  // `other` in the progress record (docs/BOARD.md, decision 7).
   { id: 'seattle', label: 'Seattle', note: 'Rainier Valley, Tukwila, SeaTac.', country: 'us' },
   { id: 'san-diego', label: 'San Diego', note: 'City Heights.', country: 'us' },
   { id: 'birmingham', label: 'Birmingham', note: 'Small Heath to Sparkhill.', country: 'uk' },
@@ -47,8 +44,9 @@ export function getScene(id?: string): Scene | undefined {
 }
 
 /**
- * The country a person is counted in: her city's, when she named one; the one
- * she picked, when she is somewhere else. Undefined until she has said.
+ * Her country, for her help line: her city's, when she named one; the one she
+ * picked, when she is somewhere else. Undefined until she has said. It never
+ * leaves the phone.
  */
 export function countryFor(identity: { scene?: string; country?: string }): string | undefined {
   return getScene(identity.scene)?.country ?? (identity.scene === 'other' ? identity.country : undefined)

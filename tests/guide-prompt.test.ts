@@ -33,7 +33,6 @@ const ctx = sanitiseContext(raw)
 describe('the prompt', () => {
   it('carries the member’s real map, not a generic persona', () => {
     const p = buildSystemPrompt('auntie', ctx)
-    expect(p).toContain('25-29')
     expect(p).toContain('twin-cities')
     expect(p).toContain('honesty, respect')
   })
@@ -42,7 +41,7 @@ describe('the prompt', () => {
     // The prompt used to end with "LIVE APP STATE: connected with [...]",
     // naming simulated matches on every request. Nobody is here yet, and the
     // guide saying otherwise is the one thing this product cannot afford.
-    const p = buildSystemPrompt('matchmaker', ctx)
+    const p = buildSystemPrompt('auntie', ctx)
     expect(p).not.toMatch(/LIVE APP STATE/)
     expect(p).not.toMatch(/connected with|awaiting reply/i)
   })
@@ -72,12 +71,11 @@ describe('the prompt', () => {
 })
 
 describe('what never reaches the model', () => {
-  it('carries no name, and an age range rather than an age — the guide says "you" (docs/PRIVACY.md, C5)', () => {
+  it('carries no name and no age, even when an older client sends both — the guide says "you" (docs/PRIVACY.md, C5)', () => {
     const p = buildSystemPrompt('auntie', sanitiseContext(raw))
     expect(p).not.toContain('Amina')
     expect(p).not.toContain('Unnamed')
-    expect(p).not.toMatch(/\b27\b/)
-    expect(p).toContain('25-29')
+    expect(p).not.toMatch(/\b27\b|25-29|Aged/)
   })
 })
 
@@ -128,13 +126,12 @@ describe('the slots the caller fills', () => {
 
   it('refuses an id it does not know, and renders the blank a member would have', () => {
     const c = sanitiseContext({
-      identity: { gender: 'other', scene: 'atlantis', age: 4 },
+      identity: { gender: 'other', scene: 'atlantis' },
       answers: { 'hardest-part': 'whatever', dealbreakers: ['honesty', 'not-a-dealbreaker'], 'faith-role': 99 },
       stage: 'engaged',
     })
     expect(c.gender).toBe('—')
     expect(c.scene).toBe('—')
-    expect(c.ageBand).toBeUndefined()
     expect(c.hardestPart).toBe('—')
     expect(c.faithRole).toBe('—')
     // The half that is a real id survives; the half that is not does not.
@@ -151,8 +148,8 @@ describe('the slots the caller fills', () => {
     }
   })
 
-  it('names five voices and no more', () => {
-    expect([...GUIDE_MODES].sort()).toEqual(['auntie', 'brother', 'islamic', 'matchmaker', 'therapist'])
+  it('names four voices and no more', () => {
+    expect([...GUIDE_MODES].sort()).toEqual(['auntie', 'brother', 'islamic', 'therapist'])
     // An unknown mode never reaches here — guide.ts refuses it — but if one
     // ever did, it must not produce a prompt with no persona in it.
     expect(buildSystemPrompt('anything-else', ctx)).toContain('You are one voice of Niyyah')

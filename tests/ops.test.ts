@@ -81,7 +81,7 @@ const TODAY = () => day()
 const daysAgo = (n: number) => day(Date.now() - n * 86_400_000)
 
 async function keptCode(name = 'Hodan'): Promise<string> {
-  const res = await call('keep', 'POST', 'keep', { snapshot: { answers: {}, identity: { firstName: name, age: 27 } } })
+  const res = await call('keep', 'POST', 'keep', { snapshot: { answers: {}, identity: { firstName: name } } })
   return ((await res.json()) as { code: string }).code
 }
 
@@ -116,18 +116,18 @@ describe('are functions — and storage — failing?', () => {
     expect(fx.numbers).toMatchObject({ today: 1, keep: 1 })
 
     for (let i = 0; i < 4; i++) {
-      blobs.failOn({ store: 'vouches', op: 'get', prefix: 'token/' })
-      expect((await call('vouch', 'GET', 'vouch?code=ACDEFGHJKM')).status).toBe(503)
+      blobs.failOn({ store: 'couples', op: 'get', key: 'ACDEFGHJ' })
+      expect((await call('couple', 'GET', 'couple?code=ACDEFGHJ')).status).toBe(503)
     }
     fx = await check('functions')
     expect(fx.state).toBe('fail')
-    expect(fx.numbers).toMatchObject({ today: 5, keep: 1, vouch: 4 })
+    expect(fx.numbers).toMatchObject({ today: 5, keep: 1, couple: 4 })
     expect(fx.cadence).toBe('now')
   })
 
   it('fails when errors come two days running, even a few', async () => {
-    blobs.put('ops', `day/${daysAgo(1)}/fail.vouch`, 1)
-    blobs.put('ops', `day/${TODAY()}/fail.vouch`, 1)
+    blobs.put('ops', `day/${daysAgo(1)}/fail.couple`, 1)
+    blobs.put('ops', `day/${TODAY()}/fail.couple`, 1)
     expect((await check('functions')).state).toBe('fail')
   })
 
@@ -148,19 +148,18 @@ describe('are functions — and storage — failing?', () => {
 
 describe('are rate limits being hit?', () => {
   it('counts a refusal by the kind of cap, never by what it was about', async () => {
-    process.env.DOOR_CITY_HOURLY_CAP = '1'
-    const code = await keptCode()
-    const join = () => call('cohort', 'POST', 'cohort', { code, scene: 'twin-cities', gender: 'woman' })
-    expect((await join()).status).toBe(200)
-    expect((await join()).status).toBe(503)
-    delete process.env.DOOR_CITY_HOURLY_CAP
+    process.env.COUPLE_READ_HOURLY_CAP = '1'
+    const read = () => call('couple', 'GET', 'couple?code=HJKMNPQR')
+    expect((await read()).status).toBe(404)
+    expect((await read()).status).toBe(503)
+    delete process.env.COUPLE_READ_HOURLY_CAP
 
     const limits = await check('limits')
     expect(limits.state).toBe('warn')
-    expect(limits.numbers).toMatchObject({ refused: 1, 'door-city': 1 })
-    // The city is never counted, nor returned.
-    expect(blobs.keys('ops').join('\n')).not.toMatch(/twin-cities/)
-    expect(JSON.stringify(await health())).not.toMatch(/twin-cities/)
+    expect(limits.numbers).toMatchObject({ refused: 1, 'couple-read': 1 })
+    // The code it was about is never counted, nor returned.
+    expect(blobs.keys('ops').join('\n')).not.toMatch(/HJKMNPQR/)
+    expect(JSON.stringify(await health())).not.toMatch(/HJKMNPQR/)
   })
 
   it('fails when the guide’s daily cap is reached — members are on the offline voice', async () => {
@@ -176,12 +175,11 @@ describe('are rate limits being hit?', () => {
     for (const [bucket, period] of [
       ['guide', 'h'],
       ['guide', 'd'],
-      ['door-city-london', 'h'],
       ['keep', 'h'],
       ['restore', 'h'],
       ['forget', 'h'],
       ['couple-answer', 'h'],
-      ['vouch-read', 'h'],
+      ['couple-read', 'h'],
       ['safety-probe', 'h'],
       ['progress-forget', 'h'],
       ['health', 'h'],
@@ -327,17 +325,16 @@ describe('what it counts is never about a person', () => {
 
   it('holds nothing of anyone, after a life has run through every route that counts', async () => {
     const NAME = 'Zqopsnamexyz'
-    const CONTACT = 'zqops@example.com'
     const code = await keptCode(NAME)
-    await call('cohort', 'POST', 'cohort', { code, scene: 'twin-cities', gender: 'woman', contact: CONTACT })
+    await call('progress', 'POST', 'progress', { id: 'CDEFGHJK', rungs: ['arrived'], scene: 'twin-cities' })
     blobs.failOn({ store: 'maps', op: 'getWithMetadata', key: code })
     await call('keep', 'GET', `keep?code=${code}`)
     answers(100, 100)
     await ask()
     await call('health', 'POST', 'health', { event: 'crash' })
     const body = JSON.stringify(await health())
-    expect(residue([code, NAME, CONTACT, 'twin-cities']).filter((l) => l.startsWith('ops:'))).toEqual([])
-    for (const n of [code, NAME, CONTACT, 'twin-cities', 'He went quiet']) expect(body).not.toContain(n)
+    expect(residue([code, NAME, 'CDEFGHJK', 'twin-cities']).filter((l) => l.startsWith('ops:'))).toEqual([])
+    for (const n of [code, NAME, 'CDEFGHJK', 'twin-cities', 'He went quiet']) expect(body).not.toContain(n)
     // And every date in it is a day.
     expect(body).not.toMatch(/T\d{2}:\d{2}/)
   })
@@ -348,7 +345,7 @@ describe('counting never breaks what it counts', () => {
     blobs.failOpen('ops')
     const code = await keptCode()
     expect(code).toMatch(/^[A-Z2-9]{8}$/)
-    expect((await call('cohort', 'POST', 'cohort', { code, scene: 'twin-cities', gender: 'woman' })).status).toBe(200)
+    expect((await call('progress', 'POST', 'progress', { id: 'CDEFGHJK', rungs: ['arrived'] })).status).toBe(200)
     answers(10, 10)
     expect((await ask()).status).toBe(200)
     expect((await call('health', 'POST', 'health', { event: 'crash' })).status).toBe(204)

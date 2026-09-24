@@ -12,7 +12,9 @@
 # Landing is not working. Once the commit is live, a smoke test asks three
 # things a broken deploy would get wrong: does the page carry the app, does
 # the function runtime answer (an unauthenticated /health is a 401, not a
-# 404 or a 500), and can a public route read storage (the door's count). A
+# 404 or a 500), and can a public route read storage (a restore of a code
+# nobody holds answers "not found" — a 404 it could only give after asking
+# the store; a store that cannot answer is a 503). A
 # failure names the rollback — Netlify → Deploys → the last green deploy →
 # Publish deploy (docs/DEPLOY.md, "Rolling back"; docs/RECOVERY.md).
 name: deployed
@@ -55,9 +57,9 @@ jobs:
               if [ "$page" != "200" ] || ! grep -q 'id="root"' page.html; then broken="$broken the page answered $page without the app;"; fi
               fn=$(curl -sS -o /dev/null -w '%{http_code}' "$SITE/.netlify/functions/health" || echo 000)
               if [ "$fn" != "401" ]; then broken="$broken /health without a key answered $fn, not 401 (functions are not answering as built);"; fi
-              door=$(curl -sS -o door.json -w '%{http_code}' "$SITE/.netlify/functions/cohort?scene=twin-cities" || echo 000)
-              if [ "$door" != "200" ] || ! jq -e '.across' door.json > /dev/null 2>&1; then broken="$broken the door's count answered $door (storage or the cohort route is broken);"; fi
-              rm -f page.html door.json
+              kept=$(curl -sS -o kept.json -w '%{http_code}' "$SITE/.netlify/functions/keep?code=AAAAAAAA" || echo 000)
+              if [ "$kept" != "404" ] || ! jq -e '.error == "not_found"' kept.json > /dev/null 2>&1; then broken="$broken a restore of an unused code answered $kept (storage or the keep route is broken);"; fi
+              rm -f page.html kept.json
               if [ -n "$broken" ]; then
                 echo "::error::$WANT is live and broken:$broken Roll back: Netlify → Deploys → the last green deploy → Publish deploy. docs/DEPLOY.md, 'Rolling back'."
                 echo "**Live, and broken:**$broken Roll back — docs/DEPLOY.md, “Rolling back”." >> "$GITHUB_STEP_SUMMARY"

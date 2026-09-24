@@ -2,8 +2,8 @@
  * One way to call the server, and one vocabulary for what went wrong.
  *
  * Before this, `withTimeout` was copy-pasted byte-identical into five files,
- * hand-rolled in two more, and missing entirely from both waitlist posts — so
- * a hung form post left "Counting you in…" spinning with no clock to stop it.
+ * hand-rolled in two more, and missing entirely from others — so a hung post
+ * left a spinner with no clock to stop it.
  *
  * The larger fault it fixes is not duplication. Every caller collapsed a
  * timeout, an offline phone, a 404, a lapsed record, a 409 and a 503 into one
@@ -42,11 +42,6 @@ export const TIMEOUT_MS = 10_000
  *    separating, because retrying a malformed answer is pointless.
  */
 export type Why = 'unreachable' | 'refused' | 'not-a-code' | 'not-found' | 'expired' | 'taken' | 'garbled'
-
-/** True when trying the same thing again could plausibly work. */
-export function worthRetrying(why: Why): boolean {
-  return why === 'unreachable' || why === 'refused'
-}
 
 /**
  * Fetch with a clock. Returns null when no response arrived at all — which is

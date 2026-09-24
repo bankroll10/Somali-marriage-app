@@ -10,9 +10,8 @@ export type Forgot = () => Promise<{ map: boolean; progress: boolean; couple: bo
 /**
  * Forget me.
  *
- * It lived only on Trust, which a married person could no longer reach — Home
- * hides the profile once she is married, and the profile was the only way to
- * Trust. So the Ending said "You can delete the app" while everything kept on
+ * It lived only on Trust, which a married person could no longer reach. So the
+ * Ending said "You can delete the app" while everything kept on
  * our server outlived the uninstall: the kept map for a year, the eleven for
  * ninety days, the step count for good (docs/DIFFERENTIATION.md). One block,
  * on both screens, so the two can never say different things about what it
@@ -38,9 +37,8 @@ export default function ForgetMe({
 <section className={`${className} rounded-card border border-line bg-white/50 p-5`}>
       <h2 className="font-display text-[1.08rem] font-medium text-ink">Forget me</h2>
       <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
-        Deletes your kept map, your family’s vouch and the link they used, your place on the
-        door, {fix('the eleven you sent {him}')}, the count of your steps, and your email or
-        phone — then clears this phone. If you come back after this, you start as a stranger. A
+        Deletes your kept map, {fix('the eleven you sent {him}')}, and the count of your steps —
+        then clears this phone. If you come back after this, you start as a stranger. A
         concern you reported stays with the founder until she has read it.
       </p>
       {/* The two honest limits used to sit in the middle of the paragraph

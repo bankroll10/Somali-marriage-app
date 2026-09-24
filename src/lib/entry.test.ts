@@ -5,7 +5,6 @@ describe('links into Niyyah', () => {
   it('recognises each coded kind and cleans the code', () => {
     expect(entryFromUrl('?map=acd-efg')).toEqual({ kind: 'map', code: 'ACDEFG' })
     expect(entryFromUrl('?couple=hjkmnp')).toEqual({ kind: 'couple', code: 'HJKMNP' })
-    expect(entryFromUrl('?vouch= qrt wxy ')).toEqual({ kind: 'vouch', code: 'QRTWXY' })
   })
 
   it('opens an instrument with no code at all', () => {
@@ -13,7 +12,6 @@ describe('links into Niyyah', () => {
     expect(entryFromUrl('?read=1')).toEqual({ kind: 'read' })
     expect(entryFromUrl('?eleven')).toEqual({ kind: 'eleven' })
     expect(entryFromUrl('?families')).toEqual({ kind: 'families' })
-    expect(entryFromUrl('?door')).toEqual({ kind: 'door' })
   })
 
   it('ignores everything else', () => {
@@ -22,12 +20,16 @@ describe('links into Niyyah', () => {
     expect(entryFromUrl('?fresh')).toBeNull()
     expect(entryFromUrl('?couple=')).toBeNull()
     expect(entryFromUrl('?couple=---')).toBeNull()
+    // The door and the vouch were removed on 2026-09-24. A link to either,
+    // still sitting in someone's messages, opens the front door.
+    expect(entryFromUrl('?door')).toBeNull()
+    expect(entryFromUrl('?vouch=QRTWXY')).toBeNull()
+    expect(entryFromUrl('', '/tools/door')).toBeNull()
   })
 
   it('takes the first kind present when a link is mangled into two, coded kinds first', () => {
     expect(entryFromUrl('?map=ACDEFG&couple=HJKMNP')?.kind).toBe('map')
     expect(entryFromUrl('?map=ACDEFG&read')?.kind).toBe('map')
-    expect(entryFromUrl('?map=ACDEFG&door')?.kind).toBe('map')
   })
 
   describe('a tool at its own address', () => {
@@ -66,13 +68,13 @@ describe('links into Niyyah', () => {
     it('rides along with any kind, and never names a person', () => {
       expect(entryFromUrl('?eleven&via=eleven')).toEqual({ kind: 'eleven', via: 'eleven' })
       expect(entryFromUrl('?couple=HJKMNP&via=couple')).toEqual({ kind: 'couple', code: 'HJKMNP', via: 'couple' })
-      expect(entryFromUrl('?read&via=door')).toEqual({ kind: 'read', via: 'door' })
-      expect(entryFromUrl('?door&via=group')).toEqual({ kind: 'door', via: 'group' })
+      expect(entryFromUrl('?families&via=group')).toEqual({ kind: 'families', via: 'group' })
     })
 
     it('drops a via it does not know', () => {
       expect(entryFromUrl('?read&via=instagram')).toEqual({ kind: 'read' })
       expect(entryFromUrl('?read&via=ACDEFG')).toEqual({ kind: 'read' })
+      expect(entryFromUrl('?read&via=door')).toEqual({ kind: 'read' })
     })
 
     it('is nothing on its own', () => {

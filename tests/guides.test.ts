@@ -181,7 +181,7 @@ describe('the only script on the page', () => {
   })
 })
 
-describe('the catalog knows every asset', () => {
+describe('the catalogue knows every asset', () => {
   // Three pitches went out carrying placeholder URLs because no single file
   // said which addresses were verified. docs/ASSETS.md is that file, and a
   // new asset must not ship without a row in it.
@@ -193,11 +193,6 @@ describe('the catalog knows every asset', () => {
     }
     expect(catalog).toContain(`https://joinniyyah.com${GUIDE.path}`)
     expect(catalog).toContain(`https://joinniyyah.com${GUIDE.samplePath}`)
-  })
-
-  it('records the attribution decision rather than leaving it a gap', () => {
-    expect(catalog).toMatch(/ignores UTM parameters/i)
-    expect(catalog).toMatch(/kind.{0,10}of room and never the room/i)
   })
 })
 

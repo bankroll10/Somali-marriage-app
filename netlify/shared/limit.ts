@@ -12,13 +12,11 @@ import { failed, note } from './ops'
  * is a real amount of money. That was the first cap, on the guide.
  *
  * The rest followed in the Scale pass (docs/SCALE.md), for a reason the guide
- * did not have: every other public write lands in storage on a free plan, and
- * the door became the unit that opens a marketplace. A `keep` loop is the
- * cheapest way to spend the plan's storage; a `progress` loop the cheapest way
- * to make the founder's readout time out; a `cohort` loop the cheapest way to
- * walk a door toward forty. A cap does not stop a patient script — the
- * kept-map requirement and the founder's judgement do — but it makes inflation
- * slow and visible, and it bounds every write against limits nobody can see.
+ * did not have: every other public write lands in storage on a free plan. A
+ * `keep` loop is the cheapest way to spend the plan's storage; a `progress`
+ * loop the cheapest way to make the founder's readout time out. A cap does
+ * not stop a patient script, but it makes inflation slow and visible, and it
+ * bounds every write against limits nobody can see.
  *
  * One shared counter per bucket per hour, with no identity attached to it at
  * all — not an IP, not an install id, nothing that could turn a cost control
@@ -115,12 +113,10 @@ export async function capState(bucket: string, cap: number, period: Period = 'h'
 
 /**
  * The operations signal a refusal is counted under (shared/ops.ts): the kind
- * of cap, and nothing more. A city's own door cap is `door-city`, never the
- * city; the guide's two caps are told apart, because only the day's means the
- * guide is offline until midnight.
+ * of cap, and nothing more. The guide's two caps are told apart, because only
+ * the day's means the guide is offline until midnight.
  */
 export function capSignal(bucket: string, period: Period): string {
-  if (bucket.startsWith('door-city-')) return 'cap.door-city'
   if (bucket === 'guide') return `cap.guide-${period}`
   return `cap.${bucket}`
 }
@@ -151,7 +147,7 @@ export function envName(bucket: string, period: 'HOURLY' | 'DAILY'): string {
 }
 
 /**
- * The cap for a bucket is `<BUCKET>_HOURLY_CAP` — `COHORT_HOURLY_CAP`,
+ * The cap for a bucket is `<BUCKET>_HOURLY_CAP` — `KEEP_HOURLY_CAP`,
  * `GUIDE_HOURLY_CAP` — read per call so a change takes effect on the next
  * request, falling back to the function's own default. True when this call
  * would take the bucket past it.
@@ -162,26 +158,12 @@ export async function overHourlyCap(bucket: string, fallback: number): Promise<b
 }
 
 /**
- * The same, by the day — `<BUCKET>_DAILY_CAP`.
- *
- * An hourly cap alone bounds an hour and nothing longer: it resets seven
- * hundred and twenty times a month, so "the worst hour is survivable" and "the
- * worst month is survivable" are different claims and only the first was true.
- * That gap costs nothing where a bucket spends storage, which is why the Scale
- * pass did not need this. It costs money on the one bucket that calls a model,
- * so the guide carries both — see the arithmetic in `netlify/functions/guide.ts`.
- *
- * Callers that use both must check the day first: the hour's counter should not
- * be spent by a call the day was going to refuse anyway.
- */
-export async function overDailyCap(bucket: string, fallback: number): Promise<boolean> {
-  const cap = Number(process.env[envName(bucket, 'DAILY')]) || fallback
-  return !(await underLimit(bucket, cap, 'd'))
-}
-
-/**
- * The strict twin of `overHourlyCap` / `overDailyCap`, for a bucket that spends
- * money: true when the cap is met **or when the count cannot be known**. A
+ * The strict twin of `overHourlyCap`, for a bucket that spends money: true
+ * when the cap is met **or when the count cannot be known**, by the hour or by
+ * the day. An hourly cap alone bounds an hour and nothing longer — it resets
+ * seven hundred and twenty times a month — so the guide, the one bucket that
+ * calls a model, checks the day first and then the hour (see the arithmetic in
+ * `netlify/functions/guide.ts`). A
  * storage outage under the guide used to mean every call went through and the
  * only bound left was a console spend limit nobody had written down
  * (docs/RISKS.md R5). The member sees the same 503 as at the cap, and the

@@ -14,12 +14,49 @@ import { BANNED } from './voice-rules'
  * as its example of an exaggerated cultural claim. A word that earns its
  * place goes on the allowlist with a reason; nothing else does.
  *
- * Scanned line by line, comments skipped, in the shape of promises.test.ts.
+ * Scanned line by line, comments skipped. The same scan holds the promises
+ * the code cannot keep, which had their own copy of it until 2026-09-24.
  */
 
 const ROOT = join(import.meta.dirname, '..', 'src')
 const DIRS = ['components', 'data', 'lib']
 
+
+/**
+ * Authority the product has not earned, said to a member (docs/ALIGNMENT.md).
+ * No introduction has been made and nothing here has been measured against
+ * an outcome, so no screen predicts, ranks a difference as light, or quotes
+ * a statistic about other couples. Copy only: the guide may say that nobody
+ * can predict a marriage, and its grader should not flag that.
+ */
+const OVERCLAIMS: [RegExp, string][] = [
+  [/\bpredicts?\b/i, 'a prediction nothing here has measured'],
+  [/carry the most weight/i, 'ranks one difference above another'],
+  [/most couples never/i, 'a statistic about other couples we do not have'],
+  [/rarer than you would think/i, 'a statistic we do not have'],
+  [/Grounded and ready/, 'a verdict of "ready"'],
+  [/We’ll look for someone|will find you someone/i, 'an introduction nobody makes'],
+]
+
+/**
+ * Promises the code cannot keep. Until 2026-09-17 four screens said "the day
+ * someone fits your map, we write to you" with no matching and no outbound
+ * channel anywhere, and the sample introduction promised photos and a guided
+ * conversation, both refused permanently (docs/STRATEGY.md §6). Every one was
+ * warm, well written and false. A screen says what exists.
+ */
+const PROMISES: [RegExp, string][] = [
+  [/photos? (are|is|will be|get) shown/i, 'photos — declined permanently'],
+  [/conversation opens/i, 'messaging — off-platform, on purpose'],
+  [/\bwe (will |can )?write to\b/i, 'no outbound channel exists'],
+  [/\byou (will )?hear from us\b/i, 'no outbound channel exists'],
+  [/\bwhen your city opens\b/i, 'nothing decides who meets whom'],
+  [/\btell you when your (city|pool) opens\b/i, 'no outbound channel exists'],
+  [/\band blocking\b|report-and-block/i, 'there is no blocking of any kind here'],
+  [/powered by ai/i, 'the model adds a sentence; it is never the reason'],
+]
+
+const RULES = [...BANNED, ...OVERCLAIMS, ...PROMISES]
 
 /** Lines that keep a banned word, each with the reason it earns its place. */
 const ALLOWED: [RegExp, string][] = [
@@ -73,7 +110,7 @@ describe('the voice', () => {
       lines.forEach((line, i) => {
         if (skip.has(i)) return
         if (ALLOWED.some(([re]) => re.test(line))) return
-        for (const [re, why] of BANNED) {
+        for (const [re, why] of RULES) {
           if (re.test(line)) hits.push(`${file}:${i + 1}  ${why}\n      ${line.trim().slice(0, 110)}`)
         }
       })
@@ -85,7 +122,7 @@ describe('the voice', () => {
     // JSX wraps prose at the column, so "decide a Somali\n marriage" passes the
     // line scan. Read each file again with its comment lines out and its
     // whitespace folded, for the phrases that have a space in them.
-    const multiword = BANNED.filter(([re]) => / /.test(re.source))
+    const multiword = RULES.filter(([re]) => / /.test(re.source))
     const hits: string[] = []
     for (const { file, lines } of files()) {
       const skip = commentLines(lines)

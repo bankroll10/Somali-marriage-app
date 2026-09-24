@@ -28,7 +28,7 @@
  *     Nothing here can make a stale build stick around for someone who has
  *     a connection.
  *  2. **`/.netlify/*` is never touched.** Every write and every live read —
- *     the guide, a map restore, a couple's answer, a vouch — goes straight
+ *     the guide, a map restore, a couple's answer — goes straight
  *     to the network, exactly as it always has. Caching an API response
  *     would mean showing her a stale map or a stale answer as if it were
  *     current, which is a correctness and a trust problem this file is not
@@ -37,8 +37,7 @@
  *     first version keyed every response on the full URL, so opening
  *     `/?map=ACDEFG` wrote a live map code — the sole authenticator for a
  *     whole map — into Cache Storage on disk, where anyone with the phone
- *     could list it until the next deploy. Same for `?couple=` and
- *     `?vouch=`. Found by the STRIDE pass (docs/THREAT.md, T3); the shell a
+ *     could list it until the next deploy. Same for `?couple=`. Found by the STRIDE pass (docs/THREAT.md, T3); the shell a
  *     navigation needs never depends on its query anyway. Hashed assets keep
  *     their full URL — they carry no secret.
  *

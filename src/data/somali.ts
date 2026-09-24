@@ -39,16 +39,12 @@ export interface SomaliLine {
 }
 
 export const SOMALI: Record<string, SomaliLine> = {
-  'auntie.opener': { somali: 'Kaalay, gabadhaydaay.', english: 'Sit with your auntie a moment.', approved: false }, // VERIFY — read aloud by a woman from the audience first
-  'brother.opener': { somali: 'Waqtigaaga ha lumin, walaal.', english: 'Don’t waste your time on someone who won’t say what they want.', approved: true },
-  'map.warmest': { somali: 'Way kuu suurtagal tahay.', english: 'This is possible for you — and you are closer than you think.', approved: true },
   'situation.preparing': { somali: 'Marka hore is diyaari.', english: 'Get yourself ready first; the rest follows.', approved: true },
   'situation.talking': { somali: 'Hadalku waa bilow.', english: 'Talking is a beginning, not a promise.', approved: true },
   'situation.deciding': { somali: 'Labada reer ayaa arrinta ku soo biiraya.', english: 'The two families are becoming involved — be ready for them.', approved: true },
   'situation.married': { somali: 'Guurku wuxuu u baahan yahay dadaal.', english: 'Marriage takes effort from both of you.', approved: true },
   'beforeYes.intro': { somali: 'Wada hadallada muhiimka ah.', english: 'The important conversations, before the families have them for you.', approved: true },
   'families.intro': { somali: 'Erayada aad u baahan tahay.', english: 'The words you will need.', approved: true },
-  'read.eyebrow': { somali: 'Waxa uu ku tusay.', english: 'What he has shown you.', approved: true },
 }
 
 /** The approved line for a key, or null — callers fall back to English. */

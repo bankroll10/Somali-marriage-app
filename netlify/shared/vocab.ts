@@ -22,8 +22,6 @@ export const RUNGS = new Set([
   'asked-him',
   'he-answered',
   'followed-through',
-  'vouched',
-  'counted',
   'deciding',
   'married',
 ])
@@ -35,60 +33,19 @@ export const SCENES = new Set([
   'other',
 ])
 
-/**
- * Must match src/data/countries.ts. The country sits above the city in the
- * door's count — the pool a person would move within for the right person —
- * and never below it; docs/LEARNING.md refuses anything finer than the city.
- */
-export const COUNTRIES = new Set(['us', 'ca', 'uk', 'se', 'no', 'dk', 'nl', 'fi', 'de', 'au', 'ke', 'ae', 'so', 'other'])
-
-/**
- * Must match `country` on each named city in src/data/scenes.ts. A city
- * implies its country; only `other` has to be told one.
- */
-export const SCENE_COUNTRY: Record<string, string> = {
-  'twin-cities': 'us',
-  toronto: 'ca',
-  london: 'uk',
-  columbus: 'us',
-  stockholm: 'se',
-  seattle: 'us',
-  'san-diego': 'us',
-  birmingham: 'uk',
-  bristol: 'uk',
-  leicester: 'uk',
-  gothenburg: 'se',
-  oslo: 'no',
-  copenhagen: 'dk',
-  helsinki: 'fi',
-  amsterdam: 'nl',
-  nairobi: 'ke',
-  melbourne: 'au',
-}
-
-/** Must match src/data/reach.ts — how far she would go for the right person. */
-export const REACH = new Set(['city', 'country', 'anywhere'])
-
 /** Must match src/data/hook.ts, plus 'none' for a hardest part never named. */
 export const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'other', 'ready', 'none'])
-
-/** Must match src/lib/ledger.ts. */
-export const LEDGER = new Set(['map', 'read', 'beforeYes', 'living', 'kept', 'counted', 'vouched'])
 
 export const GENDERS = new Set(['woman', 'man'])
 
 /**
  * Must match `ModeId` in src/types.ts and the mode ids in src/data/coach.ts —
- * which of the five voices is answering. The only thing about how the guide
+ * which of the four voices is answering. The only thing about how the guide
  * speaks that a caller gets to choose (netlify/shared/prompt.ts).
  */
-export const GUIDE_MODES = new Set(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker'])
+export const GUIDE_MODES = new Set(['auntie', 'brother', 'therapist', 'islamic'])
 
-/**
- * Must match `Stage` in src/types.ts and the ids in src/data/stages.ts. Lifted
- * out of netlify/functions/pool.ts, which had the only server copy, when the
- * Guide's prompt moved to the server and needed to check a stage too.
- */
+/** Must match `Stage` in src/types.ts and the ids in src/data/stages.ts. */
 export const STAGES = new Set(['preparing', 'talking', 'deciding', 'married'])
 
 /**
@@ -102,7 +59,7 @@ export const STAGES = new Set(['preparing', 'talking', 'deciding', 'married'])
  * and deliberately outside the room kinds the pivot rule reads
  * (src/lib/entry.ts, docs/WEDGE.md).
  */
-export const VIAS = new Set(['words', 'eleven', 'couple', 'door', 'family', 'married', 'group', 'alumni', 'professional', 'mosque', 'press'])
+export const VIAS = new Set(['words', 'eleven', 'couple', 'family', 'married', 'group', 'alumni', 'professional', 'mosque', 'press'])
 
 /** Must match `Dimension` in src/types.ts — the map's seven grounds. */
 export const DIMENSIONS = new Set(['intention', 'faith', 'family', 'vision', 'character', 'emotional', 'selfAwareness'])
@@ -203,16 +160,10 @@ export const INSTRUMENTS = new Set(['map', 'read', 'eleven', 'couple'])
 /** Must match src/lib/facts.ts ASKED — what a person asked, ever, as a set. Today only the guide. */
 export const ASKED = new Set(['guide'])
 
-/**
- * Must match src/data/hesitation.ts — why someone reached the door and did
- * not walk through it. One word about the door, never about her.
- */
-export const HESITATIONS = new Set(['contact', 'seen', 'family', 'empty', 'ready', 'other'])
-
 /** Must match src/data/ending.ts — the three closed questions on the way out. */
-export const WHO = new Set(['brought', 'family', 'here', 'elsewhere'])
+export const WHO = new Set(['brought', 'family', 'elsewhere'])
 export const MATTERED = new Set(['shown', 'eleven', 'families', 'myself', 'other'])
-export const USED = new Set(['read', 'eleven', 'couple', 'families', 'vouch', 'guide', 'map'])
+export const USED = new Set(['read', 'eleven', 'couple', 'families', 'guide', 'map'])
 
 /**
  * Must match src/data/safety.ts. Why a member is reporting a concern about
@@ -221,7 +172,7 @@ export const USED = new Set(['read', 'eleven', 'couple', 'families', 'vouch', 'g
  */
 export const SAFETY_REASONS = new Set(['harassment', 'threats', 'sexual', 'already-married', 'impersonation', 'other'])
 /** Must match src/data/safety.ts SAFETY_OUTCOMES. What the founder did about a report. */
-export const SAFETY_OUTCOMES = new Set(['spoke-to-them', 'told-the-family', 'never-introduce', 'not-enough', 'no-action'])
+export const SAFETY_OUTCOMES = new Set(['spoke-to-them', 'told-the-family', 'not-enough', 'no-action'])
 
 /**
  * The reasons that cannot wait for Monday (docs/ABUSE.md): an open report
@@ -238,16 +189,13 @@ export const URGENT_REASONS = new Set(['threats', 'sexual'])
 export const CRASH_EVENTS = new Set(['crash', 'chunk'])
 
 /** The routes whose failures are counted as `fail.<route>`. */
-export const OPS_ROUTES = ['keep', 'cohort', 'couple', 'vouch', 'progress', 'safety', 'export', 'pool', 'guide', 'sweep', 'limit', 'health'] as const
+export const OPS_ROUTES = ['keep', 'couple', 'progress', 'safety', 'export', 'guide', 'sweep', 'limit', 'health'] as const
 export type OpsRoute = (typeof OPS_ROUTES)[number]
 
 /** Every rate-limit bucket in netlify/functions, as the kind of cap it is (shared/limit.ts capSignal). */
 export const CAP_FAMILIES = [
   'guide-h',
   'guide-d',
-  'door',
-  'door-city',
-  'cohort',
   'keep',
   'restore',
   'forget',
@@ -255,8 +203,6 @@ export const CAP_FAMILIES = [
   'couple-read',
   'couple-forget',
   'couple-answer',
-  'vouch',
-  'vouch-read',
   'safety',
   'safety-probe',
   'progress',

@@ -9,9 +9,9 @@ vi.mock('@netlify/blobs', async () => (await import('./support/blobs')).blobsMod
  *
  * These were checks on the *source* in tests/fail.test.ts: that `getStore`
  * sits below a `try {`, that the text `await req.text()` has a `try {` within
- * two hundred characters before it, that one string appears before another in
- * vouch.ts. Each passed on code that was wrong in a new way and failed on a
- * harmless rename (the vouch order broke on one in the last PR). Here each
+ * two hundred characters before it, that one string appears before another.
+ * Each passed on code that was wrong in a new way and failed on a harmless
+ * rename. Here each
  * failure is made to happen, against every route it applies to, and the route
  * is held to what the member sees (docs/FAIL.md, docs/TESTING.md, "Pruned").
  */
@@ -19,9 +19,7 @@ vi.mock('@netlify/blobs', async () => (await import('./support/blobs')).blobsMod
 /** Every route that takes a body, with one a real client would send. */
 const POSTS: [string, string, unknown][] = [
   ['keep', 'keep', { snapshot: { answers: {}, identity: {} } }],
-  ['cohort', 'cohort', { scene: 'twin-cities', gender: 'woman', code: 'CDFGHJKM' }],
   ['couple', 'couple', { side: 'first', gender: 'woman', states: { live: 'agree' } }],
-  ['vouch', 'vouch', { side: 'ask', code: 'CDFGHJKM' }],
   ['progress', 'progress', { id: 'ACDEFGHJKM', rungs: ['arrived'] }],
   ['safety', 'safety', { code: 'CDFGHJKM', side: 'woman', reason: 'pressure' }],
   ['guide', 'guide', { messages: [{ role: 'user', content: 'salaam' }] }],
@@ -79,42 +77,6 @@ describe('a limiter that cannot open its own store', () => {
     // cannot do is a 503, which the app reads as "use the offline voice".
     const status = await answered(call(name, 'POST', path, body))
     expect(status).not.toBe(500)
-  })
-})
-
-describe('the vouch ask, interrupted', () => {
-  async function keptCode(): Promise<string> {
-    const res = await call('keep', 'POST', 'keep', { snapshot: { answers: {}, identity: { firstName: 'Hodan' } } })
-    return ((await res.json()) as { code: string }).code
-  }
-
-  it('claims the ask before the token, so a failure between them leaves no token forget me cannot find', async () => {
-    // Forget me finds her token by reading `asked/<code>`. A token written
-    // first, with the claim then failing, would be a pointer to her code that
-    // nothing could ever sweep.
-    const code = await keptCode()
-    blobs.failOn({ store: 'vouches', op: 'set', prefix: 'asked/' })
-    expect((await call('vouch', 'POST', 'vouch', { side: 'ask', code })).status).toBeGreaterThanOrEqual(500)
-    expect(blobs.keys('vouches').filter((k) => k.startsWith('token/'))).toEqual([])
-    // And the retry succeeds, with both halves.
-    const retry = await call('vouch', 'POST', 'vouch', { side: 'ask', code })
-    expect(retry.status).toBe(200)
-    const { token } = (await retry.json()) as { token: string }
-    expect(blobs.read('vouches', `asked/${code}`)).toBe(token)
-    expect(blobs.read('vouches', `token/${token}`)).toBe(code)
-  })
-
-  it('lets only the first family member’s word land, when two arrive together', async () => {
-    const code = await keptCode()
-    const { token } = (await (await call('vouch', 'POST', 'vouch', { side: 'ask', code })).json()) as { token: string }
-    const give = (firstName: string) =>
-      call('vouch', 'POST', 'vouch', { side: 'give', code: token, relationship: 'mother', firstName, sentence: 'She is ready.' })
-    // Her aunt's vouch lands in the gap between her mother's check and write.
-    let aunt: Response | undefined
-    blobs.before('setJSON', code, async () => void (aunt = await give('Aunt')), 'vouches')
-    const mother = await give('Mother')
-    expect([mother.status, aunt!.status].sort()).toEqual([200, 409])
-    expect(blobs.read('vouches', code)).toMatchObject({ firstName: 'Aunt' })
   })
 })
 

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { memStore, stores } from './support/memory'
 
 /**
  * The ladder store has two jobs: to accept nothing but rungs, and to never let
@@ -6,46 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * an in-memory stand-in for Netlify Blobs.
  */
 
-const stores = new Map<string, Map<string, string>>()
-function memStore(name: string) {
-  const m = stores.get(name) ?? new Map<string, string>()
-  stores.set(name, m)
-  return {
-    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
-      blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: 'x' })),
-      directories: [],
-    }),
-    get: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
-    },
-    getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
-    getWithMetadata: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      if (v === null) return null
-      return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
-    },
-    // Conditional options work here too: the real store returns { modified }
-    // from `set` exactly as it does from `setJSON`, and vouch.ts now claims
-    // `asked/<code>` with onlyIfNew so no token can outlive forget me.
-    set: async (key: string, value: string, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, value)
-      return { modified: true }
-    },
-    // Conditional writes behave like the real store's, so the hourly cap in
-    // shared/limit.ts counts here the way it does in production.
-    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, JSON.stringify(value))
-      return { modified: true }
-    },
-    delete: async (key: string) => void m.delete(key),
-  }
-}
-vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
+vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
 
 const { default: handler } = await import('../netlify/functions/progress')
 
@@ -107,18 +69,20 @@ describe('reporting a rung', () => {
   })
 
   it('keeps what kind of link brought her here, first told wins, and refuses anything else', async () => {
-    for (const via of ['words', 'eleven', 'couple', 'door', 'family', 'married', 'group']) {
+    for (const via of ['words', 'eleven', 'couple', 'family', 'married', 'group']) {
       expect((await post({ id: 'HJKMNP', rungs: ['arrived'], via })).status, via).toBe(200)
     }
     expect((await post({ id: ID, rungs: ['arrived'], via: 'instagram' })).status).toBe(400)
     expect((await post({ id: ID, rungs: ['arrived'], via: 'ACDEFG' })).status).toBe(400)
+    // The door went on 2026-09-24; its via went with it.
+    expect((await post({ id: ID, rungs: ['arrived'], via: 'door' })).status).toBe(400)
 
-    await post({ id: ID, rungs: ['arrived'], via: 'door' })
+    await post({ id: ID, rungs: ['arrived'], via: 'family' })
     await post({ id: ID, rungs: ['arrived', 'read'], via: 'words' })
-    expect(JSON.parse(stores.get('progress')!.get(ID)!).via).toBe('door')
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).via).toBe('family')
   })
 
-  it('keeps which side of the door she is on, last told wins, and refuses anything else', async () => {
+  it('keeps which side she is on, last told wins, and refuses anything else', async () => {
     expect((await post({ id: ID, rungs: ['arrived'], gender: 'man' })).status).toBe(200)
     expect(JSON.parse(stores.get('progress')!.get(ID)!).gender).toBe('man')
     // Chosen at Identity and correctable there, so a later word replaces it.
@@ -133,16 +97,10 @@ describe('reporting a rung', () => {
     expect(stores.get('progress')!.has('HJKMNP')).toBe(false)
   })
 
-  it('keeps why she stopped at the door as one word from the list, last word wins, and refuses anything else', async () => {
-    expect((await post({ id: ID, rungs: ['arrived', 'mapped'], facts: { hesitated: 'contact' } })).status).toBe(200)
-    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.hesitated).toBe('contact')
-    // She changed her mind about why — the last word is the one that counts.
-    await post({ id: ID, rungs: ['arrived', 'mapped'], facts: { hesitated: 'family' } })
-    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.hesitated).toBe('family')
-    // A sentence, or a word we did not write, refuses the whole report.
-    expect((await post({ id: 'HJKMNP', rungs: ['arrived'], facts: { hesitated: 'because I felt like it' } })).status).toBe(400)
-    expect((await post({ id: 'HJKMNP', rungs: ['arrived'], facts: { hesitated: 'tired' } })).status).toBe(400)
-    expect(stores.get('progress')!.has('HJKMNP')).toBe(false)
+  it('refuses a fact about the door — the door went, and so did its one word', async () => {
+    expect((await post({ id: ID, rungs: ['arrived', 'mapped'], facts: { hesitated: 'contact' } })).status).toBe(400)
+    expect((await post({ id: ID, rungs: ['arrived', 'counted'] })).status).toBe(400)
+    expect(stores.get('progress')?.size ?? 0).toBe(0)
   })
 
   it('refuses a bad id, a bad scene, a missing list and an oversized body', async () => {
@@ -199,18 +157,13 @@ describe('the readout', () => {
     expect((await post({ id: 'ACDEFN', rungs: ['arrived'], facts: { asked: ['auntie'] } })).status).toBe(400)
   })
 
-  it('splits the ladder by country, floored — so the North Star reads for the nine countries with no named city', async () => {
-    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'other', country: 'ke' })
-    await post({ id: 'ACDEFK', rungs: ['arrived'], scene: 'london', country: 'uk' })
-    await post({ id: 'ACDEFM', rungs: ['arrived'] })
-    const body = await (await readout()).json()
-    expect(body.countries.ke.arrived).toBe(5)
-    expect(body.countries.uk.arrived).toBeNull()
-    expect(body.countries.unsaid.arrived).toBeNull()
-    // Last told wins, like the scene — she moved.
-    await post({ id: 'ACDEFK', rungs: ['arrived'], country: 'se' })
-    expect(JSON.parse(stores.get('progress')!.get('ACDEFK')!).country).toBe('se')
-    expect((await post({ id: 'ACDEFN', rungs: ['arrived'], country: 'mars' })).status).toBe(400)
+  it('holds no country, even from an older client that still sends one', async () => {
+    // The country was added for the pooled door and was a quasi-identifier
+    // with nothing left to read it (2026-09-24). A report that carries one is
+    // taken, and the country is not kept.
+    expect((await post({ id: 'ACDEFK', rungs: ['arrived'], scene: 'london', country: 'uk' })).status).toBe(200)
+    expect(JSON.parse(stores.get('progress')!.get('ACDEFK')!).country).toBeUndefined()
+    expect('countries' in (await (await readout()).json())).toBe(false)
   })
 
   it('tells the kind of room apart — alumni, professional, mosque — and never the room', async () => {
@@ -243,12 +196,12 @@ describe('the readout', () => {
       await post({ id, rungs: ['arrived'], gender: 'man', via: 'group' })
     }
     for (const id of ['HJKMNQ', 'HJKMNR', 'HJKMNT', 'HJKMNW', 'HJKMNX']) {
-      await post({ id, rungs: ['arrived'], gender: 'woman', via: 'door' })
+      await post({ id, rungs: ['arrived'], gender: 'woman', via: 'family' })
     }
     await post({ id: 'QRTWXA', rungs: ['arrived', 'eleven'], gender: 'man', via: 'couple' })
     const body = await (await readout()).json()
     expect(body.sidesByVia.man.group.arrived).toBe(6)
-    expect(body.sidesByVia.woman.door.arrived).toBe(5)
+    expect(body.sidesByVia.woman.family.arrived).toBe(5)
     // One man through her link is a person, not a number.
     expect(body.sidesByVia.man.couple.arrived).toBeNull()
     expect(body.sidesByVia.man.couple.eleven).toBeNull()
@@ -261,23 +214,18 @@ describe('the readout', () => {
   })
 
   it('counts the map kept apart from the map built, so gap #3 is computable', async () => {
-    // docs/GAPS.md #3 — "people will not put a map on a server or leave a way
-    // to be reached" — is two different failures. Five built a map and stopped;
-    // five kept it and did not join the door; five went all the way. Before the
-    // `kept` rung the first two were the same number (docs/ROADMAP.md).
+    // docs/GAPS.md #3 — "people will not put a map on a server" — is its own
+    // failure. Five built a map and stopped; five kept it. Before the `kept`
+    // rung the two were the same number (docs/ROADMAP.md).
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
       await post({ id, rungs: ['arrived', 'mapped'] })
     }
     for (const id of ['HJKMNQ', 'HJKMNR', 'HJKMNT', 'HJKMNW', 'HJKMNX']) {
       await post({ id, rungs: ['arrived', 'mapped', 'kept'] })
     }
-    for (const id of ['QRTWXA', 'QRTWXC', 'QRTWXD', 'QRTWXE', 'QRTWXF']) {
-      await post({ id, rungs: ['arrived', 'mapped', 'kept', 'counted'] })
-    }
     const body = await (await readout()).json()
-    expect(body.rungs.mapped).toBe(15)
-    expect(body.rungs.kept).toBe(10)
-    expect(body.rungs.counted).toBe(5)
+    expect(body.rungs.mapped).toBe(10)
+    expect(body.rungs.kept).toBe(5)
   })
 
   it('shows a city once five have reached a rung', async () => {
@@ -295,7 +243,7 @@ describe('the readout', () => {
 
     const body = await (await readout()).json()
     expect(body.vias.words.arrived).toBe(5)
-    // One person through a door reads null, like any cell under five.
+    // One person through a source reads null, like any cell under five.
     expect(body.vias.words['followed-through']).toBeNull()
     expect(body.vias.couple.eleven).toBeNull()
     expect(body.vias.unsaid.arrived).toBeNull()
@@ -303,7 +251,7 @@ describe('the readout', () => {
     expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNP|QRTWXY|from|sender/)
   })
 
-  it('a link shared into a community group is its own door, and says nothing about which group', async () => {
+  it('a link shared into a community group is its own source, and says nothing about which group', async () => {
     // The first forty are found through alumni and professional group chats
     // (docs/WEDGE.md). Their arrivals get a row of their own so the founder can
     // read that channel against one-to-one sends — and the row is a kind of
@@ -346,23 +294,6 @@ describe('the readout', () => {
     // scale — 2 of 6 finished the read.
     expect(body.facts.began.read).toBe(6)
     expect(body.rungs.read).toBe(2)
-  })
-
-  it('counts why people stopped at the door, and of those how many walked through after all — floored', async () => {
-    // Six stopped over contact; two of them were later counted. One stopped over family.
-    const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'ACDEFK']
-    for (const id of ids) await post({ id, rungs: ['arrived', 'mapped'], facts: { hesitated: 'contact' } })
-    await post({ id: 'ACDEFG', rungs: ['arrived', 'mapped', 'counted'], facts: { hesitated: 'contact' } })
-    await post({ id: 'HJKMNP', rungs: ['arrived', 'mapped', 'counted'], facts: { hesitated: 'contact' } })
-    await post({ id: 'HJKMNR', rungs: ['arrived', 'mapped'], facts: { hesitated: 'family' } })
-
-    const body = await (await readout()).json()
-    // The distribution is a whole-population count and stays a number.
-    expect(body.facts.hesitated).toEqual({ contact: 6, family: 1 })
-    // The cross-tab is a split, so cells under five read null — including the two who came back.
-    expect(body.facts.countedBy.hesitated.contact).toEqual({ hesitated: 6, counted: null })
-    expect(body.facts.countedBy.hesitated.family).toEqual({ hesitated: null, counted: null })
-    expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNP|because/)
   })
 
   it('carries nothing a person wrote', async () => {
@@ -459,8 +390,15 @@ describe('the founder key', () => {
 
 describe('the facts', () => {
   const read = { band: 'mixed', thin: 'public' }
-  const eleven = { agree: 7, differ: 2, notTalked: 1, unknown: 1, open: 'money-home' }
+  const eleven = { open: 'money-home' }
+  /** What an older client sends: the same, with how many of the eleven were in each state. */
+  const olderEleven = { agree: 7, differ: 2, notTalked: 1, unknown: 1, open: 'money-home' }
   const grounds = { faith: 'steady', family: 'thin' }
+
+  it('takes an older client’s eleven, and keeps only the one to open', async () => {
+    expect((await post({ id: ID, rungs: ['arrived', 'eleven'], facts: { eleven: olderEleven } })).status).toBe(200)
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.eleven).toEqual({ open: 'money-home' })
+  })
 
   it('accepts facts from the closed lists and stores them', async () => {
     const res = await post({ id: ID, rungs: ['arrived', 'read', 'eleven'], facts: { grounds, read, eleven, through: ['beforeYes:money-home', 'read:early'], ending: { who: 'brought', used: ['map'] } } })
@@ -475,8 +413,8 @@ describe('the facts', () => {
       { grounds: { faith: 'great' } },
       { read: { band: 'great', thin: 'public' } },
       { read: { band: 'mixed', thin: 'early' } },
-      { eleven: { ...eleven, agree: 8 } },
       { eleven: { ...eleven, open: 'pets' } },
+      { eleven: { ...eleven, sheet: 'hers' } },
       { through: ['guide:should I tell my mother'] },
       { through: ['read:money-home'] },
       { through: ['beforeYes'] },
@@ -502,7 +440,7 @@ describe('the facts', () => {
       facts: {
         grounds: { faith: 'strong' },
         read: { band: 'strong', thin: 'intent' },
-        eleven: { ...eleven, agree: 8, differ: 1 },
+        eleven: { open: 'live' },
         through: ['beforeYes:money-home'],
         ending: { who: 'family', mattered: 'eleven' },
       },
@@ -543,7 +481,7 @@ describe('the facts', () => {
     // Whole-population counts are never floored.
     expect(body.facts.through).toEqual({ 'beforeYes:money-home': 6, 'couple:live': 1 })
     expect(body.facts.throughByTopic).toEqual({ 'money-home': 6, live: 1 })
-    expect(body.facts.eleven.differ).toEqual({ '2': 6 })
+    expect(body.facts.eleven).toEqual({ open: { 'money-home': 6 } })
     // Cross-tabs are floored cell by cell.
     expect(body.facts.marriedBy.through['money-home']).toEqual({ through: 6, married: 5 })
     expect(body.facts.marriedBy.through.live).toEqual({ through: null, married: null })
@@ -551,12 +489,21 @@ describe('the facts', () => {
     expect(body.facts.marriedBy.readThin.public).toEqual({ read: 6, married: 5 })
   })
 
-  it('buckets an older record’s moment into its day', async () => {
-    await memStore('progress').setJSON('QRTWXY', { first: { arrived: '2026-09-01T13:45:12.345Z' }, expiresAt: '2027-09-01T00:00:00.000Z' })
-    await post({ id: ID, rungs: ['arrived'] })
+  it('reads the North Star by arrival month: of each month’s arrivals, how many have followed through since', async () => {
+    // Followed-through per hundred arrived, this month against last, is two
+    // rows of this. The count of arrivals by day it replaced could not say it.
+    const store = memStore('progress')
+    const rec = (arrived: string, through?: string) =>
+      ({ first: { arrived, ...(through ? { 'followed-through': through } : {}) }, expiresAt: '2099-01-01' })
+    await store.setJSON('ACDEFG', rec('2026-08-03', '2026-09-20'))
+    await store.setJSON('HJKMNP', rec('2026-08-19'))
+    await store.setJSON('QRTWXY', rec('2026-08-30'))
+    await store.setJSON('ACDEFH', rec('2026-09-02', '2026-09-10'))
+    // A record written before dates were days reads its month the same way.
+    await store.setJSON('ACDEFJ', rec('2026-09-01T13:45:12.345Z'))
     const body = await (await readout()).json()
-    expect(body.arrivedByDay['2026-09-01']).toBe(1)
-    expect(Object.keys(body.arrivedByDay).every((k) => k.length === 10)).toBe(true)
+    expect(body.cohorts).toEqual({ '2026-08': { arrived: 3, followedThrough: 1 }, '2026-09': { arrived: 2, followedThrough: 1 } })
+    expect('arrivedByDay' in body).toBe(false)
   })
 
   it('accepts an ended list from the closed lists, replaces it whole, and bounds it at eight', async () => {

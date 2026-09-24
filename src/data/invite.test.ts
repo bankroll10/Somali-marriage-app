@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { inviteLink, inviteText, type InviteSource } from './invite'
 
-const SOURCES: InviteSource[] = ['profile', 'read', 'beforeYes', 'couple']
+const SOURCES: InviteSource[] = ['read', 'beforeYes', 'couple']
 
 describe('the invitation', () => {
   it('never says the sender is looking, or using a marriage product', () => {
@@ -32,7 +32,6 @@ describe('the invitation', () => {
     // the words already are — and it says nothing about the sender.
     expect(inviteLink('read', 'woman')).toMatch(/\/tools\/is-he-serious\?via=words$/)
     expect(inviteLink('read', 'man')).toMatch(/\/tools\/is-she-serious\?via=words$/)
-    expect(inviteLink('profile', 'woman')).toMatch(/\/tools\/is-he-serious\?via=words$/)
     // Without a known side the read asks on arrival, as it always did.
     expect(inviteLink('read')).toMatch(/\?read&via=words$/)
     expect(inviteLink('beforeYes')).toMatch(/\/tools\/before-you-say-yes\?via=eleven$/)

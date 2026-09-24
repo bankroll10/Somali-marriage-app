@@ -7,9 +7,8 @@ import { entryFromUrl, VIAS } from '../../src/lib/entry'
 import { instrumentLink, toolLink, withVia } from '../../src/lib/links'
 import { coupleLink } from '../../src/lib/couple'
 import { restoreLink } from '../../src/lib/keep'
-import { vouchLink } from '../../src/lib/vouch'
 import { wordsLink } from '../../src/lib/words'
-import { marriedShares } from '../../src/lib/ending'
+import { marriedShare } from '../../src/lib/ending'
 import { sheet } from '../support/arbitrary'
 import { Phone, onPhone } from '../support/device'
 import { mount } from '../support/render'
@@ -37,7 +36,6 @@ const LANDS = {
   readAboutHer: /Is she serious\?/,
   eleven: /Before you say yes/,
   families: /Bringing the families in/,
-  door: /The door/,
 }
 
 async function landOn(url: string): Promise<string> {
@@ -67,9 +65,8 @@ describe('every link the product hands out opens its instrument', () => {
     ['the eleven, from a couple invite', inviteLink('couple'), LANDS.eleven],
     ['words from the eleven', wordsLink('eleven'), LANDS.eleven],
     ['the families’ words', wordsLink('family'), LANDS.families],
-    ['the door, from the door', toolLink('door', 'door'), LANDS.door],
-    ['the eleven, shared at the end', marriedShares({ scene: 'twin-cities' }).eleven.url, LANDS.eleven],
-    ['the door, shared at the end', marriedShares({ scene: 'twin-cities' }).door.url, LANDS.door],
+    ['the family words, at their own address', toolLink('families', 'family'), LANDS.families],
+    ['the eleven, shared at the end', marriedShare().url, LANDS.eleven],
   ]
   it.each(cases)('%s', async (_what, url, lands) => {
     expect(await landOn(url)).toMatch(lands)
@@ -80,14 +77,6 @@ describe('every link the product hands out opens its instrument', () => {
     const { code } = await (await call('couple', 'POST', 'couple', { side: 'first', gender: 'woman', states: hers })).json()
     const text = await landOn(withVia(coupleLink(code, 'https://niyyah.test'), 'couple'))
     expect(text).toMatch(LANDS.eleven)
-    expect(text).not.toMatch(/isn’t working/)
-  })
-
-  it('her family’s link opens the vouch for her map', async () => {
-    blobs.put('maps', 'HJKMNPQR', { snapshot: { identity: { firstName: 'Hodan' } }, createdAt: '2026-09-01', expiresAt: '2099-01-01', v: 1 })
-    const { token } = await (await call('vouch', 'POST', 'vouch', { side: 'ask', code: 'HJKMNPQR' })).json()
-    const text = await landOn(withVia(vouchLink(token, 'https://niyyah.test'), 'family'))
-    expect(text).toMatch(/A family request/)
     expect(text).not.toMatch(/isn’t working/)
   })
 
@@ -110,7 +99,7 @@ describe('a mangled link never opens something it was not', () => {
         if (!entry) return
         const named = new Set(pairs.map(([k]) => k))
         expect(named.has(entry.kind)).toBe(true)
-        if (entry.kind === 'map' || entry.kind === 'couple' || entry.kind === 'vouch') expect(entry.code).toMatch(/^[A-Z0-9]+$/)
+        if (entry.kind === 'map' || entry.kind === 'couple') expect(entry.code).toMatch(/^[A-Z0-9]+$/)
         if (entry.via !== undefined) expect(VIAS).toContain(entry.via)
       }),
       { numRuns: 1000 },

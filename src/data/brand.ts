@@ -12,8 +12,7 @@
  *
  * What still names the community outside this file, on purpose: the
  * instruments' own copy — "the eleven conversations that decide a Somali
- * marriage" in BeforeYes, Couple, Home, Read, the vouch's letter to a father,
- * and Philosophy's headline. Those are content, and the day a second
+ * marriage" in BeforeYes, Couple, Home and Read. Those are content, and the day a second
  * community is served they are a second `src/data` of content, not a rename.
  * The rule is enforceable by test for the brand strings only, and
  * docs/BACKWARD.md now says so.

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TOPICS } from '../netlify/shared/vocab'
+import { memStore, stores } from './support/memory'
 
 /**
  * Every public write is bounded.
@@ -12,48 +13,9 @@ import { TOPICS } from '../netlify/shared/vocab'
  * See netlify/shared/limit.ts and docs/SCALE.md.
  */
 
-const stores = new Map<string, Map<string, string>>()
-function memStore(name: string) {
-  const m = stores.get(name) ?? new Map<string, string>()
-  stores.set(name, m)
-  return {
-    list: async ({ prefix = '' }: { prefix?: string } = {}) => ({
-      blobs: [...m.keys()].filter((k) => k.startsWith(prefix)).map((key) => ({ key, etag: 'x' })),
-      directories: [],
-    }),
-    get: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
-    },
-    getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
-    getWithMetadata: async (key: string, opts?: { type?: string }) => {
-      const v = m.get(key) ?? null
-      if (v === null) return null
-      return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
-    },
-    // Conditional options work here too: the real store returns { modified }
-    // from `set` exactly as it does from `setJSON`, and vouch.ts now claims
-    // `asked/<code>` with onlyIfNew so no token can outlive forget me.
-    set: async (key: string, value: string, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, value)
-      return { modified: true }
-    },
-    setJSON: async (key: string, value: unknown, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
-      if (opts?.onlyIfNew && m.has(key)) return { modified: false }
-      if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
-      m.set(key, JSON.stringify(value))
-      return { modified: true }
-    },
-    delete: async (key: string) => void m.delete(key),
-  }
-}
-vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) => memStore(typeof arg === 'string' ? arg : arg.name) }))
+vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
 
-const cohort = (await import('../netlify/functions/cohort')).default
 const keep = (await import('../netlify/functions/keep')).default
-const vouch = (await import('../netlify/functions/vouch')).default
 const couple = (await import('../netlify/functions/couple')).default
 const safety = (await import('../netlify/functions/safety')).default
 const progress = (await import('../netlify/functions/progress')).default
@@ -63,8 +25,8 @@ const post = (handler: Handler, path: string, body: unknown) =>
   handler(new Request(`http://x/.netlify/functions/${path}`, { method: 'POST', body: JSON.stringify(body) }))
 
 const sides = Object.fromEntries([...TOPICS].map((id) => [id, 'agree']))
-/** Every member key in a store — the index entries the door writes beside them are not members. */
-const members = (store: string) => [...(stores.get(store)?.keys() ?? [])].filter((k) => !k.startsWith('index/'))
+/** Every record key in a store. */
+const members = (store: string) => [...(stores.get(store)?.keys() ?? [])]
 
 beforeEach(() => {
   stores.clear()
@@ -76,14 +38,6 @@ afterEach(() => vi.unstubAllEnvs())
 
 const cases: { bucket: string; path: string; handler: Handler; store: string; first: unknown; second: unknown }[] = [
   {
-    bucket: 'cohort',
-    path: 'cohort',
-    handler: cohort,
-    store: 'cohort',
-    first: { code: 'ACDEFG', scene: 'london', gender: 'woman' },
-    second: { code: 'HJKMNP', scene: 'london', gender: 'man' },
-  },
-  {
     bucket: 'keep',
     path: 'keep',
     handler: keep,
@@ -92,14 +46,6 @@ const cases: { bucket: string; path: string; handler: Handler; store: string; fi
     // created on demand (netlify/functions/keep.ts).
     first: { snapshot: { answers: {} }, code: 'ACDEFG' },
     second: { snapshot: { answers: {} }, code: 'HJKMNP' },
-  },
-  {
-    bucket: 'vouch',
-    path: 'vouch',
-    handler: vouch,
-    store: 'vouches',
-    first: { side: 'ask', code: 'ACDEFG' },
-    second: { code: 'HJKMNP', relationship: 'brother', firstName: 'Ali', sentence: 'She means this.' },
   },
   {
     bucket: 'couple',
@@ -149,9 +95,9 @@ describe('every public write is bounded', () => {
   }
 
   it('a bad body spends nothing', async () => {
-    vi.stubEnv('COHORT_HOURLY_CAP', '1')
-    expect((await post(cohort, 'cohort', { code: 'ACDEFG', scene: 'mars', gender: 'woman' })).status).toBe(400)
-    expect((await post(cohort, 'cohort', { code: 'ACDEFG', scene: 'london', gender: 'woman' })).status).toBe(200)
+    vi.stubEnv('PROGRESS_HOURLY_CAP', '1')
+    expect((await post(progress, 'progress', { id: 'ACDEFG', rungs: ['arrived'], scene: 'mars' })).status).toBe(400)
+    expect((await post(progress, 'progress', { id: 'ACDEFG', rungs: ['arrived'], scene: 'london' })).status).toBe(200)
   })
 
   it('his answer to her eleven has its own bucket — starting one at the cap never refuses his answer', async () => {
@@ -184,9 +130,9 @@ describe('every public write is bounded', () => {
   })
 
   it('each bucket is its own — spending one leaves the others open', async () => {
-    vi.stubEnv('COHORT_HOURLY_CAP', '1')
-    expect((await post(cohort, 'cohort', { code: 'ACDEFG', scene: 'london', gender: 'woman' })).status).toBe(200)
-    expect((await post(cohort, 'cohort', { code: 'HJKMNP', scene: 'london', gender: 'man' })).status).toBe(503)
+    vi.stubEnv('SAFETY_HOURLY_CAP', '1')
+    expect((await post(safety, 'safety', { code: 'QRTWXY', side: 'woman', reason: 'harassment' })).status).toBe(200)
+    expect((await post(safety, 'safety', { code: 'QRTWXY', side: 'man', reason: 'threats' })).status).toBe(503)
     expect((await post(keep, 'keep', { snapshot: { answers: {} }, code: 'ACDEFG' })).status).toBe(200)
     expect((await post(progress, 'progress', { id: 'ACDEFG', rungs: ['arrived'] })).status).toBe(200)
   })
@@ -199,14 +145,12 @@ describe('every public write is bounded', () => {
   })
 
   it('the counter carries no identity — nothing but a bucket, a period and a number', async () => {
-    await post(cohort, 'cohort', { code: 'ACDEFG', scene: 'london', gender: 'woman' })
+    await post(progress, 'progress', { id: 'ACDEFG', rungs: ['arrived'], scene: 'london' })
     const limits = stores.get('limits')!
     for (const [key, value] of limits) {
       // `h` for the hour, `d` for the day — the period is in the key so the two
       // listings stay disjoint and neither sweep can eat the other's counter.
-      // A city's own join counter (docs/ABUSE.md, spam) names the city, which
-      // is the door's public count already — a place, never a person.
-      expect(key).toMatch(/^(cohort|door-city-london)-(h-\d{4}-\d{2}-\d{2}T\d{2}|d-\d{4}-\d{2}-\d{2})$/)
+      expect(key).toMatch(/^progress-(h-\d{4}-\d{2}-\d{2}T\d{2}|d-\d{4}-\d{2}-\d{2})$/)
       expect(value).toMatch(/^\d+$/)
     }
   })
@@ -218,7 +162,7 @@ describe('every public write is bounded', () => {
  * Every cap in this product used to be on a write, which was backwards: a
  * six-character code is the sole authenticator for a kept map, so an unmetered
  * GET is an enumeration surface over a 27-bit secret, and an unmetered DELETE
- * is a destruction primitive that cascades across five stores. See the read cap
+ * is a destruction primitive. See the read cap
  * in netlify/functions/keep.ts.
  */
 describe('the read and delete paths are bounded', () => {
@@ -241,41 +185,6 @@ describe('the read and delete paths are bounded', () => {
     const url = 'http://x/.netlify/functions/keep?code=ACDEFG'
     expect((await keep(new Request(url, { method: 'DELETE' }))).status).toBe(200)
     expect((await keep(new Request(url, { method: 'DELETE' }))).status).toBe(503)
-  })
-
-  it('the public door count is bounded — it walks a whole prefix on every call', async () => {
-    vi.stubEnv('DOOR_HOURLY_CAP', '1')
-    const { default: cohort } = await import('../netlify/functions/cohort')
-    const url = 'http://x/.netlify/functions/cohort?scene=toronto'
-    expect((await cohort(new Request(url))).status).toBe(200)
-    expect((await cohort(new Request(url))).status).toBe(503)
-  })
-
-  // docs/THREAT.md, T1: the fifth read. A 404 against a 200 here confirms a
-  // live map code exactly as `GET /keep` does, and it was the one public read
-  // docs/HARD.md row 3 did not meter.
-  it('reading a vouch spends the vouch-read bucket — the fifth read, the one row 3 missed', async () => {
-    vi.stubEnv('VOUCH_READ_HOURLY_CAP', '1')
-    memStore('vouches').setJSON('ACDEFG', { relationship: 'brother', firstName: 'Ali', sentence: 'x', at: '2026-01-01' })
-    const read = (code: string) => vouch(new Request(`http://x/.netlify/functions/vouch?code=${code}`))
-    expect((await read('ACDEFG')).status).toBe(200)
-    const refused = await read('ACDEFG')
-    expect(refused.status).toBe(503)
-    expect(await refused.json()).toEqual({ error: 'rate_limited' })
-    // A wrong shape is refused before the cap, so it spends nothing — and is
-    // still a 400, not a 503, even with the hour spent.
-    expect((await read('nope')).status).toBe(400)
-    // Writing is a different bucket, untouched by the reads above.
-    expect((await post(vouch, 'vouch', { side: 'ask', code: 'ACDEFG' })).status).toBe(200)
-  })
-
-  it('the token lookup is itself the oracle — the cap is spent before a token is resolved', async () => {
-    vi.stubEnv('VOUCH_READ_HOURLY_CAP', '1')
-    const read = (code: string) => vouch(new Request(`http://x/.netlify/functions/vouch?code=${code}`))
-    // A token-shaped string nobody minted: a 400, but the lookup behind it ran,
-    // so it counts.
-    expect((await read('ACDEFGHJKM')).status).toBe(400)
-    expect((await read('ACDEFG')).status).toBe(503)
   })
 
   // docs/THREAT.md, T2: thirty made-up codes an hour used to spend the whole
