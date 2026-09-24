@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { EndingRecord, Identity } from '../types'
 import type { Ending } from '../lib/ending'
 import { endingHeadline, marriedShares } from '../lib/ending'
-import { ADVICE_PLACEHOLDER, ADVICE_PROMPT, PAY_IT_FORWARD, endingQuestions } from '../data/ending'
+import { ADVICE_PLACEHOLDER, ADVICE_PROMPT, endingQuestions } from '../data/ending'
 import { speak } from '../data/read'
 import { shareOrCopy } from '../lib/share'
 import { Announce, CheckIcon, Logo, TextButton, fieldClass } from './ui'
@@ -281,12 +281,10 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
           </div>
         </section>
 
-        {/* The ask, last, after everything has been given and nothing is owed. */}
-        <section className="mt-8 rounded-card border border-line bg-white/50 p-6">
-          <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-muted">{PAY_IT_FORWARD.title}</p>
-          <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">{PAY_IT_FORWARD.body}</p>
-          <p className="mt-2.5 text-[0.82rem] leading-relaxed text-muted text-pretty">{PAY_IT_FORWARD.note}</p>
-        </section>
+        {/* The ending asks for nothing. It used to close on "Sponsor a place for
+            someone else" — money for a place that costs nothing, with no stated
+            use, on the one screen the outcome is measured on. Removed by the
+            monetization audit (docs/MONETIZATION.md, sponsor-a-place). */}
 
         <div className="mt-10 text-center">
           <TextButton onClick={onBack} className="text-[0.88rem] font-medium text-forest hover:underline">

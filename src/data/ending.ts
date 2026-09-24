@@ -95,19 +95,3 @@ export function endingQuestions(memberGender: Gender = 'woman'): EndingQuestion[
  */
 export const ADVICE_PROMPT = 'One line for whoever is where you were.'
 export const ADVICE_PLACEHOLDER = 'The thing you wish someone had told you…'
-
-/**
- * The ask at the very end, after everything has been given and nothing is
- * owed. Our matchmakers have always been paid at the nikah, by the family, out
- * of the celebration — never by the month, and never by the introduction. This
- * is that, made optional: not a fee for what she got, which was free, but the
- * auntie's part, taken up by the woman who no longer needs it.
- */
-export const PAY_IT_FORWARD = {
-  title: 'Sponsor a place for someone else',
-  body: 'Everything you used here was free, and it stays free. If you want to do the thing the aunties have always done, you can pay for the next woman’s place in your city instead of your own. Entirely optional, and nothing here changes if you don’t.',
-  // Not a promise of a letter later: this screen collects no way to reach
-  // her, and the product has no outbound channel, so that was a promise the
-  // code could not keep (docs/BOARD.md). What is true is when.
-  note: 'Opens with our public launch. Nothing to do now.',
-}
