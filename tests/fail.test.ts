@@ -5,9 +5,16 @@ import { describe, expect, it } from 'vitest'
 /**
  * What must not drift back, after the failure-state pass.
  *
- * Read from the source, because this repository has no jsdom. Each of these
- * is a defect that existed and was shipped, so each one is a thing somebody
- * could reasonably re-introduce without noticing (docs/FAIL.md).
+ * Read from the source. Each of these is a defect that existed and was
+ * shipped, so each one is a thing somebody could reasonably re-introduce
+ * without noticing (docs/FAIL.md). What a test can *cause* — a limiter whose
+ * store will not open, a body cut off mid-upload, a vouch ask interrupted
+ * between its two writes, two answers landing at once, the autosave after a
+ * failed forget — moved to tests/failure-modes.test.ts and
+ * tests/journeys/forget-offline.test.tsx on 2026-09-24, where it is proved by
+ * making it happen (docs/TESTING.md, "Pruned"). What is left here is what no
+ * request can reach: which helper every call goes through, and the crash
+ * screen.
  */
 
 const ROOT = join(import.meta.dirname, '..')
@@ -79,69 +86,19 @@ describe('a failure keeps its reason', () => {
   })
 })
 
-describe('the limiter cannot take down what it protects', () => {
-  it('opens its store inside the try', () => {
-    // It was above it, and nearly every caller awaits this outside its own
-    // try — so a Blobs hiccup was an unhandled rejection and a platform 500
-    // with a non-JSON body, on every capped endpoint at once.
-    const limit = read('netlify/shared/limit.ts')
-    const fn = limit.slice(limit.indexOf('export async function capState'))
-    const open = fn.indexOf("getStore({ name: 'limits'")
-    const tryAt = fn.indexOf('try {')
-    expect(tryAt).toBeGreaterThan(-1)
-    expect(tryAt).toBeLessThan(open)
-  })
-
-  it('leaves no body read unguarded', () => {
-    // progress.ts was the only one of seven without a try, so a truncated
-    // upload produced whatever the platform emits rather than a 400.
-    for (const { file, text } of sources('netlify/functions')) {
-      const reads = [...text.matchAll(/await req\.text\(\)/g)]
-      for (const m of reads) {
-        const before = text.slice(Math.max(0, m.index! - 200), m.index!)
-        expect(before, `${file} reads the body without a try`).toMatch(/try \{/)
-      }
-    }
-  })
-})
-
-describe('a write that matters is conditional', () => {
-  it('holds the couple sheet against the side that did not make it', () => {
-    const couple = read('netlify/functions/couple.ts')
-    // Anyone holding the six characters she texted him could replace her
-    // eleven answers, or destroy his, and be told 200. The first guard here
-    // compared a gender the request *states*, which he could simply state
-    // (docs/SECURITY.md, O6); the sheet is now hers by the key she was handed.
-    expect(couple).toMatch(/existing\.owner \? sameSecret\(key, existing\.owner\)/)
-    expect([...couple.matchAll(/onlyIfMatch: held\.etag/g)].length).toBeGreaterThanOrEqual(2)
-  })
-
-  it('lets only the first vouch win, for real', () => {
-    const vouch = read('netlify/functions/vouch.ts')
-    expect(vouch).toMatch(/setJSON\(code, stamp\(record\), \{ onlyIfNew: true \}\)/)
-    // `asked/` is claimed before the pointer is written, because forget me
-    // finds the token by reading it — one written first could never be swept.
-    const ask = vouch.slice(vouch.indexOf("side === 'ask'"))
-    expect(ask.indexOf('`asked/${code}`, token, { onlyIfNew: true }')).toBeGreaterThan(-1)
-    expect(ask.indexOf('`asked/${code}`, token, { onlyIfNew: true }')).toBeLessThan(
-      ask.indexOf('`token/${mine}`, code, { onlyIfNew: true }'),
-    )
-  })
-})
-
 describe('nothing is written back after forget me', () => {
-  it('stops the autosave, and clears every key from the error screen too', () => {
-    // On partial failure the page is deliberately not replaced, so the hook
-    // stayed mounted holding what had just been erased and wrote it all back.
-    const hook = read('src/hooks/useNiyyah.ts')
-    expect(hook).toMatch(/if \(forgotten\.current\) return/)
-    expect(hook).toMatch(/forgotten\.current = true/)
+  it('clears every key from the error screen too', () => {
+    // The autosave half of this — the hook writing back what forget me had
+    // just erased — is proved by causing it, in
+    // tests/journeys/forget-offline.test.tsx. The crash screen is not a
+    // screen a test can tap its way to, so its half stays a source check.
     // "Start completely fresh" called clearProgress alone, leaving the kept
     // code behind — the irreversible-overwrite path startFresh documents.
     const boundary = read('src/components/ErrorBoundary.tsx')
     expect(boundary).toMatch(/clearEverything\(\)/)
     expect(boundary).not.toMatch(/clearProgress\(\)/)
   })
+
 })
 
 describe('the guide', () => {
