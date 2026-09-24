@@ -64,11 +64,18 @@ interface ManVariant {
   options?: Record<string, Partial<Omit<ReadOption, 'id'>>>
 }
 
+/**
+ * `consistency` was labelled "Follow-through", but two of its three answers
+ * are contact, not commitment: how soon {he} texts back, and how often you
+ * have met. Only `plans` is follow-through. Pursuit reported as follow-through
+ * tells her the most eager man is the most committed one (docs/DECISIONS.md,
+ * the commitment audit). The label now names what is counted.
+ */
 export const DIMENSION_LABEL: Record<ReadDimension, string> = {
   intent: 'Stated intention',
   public: 'Whether you exist in {his} life',
   family: 'Moving toward family',
-  consistency: 'Follow-through',
+  consistency: 'Steady contact, and plans kept',
   pressure: 'How {he} handles hard things',
 }
 
