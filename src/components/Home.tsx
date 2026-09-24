@@ -37,6 +37,8 @@ interface Props {
   hasRead: boolean
   /** Before you say yes and the families' words — the deciding stage's instruments. */
   onOpenBeforeYes: () => void
+  /** Where the two of them stand, straight to it — the "He answered" card. */
+  onOpenJoint: () => void
   hasBeforeYes: boolean
   /**
    * He has answered the eleven she sent. The hook has polled and recorded this
@@ -89,6 +91,7 @@ export default function Home({
   onOpenRead,
   hasRead,
   onOpenBeforeYes,
+  onOpenJoint,
   hasBeforeYes,
   coupleAnswered = false,
   onOpenFamilies,
@@ -330,7 +333,7 @@ export default function Home({
             asked in month two, and the words for the families. */}
         {(stage === 'deciding' || coupleAnswered) && (
           <button
-            onClick={onOpenBeforeYes}
+            onClick={coupleAnswered ? onOpenJoint : onOpenBeforeYes}
             className={`animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border p-5 text-left transition-all hover:-translate-y-0.5 ${
               coupleAnswered
                 ? 'border-gold/45 bg-gold/[0.09] hover:bg-gold/[0.14]'

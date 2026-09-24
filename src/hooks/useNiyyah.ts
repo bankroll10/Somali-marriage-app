@@ -96,6 +96,7 @@ const RECHECK_MS = 20_000
 
 /** The screens Trust can be opened from, and returns to. */
 type TrustReturn = 'profile' | 'read' | 'beforeYes'
+export type ElevenAt = 'front' | 'result' | 'joint'
 
 /** The word in the link, and the screen it opens. A restored map opens nothing of its own. */
 const ENTRY_SCREEN: Partial<Record<EntryKind, Screen>> = {
@@ -204,6 +205,11 @@ export function useNiyyah(entry: Entry | null = null) {
   // stranger on /tools/is-he-serious can read what leaves her phone before she
   // answers anything (docs/RISKS.md R4). Back returns to wherever she came from.
   const [trustReturn, setTrustReturn] = useState<TrustReturn>('profile')
+  // Where the eleven opens. Its front page, unless she came from a Home card
+  // that promised more: "where you left it" opens her result, and "He
+  // answered" opens where the two of them stand. Both used to land on the
+  // front page, one tap short of what they said (docs/TESTING.md).
+  const [elevenAt, setElevenAt] = useState<ElevenAt>('front')
 
   // Guide threads survive navigation AND reloads — the guide remembers.
   const [coachThreads, setCoachThreads] = useState<Partial<Record<ModeId, CoachMessage[]>>>(
@@ -806,6 +812,11 @@ export function useNiyyah(entry: Entry | null = null) {
     setScreen('philosophy')
   }
 
+  function openBeforeYes(at: ElevenAt = 'front') {
+    setElevenAt(at)
+    setScreen('beforeYes')
+  }
+
   function openTrust(from: TrustReturn) {
     setTrustReturn(from)
     setScreen('trust')
@@ -879,6 +890,8 @@ export function useNiyyah(entry: Entry | null = null) {
     mapReveal,
     philosophyReturn,
     trustReturn,
+    elevenAt,
+    openBeforeYes,
     guideMode,
     guideAsk,
     coachThreads,

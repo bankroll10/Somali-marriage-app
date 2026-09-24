@@ -199,7 +199,7 @@ steps, in order, each identified by what the button says:
 |---|---|
 | `keep-and-restore` | Keep the map on one phone, type the code shown into Welcome on a new one: her map, word for word. A wrong code says which thing is wrong and adopts nothing. |
 | `tool-link-read` | A man opens `/tools/is-she-serious`, taps through twelve questions about *her*, and gets the band the engine gives what he tapped. His phone keeps his answers, and keeps him as a man. Three generated walks. |
-| `eleven-two-phones` | She answers and taps *Ask him*. He opens only the link her share sheet got. Both see the same joint, and neither sees the other's note on any topic where they differ. Two generated pairs. |
+| `eleven-two-phones` | She answers and taps *Ask him*. He opens only the link her share sheet got. Both see the same joint, and neither sees the other's note on any topic where they differ. Each Home card opens where it says: *where you left it* opens her result, and *He answered* opens the joint, first. Two generated pairs. |
 | `forget-offline` | Keep, open Trust from the profile, Forget me with the network down. Trust names what is still held and shows the code. The phone keeps only the pending codes, **even after the app's autosave has had a reason to run**. The next launch finishes it: nothing left but the tombstone. |
 | `door` | Count me in: one woman in her city. She says she would travel, the join is sent twice, and she moves to Columbus. Each time she is moved, never added. |
 
@@ -286,13 +286,25 @@ reads.
    - **Fix:** the question area is `<main>`.
    - Found by `ui/screens`.
 
-### Found and not fixed here
+### Found by the journeys, fixed after (2026-09-24)
 
-- **"He answered" opens the eleven's front page, not the joint.** The Home
-  card that tells her he answered takes her to Before you say yes, where she
-  must tap *See where you left it* to see where they stand. That is one tap
-  more than the card promises. It is recorded in `journeys/eleven-two-phones`
-  and left for a product decision.
+- **Two Home cards landed one tap short of what they said.**
+  - *He answered — Where the two of you stand* opened the front page of
+    Before you say yes. She then had to tap *See where you left it*, and
+    scroll past her own result, to reach the joint.
+  - *Before you say yes — where you left it* also opened the front page.
+
+  Now each opens where it says:
+  - *He answered* opens her result with the joint at the top, and its
+    headline is the screen's first heading.
+  - *Where you left it* opens her result.
+
+  How: `openBeforeYes('front' | 'result' | 'joint')` in `useNiyyah`, and
+  `opensAt` on BeforeYes. It falls back to the front page if she has no saved
+  result to open onto.
+
+  Held by `journeys/eleven-two-phones`, which goes red when the card is wired
+  back to the front page.
 
 ### Pruned: source regexes replaced by behaviour
 

@@ -74,6 +74,16 @@ describe('the eleven, on two phones', () => {
     her.unmount()
     reload()
 
+    // Before he answers: Home's card says "where you left it", and opens her
+    // result — not the eleven's front page.
+    onPhone(herPhone)
+    const waiting = await mount(<App />)
+    await waiting.press(/where you left it/)
+    expect(waiting.text()).toContain('The conversations you have had')
+    expect(waiting.has('See where you left it')).toBe(false)
+    waiting.unmount()
+    reload()
+
     // His phone: nothing on it but the link she sent.
     onPhone(new Phone('his'))
     const him = await mount(open(link!))
@@ -90,11 +100,12 @@ describe('the eleven, on two phones', () => {
     const later = await mount(<App />)
     expect(later.text()).toContain('He answered')
     await later.press(/Where the two of you stand/)
-    // The card opens the eleven's front page, not the joint: one more tap
-    // (docs/TESTING.md, findings).
-    await later.press('See where you left it')
+    // The card opens the joint itself, at the top — before her own result.
+    // It used to open the eleven's front page, one tap short.
     await later.until(() => later.text().includes(expected.woman.lines[0].line), 'her joint')
     const herScreen = later.text()
+    expect(herScreen.indexOf(expected.woman.headline)).toBeLessThan(herScreen.indexOf('The conversations you have had'))
+    expect(later.container.querySelector('h1, h2')?.textContent).toBe(expected.woman.headline)
     later.unmount()
 
     // Both see the same joint, in the same words.

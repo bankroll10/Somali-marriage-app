@@ -244,7 +244,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenProfile={() => n.setScreen('profile')}
           onOpenRead={() => n.setScreen('read')}
           hasRead={!!n.read}
-          onOpenBeforeYes={() => n.setScreen('beforeYes')}
+          onOpenBeforeYes={() => n.openBeforeYes(n.beforeYes ? 'result' : 'front')}
+          onOpenJoint={() => n.openBeforeYes('joint')}
           hasBeforeYes={!!n.beforeYes}
           coupleAnswered={!!n.couple?.answered}
           onOpenFamilies={() => n.setScreen('families')}
@@ -402,7 +403,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onBuildMap={n.beginMap}
           hasMap={n.completed}
           onOpenFamilies={() => n.setScreen('families')}
-          onOpenBeforeYes={() => n.setScreen('beforeYes')}
+          onOpenBeforeYes={() => n.openBeforeYes()}
           onTrust={() => n.openTrust('read')}
           onBack={backHome}
         />
@@ -415,6 +416,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           identity={n.identity}
           answers={n.answers}
           saved={n.beforeYes}
+          opensAt={n.elevenAt}
           onSave={n.setBeforeYes}
           onBegan={() => n.noteBegan('eleven')}
           onSetGender={(g: Gender) => n.setIdentity((prev) => ({ ...prev, gender: g }))}
