@@ -26,8 +26,9 @@ import type { Chapter, Question } from '../types'
  * so the cap is policed by a number rather than a memory.
  */
 /**
- * How you'd live — the three things Somali marriages actually break on that no
- * app asks: whose house, whether she works, and money sent home.
+ * How you'd live — three of the eleven, which no app asks: whose house,
+ * whether she works, and money sent home. That these are what Somali
+ * marriages break on is class F (docs/RESEARCH.md, L5), not a finding.
  *
  * These used to sit outside the chapters, on a screen she may never open.
  * docs/PRODUCT.md found that inverted against the one thing this product is
@@ -69,7 +70,7 @@ const moneyHome: Question = {
   type: 'single',
   dimension: 'vision',
   prompt: 'Money sent home to family?',
-  helper: 'Most of our households do. The question is whether it’s expected, and how much.',
+  helper: 'If it is sent, the question is whether it’s expected, and how much.',
   options: [
     { id: 'expected', label: 'Expected — every month, from both of us' },
     { id: 'some', label: 'Some, when we can' },
@@ -242,7 +243,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'character',
         prompt: 'When something is wrong between you, what do you do?',
-        helper: 'How we handle conflict says more than how we love.',
+        helper: 'How we handle conflict is one of the clearest things about us.',
         options: [
           { id: 'talk', label: 'I talk it through, even when it’s hard', tags: ['Communicative'], weight: 1 },
           { id: 'space', label: 'I need space first, then I come back to it', tags: ['Reflective'], weight: 0.8 },
@@ -268,7 +269,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'emotional',
         prompt: 'When someone you care about goes quiet, what do you do?',
-        helper: 'Most of us lean one way. It helps to know which.',
+        helper: 'It helps to know which way you lean.',
         options: [
           { id: 'secure', label: 'I stay steady and wait', tags: ['Steady'], weight: 1 },
           { id: 'anxious', label: 'I worry, reread, and want to hear from them', tags: ['Worries first'], weight: 0.65 },
@@ -281,7 +282,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'selfAwareness',
         prompt: 'Looking back, what pattern do you want to leave behind?',
-        helper: 'Most of us have one. Naming it is a start.',
+        helper: 'If there is one, naming it is a start.',
         // Naming a live pattern is honest but the work is still ahead, so these
         // sit below "already done that work". They used to all weigh 0.9-1.0,
         // which pinned self-awareness at 90-100 for every single user — the one
@@ -323,7 +324,7 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
       const p = answers['practice']
       const intention =
         tl === 'within-1' || tl === '1-2'
-          ? 'Your intention already has shape — you know why you’re here and roughly when. That’s rarer than you think.'
+          ? 'Your intention already has shape — you know why you’re here and roughly when. Say it early; nobody has to guess.'
           : tl === 'exploring'
             ? 'You’re exploring seriously, not drifting — that honesty is the right foundation.'
             : 'You’re giving yourself room on the timeline. Good — a marriage chosen calmly beats one chosen against a clock.'
@@ -332,7 +333,7 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
           ? 'And faith isn’t a checkbox for you — it’s the frame. Someone walking at a pace beside yours is worth asking about early.'
           : p === 'returning'
             ? 'And you named where you really are with your deen — returning, and honest about it. The right person meets you there.'
-            : 'And you were honest about where faith sits for you right now. That clarity protects you from a mismatch more than any filter could.'
+            : 'And you were honest about where faith sits for you right now. Say it early; that clarity protects you from a mismatch.'
       return `${intention} ${faith}`
     }
     case 'life': {
@@ -340,8 +341,8 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
       const kids = answers['children']
       const family =
         f === 'central' || f === 'guided'
-          ? 'You want your people in the story. That isn’t old-fashioned — it’s protection, and it tells us to look for someone who honours family too.'
-          : 'You lead your own decisions with family respected, not ruling. Knowing that now avoids the most common clash later.'
+          ? 'You want your people in the story. That isn’t old-fashioned — it’s protection. Look for someone who honours family too.'
+          : 'You lead your own decisions with family respected, not ruling. Knowing that now means you can say it before it is tested.'
       const vision =
         kids === 'want'
           ? 'The life you want has a clear shape — family in it, direction under it.'

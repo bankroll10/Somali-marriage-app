@@ -7,11 +7,55 @@ readout field waiting for its first records.
 
 ## How a claim is classed
 
-**KNOWN**: a source, or the code. **LIKELY**: culturally attested or reasoned
-from the mechanics, unmeasured here. **ASSUMED**: stated flat, with a lot
-resting on it; most of the strategy. **UNKNOWN**: not asserted, or admitted as
-a gap. A claim moves one class at a time, only on a method in "How we learn".
-Founder opinion is ASSUMED, dated, until behaviour or a member says otherwise.
+Every claim about relationships, about Somali families, or about the people
+who use this has one of eight classes, and the class caps what the copy may
+say about it. "The evidence ledger", below, holds the ones the copy makes.
+
+| Class | What it is | Copy may say | Moves on |
+|---|---|---|---|
+| **A** · strong external | Replicated or meta-analytic relationship or decision research; an official statistic | Something general about people, plainly. About one person, at most "one of the clearest signs" | A cited source whose abstract was read |
+| **B** · plausible external | Credible research that is one sample, correlational, or from lives unlike ours; ethnography | "Can", "one sign", "worth asking". A caution may be directive when being wrong costs her nothing (money, isolation) | The same |
+| **C** · observed here | Behaviour the readout recorded; sessions under `docs/PROTOCOL.md` | A figure the founder read, dated, with its n. Nothing fetched live: that would be a feature (decision 19) | The hundred-record floor, or a rule written before its build |
+| **D** · observed, Somali | Somali participants or families describing it, under `docs/PROTOCOL.md` | Two independently: "people we asked describe…", or an F line comes out. Six in ten of a round, or B and D together: "many of us". "Most" needs a count | PROTOCOL's rules |
+| **E** · product hypothesis | A bet the product is built on | The product's reason or recommendation: "we ask this first because…" | An experiment row, then C |
+| **F** · cultural hypothesis | A belief about Somali relationships or families, not yet observed | What is asked, the words offered, and a custom named as a custom ("his people go to hers"). Never a count: "most of us", "our families usually" | D |
+| **G** · product opinion | A design or value choice | Advice in the imperative, or Niyyah's stance | A decision, not evidence |
+| **H** · unknown | — | Nothing | Any of the above |
+
+**Firmness.** A class limits what a sentence is about, not how firmly it is
+said: "A month is an answer" stays. When a line claims more than its class,
+three rewrites keep its force. An inference becomes an instruction
+("'Wherever you want' names no city. Ask which one."). A trait or a prediction
+becomes what was observed. An unmeasured quantifier goes.
+
+**About one person.** From her answers, or from one reply, copy may say what
+was said or done, what the reply held or left out, that it is an answer, and
+what to do next. From that alone it may not say what {he} is, did elsewhere,
+wants or will do, unless the link has a B-or-better row, and then as "one
+sign". The test: could she check the sentence against the reply itself,
+today? "'We'd figure it out' means you are not yet in the picture" passes.
+"Someone who has never thought about that has never had to stand up for
+anyone" does not.
+
+**Transfer.** Most relationship science was done on Western samples (Henrich,
+Heine & Norenzayan 2010). An A about couples is a B about us where the
+mechanism runs through what Somali life arranges differently: family roles,
+in-laws, a network's approval, discretion before the families, who does what
+at home, money owed to family. A finding replicated across cultures keeps its
+A: demand and withdraw, in four countries (Christensen et al. 2006). One may
+reverse here: secrecy (Lehmiller 2009), where discretion before the families
+is normal.
+
+**Moves.** A claim moves to whatever class its new evidence supports, logged
+below with the date and the evidence. A source nobody could check is not a
+source: the claim stays E or F. Write "class B" in prose; A1–A9 are
+experiments, and ledger rows are L-ids.
+
+**The old four.** KNOWN became A or B, or a product fact, held by code or a
+test and outside the ledger. LIKELY became B or F; ASSUMED, E, F or G;
+UNKNOWN, H. Founder opinion is E, F or G by what it is about, dated, until
+behaviour or a member says otherwise. The board audit's FACT, INFERENCE and
+HYPOTHESIS (`docs/DECISIONS.md`) stay as written.
 
 ## The open questions
 
@@ -20,27 +64,127 @@ beliefs by danger to the company, differently; read both.
 
 | # | If this is true… | Class | What tests it |
 |---|---|---|---|
-| 1 | **Men do not follow women** (the men's gap). He arrives through her read or her eleven; if he does not, the two-sided eleven has no second side | ASSUMED; the most rests on it | `sides.man` rungs, which tell "never arrive" from "arrive and leave at the read"; `he-answered` against `asked-him`; `sidesByVia.man.group` |
-| 2 | **Words do not travel.** Then paid acquisition, which the strategy forbids, is the only path | ASSUMED | The one-to-one vias' share of `arrived` against `group`; followed-through per hundred arrived |
-| 3 | **People will not put a map on a server** | ASSUMED | `kept / mapped`. Before the `kept` rung, built and kept were one number |
-| 4 | **The instruments are not wanted** | ASSUMED | `read`, `eleven`, `followed-through` per hundred `arrived`; `ending.used` |
-| 5 | **Family is a barrier, not a feature** | ASSUMED | `through['family:*']` (A4) |
-| 6 | **The eleven are not what breaks marriages** | ASSUMED; central | `ended.reason`, `.which`; `/couple` `both-not-talked` per topic; `marriedBy.through` |
-| 7 | **Nobody pays at the nikah.** Fatal to revenue, later in time | ASSUMED | A5; until a sale, `ending.who.family` |
-| 8 | **The alternatives are good enough** | ASSUMED | The ten conversations only |
-| 9 | **The seven non-negotiables are the wrong seven** | ASSUMED | `ended.which['non-negotiable']`, `marriedBy.ended['non-negotiable']` |
-| 10 | **The taxonomy of harm is wrong** | ASSUMED / LIKELY | `safety` reasons and `other`'s share, as `resolved.byReason` in `/safety`. Resolving once deleted a report, which made this uncomputable; now it leaves the kind of harm and what was done, joined to nobody |
+| 1 | **Men do not follow women** (the men's gap). He arrives through her read or her eleven; if he does not, the two-sided eleven has no second side | E; the most rests on it | `sides.man` rungs, which tell "never arrive" from "arrive and leave at the read"; `he-answered` against `asked-him`; `sidesByVia.man.group` |
+| 2 | **Words do not travel.** Then paid acquisition, which the strategy forbids, is the only path | F | The one-to-one vias' share of `arrived` against `group`; followed-through per hundred arrived |
+| 3 | **People will not put a map on a server** | E | `kept / mapped`. Before the `kept` rung, built and kept were one number |
+| 4 | **The instruments are not wanted** | E | `read`, `eleven`, `followed-through` per hundred `arrived`; `ending.used` |
+| 5 | **Family is a barrier, not a feature** | F | `through['family:*']` (A4) |
+| 6 | **The eleven are not what breaks marriages** | F; central (L5) | `ended.reason`, `.which`; `/couple` `both-not-talked` per topic; `marriedBy.through` |
+| 7 | **Nobody pays at the nikah.** Fatal to revenue, later in time | F | A5; until a sale, `ending.who.family` |
+| 8 | **The alternatives are good enough** | E | The ten conversations only |
+| 9 | **The seven non-negotiables are the wrong seven** | E | `ended.which['non-negotiable']`, `marriedBy.ended['non-negotiable']` |
+| 10 | **The taxonomy of harm is wrong** | E / B | `safety` reasons and `other`'s share, as `resolved.byReason` in `/safety`. Resolving once deleted a report, which made this uncomputable; now it leaves the kind of harm and what was done, joined to nobody |
 
 **Also classed.** Somali populations (Twin Cities ~84,000, Columbus
-50–60,000, UK 176,645, Toronto ~20,000): KNOWN, census. A small city is
-re-identifiable from its facts: KNOWN, so splits are floored at five
-(`netlify/shared/floor.ts`). Seriousness is behaviour: ASSUMED;
-`ending.mattered.shown`. Fear of exposure, the target segments, why people
-hesitate: ASSUMED, and only conversations test them now.
+50–60,000, UK 176,645, Toronto ~20,000): A, census. A small city is
+re-identifiable from its facts: A, so splits are floored at five
+(`netlify/shared/floor.ts`). Seriousness is behaviour: the ledger, L2. Fear
+of exposure, the target segments, why people hesitate: E and F, and only
+conversations test them now.
+
+## The evidence ledger
+
+What the copy says about relationships and about us, and what holds it up.
+The open questions are the company's beliefs; this is what she reads. Classes
+C and D are empty: no member has been observed, and the one walk logged under
+"Feedback" was the founder's. A row is a claim, wherever it is said; "Said as"
+is how firmly the copy says it, and "Holds?" is whether the class allows it.
+
+| L | Claim | Where | Class | Said as | Holds? | Moves on |
+|---|---|---|---|---|---|---|
+| 1 | Finding out early is better than finding out late | `docs/PRODUCT.md` §0; every instrument | E. For it, a theory, not yet a test: deciding beats sliding (Stanley, Rhoades & Markman 2006). Against it, B: idealising a partner went with staying together (Murray, Holmes & Griffin 1996) | A purpose | Yes: said as a purpose, never as an outcome | Up: the North Star against `marriedBy.through`; R1. Down: those who followed through end from `deciding` more often, and the sessions say the scrutiny did it |
+| 2 | Seriousness shows in behaviour, not words | `hook.ts` `serious`; `src/data/read.ts`; `stages.ts` talking; `frameworkAnswer` in `src/lib/coach.ts` | B: perceived partner commitment leads what predicts a relationship's quality (Joel et al. 2020); commitment leads what predicts a breakup (Le et al. 2010). G: what "serious" means here. The read reads her report of him, not him | Fact | Yes, as a principle | Up, D: in sessions, people narrate his behaviour while answering (`docs/PROTOCOL.md`). Down: `ended.reason` is rarely `his-read`; sessions say the twelve miss what seriousness looks like here |
+| 3 | Being known in his life comes first | `PRIORITY`, `WHY_IT_MATTERS.public` (`src/lib/read.ts`); `SCRIPTS.public` | B in general: secrecy went with lower commitment (Lehmiller 2009); her network's approval predicted how long it lasted (Sprecher & Felmlee 1992). F for us, and it may reverse: `secret`'s own man variant says discretion before the families protects a woman's name | An order; "is not shyness, and it does not resolve on its own" as fact | The order holds (G). The sentence was a verdict on his motive and a prediction: over; rewritten 2026-09-24 | Up, D: participants on discretion before the families. C: `marriedBy.readThin` |
+| 4 | How someone meets a raised complaint is one of the clearest signs | `SCRIPTS.pressure`; `WHY_IT_MATTERS.pressure` | A: demand and withdraw goes with worse relationships (Schrodt, Witt & Shimkowski 2014), in four countries (Christensen et al. 2006); conflict is among the five strongest predictors of quality (Joel et al. 2020). For "a preview of marriage", less: the same study found change over time largely unpredictable | "One of the clearest signs"; "more than the rest of this list can" | The first holds. The second claimed more than any source, and contradicted `PRIORITY`: over; rewritten 2026-09-24 | — |
+| 5 | The eleven are the conversations to have before the families | README; `brand.ts`; Welcome; Before you say yes; `tools.ts`; `invite.ts`; the Ending's share; `guidePages.ts`; `stages.ts` deciding; `intake.ts` | Topics, B in general: money disagreements predicted divorce best of the disagreement types (Dew, Britt & Huston 2012); in-law discord predicted later marital success (Bryant, Conger & Meehan 2001); expectations about home broken after a first child (Hackel & Ruble 1992). The list and its order: F. "Most of us have them too late", "couples rarely have them", "break on", "decide a marriage": H | Fact, on the most-forwarded surfaces | Over; rewritten 2026-09-24 | Up, D: `docs/PROTOCOL.md` questions 9 and 11, and no "Exaggerated" verdict. C: conviction 4; `/couple` `both-not-talked` by topic. Down: two participants independently call three topics unreal |
+| 6 | Talking before the yes protects the marriage | `stages.ts` deciding; `families-disagree` in `eleven.ts` | B: relationship education moves quality by about d = .3, and a moderate dose beats a low one (Hawkins et al. 2008); premarital education went with lower odds of divorce, correlationally (Stanley, Amato, Johnson & Markman 2006). E for a two-minute list | Advice; "the marriage that survives it is the one where…" as fact | The advice holds. The survival claim: over; rewritten 2026-09-24 | C: `marriedBy.through` |
+| 7 | Bring your people in early | `stages.ts` talking; the family words; `coach.ts` | B: approval from friends and family went with better relationships, and the Romeo-and-Juliet effect did not replicate (Sinclair, Hood & Wright 2014). F for how and when | Advice | Yes | A4 |
+| 8 | Somali practice: his people go to hers; the wali; hooyo asks who their people are; mahr at the nikah and deferred | `families.ts`; `family` in `src/data/read.ts`; the money sheets | B that the families are deeply involved while the couple leads (Ismail 2018, Finland). F for each specific; no source was found on clan objections in the diaspora | Fact | The norms, said plainly and under test as F: hold. Diagnostics built on them ("the sentence that separates a man who is serious from one who is comfortable"): over; rewritten 2026-09-24 | D: `docs/PROTOCOL.md`'s "False in fact" and "Wrong about the family" |
+| 9 | Quantified claims about us | `qabiil` in `eleven.ts`; `money-home` in `eleven.ts` and `intake.ts`; `reflection.ts`; `docs/PRODUCT.md` §0 and §9 | F. That many of us send money home is B: remitting is widespread, and a weight (Hammond et al. 2011; Lindley 2009); no source gives a share | Generalisation | Over wherever "most" stands in for a count; rewritten 2026-09-24, but for one man-only line (below) | D, at the thresholds above |
+| 10 | Frequencies about the people who use this | Below, "Where the copy said more than its class" | H. The product claimed a record it does not have: the fault `tests/voice-rules.ts` already bans as "I've seen a hundred" | Observed fact | Over; rewritten 2026-09-24 | Sessions record the "I don't know my own answer yet" choices; nothing records the rest |
+| 11 | One reply tells you who {he} is, or what {he} will do | The `tells` in `eleven.ts`, `src/data/read.ts` and `families.ts`; the auntie's and the brother's replies | E or G: no source links one reply to a trait. Home shows a `tells` again after the conversation, under "What the answer tells you" | Verdict | Over, where it fails the one-person test; rewritten 2026-09-24 | — |
+| 12 | It shows in year two | `eleven.ts`; `families.ts`; `coach.ts` | B that early patterns tend to last, but most newlywed trajectories were stable (Lavner & Bradbury 2010): no year is special. The year: H | Prediction | Over; rewritten 2026-09-24, but for two man-only lines (below) | — |
+| 13 | Alignment keeps a marriage; attraction fades | `fit` and `readMap` in `coach.ts`; the live prompt's "alignment over attraction" | Against it, A: actual similarity did nothing measurable in existing relationships (Montoya, Horton & Kirchner 2008); personality similarity explained under half a percent of satisfaction (Dyrenforth et al. 2010). G, as a faith's value: choose on deen and character | Fact | Over: it broke `docs/PRODUCT.md` §7. The offline guide rewritten 2026-09-24; the live prompt's line waits for a live eval (`docs/GUIDE-EVAL.md`) | — |
+| 14 | No algorithm predicts relationship success from self-reports | `docs/PRODUCT.md` §7; conviction 4 | A: matching sites have shown no evidence (Finkel et al. 2012); desire for a particular person could not be predicted before meeting (Joel, Eastwick & Finkel 2017); within a relationship, quality was predictable and its change was not (Joel et al. 2020) | Fact | Yes, with each citation's scope | — |
+| 15 | Money asked for before the families meet is the shape romance scams take | `src/lib/read.ts`; `SAFETY_REPLY`; the prompt | A: about 70,000 reports and $1.3 billion lost in 2022, the most common story a relative in trouble (FTC 2023) | Fact, and a directive | Yes: the safety exception, beside "whether or not {he} means well" | — |
+| 16 | Kept hidden and left feeling like the problem: tell one person | The read's caution (`src/lib/read.ts`) | B: coercive control as a pattern (Stark 2007); among women already abused, estrangement from a highly controlling partner was among the strongest risks of the worst outcome (Campbell et al. 2003). Not a courtship screen | A directive, beside "we cannot tell you what {he} intends" | Yes: the safety exception | — |
+| 17 | One answer names her attachment, or tells her nothing is wrong | The therapist in `coach.ts`; `reflection.ts` | A that one item measures attachment poorly (Fraley, Waller & Brennan 2000). B, contested, on leaving things unsaid: directness helped with serious problems and hurt with minor ones (McNulty & Russell 2010). "It is not a sign something is wrong", beside a path for abuse, is unsafe | Fact about her | Over; rewritten 2026-09-24 | — |
+| 18 | The usual apps put you in the wrong room | `finding` in `hook.ts`; the intake's third chapter | E | Fact | Low stakes; left | Conviction 1's three bins |
+
+Every row marked over was rewritten on 2026-09-24, in the words each class
+allows, except the lines under "Deferred, by name". The rewrites kept their
+force: "'Wherever you want' … names no city: ask which one."
+
+### Where the copy said more than its class
+
+| Pattern | Rows | Where | The rewrite | Held by |
+|---|---|---|---|---|
+| The eleven as what breaks, decides, or most of us have too late | L5 | `brand.ts` (the meta description), `tools.ts`, `invite.ts`, `src/lib/ending.ts`, `stages.ts`, Welcome, Before you say yes, Couple, Home, Read, the Ending, `guidePages.ts`, README | "the eleven conversations to have before the families do", the printed guide's own title | `OVERCLAIMS`; `decides? a (Somali )?marriage` in `BANNED` |
+| A frequency nobody counted | L9, L10 | "more common than the other three"; "the most common state on this list"; "the five things people name most"; "the part most people never get to"; "Most people have simply never been asked"; "Many people end one or two"; "rarer than you think"; "has ended the most marriages"; "the most common clash", "the most common reason"; "rules out more mismatches than any other answer"; "Most first-year arguments"; "most afraid to ask and most relieved"; "asked far less often than it should be"; "the one most often assumed"; "most of this community"; "Most of our households" | The quantifier goes; the point stays | `OVERCLAIMS` |
+| One reply read as a trait or a future | L3, L8, L11 | "is not shyness, and it does not resolve on its own"; "has just told you where {he} would stand"; "has never had to stand up for anyone"; "usually an answer {he} has not thought about"; "was never going to find it comfortable later"; "separates a man who is serious from one who is comfortable"; "you will be deferring for the rest of the marriage"; "he is comforting himself"; "he was hiding something"; "filters out everyone who's wasting your time" | What the reply held, and what to do next | The one-person test, in review (release review 12) |
+| A dated future | L6, L12 | "year two", "year three", "year ten", "fifty years"; "The marriage that survives it is the one where" | "later", or what was seen | `OVERCLAIMS` |
+| Similarity as the outcome | L13 | "alignment keeps you married"; "the strongest marriages"; "Most people run that list upside down"; "no amount of spark survives"; "the person who fits you is" | The advice stays advice: choose on deen, character and a shared life | `OVERCLAIMS` |
+| One answer as a psychology | L17 | "your heart leans anxious… once kept you safe"; "it is not a sign something is wrong"; "Almost always, the facts are far calmer"; "they accumulate" | Her own answer, and the technique | Review |
+
+**Said as its class allows; kept.** L2, L4's "one of the clearest signs",
+L7, L14, L15 and L16. The read's "not a verdict on {him}, and not a
+prediction" and "It cannot read a heart". The Ending's "Nobody has ever told
+us what decides this". The money sheets, which ask and assert nothing.
+`docs/PRODUCT.md` S3, S5 and S6. "'Soon, inshaAllah' with nothing attached is
+also an answer", "The joke is the answer" and "'We'd figure it out' means you
+are not yet in the picture", each checkable against the reply.
+
+**Deferred, by name.** The man-only variants wait for ten men (decision 4):
+`secret`'s and `initiative`'s helpers in `src/data/read.ts` (L3, L8);
+`eleven.ts`'s `man` "comes back in year two", "becomes a fight in year two"
+and "She is more afraid to ask this than you are to answer it" (L10, L12);
+`tell-family-online`'s "most parents give it" (L9). Proposed: "comes back
+later", "the one that becomes a fight later", "Say it before she has to ask",
+"Asked for their part, parents can give it". The live prompt's "the trusted
+marriage platform" and "alignment over attraction" (L13), and a rule against
+generalising about Somali families or predicting outcomes, wait for the first
+`npm run eval:guide` (`docs/GUIDE-EVAL.md`).
+
+**Not in the ledger.** Religious content is held to accurate attribution and
+to deferring rulings to a scholar (`docs/GUIDE-EVAL.md`); "marriage is half
+of faith" is graded differently by scholars and wants one's read. The
+company's own beliefs are the open questions and the convictions. Product
+facts are held by tests; this pass found two untrue (Read's "It makes every
+read after this one sharper", when the read never reads the map, and
+`docs/PRODUCT.md` §3's "'Readiness' left every label") and one nobody has
+measured ("ninety seconds", "two minutes"), which the sessions' timestamps
+can.
+
+**Sources.** Checked on 2026-09-24 against each abstract, through its
+published summary; a row says no more than that. Bryant, Conger & Meehan 2001, *J.
+Marriage & Family* 63. Campbell et al. 2003, *Am. J. Public Health* 93(7).
+Christensen et al. 2006, *J. Marriage & Family* 68. Dew, Britt & Huston
+2012, *Family Relations* 61. Dyrenforth, Kashy, Donnellan & Lucas 2010,
+*JPSP* 99(4). Finkel, Eastwick, Karney, Reis & Sprecher 2012, *Psych. Sci.
+in the Public Interest* 13(1). Fraley, Waller & Brennan 2000, *JPSP* 78(2).
+FTC 2023, "Romance scammers' favorite lies exposed", Data Spotlight. Hackel
+& Ruble 1992, *JPSP* 62. Hammond et al. 2011, *Cash and Compassion*, UNDP
+Somalia. Hawkins, Blanchard, Baldwin & Fawcett 2008, *J. Consulting &
+Clinical Psych.* 76. Henrich, Heine & Norenzayan 2010, *Behavioral & Brain
+Sciences* 33. Ismail 2018, *Nordic J. Migration Research* 8(2). Joel,
+Eastwick & Finkel 2017, *Psych. Science* 28(10). Joel et al. 2020, *PNAS*
+117(32). Lavner &
+Bradbury 2010, *J. Marriage & Family* 72. Le, Dove, Agnew, Korn & Mutso
+2010, *Personal Relationships* 17(3). Lehmiller 2009, *PSPB* 35(11).
+Lindley 2009, *J. Ethnic & Migration Studies* 35(8). McNulty & Russell
+2010, *JPSP* 98. Montoya, Horton & Kirchner 2008, *J. Social & Personal
+Relationships* 25(6). Murray, Holmes & Griffin 1996, *JPSP* 70(1). Schrodt,
+Witt & Shimkowski 2014, *Communication Monographs* 81(1). Sinclair, Hood &
+Wright 2014, *Social Psychology* 45(3). Sprecher & Felmlee 1992, *J.
+Marriage & Family* 54(4). Stanley, Amato, Johnson & Markman 2006, *J.
+Family Psych.* 20(1). Stanley, Rhoades & Markman 2006, *Family Relations*
+55(4). Stark 2007, *Coercive Control*, Oxford.
 
 ## How we learn
 
-In order of credibility, the only order in which a claim is promoted:
+In order of credibility, the only order in which a claim is promoted. Steps
+1 and 2 give class C; step 3 gives C, and D when the people are Somali.
+Classes A and B come in by citation, never by this list.
 
 1. **Behaviour already recorded.** The first hundred people are the
    experiment; the monthly hour reads them.
@@ -55,7 +199,7 @@ In order of credibility, the only order in which a claim is promoted:
    - Who in your family knows you are looking? Who would you want to know?
    - When has anyone in your family paid a matchmaker, and what for?
    - What would you never want a screenshot of?
-4. **Founder opinion.** ASSUMED, dated, never promoted on its own.
+4. **Founder opinion.** Class E, F or G, dated, never promoted on its own.
 
 **Lists.** A closed list's `other` or `none` share is the test of the list:
 for the hook, `none` above a third meant the five hardest parts were the
@@ -69,6 +213,11 @@ pre-order to test price (`docs/PRODUCT.md`).
 
 - 2026-09-12 — *Families already pay matchmakers, at the nikah*: LIKELY →
   ASSUMED. No source here; amounts in the feedback log would move it back.
+- 2026-09-24 — *Every claim*: KNOWN / LIKELY / ASSUMED / UNKNOWN → classes
+  A–H ("How a claim is classed"). The open questions moved row by row;
+  seriousness left "Also classed" for the ledger (L2). The families-pay claim
+  above is class F. No evidence moved: this is a change of scale, not a
+  finding.
 
 ## Experiments
 
@@ -194,10 +343,10 @@ prediction (2026-09-11, `docs/PRODUCT.md`), so a sale tests a belief.
 |---|---|---|---|
 | First | Ask ten people who could post the group link whether they would this month; log yes, no or a condition. Set for 2026-09-15; nothing logged | Fewer than three unconditional yeses → pivot to mosque young-adult circles now | — |
 | First | `vias.group.arrived` and the room kinds (`alumni`, `professional`, `mosque`), two weeks after the first post; a man who leaves before choosing a side is `unsaid`, so read `sidesByVia.man.group` too | `null` → change the room | Five or more men through the group link by week two |
-| First | The five one-to-one vias (`words`, `eleven`, `couple`, `family`, `married`; `src/lib/entry.ts`), at eight weeks | Under a tenth of arrivals → "the words travel, the product is the footnote" (`docs/PRODUCT.md`) is demoted to ASSUMED | — |
+| First | The five one-to-one vias (`words`, `eleven`, `couple`, `family`, `married`; `src/lib/entry.ts`), at eight weeks | Under a tenth of arrivals → "the words travel, the product is the footnote" (`docs/PRODUCT.md`) is said as class F, not as fact | — |
 | Second | The three bins, this month | Six or more in ten *nobody there* → the need is density, which a product with no pool does not meet; expansion moves to now | Six or more in ten in the third bin |
 | Second | The sum of `cohorts[*].arrived` against ~700 a side, weeks 1–8; restate by `scenes` once a second city is posted | A plateau under seventy while the link is posted → the market is the ceiling | — |
-| Third | "At the last wedding in your family, was anyone paid for bringing the two of them together — who paid, how much, and when?" Amounts, never names | Fewer than three in ten name a payment → it stays ASSUMED; the call after the joint view is re-examined as the first product, not a fee at the nikah | Seven or more in ten name one, with an amount, and a sale completes at the written price more than once |
+| Third | "At the last wedding in your family, was anyone paid for bringing the two of them together — who paid, how much, and when?" Amounts, never names | Fewer than three in ten name a payment → it stays class F; the call after the joint view is re-examined as the first product, not a fee at the nikah | Seven or more in ten name one, with an amount, and a sale completes at the written price more than once |
 | Third | `ending.who.family`, once endings exist | — | Families still bring people together: the role being sold is the right one |
 
 ## The process
@@ -209,7 +358,9 @@ smallest slice and ship it with `.github/workflows/verify.yml` green; talk
 
 **Precedence.** A rule written before its build (A1's twenty arrivals, the
 ten conversations, the three-in-ten thresholds) overrides the hundred-record
-floor, which governs constants and class moves no rule names.
+floor, which governs constants and class moves no rule names. Class C moves
+on that floor, class D on `docs/PROTOCOL.md`'s thresholds, and classes A and
+B on a source that was checked.
 
 **The weekly pulse**: the safety check in `docs/OPS.md`, and `/progress`'s
 `.rungs`, `.sides`, `.sidesByVia.man` and `.facts.began`. It acts on an open
@@ -237,6 +388,9 @@ In front of every PR (`.github/pull_request_template.md`); CI enforces 2 and 3.
 11. The incentive audit: does any sentence naming a paid stage, a price or
     money earn more if she stays single longer, opens the app more, or is
     having a worse night? First run 2026-09-24, in `docs/PRODUCT.md`.
+12. A sentence about people, relationships or Somali families says no more
+    than its class allows ("How a claim is classed"), and a new one gets a
+    row in "The evidence ledger".
 
 **What comes next** is weighed on learning value, business importance,
 runnable now, durable, and recorded-or-lost: a feature jumps the queue only
@@ -295,7 +449,7 @@ look better while this number falls is wrong. It is A1's counter-metric too.
 6. **One revision**: the clearest row below; move its constant; log it.
 7. **Save the backup** (`docs/OPS.md`).
 8. **Do people finish what they open?** A1's ratios.
-9. **Reread "The open questions".** At most one claim, one class, on a hundred records.
+9. **Reread "The open questions" and the ledger.** At most one claim, one class, on a hundred records.
 10. **Check every rule on the books**: the kill table. A rule that fires is executed.
 
 | Constant | File | Revised by | Rule of thumb |

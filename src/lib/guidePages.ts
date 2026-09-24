@@ -173,7 +173,7 @@ function talk(topic: Topic, n: number): string {
     '<li class="talk">',
     `<h2><span class="n">${n}.</span>${esc(neutral(topic.label))}</h2>`,
     `<p class="prompt">${esc(neutral(topic.prompt))}</p>`,
-    '<h3>Why it is found out too late</h3>',
+    '<h3>Why ask it early</h3>',
     `<p>${esc(neutral(topic.why))}</p>`,
     '<h3>The words</h3>',
     `<blockquote>${esc(neutral(s.words))}</blockquote>`,
@@ -215,14 +215,14 @@ function preface(sample: boolean): string {
   if (sample) {
     return [
       '<div class="preface">',
-      '<p>What comes between Somali couples is rarely what the apps ask about — where you’ll live, money sent home, who is in the house. It gets found out after the families are involved. These are three of the eleven, asked early. Read them separately first, then together; the words are for either of you to say.</p>',
+      '<p>The apps ask who is available. These ask what the two of you have said — where you’ll live, money sent home, who is in the house. Found out after the families are involved, any of them is harder to say no to. These are three of the eleven, asked early. Read them separately first, then together; the words are for either of you to say.</p>',
       '</div>',
     ].join('\n')
   }
   return [
     '<div class="preface">',
- '<p>What comes between Somali couples is rarely what the apps ask about. It is where you’ll live and whether a mother is in the house, money sent home, whether she keeps working, what “practising” means on a Tuesday, qabiil at somebody’s table, a second wife. They get found out after the families are involved, when saying no has become expensive.</p>',
-    '<p>This is the list, asked early. Read it separately first, then together. For each one: why it tends to be found out late, the words to open it — for either of you to say — and what to listen for in the answer. Nothing here scores anyone. It only asks whether the two of you have had the conversation.</p>',
+ '<p>The apps ask who is available. These ask what the two of you have said: where you’ll live and whether a mother is in the house, money sent home, whether she keeps working, what “practising” means on a Tuesday, qabiil at somebody’s table, a second wife. Found out after the families are involved, any of them is harder to say no to.</p>',
+    '<p>This is the list, asked early. Read it separately first, then together. For each one: why to ask it early, the words to open it — for either of you to say — and what to listen for in the answer. Nothing here scores anyone. It only asks whether the two of you have had the conversation.</p>',
     '</div>',
   ].join('\n')
 }

@@ -93,9 +93,9 @@ export const TOOLS: Tool[] = [
     kind: 'eleven',
     title: 'Before you say yes — the eleven conversations to have first',
     description:
-      'The eleven conversations Somali couples rarely have before the families are involved — where you’d live, money sent home, hooyo in the house, a second wife. Two minutes to see which you two have had, and the words to open the one that matters. No account.',
+      'The eleven conversations to have before the families are involved — where you’d live, money sent home, hooyo in the house, a second wife. Two minutes to see which you two have had, and the words to open the one that matters. No account.',
     share:
-      'Before you say yes — the eleven conversations most of us have too late: where you’d live, money home, a second wife. This asks which ones you two have had, and gives you the words to open the one that matters. Two minutes. No account.',
+      'Before you say yes — the eleven conversations to have before the families do: where you’d live, money home, a second wife. This asks which ones you two have had, and gives you the words to open the one that matters. Two minutes. No account.',
     via: 'eleven',
   },
   {
@@ -166,7 +166,7 @@ export const GUIDE: Guide = {
   samplePath: '/guides/before-you-say-yes/sample',
   title: 'Before you say yes — the eleven conversations to have before the families do',
   description:
-    'The eleven conversations Somali couples rarely have before the families are involved — where you’d live, their family in your home, money sent home, children, deen day to day, the aroos and the mahr, qabiil, going back, a second wife, when the families disagree. Each one with why it matters, the words to open it, and what to listen for. Free, no account, nothing recorded. Made by Niyyah.',
+    'The eleven conversations to have before the families are involved — where you’d live, their family in your home, money sent home, children, deen day to day, the aroos and the mahr, qabiil, going back, a second wife, when the families disagree. Each one with why it matters, the words to open it, and what to listen for. Free, no account, nothing recorded. Made by Niyyah.',
   sampleTitle: 'Before you say yes — three of the eleven conversations, a sample',
   sampleDescription:
     'Three of the eleven conversations to have before the families do — where you’d live, their family in your home, money sent home — each with why it matters, the words to open it, and what to listen for. A one-page sample of the full guide. Free, no account, nothing recorded. Made by Niyyah.',

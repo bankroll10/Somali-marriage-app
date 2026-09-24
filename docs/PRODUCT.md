@@ -14,7 +14,9 @@ things nobody said aloud: where you would live, money sent home, his family in
 your home, a second wife, qabiil. These get answered after the families are
 involved, when saying no has become a public cost. **The purpose:** those
 conversations happen before the yes, and the one about seriousness in the
-first month, not the sixth.
+first month, not the sixth. The problem is the bet, not a finding: which
+conversations break marriages is class F, and how many have them too late is
+unknown (`docs/RESEARCH.md`, L5 and open question 6).
 
 > **Every screen exists to move one person from finding out late to saying it
 > early.**
@@ -56,8 +58,8 @@ name. The product is Niyyah, an intention, not "the Somali app", and a
 community's content (its cities, its eleven, its lines) lives in `src/data/` as
 data. The brand strings live in `src/data/brand.ts`; `vite.config.ts` fills
 `index.html` from it, and `tests/brand.test.ts` holds every surface to it. The
-rule is enforceable by test for the brand strings only: BeforeYes, Couple, Home
-and Read still name the community as content, and a second community gets a
+rule is enforceable by test for the brand strings only: the eleven
+(`src/data/eleven.ts`) still names the community as content, and a second community gets a
 second `src/data`, not a rename.
 
 Why: some 20,000 Somali diaspora marriages a year (asserted, not derived) cap a
@@ -146,8 +148,9 @@ end in something they can say? What it changed:
   (`src/data/intake.ts`); the eleven shows "You told your map…" beside them. If
   A1 fires (completion under 50% at twenty arrivals), their chapter is kept.
 - **The daily reflection card went**: it ended in nothing anyone could say.
-  "Readiness" left every label, and an eleven for someone with no "two" was
-  declined.
+  "Readiness" left every result label; the hook's "Knowing if I'm even
+  ready" and the timeline's "Ready now" keep the word as a person's own. An
+  eleven for someone with no "two" was declined.
 
 ## 4. What survives a copy
 
@@ -310,13 +313,18 @@ them.
 ## 7. What an instrument may claim
 
 No introduction has been made, no marriage has come out of this product, and
-the literature (Finkel et al. 2012; Joel et al. 2017) says no algorithm
-predicts relationship success from self-reports. Every weight here is
+the literature gives no algorithm that predicts relationship success from
+self-reports: matching sites have shown no evidence (Finkel et al. 2012),
+desire for a particular person could not be predicted before meeting (Joel
+et al. 2017), and within a relationship, change over time was largely
+unpredictable (Joel et al. 2020). Every weight here is
 editorial: fine for an order, never for a grade. **A number may order what is
 shown, never grade a person or a pair to them; "not known" is said, never
 scored; no screen claims predictive power.** `tests/voice.test.ts` scans `src/`
 for the overclaims ("predict", "carry the most weight", "most couples never",
-"Grounded and ready", "will find you someone").
+"Grounded and ready", "will find you someone"). What any sentence may claim
+about people, relationships or Somali families is capped by its class in
+`docs/RESEARCH.md`'s evidence ledger.
 
 ### S3. The read's weights and bands
 
@@ -389,7 +397,7 @@ for `VITE_CONTACT_EMAIL`.
 ## 9. How it spreads
 
 In this community, nothing that says "I am looking" gets forwarded: a profile,
-a match, a map. What gets said to a friend is about *him*, a *conversation* or
+a match, a map (class F: `docs/RESEARCH.md`, open question 2). What gets said to a friend is about *him*, a *conversation* or
 a *couple*. So the words travel and the product is the footnote: every
 invitation (`src/data/invite.ts`) is about the instrument and the friend, never
 the sender's own use of a marriage product, and what travels is text (the

@@ -31,5 +31,8 @@
       (the field table and the collected list) — if it applies
 - [ ] If this carries a hypothesis bigger than a copy fix, it has an entry in
       `docs/RESEARCH.md` with a decision rule already written
+- [ ] A sentence about people, relationships or Somali families says no more
+      than its class allows, and a new one has a row in `docs/RESEARCH.md`'s
+      evidence ledger
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)

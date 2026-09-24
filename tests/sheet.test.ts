@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 
 /**
@@ -539,4 +539,28 @@ describe('the link graph across the whole N3 family', () => {
       }
     }
   })
+})
+
+describe('every sheet has its PDF twin', () => {
+  // A pitch offered "print-ready PDFs" before any existed (docs/ASSETS.md,
+  // rule 6). Each is rendered from its HTML on Letter and shipped beside it;
+  // a change to the HTML re-renders the PDF in the same PR.
+  const PAGES: Record<string, number> = {
+    'niyyah-money-conversation-sheet': 4,
+    'niyyah-money-conversation-sheet-1page': 1,
+    'niyyah-money-conversation-sheet-facilitator-note': 1,
+    'niyyah-money-conversation-sheet-so': 4,
+    'niyyah-money-conversation-sheet-1page-so': 1,
+  }
+  for (const [name, pages] of Object.entries(PAGES)) {
+    it(`${name}.pdf exists, is a PDF, and has ${pages} page${pages === 1 ? '' : 's'}`, () => {
+      const path = `public/${name}.pdf`
+      expect(existsSync(path), path).toBe(true)
+      const pdf = readFileSync(path)
+      expect(pdf.subarray(0, 5).toString()).toBe('%PDF-')
+      // Page objects, not the page tree that holds them.
+      const count = (pdf.toString('latin1').match(/\/Type\s*\/Page(?!s)/g) ?? []).length
+      expect(count).toBe(pages)
+    })
+  }
 })

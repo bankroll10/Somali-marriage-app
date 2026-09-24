@@ -208,7 +208,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
               {sender}’s asked you to do this too.
             </h1>
             <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-              Eleven conversations couples rarely have before the families do — where you’d live, money sent home, a
+              Eleven conversations to have before the families do — where you’d live, money sent home, a
               second wife. For each one, say only whether the two of you have talked about it.
             </p>
             <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
@@ -367,7 +367,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 <InviteRow
                   source="couple"
                   title="Send the eleven to a friend who’s about to get engaged"
-                  body="Two minutes, the conversations most of us have too late. They answer on their own phone. No account."
+                  body="Two minutes, the conversations to have before the families do. They answer on their own phone. No account."
                 />
               </div>
               <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">

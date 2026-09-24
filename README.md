@@ -5,7 +5,7 @@ conversation to have next, and the words for it — then it asks whether you had
 it. For the Somali diaspora.**
 
 Dating apps answer **"who is available?"** Niyyah starts with the questions
-that decide a marriage:
+to answer before a marriage:
 
 > Is he serious? Have we had the conversations that matter? Am I ready? How do I
 > move toward marriage without making it weird?
@@ -23,7 +23,7 @@ her go and takes itself off our server (`docs/PRODUCT.md`).
   Evidence in words, never a score on a person, and the one question to ask
   him next, word for word. At `/tools/is-he-serious` and
   `/tools/is-she-serious`.
-- **Before you say yes** — the eleven conversations Somali marriages break on:
+- **Before you say yes** — the eleven conversations to have before the families do:
   where you'd live, his mother in the house, money home, work, children, deen
   on a Tuesday, mahr, qabiil, going back, a second wife, when the families
   disagree. It records only whether the two of you have had each one, and

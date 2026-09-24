@@ -29,14 +29,14 @@ export const hookOptions: HookOption[] = [
     insight: (name, g) =>
       `${name ? `${name}, this` : 'This'} has a calmer answer than it feels like it does. Seriousness isn’t in the words or the late-night energy; it’s in whether ${person(g)} moves toward clarity, family, and consistency — or away from them.
 
-Niyyah is built around reading that early, so you stop guessing. Your guide will look at real situations with you, and the map you’re about to build is what makes that guidance yours.`,
+Niyyah is built around reading that early, from what they have done. Your guide will look at real situations with you, and the map you’re about to build is what makes that guidance yours.`,
   },
   {
     id: 'family',
     label: 'The pressure from family',
     short: 'the pressure from family',
     insight: (name) =>
-      `${name ? `${name}, u` : 'U'}nderneath the weekly questions there’s usually love that doesn’t know how to speak softly. That doesn’t make the weight lighter — but it changes how you carry it.
+      `${name ? `${name}, t` : 'T'}he weekly questions can be love that doesn’t know how to speak softly. That doesn’t make the weight lighter — but it changes how you carry it.
 
 You can honour your family and still move at your own pace. Niyyah is built for that exact balance — family in the story, you holding the pen. Your map starts with your intention, not theirs.`,
   },
@@ -66,7 +66,7 @@ Niyyah doesn’t introduce anyone. It makes the next person you meet, wherever y
     label: 'Something else',
     short: 'something else',
     insight: (name) =>
- `${name ? `${name}, t` : 'T'}hat is allowed. The five things people name most are not everyone’s, and what you carry is what your map should start from — nothing here presumes your problem.
+ `${name ? `${name}, t` : 'T'}hat is allowed. The five above are not everyone’s, and what you carry is what your map should start from — nothing here presumes your problem.
 
 Your map will show where you stand, in words, and your guide will take the rest in your own.`,
   },

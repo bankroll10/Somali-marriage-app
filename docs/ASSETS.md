@@ -39,6 +39,11 @@ page has no URL here. A new asset does not ship without a row.
 | **N3-note** | A half-page note for whoever hands N3 to a couple | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **live and checked** | 2026-09-20 |
 | **N3-so** | The money conversation in Somali, four pages, founder-approved | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.html` | **live and checked** | 2026-09-20 |
 | **N3-1page-so** | The Somali version on one printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.html` | **live and checked** | 2026-09-20 |
+| **N3-pdf** | N3 as a Letter PDF, four pages | `https://joinniyyah.com/niyyah-money-conversation-sheet.pdf` | **built, not yet checked** | — |
+| **N3-1page-pdf** | N3-1page as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.pdf` | **built, not yet checked** | — |
+| **N3-note-pdf** | N3-note as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.pdf` | **built, not yet checked** | — |
+| **N3-so-pdf** | N3-so as a Letter PDF, four pages | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.pdf` | **built, not yet checked** | — |
+| **N3-1page-so-pdf** | N3-1page-so as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.pdf` | **built, not yet checked** | — |
 
 N0, the door's tool page (`/tools/door`), was retired with the door on
 2026-09-24; the id is not reused.
@@ -110,7 +115,7 @@ is visible somewhere a stranger could find it.
 | 2026-09-23 | KALY-LP 101.7 FM, Somali-language, South Minneapolis | email `Underwriting@kalyradio.org` | none — rate inquiry only | web: `…/tools/before-you-say-yes?via=press`; on air: none | drafted, not yet sent |
 | 2026-09-23 | Dr. Aneesah Nadir and Associates, *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7) | email `info@draneesah.com` | N3-note, pointing to N3-1page | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | drafted, not yet sent |
 | 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent |
-| 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent, awaiting reply |
+| 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page; PDFs offered | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent, awaiting reply |
 
 **Rules the ledger has taught**, each a correction made before a row was
 logged:
@@ -129,8 +134,11 @@ logged:
    description, an address, no call to action. Confirm with the station.
 5. **Exclusivity binds.** WardheerNews takes articles "intended exclusively
    for its readers": new prose, not the public guide rearranged.
-6. **Promise only what exists.** There are no PDFs of the sheets, only HTML
-   that prints on Letter or A4. Render a PDF when one is asked for.
+6. **Promise only what exists.** The sheets have had PDF twins since
+   2026-09-24, rendered in Chromium on Letter from the HTML at the version on
+   its footer, after a pitch had offered them. A change to a sheet's HTML
+   re-renders its PDF in the same PR; `tests/sheet.test.ts` holds that each
+   sheet has one with the right page count.
 7. **Send while the handout is useful.** *Before the Nikah* does not publish
    its finances week, so the email asks which it is; business address only;
    the Somali versions get one clause for a US Muslim audience.

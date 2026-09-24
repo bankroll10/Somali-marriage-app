@@ -286,7 +286,7 @@ export default function Home({
           </button>
         )}
 
-        {/* Deciding together: the conversations most of us have too late,
+        {/* Deciding together: the conversations to have before the families do,
             asked in month two, and the words for the families. Also at
             "talking", once she has been through them or sent them: the
             read-first person — whose relationship began somewhere else — used
@@ -326,7 +326,7 @@ export default function Home({
                     ? `You sent ${answerer === 'He' ? 'him' : 'her'} the eleven. When ${answerer === 'He' ? 'he answers' : 'she answers'}, where the two of you stand shows up here — and nowhere else.`
                     : hasBeforeYes
                     ? 'The conversations you’ve had, the ones you haven’t, and the one to open next.'
-                    : 'Eleven conversations most couples have too late — where you’d live, money home, a second wife — and which one to open this week.'}
+                    : 'Eleven conversations to have before the families do — where you’d live, money home, a second wife — and which one to open this week.'}
               </span>
             </span>
             <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${coupleAnswered ? 'text-gold-ink' : 'text-forest'}`} />

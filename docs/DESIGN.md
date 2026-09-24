@@ -25,12 +25,19 @@ call outsider-ish, performative, exaggerated or gender-inverted goes
 | **Dignified** | use workbook register ("the work", "healing", "triggered") outside the therapist |
 | **Direct** | explain a design decision to the reader, or announce a frame before the thing |
 
+Every claim about people or families has a class (`docs/RESEARCH.md`, "How a
+claim is classed"). A class limits what a sentence is about, not how firmly it
+is said.
+
 1. **One negation per paragraph.** "Not X — it's Y" is a shape, not a thought.
 2. **A guarantee is said once per screen**, beside the control it describes.
 3. **A Somali word is never explained to a Somali.** The gated Somali lines
    carry a gloss for the gate's reason (`tests/somali-gate.test.ts`), nothing else.
 4. **No verdict from a tap.** Answers license "one of the clearest signs" or
-   "watch what he does next", never "he is not the one".
+   "watch what he does next", never "he is not the one". The test is
+   `docs/RESEARCH.md`'s "About one person": could she check the sentence
+   against the reply itself? "One of the clearest signs" needs a ledger row
+   of class B or better.
 5. **Only the therapist may sound like a therapist.**
 6. **The text names the side reading it**: a man gets a man's `why`, `words`
    and `tells` (`tests/invariants/both-sides.test.ts`).

@@ -42,11 +42,11 @@ const SCRIPTS: FamilyScript[] = [
     stages: ['talking', 'deciding'],
     for: 'woman',
     script: {
-      why: 'He will find out. The only question is whether from you, first, with the whole picture — or from a cousin, sideways, with none of it.',
+      why: 'Assume he will find out. The only question is whether from you, first, with the whole picture — or from a cousin, sideways, with none of it.',
       words:
         'Aabo, I want to tell you about someone, and I want you to hear it from me first. I met him online — I know that isn’t how you would have chosen. He is serious, he wants to do this properly, and he has asked how to approach you. I’d like you to meet him, on your terms.',
       tells:
-        'Say the last sentence — “on your terms” — and mean it. Your wali’s job is to protect you. Giving him the role, rather than presenting him with a decision, is what makes him an ally instead of an obstacle.',
+        'Say the last sentence — “on your terms” — and mean it. Your wali’s job is to protect you. Giving him the role, rather than presenting him with a decision, gives him a way to be an ally instead of an obstacle.',
     },
   },
   {
@@ -83,11 +83,11 @@ const SCRIPTS: FamilyScript[] = [
     stages: ['talking', 'deciding'],
     for: 'woman',
     script: {
-      why: 'In our culture this is the sentence that separates a man who is serious from one who is comfortable. It costs him something to send his family. That is the point.',
+      why: 'This is the step that costs him something: his family’s time, and his name in front of yours. That is why it is worth asking for.',
       words:
         'I think we’ve talked long enough to know what this is. I’d like you to send your people to my family. I’m not asking for a date — I’m asking for the step. If that feels too soon, tell me honestly, and tell me when wouldn’t be.',
       tells:
-        'A serious man asks “when” and “who should I bring”. A man who says “let’s not rush” has just told you his timeline is not yours. Give him the second question — “when wouldn’t be” — so that his answer has to have a month in it.',
+        'Listen for “when” and “who should I bring”. “Let’s not rush” has just told you his timeline is not yours. Give him the second question — “when wouldn’t be” — so that his answer has to have a month in it.',
     },
   },
   {
@@ -114,7 +114,7 @@ const SCRIPTS: FamilyScript[] = [
       words:
         'Before our families sit down, I want us to have our own answers. What do you think is right for the mahr — and where do you see us living in the first year? I’d rather we walk in agreeing than find out at the table that we don’t.',
       tells:
-        'You are listening for whether {he} sees this as “ours to decide first”. If {he} defers everything to the elders, you will be deferring for the rest of the marriage.',
+        'You are listening for whether {he} sees this as “ours to decide first”. If {he} defers everything to the elders now, you have seen how decisions would be made. Say whether that works for you.',
     },
   },
   // The two below were promised before they existed: "words for two families
@@ -139,7 +139,7 @@ const SCRIPTS: FamilyScript[] = [
     when: 'When you know — and before you spend another month pretending you don’t.',
     stages: ['talking', 'deciding'],
     script: {
-      why: 'Nobody teaches us how to end something halal that did not become a marriage. So people go quiet instead, and the other person spends months reading silence. You can do better than that, and it costs one hard message.',
+      why: 'Ending something halal that did not become a marriage has no ceremony, so it is easy to go quiet instead, and then the other person spends months reading silence. You can do better than that, and it costs one hard message.',
       words:
         'I’ve thought about this carefully, and I don’t think we’re right for each other for marriage. I’m not going to go quiet on you — you deserve to hear it plainly. I have valued getting to know you, and I mean that. I’ll make dua for you.',
       tells:
@@ -152,11 +152,11 @@ const SCRIPTS: FamilyScript[] = [
     when: 'The first time one of your families expects something the two of you did not agree to.',
     stages: ['married'],
     script: {
-      why: 'Most first-year arguments are not between the two of you. They are between two families, carried home by one of you. The couples who come through it are the ones who decided early to talk to each other first, and to their families second.',
+      why: 'Some of the hardest arguments in a first year are not between the two of you. They are between two families, carried home by one of you. Decide now to talk to each other first, and to your families second.',
       words:
         'Something came up with my family, and before I answer them I want to talk to you. I don’t want either of our families to hear about something between us before we have heard it from each other. Can we agree we always do it in that order — us first, then them?',
       tells:
-        'You are listening for whether {he} agrees to the order, not to any particular answer. If {he} says yes and then answers {his} family first anyway, say so once, calmly, the same week. The habit is set in the first year.',
+        'You are listening for whether {he} agrees to the order, not to any particular answer. If {he} says yes and then answers {his} family first anyway, say so once, calmly, the same week. The habit starts here.',
     },
   },
 ]

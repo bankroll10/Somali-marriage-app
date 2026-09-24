@@ -99,34 +99,34 @@ function readMap(ctx: CoachContext): string {
   const a = ctx.answers
   const bits: string[] = []
   const faith = a['faith-role']
-  if (typeof faith === 'number' && faith >= 4) bits.push('someone for whom deen is a shared center')
+  if (typeof faith === 'number' && faith >= 4) bits.push('deen at the centre of your home')
   const fam = a['family-role']
-  if (fam === 'central' || fam === 'guided') bits.push('a family-minded match who welcomes your people')
+  if (fam === 'central' || fam === 'guided') bits.push('your family in the story')
   const tl = a['timeline']
-  if (tl === 'within-1' || tl === '1-2') bits.push('someone ready to move with intention, not drift')
+  if (tl === 'within-1' || tl === '1-2') bits.push('marriage within a year or two')
   if (Array.isArray(a['value-most']) && a['value-most'].length)
-    bits.push(`a character built on what you value most`)
- return bits.length ? bits.join(', ') : 'someone aligned with the life you described'
+    bits.push(`the character you said you value most`)
+ return bits.length ? bits.join(', ') : 'the life you described'
 }
 
 const fit: GuidanceMode['intents'] = [
   {
     keywords: ['fits me', 'right for me', 'kind of person', 'my type', 'compatible', 'match me', 'suited'],
     respond: (ctx) =>
-      `From your map, the person who fits you is ${readMap(ctx)}.
+      `Your map says what you are looking for: ${readMap(ctx)}. No map can tell you who will fit. It tells you what to ask about first.
 
-Don’t shop for a feeling — recognise a fit. The strongest marriages aren’t the ones with the most spark on day one; they’re the ones where two people are walking toward the same horizon. When you meet someone, ask yourself less “do I feel butterflies?” and more “do we want the same life, and is this someone I respect?” That’s the question that’s still true in year ten.`,
+Don’t shop for a feeling. When you meet someone, ask yourself less “do I feel butterflies?” and more “do we want the same life, and is this someone I respect?” Ask it early, and ask it again once you know them.`,
   },
   {
     keywords: ['look for first', 'prioritise', 'prioritize', 'what matters', 'most important', 'first thing'],
     respond: () =>
-      `Prioritise in this order — it’ll save you years:
+      `An order worth holding to:
 • **Character & deen** first. Honesty, kindness, God-consciousness. Non-negotiable.
 • **Direction & alignment** second. Same horizon on faith, family, children, where you’ll live.
 • **Emotional availability** third. Can they show up, communicate, repair?
-• **Attraction** fourth — it matters, but it’s the easiest to mistake for compatibility.
+• **Attraction** fourth — it matters, and it is easy to mistake for more than it is.
 
-Most people run that list upside down and wonder why it hurts. Get the top right and attraction grows. Get only the bottom right and it fades into resentment.`,
+Put the top first, and test attraction against it rather than the other way round.`,
   },
   {
     keywords: ['green flag', 'green flags', 'good sign', 'good signs', 'what to seek'],
@@ -143,9 +143,9 @@ Notice: none of these show up in a photo.`,
   {
     keywords: ['alignment', 'attraction', 'chemistry', 'spark', 'butterflies'],
     respond: () =>
-      `Attraction gets you interested; alignment keeps you married. Chemistry is real, but it’s a terrible *filter* — it lights up just as bright for the wrong person as the right one.
+      `Attraction is real, and it matters. What it cannot tell you is whether your lives fit.
 
-Alignment is whether your lives fit: faith, family, finances, children, pace, values. When those line up, attraction tends to *grow*, because respect is the deepest kind of attraction there is. When they don’t, no amount of spark survives the friction. So feel the spark — but choose on the fit.`,
+That — faith, family, money, children, pace — you find out by asking, not by feeling. So feel the spark, then ask, and choose on what you find out, with deen and character first.`,
   },
 ]
 
@@ -174,21 +174,21 @@ I love you too much to let you waste your time or your heart. Tell me what’s h
       respond: () =>
         `My dear, don’t confuse late-night texting with intention. A man who wants to marry you moves *toward* your family, not away from them. He talks about the future without sweating.
 
-Watch his feet, not his mouth — does he show up consistently? Does he want to meet your people? If he keeps everything vague and “fun,” walaal, that vagueness *is* his answer. Ask him plainly. A serious man will be glad you did.`,
+Watch his feet, not his mouth — does he show up consistently? Does he want to meet your people? If he keeps everything vague and “fun,” walaal, that vagueness *is* his answer. Ask him plainly. Asking is not too much.`,
     },
     {
       keywords: ['late', 'night', '2am', 'midnight', 'after dark', 'only texts', 'only when', 'booty'],
       respond: () =>
-        `Hmm. Let your auntie be honest with you: a man who only appears after midnight is not courting you — he is comforting himself. Good intentions keep daytime hours.
+        `Hmm. Let your auntie be honest with you: texting only after midnight is not courting, whatever it feels like at midnight. Good intentions keep daytime hours.
 
 You are not a secret. You are not a midnight habit. If he cannot text you at noon, plan to meet your family, and speak about marriage in daylight, that is your answer. Watch what he does next.`,
     },
     {
       keywords: ['family', 'wali', 'parents', 'mother', 'father', 'brother', 'scare him', 'tell my'],
       respond: () =>
-        `That instinct is the right one, and not everyone has it. A man worth having *expects* your family.
+        `That instinct is the right one. A man worth having *expects* your family.
 
-Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then watch his face. If it scares him off, walaal, he was hiding something, and you just saved yourself time. Your people protect you. Let them.`,
+Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then watch his face. If it scares him off, walaal, you have learned early that he was not ready for your family, and you just saved yourself time. Your people protect you. Let them.`,
     },
     {
       keywords: ['settling', 'too picky', 'standards', 'unrealistic', 'expecting too much', 'should i lower'],
@@ -231,9 +231,9 @@ I’m not here to hype you up — I’m here to keep you honest and effective. Y
     {
       keywords: ['flirting', 'in circles', 'going nowhere', 'banter', 'small talk', 'vague', 'dragging'],
       respond: () =>
-        `Stop flirting in circles. State your intention clearly and respectfully — that’s strength, and it’s rarer than you think.
+        `Stop flirting in circles. State your intention clearly and respectfully — that’s strength.
 
-Try: “I want to be upfront — I’m looking for marriage, and I’d like to get to know you for that. Is that what you want too?” That one sentence filters out everyone who’s wasting your time and earns the respect of the one who isn’t. Vagueness is a coward’s game, akhi. You’re not that.`,
+Try: “I want to be upfront — I’m looking for marriage, and I’d like to get to know you for that. Is that what you want too?” That one sentence gets you an answer, and it is a respectful way to ask for one. Vagueness is a coward’s game, akhi. You’re not that.`,
     },
     {
       keywords: ['intention', 'desperate', 'awkward', 'too strong', 'scare her', 'come on strong'],
@@ -299,9 +299,9 @@ Here you can slow down and look at what is going on in you — the overthinking,
     {
       keywords: ['overthink', 'overthinking', 'spiral', 'spiralling', 'spiraling', 'cant stop', "can't stop", 'in my head', 'reading too much', 'analysing'],
       respond: (ctx) =>
-        `Let’s slow it down together. Overthinking is usually your mind trying to protect you from not knowing — it is not a sign something is wrong.
+        `Let’s slow it down together. Overthinking is your mind trying to settle what it cannot know yet.
 
-Try separating *fact* from *story*. On one side: what happened (“he replied after four hours”). On the other: the story your mind added (“he’s losing interest”). Almost always, the facts are far calmer than the story.${(() => {
+Try separating *fact* from *story*. On one side: what happened (“he replied after four hours”). On the other: the story your mind added (“he’s losing interest”). If the facts are calmer than the story, let the story go. If they are not, take that seriously, and bring the facts here.${(() => {
           const cs = ctx.answers['comm-safety']
           if (!Array.isArray(cs) || cs.length === 0) return ''
           const map: Record<string, string> = { consistency: 'consistency', directness: 'directness', gentleness: 'gentleness', reassurance: 'reassurance', space: 'respected space', 'follow-through': 'follow-through' }
@@ -314,11 +314,11 @@ Try separating *fact* from *story*. On one side: what happened (“he replied af
       respond: (ctx) => {
         const lean = ctx.answers['attachment'] === 'anxious'
         const intro = lean
-          ? `You named this in your map, so let’s honour it: your heart leans anxious. That isn’t a flaw — it’s a pattern that once kept you safe.`
+          ? `You told your map that when someone goes quiet, you worry and reread. That isn’t a flaw — it is a pattern, and a pattern can be worked with.`
           : `An anxious lean means closeness can trigger a fear of losing it — so you seek reassurance, and silence feels like danger.`
         return `${intro}
 
-The aim is not to stop feeling anxious. It is to not *act* from it. When the wave comes: name it (“this is the fear, not the truth”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. Over time the silence stops feeling like danger.`
+The aim is not to stop feeling anxious. It is to not *act* from it. When the wave comes: name it (“this is the fear, not the truth”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. With practice, a silence can stop feeling like danger.`
       },
     },
     {
@@ -409,7 +409,7 @@ For a sister, the wali’s involvement is part of the path and a safeguard of he
       respond: () =>
         `In our deen, character — akhlaq — is the truest measure. “The most complete of believers in faith are the best of them in character, and the best of you are those best to their wives.”
 
-So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for fifty years.`,
+So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for a lifetime.`,
     },
   ],
   fallback: () =>
