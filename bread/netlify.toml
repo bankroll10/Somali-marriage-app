@@ -76,6 +76,13 @@
   [headers.values]
     Cache-Control = "no-store"
 
+# The QR code, sign and story card keep the same names when regenerated, so
+# they must be revalidated rather than cached as if they never change.
+[[headers]]
+  for = "/share/*"
+  [headers.values]
+    Cache-Control = "no-cache"
+
 [[headers]]
   for = "/assets/*"
   [headers.values]

@@ -3,6 +3,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { PRODUCTS } from '../shared/config.ts'
+import { SHARE_DIR, SHARE_FILES } from '../shared/share.ts'
 import { loadMigrations } from '../netlify/lib/db/migrate.ts'
 import { freshDb } from './db.ts'
 
@@ -65,5 +66,11 @@ describe('deploy layout', () => {
       readdirSync(join(process.cwd(), dir), { withFileTypes: true }).flatMap((d) => (d.isDirectory() ? files(join(dir, d.name)) : /\.(ts|tsx|html)$/.test(d.name) ? [join(dir, d.name)] : []))
     const offenders = [...files('src'), ...files('shared'), ...files('netlify'), 'index.html'].filter((f) => /Life ?Time|Fridley/i.test(readFileSync(join(process.cwd(), f), 'utf8')))
     expect(offenders).toEqual([])
+  })
+  it('every file the admin Share page offers is on the site, where the sign script writes it', () => {
+    for (const { file } of SHARE_FILES) expect(existsSync(join(process.cwd(), 'public', SHARE_DIR, file)), file).toBe(true)
+    // The QR code shown on the page itself.
+    expect(existsSync(join(process.cwd(), 'public', SHARE_DIR, 'qr.png'))).toBe(true)
+    expect(readFileSync(join(process.cwd(), 'marketing/make-sign.mjs'), 'utf8')).toContain("'../public/share/'")
   })
 })

@@ -34,6 +34,12 @@ payment goes through.
 - A yellow **TEST MODE** notice means the site is on Stripe's practice keys: orders are
   rehearsals and no real money moves. It disappears once the site is switched to live.
 
+## Sharing the link and QR code
+
+Tap **QR code & link →** under the date at the top. That page has your link with a **Copy link**
+button, your QR code (point a phone camera at it to test), and downloads: the QR code as an image,
+a print version that stays sharp at any size, a letter-size sign, and a phone/story card.
+
 ## Marking bread picked up
 
 Tick the box next to the customer when you hand the bread over. Ticked customers fade down the

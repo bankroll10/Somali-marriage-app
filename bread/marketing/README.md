@@ -1,9 +1,11 @@
 # Marketing files
 
-Ready-to-use files for getting the order link to customers. None of this is served by the
-site; it lives here so it can be regenerated.
+Ready-to-use files for getting the order link to customers. The script here writes them to
+`../public/share/`, so the site serves them and Biz downloads them herself from
+**Admin → "QR code & link →"**. This folder holds the script and the generated HTML they are
+rendered from.
 
-| File | Use |
+| File (in `public/share/`) | Use |
 | --- | --- |
 | `qr.png` | Just the QR code, 1200×1200, black on white. Drop it into any sign, card or post. |
 | `qr.svg` | The same code as a vector: stays sharp at any print size (business cards, banners). |

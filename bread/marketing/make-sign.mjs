@@ -9,7 +9,8 @@
  *   node --experimental-strip-types make-sign.mjs
  *
  * Writes qr.png and qr.svg (the bare code, for her own signs and cards),
- * sign.pdf (US Letter), sign.png and phone-card.png next to this file, then
+ * sign.pdf (US Letter), sign.png and phone-card.png to bread/public/share/,
+ * where the site serves them and the admin Share page links to them, then
  * decodes the QR code back out of every image and refuses to finish if it
  * does not read exactly the site's address. A sign that does not scan is
  * worse than no sign.
@@ -26,6 +27,10 @@ import * as config from '../shared/config.ts'
 
 const { chromium } = await import(process.env.PLAYWRIGHT_MODULE || 'playwright')
 const here = (name) => fileURLToPath(new URL(name, import.meta.url))
+// The finished files are served by the site, so Biz can download them from
+// Admin → Share. The generated HTML stays here, next to this script.
+const SHARE_DIR = '../public/share/'
+const out = (name) => here(SHARE_DIR + name)
 
 // ── Everything the sign says, read from the site's own config ─────────────
 const url = config.SITE_URL
@@ -55,8 +60,8 @@ const qr = await QRCode.toString(url, { type: 'svg', errorCorrectionLevel: 'H', 
 // cards: a large PNG for phones and printing, and an SVG that stays sharp at
 // any size.
 const plain = { errorCorrectionLevel: 'H', margin: 4, color: { dark: '#000000', light: '#ffffff' } }
-await QRCode.toFile(here('qr.png'), url, { ...plain, type: 'png', width: 1200 })
-writeFileSync(here('qr.svg'), await QRCode.toString(url, { ...plain, type: 'svg' }))
+await QRCode.toFile(out('qr.png'), url, { ...plain, type: 'png', width: 1200 })
+writeFileSync(out('qr.svg'), await QRCode.toString(url, { ...plain, type: 'svg' }))
 
 const loaf = `<svg viewBox="0 0 96 72" aria-hidden="true"><ellipse cx="48" cy="46" rx="34" ry="17" fill="#9a5426"/><ellipse cx="48" cy="40" rx="34" ry="17" fill="#c2743a"/><ellipse cx="46" cy="36" rx="24" ry="9" fill="#e0a26a" opacity="0.55"/><path d="M30 34 q6 -4 12 0 M42 30 q6 -4 12 0 M54 34 q6 -4 12 0" stroke="#fbf6ee" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`
 
@@ -141,20 +146,20 @@ const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePa
 try {
   const sign = await browser.newPage({ viewport: { width: 816, height: 1056 }, deviceScaleFactor: 2.5 })
   await sign.setContent(signHtml, { waitUntil: 'load' })
-  await sign.pdf({ path: here('sign.pdf'), width: '8.5in', height: '11in', printBackground: true, pageRanges: '1' })
-  await sign.screenshot({ path: here('sign.png'), fullPage: false })
+  await sign.pdf({ path: out('sign.pdf'), width: '8.5in', height: '11in', printBackground: true, pageRanges: '1' })
+  await sign.screenshot({ path: out('sign.png'), fullPage: false })
   const spill = () => Math.max(document.body.scrollHeight - window.innerHeight, document.body.scrollWidth - window.innerWidth, ...[...document.querySelectorAll('.menu, .pickup')].map((e) => e.scrollWidth - e.clientWidth))
   const overflowSign = await sign.evaluate(spill)
 
   const card = await browser.newPage({ viewport: { width: 1080, height: 1920 }, deviceScaleFactor: 1 })
   await card.setContent(cardHtml, { waitUntil: 'load' })
-  await card.screenshot({ path: here('phone-card.png'), fullPage: false })
+  await card.screenshot({ path: out('phone-card.png'), fullPage: false })
   const overflowCard = await card.evaluate(spill)
   if (overflowSign > 0 || overflowCard > 0) throw new Error(`content spills off the page (sign ${overflowSign}px, card ${overflowCard}px)`)
 
   // Render the SVG the way a print shop or a card app would, to prove it scans too.
   const svg = await browser.newPage({ viewport: { width: 800, height: 800 } })
-  await svg.setContent(`<body style="margin:0"><img src="data:image/svg+xml;base64,${readFileSync(here('qr.svg')).toString('base64')}" style="width:800px;height:800px;display:block"></body>`, { waitUntil: 'load' })
+  await svg.setContent(`<body style="margin:0"><img src="data:image/svg+xml;base64,${readFileSync(out('qr.svg')).toString('base64')}" style="width:800px;height:800px;display:block"></body>`, { waitUntil: 'load' })
   await svg.screenshot({ path: here('.qr-svg-check.png') })
 } finally {
   await browser.close()
@@ -162,7 +167,7 @@ try {
 
 // ── Prove the codes scan ──────────────────────────────────────────────────
 for (const [name, file] of [['qr.png', 'qr.png'], ['qr.svg (rendered)', '.qr-svg-check.png'], ['sign.png', 'sign.png'], ['phone-card.png', 'phone-card.png']]) {
-  const png = PNG.sync.read(readFileSync(here(file)))
+  const png = PNG.sync.read(readFileSync(file === '.qr-svg-check.png' ? here(file) : out(file)))
   const found = jsQR(new Uint8ClampedArray(png.data), png.width, png.height)
   if (!found || found.data !== url) throw new Error(`${name}: QR reads ${found ? JSON.stringify(found.data) : 'nothing'}, expected ${url}`)
   console.log(`${name}: ${png.width}×${png.height}, QR decodes to ${found.data}`)
