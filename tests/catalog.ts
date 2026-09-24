@@ -151,6 +151,7 @@ export const CATALOG: Record<string, Entry> = {
   'tests/journeys/eleven-two-phones.test.tsx': { categories: ['e2e', 'security'], kind: 'behaviour', invariants: ['private-sheets'] },
   'tests/journeys/forget-offline.test.tsx': { categories: ['e2e', 'failure'], kind: 'behaviour', invariants: ['delete-means-deleted'] },
   'tests/journeys/door.test.tsx': { categories: ['e2e', 'integration'], kind: 'behaviour' },
+  'tests/journeys/netlify-down.test.tsx': { categories: ['e2e', 'failure'], kind: 'behaviour' },
 
   // ── Rendered accessibility ────────────────────────────────────────────────
   'tests/ui/screens.test.tsx': { categories: ['accessibility'], kind: 'behaviour' },
@@ -183,6 +184,7 @@ export const CATALOG: Record<string, Entry> = {
   'tests/integrity.test.ts': { categories: ['failure', 'integration'], kind: 'behaviour', invariants: ['delete-means-deleted'] },
   'tests/failure-modes.test.ts': { categories: ['failure', 'integration'], kind: 'behaviour' },
   'tests/ops.test.ts': { categories: ['failure', 'integration', 'security'], kind: 'behaviour' },
+  'tests/recovery.test.ts': { categories: ['failure', 'integration', 'contract'], kind: 'behaviour', invariants: ['delete-means-deleted'] },
   'tests/chunk-error.test.ts': { categories: ['failure'], kind: 'mixed' },
   'tests/fail.test.ts': { categories: ['failure'], kind: 'source' },
 

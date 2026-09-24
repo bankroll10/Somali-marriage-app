@@ -1,0 +1,266 @@
+{
+  "maps": {
+    "4JC9H3WK": {
+      "snapshot": {
+        "answers": {
+          "timeline": "1-2",
+          "faith-role": 4,
+          "dealbreakers": [
+            "faith-nn"
+          ]
+        },
+        "identity": {
+          "firstName": "Fixture",
+          "gender": "woman",
+          "adult": true,
+          "age": 29,
+          "scene": "twin-cities"
+        },
+        "trust": {
+          "guideOnDevice": false,
+          "countMe": true
+        },
+        "mapHistory": [],
+        "stage": "preparing",
+        "situated": true,
+        "steps": [],
+        "guide": {
+          "replies": 0
+        },
+        "read": null,
+        "beforeYes": null,
+        "couple": null,
+        "vouch": null,
+        "endings": [],
+        "hesitated": null,
+        "began": [],
+        "completed": true,
+        "waitlist": null,
+        "ending": null,
+        "followups": []
+      },
+      "createdAt": "2026-09-24T10:11:12.345Z",
+      "expiresAt": "2027-09-24T10:11:12.345Z"
+    },
+    "once/79YCGEYQFX": {
+      "code": "4JC9H3WK",
+      "expiresAt": "2026-09-25T10:11:12.345Z"
+    },
+    "YQWPAFDH": {
+      "snapshot": {
+        "answers": {
+          "timeline": "1-2",
+          "faith-role": 4,
+          "dealbreakers": [
+            "faith-nn"
+          ]
+        },
+        "identity": {
+          "firstName": "Fixture",
+          "gender": "man",
+          "adult": true,
+          "age": 29,
+          "scene": "columbus"
+        },
+        "trust": {
+          "guideOnDevice": false,
+          "countMe": true
+        },
+        "mapHistory": [],
+        "stage": "preparing",
+        "situated": true,
+        "steps": [],
+        "guide": {
+          "replies": 0
+        },
+        "read": null,
+        "beforeYes": null,
+        "couple": null,
+        "vouch": null,
+        "endings": [],
+        "hesitated": null,
+        "began": [],
+        "completed": true,
+        "waitlist": null,
+        "ending": null,
+        "followups": []
+      },
+      "createdAt": "2026-09-24T10:11:12.345Z",
+      "expiresAt": "2027-09-24T10:11:12.345Z"
+    },
+    "ended/GPG8AXKK": {
+      "why": "moved",
+      "expiresAt": "2027-09-24T10:11:12.345Z"
+    },
+    "ended/QRQ9QPNY": {
+      "why": "forgotten",
+      "expiresAt": "2027-09-24T10:11:12.345Z"
+    }
+  },
+  "progress": {
+    "NXTD7NCT": {
+      "first": {
+        "arrived": "2026-09-24T10:11:12.345Z",
+        "mapped": "2026-09-24T10:11:12.345Z",
+        "kept": "2026-09-24T10:11:12.345Z"
+      },
+      "scene": "twin-cities",
+      "expiresAt": "2027-09-24T10:11:12.345Z"
+    },
+    "8YWWKTKD": {
+      "first": {
+        "arrived": "2026-09-24T10:11:12.345Z",
+        "mapped": "2026-09-24T10:11:12.345Z",
+        "kept": "2026-09-24T10:11:12.345Z"
+      },
+      "scene": "columbus",
+      "expiresAt": "2027-09-24T10:11:12.345Z"
+    }
+  },
+  "cohort": {
+    "us/twin-cities/woman/city/none/4JC9H3WK": {
+      "at": "2026-09-24T10:11:12.345Z",
+      "ledger": []
+    },
+    "index/4JC9H3WK": "us/twin-cities/woman/city/none/4JC9H3WK",
+    "us/columbus/man/city/none/YQWPAFDH": {
+      "at": "2026-09-24T10:11:12.345Z",
+      "ledger": []
+    },
+    "index/YQWPAFDH": "us/columbus/man/city/none/YQWPAFDH"
+  },
+  "contacts": {
+    "4JC9H3WK": {
+      "contact": "a@example.com",
+      "scene": "twin-cities",
+      "country": "us",
+      "at": "2026-09-24T10:11:12.345Z"
+    },
+    "YQWPAFDH": {
+      "contact": "b@example.com",
+      "scene": "columbus",
+      "country": "us",
+      "at": "2026-09-24T10:11:12.345Z"
+    }
+  },
+  "vouches": {
+    "asked/4JC9H3WK": "M799NH48P7",
+    "token/M799NH48P7": "4JC9H3WK",
+    "4JC9H3WK": {
+      "relationship": "father",
+      "firstName": "Abdi",
+      "sentence": "Fixture sentence",
+      "at": "2026-09-24T10:11:12.345Z"
+    }
+  },
+  "couples": {
+    "NPER8A8Q": {
+      "creator": "woman",
+      "owner": "H8NR4JXPYR",
+      "first": {
+        "live": "differ",
+        "his-family-in-home": "unknown",
+        "work": "unknown",
+        "money-home": "not-talked",
+        "children": "unknown",
+        "deen-daily": "unknown",
+        "aroos-mahr": "differ",
+        "qabiil": "differ",
+        "going-back": "differ",
+        "second-wife": "unknown",
+        "families-disagree": "not-talked"
+      },
+      "createdAt": "2026-09-24T10:11:12.345Z",
+      "expiresAt": "2026-12-23T10:11:12.345Z",
+      "second": {
+        "live": "differ",
+        "his-family-in-home": "agree",
+        "work": "agree",
+        "money-home": "unknown",
+        "children": "agree",
+        "deen-daily": "not-talked",
+        "aroos-mahr": "differ",
+        "qabiil": "agree",
+        "going-back": "not-talked",
+        "second-wife": "unknown",
+        "families-disagree": "not-talked"
+      },
+      "answeredAt": "2026-09-24T10:11:12.345Z"
+    },
+    "YKNPWEA9": {
+      "creator": "woman",
+      "owner": "FNGDX8N9YC",
+      "first": {
+        "live": "differ",
+        "his-family-in-home": "agree",
+        "work": "agree",
+        "money-home": "unknown",
+        "children": "agree",
+        "deen-daily": "not-talked",
+        "aroos-mahr": "differ",
+        "qabiil": "agree",
+        "going-back": "not-talked",
+        "second-wife": "unknown",
+        "families-disagree": "not-talked"
+      },
+      "createdAt": "2026-09-24T10:11:12.345Z",
+      "expiresAt": "2026-12-23T10:11:12.345Z"
+    }
+  },
+  "reports": {
+    "NPER8A8Q-woman-9RXRF7CR7E": {
+      "id": "9RXRF7CR7E",
+      "code": "NPER8A8Q",
+      "side": "woman",
+      "reason": "harassment",
+      "details": "Fixture words",
+      "at": "2026-09-24T10:11:12.345Z"
+    },
+    "resolved/7RH9JW9HTY": {
+      "reason": "other",
+      "at": "2026-09-24T10:11:12.345Z",
+      "resolvedAt": "2026-09-24T10:11:12.345Z",
+      "outcome": "no-action"
+    }
+  },
+  "tallies": {
+    "joint": {
+      "pairs": 1,
+      "topics": {
+        "live": {
+          "differ-somewhere": 1
+        },
+        "his-family-in-home": {
+          "unknown-somewhere": 1
+        },
+        "work": {
+          "unknown-somewhere": 1
+        },
+        "money-home": {
+          "unknown-somewhere": 1
+        },
+        "children": {
+          "unknown-somewhere": 1
+        },
+        "deen-daily": {
+          "unknown-somewhere": 1
+        },
+        "aroos-mahr": {
+          "differ-somewhere": 1
+        },
+        "qabiil": {
+          "differ-somewhere": 1
+        },
+        "going-back": {
+          "one-thinks-talked": 1
+        },
+        "second-wife": {
+          "unknown-somewhere": 1
+        },
+        "families-disagree": {
+          "both-not-talked": 1
+        }
+      }
+    }
+  }
+}
