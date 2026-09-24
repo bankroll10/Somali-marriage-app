@@ -1,6 +1,6 @@
 import type { FollowUp, Gender, ReadRecord } from '../types'
 import { beforeYesTopics, type Topic } from '../data/beforeYes'
-import { SCRIPTS, speak, type ReadDimension, type Script } from '../data/read'
+import { scriptFor, speak, type ReadDimension, type Script } from '../data/read'
 import { familyScript } from '../data/families'
 import type { WordsSource } from './words'
 
@@ -20,13 +20,19 @@ import type { WordsSource } from './words'
  * So the product writes down what it told her to do, waits, and asks. Nothing
  * here is a streak, a reminder, or a nudge to come back: it is asked once per
  * thing, only after enough days that the answer could have changed, and
- * "not yet" is a real answer that closes nothing.
+ * "not yet" is a real answer that closes nothing — it is asked about once
+ * more, a week later, unless she puts it away.
  *
  * Pure — the followups and the day are passed in.
  */
 
 /** Long enough that a real conversation could have happened in between. */
 export const MIN_AGE_DAYS = 3
+/**
+ * "Not yet" is asked about once more, this long after she said it. Once — a
+ * second "not yet" is an answer, and asking a third time would be a nag.
+ */
+export const NOT_YET_AGAIN_DAYS = 7
 /** Long enough that what he has shown her could have changed. */
 export const READ_STALE_DAYS = 30
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -70,13 +76,42 @@ const READ_DIMENSIONS = new Set<string>(['public', 'intent', 'consistency', 'pre
  */
 export function openFollowUp(followups: FollowUp[], gender: Gender = 'woman', now = Date.now()): FollowUpAsk | null {
   const ripe = followups
-    .filter((f) => !f.outcome && now - Date.parse(f.at) >= MIN_AGE_DAYS * DAY_MS)
+    .filter((f) => isOpen(f, now))
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
   for (const f of ripe) {
     const ask = describe(f, gender)
     if (ask) return ask
   }
   return null
+}
+
+/**
+ * Whether a follow-up is waiting to be asked. Unanswered, after MIN_AGE_DAYS;
+ * or answered "not yet" once, a week after she said it. The docblock above
+ * promised "not yet" closes nothing, and for a year it closed the thing for
+ * good — the words were shown once more and never asked about again.
+ * `settled` marks one that is not asked again: put away, or asked twice.
+ */
+function isOpen(f: FollowUp, now: number): boolean {
+  if (!f.outcome) return now - Date.parse(f.at) >= MIN_AGE_DAYS * DAY_MS
+  if (f.outcome !== 'not-yet' || f.settled) return false
+  const said = Date.parse(f.outcomeAt ?? f.at)
+  return Number.isFinite(said) && now - said >= NOT_YET_AGAIN_DAYS * DAY_MS
+}
+
+/**
+ * The conversation, as a phrase that reads after "about" — in her voice to the
+ * guide ("I was going to talk to them about …") and in the Ending's record
+ * ("You had the conversation about …"). The read used to be "the question you
+ * were going to ask", which read as broken English in both.
+ */
+const READ_TOPIC: Record<ReadDimension | 'early', string> = {
+  public: 'being known in {his} life',
+  intent: 'marriage, and when',
+  family: 'meeting the families',
+  consistency: 'whether words and actions match',
+  pressure: 'how {he} handles hard things',
+  early: 'what each of you is looking for',
 }
 
 function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
@@ -89,7 +124,7 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
     return {
       followUp: f,
       question: say('Last time, the guide gave you words to say to {him}. Did you say them?'),
-      label: 'what the guide gave me the words for',
+      label: 'the words the guide gave you',
       script: {
         why: 'These are the words you said you would say.',
         words,
@@ -118,11 +153,15 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
   }
   if (f.source === 'read') {
     if (!READ_DIMENSIONS.has(f.topic)) return null
-    const script = SCRIPTS[f.topic as ReadDimension | 'early']
+    // His side's words when he is the reader: the follow-up used to look the
+    // script up in her table, so three days later a man was asked whether he
+    // had put "How would you want to approach my family?" to a woman.
+    const key = f.topic as ReadDimension | 'early'
+    const script = scriptFor(key, gender)
     return {
       followUp: f,
       question: say('Last time, this was the question to put to {him}. Have you asked it?'),
-      label: 'the question you were going to ask',
+      label: say(READ_TOPIC[key]),
       script,
       writesBack: false,
       travel: 'read',
@@ -188,12 +227,21 @@ export function noteFollowUp(
   return [...followups, entry].slice(-20)
 }
 
-/** Record how it went, and stop asking. */
+/**
+ * Record how it went. "Not yet" is asked about once more unless she put it
+ * away; anything said the second time it is asked settles it.
+ */
 export function resolveFollowUp(
   followups: FollowUp[],
   id: string,
   outcome: NonNullable<FollowUp['outcome']>,
   at = new Date().toISOString(),
+  putAway = false,
 ): FollowUp[] {
-  return followups.map((f) => (f.id === id ? { ...f, outcome, outcomeAt: at } : f))
+  return followups.map((f) => {
+    if (f.id !== id) return f
+    const settled = outcome === 'not-yet' && (putAway || f.outcome === 'not-yet')
+    const { settled: _was, ...rest } = f
+    return { ...rest, outcome, outcomeAt: at, ...(settled ? { settled: true } : {}) }
+  })
 }

@@ -132,6 +132,24 @@ export interface CoupleState {
   at: string
   /** When he answered, once we have seen the joint view. */
   answered?: string
+  /**
+   * Which side of the pair this phone is. Absent means the one who sent it;
+   * 'second' is the one who answered her link — whose Home, until 2026-09-24,
+   * never knew there was a pair at all (docs/DIFFERENTIATION.md).
+   */
+  side?: 'second'
+  /**
+   * The owner key the server handed back when she made it: what lets her
+   * change her side before he answers. On this phone only — the kept map
+   * leaves it out (src/lib/keep.ts).
+   */
+  key?: string
+  /**
+   * The joint, once seen. It cannot change after he answers — her side is
+   * frozen and his was sent once — so it is kept, and shown from here after
+   * the link has ended instead of "we couldn't check". On this phone only.
+   */
+  joint?: Record<string, 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'>
 }
 
 /** A family member has vouched for her. Only what any screen may ever show. */
@@ -291,6 +309,12 @@ export interface FollowUp {
   /** 'asked' means the conversation actually happened. */
   outcome?: 'asked' | 'not-yet' | 'differently'
   outcomeAt?: string
+  /**
+   * A "not yet" that is not asked about again: she put it away, or it was
+   * already asked a second time. An unsettled "not yet" is asked once more a
+   * week later (src/lib/followup.ts).
+   */
+  settled?: boolean
 }
 
 /**
@@ -336,6 +360,12 @@ export interface ReadRecord {
    * and "still the same" is recorded here so it is not asked again for a while.
    */
   checkedAt?: string
+  /**
+   * The read before this one, when she took it again — so the result can say
+   * what moved. Kept on this phone only: the kept map leaves it out
+   * (src/lib/keep.ts), and nothing about it is sent anywhere.
+   */
+  previous?: { at: string; answers: Record<string, string> }
 }
 
 /**

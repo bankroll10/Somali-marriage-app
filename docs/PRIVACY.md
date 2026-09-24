@@ -46,6 +46,7 @@ That is the honest limit of every row marked founder.
 | `mapHistory` (12 past maps) | "How your map changed" | Each retake | Her | Last 12 | Same | Partly, but it is hers and local | keep |
 | `read`, `beforeYes` (ids, ISO time) | Her read of someone; her eleven | Those instruments | Her | Same | Same | No | keep |
 | `couple`, `vouch`, `ending`, `endings`, `hesitated`, `began`, `followups`, `steps`, `guide.replies`, `trust`, `stage`, `situated`, `completed` | Each drives a screen | As used | Her | Same | Same | No | keep |
+| `read.previous`; `couple.key`, `couple.joint`, `couple.side` (2026-09-24) | What moved since the last read; changing her side before he answers; the joint after the link ends; his Home knowing there is a pair | As used | Her | This phone only — the kept map leaves all four out (`src/lib/keep.ts`) | Start over, Forget me | No | keep |
 | `ending.advice` (free text) | Goes into a message she sends herself | The ending | Her | Same | Same | n/a | keep, **now phone-only** (C3) |
 | `coachThreads` (free text, both sides) | Continuity with the guide | Each message | Her | **Last 40 per voice** (was unbounded) | Forget me, Start over | The guide reads 10 | **retention fixed** (R6) |
 | `updatedAt` (ms) | Local bookkeeping | Every save | Her | Same | Same | Yes for the server: no longer sent (C1) | minimized |

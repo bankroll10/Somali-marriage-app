@@ -224,6 +224,19 @@ describe('what the Guide is told', () => {
     expect(s).toMatch(/thinnest ground/)
     expect(s.length).toBeLessThan(120)
   })
+
+  it('names a money request as one, not as being kept hidden', () => {
+    // Every caution used to reach the guide as "a pattern of being kept
+    // hidden" — including the one it most needs to know about.
+    const money = buildRead(answers({ money: 'yes' }))!
+    expect(money.band).toBe('caution')
+    expect(money.concern).toBe('money')
+    expect(readSummary(money)).toMatch(/asked for money before the families have met/)
+    expect(readSummary(money)).not.toMatch(/hidden/)
+    const hidden = buildRead(answers({ secret: 'explicit', known: 'nobody' }))!
+    expect(hidden.concern).toBe('hidden')
+    expect(readSummary(hidden)).toMatch(/kept hidden/)
+  })
 })
 
 describe('the example on the introduction', () => {

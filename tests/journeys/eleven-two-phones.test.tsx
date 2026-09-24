@@ -126,4 +126,115 @@ describe('the eleven, on two phones', () => {
     // The server agrees: nothing either phone can fetch carries a side.
     expect(JSON.stringify(saved(herPhone).couple)).not.toMatch(/"first"|"second"/)
   })
+
+  it('the pair loop closes on both phones: his Home, one conversation to ask about, and a joint that outlives the link', async () => {
+    const [hers, his] = fc.sample(fc.tuple(beforeYesAnswers('woman'), beforeYesAnswers('man')), { numRuns: 1, seed: 20260925 })[0]
+    const ids = beforeYesTopics('woman').map((t) => t.id)
+    const joints = Object.fromEntries(ids.map((t) => [t, joint(hers[t] as YesState, his[t] as YesState)]))
+    const expected = { woman: coupleReading(joints, 'woman'), man: coupleReading(joints, 'man') }
+    const sheet = shareSheet()
+
+    const herPhone = onPhone(new Phone('hers'))
+    const her = await mount(open(inviteLink('beforeYes')))
+    await her.press('Start — about him')
+    await answerEleven(her, 'woman', hers)
+    await her.press(/^Ask him/)
+    const link = sheet.sent.at(-1)!.url!
+    await her.until(() => saved(herPhone).couple, 'her pair is saved')
+    her.unmount()
+    reload()
+
+    // His side. The joint he is shown is kept on his phone, and his Home
+    // knows there is a pair — it used to know nothing.
+    const hisPhone = onPhone(new Phone('his'))
+    const him = await mount(open(link))
+    await him.press(/^Start$/)
+    await answerEleven(him, 'man', his)
+    await him.until(() => him.text().includes(expected.man.headline), 'his joint')
+    await him.until(() => saved(hisPhone).couple?.joint, 'the joint is kept on his phone')
+    him.unmount()
+    reload()
+    const hisHome = await mount(<App />)
+    expect(hisHome.text()).toContain('You both answered')
+    await hisHome.press(/Where the two of you stand/)
+    await hisHome.until(() => hisHome.text().includes(expected.man.headline), 'his joint, from Home')
+    expect(hisHome.has(/^Ask her/)).toBe(false)
+    hisHome.unmount()
+    reload()
+
+    // Her phone sees the answer and keeps the joint too.
+    onPhone(herPhone)
+    const herHome = await mount(<App />)
+    await herHome.until(() => saved(herPhone).couple?.joint, 'the joint is kept on her phone')
+    herHome.unmount()
+    reload()
+
+    // Days later, both are asked about the same conversation — the one the
+    // two of them should open together.
+    const open1 = expected.woman.open!
+    expect(expected.man.open!.id).toBe(open1.id)
+    for (const [p, g] of [[herPhone, 'woman'], [hisPhone, 'man']] as const) {
+      later(p, 4)
+      onPhone(p)
+      const home = await mount(<App />)
+      const label = beforeYesTopics(g).find((t) => t.id === open1.id)!.label
+      expect(home.text(), `${g}’s follow-up`).toContain(`the one to open was ${label.charAt(0).toLowerCase()}${label.slice(1)}`)
+      home.unmount()
+      reload()
+    }
+
+    // Ninety days on, the server has forgotten the pair. Her screen shows
+    // what she saw, not "we couldn't check — that is us".
+    const code = new URL(link).searchParams.get('couple')!
+    blobs.stores.get('couples')?.delete(code)
+    onPhone(herPhone)
+    const gone = await mount(<App />)
+    await gone.press(/Where the two of you stand/)
+    await gone.until(() => gone.text().includes(expected.woman.headline), 'the kept joint')
+    expect(gone.text()).not.toMatch(/couldn’t check/)
+    gone.unmount()
+  })
+
+  it('she goes through it again before he answers, and he is compared with the sheet she has now', async () => {
+    const [first, second, his] = fc.sample(
+      fc.tuple(beforeYesAnswers('woman'), beforeYesAnswers('woman'), beforeYesAnswers('man')),
+      { numRuns: 1, seed: 20260926 },
+    )[0]
+    const ids = beforeYesTopics('woman').map((t) => t.id)
+    const expected = coupleReading(Object.fromEntries(ids.map((t) => [t, joint(second[t] as YesState, his[t] as YesState)])), 'man')
+    const sheet = shareSheet()
+
+    const herPhone = onPhone(new Phone('hers'))
+    const her = await mount(open(inviteLink('beforeYes')))
+    await her.press('Start — about him')
+    await answerEleven(her, 'woman', first)
+    await her.press(/^Ask him/)
+    const link = sheet.sent.at(-1)!.url!
+    await her.until(() => saved(herPhone).couple?.key, 'her owner key is kept on her phone')
+    await her.press('Go through it again')
+    await answerEleven(her, 'woman', second)
+    const code = new URL(link).searchParams.get('couple')!
+    await her.until(() => {
+      const held = blobs.read('couples', code) as { first?: Record<string, string> } | undefined
+      return held?.first && ids.every((t) => held.first![t] === second[t])
+    }, 'her new sheet reached the server')
+    her.unmount()
+    reload()
+
+    onPhone(new Phone('his'))
+    const him = await mount(open(link))
+    await him.press(/^Start$/)
+    await answerEleven(him, 'man', his)
+    await him.until(() => him.text().includes(expected.headline), 'his joint, against her second sheet')
+    for (const l of expected.lines) expect(him.text()).toContain(l.line)
+    him.unmount()
+  })
 })
+
+/** Move everything this phone was told to do `days` into the past. */
+function later(p: Phone, days: number) {
+  const s = saved(p)
+  const back = (iso?: string) => (iso ? new Date(Date.parse(iso) - days * 24 * 60 * 60 * 1000).toISOString() : iso)
+  s.followups = (s.followups ?? []).map((f: { at: string; outcomeAt?: string }) => ({ ...f, at: back(f.at), ...(f.outcomeAt ? { outcomeAt: back(f.outcomeAt) } : {}) }))
+  p.storage.set('niyyah.intake.v1', JSON.stringify(s))
+}

@@ -18,6 +18,13 @@
  * The rule is enforceable by test for the brand strings only, and
  * docs/BACKWARD.md now says so.
  *
+ * The description and the social card changed on 2026-09-24
+ * (docs/DIFFERENTIATION.md). Both used to say only what every competitor can
+ * also claim — Somali, serious, faithful, done in the open — and the card
+ * promised "find someone serious", a marketplace the product does not yet
+ * have. They now say what someone gets on the first visit, which is also the
+ * thing a copy of our homepage would not give them.
+ *
  * "Powered by AI" is gone from all three surfaces that still carried it after
  * docs/DURABLE.md recorded it removed — the model may add a sentence, never
  * be the reason (tests/durable.test.ts). No imports: vite.config.ts loads
@@ -29,18 +36,16 @@ export const NAME = 'Niyyah'
 /** The eyebrow over the hero, and the first thing anyone reads. */
 export const EYEBROW = 'Built for the Somali diaspora'
 
-/** The Welcome bullet that says who built this and for whom. */
-export const BUILT_BY = 'Built by a Somali, for the questions our aunties ask — and the ones they don’t.'
-
 /** `<title>`: what a tab, a bookmark and a search result call this. */
 export const TITLE = `${NAME} — marriage for the Somali diaspora, done in the open`
 
 /** The meta description and the manifest's description. */
 export const DESCRIPTION =
-  'Marriage for the Somali diaspora, done in the open — guided by faith, made for serious people.'
+  'For someone you are already talking to: what they have done, the conversations that decide a marriage, and the words for them. For the Somali diaspora. No account.'
 
 /** What the social card says when a link is pasted into a chat. */
-export const TAGLINE = 'Find someone serious — without losing your dignity, faith, time, or peace.'
+export const TAGLINE =
+  'Already talking to someone? What they have shown you, the conversation to have next, and the words for it.'
 
 /** The social card's alt text. */
 export const OG_ALT = `${NAME} — built for the Somali diaspora. What’s in your way?`

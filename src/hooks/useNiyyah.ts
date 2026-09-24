@@ -20,7 +20,7 @@ import { reportRungs } from '../lib/progress'
 import { factsFrom } from '../lib/facts'
 import { forgetMe, retryPendingForget, type Forgotten } from '../lib/forget'
 import { clearAllDrafts } from '../lib/draft'
-import { coupleReading, readCouple } from '../lib/couple'
+import { coupleReading, readCouple, updateCouple, type Joint } from '../lib/couple'
 import { forgetEntry, type Entry, type EntryKind } from '../lib/entry'
 import type { ToolSide } from '../data/tools'
 import { forgetCode, rememberedCode } from '../lib/keep'
@@ -95,7 +95,7 @@ const RECHECK_TRIES = 1
 const RECHECK_MS = 20_000
 
 /** The screens Trust can be opened from, and returns to. */
-type TrustReturn = 'profile' | 'read' | 'beforeYes'
+type TrustReturn = 'profile' | 'read' | 'beforeYes' | 'home'
 export type ElevenAt = 'front' | 'result' | 'joint'
 
 /** The word in the link, and the screen it opens. A restored map opens nothing of its own. */
@@ -336,7 +336,9 @@ export function useNiyyah(entry: Entry | null = null) {
         return
       }
       if (v.status !== 'joint') return
-      setCouple((prev) => (prev ? { ...prev, answered: new Date().toISOString() } : prev))
+      // The joint is kept: it cannot change now, and after ninety days the
+      // server forgets it while her Home still says he answered.
+      setCouple((prev) => (prev ? { ...prev, answered: new Date().toISOString(), joint: v.joint } : prev))
       // The one the two of them should open together is the one to ask about
       // in a few days — this is where the pair's follow-through comes from.
       const open = coupleReading(v.joint, identity.gender ?? 'woman').open
@@ -359,34 +361,38 @@ export function useNiyyah(entry: Entry | null = null) {
     // the app's own autosave, on exactly the path where the server half had
     // already failed (docs/FAIL.md).
     if (forgotten.current) return
-    const t = window.setTimeout(
-      () =>
-        setSaveOk(
-          saveProgress({
-            answers,
-            identity,
-            trust,
-            mapHistory,
-            stage,
-            situated,
-            steps,
-            guide: guideUse,
-            waitlist,
-            read,
-            beforeYes,
-            couple,
-            vouch,
-            ending,
-            endings,
-            hesitated,
-            began,
-            followups,
-            completed,
-            coachThreads,
-          }),
-        ),
-      SAVE_DEBOUNCE_MS,
-    )
+    const t = window.setTimeout(() => {
+      // And not by a save scheduled a moment before she tapped it: the check
+      // above runs when a save is scheduled, and a change inside the debounce
+      // window — an answer on the Ending, then Forget me — used to fire after
+      // the phone was cleared and write every value straight back. Found by
+      // tests/invariants/the-loop-closes.test.tsx, forgetting from the Ending.
+      if (forgotten.current) return
+      setSaveOk(
+        saveProgress({
+          answers,
+          identity,
+          trust,
+          mapHistory,
+          stage,
+          situated,
+          steps,
+          guide: guideUse,
+          waitlist,
+          read,
+          beforeYes,
+          couple,
+          vouch,
+          ending,
+          endings,
+          hesitated,
+          began,
+          followups,
+          completed,
+          coachThreads,
+        }),
+      )
+    }, SAVE_DEBOUNCE_MS)
     return () => window.clearTimeout(t)
   }, [
     answers,
@@ -631,7 +637,10 @@ export function useNiyyah(entry: Entry | null = null) {
    * few days the product can ask whether she asked it, instead of forgetting.
    */
   function saveRead(record: ReadRecord | null) {
-    setRead(record)
+    // A retake keeps the one before it, one deep, so the result can say what
+    // moved. Re-saving the same answers (a restored or re-shown read) does not.
+    const prior = read && record && read.at !== record.at ? { at: read.at, answers: read.answers } : undefined
+    setRead(record && prior ? { ...record, previous: prior } : record)
     if (!record) return
     const r = buildRead(record.answers, identity.gender ?? 'woman')
     if (r) setFollowups((prev) => noteFollowUp(prev, 'read', r.band === 'early' ? 'early' : r.thin))
@@ -647,10 +656,41 @@ export function useNiyyah(entry: Entry | null = null) {
   function saveBeforeYes(record: ReadRecord | null) {
     setBeforeYes(record)
     if (!record) return
+    // She went through it again after sending it, and he has not answered:
+    // the pair is compared against the sheet she has now, not the old one.
+    // Her own phone's key, and only until he answers — then her side is
+    // frozen by the server, and a 409 here is the expected answer.
+    if (couple && !couple.answered && !couple.side && couple.key) {
+      void updateCouple(couple.code, couple.key, record.answers, identity.gender ?? 'woman')
+    }
     const r = buildBeforeYes(record.answers, identity.gender ?? 'woman')
     if (r) setFollowups((prev) => noteFollowUp(prev, 'beforeYes', r.open.id))
     const inferred = stageAfterInstrument('eleven', stage, situated)
     if (inferred) setStageRaw(inferred)
+  }
+
+  /**
+   * He answered her link, on his own phone. His eleven becomes his own Before
+   * you say yes, and — new — the pair becomes his too: the code, the joint he
+   * was just shown (the only thing the server would ever send either of them),
+   * and one follow-up for the conversation the two of them should open
+   * together. It used to be his individual "one to open", so the pair could
+   * be asked, days later, about two different conversations.
+   */
+  function answeredCouple(code: string, states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>) {
+    const now = new Date().toISOString()
+    setIdentity((prev) => ({ ...prev, gender }))
+    setBeforeYes({ at: now, answers: states })
+    const inferred = stageAfterInstrument('eleven', stage, situated)
+    if (inferred) setStageRaw(inferred)
+    if (!joint) {
+      const r = buildBeforeYes(states, gender)
+      if (r) setFollowups((prev) => noteFollowUp(prev, 'beforeYes', r.open.id))
+      return
+    }
+    setCouple((prev) => (prev && prev.code !== code && !prev.answered ? prev : { code, at: now, answered: now, side: 'second', joint }))
+    const open = coupleReading(joint, gender).open
+    if (open) setFollowups((prev) => noteFollowUp(prev, 'couple', open.id))
   }
 
   /**
@@ -661,9 +701,9 @@ export function useNiyyah(entry: Entry | null = null) {
    * unasked list actually shrinks as the courtship goes on, instead of staying
    * frozen at the day she filled it in.
    */
-  function answerFollowUp(id: string, outcome: NonNullable<FollowUp['outcome']>, agreed?: boolean) {
+  function answerFollowUp(id: string, outcome: NonNullable<FollowUp['outcome']>, agreed?: boolean, putAway?: boolean) {
     const target = followups.find((f) => f.id === id)
-    setFollowups((prev) => resolveFollowUp(prev, id, outcome))
+    setFollowups((prev) => resolveFollowUp(prev, id, outcome, undefined, putAway))
     if (outcome !== 'asked' || agreed === undefined || !target) return
     if (target.source !== 'beforeYes' && target.source !== 'couple') return
     setBeforeYes((prev) =>
@@ -913,6 +953,7 @@ export function useNiyyah(entry: Entry | null = null) {
     setWaitlist,
     setRead: saveRead,
     setBeforeYes: saveBeforeYes,
+    answeredCouple,
     followups,
     followUpAsk,
     answerFollowUp,

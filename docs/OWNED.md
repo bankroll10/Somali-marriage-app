@@ -146,9 +146,10 @@ not values, so the monthly file held codes and no contacts until
 ### 3 · The compatibility framework's lineage
 
 **Half-owned, and the missing half is the part that compounds.** The
-constants are already ours — `WEIGHTS` in `src/lib/read.ts`, `consequence`
-per topic in `src/data/beforeYes.ts`, `stateOf`'s thresholds in
-`src/lib/reflection.ts`, `alignment()`'s weights, the order of the eleven.
+constants are already ours — `PRIORITY` in `src/lib/read.ts` (its summed
+`WEIGHTS` were removed, `docs/ALIGNMENT.md`), `consequence` per topic in
+`src/data/eleven.ts`, `stateOf`'s thresholds in `src/lib/reflection.ts`, the
+order of the eleven.
 But today every one of them is a **founder opinion sitting in a literal**, and
 an opinion is not an asset. The asset is the *lineage*: this constant is 0.75
 because ninety-one people's endings said so on this date, and here is what it

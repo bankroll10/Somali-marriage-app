@@ -147,6 +147,10 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       onResume={n.resume}
       onEnter={n.enterHome}
       onPhilosophy={() => n.openPhilosophy('welcome')}
+      // Only when there is no Home to ask it on — a Home asks it itself.
+      followUpAsk={n.hasHome ? null : n.followUpAsk}
+      onAnswerFollowUp={n.answerFollowUp}
+      onAskGuide={(text) => n.askGuide(text, n.identity.gender)}
     />
   )
 
@@ -242,12 +246,15 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onAsk={(text, mode) => n.askGuide(text, n.identity.gender, mode)}
           onOpenMap={n.reflection ? () => n.setScreen('reflection') : n.beginMap}
           onOpenProfile={() => n.setScreen('profile')}
+          onOpenTrust={() => n.openTrust('home')}
           onOpenRead={() => n.setScreen('read')}
           hasRead={!!n.read}
           onOpenBeforeYes={() => n.openBeforeYes(n.beforeYes ? 'result' : 'front')}
           onOpenJoint={() => n.openBeforeYes('joint')}
           hasBeforeYes={!!n.beforeYes}
           coupleAnswered={!!n.couple?.answered}
+          coupleWaiting={!!n.couple && !n.couple.answered && !n.couple.side}
+          coupleSecond={n.couple?.side === 'second'}
           onOpenFamilies={() => n.setScreen('families')}
           onOpenEnding={() => n.setScreen('ending')}
           onPhilosophy={() => n.openPhilosophy('home')}
@@ -440,11 +447,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           saveOk={n.saveOk}
           code={n.entryCode}
           // Her own link, opened on her own phone (docs/NIELSEN.md N1).
-          yours={n.couple?.code === n.entryCode}
-          onAnswered={(states, g) => {
-            n.setBeforeYes({ at: new Date().toISOString(), answers: states })
-            n.setIdentity((prev) => ({ ...prev, gender: g }))
-          }}
+          yours={n.couple?.code === n.entryCode && !n.couple?.side}
+          onAnswered={(states, g, joint) => n.answeredCouple(n.entryCode!, states, g, joint)}
           onBegan={() => n.noteBegan('couple')}
           onRead={() => n.setScreen('read')}
           onBuildMap={n.beginMap}
@@ -458,7 +462,15 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       return <Vouch saveOk={n.saveOk} code={n.entryCode} onDone={backHome} />
 
     case 'families':
-      return <Families gender={n.identity.gender} stage={n.stage} onTaken={n.noteFamilyScript} onBack={backHome} />
+      return (
+        <Families
+          gender={n.identity.gender}
+          stage={n.stage}
+          onTaken={n.noteFamilyScript}
+          onSetGender={(g: Gender) => n.setIdentity((prev) => ({ ...prev, gender: g }))}
+          onBack={backHome}
+        />
+      )
 
     case 'sample':
       return (
@@ -503,6 +515,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           didEleven={!!n.beforeYes || !!n.couple}
           saved={n.ending}
           onSave={n.setEnding}
+          onForget={n.forgetEverything}
           onBack={backHome}
         />
       )

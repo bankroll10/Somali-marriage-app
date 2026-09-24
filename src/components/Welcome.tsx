@@ -1,6 +1,10 @@
+import { useState } from 'react'
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
+import FollowUp, { FollowedThrough } from './home/FollowUp'
+import type { FollowUpAsk } from '../lib/followup'
+import type { FollowUp as FollowUpRecord } from '../types'
 import RestoreMap from './RestoreMap'
-import { BUILT_BY, EYEBROW } from '../data/brand'
+import { EYEBROW } from '../data/brand'
 
 interface Props {
   onBegin: () => void
@@ -11,6 +15,14 @@ interface Props {
   onResume: () => void
   onEnter: () => void
   onPhilosophy: () => void
+  /**
+   * A conversation someone was handed words for, days ago, with no Home to be
+   * asked about it on — a stranger who took the family words, say. Asked here,
+   * where they land, instead of never (docs/DIFFERENTIATION.md).
+   */
+  followUpAsk?: FollowUpAsk | null
+  onAnswerFollowUp?: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
+  onAskGuide?: (text: string) => void
 }
 
 
@@ -22,7 +34,11 @@ export default function Welcome({
   onResume,
   onEnter,
   onPhilosophy,
+  followUpAsk = null,
+  onAnswerFollowUp,
+  onAskGuide,
 }: Props) {
+  const [hadIt, setHadIt] = useState<FollowUpAsk | null>(null)
   return (
     <div className="relative min-h-dvh overflow-hidden bg-forest-deep text-cream">
       <GeoBackdrop className="opacity-70" />
@@ -34,6 +50,22 @@ export default function Welcome({
         </header>
 
         <main className="flex flex-1 flex-col justify-center py-16">
+          {onAnswerFollowUp && (hadIt || followUpAsk) && (
+            <div className="-mt-8 mb-10 rounded-card bg-cream px-4 pb-4 text-ink">
+              {hadIt ? (
+                <FollowedThrough ask={hadIt} onDone={() => setHadIt(null)} />
+              ) : (
+                <FollowUp
+                  ask={followUpAsk!}
+                  onAnswer={(id, outcome, agreed, putAway) => {
+                    if (outcome === 'asked') setHadIt(followUpAsk)
+                    onAnswerFollowUp(id, outcome, agreed, putAway)
+                  }}
+                  onAskGuide={(text) => onAskGuide?.(text)}
+                />
+              )}
+            </div>
+          )}
           <p className="animate-fade mb-5 text-sm font-medium uppercase tracking-[0.25em] text-gold-soft">
             {EYEBROW}
           </p>
@@ -103,12 +135,14 @@ export default function Welcome({
           </p>
 
           {/* What kind of thing this is.
-              Everything that makes Niyyah different from a dating app was, until
-              now, only visible after she had already spent two minutes: no
-              swiping lives on the sample introduction, wali-friendly on Trust, values-before-
-              photos on a candidate card. All of it behind the decision it was
-              supposed to inform. A difference nobody can perceive at the moment
-              of choosing does no work at all.
+              These three lines used to be written against a dating app — built
+              by a Somali, stage-first, the conversations that break marriages —
+              and every competitor in this category can say the first and third
+              (docs/DIFFERENTIATION.md). What none of them does is what these
+              say now: work on the relationship she already has, put the same
+              questions to him on his own phone, and come back to ask whether
+              the conversation happened. The test is Situation.tsx's: a sentence
+              no alternative in the category would think to say.
               Three lines, and it stays three. The moment this becomes a feature
               list it has stopped answering her question and started selling. */}
           <ul
@@ -116,9 +150,9 @@ export default function Welcome({
             style={{ animationDelay: '220ms' }}
           >
             {[
-              BUILT_BY,
-              'We start where you are: getting ready, talking to someone, or deciding with the families.',
-              'The conversations that break marriages — where you’d live, money home, a second wife — asked early, not too late.',
+              'It works on the relationship you already have — however you met, with no account.',
+              'Send them the same eleven questions. Each of you answers on your own phone; you both see only where you match.',
+              'A few days later, we ask whether the conversation happened. When you marry, we let you go.',
             ].map((line) => (
               <li key={line} className="flex gap-3 text-[0.93rem] leading-snug text-cream/70 text-pretty">
                 <span className="mt-[0.5rem] h-1 w-1 flex-none rounded-full bg-gold-soft" />
@@ -142,6 +176,16 @@ export default function Welcome({
                   Start where you are
                   <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
                 </Button>
+                {/* The second door, beside the first. It was a card below the
+                    fold — the one thing aimed at the highest-pain job, for the
+                    person who already has someone (docs/JOBS.md). */}
+                <button
+                  onClick={onRead}
+                  className="group inline-flex items-center justify-center gap-2 rounded-full border border-cream/30 px-5 py-3 text-[0.95rem] font-medium text-cream transition hover:bg-cream/10"
+                >
+                  Talking to someone? Get a read.
+                  <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                </button>
                 {hasProgress && (
                   <button
                     onClick={onResume}
@@ -153,54 +197,19 @@ export default function Welcome({
               </>
             )}
           </div>
-          {/* The line this page used to lead with. It's the best sentence in the
-              product — but it's the reward for reading, not the hook. */}
+          {/* "Then: find someone serious — without losing your dignity, faith,
+              time, or peace" sat here: a marketplace promise, with no pool open
+              and nobody to introduce (docs/DIFFERENTIATION.md). The line under
+              this one says what is true about that instead. */}
           <p
-            className="animate-fade mt-6 max-w-md text-[0.95rem] leading-relaxed text-cream/60 text-pretty"
-            style={{ animationDelay: '260ms' }}
-          >
-            Then: find someone serious — without losing your{' '}
-            <span className="italic text-cream/80">dignity, faith, time, or peace.</span>
-          </p>
-          <p
-            className="animate-fade mt-4 text-xs text-cream/45"
+            className="animate-fade mt-5 text-xs text-cream/60"
             style={{ animationDelay: '300ms' }}
           >
             Private to you · Minneapolis opens first · We never pretend a city is full
           </p>
-          {/* The second door.
-              The map answers "am I ready" — which ranks near the bottom of what
-              actually hurts. The woman with a live problem is already talking to
-              someone and wants to know what he means, tonight. Making her answer
-              sixteen questions about herself first is a toll gate, not an
-              onboarding: of the two real people who have ever opened the intake,
-              both stopped partway (src/data/intake.ts) — n = 2, and the only
-              user evidence this product has. This costs the hero nothing and
-              opens the product to the person in the most pain. */}
-          <div
-            className="animate-rise mt-8 w-full max-w-md rounded-card border border-cream/15 bg-cream/[0.06] p-5"
-            style={{ animationDelay: '300ms' }}
-          >
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">
-              Already talking to someone?
-            </p>
-            <p className="mt-2 font-display text-[1.2rem] font-medium leading-snug text-cream text-balance">
-              Start with a read on them instead.
-            </p>
-            <p className="mt-2 text-[0.9rem] leading-relaxed text-cream/60 text-pretty">
-              Twelve questions about what they have done. You get a read, and
-              the one question worth asking them next — no account, no intake
-              first.
-            </p>
-            <button
-              onClick={onRead}
-              className="group mt-4 inline-flex items-center gap-2 rounded-full border border-cream/30 px-5 py-2.5 text-[0.9rem] font-medium text-cream transition hover:bg-cream/10"
-            >
-              Talking to someone? Get a read.
-              <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-            </button>
-          </div>
-
+          {/* The second door used to be a card here, below the fold, for the
+              person in the most pain — already talking to someone. It is now
+              the button beside "Start where you are". */}
           {/* Quiet on purpose: someone arriving for the first time should meet
               the question this app exists to answer, not a login. */}
           <RestoreMap />

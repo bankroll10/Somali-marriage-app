@@ -32,7 +32,7 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 
 /** What is on screen, in words only that screen has. */
 const LANDS = {
-  readChooser: /who are you reading\?/i,
+  readChooser: /Are they serious\?/,
   readAboutHim: /Is he serious\?/,
   readAboutHer: /Is she serious\?/,
   eleven: /Before you say yes/,

@@ -1,17 +1,22 @@
 # Niyyah
 
-**The trusted marriage platform for the Somali diaspora — guided by faith,
-designed for serious people.**
+**For the person you are already talking to: what they have actually done, the
+conversation to have next, and the words for it — then it asks whether you had
+it. For the Somali diaspora.**
 
-A modern bridge: between tradition and technology, family and individual choice,
-attraction and intention, AI and faith, Somali culture and modern reality. Not a
-place for swiping — the place where a confused generation learns how to *choose*.
-
-Not another dating app. Dating apps only answer **"who is available?"** Niyyah
-starts with the questions that actually decide everything:
+Dating apps only answer **"who is available?"** Niyyah starts with the questions
+that actually decide everything:
 
 > Is he serious? Have we had the conversations that matter? Am I ready? How do I
 > move toward marriage without making it weird?
+
+It works on a relationship that began anywhere — a wedding, a cousin, another
+app — with no account. It puts the same eleven questions to him on his own
+phone, blind, and shows the two of them only where they stand. A few days after
+it hands her words, it asks whether she said them. When she marries, it lets
+her go and takes itself off our server. A competitor can copy the homepage; what
+it cannot copy without giving up its business is being paid when someone stops
+needing it (`docs/DIFFERENTIATION.md`).
 
 The vibe is **"build something real,"** not **"date me."** Serious, culturally
 intelligent, calm — and built so that the product is paid and measured by what
@@ -25,7 +30,7 @@ the hook question and the sixteen-question map. Someone already talking to a
 man goes straight to the read. Someone deciding goes to the eleven. Someone
 married goes to the guide.
 
-- **The read** — eleven questions about what he has *actually done* (told
+- **The read** — twelve questions about what he has *actually done* (told
   anyone, named marriage, moved toward family, followed through, handled hard
   things). Evidence in words, never a score on a person, and the one question
   to ask him next — word for word.
@@ -150,6 +155,7 @@ docs/GUIDE-EVAL.md      The Guide, measured: 54 cases in 17 categories (ghosting
 docs/ALIGNMENT.md       Matching and alignment audited as a decision system: every weight, threshold, gate, scale, default and neutral score, each asked what evidence justifies it, what if it is wrong, whether it is shown, whether it could unfairly block or falsely reassure; sorted into hard gates, soft signals, conversation prompts and unvalidated assumptions; built: the gate blocks only plain contradictions, the age band reported beside it, no weighted fit, a read band she can check, positions never rated, no difference called light
 docs/INTEGRITY.md       The data model audited for integrity: every store and key shape with its writer, lifetime and remover; every multi-step write walked step by step ("what if step 3 fails after 1 and 2?") and made resumable, reconciled by the sweep, or accepted and named; built: forget me that finishes when the server was down, a change of code that is journaled and rolled back, tombstones so a forgotten code never comes back, revisions so a stale phone cannot overwrite a newer map, one map per first keep, a join that never drops her, a sweep one bad record cannot stop
 docs/RECOVERY.md        Disaster recovery: ten scenarios (Netlify down, corrupt blobs, a lost variable, a leaked key, a bad deploy, deleted data, a broken migration, the domain lost, runaway cost, the laptop lost), each with detection, first hour, recovery, data-loss bound, user impact and prevention; what is tested on every PR and what is drilled by hand; the drill log — the backup that could not be restored now can, and is, on every PR
+docs/DIFFERENTIATION.md The category audit: what every competitor can now claim (Somali, marriage-first, wali, verification, photo privacy, compatibility, deen filters, no swiping), what is table stakes, differentiator, signature and compounding; the answer to "if everyone copied our homepage tomorrow, what would still be different in use?" — the loop: a read or the eleven, the words, did you say them, the two of you blind, the Ending — and the dozen places that loop was broken, fixed
 docs/MONETIZATION.md    Monetization audited: every paid line (the call after the joint view, the matchmaker at the nikah, the guest's first-year gift, sponsor-a-place, events, the retired Niyyah+) asked who pays, when, after what value, for what, whether it earns more if she stays stuck, whether it can be delivered, its margins and its support burden; the four hard cases decided; the gate each must pass before any money is taken, and the decision to build no payment code until one does; the first incentive audit — nine fails, all fixed
 docs/OPS.md             The founder's smoke alarm: nine questions (is it up, are functions, storage or Claude failing, is spend abnormal, are caps refusing, are reports waiting, did the deploy or the backup fail) answered by one founder-gated /health and a GitHub run every three hours whose summary is the dashboard and whose failure email is the alert; counted as totals by day from a closed list of signals — nothing about anyone; the runbook for each red
 docs/TESTING.md         The test suite audited: every file catalogued as unit, integration, contract, security, property, end-to-end, accessibility, visual or failure-mode, and as behaviour or source text; the seven invariants the product cannot break, each with a suite named for it and a mutation shown to turn it red; Netlify in a box, two phones, generated inputs and a rendered-markup audit; five journeys walked by taps; the source regexes that behaviour now proves, deleted; three real defects found (a restore undone by autosave, a once key outliving forget me, an intake with no main)

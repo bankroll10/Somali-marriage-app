@@ -6,6 +6,7 @@ import { ADVICE_PLACEHOLDER, ADVICE_PROMPT, endingQuestions } from '../data/endi
 import { speak } from '../data/read'
 import { shareOrCopy } from '../lib/share'
 import { Announce, CheckIcon, Logo, TextButton, fieldClass } from './ui'
+import ForgetMe, { type Forgot } from './ForgetMe'
 
 interface Props {
   identity: Identity
@@ -15,6 +16,8 @@ interface Props {
   didEleven: boolean
   saved: EndingRecord | null
   onSave: (record: EndingRecord) => void
+  /** Everything kept on our server, deleted — the half of "you can delete the app" an uninstall cannot do. */
+  onForget: Forgot
   onBack: () => void
 }
 
@@ -33,7 +36,7 @@ interface Props {
  * one thing it would like. Nothing on this page is required to finish, and
  * nothing on it is required to leave.
  */
-export default function Ending({ identity, ending, didEleven, saved, onSave, onBack }: Props) {
+export default function Ending({ identity, ending, didEleven, saved, onSave, onForget, onBack }: Props) {
   const name = identity.firstName?.trim()
   const gender = identity.gender ?? 'woman'
   const questions = endingQuestions(gender)
@@ -158,6 +161,10 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
             nothing that will be charged. If the first year gets hard, the words for two families and
             the guide are here — and if they are not needed, better still. Barakallahu lakuma wa baraka
             alaykuma wa jama’a baynakuma fi khayr: may Allah bless you both, and join you in good.
+          </p>
+          <p className="mt-3 text-[0.9rem] leading-relaxed text-muted text-pretty">
+            Deleting the app clears this phone, not our server. The last thing on this page, Forget me,
+            does that too — after you have kept your record, if you want it.
           </p>
         </section>
 
@@ -285,6 +292,10 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onB
             someone else" — money for a place that costs nothing, with no stated
             use, on the one screen the outcome is measured on. Removed by the
             monetization audit (docs/MONETIZATION.md, sponsor-a-place). */}
+
+        {/* What "you can delete the app" needs to be true: the server half.
+            Last, after the record and the questions, because it clears them. */}
+        <ForgetMe gender={identity.gender} onForget={onForget} className="mt-8" />
 
         <div className="mt-10 text-center">
           <TextButton onClick={onBack} className="text-[0.88rem] font-medium text-forest hover:underline">

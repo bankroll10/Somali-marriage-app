@@ -152,7 +152,9 @@ export const FAMILY_SCRIPT_IDS = new Set([
   'send-his-people',
   'approach-her-family',
   'open-mahr-and-living',
+  'families-meet',
   'end-it-kindly',
+  'in-laws-after',
 ])
 
 /**

@@ -125,6 +125,7 @@ enforces both).
 | Founder routes fail closed | `founder-routes-fail-closed` | Progress GET loses its gate | Red (8) | Red (3) |
 | Links open the correct instrument | `links-open-the-right-thing` | `ENTRY_SCREEN` sends `read` to the eleven | Red (5) | **Green: missed** |
 | Male and female paths stay semantically correct | `both-sides` | `speak()` gives a man the woman's voice | Red (5) | Red (13) |
+| The loop closes: words, then "did you say them?", on the right side, for both phones of a pair (added 2026-09-24, `docs/DIFFERENTIATION.md`) | `the-loop-closes` | A man's read follow-up takes her script | Red (1) | **Green: missed** |
 
 Each mutation was applied by hand, run against the suite and reverted.
 `npx vitest run` on the tree checked in is green.
@@ -240,6 +241,22 @@ stops counting its failures, a cap that stops counting refusals, a city in a
 cap's signal, a signal outside the closed list, a report's code in the reply,
 a sweep or a backup that stops marking itself, and a guide that stops counting
 tokens.
+
+`the-loop-closes`, with the two-phone journey behind it, was shown red by
+eight mutations:
+- a man's follow-up taking her words;
+- "not yet" closing on the first answer;
+- his phone keeping no pair;
+- the "send him the eleven" card restored after a caution;
+- Forget me taken off the Ending;
+- the autosave timer ignoring a forget;
+- the owner key dropped;
+- a stranger's follow-up not shown on Welcome.
+
+The first of these the whole previous suite let through. The Ending test
+also found a real race. A save scheduled a moment before Forget me fired
+after the phone was cleared, and wrote everything back. It is fixed in
+`src/hooks/useNiyyah.ts`.
 
 Since 2026-09-24 `tests/monetization.test.tsx` holds what may be sold, to
 whom and when (`docs/MONETIZATION.md`). Seven mutations were each shown to

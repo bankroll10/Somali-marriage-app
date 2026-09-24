@@ -108,7 +108,7 @@ describe('tap targets', () => {
       ['components/ReportConcern.tsx', 2],
       ['components/Read.tsx', 2],
       ['components/BeforeYes.tsx', 2],
-      ['components/Trust.tsx', 1],
+      ['components/ForgetMe.tsx', 1],
       ['components/Profile.tsx', 2],
       ['components/Ended.tsx', 1],
       ['components/Ending.tsx', 2],

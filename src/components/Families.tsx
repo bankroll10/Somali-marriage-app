@@ -3,7 +3,7 @@ import type { Gender, Stage } from '../types'
 import { familyScripts } from '../data/families'
 import { somali } from '../data/somali'
 import { track } from '../lib/analytics'
-import ScriptCard from './ScriptCard'
+import ScriptCard, { CheckBack } from './ScriptCard'
 import { ArrowRight, ScreenHeader } from './ui'
 
 interface Props {
@@ -11,19 +11,25 @@ interface Props {
   stage: Stage
   /** She took the words for one of these — copied or sent them. Home will ask, days later, whether she had it. */
   onTaken: (id: string) => void
+  /** Learned here when someone arrives on the bare link, before any words are shown. */
+  onSetGender?: (g: Gender) => void
   onBack: () => void
 }
 
 /**
  * Bringing the families in.
  *
- * Five conversations everyone dreads and nobody rehearses, word for word. All
+ * The conversations everyone dreads and nobody rehearses, word for word. All
  * of them are offered; none is ever recommended by anything the app has read.
  * Which one she needs, and when, is hers.
  */
-export default function Families({ gender, stage, onTaken, onBack }: Props) {
-  const scripts = familyScripts(gender ?? 'woman', stage)
+export default function Families({ gender, stage, onTaken, onSetGender, onBack }: Props) {
+  // Whose words these are. The bare link used to default to hers, so a man
+  // who opened it was handed "Telling your wali you met him online".
+  const [side, setSide] = useState<Gender | undefined>(gender)
+  const scripts = side ? familyScripts(side, stage) : []
   const [open, setOpen] = useState<string | null>(null)
+  const [taken, setTaken] = useState<Set<string>>(() => new Set())
   const intro = somali('families.intro')
 
   return (
@@ -49,6 +55,30 @@ export default function Families({ gender, stage, onTaken, onBack }: Props) {
             that isn’t you.
           </p>
         </section>
+
+        {!side && (
+          <div className="animate-rise rounded-card border border-line bg-white/60 p-5">
+            <p className="font-display text-[1.15rem] font-medium text-ink">Whose side are these words for?</p>
+            <p className="mt-1 text-[0.88rem] text-muted text-pretty">
+              A woman telling her wali and a man approaching her family need different sentences.
+            </p>
+            <div className="mt-4 flex flex-col gap-2.5 sm:flex-row">
+              {([{ id: 'woman' as Gender, label: 'Mine — I’m a woman' }, { id: 'man' as Gender, label: 'Mine — I’m a man' }]).map((opt) => (
+                <button
+                  key={opt.id}
+                  onClick={() => {
+                    setSide(opt.id)
+                    onSetGender?.(opt.id)
+                  }}
+                  className="flex flex-1 items-center justify-between gap-3 rounded-2xl border border-line bg-white/70 p-4 text-left text-[0.95rem] font-medium text-ink transition-all hover:border-forest/40"
+                >
+                  {opt.label}
+                  <ArrowRight className="h-4 w-4 flex-none text-gold-ink" />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex flex-col gap-3">
           {scripts.map((s) => {
@@ -76,8 +106,12 @@ export default function Families({ gender, stage, onTaken, onBack }: Props) {
                       title={s.title}
                       source={`families:${s.id}`}
                       travel="family"
-                      onTaken={() => onTaken(s.id)}
+                      onTaken={() => {
+                        onTaken(s.id)
+                        setTaken((prev) => new Set(prev).add(s.id))
+                      }}
                     />
+                    {taken.has(s.id) && <CheckBack what="you had that conversation" />}
                   </div>
                 )}
               </div>

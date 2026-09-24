@@ -1,6 +1,6 @@
 import type { Gender } from '../types'
 import type { Script } from '../data/read'
-import { ALL_AGREED, beforeYesTopics, type Topic } from '../data/beforeYes'
+import { ALL_AGREED, beforeYesTopics, ownAnswerFirst, type Topic } from '../data/beforeYes'
 import { send, whyOf, type Why } from './net'
 
 /**
@@ -24,16 +24,42 @@ export type CoupleView =
 const post = (body: unknown) =>
   send(ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
 
-/** She starts it with her eleven. Returns the code the pair lives under. */
-export async function createCouple(states: Record<string, string>, gender: Gender, code?: string): Promise<string | null> {
-  const res = await post({ side: 'first', gender, states, code })
+/**
+ * She starts it with her eleven. Returns the code the pair lives under, and
+ * the owner key the server hands back once — the only thing that lets her
+ * change her side before he answers. The key used to be dropped here, so the
+ * server's update path was unreachable from the app: she could go through the
+ * eleven again and he would still be compared against her old sheet.
+ */
+export async function createCouple(
+  states: Record<string, string>,
+  gender: Gender,
+): Promise<{ code: string; key?: string } | null> {
+  const res = await post({ side: 'first', gender, states })
   if (!res?.ok) return null
   try {
-    const body = (await res.json()) as { code?: string }
-    return typeof body.code === 'string' ? body.code : null
+    const body = (await res.json()) as { code?: string; key?: string }
+    if (typeof body.code !== 'string') return null
+    return { code: body.code, ...(typeof body.key === 'string' ? { key: body.key } : {}) }
   } catch {
     return null
   }
+}
+
+/**
+ * Her side again, under the code she already sent — only until he answers.
+ * 'answered' when he already has (her side is frozen then, by design), null
+ * when it did not go.
+ */
+export async function updateCouple(
+  code: string,
+  key: string,
+  states: Record<string, string>,
+  gender: Gender,
+): Promise<'updated' | 'answered' | null> {
+  const res = await post({ side: 'first', gender, states, code, key })
+  if (res?.status === 409) return 'answered'
+  return res?.ok ? 'updated' : null
 }
 
 /**
@@ -163,8 +189,16 @@ export function coupleReading(jointMap: Record<string, Joint>, gender: Gender = 
   return {
     headline,
     lines,
+    // When one of them does not know their own answer yet, the conversation to
+    // open is with themselves first — the same words the single-sided eleven
+    // gives for "I don't know my own answer" (src/data/eleven.ts).
     open: best
-      ? { id: best.topic.id, label: best.topic.label, kind: best.kind, script: best.topic.script }
+      ? {
+          id: best.topic.id,
+          label: best.topic.label,
+          kind: best.kind,
+          script: best.kind === 'unknown-somewhere' ? ownAnswerFirst(gender) : best.topic.script,
+        }
       : lines.length
         ? { id: lines[0].id, label: lines[0].label, kind: lines[0].kind, script: ALL_AGREED }
         : null,

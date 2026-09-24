@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import type { Gender, Identity, ReadRecord } from '../types'
-import { EXAMPLE_ANSWERS, readQuestions } from '../data/read'
+import { EXAMPLE_ANSWERS, readQuestions, scriptFor } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
 import { track } from '../lib/analytics'
-import ScriptCard from './ScriptCard'
+import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import HelpLine from './HelpLine'
@@ -86,14 +86,24 @@ export default function Read({
   const questions = readQuestions(gender ?? 'woman')
   const subject = gender === 'man' ? 'her' : 'him'
   /** The subject pronoun. Kept apart from `subject` — "what him has done" read
-      as broken English in both directions, on the very first screen. */
-  const they = gender === 'man' ? 'she' : 'he'
+      as broken English in both directions, on the very first screen. Until
+      she says who she is reading, the intro speaks of "them". */
+  const they = gender === 'man' ? 'she' : gender === 'woman' ? 'he' : 'they'
+  const whom = gender ? subject : 'them'
+  const has = gender ? 'has' : 'have'
 
-  function begin(fresh: boolean) {
+  /**
+   * `side` is the chooser, folded into the start buttons. The read used to
+   * open on "Before we start — who are you reading?" — a question before any
+   * explanation, on the very link a friend forwards (docs/DIFFERENTIATION.md).
+   */
+  function begin(fresh: boolean, side?: Gender) {
+    const reader = side ?? gender
+    if (side) setGender(side)
     track('read_started', { again: !fresh })
-    // A side the address supplied becomes hers on the same act the chooser
-    // would have committed it — starting — never on page load.
-    if (!identity.gender && gender) onSetGender(gender)
+    // A side the address supplied — or she just chose — becomes hers on the
+    // act of starting, never on page load.
+    if (!identity.gender && reader) onSetGender(reader)
     onBegan()
     // Starting is starting: a fresh run drops whatever the last one left.
     clearDraft('read')
@@ -132,43 +142,6 @@ export default function Read({
     setPhase('result')
   }
 
-  // ── Who are we reading? ────────────────────────────────────────────────────
-  if (!gender) {
-    return (
-      <Shell onBack={onBack} title="A read on someone">
-        <div className="py-10">
-          <h1 className="animate-rise font-display text-[1.9rem] font-medium leading-tight tracking-tight text-ink text-balance">
-            Before we start — who are you reading?
-          </h1>
-          <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
-            Only so the questions read properly. We never ask their name.
-          </p>
-          <div className="mt-7 flex flex-col gap-2.5">
-            {(
-              [
-                { id: 'woman' as Gender, label: 'A man' },
-                { id: 'man' as Gender, label: 'A woman' },
-              ]
-            ).map((opt, i) => (
-              <button
-                key={opt.id}
-                onClick={() => {
-                  setGender(opt.id)
-                  onSetGender(opt.id)
-                }}
-                style={{ animationDelay: `${i * 45}ms` }}
-                className="animate-rise flex w-full items-center justify-between gap-3 rounded-2xl border border-line bg-white/50 p-4 text-left text-[0.98rem] font-medium text-ink transition-all hover:border-forest/40 hover:bg-white"
-              >
-                {opt.label}
-                <ArrowRight className="h-4 w-4 flex-none text-gold-ink" />
-              </button>
-            ))}
-          </div>
-        </div>
-      </Shell>
-    )
-  }
-
   // ── The offer ──────────────────────────────────────────────────────────────
   if (phase === 'intro') {
     return (
@@ -179,7 +152,7 @@ export default function Read({
             About ninety seconds
           </p>
           <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.3rem]">
-            Is {they} serious?
+            {gender ? `Is ${they} serious?` : 'Are they serious?'}
           </h1>
           {/* Where she left off, above the explanation she has already read —
               she was one tap from the thing she came for, and the product used
@@ -205,10 +178,10 @@ export default function Read({
             </div>
           )}
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
- Twelve questions about what {they} has <em>done</em> — not
-            how you feel, and not what {they} has
+ Twelve questions about what {they} {has} <em>done</em> — not
+            how you feel, and not what {they} {has}
             promised. At the end you get a read and the one question worth
-            asking {subject} next, word for word.
+            asking {whom} next, word for word.
           </p>
           {guessed && (
             <p className="animate-fade mt-3 text-[0.88rem] text-muted">
@@ -242,10 +215,24 @@ export default function Read({
           )}
 
           <div className="mt-8">
-            <Button onClick={() => begin(true)} className="group">
-              Start the read
-              <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-            </Button>
+            {gender ? (
+              <Button onClick={() => begin(true)} className="group">
+                Start the read
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            ) : (
+              // Only so the questions read properly. We never ask their name.
+              <div className="flex flex-col gap-2.5 sm:flex-row">
+                <Button onClick={() => begin(true, 'woman')} className="group">
+                  Start — about him
+                  <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                </Button>
+                <Button onClick={() => begin(true, 'man')} className="group">
+                  Start — about her
+                  <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                </Button>
+              </div>
+            )}
           </div>
 
           <Example gender={gender ?? 'woman'} subject={subject} />
@@ -283,6 +270,9 @@ export default function Read({
         <Result
           result={result}
           subject={subject}
+          reader={gender ?? 'woman'}
+          previous={previousOf(saved, answers)}
+          checksBack={saveOk}
           hasMap={hasMap}
           onAgain={() => begin(true)}
           onAskGuide={onAskGuide}
@@ -376,9 +366,30 @@ function Shell({
   )
 }
 
+/**
+ * The read before this one, when the one on screen is the latest. A read is
+ * about behaviour over time, and a retake used to overwrite the last one —
+ * so "has anything changed?" was asked a month later and never answered.
+ */
+function previousOf(saved: ReadRecord | null, answers: Record<string, string>): ReadRecord['previous'] {
+  if (!saved?.previous) return undefined
+  const same = Object.keys(answers).length > 0 && Object.entries(answers).every(([k, v]) => saved.answers[k] === v)
+  return same ? saved.previous : undefined
+}
+
+const STATE_WORD: Record<DimensionState, string> = { shown: 'Shown', partly: 'Partly', 'not-yet': 'Not yet' }
+
+function onDay(iso: string): string {
+  const d = new Date(iso)
+  return Number.isNaN(d.getTime()) ? 'your last read' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
+}
+
 function Result({
   result,
   subject,
+  reader,
+  previous,
+  checksBack,
   hasMap,
   onAgain,
   onAskGuide,
@@ -388,6 +399,10 @@ function Result({
 }: {
   result: ReadResult
   subject: string
+  reader: Gender
+  previous?: ReadRecord['previous']
+  /** A Home will exist to ask — false only when this browser keeps nothing. */
+  checksBack: boolean
   hasMap: boolean
   onAgain: () => void
   onAskGuide: (text: string) => void
@@ -396,6 +411,20 @@ function Result({
   onOpenBeforeYes: () => void
 }) {
   const they = subject === 'him' ? 'he' : 'she'
+  // What moved since the read before this one — by the five words she can see.
+  const before = previous ? buildRead(previous.answers, reader) : null
+  const moved = before
+    ? result.dimensions.flatMap((d) => {
+        const was = before.dimensions.find((b) => b.dimension === d.dimension)?.state
+        return was && was !== d.state ? [{ label: d.label, was, now: d.state }] : []
+      })
+    : []
+  // The other gaps, with their own words. Only the thinnest used to get any —
+  // every other "not yet" on the screen was a problem with nothing to say.
+  const otherGaps =
+    result.band === 'early' || result.caution
+      ? []
+      : result.dimensions.filter((d) => d.state !== 'shown' && d.dimension !== result.thin)
   return (
     <div className="py-8">
       <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
@@ -418,6 +447,27 @@ function Result({
           {/* "Tell one person" is right, and it was the only door out of this
               card. A line to call sits under it (src/data/help.ts). */}
           <HelpLine urgent className="mt-3" />
+        </div>
+      )}
+
+      {previous && (
+        <div className="animate-rise mt-6 rounded-card border border-line bg-white/60 p-5">
+          <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
+            Since {onDay(previous.at)}
+          </h2>
+          {moved.length ? (
+            <ul className="mt-2.5 flex flex-col gap-1.5">
+              {moved.map((m) => (
+                <li key={m.label} className="text-[0.95rem] leading-snug text-ink-soft text-pretty">
+                  {m.label}: {STATE_WORD[m.was]} → <span className="font-medium text-ink">{STATE_WORD[m.now]}</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-[0.95rem] leading-snug text-ink-soft text-pretty">
+              Nothing has moved since your last read. That is information too.
+            </p>
+          )}
         </div>
       )}
 
@@ -451,6 +501,22 @@ function Result({
           ))}
         </Panel>
       )}
+      {otherGaps.length > 0 && (
+        <Disclose summary="Words for the other gaps" hint="One question for each" className="mt-5" divided={false}>
+          <ul className="flex flex-col gap-4">
+            {otherGaps.map((d) => {
+              const script = scriptFor(d.dimension, reader)
+              return (
+                <li key={d.dimension} className="border-l-2 border-gold/40 pl-3">
+                  <p className="text-[0.8rem] font-medium uppercase tracking-wide text-muted">{d.label}</p>
+                  <p className="mt-1 text-[0.95rem] italic leading-snug text-ink text-pretty">“{script.words}”</p>
+                  <p className="mt-1 text-[0.85rem] leading-snug text-muted text-pretty">{script.why}</p>
+                </li>
+              )
+            })}
+          </ul>
+        </Disclose>
+      )}
 
       {result.watch && (
         <Panel title="What to watch for over the next month">
@@ -472,6 +538,7 @@ function Result({
             : undefined
         }
       />
+      {checksBack && <CheckBack what="you asked it" />}
 
       {/* Where she can go from here. Two things above the fold — the words to
           send, in the card above, and the eleven — and the rest behind one
@@ -480,7 +547,24 @@ function Result({
           (docs/RISKS.md R2). */}
       <div className="mt-9 flex flex-col gap-3">
         {/* The natural next thing after being told what {they} has not shown:
-            the eleven, and from there the two-sided version {they} answers. */}
+            the eleven, and from there the two-sided version {they} answers.
+            Not after a caution: "send nothing more" and "tell one person" were
+            followed by a card inviting her to send {him} something. There the
+            next thing is her own people. */}
+        {result.caution ? (
+          <button
+            onClick={onOpenFamilies}
+            className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
+          >
+            <span className="flex-1">
+              <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
+              <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
+                For telling the people who know you. Nothing on this screen is for sending to {subject}.
+              </span>
+            </span>
+            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
+          </button>
+        ) : (
         <button
           onClick={onOpenBeforeYes}
           className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
@@ -497,6 +581,7 @@ function Result({
           </span>
           <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
         </button>
+        )}
 
         {/* The chevron affordance this screen worked out by hand is now
             `<Disclose>` in ui.tsx, used by every screen (docs/LOAD.md). */}
@@ -524,6 +609,7 @@ function Result({
           </button>
 
 
+          {!result.caution && (
           <button
             onClick={onOpenFamilies}
             className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
@@ -536,6 +622,7 @@ function Result({
             </span>
             <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
           </button>
+          )}
 
           {!hasMap && (
             <button

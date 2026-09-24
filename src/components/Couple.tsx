@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Gender } from '../types'
 import { STATES, beforeYesTopics } from '../data/beforeYes'
-import { answerCouple, coupleReading, readCoupleDetail, type CoupleView } from '../lib/couple'
+import { answerCouple, coupleReading, readCoupleDetail, type CoupleView, type Joint } from '../lib/couple'
 import type { Why } from '../lib/net'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import { track } from '../lib/analytics'
@@ -22,8 +22,11 @@ interface Props {
    * answers against her own, and it could not be undone (docs/NIELSEN.md N1).
    */
   yours?: boolean
-  /** His eleven, kept on his own device as his own Before you say yes. */
-  onAnswered: (states: Record<string, string>, gender: Gender) => void
+  /**
+   * His eleven, kept on his own device as his own Before you say yes — and the
+   * joint he was just shown, so his Home knows there is a pair.
+   */
+  onAnswered: (states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>) => void
   /**
    * He began her eleven. The one instrument whose abandonment was invisible on
    * both devices — see src/data/instruments.ts and docs/EXPERIMENTS.md.
@@ -124,7 +127,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
     setSendFailed(null)
     clearDraft('couple')
     track('couple_answered')
-    onAnswered(next, answerFor)
+    onAnswered(next, answerFor, result.status === 'joint' ? result.joint : undefined)
     setView(result)
     setPhase('joint')
   }

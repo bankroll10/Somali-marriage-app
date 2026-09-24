@@ -33,7 +33,7 @@ campaign.
 | 5 | **Referral → more quality users** | `via` first-arrival-wins; quality is the kept map and the ledger, not a badge | **Built.** `vias.married.counted / arrived` and `sidesByVia.man.married` are computable — and were not read: the monthly hour read vias by `followed-through` only. **Now read** |
 | 6 | **More quality users → more liquidity** | The door, pools, `/pool` | **Built** (`docs/LIQUIDITY.md`) |
 | 7 | **More liquidity → better matching data** | The introductions record and the joint-alignment tally — designed, same-commit rule (`docs/HARD.md`) | **Designed, partly substituted.** `ended.which` and `marriedBy.*` already learn what breaks a courtship and what decides one, from courtships that happen off the platform, with no marketplace at all |
-| 8 | **Better matching data → better matches** | The monthly loop revises `consequence`, `WEIGHTS`, the dealbreakers question, the scripts (`docs/OPERATING.md`); `alignment`'s scales are locked until `ending.who.here > 0` | **Built — through the instruments, not the matcher.** `docs/REDTEAM.md` assumption 4: no matching system has shown it predicts marriage outcomes, so the honest form of this link is better data → better questions and conversations. Whether it ever turns through the matcher is an open question with a proxy test |
+| 8 | **Better matching data → better matches** | The monthly loop revises `consequence`, the read's `PRIORITY` order, the dealbreakers question, the scripts (`docs/OPERATING.md`); `alignment`'s scales are locked until `ending.who.here > 0` | **Built — through the instruments, not the matcher.** `docs/REDTEAM.md` assumption 4: no matching system has shown it predicts marriage outcomes, so the honest form of this link is better data → better questions and conversations. Whether it ever turns through the matcher is an open question with a proxy test |
 | 9 | **Better matches → more success** | `ending.who.here` | **Built.** Zero |
 | 10 | **More success → success story** | The ending, again | **Built.** The wheel closes here |
 
@@ -120,8 +120,8 @@ conditional loop (`netlify/functions/couple.ts`): read with metadata, write
 with `onlyIfMatch` or `onlyIfNew`, three attempts, fail quietly with the
 count one short rather than fail the report.
 
-Progress records carry a scene and no country (`docs/SCALE.md` defers country
-on the ladder), and `other` is not a pool that opens — so an `other` marriage
+Progress records carry a scene and, since `docs/SCALE.md`'s pooled door, a
+country; `other` is not a pool that opens — so an `other` marriage
 counts on no door, consistently with everything else about `other`.
 `countPool` in `netlify/functions/cohort.ts` reads the counter, one extra get
 per door render, and `DoorCount` gains a sentence only when the number is

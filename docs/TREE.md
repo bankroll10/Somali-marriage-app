@@ -78,7 +78,7 @@ HYPOTHESIS until the sessions run — see `docs/JOBS.md`.
 - **O3.1** I need to tell hooyo, or my wali, without a fight. *(N)*
 - **O3.2** I need him to send his people, properly. *(D)*
 - **O3.3** *(his)* I need to speak to her family and don't know what to say. *(N)*
-- Source: the five family scripts; moment "My family is pushing"; hook `family`; hesitation `family`.
+- Source: the seven family scripts; moment "My family is pushing"; hook `family`; hesitation `family`.
 
 ### O4 · "I'm carrying this alone and telling anyone costs me" — P, all stages
 - **O4.1** Telling a friend means it travels. *(P)*

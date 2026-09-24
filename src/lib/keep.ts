@@ -58,12 +58,19 @@ function toDays<T>(value: T): T {
 }
 
 export function keptSnapshot(state: PersistedState): KeptSnapshot {
-  const { coachThreads: _threads, waitlist, followups, ending, ...rest } = state
+  const { coachThreads: _threads, waitlist, followups, ending, read, couple, ...rest } = state
+  // The read before this one stays on the phone — it was never in the kept map.
+  const { previous: _previous, ...latest } = read ?? { at: '', answers: {} }
   delete (rest as { updatedAt?: number }).updatedAt
   const { contact: _contact, ...place } = waitlist ?? { contact: '', joinedAt: '' }
   const { advice: _advice, ...ended } = ending ?? { at: '' }
+  // The pair's code and when he answered, as before — not her owner key, not
+  // the cached joint, not which side this phone is.
+  const pair = couple ? { code: couple.code, at: couple.at, ...(couple.answered ? { answered: couple.answered } : {}) } : null
   return toDays({
     ...rest,
+    read: read ? latest : null,
+    couple: pair,
     waitlist: waitlist ? place : null,
     ending: ending ? ended : null,
     // Ids unique within her list, and nothing more: they were built from the
