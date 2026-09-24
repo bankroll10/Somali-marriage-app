@@ -1,5 +1,4 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
-import { terms, type TermId } from '../data/lexicon'
 
 /** The Niyyah mark — a small flame/seed for intention. */
 export function Logo({
@@ -474,42 +473,12 @@ export function Disclose({
 }
 
 /**
- * The words on this screen, defined, closed.
- *
- * Niyyah says "your map" 96 times, "vouch" 41, "the eleven" 35, "kept" 31 —
- * thirteen product words in live copy, six of which had a definition, all six
- * of them on one screen reached from Home's footer (docs/LOAD.md). A person
- * reading her own map had no way to find out what "thin" meant without leaving
- * the map.
- *
- * So the glossary comes to the screen instead: a closed row naming only the
- * words that screen uses. It costs a person who already knows them nothing —
- * which is the whole test of a disclosure.
- */
-export function Words({ ids, className = '' }: { ids: TermId[]; className?: string }) {
-  const list = terms(ids)
-  if (list.length === 0) return null
-  return (
-    <Disclose summary="The words on this page" hint={`${list.length} of them`} className={className}>
-      <dl className="space-y-3">
-        {list.map((t) => (
-          <div key={t.id}>
-            <dt className="text-[0.92rem] font-medium text-ink">{t.term}</dt>
-            <dd className="mt-0.5 text-[0.88rem] leading-snug text-muted text-pretty">{t.body}</dd>
-          </div>
-        ))}
-      </dl>
-    </Disclose>
-  )
-}
-
-/**
  * This browser is refusing to save anything.
  *
  * Private browsing, full storage, or a blocked origin. It used to appear on
- * three screens of twenty-three — and not on the read, the eleven, the couple
- * sheet or the vouch form, which are the four a stranger arrives on from
- * somebody else's link and the only ones carrying a draft to lose
+ * three screens — and not on the read, the eleven or the couple sheet, which
+ * are the ones a stranger arrives on from somebody else's link and the only
+ * ones carrying a draft to lose
  * (docs/FAIL.md).
  *
  * `what` names the thing at risk on this screen, because "your progress" means

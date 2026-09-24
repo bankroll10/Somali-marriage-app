@@ -254,7 +254,7 @@ describe('the Ending lets her go — and takes itself off our server', () => {
     const s = saved(phone)
     phone.storage.set('niyyah.intake.v1', JSON.stringify({ ...s, stage: 'married', ending: { at: new Date().toISOString() } }))
     const married = await mount(<App />)
-    expect(married.has(/What we hold, and Forget me/)).toBe(true)
+    expect(married.has(/Your privacy/)).toBe(true)
     await married.press(/^How you chose/)
     expect(married.text()).toContain('You can delete the app.')
     expect(married.text()).toContain('Deleting the app clears this phone, not our server.')

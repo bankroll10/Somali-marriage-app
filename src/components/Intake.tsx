@@ -18,8 +18,8 @@ interface FlatQuestion {
 interface Props {
   /**
    * False when the browser refuses to persist. The warning used to live on Home
-   * and Profile only — which is after this screen, and this screen is where the
-   * sixteen answers that would be lost are given (docs/NORMAN.md).
+   * only — which is after this screen, and this screen is where the sixteen
+   * answers that would be lost are given (docs/NORMAN.md).
    */
   saveOk?: boolean
   answers: Answers

@@ -16,7 +16,6 @@ import {
   ENDED_WHICH,
   GROUND_STATES,
   GENDERS,
-  HESITATIONS,
   INSTRUMENTS,
   MATTERED,
   READ_BANDS,
@@ -103,8 +102,6 @@ export interface Facts {
   through?: string[]
   ending?: { who?: string; mattered?: string; used?: string[] }
   ended?: { stage: string; reason: string; which?: string }[]
-  /** Why she stopped at the door, in one word about the door. */
-  hesitated?: string
   /** Which questionnaires she began — the denominator for a completion rate. */
   began?: string[]
   /** What she asked, ever, as a set — today only `guide`. */
@@ -129,7 +126,7 @@ export interface ProgressRecord {
   /** What kind of link brought this person here. First told wins; never a person. */
   via?: string
   /**
-   * Which side of the door this person is on — `woman` or `man`, as chosen at
+   * Which side this person is on — `woman` or `man`, as chosen at
    * Identity, last told wins like `scene`. The one split the men's funnel
    * needs (docs/MACHINE.md); floored like every other quasi-identifier.
    */
@@ -150,7 +147,7 @@ const count = (n: unknown): n is number => typeof n === 'number' && Number.isInt
  * a value nobody chose to allow.
  */
 function parseFacts(x: unknown): Facts | null {
-  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'hesitated', 'began', 'asked'])) return null
+  if (!isPlain(x) || !onlyKeys(x, ['grounds', 'read', 'eleven', 'through', 'ending', 'ended', 'began', 'asked'])) return null
   const out: Facts = {}
 
   if (x.grounds !== undefined) {
@@ -231,11 +228,6 @@ function parseFacts(x: unknown): Facts | null {
     out.ended = ended
   }
 
-  if (x.hesitated !== undefined) {
-    if (typeof x.hesitated !== 'string' || !HESITATIONS.has(x.hesitated)) return null
-    out.hesitated = x.hesitated
-  }
-
   if (x.began !== undefined) {
     if (!Array.isArray(x.began) || x.began.length > INSTRUMENTS.size) return null
     if (!x.began.every((id) => typeof id === 'string' && INSTRUMENTS.has(id))) return null
@@ -259,10 +251,7 @@ function parseFacts(x: unknown): Facts | null {
  * and the last word on the way out is the one that counts. Ended courtships
  * are replaced whole for the same reason, and for one more: the list on her
  * device is the record, so a reason she takes back leaves here too. A union
- * would make retraction impossible and let a stale device resurrect it. Why
- * she stopped at the door is overwritten too: she may change her mind, and if
- * she later walks through, the reason stays beside the `counted` rung so the
- * readout can say who came back.
+ * would make retraction impossible and let a stale device resurrect it.
  */
 function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): Facts | undefined {
   if (!existing) return incoming
@@ -280,7 +269,6 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
     ...(through.length ? { through } : {}),
     ...(incoming.ending ?? existing.ending ? { ending: incoming.ending ?? existing.ending } : {}),
     ...(incoming.ended ?? existing.ended ? { ended: incoming.ended ?? existing.ended } : {}),
-    ...(incoming.hesitated ?? existing.hesitated ? { hesitated: incoming.hesitated ?? existing.hesitated } : {}),
     ...(began.length ? { began } : {}),
     ...(asked.length ? { asked } : {}),
   }
@@ -320,8 +308,7 @@ async function tally(store: Store) {
    * Side × via. A man who arrives through a woman's eleven — `couple`, or the
    * eleven's own words — is already talking to someone, often someone counted
    * here; he is not supply for anyone else. `group` is the men the network
-   * channel produced; `door` is the men a member sent, some looking and some
-   * already talking. `sides` says how many men, `vias` says how many came
+   * channel produced. `sides` says how many men, `vias` says how many came
    * through a group, and neither can say whether they are the same men. This
    * can. Floored per cell like every other split by a quasi-identifier, and
    * never crossed with the facts.
@@ -364,7 +351,7 @@ async function tally(store: Store) {
       }
     }
     if (record.facts) {
-      tallyFacts(facts, record.facts, 'married' in record.first, 'counted' in record.first, 'followed-through' in record.first)
+      tallyFacts(facts, record.facts, 'married' in record.first, 'followed-through' in record.first)
     }
   }
 
@@ -382,8 +369,7 @@ async function tally(store: Store) {
   // Whole-population counts as they are; every split by a quasi-identifier
   // floored — see netlify/shared/floor.ts. `sides.man` therefore reads null
   // until five men have arrived, which is also the first moment a conclusion
-  // about men is worth drawing; the door's own count stays the unfloored
-  // number for `counted`.
+  // about men is worth drawing.
   return {
     rungs,
     scenes: floorRows(scenes),
@@ -399,9 +385,6 @@ async function tally(store: Store) {
         readThin: floorRows(facts.marriedBy.readThin),
         open: floorRows(facts.marriedBy.open),
         ended: floorRows(facts.marriedBy.ended),
-      },
-      countedBy: {
-        hesitated: floorRows(facts.countedBy.hesitated),
       },
       followedThroughBy: {
         asked: floorRows(facts.followedThroughBy.asked),
@@ -435,8 +418,6 @@ function emptyFactsTally() {
     ending: { who: {} as Counts, mattered: {} as Counts, used: {} as Counts },
     /** Why courtships end, from which stage, and which non-negotiable, topic or ground did it. */
     ended: { reason: {} as Counts, stage: {} as Counts, which: {} as Record<string, Counts> },
-    /** Why people stopped at the door — the one no this product records. */
-    hesitated: {} as Counts,
     /**
      * Who began each questionnaire. Against `rungs` — which counts who finished
      * one — this is the completion rate, and both are whole-population counts
@@ -454,12 +435,10 @@ function emptyFactsTally() {
     followedThroughBy: { asked: {} as Pair },
     /** The cross-tabs: each fact against whether the person went on to marry. */
     marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
-    /** Of the people who stopped at the door for a reason, how many were later counted after all. */
-    countedBy: { hesitated: {} as Pair },
   }
 }
 
-function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean, counted: boolean, followedThrough: boolean) {
+function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean, followedThrough: boolean) {
   const bump = (c: Counts, k: string) => void (c[k] = (c[k] ?? 0) + 1)
   const pair = (p: Pair, k: string, seen: string) => {
     const row = (p[k] ??= { [seen]: 0, married: 0 })
@@ -472,12 +451,6 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
     const row = (t.followedThroughBy.asked[id] ??= { asked: 0, followedThrough: 0 })
     row.asked += 1
     if (followedThrough) row.followedThrough += 1
-  }
-  if (f.hesitated) {
-    bump(t.hesitated, f.hesitated)
-    const row = (t.countedBy.hesitated[f.hesitated] ??= { hesitated: 0, counted: 0 })
-    row.hesitated += 1
-    if (counted) row.counted += 1
   }
   for (const [dim, state] of Object.entries(f.grounds ?? {})) bump((t.grounds[dim] ??= {}), state)
   if (f.read) {

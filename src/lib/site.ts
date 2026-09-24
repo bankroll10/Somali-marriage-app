@@ -1,8 +1,8 @@
 /**
  * Where Niyyah actually lives.
  *
- * This host is burned into every link ever sent to another person — the vouch
- * link a father opened, the couple link a man answered, every restore link —
+ * This host is burned into every link ever sent to another person — the couple
+ * link a man answered, every restore link, every tool shared into a group —
  * and into the footer of every share image. Links do not come back to be
  * corrected: whatever address they carry is the address they carry for ever.
  * So it is a control decision, not a tidiness one, and `docs/CONTROL.md` ranks
@@ -36,10 +36,7 @@ export const SITE_HOST = import.meta.env.VITE_SITE_HOST || DEFAULT_SITE_HOST
 export const SITE_URL = `https://${SITE_HOST}`
 
 /**
- * Where a signup reaches a human when the form isn't configured.
- *
- * It is the last fallback in `src/lib/waitlist.ts`, so if it bounces, a person
- * who tried to join is lost silently.
+ * Where a person reaches a human: the contact link on Home and Trust.
  *
  * The default is on the domain we own, which is the half that can be fixed in
  * code. The other half is mail: until a mailbox actually answers at

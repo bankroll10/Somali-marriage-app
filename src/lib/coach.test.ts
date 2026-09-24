@@ -4,7 +4,7 @@ import type { CoachContext } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
 const ctx: CoachContext = {
-  identity: { firstName: 'Amina', gender: 'woman', age: 27, scene: 'twin-cities' },
+  identity: { firstName: 'Amina', gender: 'woman', scene: 'twin-cities' },
   answers: {
     timeline: '1-2',
     practice: 'consistent',
@@ -91,7 +91,7 @@ describe('askCoach — the local voice is the one that ships today', () => {
     const words = { ...ctx, answers: { ...ctx.answers, 'working-on': 'my temper with my mother', healing: 'fresh' } }
     await askCoach('so what do I say?', words, 'auntie')
     const body = JSON.parse(spy.mock.calls[0][1].body as string)
-    expect(Object.keys(body.context.identity).sort()).toEqual(['age', 'gender', 'scene'])
+    expect(Object.keys(body.context.identity).sort()).toEqual(['gender', 'scene'])
     expect(JSON.stringify(body)).not.toContain('Amina')
     expect(JSON.stringify(body)).not.toContain('my temper with my mother')
     expect(body.context.answers).not.toHaveProperty('healing')

@@ -39,8 +39,6 @@ const INSTRUMENTS = [
   'src/lib/read.ts',
   'src/lib/beforeYes.ts',
   'src/lib/reflection.ts',
-  'src/lib/matching.ts',
-  'src/lib/ledger.ts',
   'src/lib/rungs.ts',
   'src/lib/facts.ts',
   'src/lib/words.ts',

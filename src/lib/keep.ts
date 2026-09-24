@@ -1,5 +1,4 @@
 import { loadProgress, saveProgress, type PersistedState } from './storage'
-import type { Identity, WaitlistState } from '../types'
 import { ALPHABET, cleanCode, isCode } from './code'
 import { send } from './net'
 
@@ -27,9 +26,6 @@ const ENDPOINT = '/.netlify/functions/keep'
  *    handed her either: a guide follow-up holds what she asked and the words
  *    it gave her, in her own words to someone. "Keep the Guide on this device"
  *    promises that nothing she writes to it ever leaves the phone.
- *  - Not her email or phone. The way to reach her goes to the founder's form
- *    on its own, and Trust says it is never stored next to her answers. Until
- *    this type existed, every re-keep after joining the door put it there.
  *  - Not the line she writes for the next person at the end. Ending says it
  *    never leaves; it went with every keep (docs/PRIVACY.md, C3).
  *  - No moment finer than a day. Every other store has kept that rule since
@@ -38,12 +34,10 @@ const ENDPOINT = '/.netlify/functions/keep'
  *    (docs/PRIVACY.md, C1–C2). What comes back after a restore is used only in
  *    days.
  *
- * The type is the guarantee for the first three: the fields do not exist on
+ * The type is the guarantee for the first two: the fields do not exist on
  * what is sent. The server applies the same rules again, for older clients.
  */
-export type KeptSnapshot = Omit<PersistedState, 'coachThreads' | 'waitlist'> & {
-  waitlist: Omit<WaitlistState, 'contact'> | null
-}
+export type KeptSnapshot = Omit<PersistedState, 'coachThreads'>
 
 const MOMENT = /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?$/
 
@@ -58,11 +52,10 @@ function toDays<T>(value: T): T {
 }
 
 export function keptSnapshot(state: PersistedState): KeptSnapshot {
-  const { coachThreads: _threads, waitlist, followups, ending, read, couple, ...rest } = state
+  const { coachThreads: _threads, followups, ending, read, couple, ...rest } = state
   // The read before this one stays on the phone — it was never in the kept map.
   const { previous: _previous, ...latest } = read ?? { at: '', answers: {} }
   delete (rest as { updatedAt?: number }).updatedAt
-  const { contact: _contact, ...place } = waitlist ?? { contact: '', joinedAt: '' }
   const { advice: _advice, ...ended } = ending ?? { at: '' }
   // The pair's code and when he answered, as before — not her owner key, not
   // the cached joint, not which side this phone is.
@@ -71,7 +64,6 @@ export function keptSnapshot(state: PersistedState): KeptSnapshot {
     ...rest,
     read: read ? latest : null,
     couple: pair,
-    waitlist: waitlist ? place : null,
     ending: ending ? ended : null,
     // Ids unique within her list, and nothing more: they were built from the
     // moment each was written.
@@ -133,11 +125,6 @@ export function forgetCode() {
 }
 
 
-/** Something to lay over what the device holds before it is sent — see `keepMap`. */
-export interface KeepPatch {
-  identity?: Partial<Identity>
-}
-
 /**
  * Why a keep did not produce a code (docs/INTEGRITY.md):
  *  - `stale` — the map was kept from another phone since this one last saw
@@ -181,26 +168,19 @@ let inFlight: Promise<string | KeepProblem> | null = null
  *
  * Re-keeps under her existing code when she has one, so keeping an updated map
  * never hands her a second code to remember.
- *
- * A patch lays over what is on the device before it is sent, and changes
- * nothing on the device. The door hands the age she just typed this way:
- * persistence is debounced (useNiyyah), so a re-keep that read storage could
- * send the map from a quarter-second ago — without the one fact being counted
- * requires.
  */
-export function keepMapDetail(patch?: KeepPatch): Promise<string | KeepProblem> {
+export function keepMapDetail(): Promise<string | KeepProblem> {
   if (inFlight) return inFlight
-  inFlight = keepOnce(patch).finally(() => {
+  inFlight = keepOnce().finally(() => {
     inFlight = null
   })
   return inFlight
 }
 
-async function keepOnce(patch?: KeepPatch): Promise<string | KeepProblem> {
+async function keepOnce(): Promise<string | KeepProblem> {
   const state = loadProgress()
   if (!state) return 'unreachable'
-  const snapshot = patch?.identity ? { ...state, identity: { ...state.identity, ...patch.identity } } : state
-  const body = keptSnapshot(snapshot)
+  const body = keptSnapshot(state)
 
   const put = (code: string | null) =>
     send(ENDPOINT, {
@@ -262,10 +242,10 @@ async function keepOnce(patch?: KeepPatch): Promise<string | KeepProblem> {
 /**
  * The same, as a code or nothing — for callers that only need a code to go on
  * with. A stale phone gets nothing here, and so never writes over the newer
- * map: the door counts her under the code she already has.
+ * map.
  */
-export async function keepMap(patch?: KeepPatch): Promise<string | null> {
-  const result = await keepMapDetail(patch)
+export async function keepMap(): Promise<string | null> {
+  const result = await keepMapDetail()
   // By name, never by shape: "unreachable" cleans to eight letters of the code
   // alphabet, and would pass for a code.
   return PROBLEMS.has(result) ? null : result
@@ -343,17 +323,12 @@ export async function restoreDetail(code: string): Promise<PersistedState | Rest
     if (!snapshot || typeof snapshot !== 'object') return 'unreachable'
     if (typeof rev === 'number') fetchedRev.set(clean, rev)
     // Fetched, not adopted. This used to remember the code here, so opening
-    // anyone's `?map=` link made their code this phone's own: every keep, join
-    // and vouch-ask after it wrote under a code the sender holds and reads
+    // anyone's `?map=` link made their code this phone's own: every keep
+    // after it wrote under a code the sender holds and reads
     // (docs/SECURITY.md, O2). The caller adopts it, after she says it is hers.
     // A restored map starts the guide fresh — its threads were never kept,
-    // including in a snapshot kept before that was true. Her contact was
-    // never kept either; the founder already has it from the form.
-    return {
-      ...snapshot,
-      coachThreads: {},
-      waitlist: snapshot.waitlist ? { ...snapshot.waitlist, contact: '' } : null,
-    }
+    // including in a snapshot kept before that was true.
+    return { ...snapshot, coachThreads: {} }
   } catch {
     return 'unreachable'
   }

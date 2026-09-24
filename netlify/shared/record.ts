@@ -16,11 +16,10 @@
  * instead of a guess, and docs/SCALE.md's move to a real database is a
  * transcription rather than an archaeology (docs/BACKWARD.md).
  *
- * What is stamped: a record about a member — her kept map, her door entry,
- * the way to reach her, her ladder record, a vouch, a report and its resolved
- * stub, a pair's sheets. What is not: a counter (`limits`, a bare number), a
- * tally (`tallies/joint`, which has no members in it), and the index strings
- * (`index/`, `token/`, `asked/`), which are pointers, not records.
+ * What is stamped: a record about a member — her kept map, her ladder record,
+ * a report and its resolved stub, a pair's sheets. What is not: a counter
+ * (`limits`, a bare number) and a tally (`tallies/joint`, which has no
+ * members in it).
  *
  * The stamp is applied as the last thing before a write — after any spread of
  * an older record — so a record rewritten at a later version carries that

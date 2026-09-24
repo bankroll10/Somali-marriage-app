@@ -14,7 +14,6 @@ interface Props {
   completed: boolean
   onResume: () => void
   onEnter: () => void
-  onPhilosophy: () => void
   /**
    * A conversation someone was handed words for, days ago, with no Home to be
    * asked about it on — a stranger who took the family words, say. Asked here,
@@ -33,7 +32,6 @@ export default function Welcome({
   completed,
   onResume,
   onEnter,
-  onPhilosophy,
   followUpAsk = null,
   onAnswerFollowUp,
   onAskGuide,
@@ -197,15 +195,12 @@ export default function Welcome({
               </>
             )}
           </div>
-          {/* "Then: find someone serious — without losing your dignity, faith,
-              time, or peace" sat here: a marketplace promise, with no pool open
-              and nobody to introduce (docs/DIFFERENTIATION.md). The line under
-              this one says what is true about that instead. */}
+          {/* What is true, in one line. */}
           <p
             className="animate-fade mt-5 text-xs text-cream/60"
             style={{ animationDelay: '300ms' }}
           >
-            Private to you · Minneapolis opens first · We never pretend a city is full
+            Private to you · No account · Free
           </p>
           {/* The second door used to be a card here, below the fold, for the
               person in the most pain — already talking to someone. It is now
@@ -213,15 +208,6 @@ export default function Welcome({
           {/* Quiet on purpose: someone arriving for the first time should meet
               the question this app exists to answer, not a login. */}
           <RestoreMap />
-
-          <button
-            onClick={onPhilosophy}
-            className="animate-fade mt-6 inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gold-soft underline-offset-4 transition hover:underline"
-            style={{ animationDelay: '340ms' }}
-          >
-            Why we’re different
-            <ArrowRight className="h-4 w-4" />
-          </button>
         </main>
 
       </div>

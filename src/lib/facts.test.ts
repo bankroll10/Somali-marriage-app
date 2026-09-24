@@ -12,7 +12,7 @@ import type { FollowUp } from '../types'
  * a person wrote can be.
  */
 
-const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], hesitated: null, began: [], gender: 'woman', askedGuide: false }
+const none: FactsInput = { reflection: null, read: null, beforeYes: null, followups: [], ending: null, endings: [], began: [], gender: 'woman', askedGuide: false }
 
 /** A complete read, every question answered with its first option. */
 const readAnswers = Object.fromEntries(readQuestions('woman').map((q) => [q.id, q.options[0].id]))
@@ -133,12 +133,6 @@ describe('what the rungs were made of', () => {
     ])
   })
 
-  it('carries why she stopped at the door as one word — never when, never anything about her', () => {
-    const facts = factsFrom({ ...none, hesitated: { at: '2026-06-01T10:00:00Z', reason: 'contact' } })
-    expect(facts).toEqual({ hesitated: 'contact' })
-    expect(JSON.stringify(facts)).not.toContain('2026-')
-  })
-
   it('carries which questionnaires she began — the denominator, deduped and sorted', () => {
     const facts = factsFrom({ ...none, began: ['read', 'map', 'read'] })
     expect(facts).toEqual({ began: ['map', 'read'] })
@@ -147,10 +141,6 @@ describe('what the rungs were made of', () => {
   it('drops an instrument it does not know, so a stale id cannot poison the report', () => {
     expect(factsFrom({ ...none, began: ['sessions', 'read'] })).toEqual({ began: ['read'] })
     expect(factsFrom({ ...none, began: ['nope'] })).toEqual({})
-  })
-
-  it('drops a reason for stopping that is not on the list', () => {
-    expect(factsFrom({ ...none, hesitated: { at: 'x', reason: 'because I felt like it' } })).toEqual({})
   })
 
   it('drops any id it does not recognise, so a stale record cannot poison the report', () => {
@@ -164,8 +154,8 @@ describe('what the rungs were made of', () => {
   })
 
   it('serialises the same facts to the same string whatever order the input came in', () => {
-    const a = factsFrom({ ...none, followups: [asked('read', 'public'), asked('beforeYes', 'live')], ending: { at: 'x', used: ['vouch', 'guide'] } })
-    const b = factsFrom({ ...none, followups: [asked('beforeYes', 'live'), asked('read', 'public')], ending: { at: 'x', used: ['guide', 'vouch'] } })
+    const a = factsFrom({ ...none, followups: [asked('read', 'public'), asked('beforeYes', 'live')], ending: { at: 'x', used: ['couple', 'guide'] } })
+    const b = factsFrom({ ...none, followups: [asked('beforeYes', 'live'), asked('read', 'public')], ending: { at: 'x', used: ['guide', 'couple'] } })
     expect(JSON.stringify(a)).toBe(JSON.stringify(b))
   })
 
@@ -175,9 +165,8 @@ describe('what the rungs were made of', () => {
       read: { at: '2026-01-01', answers: readAnswers },
       beforeYes: { at: '2026-01-01', answers: elevenAnswers },
       followups: [asked('beforeYes', 'money-home'), asked('family', 'tell-wali-online')],
-      ending: { at: '2026-05-01', who: 'here', mattered: 'shown', used: ['read'], advice: 'a whole sentence, with spaces.' },
+      ending: { at: '2026-05-01', who: 'brought', mattered: 'shown', used: ['read'], advice: 'a whole sentence, with spaces.' },
       endings: [{ at: '2026-03-01T10:00:00Z', from: 'talking', reason: 'his-read', which: 'public' }],
-      hesitated: { at: '2026-03-02T10:00:00Z', reason: 'seen' },
       askedGuide: true,
       began: ['map', 'read', 'eleven'],
       gender: 'woman',

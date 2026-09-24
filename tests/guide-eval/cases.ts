@@ -81,10 +81,10 @@ export interface GuideCase {
 function map(
   gender: 'woman' | 'man',
   stage: 'preparing' | 'talking' | 'deciding' | 'married',
-  over: { scene?: string; age?: number; answers?: Record<string, unknown>; readNote?: string; beforeYesNote?: string } = {},
+  over: { scene?: string; answers?: Record<string, unknown>; readNote?: string; beforeYesNote?: string } = {},
 ): RawContext {
   return {
-    identity: { gender, age: over.age ?? (gender === 'woman' ? 27 : 30), scene: over.scene ?? 'twin-cities' },
+    identity: { gender, scene: over.scene ?? 'twin-cities' },
     answers: {
       timeline: '1-2',
       practice: 'consistent',

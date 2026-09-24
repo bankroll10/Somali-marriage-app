@@ -5,17 +5,11 @@ import type {
   Gender,
   MapSnapshot,
   ReadRecord,
-  StepRecord,
-  VouchState,
 } from '../types'
 import { buildBeforeYes } from './beforeYes'
 import { conversationsHad } from './followup'
-import { relationshipLabel } from '../data/vouch'
 import { speak } from '../data/read'
-import { countryFor, getScene } from '../data/scenes'
-import { getCountry } from '../data/countries'
 import { toolLink } from './links'
-import { opensWhen } from './cohort'
 
 /**
  * How you chose.
@@ -57,11 +51,9 @@ export interface EndingInput {
   gender: Gender
   answers: Answers
   mapHistory: MapSnapshot[]
-  steps: StepRecord[]
   read: ReadRecord | null
   beforeYes: ReadRecord | null
   couple: CoupleState | null
-  vouch: VouchState | null
   followups: FollowUp[]
   completed: boolean
 }
@@ -105,14 +97,6 @@ export function buildEnding(i: EndingInput, today: string): Ending {
     lines.push({ text: 'You built your map.' })
   }
 
-  const done = i.steps.filter((s) => s.done).length
-  if (done > 0) {
-    lines.push({
-      text: `You finished ${words(done)} ${done === 1 ? 'piece' : 'pieces'} of work your map asked of you.`,
-      at: day(i.steps.filter((s) => s.done).slice(-1)[0]?.done),
-    })
-  }
-
   // The read — what the other person had shown, before anyone was sure. Said
   // from whichever side is reading: a married man used to read "what he had
   // done" about himself (docs/VOICE.md).
@@ -142,15 +126,6 @@ export function buildEnding(i: EndingInput, today: string): Ending {
           : 'You asked {him} to answer the same eleven on {his} own phone.',
       ),
       at: day(i.couple.at),
-    })
-  }
-
-  if (i.vouch) {
-    // relationshipLabel already reads from her side — "your father".
-    const who = relationshipLabel(i.vouch.relationship)
-    lines.push({
-      text: `${who.charAt(0).toUpperCase()}${who.slice(1)}, ${i.vouch.firstName}, vouched for you.`,
-      at: day(i.vouch.at),
     })
   }
 
@@ -189,63 +164,28 @@ export interface Share {
 }
 
 /**
- * The two things only a married person can send.
+ * The one thing only a married person can send: the eleven, for the friend
+ * who is already talking to someone. "Before we said yes, we had these
+ * conversations" is the most credible thing anyone can say about marrying
+ * well, and only she can say it. It carries `via=married` and nothing else.
  *
- * Everything else this product hands out is careful never to reveal that the
- * sender is looking, because in this community that costs her something. The
- * moment she is married that inverts entirely — and it inverts twice.
- *
- * The first share is the eleven, for the friend who is already talking to
- * someone: "before we said yes, we had these conversations" is the most
- * credible thing anyone can say about marrying well, and only she can say it.
- *
- * The second is the door, for the friend who is looking — and it is the one
- * that turns the flywheel on the side that needs it (docs/FLYWHEEL.md). The
- * marketplace's scarce side is serious, unattached men, and every other loop
- * in the product reaches a man already attached to the woman who sent it. A
- * married couple is the one pair who can reach an unattached person through
- * the spouse's side without anyone admitting they are looking. Until this
- * existed the ending sent women an instrument for people already in a
- * courtship, and nothing reached the door.
- *
- * Both carry `via=married` and nothing else — the kind of link, never who sent
- * it (docs/STRATEGY.md). The pool is named the way the door names it. Pure, so
- * a test can hold the line that nothing here carries a name or a code.
- *
- * And both say only what is true of her. The record above refuses to claim
- * anything she did not do; until docs/BOARD.md the share did not — every woman
- * who reached the ending was handed "we went through eleven conversations"
- * whether or not she had opened the eleven, and "we married this year" whenever
- * she married. A false sentence in a community this tight is the one thing
- * that would poison the referral the whole ending exists for. So the eleven
- * share claims the eleven only when she did them (`did.eleven`: her own sheet,
- * or the two-sided one she started), and the door share names no year.
+ * It says only what is true of her: it claims the eleven only when she did
+ * them (`did.eleven`: her own sheet, or the two-sided one she started). A
+ * false sentence in a community this tight would poison the one referral
+ * the ending exists for.
  */
 export interface MarriedDid {
   /** She opened the eleven herself, or sent him the two-sided one. */
   eleven: boolean
 }
 
-export function marriedShares(
-  identity: { scene?: string; country?: string },
-  advice?: string,
-  did: MarriedDid = { eleven: false },
-): { eleven: Share; door: Share } {
-  const scene = getScene(identity.scene)
-  const within = getCountry(countryFor(identity))?.within
-  const pool = !scene ? 'your city' : scene.id === 'other' ? (within ?? 'your country') : scene.label
+export function marriedShare(advice?: string, did: MarriedDid = { eleven: false }): Share {
   const line = advice?.trim()
   const lead = did.eleven
     ? 'Before we said yes, we went through eleven conversations — where we’d live, money home, all of it. I wish someone had handed me that list earlier.'
     : 'There are eleven conversations most of us have too late — where you’d live, money home, a second wife. I wish someone had handed me that list before we said yes.'
   return {
-    eleven: {
-      text: [lead, line ? `\n${line}` : '', '\nIt is free, and there is no account.'].join(''),
-      url: toolLink('before-you-say-yes', 'married'),
-    },
-    door: {
-      text: `We married, alhamdulillah. Niyyah is being built for us, one city at a time. ${opensWhen(pool)} If you’re looking, this is where it stands. No photos, no account: three answers, your age, and a way to reach you.`,
-      url: toolLink('door', 'married'),
-    },
+    text: [lead, line ? `\n${line}` : '', '\nIt is free, and there is no account.'].join(''),
+    url: toolLink('before-you-say-yes', 'married'),
   }
 }

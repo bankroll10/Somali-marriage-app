@@ -43,12 +43,10 @@ vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) =>
 const { default: safety } = await import('../netlify/functions/safety')
 const { default: couple } = await import('../netlify/functions/couple')
 const { default: keep } = await import('../netlify/functions/keep')
-const { default: cohort } = await import('../netlify/functions/cohort')
 const { sweepExpired } = await import('../netlify/functions/sweep')
 type Swept = Parameters<typeof sweepExpired>[0]
 /** The sweep takes the stores the way netlify/functions/sweep.ts's handler gets them. */
-const sweepAll = (now?: number) =>
-  sweepExpired(...(['maps', 'vouches', 'couples', 'progress'].map((n) => memStore(n) as unknown as Swept) as [Swept, Swept, Swept, Swept]), now)
+const sweepAll = (now?: number) => sweepExpired(memStore('couples') as unknown as Swept, memStore('progress') as unknown as Swept, now)
 
 const store = (name: string) => {
   if (!stores.has(name)) stores.set(name, new Map())
@@ -145,22 +143,13 @@ describe('an urgent report does not wait for Monday', () => {
 
 describe('changing a code someone has seen', () => {
   // Possession is the authority (docs/HARD.md), so a code seen over her
-  // shoulder, or taken from her phone, let its holder read her map, overwrite
-  // it, vouch as her father, and put his own number on her door entry — so an
-  // introduction would reach him. The only remedy was forget me, which cost her
-  // everything (docs/THREAT.md, T8).
+  // shoulder, or taken from her phone, let its holder read her map and
+  // overwrite it. The only remedy was forget me, which cost her the map
+  // (docs/THREAT.md, T8).
   const rotate = (code = MAP) => keep(new Request(`http://x/.netlify/functions/keep?code=${code}`, { method: 'PUT' }))
-  const TOKEN = 'QRTWXY3478'
-  const MEMBER = `us/twin-cities/woman/city/serious/${MAP}`
 
   beforeEach(() => {
     store('maps').set(MAP, JSON.stringify({ v: 1, snapshot: { identity: { firstName: 'Hodan' } }, createdAt: '2026-09-01', expiresAt: '2099-01-01' }))
-    store('vouches').set(MAP, JSON.stringify({ v: 1, relationship: 'father', firstName: 'Abdi', sentence: 's', at: '2026-09-02' }))
-    store('vouches').set(`asked/${MAP}`, TOKEN)
-    store('vouches').set(`token/${TOKEN}`, MAP)
-    store('cohort').set(MEMBER, JSON.stringify({ v: 1, at: '2026-09-03', ledger: [] }))
-    store('cohort').set(`index/${MAP}`, MEMBER)
-    store('contacts').set(MAP, JSON.stringify({ v: 1, contact: 'h@example.com', scene: 'twin-cities', country: 'us', at: '2026-09-03' }))
   })
 
   it('hands back a new code, and the old one opens nothing', async () => {
@@ -176,53 +165,14 @@ describe('changing a code someone has seen', () => {
     expect(JSON.parse(store('maps').get(code)!).snapshot.identity.firstName).toBe('Hodan')
   })
 
-  it('carries the vouch, the door and the way to reach her across, and leaves nothing under the old code', async () => {
-    const { code } = await (await rotate()).json()
-    expect(JSON.parse(store('vouches').get(code)!).firstName).toBe('Abdi')
-    expect(store('vouches').get(`asked/${code}`)).toBe(TOKEN)
-    expect(store('vouches').get(`token/${TOKEN}`)).toBe(code)
-    const member = store('cohort').get(`index/${code}`)!
-    expect(member).toBe(`us/twin-cities/woman/city/serious/${code}`)
-    expect(JSON.parse(store('cohort').get(member)!).at).toBe('2026-09-03')
-    expect(JSON.parse(store('contacts').get(code)!).contact).toBe('h@example.com')
-    for (const s of ['maps', 'vouches', 'cohort', 'contacts'])
-      // The tombstone that closes the old code is not hers: a reason and a date.
-      expect([...store(s).keys()].filter((k) => k.includes(MAP) && k !== `ended/${MAP}`), s).toEqual([])
+  it('leaves nothing under the old code', async () => {
+    await rotate()
+    // The tombstone that closes the old code is not hers: a reason and a date.
+    expect([...store('maps').keys()].filter((k) => k.includes(MAP) && k !== `ended/${MAP}`)).toEqual([])
   })
 
   it('a code with nothing under it is a 404, and a bad one a 400', async () => {
     expect((await rotate('WXYQRT78')).status).toBe(404)
     expect((await rotate('nope')).status).toBe(400)
-  })
-})
-
-describe('one city cannot be filled in an hour', () => {
-  // The door says "we never pretend a city is full", and the only bound on a
-  // bot minting maps and joining them was the site-wide 200 an hour — enough
-  // to show one city a false 40/40 before anyone looked (docs/THREAT.md T7).
-  const join = (code: string, scene = 'twin-cities') =>
-    cohort(new Request('http://x/.netlify/functions/cohort', { method: 'POST', body: JSON.stringify({ code, scene, gender: 'woman' }) }))
-
-  it('refuses a city past its own hourly cap, and leaves every other city open', async () => {
-    vi.stubEnv('DOOR_CITY_HOURLY_CAP', '2')
-    const codes = ['ACDEFG34', 'HJKM47QR', 'WXYQRT78', 'CDEFGH34']
-    for (const c of codes) store('maps').set(c, JSON.stringify({ snapshot: {}, createdAt: 'd', expiresAt: '2099-01-01' }))
-    expect((await join(codes[0])).status).toBe(200)
-    expect((await join(codes[1])).status).toBe(200)
-    expect((await join(codes[2])).status).toBe(503)
-    expect((await join(codes[3], 'london')).status).toBe(200)
-    vi.unstubAllEnvs()
-  })
-})
-
-describe('the waitlist form cannot be filled by a bot', () => {
-  // No honeypot meant a bot filling every field could crowd the free tier's
-  // submission quota, silently (docs/THREAT.md T5).
-  it('declares a field no person sees, and the app never sends it', () => {
-    const forms = readFileSync(new URL('../public/__forms.html', import.meta.url), 'utf8')
-    const waitlist = readFileSync(new URL('../src/lib/waitlist.ts', import.meta.url), 'utf8')
-    expect(forms).toMatch(/data-netlify-honeypot="bot-field"/)
-    expect(forms).toMatch(/<input type="text" name="bot-field" \/>/)
-    expect(waitlist).not.toMatch(/bot-field/)
   })
 })

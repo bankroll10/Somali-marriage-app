@@ -314,7 +314,7 @@ async function askLiveGuide(
           // never an answer in her own words. The whole identity and every
           // answer used to go, and the server threw most of it away
           // (docs/PRIVACY.md, C4).
-          identity: { age: ctx.identity.age, gender: ctx.identity.gender, scene: ctx.identity.scene },
+          identity: { gender: ctx.identity.gender, scene: ctx.identity.scene },
           answers: Object.fromEntries(GUIDE_ANSWERS.filter((k) => k in ctx.answers).map((k) => [k, ctx.answers[k]])),
           stage: ctx.stage,
           readNote: ctx.readNote,

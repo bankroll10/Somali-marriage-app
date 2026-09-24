@@ -1,20 +1,8 @@
 import { useEffect, useState } from 'react'
-import type { Dimension, GroundState, Identity, MapSnapshot, ModeId, Reach, Reflection, StepRecord, WaitlistState, VouchState } from '../types'
-import type { Hesitation } from '../data/hesitation'
-import { getMode } from '../data/coach'
-import { todayKey } from '../lib/dates'
+import type { GroundState, Identity, MapSnapshot, Reflection } from '../types'
 import { changesBetween } from '../lib/reflection'
-import {
-  doneSteps,
-  groundOrder,
-  nextStepFor,
-  openStep as findOpenStep,
-  whenLabel,
-} from '../data/nextStep'
-import Cohort from './Cohort'
-import VouchRow from './VouchRow'
 import KeepMap from './KeepMap'
-import { BackButton, Button, Logo, ArrowRight, CheckIcon, Words } from './ui'
+import { BackButton, Button, Logo, ArrowRight } from './ui'
 
 const GENERATING_STAGES = [
   'Reading what you shared…',
@@ -107,58 +95,24 @@ interface Props {
   identity: Identity
   /** Every reading so far, oldest first — powers the growth line. */
   history: MapSnapshot[]
-  /** Work taken on from this map — open and finished. */
-  steps: StepRecord[]
-  onTakeStep: (d: Dimension) => void
-  onCompleteStep: () => void
-  /** Their saved place — asked right after the dimension bars, until they join. */
-  waitlist: WaitlistState | null
-  ledger?: string[]
-  onScene?: (scene: string) => void
-  onCountry?: (country: string) => void
-  onReach?: (reach: Reach) => void
-  onAge?: (age: number) => void
-  onHesitate?: (reason: Hesitation) => void
-  /** Their "hardest part" answer, carried onto the signup. */
-  hookId?: string
-  onJoinWaitlist: (s: WaitlistState) => void
-  /** A family member's vouch, once given — see components/VouchRow.tsx. */
-  vouch: VouchState | null
   onKept: (code: string) => void
   /** First-time reveal shows an "enter" CTA; revisits show "back". */
   firstReveal?: boolean
   onContinue: () => void
   /** Reflect again — keeps the journey, records a new reading. */
   onRetake: () => void
-  /** Hand a topic to the guide, in the voice suited to it. */
-  onOpenGuide: (mode: ModeId) => void
 }
 
 export default function ReflectionView({
   reflection: r,
   identity,
   history,
-  steps,
-  onTakeStep,
-  onCompleteStep,
-  waitlist,
-  ledger,
-  onScene,
-  onCountry,
-  onReach,
-  onAge,
-  onHesitate,
-  hookId,
-  onJoinWaitlist,
-  vouch,
   onKept,
   firstReveal = false,
   onContinue,
   onRetake,
-  onOpenGuide,
 }: Props) {
   const name = identity.firstName?.trim()
-  const today = todayKey()
   // What changed since the previous reading — answers, in her own words, and
   // any ground that moved. Nothing to show until there is a before.
   const latest = history[history.length - 1]
@@ -170,14 +124,6 @@ export default function ReflectionView({
   const strongLabels = r.dimensions.filter((d) => d.state === 'strong').map((d) => d.label.toLowerCase())
   // Every rated ground strong: the lowest of them is not "thin", and is not called so.
   const thinLine = thinnest?.state === 'strong' ? 'Nothing reads thin.' : `Thinnest on ${thinLabel}.`
-  // The ground to work next: thinnest first, but skipping what's already been
-  // worked — so the map keeps handing over something new.
-  const carried = findOpenStep(steps)
-  const ground = carried?.dimension ?? groundOrder(r.thinnest, steps)[0]
-  const groundLabel = r.dimensions.find((d) => d.dimension === ground)?.label ?? ''
-  const step = nextStepFor(ground)
-  const finished = doneSteps(steps)
-  const finishedToday = steps.find((s) => s.done === today) ?? null
   return (
     <div className="min-h-dvh bg-cream pb-24 pt-safe">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
@@ -214,7 +160,7 @@ export default function ReflectionView({
             <p className="mt-3 max-w-md text-[0.92rem] leading-relaxed text-cream/60 text-pretty">
               {firstReveal
                 ? 'A starting point, not a verdict, and not a measure of you as a person.'
-                : 'What decides who you meet is what you’ve done here and what you won’t compromise on, not this reading.'}
+                : 'A reading of your answers — not a measure of you as a person.'}
             </p>
           </div>
 
@@ -275,136 +221,11 @@ export default function ReflectionView({
         </Section>
 
         {/* Everything above exists only in this browser — said the moment she
-            has read the thing she would lose, not nine hundred words later.
-
-            It used to sit second-to-last, below the mirror and the alignment,
-            while the door — five fields and a way to reach her — held this
-            slot. That is exactly inverted under BJ Fogg's model: the cheapest
-            action in the product, the one that costs one tap and protects what
-            she has just earned, was the one buried past the fold, and the
-            expensive ask that serves us was at peak motivation. Closing the tab
-            before scrolling cost her everything, silently (docs/FOGG.md).
-            Joining the cohort already keeps the map, so the card steps aside
-            once she's counted. */}
-        {!waitlist && (
-          <section className="mb-12">
-            <KeepMap onKept={onKept} />
-          </section>
-        )}
-
-        {/* The ask, right where the map has just said something specific about
-            her — before the long tail of sections she may never scroll to.
-            Shown on every map view, not only first reveal, so skipping it once
-            doesn't mean never seeing it again. The card switches from the form
-            to a "you're counted" confirmation on submit, right here, so she
-            sees that something happened. Skippable — everything below works
-            whether or not she joins. */}
+            has read the thing she would lose, not nine hundred words later
+            (docs/FOGG.md). */}
         <section className="mb-12">
-          <Cohort
-            identity={identity}
-            hookId={hookId}
-            ledger={ledger}
-            joined={waitlist}
-            onJoined={onJoinWaitlist}
-            onScene={onScene}
-            onCountry={onCountry}
-            onReach={onReach}
-            onAge={onAge}
-            onHesitate={onHesitate}
-          />
-          {/* The one verification we claim, offered where she has just finished
-              something and can see why it would matter. It used to live only on
-              a profile screen she may never open. */}
-          <VouchRow vouch={vouch} onKept={onKept} />
+          <KeepMap onKept={onKept} />
         </section>
-
-        {/* Diagnosis → practice. A map that names your thinnest ground and stops
-            there leaves you as anxious as you arrived: one honest, doable thing,
-            taken on, done, and kept as a record. This is the working half of the
-            map — the reason it's an instrument and not a verdict. */}
-        <Section title="Where to put your effort">
-          <div className="rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-            <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
-              {finishedToday
-                ? `Done today · ${r.dimensions.find((d) => d.dimension === finishedToday.dimension)?.label}`
-                : groundLabel}
-            </p>
-
-            {finishedToday ? (
-              <p className="mt-3 font-display text-[1.3rem] font-medium leading-snug tracking-tight text-ink text-pretty">
-                {nextStepFor(finishedToday.dimension).done}
-              </p>
-            ) : (
-              <>
-                <p className="mt-2.5 text-[0.95rem] leading-relaxed text-muted text-pretty">
-                  {carried ? `You took this on ${whenLabel(carried.taken, today)}.` : step.frame}
-                </p>
-                <p className="mt-4 font-display text-[1.3rem] font-medium leading-snug tracking-tight text-ink text-pretty">
-                  {step.action}
-                </p>
-                <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-3">
-                  <button
-                    onClick={() => (carried ? onCompleteStep() : onTakeStep(ground))}
-                    className="inline-flex items-center gap-2 rounded-full bg-forest px-5 py-2.5 text-[0.88rem] font-medium text-cream transition hover:bg-forest-deep"
-                  >
-                    {carried ? (
-                      <>
-                        <CheckIcon size={13} /> I did this
-                      </>
-                    ) : (
-                      'I’ll do this'
-                    )}
-                  </button>
-                  <button
-                    onClick={() => onOpenGuide(step.mode)}
-                    className="group inline-flex items-center gap-1.5 text-[0.88rem] font-medium text-forest transition hover:text-forest-deep"
-                  >
-                    Talk it through with {getMode(step.mode).label}
-                    <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                  </button>
-                </div>
-              </>
-            )}
-
-            <p className="mt-4 border-t border-gold/20 pt-3.5 text-[0.8rem] leading-relaxed text-muted text-pretty">
-              Nothing here is scored. Doing this changes your answers, and your
-              answers are the map.
-            </p>
-          </div>
-        </Section>
-
-        {/* What you've done. Private, undated by any streak, and the only proof
-            of change the app offers that isn't a number. */}
-        {finished.length > 0 && (
-          <Section title="What you’ve done">
-            <ul className="space-y-3">
-              {finished.slice(0, 6).map((s, i) => (
-                <li
-                  key={`${s.dimension}-${s.done}-${i}`}
-                  className="flex items-start gap-3.5 rounded-2xl border border-line bg-white/60 px-5 py-4"
-                >
-                  <span className="mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full bg-forest/10 text-forest">
-                    <CheckIcon size={11} />
-                  </span>
-                  <span className="flex-1">
-                    <span className="block text-[0.95rem] leading-snug text-ink-soft text-pretty">
-                      {nextStepFor(s.dimension).done}
-                    </span>
-                    <span className="mt-1 block text-[0.78rem] uppercase tracking-[0.12em] text-muted">
-                      {r.dimensions.find((d) => d.dimension === s.dimension)?.label} ·{' '}
-                      {whenLabel(s.done!, today)}
-                    </span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {finished.length > 6 && (
-              <p className="mt-3 text-[0.82rem] text-muted">
-                And {finished.length - 6} more before these.
-              </p>
-            )}
-          </Section>
-        )}
 
         {/* Core values */}
         {r.coreValues.length > 0 && (
@@ -453,17 +274,6 @@ export default function ReflectionView({
           </div>
         </Section>
 
-        {/* The words this screen is written in.
-
-            Of the heavy screens this was the only one that already had
-            hierarchy — eight sections, each with a real heading — so it gets no
-            collapse in this pass (docs/LOAD.md). What it never had was a way to
-            find out what "thin" or "the mirror" means without leaving the map
-            it was describing. */}
-        <section className="mb-12">
-          <Words ids={['map', 'reading', 'ground', 'thin', 'work', 'mirror']} />
-        </section>
-
         {/* Next: into your space — light card; the dark hero lives at the top now. */}
         <section className="mt-14 rounded-card border border-line bg-white/60 p-8 text-center">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-gold-ink">
@@ -473,9 +283,8 @@ export default function ReflectionView({
             {firstReveal ? 'This is your foundation.' : 'Back home'}
           </p>
           <p className="mx-auto mt-3 max-w-md text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
-            From here your map is behind everything: the guide, the work you take
-            on, and — if a pool ever opens here — introductions chosen by how your
-            lives fit and what you won’t compromise on. None exist yet.
+            From here your map is behind the guide — it reads what you said here
+            before it answers — and behind your side of the eleven conversations.
           </p>
           <div className="mt-7">
             <Button onClick={onContinue} className="group">
@@ -484,8 +293,7 @@ export default function ReflectionView({
             </Button>
           </div>
           {/* Offered on revisits only, and never nudged: a retake is hers to
-              want when something in her life has changed, not something the
-              app asks for after a count of finished steps. */}
+              want when something in her life has changed. */}
           {!firstReveal && (
             <button
               onClick={onRetake}

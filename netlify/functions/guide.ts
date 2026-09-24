@@ -48,7 +48,7 @@ interface Usage {
  *
  * The model may never become load-bearing: it adds a layer on top of something
  * the product already does completely without it, and never produces the map,
- * the read, the eleven, the match or the door. docs/DURABLE.md holds the rule
+ * the read or the eleven. docs/DURABLE.md holds the rule
  * and tests/durable.test.ts asserts it.
  */
 
@@ -244,7 +244,7 @@ export default async function handler(req: Request, _context: Context) {
     return Response.json({ error: 'guide_not_configured' }, { status: 503 })
   }
 
-  // Measured before it is parsed, like keep.ts and cohort.ts: the size of the
+  // Measured before it is parsed, like keep.ts: the size of the
   // body is the size of the bill, and this route used to accept any size.
   // Read, and checked, before either cap is spent: a body that could never
   // reach the model used to spend a call of the day's budget anyway — and a

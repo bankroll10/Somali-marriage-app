@@ -30,10 +30,9 @@ function builtIndex(): string {
 }
 
 describe('the table', () => {
-  it('names the five tools, and nothing else', () => {
+  it('names the four tools, and nothing else', () => {
     expect(TOOLS.map((t) => t.slug).sort()).toEqual([
       'before-you-say-yes',
-      'door',
       'families',
       'is-he-serious',
       'is-she-serious',
@@ -56,10 +55,7 @@ describe('the table', () => {
     expect(eleven.about).toBeUndefined()
   })
 
-  it('the door and the family words are about the person who arrives, not someone else', () => {
-    const door = TOOLS.find((t) => t.slug === 'door')!
-    expect(door.kind).toBe('door')
-    expect(door.about).toBeUndefined()
+  it('the family words are about the person who arrives, not someone else', () => {
     const families = TOOLS.find((t) => t.slug === 'families')!
     expect(families.kind).toBe('families')
     expect(families.about).toBeUndefined()

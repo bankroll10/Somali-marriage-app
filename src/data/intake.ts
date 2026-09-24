@@ -14,7 +14,7 @@ import type { Chapter, Question } from '../types'
  * 23 questions over six chapters, and of the first two real people who opened
  * it, one stopped partway through the prompts and the other most likely did
  * too — neither reached the map. So this is the cut: every question that the
- * map's scoring, the alignment engine (lib/matching.ts) or the Guide reads
+ * map's scoring, the eleven or the Guide reads
  * stays; every question that only added a tag or a second reading of the same
  * dimension went. Each of the four rated grounds still has at least one scoring
  * answer, and the three positions have none, which data/intake.test.ts guards. The removed questions are in git
@@ -29,16 +29,13 @@ import type { Chapter, Question } from '../types'
  * How you'd live — the three things Somali marriages actually break on that no
  * app asks: whose house, whether she works, and money sent home.
  *
- * These used to sit outside the chapters, asked on Profile and on the sample
- * introduction — "a screen she may never open," as the code put it — while five
- * of the thirteen questions in the map reached no match and no conversation.
+ * These used to sit outside the chapters, on a screen she may never open.
  * docs/NORTHSTAR.md found that inverted against the one thing this product is
- * for: finding out early. So they are in chapter two now, where the intake
- * already says "the life you want," and they still appear on Profile and the
- * sample as `livingQuestions`, answered once and shared. No `weight`, so the
- * seven grounds do not move; the alignment engine treats an unanswered one as
- * neutral. The cap is A1's to police (docs/EXPERIMENTS.md): sixteen, one of
- * them optional, against evidence that twenty-three was too many.
+ * for: finding out early. So they are in chapter two, where the intake already
+ * says "the life you want", and the eleven shows her side of each. No
+ * `weight`, so the seven grounds do not move. The cap is A1's to police
+ * (docs/EXPERIMENTS.md): sixteen, one of them optional, against evidence that
+ * twenty-three was too many.
  */
 const household: Question = {
   id: 'household',
@@ -310,8 +307,6 @@ export const chapters: Chapter[] = [
     ],
   },
 ]
-
-export const livingQuestions: Question[] = [household, work, moneyHome]
 
 export const allQuestions = chapters.flatMap((c) => c.questions)
 export const totalQuestions = allQuestions.length

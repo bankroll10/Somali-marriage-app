@@ -26,8 +26,7 @@ function memStore(name: string) {
       return { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
     },
     // Conditional options work here too: the real store returns { modified }
-    // from `set` exactly as it does from `setJSON`, and vouch.ts now claims
-    // `asked/<code>` with onlyIfNew so no token can outlive forget me.
+    // from `set` exactly as it does from `setJSON`.
     set: async (key: string, value: string, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
       if (opts?.onlyIfNew && m.has(key)) return { modified: false }
       if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
@@ -107,18 +106,20 @@ describe('reporting a rung', () => {
   })
 
   it('keeps what kind of link brought her here, first told wins, and refuses anything else', async () => {
-    for (const via of ['words', 'eleven', 'couple', 'door', 'family', 'married', 'group']) {
+    for (const via of ['words', 'eleven', 'couple', 'family', 'married', 'group']) {
       expect((await post({ id: 'HJKMNP', rungs: ['arrived'], via })).status, via).toBe(200)
     }
     expect((await post({ id: ID, rungs: ['arrived'], via: 'instagram' })).status).toBe(400)
     expect((await post({ id: ID, rungs: ['arrived'], via: 'ACDEFG' })).status).toBe(400)
+    // The door went on 2026-09-24; its via went with it.
+    expect((await post({ id: ID, rungs: ['arrived'], via: 'door' })).status).toBe(400)
 
-    await post({ id: ID, rungs: ['arrived'], via: 'door' })
+    await post({ id: ID, rungs: ['arrived'], via: 'family' })
     await post({ id: ID, rungs: ['arrived', 'read'], via: 'words' })
-    expect(JSON.parse(stores.get('progress')!.get(ID)!).via).toBe('door')
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).via).toBe('family')
   })
 
-  it('keeps which side of the door she is on, last told wins, and refuses anything else', async () => {
+  it('keeps which side she is on, last told wins, and refuses anything else', async () => {
     expect((await post({ id: ID, rungs: ['arrived'], gender: 'man' })).status).toBe(200)
     expect(JSON.parse(stores.get('progress')!.get(ID)!).gender).toBe('man')
     // Chosen at Identity and correctable there, so a later word replaces it.
@@ -133,16 +134,10 @@ describe('reporting a rung', () => {
     expect(stores.get('progress')!.has('HJKMNP')).toBe(false)
   })
 
-  it('keeps why she stopped at the door as one word from the list, last word wins, and refuses anything else', async () => {
-    expect((await post({ id: ID, rungs: ['arrived', 'mapped'], facts: { hesitated: 'contact' } })).status).toBe(200)
-    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.hesitated).toBe('contact')
-    // She changed her mind about why — the last word is the one that counts.
-    await post({ id: ID, rungs: ['arrived', 'mapped'], facts: { hesitated: 'family' } })
-    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.hesitated).toBe('family')
-    // A sentence, or a word we did not write, refuses the whole report.
-    expect((await post({ id: 'HJKMNP', rungs: ['arrived'], facts: { hesitated: 'because I felt like it' } })).status).toBe(400)
-    expect((await post({ id: 'HJKMNP', rungs: ['arrived'], facts: { hesitated: 'tired' } })).status).toBe(400)
-    expect(stores.get('progress')!.has('HJKMNP')).toBe(false)
+  it('refuses a fact about the door — the door went, and so did its one word', async () => {
+    expect((await post({ id: ID, rungs: ['arrived', 'mapped'], facts: { hesitated: 'contact' } })).status).toBe(400)
+    expect((await post({ id: ID, rungs: ['arrived', 'counted'] })).status).toBe(400)
+    expect(stores.get('progress')?.size ?? 0).toBe(0)
   })
 
   it('refuses a bad id, a bad scene, a missing list and an oversized body', async () => {
@@ -243,12 +238,12 @@ describe('the readout', () => {
       await post({ id, rungs: ['arrived'], gender: 'man', via: 'group' })
     }
     for (const id of ['HJKMNQ', 'HJKMNR', 'HJKMNT', 'HJKMNW', 'HJKMNX']) {
-      await post({ id, rungs: ['arrived'], gender: 'woman', via: 'door' })
+      await post({ id, rungs: ['arrived'], gender: 'woman', via: 'family' })
     }
     await post({ id: 'QRTWXA', rungs: ['arrived', 'eleven'], gender: 'man', via: 'couple' })
     const body = await (await readout()).json()
     expect(body.sidesByVia.man.group.arrived).toBe(6)
-    expect(body.sidesByVia.woman.door.arrived).toBe(5)
+    expect(body.sidesByVia.woman.family.arrived).toBe(5)
     // One man through her link is a person, not a number.
     expect(body.sidesByVia.man.couple.arrived).toBeNull()
     expect(body.sidesByVia.man.couple.eleven).toBeNull()
@@ -261,23 +256,18 @@ describe('the readout', () => {
   })
 
   it('counts the map kept apart from the map built, so gap #3 is computable', async () => {
-    // docs/GAPS.md #3 — "people will not put a map on a server or leave a way
-    // to be reached" — is two different failures. Five built a map and stopped;
-    // five kept it and did not join the door; five went all the way. Before the
-    // `kept` rung the first two were the same number (docs/ROADMAP.md).
+    // docs/GAPS.md #3 — "people will not put a map on a server" — is its own
+    // failure. Five built a map and stopped; five kept it. Before the `kept`
+    // rung the two were the same number (docs/ROADMAP.md).
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
       await post({ id, rungs: ['arrived', 'mapped'] })
     }
     for (const id of ['HJKMNQ', 'HJKMNR', 'HJKMNT', 'HJKMNW', 'HJKMNX']) {
       await post({ id, rungs: ['arrived', 'mapped', 'kept'] })
     }
-    for (const id of ['QRTWXA', 'QRTWXC', 'QRTWXD', 'QRTWXE', 'QRTWXF']) {
-      await post({ id, rungs: ['arrived', 'mapped', 'kept', 'counted'] })
-    }
     const body = await (await readout()).json()
-    expect(body.rungs.mapped).toBe(15)
-    expect(body.rungs.kept).toBe(10)
-    expect(body.rungs.counted).toBe(5)
+    expect(body.rungs.mapped).toBe(10)
+    expect(body.rungs.kept).toBe(5)
   })
 
   it('shows a city once five have reached a rung', async () => {
@@ -295,7 +285,7 @@ describe('the readout', () => {
 
     const body = await (await readout()).json()
     expect(body.vias.words.arrived).toBe(5)
-    // One person through a door reads null, like any cell under five.
+    // One person through a source reads null, like any cell under five.
     expect(body.vias.words['followed-through']).toBeNull()
     expect(body.vias.couple.eleven).toBeNull()
     expect(body.vias.unsaid.arrived).toBeNull()
@@ -303,7 +293,7 @@ describe('the readout', () => {
     expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNP|QRTWXY|from|sender/)
   })
 
-  it('a link shared into a community group is its own door, and says nothing about which group', async () => {
+  it('a link shared into a community group is its own source, and says nothing about which group', async () => {
     // The first forty are found through alumni and professional group chats
     // (docs/WEDGE.md). Their arrivals get a row of their own so the founder can
     // read that channel against one-to-one sends — and the row is a kind of
@@ -346,23 +336,6 @@ describe('the readout', () => {
     // scale — 2 of 6 finished the read.
     expect(body.facts.began.read).toBe(6)
     expect(body.rungs.read).toBe(2)
-  })
-
-  it('counts why people stopped at the door, and of those how many walked through after all — floored', async () => {
-    // Six stopped over contact; two of them were later counted. One stopped over family.
-    const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'ACDEFK']
-    for (const id of ids) await post({ id, rungs: ['arrived', 'mapped'], facts: { hesitated: 'contact' } })
-    await post({ id: 'ACDEFG', rungs: ['arrived', 'mapped', 'counted'], facts: { hesitated: 'contact' } })
-    await post({ id: 'HJKMNP', rungs: ['arrived', 'mapped', 'counted'], facts: { hesitated: 'contact' } })
-    await post({ id: 'HJKMNR', rungs: ['arrived', 'mapped'], facts: { hesitated: 'family' } })
-
-    const body = await (await readout()).json()
-    // The distribution is a whole-population count and stays a number.
-    expect(body.facts.hesitated).toEqual({ contact: 6, family: 1 })
-    // The cross-tab is a split, so cells under five read null — including the two who came back.
-    expect(body.facts.countedBy.hesitated.contact).toEqual({ hesitated: 6, counted: null })
-    expect(body.facts.countedBy.hesitated.family).toEqual({ hesitated: null, counted: null })
-    expect(JSON.stringify(body)).not.toMatch(/ACDEFG|HJKMNP|because/)
   })
 
   it('carries nothing a person wrote', async () => {

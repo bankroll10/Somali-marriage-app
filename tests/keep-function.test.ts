@@ -107,9 +107,9 @@ describe('keeping a map', () => {
 
   it('re-keeping writes over her own map only, at the version it was read', async () => {
     seed('ACDEFG', { identity: { firstName: 'Sagal' } })
-    const res = await post({ snapshot: { identity: { firstName: 'Sagal', age: 27 } }, code: 'ACDEFG' })
+    const res = await post({ snapshot: { identity: { firstName: 'Sagal', scene: 'toronto' } }, code: 'ACDEFG' })
     expect(res.status).toBe(200)
-    expect(JSON.parse(stores.get('maps')!.get('ACDEFG')!).snapshot.identity.age).toBe(27)
+    expect(JSON.parse(stores.get('maps')!.get('ACDEFG')!).snapshot.identity.scene).toBe('toronto')
   })
 
   it('drops guide threads an older client still sends', async () => {
@@ -123,12 +123,13 @@ describe('keeping a map', () => {
     expect(stored).not.toContain('never stored')
   })
 
-  it('drops the contact and the guide’s follow-ups an older client still sends', async () => {
+  it('drops a place at the door, a vouch and the guide’s follow-ups an older client still sends', async () => {
     seed()
     await post({
       snapshot: {
         identity: {},
         waitlist: { contact: 'sagal@example.com', scene: 'toronto', joinedAt: 'x' },
+        vouch: { relationship: 'father', firstName: 'Cabdi', at: 'x' },
         followups: [
           { id: 'g1', source: 'guide', topic: 'what she asked', words: 'what it said' },
           { id: 'r1', source: 'read', topic: 'public' },
@@ -138,10 +139,11 @@ describe('keeping a map', () => {
     })
     const stored = stores.get('maps')!.get('ACDEFG')!
     expect(stored).not.toContain('sagal@example.com')
+    expect(stored).not.toContain('Cabdi')
     expect(stored).not.toContain('what she asked')
     expect(stored).not.toContain('what it said')
     const back = JSON.parse(stored).snapshot
-    expect(back.waitlist).toEqual({ scene: 'toronto', joinedAt: 'x' })
+    expect(back.waitlist).toBeUndefined()
     expect(back.followups).toEqual([{ id: 'read:public:0', source: 'read', topic: 'public' }])
   })
 
@@ -155,13 +157,9 @@ describe('keeping a map', () => {
     expect(again.snapshot.answers.timeline).toBe('1-2')
   })
 
-  it('a vouch token is not a code, and opens nothing', async () => {
+  it('a ten-character token — an owner key, a receipt — is not a code, and opens nothing', async () => {
     seed('ACDEFG', { identity: { firstName: 'Sagal' } })
-    // Ten characters: never a code's shape.
     expect((await get('ACDEFGHJKM')).status).toBe(400)
-    // Eight is a code's shape now, and a token minted before that is eight —
-    // but tokens live in the vouches store, so nothing is kept under one here.
-    expect((await get('ACDEFGHJ')).status).toBe(404)
   })
 
   it('a code kept at six characters, before codes were eight, still comes back', async () => {
@@ -174,22 +172,13 @@ describe('keeping a map', () => {
     for (const bad of ['HJKMNPQ', 'HJKMN', 'HJKMNPQRT', 'OOOOOO', 'H0KMNP']) expect((await get(bad)).status).toBe(400)
   })
 
-  it('forgetting a code removes the map, the pair, the vouch and its token, and the door entry — and asking again is done, not an error', async () => {
+  it('forgetting a code removes the map and the pair — and asking again is done, not an error', async () => {
     // Everything one person can leave behind, seeded as the functions write it.
     seed('ACDEFG', { identity: { firstName: 'Sagal', gender: 'woman' }, couple: { code: 'HJKMNP', at: 'x' } })
-    memStore('couples'); memStore('vouches'); memStore('cohort')
+    memStore('couples')
     stores.get('couples')!.set('HJKMNP', JSON.stringify({ creator: 'woman', first: {} }))
-    stores.get('vouches')!.set('ACDEFG', JSON.stringify({ relationship: 'father', firstName: 'Cabdi', sentence: 's', at: 'd' }))
-    stores.get('vouches')!.set('asked/ACDEFG', 'ACDEFGHJ')
-    stores.get('vouches')!.set('token/ACDEFGHJ', 'ACDEFG')
-    stores.get('cohort')!.set('index/ACDEFG', 'ca/toronto/woman/city/serious/ACDEFG')
-    stores.get('cohort')!.set('ca/toronto/woman/city/serious/ACDEFG', JSON.stringify({ at: 'd', ledger: [] }))
-    memStore('contacts')
-    stores.get('contacts')!.set('ACDEFG', JSON.stringify({ contact: 'sagal@example.com', scene: 'toronto', country: 'ca', at: 'd' }))
     // Someone else's things, which must survive.
     stores.get('couples')!.set('QRTWXY', JSON.stringify({ creator: 'man', first: {} }))
-    stores.get('cohort')!.set('ca/toronto/man/city/serious/QRTWXY', JSON.stringify({ at: 'd', ledger: [] }))
-    stores.get('contacts')!.set('QRTWXY', JSON.stringify({ contact: 'other@example.com', scene: 'toronto', country: 'ca', at: 'd' }))
     memStore('reports')
     stores.get('reports')!.set('HJKMNP-woman-ACDEFG', JSON.stringify({ id: 'ACDEFG', code: 'HJKMNP', side: 'woman', reason: 'threats', details: 'her words', at: 'd' }))
     stores.get('reports')!.set('resolved/QRTWXY', JSON.stringify({ reason: 'harassment', at: 'd', resolvedAt: 'd', outcome: 'no-action' }))
@@ -199,12 +188,6 @@ describe('keeping a map', () => {
     expect(await res.json()).toEqual({ forgotten: true })
     expect(stores.get('maps')!.has('ACDEFG')).toBe(false)
     expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
-    expect([...stores.get('vouches')!.keys()]).toEqual([])
-    expect([...stores.get('cohort')!.keys()]).toEqual(['ca/toronto/man/city/serious/QRTWXY'])
-    // The way to reach her goes with everything else — it used to need a person
-    // to delete it by hand. See docs/OWNED.md.
-    expect(stores.get('contacts')!.has('ACDEFG')).toBe(false)
-    expect(stores.get('contacts')!.has('QRTWXY')).toBe(true)
     // Reports are not this cascade's to touch: a report is withdrawn by the
     // receipt its filer holds (netlify/functions/safety.ts), because anything
     // read from a snapshot is whatever the caller wrote (docs/SECURITY.md, O1).
@@ -310,10 +293,10 @@ describe('a minted code never lands on somebody', () => {
   it('re-keeping under the code she already has still writes straight through', async () => {
     const first = await post({ snapshot: { identity: { firstName: 'Hodan' } } })
     const { code } = await first.json()
-    const again = await post({ snapshot: { identity: { firstName: 'Hodan', age: 27 } }, code })
+    const again = await post({ snapshot: { identity: { firstName: 'Hodan', scene: 'london' } }, code })
     expect(again.status).toBe(200)
     expect((await again.json()).code).toBe(code)
-    expect(JSON.parse(stores.get('maps')!.get(code)!).snapshot.identity.age).toBe(27)
+    expect(JSON.parse(stores.get('maps')!.get(code)!).snapshot.identity.scene).toBe('london')
   })
 
   it('measures the body before it parses it', async () => {

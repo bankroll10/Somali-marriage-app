@@ -6,13 +6,11 @@ import { applyDemoParams } from '../lib/demo'
 import { buildReflection, generateReflection, snapshotOf } from '../lib/reflection'
 import { routeToMode } from '../lib/route'
 import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
-import { flushWaitlistQueue } from '../lib/waitlist'
 import { getStage } from '../data/stages'
-import { ledger } from '../lib/ledger'
 import { rungsFrom } from '../lib/rungs'
 import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState } from '../lib/followup'
 import { buildRead } from '../lib/read'
-import { countsAsArrival, hasHomeFor, marriedOpensEnding, stageAfterInstrument } from '../lib/inferStage'
+import { hasHomeFor, marriedOpensEnding, stageAfterInstrument } from '../lib/inferStage'
 import { countryFor } from '../data/scenes'
 import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
@@ -24,13 +22,11 @@ import { coupleReading, readCouple, updateCouple, type Joint } from '../lib/coup
 import { forgetEntry, type Entry, type EntryKind } from '../lib/entry'
 import type { ToolSide } from '../data/tools'
 import { forgetCode, rememberedCode } from '../lib/keep'
-import { readVouch } from '../lib/vouch'
 import { defaultGuideUse, defaultTrust } from '../types'
 import { repliesLeft as budgetLeft } from '../lib/budget'
 import type {
   Answers,
   AnswerValue,
-  Dimension,
   CoachMessage,
   Gender,
   Identity,
@@ -39,16 +35,12 @@ import type {
   ModeId,
   Reflection,
   Stage,
-  StepRecord,
   TrustSettings,
   ReadRecord,
   CoupleState,
   EndingRecord,
   EndedRecord,
   FollowUp,
-  HesitationRecord,
-  VouchState,
-  WaitlistState,
 } from '../types'
 import type { Instrument } from '../data/instruments'
 
@@ -63,18 +55,10 @@ export type Screen =
   | 'home'
   | 'coach'
   | 'trust'
-  | 'philosophy'
-  | 'profile'
-  | 'sample'
   | 'read'
   | 'beforeYes'
   | 'families'
-  | 'door'
-  | 'shortMap'
-  | 'count'
   | 'couple'
-  | 'vouch'
-  | 'plus'
   | 'ending'
   | 'ended'
 
@@ -84,9 +68,9 @@ const SAVE_DEBOUNCE_MS = 250
  * A check that could not be made is retried — once, after a pause, and then
  * left alone.
  *
- * Both of these answer a question about someone else: has he answered the
- * eleven, has her family vouched. A failed check used to end the matter for
- * the session, because neither effect's deps changed when the read failed. A
+ * This answers a question about someone else: has he answered the eleven. A
+ * failed check used to end the matter for the session, because the effect's
+ * deps did not change when the read failed. A
  * retry is not a poll: two attempts, twenty seconds apart, and then silence
  * until she opens the app again (docs/FAIL.md, and docs/FOGG.md's line on
  * re-engagement).
@@ -95,17 +79,15 @@ const RECHECK_TRIES = 1
 const RECHECK_MS = 20_000
 
 /** The screens Trust can be opened from, and returns to. */
-type TrustReturn = 'profile' | 'read' | 'beforeYes' | 'home'
+type TrustReturn = 'read' | 'beforeYes' | 'home'
 export type ElevenAt = 'front' | 'result' | 'joint'
 
 /** The word in the link, and the screen it opens. A restored map opens nothing of its own. */
 const ENTRY_SCREEN: Partial<Record<EntryKind, Screen>> = {
   couple: 'couple',
-  vouch: 'vouch',
   read: 'read',
   eleven: 'beforeYes',
   families: 'families',
-  door: 'door',
 }
 
 /**
@@ -130,12 +112,10 @@ export function useNiyyah(entry: Entry | null = null) {
     // and a member with a Home who is sent the read should land on the read.
     const fromLink = entry ? ENTRY_SCREEN[entry.kind] : undefined
     if (fromLink) return fromLink
-    return saved && hasHomeFor({ completed: saved.completed, stage: saved.stage, counted: !!saved.waitlist }) ? 'home' : 'welcome'
+    return saved && hasHomeFor({ completed: saved.completed, stage: saved.stage }) ? 'home' : 'welcome'
   })
   /** The code in the link that opened the app, for the screen it opened. */
   const [entryCode] = useState<string | null>(entry?.code ?? null)
-  /** What kind of link opened the app, for the one place it changes behaviour. */
-  const [entryKind] = useState<EntryKind | null>(entry?.kind ?? null)
   /**
    * Who the tool path said the read is about (`/tools/is-he-serious` → a man).
    * Read.tsx presets the reader from it — the other side — and commits it to
@@ -144,7 +124,7 @@ export function useNiyyah(entry: Entry | null = null) {
   const [entryAbout] = useState<ToolSide | null>(entry?.about ?? null)
   // Where Identity hands off: the situation question on a fresh start; straight
   // to the hook when she is building the map from an instrument she already used.
-  const [identityNext, setIdentityNext] = useState<'situation' | 'hook' | 'shortMap'>('situation')
+  const [identityNext, setIdentityNext] = useState<'situation' | 'hook'>('situation')
   const [identity, setIdentity] = useState<Identity>(saved?.identity ?? {})
   const [answers, setAnswers] = useState<Answers>(saved?.answers ?? {})
   const [trust, setTrust] = useState<TrustSettings>(saved?.trust ?? defaultTrust)
@@ -156,29 +136,20 @@ export function useNiyyah(entry: Entry | null = null) {
   // She has said what is actually happening right now. Distinct from `stage`,
   // which defaults to 'preparing' and so cannot tell a choice from a default.
   const [situated, setSituated] = useState<boolean>(saved?.situated ?? false)
-  // The work taken on from the map. One open at a time; finished ones are kept
-  // forever — they're the only honest record of change the app can show.
-  const [steps, setSteps] = useState<StepRecord[]>(saved?.steps ?? [])
   // Replies spent, ever. The budget they count against comes from her rungs.
   const [guideUse, setGuideUse] = useState<GuideUse>(saved?.guide ?? defaultGuideUse)
-  // The saved place — the one piece of state that leaves this device.
-  const [waitlist, setWaitlist] = useState<WaitlistState | null>(saved?.waitlist ?? null)
   // The last read she took on someone. Answers only; the reading is recomputed.
   const [read, setRead] = useState<ReadRecord | null>(saved?.read ?? null)
   // Before you say yes — which conversations she and he have actually had.
   const [beforeYes, setBeforeYes] = useState<ReadRecord | null>(saved?.beforeYes ?? null)
-  // The two-sided Before you say yes she started, and a family member's vouch.
+  // The two-sided Before you say yes she started, or answered.
   const [couple, setCouple] = useState<CoupleState | null>(saved?.couple ?? null)
-  const [vouch, setVouch] = useState<VouchState | null>(saved?.vouch ?? null)
   // What she told us on the way out. The success state of this whole product.
   const [ending, setEnding] = useState<EndingRecord | null>(saved?.ending ?? null)
   // Courtships that ended. The last one may still be waiting for its reason.
   const [endings, setEndings] = useState<EndedRecord[]>(saved?.endings ?? [])
   // Which stage she just left, while the ended screen is up.
   const [endedFrom, setEndedFrom] = useState<'talking' | 'deciding' | null>(null)
-  // She reached the door and did not walk through it, and said why. The one no
-  // this product records — about the door, never about her. See src/data/hesitation.ts.
-  const [hesitated, setHesitated] = useState<HesitationRecord | null>(saved?.hesitated ?? null)
   // Which questionnaires she has begun. The denominator a completion rate needs,
   // since finishing one is already a rung. A set, never a count — see
   // src/data/instruments.ts and docs/EXPERIMENTS.md.
@@ -186,7 +157,7 @@ export function useNiyyah(entry: Entry | null = null) {
   // What the product told her to do, and whether she did it. See lib/followup.ts.
   const [followups, setFollowups] = useState<FollowUp[]>(saved?.followups ?? [])
   // The code her map is kept under. Read once at mount and refreshed by the
-  // actions that keep it, so the ledger stays a pure function of state.
+  // actions that keep it, so the `kept` rung stays a pure function of state.
   const [keptCode, setKeptCode] = useState<string | null>(() => rememberedCode())
   const [reflection, setReflection] = useState<Reflection | null>(() =>
     saved?.completed ? buildReflection(saved.answers) : null,
@@ -196,15 +167,14 @@ export function useNiyyah(entry: Entry | null = null) {
   const [skipFirstIntro, setSkipFirstIntro] = useState(false)
   // True only for the one-time map reveal right after generating.
   const [mapReveal, setMapReveal] = useState(false)
-  const [philosophyReturn, setPhilosophyReturn] = useState<'welcome' | 'home'>('welcome')
   // Set when a surface hands the guide a specific topic (e.g. the map's next step).
   const [guideMode, setGuideMode] = useState<ModeId | null>(null)
   // A question captured elsewhere, waiting to be asked on arrival.
   const [guideAsk, setGuideAsk] = useState<{ text: string; why: string } | null>(null)
-  // Trust lives under Profile, and is one tap from either public tool, so a
-  // stranger on /tools/is-he-serious can read what leaves her phone before she
-  // answers anything (docs/RISKS.md R4). Back returns to wherever she came from.
-  const [trustReturn, setTrustReturn] = useState<TrustReturn>('profile')
+  // Trust is one tap from Home and from either public tool, so a stranger on
+  // /tools/is-he-serious can read what leaves her phone before she answers
+  // anything (docs/RISKS.md R4). Back returns to wherever she came from.
+  const [trustReturn, setTrustReturn] = useState<TrustReturn>('home')
   // Where the eleven opens. Its front page, unless she came from a Home card
   // that promised more: "where you left it" opens her result, and "He
   // answered" opens where the two of them stand. Both used to land on the
@@ -225,13 +195,7 @@ export function useNiyyah(entry: Entry | null = null) {
   const completed = !!reflection || everCompleted
   // A Home exists for anyone with a map, or anyone who has said where she is.
   // `completed` keeps meaning "the intake is done"; this is the wider door.
-  const hasHome = hasHomeFor({ completed, stage, counted: !!waitlist })
-  // What she has actually done here. Replaces a trust score that scored taps.
-  const ledgerEntries = useMemo(
-    () => ledger({ completed, read, beforeYes, answers, keptCode, waitlist, vouch }),
-    [completed, read, beforeYes, answers, keptCode, waitlist, vouch],
-  )
-  const ledgerDone = useMemo(() => ledgerEntries.filter((e) => e.done).map((e) => e.id), [ledgerEntries])
+  const hasHome = hasHomeFor({ completed, stage })
   // The ladder — the only thing this product measures. See src/lib/rungs.ts.
   const rungs = useMemo(
     () =>
@@ -243,11 +207,9 @@ export function useNiyyah(entry: Entry | null = null) {
         read,
         beforeYes,
         couple,
-        vouch,
-        waitlist,
         followedThrough: followedThrough(followups),
       }),
-    [situated, completed, keptCode, stage, read, beforeYes, couple, vouch, waitlist, followups],
+    [situated, completed, keptCode, stage, read, beforeYes, couple, followups],
   )
   // The one open thing to ask her about, or — usually — nothing.
   const followUpAsk = useMemo(
@@ -269,13 +231,10 @@ export function useNiyyah(entry: Entry | null = null) {
   /** True once forget me has run: this phone is not written to again. */
   const forgotten = useRef(false)
 
-  // A signup stranded by a bad connection is a real person lost — retry once
-  // per load until the server takes it.
+  // A Forget me the server did not receive: its codes are sent again every
+  // time the app opens, until every delete has landed (src/lib/forget.ts,
+  // docs/INTEGRITY.md).
   useEffect(() => {
-    void flushWaitlistQueue()
-    // The same for a Forget me the server did not receive: its codes are sent
-    // again every time the app opens, until every delete has landed
-    // (src/lib/forget.ts, docs/INTEGRITY.md).
     void retryPendingForget()
   }, [])
 
@@ -291,12 +250,11 @@ export function useNiyyah(entry: Entry | null = null) {
         followups,
         ending,
         endings,
-        hesitated,
         began,
         gender: identity.gender ?? 'woman',
         askedGuide: guideUse.replies > 0,
       }),
-    [reflection, read, beforeYes, followups, ending, endings, hesitated, began, identity.gender, guideUse.replies],
+    [reflection, read, beforeYes, followups, ending, endings, began, identity.gender, guideUse.replies],
   )
 
   // Rungs reached, reported on transitions only — never on a tap, never on a
@@ -304,16 +262,10 @@ export function useNiyyah(entry: Entry | null = null) {
   // countMe off this call site does not run, so the toggle is the mechanism
   // rather than a promise about one.
   const country = countryFor(identity)
-  // A family member who opened a vouch link is not a member and was never
-  // offered a conversation, so counting his device in `arrived` quietly moved
-  // the denominator of the one number this product keeps (src/lib/rungs.ts).
-  // He is skipped until this phone has a map of its own — at which point he is
-  // here for himself, and counts (docs/VALUE.md).
-  const vouchingRelative = !countsAsArrival(entryKind, completed || !!keptCode)
   useEffect(() => {
-    if (!trust.countMe || vouchingRelative) return
+    if (!trust.countMe) return
     void reportRungs(rungs, identity.scene, facts, identity.gender, country)
-  }, [rungs, trust.countMe, identity.scene, country, facts, identity.gender, vouchingRelative])
+  }, [rungs, trust.countMe, identity.scene, country, facts, identity.gender])
 
   // Has he answered the eleven she sent? Asked once per code, only until we
   // know — he answers on his own phone, and it has to reach hers without her
@@ -350,7 +302,7 @@ export function useNiyyah(entry: Entry | null = null) {
     }
   }, [couple, identity.gender, coupleTries])
 
-  // ── Persistence (debounced — the age field saves per keystroke otherwise)
+  // ── Persistence (debounced — a typed name saves per keystroke otherwise)
   useEffect(() => {
     // Nothing is written back after forget me.
     //
@@ -376,16 +328,12 @@ export function useNiyyah(entry: Entry | null = null) {
           mapHistory,
           stage,
           situated,
-          steps,
           guide: guideUse,
-          waitlist,
           read,
           beforeYes,
           couple,
-          vouch,
           ending,
           endings,
-          hesitated,
           began,
           followups,
           completed,
@@ -401,16 +349,12 @@ export function useNiyyah(entry: Entry | null = null) {
     mapHistory,
     stage,
     situated,
-    steps,
     guideUse,
-    waitlist,
     read,
     beforeYes,
     couple,
-    vouch,
     ending,
     endings,
-    hesitated,
     began,
     followups,
     completed,
@@ -458,16 +402,12 @@ export function useNiyyah(entry: Entry | null = null) {
     setMapHistory([])
     setStageRaw('preparing')
     setSituated(false)
-    setSteps([])
     setGuideUse(defaultGuideUse)
-    setWaitlist(null)
     setEndings([])
     setRead(null)
     setBeforeYes(null)
     setCouple(null)
-    setVouch(null)
     setEnding(null)
-    setHesitated(null)
     setBegan([])
     setFollowups([])
     setKeptCode(null)
@@ -482,7 +422,7 @@ export function useNiyyah(entry: Entry | null = null) {
     // empty one. Irreversibly, from one mis-tap (docs/NORMAN.md).
     forgetCode()
     // A half-finished read from before the reset is not hers any more, and nor
-    // is the couple or vouch screen a link left her part-way through.
+    // is the couple screen a link left her part-way through.
     clearAllDrafts()
     forgetEntry()
     track('onboarding_started')
@@ -571,21 +511,6 @@ export function useNiyyah(entry: Entry | null = null) {
     setScreen(identity.gender && identity.adult ? 'hook' : 'identity')
   }
 
-  /**
-   * Be counted. The short map — the three answers the pool reads — then the
-   * door's own card for her age and a way to reach her (src/data/shortMap.ts).
-   * Someone with a full map already goes straight to the card on Home.
-   */
-  function beginCount() {
-    track('count_started')
-    if (completed) {
-      enterHome()
-      return
-    }
-    setIdentityNext('shortMap')
-    setScreen(identity.gender && identity.adult ? 'shortMap' : 'identity')
-  }
-
   /** Enter the intake from the hook; the insight path skips chapter 1's intro. */
   function beginIntake(skipIntro: boolean) {
     setSkipFirstIntro(skipIntro)
@@ -603,28 +528,6 @@ export function useNiyyah(entry: Entry | null = null) {
     setReflection((prev) => prev ?? (everCompleted ? buildReflection(answers) : null))
     setMapReveal(false)
     setScreen('home')
-  }
-
-  /**
-   * Take on the one thing the map points at. Replaces any open step rather than
-   * stacking — carrying two is how a practice turns into a to-do list.
-   */
-  function takeStep(dimension: Dimension) {
-    track('step_taken', { dimension })
-    setSteps((prev) => [...prev.filter((s) => s.done), { dimension, taken: todayKey() }])
-  }
-
-  /** Mark the open step done. Nothing is verified, and nothing is scored. */
-  function completeStep() {
-    const today = todayKey()
-    setSteps((prev) => {
-      const i = prev.findIndex((s) => !s.done)
-      if (i === -1) return prev
-      track('step_done', { dimension: prev[i].dimension })
-      const next = [...prev]
-      next[i] = { ...next[i], done: today }
-      return next.slice(-40)
-    })
   }
 
   /** Spend one reply. Charged only once an answer exists — the caller decides when. */
@@ -722,17 +625,15 @@ export function useNiyyah(entry: Entry | null = null) {
           gender: identity.gender ?? 'woman',
           answers,
           mapHistory,
-          steps,
           read,
           beforeYes,
           couple,
-          vouch,
           followups,
           completed,
         },
         todayKey(),
       ),
-    [identity.gender, answers, mapHistory, steps, read, beforeYes, couple, vouch, followups, completed],
+    [identity.gender, answers, mapHistory, read, beforeYes, couple, followups, completed],
   )
 
   /**
@@ -740,8 +641,8 @@ export function useNiyyah(entry: Entry | null = null) {
    *
    * Arriving at married is the one transition that is also an ending, so it
    * opens the ending rather than quietly reshaping Home. Only when she is
-   * moving there from somewhere else, and only once: someone who told us at
-   * the door that she is already married did not marry through any of this.
+   * moving there from somewhere else, and only once: someone who told us on
+   * arrival that she is already married did not marry through any of this.
    */
   function setStage(next: Stage) {
     track('stage_changed', { stage: next })
@@ -775,16 +676,6 @@ export function useNiyyah(entry: Entry | null = null) {
   function saveEnding(record: EndingRecord) {
     if (!ending) track('ending_recorded')
     setEnding(record)
-  }
-
-  /**
-   * She reached the door and said why she is not walking through it yet. One
-   * word, about the door. Overwrites — she may change her mind — and stays if
-   * she later joins, so the readout can say who came back.
-   */
-  function saveHesitation(reason: string) {
-    track('door_hesitated', { reason })
-    setHesitated({ at: new Date().toISOString(), reason })
   }
 
   /**
@@ -847,11 +738,6 @@ export function useNiyyah(entry: Entry | null = null) {
     setFollowups((prev) => noteFollowUp(prev, 'guide', key, new Date().toISOString(), words))
   }
 
-  function openPhilosophy(from: 'welcome' | 'home') {
-    setPhilosophyReturn(from)
-    setScreen('philosophy')
-  }
-
   function openBeforeYes(at: ElevenAt = 'front') {
     setElevenAt(at)
     setScreen('beforeYes')
@@ -860,38 +746,6 @@ export function useNiyyah(entry: Entry | null = null) {
   function openTrust(from: TrustReturn) {
     setTrustReturn(from)
     setScreen('trust')
-  }
-
-  // Has a family member vouched since she last opened the app? Asked once per
-  // kept code, only until we know — a vouch given on someone else's phone has
-  // to reach hers without her having to go looking for it.
-  const [vouchTries, setVouchTries] = useState(0)
-  useEffect(() => {
-    if (!keptCode || vouch) return
-    let live = true
-    let timer = 0
-    readVouch(keptCode).then((v) => {
-      if (!live) return
-      // `if (live && v)` swallowed the difference between "nobody has vouched"
-      // and "we could not ask", and `vouch` stays null on a failure, so the
-      // deps never changed and it never looked again. Her father vouched on
-      // his phone and her screen kept asking her to ask him (docs/FAIL.md).
-      if (!v) {
-        if (vouchTries < RECHECK_TRIES) timer = window.setTimeout(() => setVouchTries((n) => n + 1), RECHECK_MS)
-        return
-      }
-      setVouch(v)
-    })
-    return () => {
-      live = false
-      if (timer) window.clearTimeout(timer)
-    }
-  }, [keptCode, vouch, vouchTries])
-
-  /** Counted — and the map was kept on the way, so the ledger learns the code. */
-  function joinedCohort(state: WaitlistState) {
-    setWaitlist(state)
-    setKeptCode(rememberedCode())
   }
 
   /**
@@ -910,25 +764,20 @@ export function useNiyyah(entry: Entry | null = null) {
     trust,
     mapHistory,
     stage,
-    steps,
-    waitlist,
     read,
     beforeYes,
     couple,
-    vouch,
     ending,
     endingRecord,
     endings,
     endedFrom,
     saveEnded,
-    keptCode,
     entryCode,
     entryAbout,
     reflection,
     resumeIndex,
     skipFirstIntro,
     mapReveal,
-    philosophyReturn,
     trustReturn,
     elevenAt,
     openBeforeYes,
@@ -937,8 +786,6 @@ export function useNiyyah(entry: Entry | null = null) {
     coachThreads,
     // derived
     completed,
-    ledgerEntries,
-    ledgerDone,
     hasHome,
     identityNext,
     hasProgress,
@@ -950,7 +797,6 @@ export function useNiyyah(entry: Entry | null = null) {
     setTrust,
     setCoachThreads,
     setStage,
-    setWaitlist,
     setRead: saveRead,
     setBeforeYes: saveBeforeYes,
     answeredCouple,
@@ -958,27 +804,20 @@ export function useNiyyah(entry: Entry | null = null) {
     followUpAsk,
     answerFollowUp,
     setCouple,
-    setVouch,
     setKeptCode,
     setEnding: saveEnding,
-    hesitated,
-    saveHesitation,
     began,
     noteBegan,
-    joinedCohort,
     // actions
     answer,
     completeIntake,
     beginIntake,
     beginMap,
-    beginCount,
     chooseSituation,
     forgetEverything,
     startFresh,
     resume,
     retakeMap,
-    takeStep,
-    completeStep,
     spendReply,
     enterHome,
     openGuide,
@@ -986,7 +825,6 @@ export function useNiyyah(entry: Entry | null = null) {
     clearGuideAsk,
     commitFromGuide,
     noteFamilyScript,
-    openPhilosophy,
     openTrust,
     readStillStands,
   }

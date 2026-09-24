@@ -1,8 +1,6 @@
 import { getStore } from '@netlify/blobs'
 import { failed, mark } from '../shared/ops'
 import { isFounder, notFounder } from '../shared/founder'
-import { COUNTRIES, SCENES } from '../shared/vocab'
-import { SEGMENTS } from './cohort'
 import type { ProgressRecord } from './progress'
 
 /**
@@ -24,23 +22,15 @@ import type { ProgressRecord } from './progress'
  *    married. This is the asset. It carries closed-vocabulary ids and days,
  *    under install codes that unlock nothing.
  *  - **The joint tally.** How pairs come out on the eleven. Aggregate already.
- *  - **The door, as counts.** Countries, cities, sides, how far people would
- *    go, hardest parts, ledgers.
  *
  * What it deliberately refuses to return, and this is the more important half:
  *
- *  - **Kept maps.** Every member's intake answers, first name and age. A single
+ *  - **Kept maps.** Every member's intake answers and first name. A single
  *    endpoint that dumps those is precisely the honeypot docs/LEARNING.md
  *    exists to prevent, and it is not the business's to lose — her map is on
  *    her phone, and the code to fetch it is hers.
- *  - **Vouches.** A family member's name, their phone number, and a sentence
- *    they wrote. A vouch can be asked for again; a leaked phone book cannot be
- *    taken back.
  *  - **Pair sheets.** Two people's answers on the eleven. They expire in ninety
  *    days by design, and what they teach is already in the joint tally.
- *  - **Cohort records rather than counts.** Their keys carry map codes, and a
- *    list of valid map codes is a list of keys to everyone's map. The counts
- *    teach the same thing and unlock nothing.
  *
  * Founder-gated like every other readout. At founding scale this is one small
  * document; if the ladder ever outgrows a single response, page it by prefix
@@ -49,33 +39,21 @@ import type { ProgressRecord } from './progress'
 
 type Store = ReturnType<typeof getStore>
 
-/** One city on the door, as counts. */
-export interface DoorScene {
-  women: number
-  men: number
-  hooks: Record<string, number>
-  ledger: Record<string, number>
-  /** How far its people said they would go: city, country, anywhere. */
-  reach: Record<string, number>
-}
-
 export interface Backup {
   /** When this copy was taken. */
   at: string
   /**
    * What shape this wrapper is in, so a future reader knows how to read it.
-   * Version 2: the door is nested country → city and each city carries `reach`.
+   * Version 3: the door's counts are gone with the door (2026-09-24).
    * The records inside carry their own version — `v`, netlify/shared/record.ts
    * — since 2026-09-11; before that the wrapper was versioned and the asset
    * inside it was not, which docs/HARD.md called exactly backwards.
    */
-  version: 2
+  version: 3
   /** Install code → the whole record. The learning asset. */
   progress: Record<string, ProgressRecord>
   /** How pairs come out on each of the eleven. Null when no pair has answered. */
   joint: unknown
-  /** The door, as counts: country → city → counts. No codes. */
-  door: Record<string, Record<string, DoorScene>>
   /** What is deliberately not here, named in the file itself so a reader is never misled. */
   omitted: string[]
   /**
@@ -87,10 +65,8 @@ export interface Backup {
 }
 
 const OMITTED = [
-  'maps — every member’s answers, name and age. Hers, on her phone, under a code only she has.',
-  'vouches — a family member’s name, phone and sentence. Ask again rather than hold a phone book.',
+  'maps — every member’s answers and name. Hers, on her phone, under a code only she has.',
   'couples — two people’s sheets on the eleven. They expire in ninety days; the joint tally keeps what they taught.',
-  'cohort records — their keys carry map codes, which are keys to maps. The counts below teach the same thing.',
 ]
 
 /**
@@ -122,44 +98,6 @@ async function allProgress(store: Store, skip: () => Promise<void>, now = Date.n
   return out
 }
 
-/**
- * The door as counts. Deliberately rebuilt here from keys and ledgers rather
- * than reusing cohort.ts's tally, because that one floors small cells for
- * safety in a readout — and a backup that quietly rounds is not a backup.
- */
-async function door(store: Store, skip: () => Promise<void>): Promise<Backup['door']> {
-  const { blobs } = await store.list()
-  const out: Backup['door'] = {}
-  // A member key has SEGMENTS parts; the index is one, and a key from before
-  // countries existed is four. The layout is cohort.ts's to define — a literal
-  // here was the one copy that would not have moved with it (docs/BOARD.md).
-  const members = blobs.filter(({ key }) => key.split('/').length === SEGMENTS)
-  // The count comes from the key; only the ledger is read. A record that
-  // cannot be read is still counted, without its ledger, and named as skipped.
-  const records = await Promise.all(
-    members.map(async ({ key }) => {
-      try {
-        return { key, record: (await store.get(key, { type: 'json' })) as { ledger?: string[] } | null }
-      } catch {
-        await skip()
-        return { key, record: null }
-      }
-    }),
-  )
-  for (const { key, record } of records) {
-    const [country, scene, gender, reach, hook] = key.split('/')
-    if (!country || !COUNTRIES.has(country) || !scene || !SCENES.has(scene)) continue
-    const c = (out[country] ??= {})
-    const s = (c[scene] ??= { women: 0, men: 0, hooks: {}, ledger: {}, reach: {} })
-    if (gender === 'woman') s.women += 1
-    else if (gender === 'man') s.men += 1
-    s.hooks[hook] = (s.hooks[hook] ?? 0) + 1
-    s.reach[reach] = (s.reach[reach] ?? 0) + 1
-    for (const id of record?.ledger ?? []) s.ledger[id] = (s.ledger[id] ?? 0) + 1
-  }
-  return out
-}
-
 export default async function handler(req: Request) {
   if (req.method !== 'GET') return Response.json({ error: 'GET only' }, { status: 405 })
   if (!isFounder(req)) return notFounder()
@@ -170,7 +108,7 @@ export default async function handler(req: Request) {
       skipped += 1
       await failed('export', 'one record could not be read; left out of this backup, and counted')
     }
-    const [progress, joint, cohortCounts] = await Promise.all([
+    const [progress, joint] = await Promise.all([
       allProgress(getStore('progress'), skip),
       getStore('tallies')
         .get('joint', { type: 'json' })
@@ -178,14 +116,12 @@ export default async function handler(req: Request) {
           await skip()
           return null
         }),
-      door(getStore('cohort'), skip),
     ])
     const backup: Backup = {
       at: new Date().toISOString(),
-      version: 2,
+      version: 3,
       progress,
       joint: joint ?? null,
-      door: cohortCounts,
       omitted: OMITTED,
       skipped,
     }

@@ -1,14 +1,11 @@
 import { useState } from 'react'
-import type { Dimension, FollowUp as FollowUpRecord, Identity, ModeId, Reach, ReadRecord, Reflection, Stage, StepRecord, VouchState, WaitlistState } from '../types'
-import type { Hesitation } from '../data/hesitation'
+import type { FollowUp as FollowUpRecord, Identity, ModeId, ReadRecord, Reflection, Stage } from '../types'
 import type { FollowUpAsk } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
 import FollowUp, { FollowedThrough } from './home/FollowUp'
 import StageBand from './home/StageBand'
-import WorkCard from './home/WorkCard'
-import Cohort from './Cohort'
 import { CONTACT_EMAIL } from '../lib/site'
 import {
   CompassGlyph,
@@ -18,7 +15,6 @@ import {
   ArrowRight,
   TextButton,
   fieldClass,
-  PersonGlyph,
   SeedGlyph,
 } from './ui'
 
@@ -30,9 +26,8 @@ interface Props {
   /** The fast path: say what happened, land in the right voice with it asked. */
   onAsk: (text: string, mode?: ModeId) => void
   onOpenMap: () => void
-  onOpenProfile: () => void
-  /** Trust, from married Home — which hides the profile, the only other way there. */
-  onOpenTrust?: () => void
+  /** Trust: what leaves the phone, what we hold, and Forget me. */
+  onOpenTrust: () => void
   /** The read on someone — the fastest route from a live problem to an answer. */
   onOpenRead: () => void
   /** True once she has taken one, so the card offers the result rather than the pitch. */
@@ -56,7 +51,6 @@ interface Props {
   onOpenFamilies: () => void
   /** How she chose — her record, reachable again after the ending. */
   onOpenEnding: () => void
-  onPhilosophy: () => void
   onRestart: () => void
   /** The one open thing to ask her about — usually null. See lib/followup.ts. */
   followUpAsk: FollowUpAsk | null
@@ -64,27 +58,11 @@ interface Props {
   /** Her last read, so Home can ask — once a month — whether it still stands. */
   read: ReadRecord | null
   onReadStillStands: () => void
-  /** The work taken on from the map — the app's centre of gravity. */
-  steps: StepRecord[]
-  onTakeStep: (d: Dimension) => void
-  onCompleteStep: () => void
   /** False when this browser refuses to save — the user deserves to know. */
   saveOk: boolean
   /** Where they are in the arc, and moving through it — always their call. */
   stage: Stage
   onSetStage: (s: Stage) => void
-  hookId?: string
-  /** What she has done here — travels with her place. */
-  ledger: string[]
-  /** A family member has vouched for her — the only badge this app shows. */
-  vouch: VouchState | null
-  waitlist: WaitlistState | null
-  onJoinWaitlist: (s: WaitlistState) => void
-  onScene: (scene: string) => void
-  onCountry: (country: string) => void
-  onReach: (reach: Reach) => void
-  onAge: (age: number) => void
-  onHesitate: (reason: Hesitation) => void
 }
 
 export default function Home({
@@ -93,7 +71,6 @@ export default function Home({
   onOpenGuide,
   onAsk,
   onOpenMap,
-  onOpenProfile,
   onOpenTrust,
   onOpenRead,
   hasRead,
@@ -105,28 +82,14 @@ export default function Home({
   coupleSecond = false,
   onOpenFamilies,
   onOpenEnding,
-  onPhilosophy,
   onRestart,
   followUpAsk,
   onAnswerFollowUp,
   read,
   onReadStillStands,
-  steps,
-  onTakeStep,
-  onCompleteStep,
   saveOk,
   stage,
   onSetStage,
-  hookId,
-  ledger,
-  vouch,
-  waitlist,
-  onJoinWaitlist,
-  onScene,
-  onCountry,
-  onReach,
-  onAge,
-  onHesitate,
 }: Props) {
   const [restarting, setRestarting] = useState(false)
   // Who answered her eleven — the other side.
@@ -157,11 +120,6 @@ export default function Home({
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
         <div className="mx-auto flex max-w-2xl items-center justify-between px-6 py-4">
           <Logo className="text-ink" />
-          {vouch && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-forest/10 px-3 py-1.5 text-[0.75rem] font-semibold text-forest">
-              Vouched by family
-            </span>
-          )}
         </div>
       </header>
 
@@ -214,8 +172,8 @@ export default function Home({
               We’re done looking. What’s left is the building.
             </h2>
             <p className="mt-3 text-[0.95rem] leading-relaxed text-cream/75 text-pretty">
-              Nothing here will try to keep you. There is no map to raise, no one to be introduced to,
-              and nothing to pay for. Two things stay, because the in-law conversations do not end at the
+              Nothing here will try to keep you. There is no map to raise and nothing to pay for.
+              Two things stay, because the in-law conversations do not end at the
               nikah and the first year asks more than anyone says: the words for two families, and the
               guide, in the voice built for repair.
             </p>
@@ -242,14 +200,6 @@ export default function Home({
             <p className="mt-4 text-[0.8rem] leading-relaxed text-cream/50 text-pretty">
               If your situation changes, say so below — only you decide where you are.
             </p>
-            {onOpenTrust && (
-              <TextButton
-                onClick={onOpenTrust}
-                className="relative mt-1 text-[0.82rem] font-medium text-gold-soft underline-offset-4 hover:underline"
-              >
-                What we hold, and Forget me →
-              </TextButton>
-            )}
           </section>
         )}
 
@@ -393,17 +343,6 @@ export default function Home({
           </button>
         )}
 
-        {reflection && stage !== 'married' && (
-          <WorkCard
-            reflection={reflection}
-            steps={steps}
-            onTakeStep={onTakeStep}
-            onCompleteStep={onCompleteStep}
-            onOpenMap={onOpenMap}
-            onOpenGuide={onOpenGuide}
-          />
-        )}
-
         <StageBand
           gender={identity.gender}
           stage={stage}
@@ -458,7 +397,7 @@ export default function Home({
           </section>
         )}
 
-        {/* The rest of Home: the guide, the map, the door. */}
+        {/* The rest of Home: the guide, the map, what we hold. */}
         <section className="mt-10">
           <p className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-muted">
             Also here
@@ -483,53 +422,23 @@ export default function Home({
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
             </button>
 
-            {/* The number on the door. The old card here promised "serious,
-                verified people around Minneapolis" and dangled an invented name
-                as today's introduction. This is the honest version: the real
-                count toward her city opening, and her place in it. Hidden once
-                she's deciding on someone or married. */}
-            {stage === 'preparing' && (reflection || waitlist) && (
-              <Cohort
-                identity={identity}
-                hookId={hookId}
-                ledger={ledger}
-                joined={waitlist}
-                onJoined={onJoinWaitlist}
-                onScene={onScene}
-                onCountry={onCountry}
-                onReach={onReach}
-                onAge={onAge}
-                onHesitate={onHesitate}
-                compact
-              />
-            )}
-
-            {/* The sample introduction used to sit here, offering an invented
-                person to someone who came with a real one. It moved to Profile
-                — "what decides who you meet", where a demonstration of how we
-                choose actually belongs — because Home is for the woman with a
-                live problem tonight, and a preview of a marketplace that does
-                not exist yet is not it. The same argument that removed the
-                daily reflection card. docs/ROADMAP.md. */}
-
-            {/* What decides who you meet — not offered once she is married. */}
-            {stage !== 'married' && (
+            {/* What leaves the phone, what we hold, and Forget me — for every
+                stage. */}
             <button
-              onClick={onOpenProfile}
+              onClick={onOpenTrust}
               className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
             >
               <GlyphTile className="bg-sand text-ink-soft">
-                <PersonGlyph />
+                <LockGlyph />
               </GlyphTile>
               <span className="flex-1">
-                <span className="font-display text-[1.2rem] font-medium text-ink">What decides who you meet</span>
+                <span className="font-display text-[1.2rem] font-medium text-ink">Your privacy</span>
                 <span className="mt-0.5 block text-[0.88rem] text-muted">
-                  What you’ve done here, what you won’t compromise on, how you’d live — and your protections.
+                  What leaves your phone, what we hold, and Forget me.
                 </span>
               </span>
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
             </button>
-            )}
 
             {/* The map — hers when she has one; otherwise the offer. A member who
                 said she is married is not offered a readiness-for-marriage map,
@@ -576,21 +485,11 @@ export default function Home({
         </section>
 
         <div className="mt-12 flex flex-col items-center gap-3 text-center">
-          <button
-            onClick={onPhilosophy}
-            className="group inline-flex items-center gap-1.5 text-[0.85rem] text-muted transition-colors hover:text-ink"
-          >
-            <span>
-              Why Niyyah
-            </span>
-            <ArrowRight className="h-3.5 w-3.5 text-gold-ink transition-transform group-hover:translate-x-0.5" />
-          </button>
           {/* The same destruction Trust guards behind two taps and a warning was
               one tap here, on the faintest text on the screen, directly under
               another link. Now it asks (docs/NORMAN.md). */}
-          {/* The one route to a person from the screen she returns to. The
-              address was on the door's join form and Trust, and nowhere she
-              would look when something was wrong (docs/NIELSEN.md N5). */}
+          {/* The one route to a person from the screen she returns to
+              (docs/NIELSEN.md N5). */}
           <a
             href={`mailto:${CONTACT_EMAIL}`}
             className="px-3 py-2 text-[0.8rem] text-muted underline underline-offset-4 transition hover:text-ink"

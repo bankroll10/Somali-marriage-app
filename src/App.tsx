@@ -1,8 +1,7 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef } from 'react'
 import { useFocusHeading } from './hooks/useFocusHeading'
 import Welcome from './components/Welcome'
-import { ArrowRight, Button, ScreenHeader } from './components/ui'
-import type { Gender, Reach } from './types'
+import type { Gender } from './types'
 import { pathFor, type Entry } from './lib/entry'
 import { READER_OF } from './data/tools'
 import { buildRead, readSummary } from './lib/read'
@@ -13,8 +12,7 @@ import { forgetEntry } from './lib/entry'
 // Welcome is the first thing almost everyone sees, so it (and the ui.tsx
 // primitives it already pulls in) stays in the eager bundle. Everything past
 // it is one screen at a time by construction (AppScreen's switch), and most
-// sessions never reach most of these — the Somali sheet, Trust, Philosophy,
-// Plus, the endings — so shipping all of them upfront was pure waste on the
+// sessions never reach most of these — Trust, the guide, the endings — so shipping all of them upfront was pure waste on the
 // one path every visit takes: it cost 611KB of initial JS to get her to a
 // screen that needs about half of that.
 //
@@ -37,20 +35,12 @@ const Generating = lazy(() => import('./components/Reflection').then((m) => ({ d
 const Home = lazy(() => import('./components/Home'))
 const Coach = lazy(() => import('./components/Coach'))
 const Trust = lazy(() => import('./components/Trust'))
-const Philosophy = lazy(() => import('./components/Philosophy'))
-const Profile = lazy(() => import('./components/Profile'))
-const SampleIntroduction = lazy(() => import('./components/SampleIntroduction'))
 const Read = lazy(() => import('./components/Read'))
-const Door = lazy(() => import('./components/Door'))
 const BeforeYes = lazy(() => import('./components/BeforeYes'))
 const Families = lazy(() => import('./components/Families'))
 const Couple = lazy(() => import('./components/Couple'))
-const Vouch = lazy(() => import('./components/Vouch'))
-const Plus = lazy(() => import('./components/Plus'))
 const Ending = lazy(() => import('./components/Ending'))
 const Ended = lazy(() => import('./components/Ended'))
-const ShortMap = lazy(() => import('./components/ShortMap'))
-const Cohort = lazy(() => import('./components/Cohort'))
 
 export default function App({ entry = null }: { entry?: Entry | null }) {
   const n = useNiyyah(entry)
@@ -113,11 +103,7 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
 }
 
 function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
-  const hookId = n.answers['hardest-part'] as string | undefined
   const setScene = (scene: string) => n.setIdentity((prev) => ({ ...prev, scene }))
-  const setCountry = (country: string) => n.setIdentity((prev) => ({ ...prev, country }))
-  const setReach = (reach: Reach) => n.setIdentity((prev) => ({ ...prev, reach }))
-  const setAge = (age: number) => n.setIdentity((prev) => ({ ...prev, age }))
   // One line about her last read, recomputed from her answers rather than stored,
   // so a change to how we read never leaves an old verdict in the Guide's prompt.
   const readNote = (() => {
@@ -146,7 +132,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       completed={n.completed}
       onResume={n.resume}
       onEnter={n.enterHome}
-      onPhilosophy={() => n.openPhilosophy('welcome')}
       // Only when there is no Home to ask it on — a Home asks it itself.
       followUpAsk={n.hasHome ? null : n.followUpAsk}
       onAnswerFollowUp={n.answerFollowUp}
@@ -215,24 +200,10 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           reflection={n.reflection}
           identity={n.identity}
           history={n.mapHistory}
-          steps={n.steps}
-          onTakeStep={n.takeStep}
-          onCompleteStep={n.completeStep}
-          waitlist={n.waitlist}
-          ledger={n.ledgerDone}
-          onScene={setScene}
-          onCountry={setCountry}
-          onReach={setReach}
-          onAge={setAge}
-          onHesitate={n.saveHesitation}
-          hookId={hookId}
-          onJoinWaitlist={n.joinedCohort}
-          vouch={n.vouch}
           onKept={n.setKeptCode}
           firstReveal={n.mapReveal}
           onContinue={n.enterHome}
           onRetake={n.retakeMap}
-          onOpenGuide={n.openGuide}
         />
       )
 
@@ -245,7 +216,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onOpenGuide={(mode) => n.openGuide(mode ?? null)}
           onAsk={(text, mode) => n.askGuide(text, n.identity.gender, mode)}
           onOpenMap={n.reflection ? () => n.setScreen('reflection') : n.beginMap}
-          onOpenProfile={() => n.setScreen('profile')}
           onOpenTrust={() => n.openTrust('home')}
           onOpenRead={() => n.setScreen('read')}
           hasRead={!!n.read}
@@ -257,28 +227,14 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           coupleSecond={n.couple?.side === 'second'}
           onOpenFamilies={() => n.setScreen('families')}
           onOpenEnding={() => n.setScreen('ending')}
-          onPhilosophy={() => n.openPhilosophy('home')}
           onRestart={n.startFresh}
           followUpAsk={n.followUpAsk}
           onAnswerFollowUp={n.answerFollowUp}
           read={n.read}
           onReadStillStands={n.readStillStands}
-          steps={n.steps}
-          onTakeStep={n.takeStep}
-          onCompleteStep={n.completeStep}
           saveOk={n.saveOk}
           stage={n.stage}
           onSetStage={n.setStage}
-          hookId={hookId}
-          ledger={n.ledgerDone}
-          vouch={n.vouch}
-          waitlist={n.waitlist}
-          onJoinWaitlist={n.joinedCohort}
-          onScene={setScene}
-          onCountry={setCountry}
-          onReach={setReach}
-          onAge={setAge}
-          onHesitate={n.saveHesitation}
         />
       )
 
@@ -308,7 +264,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         <Trust
           identity={n.identity}
           coupleCode={n.couple?.code ?? null}
-          ledger={n.ledgerEntries}
           guideOnDevice={n.trust.guideOnDevice}
           onGuideOnDevice={(on) => n.setTrust((prev) => ({ ...prev, guideOnDevice: on }))}
           countMe={n.trust.countMe}
@@ -316,84 +271,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onForget={n.forgetEverything}
           onBack={() => n.setScreen(n.trustReturn)}
         />
-      )
-
-    case 'profile':
-      if (!n.hasHome) return welcome
-      return (
-        <Profile
-          identity={n.identity}
-          answers={n.answers}
-          reflection={n.reflection}
-          ledger={n.ledgerEntries}
-          vouch={n.vouch}
-          onKept={n.setKeptCode}
-          onChangeIdentity={n.setIdentity}
-          saveOk={n.saveOk}
-          onOpenTrust={() => n.openTrust('profile')}
-          onOpenPlus={() => n.setScreen('plus')}
-          onOpenSample={() => n.setScreen('sample')}
-          waitlist={n.waitlist}
-          onJoinWaitlist={n.joinedCohort}
-          onHesitate={n.saveHesitation}
-          onAnswer={n.answer}
-          onRetake={n.retakeMap}
-          onBack={() => n.setScreen('home')}
-        />
-      )
-
-    case 'door':
-      return (
-        <Door
-          identity={n.identity}
-          hasMap={n.completed}
-          onScene={setScene}
-          onCountry={setCountry}
-          onGender={(gender) => n.setIdentity((prev) => ({ ...prev, gender }))}
-          onCount={n.beginCount}
-          onHesitate={n.saveHesitation}
-          onBack={backHome}
-        />
-      )
-
-    case 'shortMap':
-      return (
-        <ShortMap
-          answers={n.answers}
-          gender={n.identity.gender}
-          onAnswer={n.answer}
-          onDone={() => n.setScreen('count')}
-          onBack={() => n.setScreen('door')}
-        />
-      )
-
-    case 'count':
-      return (
-        <div className="min-h-dvh bg-cream pb-16">
-          <ScreenHeader onBack={() => n.setScreen('shortMap')} sticky>
-            <span className="font-display text-[1.05rem] font-medium text-ink">Being counted</span>
-          </ScreenHeader>
-          <main className="mx-auto max-w-xl px-6 py-8">
-            <Cohort
-              identity={n.identity}
-              hookId={hookId}
-              ledger={n.ledgerDone}
-              joined={n.waitlist}
-              onJoined={n.joinedCohort}
-              onScene={setScene}
-              onCountry={setCountry}
-              onReach={setReach}
-              onAge={setAge}
-              onHesitate={n.saveHesitation}
-            />
-            {n.waitlist && (
-              <Button onClick={n.enterHome} className="group mt-6">
-                Home
-                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-              </Button>
-            )}
-          </main>
-        </div>
       )
 
     case 'read':
@@ -456,11 +333,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
         />
       )
 
-    case 'vouch':
-      // A family member arrived on her link. No identity, no account: one screen.
-      if (!n.entryCode) return welcome
-      return <Vouch saveOk={n.saveOk} code={n.entryCode} onDone={backHome} />
-
     case 'families':
       return (
         <Families
@@ -470,30 +342,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onSetGender={(g: Gender) => n.setIdentity((prev) => ({ ...prev, gender: g }))}
           onBack={backHome}
         />
-      )
-
-    case 'sample':
-      return (
-        <SampleIntroduction
-          identity={n.identity}
-          answers={n.answers}
-          hookId={hookId}
-          ledger={n.ledgerDone}
-          waitlist={n.waitlist}
-          onJoinWaitlist={n.joinedCohort}
-          onScene={setScene}
-          onCountry={setCountry}
-          onReach={setReach}
-          onAge={setAge}
-          onHesitate={n.saveHesitation}
-          onAnswer={n.answer}
-          onBack={() => n.setScreen('profile')}
-        />
-      )
-
-    case 'plus':
-      return (
-        <Plus onBack={() => n.setScreen('profile')} />
       )
 
     case 'ended':
@@ -519,17 +367,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onBack={backHome}
         />
       )
-
-    case 'philosophy': {
-      const fromWelcome = n.philosophyReturn === 'welcome'
-      return (
-        <Philosophy
-          onBack={() => n.setScreen(n.philosophyReturn)}
-          onPrimary={fromWelcome ? n.startFresh : () => n.setScreen('home')}
-          primaryLabel={fromWelcome ? 'Begin your reflection' : 'Back home'}
-        />
-      )
-    }
 
     default:
       return welcome

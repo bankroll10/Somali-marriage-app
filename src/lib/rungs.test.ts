@@ -9,8 +9,6 @@ const base: RungInput = {
   read: null,
   beforeYes: null,
   couple: null,
-  vouch: null,
-  waitlist: null,
   followedThrough: false,
 }
 
@@ -31,8 +29,6 @@ describe('the ladder', () => {
       [{ couple: { code: 'ACDEFG', at: 'x' } }, 'asked-him'],
       [{ couple: { code: 'ACDEFG', at: 'x', answered: 'y' } }, 'he-answered'],
       [{ followedThrough: true }, 'followed-through'],
-      [{ vouch: { relationship: 'brother', firstName: 'Ahmed', at: 'x' } }, 'vouched'],
-      [{ waitlist: { contact: 'a@b.c', joinedAt: 'x' } }, 'counted'],
       [{ stage: 'deciding' }, 'deciding'],
     ]
     for (const [patch, id] of cases) {
@@ -48,21 +44,11 @@ describe('the ladder', () => {
     expect(both).toContain('he-answered')
   })
 
-  it('keeping the map is its own rung, so mapped → kept → counted can be told apart', () => {
-    // docs/GAPS.md gap #3: "people will not put a map on a server or leave a
-    // way to be reached" is two failures, and before this rung they were one
-    // number. A map built and not kept, and a map kept without joining the
-    // door, are now distinguishable.
+  it('keeping the map is its own rung, so a map built and a map kept can be told apart', () => {
     const built = rungsFrom({ ...base, completed: true })
     expect(built).toContain('mapped')
     expect(built).not.toContain('kept')
-
-    const kept = rungsFrom({ ...base, completed: true, kept: true })
-    expect(kept).toContain('kept')
-    expect(kept).not.toContain('counted')
-
-    const counted = rungsFrom({ ...base, completed: true, kept: true, waitlist: { contact: 'a@b.c', joinedAt: 'x' } })
-    expect(counted).toEqual(['arrived', 'mapped', 'kept', 'counted'])
+    expect(rungsFrom({ ...base, completed: true, kept: true })).toEqual(['arrived', 'mapped', 'kept'])
   })
 
   it('married implies deciding — the arc does not skip backwards', () => {
@@ -80,8 +66,6 @@ describe('the ladder', () => {
       read: record,
       beforeYes: record,
       couple: { code: 'ACDEFG', at: 'x', answered: 'y' },
-      vouch: { relationship: 'father', firstName: 'Yusuf', at: 'x' },
-      waitlist: { contact: 'a@b.c', joinedAt: 'x' },
       followedThrough: true,
     })
     expect(all).toEqual(RUNG_IDS)
@@ -92,7 +76,7 @@ describe('the ladder', () => {
     // The vocabulary is the guarantee: no session, duration, count or streak
     // can be reported, because there is no rung for one.
     for (const id of RUNG_IDS) {
-      expect(id).not.toMatch(/session|time|minute|day|streak|count(?!ed)|message|open|visit|tap|swipe|screen/i)
+      expect(id).not.toMatch(/session|time|minute|day|streak|count|message|open|visit|tap|swipe|screen/i)
     }
   })
 })

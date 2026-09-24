@@ -1,14 +1,11 @@
-import cohort from '../../netlify/functions/cohort'
 import couple from '../../netlify/functions/couple'
 import exportFn from '../../netlify/functions/export'
 import guide from '../../netlify/functions/guide'
 import health from '../../netlify/functions/health'
 import keep from '../../netlify/functions/keep'
-import pool from '../../netlify/functions/pool'
 import progress from '../../netlify/functions/progress'
 import safety from '../../netlify/functions/safety'
 import sweep from '../../netlify/functions/sweep'
-import vouch from '../../netlify/functions/vouch'
 import { blobs } from './blobs'
 
 /**
@@ -28,18 +25,15 @@ import { blobs } from './blobs'
 type Handler = (req: Request) => Promise<Response>
 
 export const HANDLERS: Record<string, Handler> = {
-  cohort,
   couple,
   export: exportFn,
   // The guide takes Netlify's context as well; nothing here reads it.
   guide: (req) => guide(req, {} as never),
   health,
   keep,
-  pool,
   progress,
   safety,
   sweep,
-  vouch,
 }
 
 /** The founder's key, long enough to be a real one. */
@@ -71,8 +65,6 @@ export function serve(): Served {
       const req = new Request(url, { method, headers: init?.headers, body: init?.body, signal: init?.signal })
       return HANDLERS[name](req)
     }
-    // The waitlist posts to the site root, where Netlify Forms takes it.
-    if (url.pathname === '/' && method === 'POST') return new Response('', { status: 200 })
     return new Response('not found', { status: 404 })
   }
   globalThis.fetch = fetcher as typeof fetch

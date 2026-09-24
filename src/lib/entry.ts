@@ -1,19 +1,15 @@
 /**
  * Links into Niyyah, read before anything renders.
  *
- * Three kinds of link carry a code: `?map=` brings a kept map back, `?couple=`
- * is him opening the eleven she sent, `?vouch=` is a family member arriving to
- * vouch. Three more carry none and simply open an instrument: `?read`,
- * `?eleven`, `?families`. They exist because the thing that travels between
- * people here is the words — a friend sends a friend the exact question that
- * worked — and the person who receives them should land on the instrument,
- * not on a front door. None of them needs an account. The last, `?door`, is
- * for the person who is looking rather than talking — every instrument
- * presumes someone on the other side, and a man sent here because he is
- * single had nowhere to land (docs/MACHINE.md). It opens on the number.
+ * Two kinds of link carry a code: `?map=` brings a kept map back, `?couple=`
+ * is him opening the eleven she sent. Three more carry none and simply open an
+ * instrument: `?read`, `?eleven`, `?families`. They exist because the thing
+ * that travels between people here is the words — a friend sends a friend the
+ * exact question that worked — and the person who receives them should land
+ * on the instrument, not on a front door. None of them needs an account.
  *
  * Any link may also carry `?via=`: what kind of thing carried it — words, the
- * eleven, a couple's link, the door, a family link, a link from someone this
+ * eleven, a couple's link, a family link, a link from someone this
  * worked for, or a link shared into a community's group rather than sent to
  * one person. Never who sent it. It is the only attribution this product
  * records, and it is validated here so that nothing else can ride along under
@@ -25,8 +21,8 @@
  * (docs/BOARD.md). A kind of room is still not a person, and never which
  * room; added before the first post because it cannot be retrofitted.
  *
- * `press` is the eleventh, and it is a third kind rather than a finer split of
- * the second. The first six name a link one person sent another; the four
+ * `press` is a third kind rather than a finer split of the second. The first
+ * five name a link one person sent another; the four
  * above name a kind of room somebody posted into; `press` names a publication
  * that printed the link — never which publication, exactly as a room kind
  * never names the room. It exists because an article is not a room: nobody in
@@ -40,9 +36,9 @@
  *
  * Since 2026-09-17 the instruments also have paths — `/tools/…`, defined once
  * in src/data/tools.ts — so that a link can be understood before it is opened
- * and survives a reload. Two joined the original three on 2026-09-21, once an
- * audit found `door` and `families` still query-only and previewing as the
- * homepage in every messaging app (`docs/LINKS.md`). A path is recognised
+ * and survives a reload. `families` joined the original three on 2026-09-21,
+ * once an audit found it still query-only and previewing as the homepage in
+ * every messaging app (`docs/LINKS.md`). A path is recognised
  * here too, before the query, because a tool path is minted deliberately and
  * no link this product hands out puts a code on one. The query-string forms
  * stay, unchanged, for every link already sitting in someone's messages.
@@ -52,21 +48,21 @@
  */
 import { TOOLS, toolFor, toolFromPath, toolPath, type ToolSide } from '../data/tools'
 
-export type CodedKind = 'map' | 'couple' | 'vouch'
-export type InstrumentKind = 'read' | 'eleven' | 'families' | 'door'
+export type CodedKind = 'map' | 'couple'
+export type InstrumentKind = 'read' | 'eleven' | 'families'
 export type EntryKind = CodedKind | InstrumentKind
 
 // The tools table is import-free so the build can load it; this is what keeps
 // its literal kinds from drifting from the ones recognised here.
 TOOLS satisfies { kind: InstrumentKind }[]
 
-export type Via = 'words' | 'eleven' | 'couple' | 'door' | 'family' | 'married' | 'group' | 'alumni' | 'professional' | 'mosque' | 'press'
+export type Via = 'words' | 'eleven' | 'couple' | 'family' | 'married' | 'group' | 'alumni' | 'professional' | 'mosque' | 'press'
 /** Must match netlify/shared/vocab.ts VIAS. */
-export const VIAS: Via[] = ['words', 'eleven', 'couple', 'door', 'family', 'married', 'group', 'alumni', 'professional', 'mosque', 'press']
+export const VIAS: Via[] = ['words', 'eleven', 'couple', 'family', 'married', 'group', 'alumni', 'professional', 'mosque', 'press']
 
 export interface Entry {
   kind: EntryKind
-  /** Present for map, couple and vouch; the instruments carry none. */
+  /** Present for map and couple; the instruments carry none. */
   code?: string
   /** What kind of link this was — never who sent it. */
   via?: Via
@@ -78,8 +74,8 @@ export interface Entry {
 }
 
 /** Coded kinds first, so a link mangled into two still restores the map. */
-const CODED: CodedKind[] = ['map', 'couple', 'vouch']
-const INSTRUMENTS: InstrumentKind[] = ['read', 'eleven', 'families', 'door']
+const CODED: CodedKind[] = ['map', 'couple']
+const INSTRUMENTS: InstrumentKind[] = ['read', 'eleven', 'families']
 
 /** Normalise what a human or a messaging app did to a code. */
 export function normaliseCode(raw: string): string {
@@ -128,9 +124,9 @@ export function pathFor(screen: string, reader: ToolSide | undefined, current: s
     const tool = toolFor(screen === 'read' ? 'read' : 'eleven', reader)
     return tool ? toolPath(tool.slug) : undefined
   }
-  // The door and the family words have no `about`, so no chooser to wait on —
-  // the path is known the moment the screen is, same as any tool with one slug.
-  if (screen === 'door' || screen === 'families') {
+  // The family words have no `about`, so no chooser to wait on — the path is
+  // known the moment the screen is, same as any tool with one slug.
+  if (screen === 'families') {
     const tool = TOOLS.find((t) => t.kind === screen)
     return tool ? toolPath(tool.slug) : undefined
   }
@@ -144,10 +140,10 @@ export function pathFor(screen: string, reader: ToolSide | undefined, current: s
  * React state — and `App.tsx` falls back to Welcome when it is missing. A man
  * who backgrounded the tab mid-eleven, or whose phone reloaded it, came back
  * to a marketing page with his answers gone and no way to reach the sheet
- * again: the link was no longer in the bar, and it was on her phone, not his.
- * The same for a relative on a vouch link (docs/FAIL.md).
+ * again: the link was no longer in the bar, and it was on her phone, not his
+ * (docs/FAIL.md).
  *
- * Only `couple` and `vouch` are held. `map` needs no screen, and the
+ * Only `couple` is held. `map` needs no screen, and the
  * instruments already survive by their own path or their draft.
  */
 const ENTRY_KEY = 'niyyah.entry.v1'
@@ -155,10 +151,10 @@ const ENTRY_KEY = 'niyyah.entry.v1'
 /** How long a held entry is worth resuming. A link is a moment, not a home. */
 const ENTRY_TTL_MS = 24 * 60 * 60 * 1000
 
-type HeldEntry = { kind: 'couple' | 'vouch'; code: string; at: number }
+type HeldEntry = { kind: 'couple'; code: string; at: number }
 
 export function rememberEntry(entry: Entry): void {
-  if (entry.kind !== 'couple' && entry.kind !== 'vouch') return
+  if (entry.kind !== 'couple') return
   if (!entry.code) return
   try {
     const held: HeldEntry = { kind: entry.kind, code: entry.code, at: Date.now() }
@@ -175,7 +171,7 @@ export function rememberedEntry(now: number = Date.now()): Entry | null {
     if (!raw) return null
     const held = JSON.parse(raw) as Partial<HeldEntry>
     const fresh =
-      (held.kind === 'couple' || held.kind === 'vouch') &&
+      held.kind === 'couple' &&
       typeof held.code === 'string' &&
       typeof held.at === 'number' &&
       now - held.at < ENTRY_TTL_MS
@@ -183,7 +179,7 @@ export function rememberedEntry(now: number = Date.now()): Entry | null {
       forgetEntry()
       return null
     }
-    return { kind: held.kind as 'couple' | 'vouch', code: held.code as string }
+    return { kind: 'couple', code: held.code as string }
   } catch {
     return null
   }

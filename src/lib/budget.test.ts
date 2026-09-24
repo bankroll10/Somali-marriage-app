@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { guideBudget, repliesLeft } from './budget'
-import { REPLIES_PER_STEP } from '../data/plus'
+import { REPLIES_PER_STEP } from './budget'
 
 describe('the guide budget refills by progress, not by the calendar', () => {
   it('grants a fixed number of replies per rung reached', () => {

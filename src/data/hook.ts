@@ -56,11 +56,11 @@ That’s why Niyyah starts with where you are, not with a profile. Your map will
     insight: (name) =>
       `${name ? `${name}, y` : 'Y'}ou’re not imagining it — the usual apps mix you into a crowd that isn’t looking for what you’re looking for, then make you sift by hand. The problem isn’t you. It’s the room.
 
-Niyyah is a different room — one that only opens when enough serious people are in it, and introduces people by hand, on what they said about the life they want instead of on looks. First we build your map, so an introduction here starts from your own answers.`,
+Niyyah doesn’t introduce anyone. It makes the next person you meet, wherever you meet them, someone you find out about early: what they have done rather than what they say, and the conversations to have before anyone says yes. First we build your map, so you know what you are looking for.`,
   },
   {
     // The list's own test. Without this, a skip and "none of these fit" both
-    // arrived at the door as `none`, and docs/GAPS.md's rule — a closed list's
+    // arrived on the server as `none`, and docs/GAPS.md's rule — a closed list's
     // `other` share tests the list — had nothing to read (docs/BOARD.md).
     id: 'other',
     label: 'Something else',

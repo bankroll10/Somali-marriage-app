@@ -5,7 +5,6 @@ import { isFounder, notFounder } from '../shared/founder'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import { failed, lastRun, note, probe, readDays, recordSizes, sizesBefore, type Sizes } from '../shared/ops'
 import { isBookkeeping } from '../shared/integrity'
-import { SEGMENTS } from './cohort'
 import { CRASH_EVENTS, URGENT_REASONS } from '../shared/vocab'
 
 /**
@@ -239,17 +238,14 @@ export async function clockChecks(today: string): Promise<Check[]> {
 
 /**
  * How many records each store holds right now — the population, never a
- * record. Maps without the bookkeeping beside them; the door as entries,
- * not its index.
+ * record. Maps without the bookkeeping beside them.
  */
 export async function countStores(): Promise<Sizes> {
   const keys = async (name: string) => (await getStore(name).list()).blobs.map((b) => b.key)
-  const [maps, progress, cohort, contacts, reports] = await Promise.all(['maps', 'progress', 'cohort', 'contacts', 'reports'].map(keys))
+  const [maps, progress, reports] = await Promise.all(['maps', 'progress', 'reports'].map(keys))
   return {
     maps: maps.filter((k) => !isBookkeeping(k)).length,
     progress: progress.length,
-    door: cohort.filter((k) => k.split('/').length === SEGMENTS).length,
-    contacts: contacts.length,
     reports: reports.length,
   }
 }

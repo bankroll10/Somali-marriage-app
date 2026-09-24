@@ -1,8 +1,8 @@
 /**
  * The founder's key.
  *
- * Every readout this product produces — the ladder, the door's full tally, how
- * pairs come out on the eleven, the guide's health, the pool, the backup — is
+ * Every readout this product produces — the ladder, how pairs come out on the
+ * eleven, the guide's health, the safety queue, the backup — is
  * the only thing here a second team could not build for themselves, which is
  * exactly why none of it should be a public URL. This gates those routes
  * behind one bearer token, read from `FOUNDER_KEY`.
@@ -10,8 +10,7 @@
  * **Unset means closed.** It used to mean open, on the reasoning that every
  * readout was aggregate and a public tally is embarrassing rather than
  * dangerous. That reasoning was wrong about two routes and weak about the
- * rest: `/export` returns every progress record whole, `/pool` deletes lapsed
- * entries on GET, and the cost of a misconfigured deploy was silent
+ * rest: `/export` returns every progress record whole, and the cost of a misconfigured deploy was silent
  * publication that the founder would learn of from a cold-start log line
  * (docs/BOARD.md). The cost of failing closed is one environment variable,
  * and the recovery is one line in docs/DEPLOY.md: set `FOUNDER_KEY`. Local

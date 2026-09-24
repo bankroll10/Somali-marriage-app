@@ -8,7 +8,7 @@ import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import HelpLine from './HelpLine'
-import { ArrowRight, Button, Disclose, ScreenHeader, TextButton, Words , NotSaving} from './ui'
+import { ArrowRight, Button, Disclose, ScreenHeader, TextButton, NotSaving } from './ui'
 
 interface Props {
   identity: Identity
@@ -653,9 +653,6 @@ function Result({
           </div>
         </Disclose>
 
-        {/* This screen says a read, thin, the eleven and your map — and the
-            definitions of all four lived on a different screen. */}
-        <Words ids={['read', 'thin', 'eleven', 'map']} />
       </div>
 
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">

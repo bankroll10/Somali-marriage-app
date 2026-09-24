@@ -30,9 +30,9 @@ async function lastBody(spy: ReturnType<typeof vi.fn>): Promise<Record<string, u
 
 describe('what kind of link brought her here', () => {
   it('remembers the first, and never overwrites it', () => {
-    rememberVia('door')
+    rememberVia('family')
     rememberVia('words')
-    expect(rememberedVia()).toBe('door')
+    expect(rememberedVia()).toBe('family')
   })
 
   it('goes out with every report, so a failed first report loses nothing', async () => {
@@ -69,7 +69,7 @@ describe('what kind of link brought her here', () => {
     expect(Object.keys(await lastBody(spy)).sort()).toEqual(['id', 'rungs', 'scene', 'via'])
   })
 
-  it('sends which side of the door she is on when it is known, and no field when it is not', async () => {
+  it('sends which side she is on when it is known, and no field when it is not', async () => {
     const spy = vi.fn(async () => new Response('{"ok":true}', { status: 200 }))
     vi.stubGlobal('fetch', spy)
     await reportRungs(['arrived'], undefined, undefined, 'man')

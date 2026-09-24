@@ -12,8 +12,8 @@ import { stamp } from './record'
  * touches more than one key is therefore a sequence, any step of which can
  * fail after the ones before it succeeded, or be overtaken by another request.
  * These are the pieces that make each sequence either finish on a retry or be
- * reconciled by the weekly sweep, instead of leaving a map nobody can reach, a
- * contact with no map behind it, or a code that comes back after she forgot it.
+ * reconciled by the weekly sweep, instead of leaving a map nobody can reach or
+ * a code that comes back after she forgot it.
  *
  * Shared, not a function — see netlify/shared/founder.ts for why this lives
  * beside `netlify/functions` rather than in it.
@@ -95,21 +95,6 @@ export const onceKey = (id: string) => `${ONCE}${id}`
 
 /** True for keys in `maps` that are not a map: tombstones, journals, once keys. */
 export const isBookkeeping = (key: string) => key.startsWith(ENDED) || key.startsWith(MOVING) || key.startsWith(ONCE)
-
-// ─── Liveness ──────────────────────────────────────────────────────────────
-
-/**
- * The one definition of a map that can still be acted on: present, inside its
- * year, and not closed. The door, the vouch and the sweep each used to decide
- * this their own way — the door counted a lapsed map, and a vouch on one was
- * still shown.
- */
-export async function liveMap(maps: Store, code: string, now = Date.now()): Promise<KeptMap | null> {
-  const kept = (await maps.get(code, { type: 'json' })) as KeptMap | null
-  if (!kept || lapsed(kept, now)) return null
-  if (await ended(maps, code)) return null
-  return kept
-}
 
 // ─── Deleting what may have changed ───────────────────────────────────────
 

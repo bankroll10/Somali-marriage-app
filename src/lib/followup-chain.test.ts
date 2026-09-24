@@ -50,7 +50,7 @@ describe('a read taken by a stranger can be asked about later', () => {
       //    is the step whose absence made the whole chain unreachable.
       const inferred = stageAfterInstrument('read', 'preparing', false)
       expect(inferred).toBe('talking')
-      expect(hasHomeFor({ completed: false, stage: inferred!, counted: false })).toBe(true)
+      expect(hasHomeFor({ completed: false, stage: inferred! })).toBe(true)
 
       // 4. Not asked the same day — a conversation needs time to have happened.
       expect(openFollowUp(followups, gender, START)).toBeNull()
@@ -82,7 +82,7 @@ describe('the eleven, the same way', () => {
       // The eleven puts someone further along than the read does.
       const inferred = stageAfterInstrument('eleven', 'preparing', false)
       expect(inferred).toBe('deciding')
-      expect(hasHomeFor({ completed: false, stage: inferred!, counted: false })).toBe(true)
+      expect(hasHomeFor({ completed: false, stage: inferred! })).toBe(true)
 
       const ask = openFollowUp(followups, gender, START + MIN_AGE_DAYS * DAY)
       expect(ask).not.toBeNull()
@@ -106,6 +106,6 @@ describe('what the chain does not cover', () => {
     const ask = openFollowUp(followups, 'woman', START + MIN_AGE_DAYS * DAY)
     expect(ask, 'the ask exists').not.toBeNull()
     // ...but with nothing else saved, there is no Home to show it on.
-    expect(hasHomeFor({ completed: false, stage: 'preparing', counted: false })).toBe(false)
+    expect(hasHomeFor({ completed: false, stage: 'preparing' })).toBe(false)
   })
 })

@@ -176,12 +176,12 @@ describe('resolving a report', () => {
     const report = JSON.parse([...stores.get('reports')!.values()][0])
 
     expect((await del(`code=${CODE}&side=woman&id=${report.id}&outcome=no-action`)).status).toBe(401)
-    expect((await resolve(report, 'never-introduce')).status).toBe(200)
+    expect((await resolve(report, 'told-the-family')).status).toBe(200)
 
     const keys = [...stores.get('reports')!.keys()]
     expect(keys).toEqual([`resolved/${report.id}`])
     const stub = JSON.parse(stores.get('reports')!.get(keys[0])!)
-    expect(stub).toEqual({ reason: 'threats', at: report.at, resolvedAt: expect.any(String), outcome: 'never-introduce', v: 1 })
+    expect(stub).toEqual({ reason: 'threats', at: report.at, resolvedAt: expect.any(String), outcome: 'told-the-family', v: 1 })
     // Nothing of hers, and nothing that points at anyone.
     const serialised = JSON.stringify(stub)
     for (const gone of ['He said he would come to my work.', CODE, 'woman']) {

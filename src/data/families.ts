@@ -118,8 +118,8 @@ const SCRIPTS: FamilyScript[] = [
     },
   },
   // The two below were promised before they existed: "words for two families
-  // meeting" in the free list (src/data/plus.ts), and married Home's "the
-  // in-law conversations do not end at the nikah" (docs/DIFFERENTIATION.md).
+  // meeting", and married Home's "the in-law conversations do not end at the
+  // nikah" (docs/DIFFERENTIATION.md).
   {
     id: 'families-meet',
     title: 'Before the two families sit down',

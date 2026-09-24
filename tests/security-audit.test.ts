@@ -49,9 +49,7 @@ vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) =>
 
 const { default: keep } = await import('../netlify/functions/keep')
 const { default: safety } = await import('../netlify/functions/safety')
-const { default: vouch } = await import('../netlify/functions/vouch')
 const { default: couple } = await import('../netlify/functions/couple')
-const { default: cohort } = await import('../netlify/functions/cohort')
 const { default: progress } = await import('../netlify/functions/progress')
 const { isFounder } = await import('../netlify/shared/founder')
 const { sameSecret } = await import('../netlify/shared/secret')
@@ -94,7 +92,7 @@ describe('O3 — a hostile body is a 400, never a crash', () => {
   // number where a string was expected hit `.toUpperCase()`; a `constructor:`
   // prefix found Object's own prototype in a lookup table. Each threw past the
   // handler's own error contract and left the platform to answer.
-  const routes = { keep, vouch, couple, cohort, progress, safety } as const
+  const routes = { keep, couple, progress, safety } as const
   const raw = (h: (r: Request) => Promise<Response>, name: string, body: string) =>
     h(new Request(`http://x/.netlify/functions/${name}`, { method: 'POST', body }))
 
@@ -111,7 +109,6 @@ describe('O3 — a hostile body is a 400, never a crash', () => {
   it('a number where a code belongs is a bad code, not a TypeError', async () => {
     for (const [name, h, extra] of [
       ['safety', safety, { side: 'woman', reason: 'threats' }],
-      ['cohort', cohort, { scene: 'toronto', gender: 'woman' }],
       ['progress', progress, { rungs: [] }],
     ] as const) {
       const res = await raw(h, name, JSON.stringify({ code: 1, id: 1, ...extra }))
@@ -145,29 +142,6 @@ describe('O4 — no key is one `git add -A` from the repository', () => {
     expect(example).toMatch(/Unset means CLOSED/)
     // No value for either secret, ever, in a tracked file.
     expect(example).not.toMatch(/^\s*(ANTHROPIC_API_KEY|FOUNDER_KEY)\s*=/m)
-  })
-})
-
-describe('O5 — the family vouch does not say which tokens are live', () => {
-  // The family branch resolved the token before anything else and before the
-  // cap: an unknown token answered `bad_code`, a live one went on to
-  // `bad_relationship` — an existence oracle over vouch tokens, unmetered.
-  const vouchWith = (code: string, relationship: string) =>
-    call(vouch, 'vouch', json({ code, relationship, firstName: 'Cabdi', sentence: 'She is who she says.' }))
-
-  it('a live token and a dead one get the same answer to a bad body', async () => {
-    memStore('maps').setJSON('ACDEFG', { snapshot: {}, createdAt: 'd', expiresAt: '2099-01-01' })
-    await memStore('vouches').set('token/HJKMNPQR', 'ACDEFG')
-    const live = await vouchWith('HJKMNPQR', 'not-a-relationship')
-    const dead = await vouchWith('QRTWXY34', 'not-a-relationship')
-    expect(live.status).toBe(dead.status)
-    expect(await live.json()).toEqual(await dead.json())
-  })
-
-  it('every token lookup spends the cap', async () => {
-    vi.stubEnv('VOUCH_HOURLY_CAP', '1')
-    expect((await vouchWith('QRTWXY3479', 'father')).status).toBe(400)
-    expect((await vouchWith('QRTWXY4789', 'father')).status).toBe(503)
   })
 })
 
@@ -254,7 +228,7 @@ describe('O11 — the founder key is compared whole, and in constant time', () =
 
 describe('O8 — codes minted from now on are eight characters, and six still work', () => {
   it('the server mints eight, accepts six and eight, and keeps tokens at ten so nothing collides', async () => {
-    const { CODE, TOKEN, LEGACY_TOKEN, newCode, CODE_LENGTH, TOKEN_LENGTH } = await import('../netlify/shared/code')
+    const { CODE, TOKEN, newCode, CODE_LENGTH, TOKEN_LENGTH } = await import('../netlify/shared/code')
     expect(CODE_LENGTH).toBe(8)
     expect(TOKEN_LENGTH).toBe(10)
     expect(newCode()).toMatch(CODE)
@@ -264,7 +238,6 @@ describe('O8 — codes minted from now on are eight characters, and six still wo
     for (const bad of ['HJKMN', 'HJKMNPQ', 'HJKMNPQRT', 'HJKMNPQRTW']) expect(CODE.test(bad)).toBe(false)
     expect(TOKEN.test(newCode(TOKEN_LENGTH))).toBe(true)
     expect(CODE.test(newCode(TOKEN_LENGTH))).toBe(false)
-    expect(LEGACY_TOKEN.test('HJKMNPQR')).toBe(true)
   })
 
   it('the client agrees, and shows an eight as two groups of four', async () => {

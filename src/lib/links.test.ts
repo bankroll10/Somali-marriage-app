@@ -3,14 +3,12 @@ import { entryFromUrl, pathFor } from './entry'
 import { instrumentLink, toolLink, withVia } from './links'
 import { coupleLink } from './couple'
 import { restoreLink } from './keep'
-import { vouchLink } from './vouch'
 import { DEFAULT_SITE_HOST, SITE_HOST, SITE_URL } from './site'
 
 describe('the links this product hands out', () => {
   it('opens an instrument, and says what carried it', () => {
     expect(instrumentLink('read', 'words')).toBe(`${SITE_URL}/?read&via=words`)
     expect(instrumentLink('eleven', 'couple', 'https://x.test')).toBe('https://x.test/?eleven&via=couple')
-    expect(instrumentLink('door', 'door')).toBe(`${SITE_URL}/?door&via=door`)
   })
 
   it('round-trips through the parser', () => {
@@ -21,17 +19,14 @@ describe('the links this product hands out', () => {
   it('keeps a coded link working when a via is attached', () => {
     const couple = new URL(withVia(coupleLink('HJKMNP', SITE_URL), 'couple'))
     expect(entryFromUrl(couple.search)).toEqual({ kind: 'couple', code: 'HJKMNP', via: 'couple' })
-    const vouch = new URL(withVia(vouchLink('ACDEFG', SITE_URL), 'family'))
-    expect(entryFromUrl(vouch.search)).toEqual({ kind: 'vouch', code: 'ACDEFG', via: 'family' })
   })
 
   it('never carries a person', () => {
     for (const url of [
-      instrumentLink('read', 'door'),
+      instrumentLink('read', 'words'),
       withVia(coupleLink('HJKMNP', SITE_URL), 'couple'),
       toolLink('is-he-serious', 'words'),
       toolLink('before-you-say-yes', 'eleven'),
-      toolLink('door', 'door'),
       toolLink('families', 'family'),
     ]) {
       expect(url).not.toMatch(/install|from=|ref=|by=|code|answer|name/)
@@ -63,16 +58,11 @@ describe('the links this product hands out', () => {
       expect(pathFor('coach', undefined, '/')).toBeUndefined()
     })
 
-    it('the door and the family words are the same: one slug, no chooser to wait on', () => {
-      expect(toolLink('door', 'door')).toBe(`${SITE_URL}/tools/door?via=door`)
+    it('the family words have one slug, and no chooser to wait on', () => {
       expect(toolLink('families', 'family')).toBe(`${SITE_URL}/tools/families?via=family`)
-      const door = new URL(toolLink('door', 'door'))
-      expect(entryFromUrl(door.search, door.pathname)).toEqual({ kind: 'door', via: 'door' })
       const families = new URL(toolLink('families', 'family'))
       expect(entryFromUrl(families.search, families.pathname)).toEqual({ kind: 'families', via: 'family' })
-      expect(pathFor('door', undefined, '/')).toBe('/tools/door')
       expect(pathFor('families', undefined, '/')).toBe('/tools/families')
-      expect(pathFor('home', undefined, '/tools/door')).toBe('/')
       expect(pathFor('home', undefined, '/tools/families')).toBe('/')
     })
   })
@@ -86,7 +76,6 @@ describe('the host is a setting, not a literal', () => {
     // Every builder that mints a link for someone else reads it.
     expect(restoreLink('ACDEFG', SITE_URL)).toBe(`${SITE_URL}/?map=ACDEFG`)
     expect(coupleLink('ACDEFG', SITE_URL)).toBe(`${SITE_URL}/?couple=ACDEFG`)
-    expect(vouchLink('ACDEFGHJ', SITE_URL)).toBe(`${SITE_URL}/?vouch=ACDEFGHJ`)
     expect(instrumentLink('eleven', 'words')).toContain(SITE_URL)
   })
 

@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import type { Identity, Stage } from '../types'
 import { stages } from '../data/stages'
-import { countryFor, scenes } from '../data/scenes'
-import { countries, getCountry } from '../data/countries'
-import { reachOptions } from '../data/reach'
+import { scenes } from '../data/scenes'
+import { countries } from '../data/countries'
 import { speak } from '../data/read'
 import { somali } from '../data/somali'
 import { ArrowRight, BackButton, Button } from './ui'
@@ -40,7 +39,6 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
   const say = speak(identity.gender ?? 'woman')
   const st = stages.find((s) => s.id === chosen)
   const somaliLine = chosen ? somali(`situation.${chosen}`) : null
-  const within = getCountry(countryFor(identity))?.within
 
   return (
     <div className="relative min-h-dvh bg-cream">
@@ -110,7 +108,7 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
                 )}
 
                 {/* Somewhere else is not a city, so it has no country of its
-                    own. One more tap, and she is counted with her country. */}
+                    own. One more tap, so her help line is the right one. */}
                 {identity.scene === 'other' && (
                   <div className="mt-5">
                     <p id="situation-country-label" className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
@@ -135,31 +133,6 @@ export default function Situation({ identity, onChoose, onScene, onChangeIdentit
                   </div>
                 )}
 
-                {/* How far she would go. Asked, never inferred; left blank it
-                    means her city. See src/data/reach.ts. */}
-                {identity.scene && (
-                  <div className="mt-5">
-                    <p id="situation-reach-label" className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
-                      How far would you go for the right person? <span className="normal-case tracking-normal">(optional)</span>
-                    </p>
-                    <div role="group" aria-labelledby="situation-reach-label" className="mt-3 flex flex-wrap gap-2">
-                      {reachOptions(within).map((r) => {
-                        const on = identity.reach === r.id
-                        return (
-                          <button
-                            key={r.id}
-                            type="button"
-                            onClick={() => onChangeIdentity((prev) => ({ ...prev, reach: r.id }))}
-                            aria-pressed={on}
-                            className={chip(on)}
-                          >
-                            {r.label}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="mt-8">

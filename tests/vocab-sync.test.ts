@@ -4,7 +4,6 @@ import * as prompt from '../netlify/shared/prompt'
 import { joint } from '../netlify/functions/couple'
 import { RUNG_IDS } from '../src/lib/rungs'
 import { VIAS } from '../src/lib/entry'
-import { LEDGER_IDS } from '../src/lib/ledger'
 import { buildReflection } from '../src/lib/reflection'
 import { DIMENSION_LABEL, SCRIPTS } from '../src/data/read'
 import { STATES, beforeYesTopics } from '../src/data/beforeYes'
@@ -15,12 +14,10 @@ import { modes as MODES } from '../src/data/coach'
 import { stages } from '../src/data/stages'
 import { scenes } from '../src/data/scenes'
 import { COUNTRY_IDS } from '../src/data/countries'
-import { REACH_IDS } from '../src/data/reach'
 import { hookOptions } from '../src/data/hook'
 import { SAFETY_OUTCOMES, SAFETY_REASONS } from '../src/data/safety'
 import { ALPHABET as CLIENT_ALPHABET, CODE_LENGTH as CLIENT_CODE_LENGTH } from '../src/lib/code'
 import { ALPHABET as SERVER_ALPHABET, CODE_LENGTH as SERVER_CODE_LENGTH } from '../netlify/shared/code'
-import { HESITATION_IDS } from '../src/data/hesitation'
 import { INSTRUMENT_IDS } from '../src/data/instruments'
 import { ASKED } from '../src/lib/facts'
 import { CRASH_EVENTS } from '../src/lib/crash'
@@ -48,12 +45,10 @@ describe('every word the server accepts is a word the app uses', () => {
 
   it('rungs', () => expect(sorted(vocab.RUNGS)).toEqual(sorted(RUNG_IDS)))
   it('vias', () => expect(sorted(vocab.VIAS)).toEqual(sorted(VIAS)))
-  it('ledger', () => expect(sorted(vocab.LEDGER)).toEqual(sorted(LEDGER_IDS)))
   it('scenes', () => expect(sorted(vocab.SCENES)).toEqual(sorted(scenes.map((s) => s.id))))
 
-  it('the countries, how far a person would go, and which country each named city is in', () => {
+  it('the countries, and which country each named city is in', () => {
     expect(sorted(vocab.COUNTRIES)).toEqual(sorted(COUNTRY_IDS))
-    expect(sorted(vocab.REACH)).toEqual(sorted(REACH_IDS))
     const named = Object.fromEntries(scenes.filter((s) => s.country).map((s) => [s.id, s.country]))
     expect(vocab.SCENE_COUNTRY).toEqual(named)
     // Every city's country is a country the server accepts; only `other` has none.
@@ -141,10 +136,6 @@ describe('every word the server accepts is a word the app uses', () => {
   it('the reasons a safety report can give', () => {
     expect(sorted(vocab.SAFETY_REASONS)).toEqual(sorted(SAFETY_REASONS.map((r) => r.id)))
     expect(sorted(vocab.SAFETY_OUTCOMES)).toEqual(sorted(SAFETY_OUTCOMES.map((r) => r.id)))
-  })
-
-  it('the reasons someone can give for stopping at the door', () => {
-    expect(sorted(vocab.HESITATIONS)).toEqual(sorted(HESITATION_IDS))
   })
 
   it('the four questionnaires a person can begin', () => {

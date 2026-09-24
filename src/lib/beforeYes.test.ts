@@ -153,3 +153,20 @@ describe('what the Guide is told', () => {
     expect(s).not.toMatch(/\d/)
   })
 })
+
+// Moved from tests/alignment-audit.test.ts (docs/ALIGNMENT.md), when matching went.
+describe('Before you say yes never ranks a difference as a light one', () => {
+  it('a single difference on qabiil is named, not weighed', () => {
+    const topics = beforeYesTopics('woman')
+    const answers = Object.fromEntries(topics.map((t) => [t.id, t.id === 'qabiil' ? 'differ' : 'agree']))
+    const r = buildBeforeYes(answers)!
+    expect(r.headline).not.toMatch(/weight|heav|light|mostly/i)
+    expect(r.headline).toMatch(/one/i)
+  })
+
+  it('all eleven agreed is said as what it is, without a statistic about other couples', () => {
+    const topics = beforeYesTopics('woman')
+    const r = buildBeforeYes(Object.fromEntries(topics.map((t) => [t.id, 'agree'])))!
+    expect(r.headline).not.toMatch(/most couples/i)
+  })
+})

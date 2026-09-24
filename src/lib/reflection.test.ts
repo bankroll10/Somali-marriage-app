@@ -232,3 +232,38 @@ describe('what changed between readings', () => {
     expect(JSON.stringify(snap)).not.toMatch(/overall/)
   })
 })
+
+// Moved from tests/alignment-audit.test.ts (docs/ALIGNMENT.md), when matching went.
+describe('the map describes positions; it rates only readiness', () => {
+  // Faith kept private, lighter in practice, no children in view, a long
+  // timeline, family kept informed. Every one a position a person may hold.
+  const answers = {
+    practice: 'cultural',
+    'faith-role': 1,
+    'family-role': 'private',
+    children: 'no',
+    timeline: '3-plus',
+    'why-now': 'ready',
+    conflict: 'talk',
+    healing: 'healed',
+    attachment: 'secure',
+    pattern: 'none',
+    'working-on': 'Listening before I answer.',
+  }
+
+  it('faith, family and vision carry no state — nothing says her faith is thin', () => {
+    const r = buildReflection(answers)
+    for (const dim of ['faith', 'family', 'vision'] as const) {
+      expect(r.dimensions.find((d) => d.dimension === dim)!.state, dim).toBeNull()
+    }
+    // Their work is still offered, after every rated ground's — never as a gap.
+    expect(r.thinnest.slice(0, 4)).toEqual(expect.not.arrayContaining(['faith', 'family', 'vision']))
+    expect(r.thinnest.slice(4)).toEqual(['faith', 'family', 'vision'])
+  })
+
+  it('the headline is decided by the grounds that are about readiness, and says no verdict of "ready"', () => {
+    const r = buildReflection(answers)
+    expect(r.headline).toBe('On steady ground')
+    expect(r.headline).not.toMatch(/ready/i)
+  })
+})

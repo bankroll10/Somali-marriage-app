@@ -21,6 +21,22 @@ const ROOT = join(import.meta.dirname, '..', 'src')
 const DIRS = ['components', 'data', 'lib']
 
 
+/**
+ * Authority the product has not earned, said to a member (docs/ALIGNMENT.md).
+ * No introduction has been made and nothing here has been measured against
+ * an outcome, so no screen predicts, ranks a difference as light, or quotes
+ * a statistic about other couples. Copy only: the guide may say that nobody
+ * can predict a marriage, and its grader should not flag that.
+ */
+const OVERCLAIMS: [RegExp, string][] = [
+  [/\bpredicts?\b/i, 'a prediction nothing here has measured'],
+  [/carry the most weight/i, 'ranks one difference above another'],
+  [/most couples never/i, 'a statistic about other couples we do not have'],
+  [/rarer than you would think/i, 'a statistic we do not have'],
+  [/Grounded and ready/, 'a verdict of "ready"'],
+  [/We’ll look for someone|will find you someone/i, 'an introduction nobody makes'],
+]
+
 /** Lines that keep a banned word, each with the reason it earns its place. */
 const ALLOWED: [RegExp, string][] = [
   [/Actually, it’s something else/, 'a button in the person’s own voice, correcting us'],
@@ -73,7 +89,7 @@ describe('the voice', () => {
       lines.forEach((line, i) => {
         if (skip.has(i)) return
         if (ALLOWED.some(([re]) => re.test(line))) return
-        for (const [re, why] of BANNED) {
+        for (const [re, why] of [...BANNED, ...OVERCLAIMS]) {
           if (re.test(line)) hits.push(`${file}:${i + 1}  ${why}\n      ${line.trim().slice(0, 110)}`)
         }
       })
@@ -85,7 +101,7 @@ describe('the voice', () => {
     // JSX wraps prose at the column, so "decide a Somali\n marriage" passes the
     // line scan. Read each file again with its comment lines out and its
     // whitespace folded, for the phrases that have a space in them.
-    const multiword = BANNED.filter(([re]) => / /.test(re.source))
+    const multiword = [...BANNED, ...OVERCLAIMS].filter(([re]) => / /.test(re.source))
     const hits: string[] = []
     for (const { file, lines } of files()) {
       const skip = commentLines(lines)

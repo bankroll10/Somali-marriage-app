@@ -14,14 +14,11 @@ import { instrumentLink, toolLink } from '../lib/links'
  * And none of it says the sender is looking. In this community that costs her
  * something, so every text here is about the instrument and the friend, never
  * about the sender's own use of a marriage product — the rule docs/PRODUCT.md
- * §9 states for everything that gets forwarded. The Profile invitation used to
- * open "I've been using Niyyah"; it now says what the read text says.
+ * §9 states for everything that gets forwarded.
  */
-export type InviteSource = 'profile' | 'read' | 'beforeYes' | 'couple'
+export type InviteSource = 'read' | 'beforeYes' | 'couple'
 
 const TEXT: Record<InviteSource, string> = {
-  profile:
- 'Talking to someone? Niyyah reads what {he}’s done — not what {he} says — in ninety seconds, and gives you the one question to ask {him} next. Built for us. No swiping, no account.',
   read:
  'Talking to someone? Niyyah reads what {he}’s done — not what {he} says — in ninety seconds, and gives you the one question to ask {him} next. Built for us. No swiping, no account.',
   beforeYes:
@@ -47,7 +44,6 @@ const TEXT: Record<InviteSource, string> = {
 export function inviteLink(source: InviteSource, gender?: Gender): string {
   switch (source) {
     case 'read':
-    case 'profile':
       return gender ? toolLink(gender === 'man' ? 'is-she-serious' : 'is-he-serious', 'words') : instrumentLink('read', 'words')
     case 'beforeYes':
       return toolLink('before-you-say-yes', 'eleven')

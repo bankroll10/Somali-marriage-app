@@ -8,8 +8,7 @@ import { describe, expect, it } from 'vitest'
  * Read from the source. Each of these is a defect that existed and was
  * shipped, so each one is a thing somebody could reasonably re-introduce
  * without noticing (docs/FAIL.md). What a test can *cause* — a limiter whose
- * store will not open, a body cut off mid-upload, a vouch ask interrupted
- * between its two writes, two answers landing at once, the autosave after a
+ * store will not open, a body cut off mid-upload, two answers landing at once, the autosave after a
  * failed forget — moved to tests/failure-modes.test.ts and
  * tests/journeys/forget-offline.test.tsx on 2026-09-24, where it is proved by
  * making it happen (docs/TESTING.md, "Pruned"). What is left here is what no
@@ -75,14 +74,6 @@ describe('a failure keeps its reason', () => {
     const couple = read('src/components/Couple.tsx')
     expect(couple).toMatch(/result === 'not-found' \|\| result === 'expired' \|\| result === 'not-a-code'/)
     expect(couple).toMatch(/setPhase\('unreachable'\)|: 'unreachable'/)
-  })
-
-  it('does not open the vouch form when the server could not be reached', () => {
-    // A father filled in his name, a sentence about his daughter and his
-    // phone number before finding out.
-    const vouch = read('src/components/Vouch.tsx')
-    expect(vouch).toMatch(/readVouchDetail/)
-    expect(vouch).toMatch(/if \(v === 'none'\) return setPhase\('form'\)/)
   })
 })
 

@@ -22,8 +22,7 @@ function memStore(name: string) {
     },
     getMetadata: async (key: string) => (m.has(key) ? { etag: 'x', metadata: {} } : null),
     // Conditional options work here too: the real store returns { modified }
-    // from `set` exactly as it does from `setJSON`, and vouch.ts now claims
-    // `asked/<code>` with onlyIfNew so no token can outlive forget me.
+    // from `set` exactly as it does from `setJSON`.
     set: async (key: string, value: string, opts?: { onlyIfMatch?: string; onlyIfNew?: boolean }) => {
       if (opts?.onlyIfNew && m.has(key)) return { modified: false }
       if (opts?.onlyIfMatch && opts.onlyIfMatch !== m.get(key)) return { modified: false }
@@ -58,11 +57,11 @@ function seed() {
   })
   memStore('progress').setJSON('HJKMNP', { first: { arrived: '2026-09-02' }, expiresAt: '2027-09-02' })
   memStore('tallies').setJSON('joint', { pairs: 2, topics: { 'money-home': { 'both-agree': 2 } } })
-  memStore('cohort').set('index/QRTWXY', 'ca/toronto/woman/country/family/QRTWXY')
+  // The stores the backup must never touch — and what the door and the vouch
+  // left behind, until the sweep empties it.
+  memStore('maps').setJSON('QRTWXY', { snapshot: { identity: { firstName: 'Sagal' }, answers: { healing: 'fresh' } } })
   memStore('cohort').setJSON('ca/toronto/woman/country/family/QRTWXY', { at: '2026-09-01', ledger: ['map', 'read'] })
-  memStore('cohort').setJSON('ca/toronto/man/city/serious/ACDEFH', { at: '2026-09-02', ledger: ['map'] })
-  // The three stores the backup must never touch.
-  memStore('maps').setJSON('QRTWXY', { snapshot: { identity: { firstName: 'Sagal', age: 27 }, answers: { healing: 'fresh' } } })
+  memStore('contacts').setJSON('QRTWXY', { contact: 'sagal@example.com', at: '2026-09-01' })
   memStore('vouches').setJSON('QRTWXY', {
     relationship: 'father',
     firstName: 'Cabdi',
@@ -81,7 +80,7 @@ beforeEach(() => {
 describe('the backup', () => {
   it('hands back every progress record whole — the part nobody could recreate', async () => {
     const body = await (await get()).json()
-    expect(body.version).toBe(2)
+    expect(body.version).toBe(3)
     expect(Object.keys(body.progress).sort()).toEqual(['ACDEFG', 'HJKMNP'])
     expect(body.progress.ACDEFG.facts.ended).toEqual([{ stage: 'talking', reason: 'his-read', which: 'public' }])
     expect(body.progress.ACDEFG.first.married).toBe('2026-09-30')
@@ -98,24 +97,9 @@ describe('the backup', () => {
     expect(Object.keys(body.progress).sort()).toEqual(['ACDEFG', 'HJKMNP', 'KMNPQRTW'])
   })
 
-  it('counts the door, country by city, without carrying a single map code', async () => {
-    const body = await (await get()).json()
-    expect(body.door.ca.toronto).toEqual({
-      women: 1,
-      men: 1,
-      hooks: { family: 1, serious: 1 },
-      ledger: { map: 2, read: 1 },
-      reach: { country: 1, city: 1 },
-    })
-    // The counts are true, not floored: a backup that quietly rounds is not a backup.
-    expect(body.door.ca.toronto.women).toBe(1)
-    expect(JSON.stringify(body.door)).not.toContain('QRTWXY')
-    expect(JSON.stringify(body.door)).not.toContain('ACDEFH')
-  })
-
   it('refuses to carry anyone’s answers, name, phone or the code to a map', async () => {
     const raw = await (await get()).text()
-    for (const secret of ['Sagal', 'Cabdi', 'my daughter', '612 555', 'healing', 'fresh', 'QRTWXY', 'ACDEFJ']) {
+    for (const secret of ['Sagal', 'sagal@example.com', 'Cabdi', 'my daughter', '612 555', 'healing', 'fresh', 'QRTWXY', 'ACDEFJ']) {
       expect(raw, `the backup must not contain ${secret}`).not.toContain(secret)
     }
     const body = JSON.parse(raw)
@@ -123,9 +107,11 @@ describe('the backup', () => {
     expect(body.vouches).toBeUndefined()
     expect(body.couples).toBeUndefined()
     expect(body.cohort).toBeUndefined()
+    expect(body.door).toBeUndefined()
     // And it says so in the file, so a reader is never misled about what this is.
-    expect(body.omitted.length).toBe(4)
-    expect(body.omitted.join(' ')).toMatch(/maps|vouches|couples|cohort/)
+    expect(body.omitted.length).toBe(2)
+    expect(body.omitted.join(' ')).toMatch(/maps/)
+    expect(body.omitted.join(' ')).toMatch(/couples/)
   })
 
   it('is the founder’s, and downloads as a dated file', async () => {
@@ -151,6 +137,5 @@ describe('the backup', () => {
     const body = await (await get()).json()
     expect(body.progress).toEqual({})
     expect(body.joint).toBeNull()
-    expect(body.door).toEqual({})
   })
 })

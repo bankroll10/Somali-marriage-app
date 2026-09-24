@@ -3,7 +3,6 @@ import type {
   BegunInstruments,
   EndedRecord,
   EndingRecord,
-  HesitationRecord,
   MapSnapshot,
   CoachMessage,
   GuideUse,
@@ -12,11 +11,8 @@ import type {
   ReadRecord,
   CoupleState,
   FollowUp,
-  VouchState,
   Stage,
-  StepRecord,
   TrustSettings,
-  WaitlistState,
 } from '../types'
 import { defaultGuideUse, defaultTrust } from '../types'
 
@@ -33,26 +29,18 @@ export interface PersistedState {
   stage: Stage
   /** She chose a situation rather than landing on the default. */
   situated: boolean
-  /** Work taken on from the map, open and completed — oldest first. */
-  steps: StepRecord[]
   /** Replies spent, ever — measured against a budget her progress grants. */
   guide: GuideUse
-  /** Their saved place, once they've asked for one. */
-  waitlist: WaitlistState | null
   /** The most recent read they took on someone. */
   read: ReadRecord | null
   /** Before you say yes — which of the eleven conversations they've had. */
   beforeYes: ReadRecord | null
   /** The two-sided Before you say yes she started, if any. */
   couple: CoupleState | null
-  /** A family member's vouch, once given. */
-  vouch: VouchState | null
   /** What she told us on the way out, once she has married. The success state. */
   ending: EndingRecord | null
   /** Courtships that ended, oldest first, the last eight. See src/data/ended.ts. */
   endings: EndedRecord[]
-  /** She reached the door and did not walk through it, and said why. See src/data/hesitation.ts. */
-  hesitated: HesitationRecord | null
   /** Which questionnaires she began. See src/data/instruments.ts. */
   began: BegunInstruments
   /** What the product told her to do, and how it went. */
@@ -70,10 +58,10 @@ export function loadProgress(): Persisted | null {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return null
-    // Older saves also carried check-ins and a first-seen date. Neither is read
-    // any more; they fall away on the next save.
+    // Older saves also carried check-ins, a first-seen date, work steps, a
+    // place at the door, a vouch and a hesitation. None is read any more; they
+    // fall away on the next save.
     const p = JSON.parse(raw) as Partial<Persisted> & {
-      waitlist?: (Partial<WaitlistState> & { email?: string }) | null
       /** The old monthly allowance and trial. Only what was spent carries over. */
       plus?: { usage?: { used?: number } } | null
     }
@@ -99,19 +87,12 @@ export function loadProgress(): Persisted | null {
       // Anyone who already moved off the default, or finished a map, told us
       // where she was — even if she did it before we recorded the choice.
       situated: p.situated ?? ((p.stage !== undefined && p.stage !== 'preparing') || !!p.completed),
-      steps: p.steps ?? [],
       guide: p.guide ?? { replies: p.plus?.usage?.used ?? defaultGuideUse.replies },
-      // Earlier saves stored an email; the field now holds email or phone.
-      waitlist: p.waitlist
-        ? { ...p.waitlist, contact: p.waitlist.contact ?? p.waitlist.email ?? '', joinedAt: p.waitlist.joinedAt ?? '' }
-        : null,
       read: p.read ?? null,
       beforeYes: p.beforeYes ?? null,
       couple: p.couple ?? null,
-      vouch: p.vouch ?? null,
       ending: p.ending ?? null,
       endings: p.endings ?? [],
-      hesitated: p.hesitated ?? null,
       began: Array.isArray(p.began) ? p.began.filter((id): id is string => typeof id === 'string') : [],
       followups: p.followups ?? [],
       completed: p.completed ?? false,

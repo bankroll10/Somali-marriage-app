@@ -7,9 +7,9 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 /**
  * INVARIANT — every founder route fails closed (docs/TESTING.md).
  *
- * A readout that answers without the founder's key publishes the door's
- * tally, the pool's shape, the ladder, every open report in her own words,
- * and the backup. Each function's own tests checked some of this, route by
+ * A readout that answers without the founder's key publishes the ladder,
+ * how pairs come out on the eleven, every open report in her own words, and
+ * the backup. Each function's own tests checked some of this, route by
  * route; nothing said *every* gated route was covered, so a new readout
  * written without the gate would have passed the whole suite.
  *
@@ -27,29 +27,22 @@ interface Row {
 }
 
 const ROWS: Row[] = [
-  { fn: 'cohort', method: 'GET', path: 'cohort' },
   { fn: 'couple', method: 'GET', path: 'couple' },
   { fn: 'export', method: 'GET', path: 'export' },
   { fn: 'guide', method: 'GET', path: 'guide' },
   { fn: 'health', method: 'GET', path: 'health' },
-  { fn: 'pool', method: 'GET', path: 'pool?scene=twin-cities' },
   { fn: 'progress', method: 'GET', path: 'progress' },
   { fn: 'safety', method: 'GET', path: 'safety' },
   { fn: 'safety', method: 'DELETE', path: 'safety?code=TWXY3478&side=woman&id=ACDEFGHJKM&outcome=no-action' },
-  { fn: 'vouch', method: 'GET', path: 'vouch' },
 ]
 
 /** Things only a member wrote. Any of them in a refused reply is a leak. */
-const NEEDLES = ['Zqfounderleakname', 'zqleak@example.com', 'Zq her own words about him', 'Zq his father says so']
+const NEEDLES = ['Zqfounderleakname', 'Zq her own words about him']
 
 function seed() {
-  blobs.put('maps', 'HJKMNPQR', { snapshot: { identity: { firstName: NEEDLES[0], age: 27 }, stage: 'preparing', answers: {} }, createdAt: '2026-09-01', expiresAt: '2099-01-01', v: 1 })
-  blobs.put('cohort', 'us/twin-cities/woman/city/serious/HJKMNPQR', { at: '2026-09-01', ledger: ['map'], v: 1 })
-  blobs.put('cohort', 'index/HJKMNPQR', 'us/twin-cities/woman/city/serious/HJKMNPQR')
-  blobs.put('contacts', 'HJKMNPQR', { contact: NEEDLES[1], scene: 'twin-cities', country: 'us', at: '2026-09-01', v: 1 })
+  blobs.put('maps', 'HJKMNPQR', { snapshot: { identity: { firstName: NEEDLES[0] }, stage: 'preparing', answers: {} }, createdAt: '2026-09-01', expiresAt: '2099-01-01', v: 1 })
   blobs.put('couples', 'TWXY3478', { creator: 'woman', owner: 'CDEFGHJKMN', first: {}, createdAt: '2026-09-01', expiresAt: '2099-01-01', v: 1 })
-  blobs.put('reports', 'TWXY3478-woman-ACDEFGHJKM', { id: 'ACDEFGHJKM', code: 'TWXY3478', side: 'woman', reason: 'threats', details: NEEDLES[2], at: '2026-09-02', v: 1 })
-  blobs.put('vouches', 'HJKMNPQR', { relationship: 'father', firstName: 'Abdi', sentence: NEEDLES[3], at: '2026-09-02', v: 1 })
+  blobs.put('reports', 'TWXY3478-woman-ACDEFGHJKM', { id: 'ACDEFGHJKM', code: 'TWXY3478', side: 'woman', reason: 'threats', details: NEEDLES[1], at: '2026-09-02', v: 1 })
   blobs.put('progress', 'CDEFGHJK', { first: { arrived: '2026-09-01' }, expiresAt: '2099-01-01', v: 1 })
 }
 

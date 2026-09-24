@@ -36,35 +36,13 @@ describe('Netlify deploy directories hold only deployable code', () => {
     })
   }
 
-  it('the form registry declares every field the app actually sends', () => {
-    // Netlify silently drops fields public/__forms.html does not declare: no
-    // error in the app, no column in the dashboard, no way to tell from either
-    // side. That file IS the form's schema, so it has to move whenever the
-    // payload does — and this reads the payload from the source rather than
-    // repeating it, so the two cannot drift apart unnoticed.
-    const source = readFileSync(join(process.cwd(), 'src/lib/waitlist.ts'), 'utf8')
-    const registry = readFileSync(join(process.cwd(), 'public/__forms.html'), 'utf8')
-
-    const sent = [...source.matchAll(/body\.set\(\s*'([^']+)'/g)]
-      .map((m) => m[1])
-      .filter((f) => f !== 'form-name')
-
-    expect(sent.length, 'no body.set() calls found — did waitlist.ts change shape?')
-      .toBeGreaterThan(0)
-    for (const field of sent) {
-      expect(registry, `public/__forms.html is missing name="${field}"`).toContain(
-        `name="${field}"`,
-      )
-    }
-  })
-
   it('netlify/functions holds exactly the handlers, and shared code stays out of it', () => {
     // Every top-level file in the functions directory becomes a deployed
     // function with its own URL. A helper module dropped in here by mistake
     // would deploy as an endpoint that answers nothing — or worse, one that
     // answers. Shared code lives in netlify/shared, which Netlify never scans.
     const functions = readdirSync(join(process.cwd(), 'netlify/functions')).sort()
-    expect(functions).toEqual(['cohort.ts', 'couple.ts', 'export.ts', 'guide.ts', 'health.ts', 'keep.ts', 'pool.ts', 'progress.ts', 'safety.ts', 'sweep.ts', 'vouch.ts'])
+    expect(functions).toEqual(['couple.ts', 'export.ts', 'guide.ts', 'health.ts', 'keep.ts', 'progress.ts', 'safety.ts', 'sweep.ts'])
     expect(existsSync(join(process.cwd(), 'netlify/shared/founder.ts'))).toBe(true)
   })
 
@@ -142,7 +120,6 @@ describe('Netlify deploy directories hold only deployable code', () => {
     expect(existsSync(join(process.cwd(), 'netlify/edge-functions/gate.ts'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'netlify/functions/guide.ts'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'netlify/functions/couple.ts'))).toBe(true)
-    expect(existsSync(join(process.cwd(), 'netlify/functions/vouch.ts'))).toBe(true)
     expect(existsSync(join(process.cwd(), 'netlify/functions/progress.ts'))).toBe(true)
   })
 

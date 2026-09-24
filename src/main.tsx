@@ -15,10 +15,8 @@ import { loadProgress, type PersistedState } from './lib/storage.ts'
  *   /?map=CODE     — a kept map comes back, once she has said it is hers
  *                    (src/components/ConfirmRestore.tsx, docs/SECURITY.md O2).
  *   /?couple=CODE  — he is opening the eleven she sent; the app starts on his screen.
- *   /?vouch=CODE   — a family member is arriving to vouch for her.
  *   /?read · /?eleven · /?families
  *                  — someone sent them the words; they land on the instrument.
- *   /?door         — someone who is looking, not talking; they land on the number.
  *   /tools/…       — the read and the eleven at an address of their own
  *                    (src/data/tools.ts); the path stays in the bar.
  *   &via=…         — what kind of link it was, remembered once for the ladder.
@@ -38,7 +36,7 @@ interface Pending {
 async function resolveEntry(): Promise<{ entry: Entry | null; pending?: Pending }> {
   const entry = entryFromUrl(window.location.search, window.location.pathname)
   // No link in the bar: this may be a reload of one. The held entry is the
-  // couple or vouch screen this device was part-way through.
+  // couple screen this device was part-way through.
   if (!entry) return { entry: rememberedEntry() }
   // Before the query is stripped, and to its own key — storage the app reads
   // on mount is untouched.

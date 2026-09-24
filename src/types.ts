@@ -17,14 +17,6 @@ export type Stage = 'preparing' | 'talking' | 'deciding' | 'married'
 
 /** Nobody under this may use Niyyah. Marriage is an adults-only process. */
 export const MIN_AGE = 18
-/** Upper bound on the profile age field — a two-digit sanity guard, not a limit on who belongs. */
-export const MAX_AGE = 99
-
-/**
- * How far she would go for the right person. A stated preference, never
- * inferred; absent means her city. See src/data/reach.ts.
- */
-export type Reach = 'city' | 'country' | 'anywhere'
 
 export interface Identity {
   firstName?: string
@@ -35,7 +27,6 @@ export interface Identity {
    * deliberately an explicit act rather than a buried line of terms.
    */
   adult?: boolean
-  age?: number
   /** Diaspora community / scene id (see data/scenes.ts). */
   scene?: string
   /**
@@ -43,8 +34,6 @@ export interface Identity {
    * the scene is `other` — a named city already knows its country.
    */
   country?: string
-  /** How far she would go for the right person. */
-  reach?: Reach
 }
 
 export interface CoachMessage {
@@ -73,8 +62,7 @@ export type ModeId =
  * This used to hold five more — an identity "verification" that recorded a
  * pledge, a serious-intention badge, wali-friendly, blur photos, a privacy
  * shield — and a score over them. Nothing enforced any of them; they were
- * promises wearing switches. They are gone. What a serious person has actually
- * done here is the ledger (src/lib/ledger.ts), and it cannot be tapped.
+ * promises wearing switches. They are gone.
  */
 export interface TrustSettings {
   /**
@@ -109,17 +97,6 @@ export const defaultTrust: TrustSettings = {
 }
 
 /**
- * She reached the door and did not walk through it, and said why — one word
- * from src/data/hesitation.ts. About the door, never about her. Overwritten
- * if she changes her mind; kept if she later joins, so the readout can say
- * of the people who hesitated for this reason how many were counted after all.
- */
-export interface HesitationRecord {
-  at: string
-  reason: string
-}
-
-/**
  * Which questionnaires this person has begun — ids from src/data/instruments.ts.
  * A set, never a count: added once, never removed, so it can say whether an
  * instrument gets finished and can never say how often it was opened.
@@ -150,13 +127,6 @@ export interface CoupleState {
    * the link has ended instead of "we couldn't check". On this phone only.
    */
   joint?: Record<string, 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'>
-}
-
-/** A family member has vouched for her. Only what any screen may ever show. */
-export interface VouchState {
-  relationship: string
-  firstName: string
-  at: string
 }
 
 export type QuestionType = 'single' | 'multi' | 'scale' | 'text'
@@ -239,47 +209,6 @@ export interface DimensionReading {
 }
 
 /**
- * One piece of real work, taken up from the map's thinnest ground.
- *
- * The map names where you're thin; a step is the one honest thing you do about
- * it. Kept because a record of what you've actually done is the only evidence
- * of change the app can offer that isn't a number.
- */
-export interface StepRecord {
-  dimension: Dimension
-  /** Day it was taken on (YYYY-MM-DD). */
-  taken: string
-  /** Day it was marked done — absent while it's still open. */
-  done?: string
-}
-
-/**
- * Her place in the founding cohort — and the only way this app can reach a
- * person again once they close the tab.
- */
-export interface WaitlistState {
-  /** Email or phone, whichever she gave. */
-  contact: string
-  /** Diaspora community id — the city she is counted in. */
-  scene?: string
-  /** The code her kept map lives under, so the founder can link the two. */
-  code?: string
-  joinedAt: string
-  /**
-   * False when neither store took the way to reach her — our own contacts
-   * store threw, and the founder's form was unreachable too, so the entry is
-   * sitting in a local queue nobody has read.
-   *
-   * She was still counted: that part succeeded, and undoing it would be worse.
-   * But the card used to say "kept apart from it for the day that changes"
-   * regardless, which was the product telling her it could reach her when
-   * nothing could (docs/FAIL.md). Absent on entries written before this
-   * existed, and read as true — the old behaviour.
-   */
-  contactHeld?: boolean
-}
-
-/**
  * A read she took on someone.
  *
  * Only her answers are kept, never the conclusion — the reading is recomputed
@@ -323,8 +252,8 @@ export interface FollowUp {
  * The success state of this product is that someone leaves because it worked,
  * and this is the only record of that ever happening. Every field is optional:
  * an exit that charges a toll in answers is not an exit. `who` is the single
- * question this company cannot answer any other way — whether the marketplace
- * caused a marriage or the instruments helped one that already existed.
+ * question this company cannot answer any other way — whether the instruments
+ * helped a relationship she brought with her, or one that began elsewhere.
  */
 export interface EndingRecord {
   at: string

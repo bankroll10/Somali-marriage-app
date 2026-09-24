@@ -256,3 +256,51 @@ describe('the example on the introduction', () => {
     })
   }
 })
+
+// Moved from tests/alignment-audit.test.ts (docs/ALIGNMENT.md), when matching went.
+describe('the read summarises her answers; it does not predict', () => {
+  // He named marriage, gave a date, his family knows, never asked for secrecy,
+  // asked how to approach her family, and is steady — and he pushed back on
+  // what she will not compromise on, and goes quiet when something is hard.
+  // The old weights summed that past 0.72 and told her he had "shown you the
+  // things that predict it". The states on her screen say pressure: not yet.
+  const answers = {
+    duration: 'months-3',
+    named: 'early',
+    timeline: 'dated',
+    known: 'family',
+    secret: 'no',
+    family: 'how',
+    initiative: 'same-day',
+    'in-person': 'several',
+    plans: 'never',
+    money: 'no',
+    nonneg: 'pushed',
+    hard: 'quiet',
+  }
+
+  it('the band follows the dimension states she can see', () => {
+    const r = buildRead(answers)!
+    expect(r.dimensions.find((d) => d.dimension === 'pressure')!.state).toBe('not-yet')
+    expect(r.band).not.toBe('strong')
+  })
+
+  it('a read she can check: strong only when being known is shown, nothing is not-yet, and four of five are shown', () => {
+    const r = buildRead({ ...answers, nonneg: 'straight', hard: 'listens' })!
+    expect(r.band).toBe('strong')
+    expect(r.dimensions.every((d) => d.state !== 'not-yet')).toBe(true)
+  })
+
+  it('"I have not told him" says nothing about him, so it is not scored', () => {
+    // Scored at 0.5 it dragged "gets defensive, but comes back" under the line.
+    const r = buildRead({ ...answers, nonneg: 'untold', hard: 'defensive' })!
+    expect(r.dimensions.find((d) => d.dimension === 'pressure')!.state).toBe('shown')
+  })
+
+  it('never claims to predict, in the result or in what the guide is told', () => {
+    const r = buildRead({ ...answers, nonneg: 'straight', hard: 'listens' })!
+    expect(`${r.headline} ${r.summary}`).not.toMatch(/\bpredicts?\b|passing time produces|rarer than/i)
+    expect(r.summary).toMatch(/not a prediction/)
+    expect(readSummary({ band: 'strong', thin: 'public' })).not.toMatch(/predict/i)
+  })
+})

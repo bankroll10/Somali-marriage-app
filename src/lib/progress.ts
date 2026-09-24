@@ -29,7 +29,7 @@ const VIA_KEY = 'niyyah.via.v1'
 
 /**
  * Remember what kind of link brought this person here — words a friend sent,
- * the eleven, a couple's link, the door, a family link. First arrival wins and
+ * the eleven, a couple's link, a family link. First arrival wins and
  * it is never overwritten: the question is how she found this, not how she
  * last opened it. Never who sent it; the link does not carry that.
  */
