@@ -21,26 +21,65 @@ import { speak, type ReadOption, type Script } from './read'
  * topic — qabiil and a second wife included. And every path ends in words.
  */
 
-export type YesState = 'agree' | 'differ' | 'not-talked' | 'unknown'
+export type YesState = 'agree' | 'settled' | 'differ' | 'not-talked' | 'unknown'
 
-/** The four states, shared by every topic. Weight is only used for ordering. */
+/**
+ * The states, shared by every topic. None of them is scored: `weight` is null
+ * on every one. They used to read agree 1, differ 0.1 — below "we haven't
+ * talked" at 0.35 — which said in data what no screen may say, that a
+ * difference talked through is worse than silence (docs/DECISIONS.md Part 8).
+ * The only ordering is STATE_URGENCY in src/lib/beforeYes.ts, and it asks
+ * which conversation needs opening, not which answer is better.
+ *
+ * `settled` is a difference the two of them have talked through and arranged:
+ * they see it differently and have worked out how to live with it. It is not
+ * agreement, and it is not unfinished. Without it, "We don't agree" was the
+ * only true answer for a couple who had budgeted around money sent home, and
+ * the product sent them back to it ahead of every conversation they had never
+ * had (Part 7 §5).
+ */
 export const STATES: (ReadOption & { id: YesState })[] = [
-  { id: 'agree', label: 'We’ve talked, and we agree', weight: 1, note: 'you have talked about {topic}, and you agree' },
+  { id: 'agree', label: 'We’ve talked, and we agree', weight: null, note: 'you have talked about {topic}, and you agree' },
+  {
+    id: 'settled',
+    label: 'We see it differently, and we’ve worked out how',
+    weight: null,
+    note: 'you see {topic} differently, and have worked out how to live with it',
+  },
   {
     id: 'differ',
     label: 'We’ve talked, and we don’t agree',
-    weight: 0.1,
-    note: 'you have talked about {topic}, and you don’t agree',
+    weight: null,
+    note: 'you have talked about {topic}, and it is still open between you',
   },
-  { id: 'not-talked', label: 'We haven’t talked about it', weight: 0.35, note: 'you have not talked about {topic}' },
+  { id: 'not-talked', label: 'We haven’t talked about it', weight: null, note: 'you have not talked about {topic}' },
   {
     id: 'unknown',
     label: 'I don’t know my own answer yet',
     hint: 'Honest, and worth sitting with.',
-    weight: 0.25,
+    weight: null,
     note: 'you don’t yet know your own answer on {topic}',
   },
 ]
+
+/**
+ * What the question screen offers first: four answers. "We don't agree" opens
+ * a second question — where that leaves it — rather than ending the
+ * conversation there, so a difference is never recorded without her saying
+ * what kind it is.
+ */
+export const FIRST_CHOICES = STATES.filter((s) => s.id !== 'settled')
+
+/** Where a difference stands, once she has said there is one. */
+export const DIFFER_OUTCOMES: { id: 'differ' | 'settled'; label: string; hint?: string }[] = [
+  { id: 'differ', label: 'It’s still open' },
+  { id: 'settled', label: 'We’ve worked out how to live with it', hint: 'You see it differently, and you have an arrangement you both keep.' },
+]
+
+/** True for the two states that say the two of them found a difference. */
+export function isDifference(state: string | undefined): boolean {
+  return state === 'differ' || state === 'settled'
+}
 
 // The words themselves live in eleven.ts, import-free, so the build can write
 // the printable guide from them. Everything the app reads is re-exported here.

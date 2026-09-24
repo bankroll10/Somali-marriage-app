@@ -129,7 +129,10 @@ export interface CoupleState {
    * frozen and his was sent once — so it is kept, and shown from here after
    * the link has ended instead of "we couldn't check". On this phone only.
    */
-  joint?: Record<string, 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'>
+  joint?: Record<
+    string,
+    'both-agree' | 'both-settled' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
+  >
 }
 
 export type QuestionType = 'single' | 'multi' | 'scale' | 'text'

@@ -162,8 +162,10 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 {fix(`Your answers are frozen the moment {he} answers, {his} after
                 once, and the whole thing expires after ninety days. Once {he} has
                 answered, your pair is also added to a count of how pairs come out on
-                each of the eleven — both agree, neither has raised it, one thinks it
-                was talked about — with no code and no side attached, so we can learn
+                each of the eleven — both agree, both see it differently and have
+                worked out how, neither has raised it, one thinks it was talked about,
+                you describe it differently, one of you doesn’t know yet — with no code
+                and no side attached, so we can learn
                 which conversations couples here most often miss.`)}
               </p>
             </Disclose>

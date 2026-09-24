@@ -29,6 +29,7 @@ describe('what it refuses to say', () => {
     answers(),
     all('not-talked'),
     all('differ'),
+    all('settled'),
     all('unknown'),
     answers({ live: 'differ', 'second-wife': 'differ', qabiil: 'not-talked' }),
     answers({ 'money-home': 'unknown' }),
@@ -87,13 +88,18 @@ describe('which one to open', () => {
 })
 
 describe('the headline is about the conversations, never about him', () => {
-  it('names one disagreement as one', () => {
+  it('names one open difference as one conversation still open', () => {
     const r = buildBeforeYes(answers({ live: 'differ' }))!
-    expect(r.headline).toBe('One conversation doesn’t line up yet.')
+    expect(r.headline).toBe('One conversation is still open between you.')
   })
   it('names two as two', () => {
     const r = buildBeforeYes(answers({ live: 'differ', 'second-wife': 'differ' }))!
-    expect(r.headline).toBe('Two conversations don’t line up yet.')
+    expect(r.headline).toBe('Two conversations are still open between you.')
+  })
+  it('never says a difference is on its way to agreement — no "yet", no "line up" (docs/DECISIONS.md Part 8)', () => {
+    for (const r of [buildBeforeYes(answers({ live: 'differ' }))!, buildBeforeYes(answers({ live: 'settled', work: 'differ' }))!]) {
+      expect(r.headline).not.toMatch(/\byet\b|line up|crossed/i)
+    }
   })
   it('never calls a difference light — the wedding and the mahr read like any other (docs/PRODUCT.md S6)', () => {
     const light = buildBeforeYes(answers({ 'aroos-mahr': 'differ' }))!
@@ -101,9 +107,9 @@ describe('the headline is about the conversations, never about him', () => {
     expect(light.headline).toBe(heavy.headline)
     expect(light.headline).not.toMatch(/mostly|weight|heav/i)
   })
-  it('says nothing is crossed when nothing has been talked about', () => {
+  it('says nothing is still open when nothing has been talked about', () => {
     const r = buildBeforeYes(all('not-talked'))!
-    expect(r.headline).toMatch(/nothing is crossed/i)
+    expect(r.headline).toMatch(/nothing you have talked about is still open/i)
     expect(r.summary).toMatch(/eleven you haven’t had yet/i)
   })
 })
@@ -112,7 +118,7 @@ describe('her own answers, read back', () => {
   it('states each conversation as a fact from her side', () => {
     const r = buildBeforeYes(answers({ qabiil: 'not-talked', work: 'differ' }))!
     expect(r.byState['not-talked'][0].note).toBe('you have not talked about qabiil')
-    expect(r.byState.differ[0].note).toMatch(/whether you’d work, and you don’t agree/)
+    expect(r.byState.differ[0].note).toMatch(/whether you’d work, and it is still open between you/)
   })
   it('gives two different women two different readings', () => {
     const a = buildBeforeYes(answers({ live: 'differ' }))!
@@ -175,5 +181,31 @@ describe('Before you say yes never ranks a difference as a light one', () => {
     const topics = beforeYesTopics('woman')
     const r = buildBeforeYes(Object.fromEntries(topics.map((t) => [t.id, 'agree'])))!
     expect(r.headline).not.toMatch(/most couples/i)
+  })
+})
+
+describe('a difference the two of you have worked out', () => {
+  it('ranks below every conversation not yet had, and above nothing agreed', () => {
+    // Where you'd live carries the most; settled there still waits behind an
+    // unasked question about the wedding, which carries the least.
+    const r = buildBeforeYes(answers({ live: 'settled', 'aroos-mahr': 'not-talked' }))!
+    expect(r.open.id).toBe('aroos-mahr')
+  })
+  it('is not reopened ahead of anything, and not counted as open', () => {
+    const r = buildBeforeYes(answers({ 'money-home': 'settled' }))!
+    expect(r.counts.differ).toBe(0)
+    expect(r.counts.settled).toBe(1)
+    expect(r.byState.settled[0].note).toBe('you see money sent home differently, and have worked out how to live with it')
+  })
+  it('counts as had: agreed and arranged together end in going back over them', () => {
+    const r = buildBeforeYes(answers({ 'money-home': 'settled', work: 'settled' }))!
+    expect(r.allHad).toBe(true)
+    expect(r.headline).toBe('You have had all eleven. Where you see things differently, you have worked out how.')
+    expect(r.open.id).toBe('money-home')
+    expect(r.open.script.words).toMatch(/go back over/i)
+  })
+  it('an open difference still comes first — it is the one conversation started and not finished', () => {
+    const r = buildBeforeYes(answers({ 'aroos-mahr': 'differ', live: 'settled', work: 'not-talked' }))!
+    expect(r.open.id).toBe('aroos-mahr')
   })
 })

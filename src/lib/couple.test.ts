@@ -59,6 +59,26 @@ describe('reading the joint', () => {
     expect(r.headline).toMatch(/all eleven/)
     expect(r.open?.script.words).toMatch(/go back over/i)
   })
+
+  it('counts a difference both have worked out as had, not as something to reopen', () => {
+    const r = coupleReading({ ...all('both-agree'), 'money-home': 'both-settled' })
+    expect(r.headline).toBe('You two have had all eleven. Where you see things differently, you both say you have worked out how.')
+    expect(r.open?.id).toBe('money-home')
+    expect(r.open?.script.words).toMatch(/go back over/i)
+    expect(r.lines.find((l) => l.id === 'money-home')?.line).toMatch(/worked out how to live with it/)
+  })
+
+  it('opens anything neither has raised before an arrangement both have made', () => {
+    const r = coupleReading({ ...all('both-agree'), live: 'both-settled', 'aroos-mahr': 'both-not-talked' })
+    expect(r.open?.id).toBe('aroos-mahr')
+  })
+
+  it('never says a difference is on its way to agreement', () => {
+    for (const j of ['differ-somewhere', 'both-settled', 'both-not-talked'] as Joint[]) {
+      const r = coupleReading({ ...all('both-agree'), live: j })
+      expect(r.headline).not.toMatch(/\byet\b|line up|crossed|match/i)
+    }
+  })
 })
 
 describe('the handshake, from her phone', () => {

@@ -34,6 +34,11 @@ export interface BeforeYesResult {
   /** Kept numeric here for callers; prose always spells these out. */
   counts: Record<YesState, number>
   byState: Record<YesState, TopicReading[]>
+  /**
+   * Every conversation has been had, and each one either agreed or arranged.
+   * Nothing is left to open, so what is offered is going back over them.
+   */
+  allHad: boolean
   /** The one to open this week. */
   open: {
     id: string
@@ -46,11 +51,20 @@ export interface BeforeYesResult {
 
 export type BeforeYesAnswers = Record<string, string>
 
-/** How much a state needs attention, before it is multiplied by what rides on the topic. */
+/**
+ * How much a state needs attention, before it is multiplied by what rides on the topic.
+ *
+ * `settled` sits just above agreement and below every conversation not yet
+ * had: an arrangement is worth going back over closer to the day, the way an
+ * agreement is, and never ahead of something the two of them have not said.
+ * An open difference still comes first. That is not because a difference is
+ * bad; it is the one conversation they have started and not finished.
+ */
 const STATE_URGENCY: Record<YesState, number> = {
   differ: 1,
   unknown: 0.8,
   'not-talked': 0.7,
+  settled: 0.2,
   agree: 0,
 }
 
@@ -88,10 +102,11 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
     return { id: topic.id, label: topic.label, state, note: noteFor(topic, state), topic }
   })
 
-  const byState: Record<YesState, TopicReading[]> = { agree: [], differ: [], 'not-talked': [], unknown: [] }
+  const byState: Record<YesState, TopicReading[]> = { agree: [], settled: [], differ: [], 'not-talked': [], unknown: [] }
   for (const r of readings) byState[r.state].push({ id: r.id, label: r.label, state: r.state, note: r.note })
   const counts = {
     agree: byState.agree.length,
+    settled: byState.settled.length,
     differ: byState.differ.length,
     'not-talked': byState['not-talked'].length,
     unknown: byState.unknown.length,
@@ -107,9 +122,9 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
     (a, b) => STATE_URGENCY[b.state] * b.topic.consequence - STATE_URGENCY[a.state] * a.topic.consequence,
   )
   const top = ranked[0]
-  const allAgreed = counts.agree === readings.length
+  const allHad = counts.agree + counts.settled === readings.length
 
-  const open = allAgreed
+  const open = allHad
     ? { id: top.id, label: top.label, state: top.state, why: top.topic.why, script: ALL_AGREED }
     : {
         id: top.id,
@@ -120,19 +135,27 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
       }
 
   // ── Headline: about the conversations, never about him ───────────────────
+  // A difference is named as a conversation still open, never as something
+  // that "doesn't line up yet": that "yet" said agreement was where every
+  // difference was headed, and an arranged difference is an end state too
+  // (docs/DECISIONS.md Part 8).
   let headline: string
-  if (allAgreed) headline = `You have had all ${words(readings.length)}, and you agree on every one.`
-  else if (counts.differ === 1) headline = 'One conversation doesn’t line up yet.'
-  else if (counts.differ > 1) headline = `${capital(words(counts.differ))} conversations don’t line up yet.`
-  else headline = 'Nothing is crossed. Some conversations are still unopened.'
+  if (allHad && counts.settled === 0) headline = `You have had all ${words(readings.length)}, and you agree on every one.`
+  else if (allHad) headline = `You have had all ${words(readings.length)}. Where you see things differently, you have worked out how.`
+  else if (counts.differ === 1) headline = 'One conversation is still open between you.'
+  else if (counts.differ > 1) headline = `${capital(words(counts.differ))} conversations are still open between you.`
+  else headline = 'Nothing you have talked about is still open. Some conversations are still unopened.'
 
   // ── Summary: her counts in words, then why the open one matters ──────────
-  const tally = `Of the ${words(readings.length)} conversations, you have had ${words(counts.agree)} where you agree, ${words(
+  const settledPart = counts.settled
+    ? `${words(counts.settled)} where you see it differently and have worked out how, `
+    : ''
+  const tally = `Of the ${words(readings.length)} conversations, you have had ${words(counts.agree)} where you agree, ${settledPart}${words(
     counts.differ,
-  )} where you don’t, ${words(counts['not-talked'])} you haven’t had yet, and ${words(
+  )} that ${counts.differ === 1 ? 'is' : 'are'} still open, ${words(counts['not-talked'])} you haven’t had yet, and ${words(
     counts.unknown,
   )} where you don’t yet know your own answer.`
-  const point = allAgreed
+  const point = allHad
     ? 'What is left is not a gap but a habit: go back over them closer to the day, and check they still mean the same thing.'
     : open.state === 'unknown'
       ? `The one to sit with first is ${lower(open.label)} — and it starts with you, not ${gender === 'man' ? 'her' : 'him'}. ${open.why}`
@@ -143,6 +166,7 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
     summary: `${tally} ${point}`,
     counts,
     byState,
+    allHad,
     open,
   }
 }

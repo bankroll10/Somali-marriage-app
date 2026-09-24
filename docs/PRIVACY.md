@@ -316,7 +316,7 @@ protects against a leaked key, not against the founder, who holds the stores.
 
 | Readout | Fields | Comes from | Why |
 |---|---|---|---|
-| `GET /couple` (no code) | `pairs`; `topics[topic][joint]`, joint one of `both-agree`, `both-not-talked`, `one-thinks-talked`, `differ-somewhere`, `unknown-somewhere` | `tallies/joint`, added to when the second side answers. Not floored: no pair, code or side | Which conversations couples here most often miss |
+| `GET /couple` (no code) | `pairs`; `topics[topic][joint]`, joint one of `both-agree`, `both-settled`, `both-not-talked`, `one-thinks-talked`, `differ-somewhere`, `unknown-somewhere` | `tallies/joint`, added to when the second side answers. Not floored: no pair, code or side. From 2026-09-24 a side may say `settled` ("we see it differently, and we've worked out how"): a pair who both say so count as `both-settled`, where before that day they could only say `differ` and counted as `differ-somewhere`; tallies either side of the date are not comparable on those two joints (docs/DECISIONS.md Part 8) | Which conversations couples here most often miss |
 | `GET /safety` | `reports[]` open, oldest first, each `{id, code, side, reason, details, at}`; `resolved.byReason`, `resolved.byOutcome` | `reports` and its stubs; outcomes `spoke-to-them`, `told-the-family`, `not-enough`, `no-action` | A person may be waiting. Never cached; `/health` sees only counts |
 | `GET /export` | `at`, `version` (3), `progress` (install id → record), `joint`, `omitted`, `skipped` | Every progress record in its year or married; the joint tally | The learning record survives one vendor. Never a map, sheet, report or `ops` |
 

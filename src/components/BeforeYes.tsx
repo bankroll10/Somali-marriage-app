@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import type { Answers, CoupleState, Gender, Identity, ReadRecord } from '../types'
 import type { ElevenAt } from '../hooks/useNiyyah'
-import { BEFORE_YES_COUNT, STATES, beforeYesTopics } from '../data/beforeYes'
+import { BEFORE_YES_COUNT, DIFFER_OUTCOMES, beforeYesTopics, isDifference } from '../data/beforeYes'
+import ElevenChoices from './ElevenChoices'
 import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/beforeYes'
 import { somali } from '../data/somali'
 import { coupleLink, coupleReading, createCouple, readCouple, type CoupleView } from '../lib/couple'
@@ -300,36 +301,16 @@ export default function BeforeYes({
             {side}
           </p>
         )}
-        <div role="radiogroup" aria-labelledby={`before-yes-q-${t.id}`} className="mt-6 flex flex-col gap-2.5">
-          {STATES.map((s, i) => (
-            <button
-              key={s.id}
-              role="radio"
-              aria-checked={chosen === s.id}
-              onClick={() => choose(s.id)}
-              style={{ animationDelay: `${i * 40}ms` }}
-              className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 ${
-                chosen === s.id
-                  ? 'border-forest bg-forest text-cream shadow-lift'
-                  : 'border-line bg-white/50 text-ink hover:border-forest/40 hover:bg-white'
-              }`}
-            >
-              <span
-                className={`mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full border ${
-                  chosen === s.id ? 'border-gold-soft bg-gold-soft/20' : 'border-line group-hover:border-forest/40'
-                }`}
-              />
-              <span className="min-w-0">
-                <span className="block text-[0.98rem] font-medium leading-snug">{s.label}</span>
-                {s.hint && (
-                  <span className={`mt-1 block text-[0.83rem] leading-snug ${chosen === s.id ? 'text-cream/70' : 'text-muted'}`}>
-                    {s.hint}
-                  </span>
-                )}
-              </span>
-            </button>
-          ))}
-        </div>
+        <ElevenChoices
+          key={t.id}
+          topicId={t.id}
+          labelledBy={`before-yes-q-${t.id}`}
+          chosen={chosen}
+          chosenOutcome={isDifference(chosen) ? chosen : undefined}
+          outcomes={DIFFER_OUTCOMES}
+          onChoose={choose}
+          onOutcome={choose}
+        />
         <p className="mt-5 text-[0.82rem] leading-relaxed text-muted text-pretty">{t.why}</p>
       </div>
     </Shell>
@@ -374,8 +355,7 @@ function Result({
   onOpenFamilies: () => void
   onBuildMap: () => void
 }) {
-  const allAgreed = result.counts.agree === Object.values(result.counts).reduce((a, b) => a + b, 0)
-  const title = allAgreed
+  const title = result.allHad
     ? 'The one to go back over'
     : result.open.state === 'unknown'
       ? 'Start with your own answer'
@@ -393,9 +373,14 @@ function Result({
       </h1>
       <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">{result.summary}</p>
 
-      <List title="Where you don’t agree" items={result.byState.differ} tone="clay" />
+      {/* What is still to say first, what has been said last. A difference is
+          not drawn in clay, the colour this app keeps for errors: two people
+          seeing something differently is not a fault (docs/DECISIONS.md
+          Part 8). */}
+      <List title="Still open between you" items={result.byState.differ} tone="gold" />
       <List title="Not talked about yet" items={result.byState['not-talked']} tone="gold" />
       <List title="Where you don’t know your own answer yet" items={result.byState.unknown} tone="gold" />
+      <List title="Seen differently, and worked out" items={result.byState.settled} tone="forest" />
       <List title="Talked about, and agreed" items={result.byState.agree} tone="forest" />
 
       <ScriptCard script={result.open.script} title={title} travel="eleven" />
@@ -495,9 +480,9 @@ function Result({
   )
 }
 
-function List({ title, items, tone }: { title: string; items: TopicReading[]; tone: 'forest' | 'clay' | 'gold' }) {
+function List({ title, items, tone }: { title: string; items: TopicReading[]; tone: 'forest' | 'gold' }) {
   if (!items.length) return null
-  const dot = tone === 'forest' ? 'bg-forest' : tone === 'clay' ? 'bg-clay' : 'bg-gold'
+  const dot = tone === 'forest' ? 'bg-forest' : 'bg-gold'
   return (
     <div className="animate-rise mt-7">
       {/* A heading. 434 rendered words under one <h1> until 2026-09-18
@@ -605,7 +590,7 @@ function Together({
         <ul className="mt-4 flex flex-col gap-2.5">
           {r.lines.map((l) => (
             <li key={l.id} className="flex gap-2.5 text-[0.95rem] leading-snug text-ink-soft text-pretty">
-              <span className={`mt-[0.5rem] h-1.5 w-1.5 flex-none rounded-full ${l.kind === 'both-agree' ? 'bg-forest' : l.kind === 'one-thinks-talked' || l.kind === 'differ-somewhere' ? 'bg-clay' : 'bg-gold'}`} />
+              <span className={`mt-[0.5rem] h-1.5 w-1.5 flex-none rounded-full ${l.kind === 'both-agree' || l.kind === 'both-settled' ? 'bg-forest' : 'bg-gold'}`} />
               <span>{l.line}</span>
             </li>
           ))}

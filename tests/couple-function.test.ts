@@ -64,7 +64,7 @@ vi.mock('@netlify/blobs', () => ({ getStore: (arg: string | { name: string }) =>
 const { default: handler, joint } = await import('../netlify/functions/couple')
 
 const IDS = ['live', 'his-family-in-home', 'work', 'money-home', 'children', 'deen-daily', 'aroos-mahr', 'qabiil', 'going-back', 'second-wife', 'families-disagree']
-const STATES = ['agree', 'differ', 'not-talked', 'unknown'] as const
+const STATES = ['agree', 'settled', 'differ', 'not-talked', 'unknown'] as const
 const sides = (over: Record<string, string> = {}, base = 'agree') => ({ ...Object.fromEntries(IDS.map((id) => [id, base])), ...over })
 const post = (body: unknown) => handler(new Request('http://x/.netlify/functions/couple', { method: 'POST', body: JSON.stringify(body) }))
 const get = (code: string) => handler(new Request(`http://x/.netlify/functions/couple?code=${code}`))
@@ -107,6 +107,17 @@ describe('the joint', () => {
     expect(joint('agree', 'agree')).toBe('both-agree')
     expect(joint('not-talked', 'not-talked')).toBe('both-not-talked')
     expect(joint('unknown', 'agree')).toBe('unknown-somewhere')
+  })
+  it('names an arrangement only when both sides name it (docs/DECISIONS.md Part 8)', () => {
+    expect(joint('settled', 'settled')).toBe('both-settled')
+    // One says agreed, the other says arranged; or one says it is still open:
+    // two people who do not describe the same conversation.
+    expect(joint('settled', 'agree')).toBe('differ-somewhere')
+    expect(joint('settled', 'differ')).toBe('differ-somewhere')
+    // Arranged is talked about, so against "we haven't" it is a conversation
+    // one of them thinks happened.
+    expect(joint('settled', 'not-talked')).toBe('one-thinks-talked')
+    expect(joint('settled', 'unknown')).toBe('unknown-somewhere')
   })
 })
 

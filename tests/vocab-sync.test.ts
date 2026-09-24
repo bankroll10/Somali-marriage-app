@@ -70,7 +70,7 @@ describe('every word the server accepts is a word the app uses', () => {
     expect(sorted(vocab.READ_TOPICS)).toEqual(sorted(Object.keys(SCRIPTS)))
   })
 
-  it('the eleven and their four states', () => {
+  it('the eleven and their states', () => {
     expect(sorted(vocab.TOPICS)).toEqual(sorted(beforeYesTopics('woman').map((t) => t.id)))
     expect(sorted(vocab.TOPICS)).toEqual(sorted(beforeYesTopics('man').map((t) => t.id)))
     expect(sorted(vocab.YES_STATES)).toEqual(sorted(STATES.map((s) => s.id)))

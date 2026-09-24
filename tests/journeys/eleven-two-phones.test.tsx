@@ -3,7 +3,7 @@ import fc from 'fast-check'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
 import { inviteLink } from '../../src/data/invite'
-import { STATES, beforeYesTopics } from '../../src/data/beforeYes'
+import { beforeYesTopics, DIFFER_OUTCOMES, isDifference, STATES } from '../../src/data/beforeYes'
 import { entryFromUrl } from '../../src/lib/entry'
 import { coupleReading } from '../../src/lib/couple'
 import { joint, type YesState } from '../../netlify/functions/couple'
@@ -36,10 +36,16 @@ const open = (url: string) => {
   return <App entry={entryFromUrl(u.search, u.pathname)} />
 }
 
+/** A difference is two taps: "we don't agree", then where it stands (src/components/ElevenChoices.tsx). */
 async function answerEleven(m: Mounted, g: Gender, states: Record<string, string>) {
   for (const t of beforeYesTopics(g)) {
-    const label = STATES.find((s) => s.id === states[t.id])!.label
-    await m.press(new RegExp(`^${label}`))
+    const state = states[t.id]
+    if (isDifference(state)) {
+      await m.press(new RegExp(`^${STATES.find((s) => s.id === 'differ')!.label}`))
+      await m.press(new RegExp(`^${DIFFER_OUTCOMES.find((o) => o.id === state)!.label}`))
+      continue
+    }
+    await m.press(new RegExp(`^${STATES.find((s) => s.id === state)!.label}`))
   }
 }
 

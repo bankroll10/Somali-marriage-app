@@ -62,8 +62,14 @@ const DEFAULT_HOURLY_CAP = 200
  */
 const DEFAULT_ANSWER_CAP = 600
 
-export type YesState = 'agree' | 'differ' | 'not-talked' | 'unknown'
-export type Joint = 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
+export type YesState = 'agree' | 'settled' | 'differ' | 'not-talked' | 'unknown'
+export type Joint =
+  | 'both-agree'
+  | 'both-settled'
+  | 'both-not-talked'
+  | 'one-thinks-talked'
+  | 'differ-somewhere'
+  | 'unknown-somewhere'
 type Sides = Record<string, YesState>
 
 interface CoupleRecord {
@@ -101,8 +107,14 @@ type CoupleResponse =
 export function joint(a: YesState, b: YesState): Joint {
   if (a === 'unknown' || b === 'unknown') return 'unknown-somewhere'
   if (a === 'agree' && b === 'agree') return 'both-agree'
+  // Both say they see it differently and have worked out how: the same
+  // arrangement, named from both sides. Any other mix of talked answers —
+  // one says agreed and the other says arranged, or one says it is still
+  // open — is two people who do not see the same conversation, which is
+  // what differ-somewhere names (docs/DECISIONS.md Part 8).
+  if (a === 'settled' && b === 'settled') return 'both-settled'
   if (a === 'not-talked' && b === 'not-talked') return 'both-not-talked'
-  const talked = (x: YesState) => x === 'agree' || x === 'differ'
+  const talked = (x: YesState) => x === 'agree' || x === 'settled' || x === 'differ'
   if (talked(a) !== talked(b)) return 'one-thinks-talked'
   return 'differ-somewhere'
 }

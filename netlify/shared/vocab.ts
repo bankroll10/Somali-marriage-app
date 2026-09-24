@@ -96,10 +96,17 @@ export const TOPICS = new Set([
 ])
 
 /** Must match `YesState` in src/data/beforeYes.ts. */
-export const YES_STATES = new Set(['agree', 'differ', 'not-talked', 'unknown'])
+export const YES_STATES = new Set(['agree', 'settled', 'differ', 'not-talked', 'unknown'])
 
 /** Must match `Joint` in netlify/functions/couple.ts. */
-export const JOINTS = new Set(['both-agree', 'both-not-talked', 'one-thinks-talked', 'differ-somewhere', 'unknown-somewhere'])
+export const JOINTS = new Set([
+  'both-agree',
+  'both-settled',
+  'both-not-talked',
+  'one-thinks-talked',
+  'differ-somewhere',
+  'unknown-somewhere',
+])
 
 /** Must match src/data/families.ts. */
 export const FAMILY_SCRIPT_IDS = new Set([
