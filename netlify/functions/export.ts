@@ -78,6 +78,12 @@ export interface Backup {
   door: Record<string, Record<string, DoorScene>>
   /** What is deliberately not here, named in the file itself so a reader is never misled. */
   omitted: string[]
+  /**
+   * Records that could not be read — corrupt, or not JSON — and so are not in
+   * this copy. Named, not hidden: a backup that silently dropped them would
+   * say it was whole. Zero on a healthy store (docs/RECOVERY.md).
+   */
+  skipped: number
 }
 
 const OMITTED = [
@@ -94,12 +100,20 @@ const OMITTED = [
  * checked no date at all, so a record the store had let go lived on in the
  * founder's files and the backup artifact (docs/PRIVACY.md, R3).
  */
-async function allProgress(store: Store, now = Date.now()): Promise<Record<string, ProgressRecord>> {
+async function allProgress(store: Store, skip: () => Promise<void>, now = Date.now()): Promise<Record<string, ProgressRecord>> {
   const { blobs } = await store.list()
   const out: Record<string, ProgressRecord> = {}
   await Promise.all(
     blobs.map(async ({ key }) => {
-      const record = (await store.get(key, { type: 'json' })) as ProgressRecord | null
+      // One record that cannot be read costs that record, never the backup.
+      // It used to cost the backup: one corrupt blob and every month's copy
+      // was a 503 until someone read the logs (docs/RECOVERY.md).
+      let record: ProgressRecord | null
+      try {
+        record = (await store.get(key, { type: 'json' })) as ProgressRecord | null
+      } catch {
+        return skip()
+      }
       if (!record?.first) return
       if (!('married' in record.first) && Date.parse(record.expiresAt) < now) return
       out[key] = record
@@ -113,15 +127,24 @@ async function allProgress(store: Store, now = Date.now()): Promise<Record<strin
  * than reusing cohort.ts's tally, because that one floors small cells for
  * safety in a readout — and a backup that quietly rounds is not a backup.
  */
-async function door(store: Store): Promise<Backup['door']> {
+async function door(store: Store, skip: () => Promise<void>): Promise<Backup['door']> {
   const { blobs } = await store.list()
   const out: Backup['door'] = {}
   // A member key has SEGMENTS parts; the index is one, and a key from before
   // countries existed is four. The layout is cohort.ts's to define — a literal
   // here was the one copy that would not have moved with it (docs/BOARD.md).
   const members = blobs.filter(({ key }) => key.split('/').length === SEGMENTS)
+  // The count comes from the key; only the ledger is read. A record that
+  // cannot be read is still counted, without its ledger, and named as skipped.
   const records = await Promise.all(
-    members.map(async ({ key }) => ({ key, record: (await store.get(key, { type: 'json' })) as { ledger?: string[] } | null })),
+    members.map(async ({ key }) => {
+      try {
+        return { key, record: (await store.get(key, { type: 'json' })) as { ledger?: string[] } | null }
+      } catch {
+        await skip()
+        return { key, record: null }
+      }
+    }),
   )
   for (const { key, record } of records) {
     const [country, scene, gender, reach, hook] = key.split('/')
@@ -142,10 +165,20 @@ export default async function handler(req: Request) {
   if (!isFounder(req)) return notFounder()
 
   try {
+    let skipped = 0
+    const skip = async () => {
+      skipped += 1
+      await failed('export', 'one record could not be read; left out of this backup, and counted')
+    }
     const [progress, joint, cohortCounts] = await Promise.all([
-      allProgress(getStore('progress')),
-      getStore('tallies').get('joint', { type: 'json' }),
-      door(getStore('cohort')),
+      allProgress(getStore('progress'), skip),
+      getStore('tallies')
+        .get('joint', { type: 'json' })
+        .catch(async () => {
+          await skip()
+          return null
+        }),
+      door(getStore('cohort'), skip),
     ])
     const backup: Backup = {
       at: new Date().toISOString(),
@@ -154,6 +187,7 @@ export default async function handler(req: Request) {
       joint: joint ?? null,
       door: cohortCounts,
       omitted: OMITTED,
+      skipped,
     }
     // A backup taken, by hand or by watch.yml: the one fact /health needs to
     // say how long it has been since the last (docs/OPS.md).

@@ -92,9 +92,32 @@ export async function pruneOps(now = Date.now()): Promise<number> {
   const oldest = day(now - OPS_KEEP_DAYS * 86_400_000)
   const s = store()
   const { blobs } = await s.list({ prefix: DAY_PREFIX })
-  const old = blobs.filter(({ key }) => key.split('/')[1] < oldest)
+  const sized = (await s.list({ prefix: 'sizes/' })).blobs
+  const old = [...blobs, ...sized].filter(({ key }) => key.split('/')[1] < oldest)
   await Promise.all(old.map(({ key }) => s.delete(key)))
   return old.length
+}
+
+/**
+ * How many records each store holds, once a day — population totals, never a
+ * record (docs/LEARNING.md tier 3). The only way a store that was wiped, or
+ * half-wiped, shows up before a member writes in (docs/RECOVERY.md).
+ */
+export type Sizes = Record<string, number>
+
+export async function recordSizes(sizes: Sizes, d = day()): Promise<void> {
+  await store().setJSON(`sizes/${d}`, sizes)
+}
+
+/** The most recent day before `d` that has sizes on record, or null. */
+export async function sizesBefore(d = day()): Promise<{ day: string; sizes: Sizes } | null> {
+  const s = store()
+  const { blobs } = await s.list({ prefix: 'sizes/' })
+  const earlier = blobs.map(({ key }) => key.slice('sizes/'.length)).filter((k) => k < d).sort()
+  const last = earlier.at(-1)
+  if (!last) return null
+  const sizes = (await s.get(`sizes/${last}`, { type: 'json' })) as Sizes | null
+  return sizes ? { day: last, sizes } : null
 }
 
 /** Write, read and delete one key: is storage answering, right now? */

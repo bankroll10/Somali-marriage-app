@@ -3,7 +3,9 @@ import { readJson } from '../shared/body'
 import { day } from '../shared/day'
 import { isFounder, notFounder } from '../shared/founder'
 import { overHourlyCap, rateLimited } from '../shared/limit'
-import { failed, lastRun, note, probe, readDays } from '../shared/ops'
+import { failed, lastRun, note, probe, readDays, recordSizes, sizesBefore, type Sizes } from '../shared/ops'
+import { isBookkeeping } from '../shared/integrity'
+import { SEGMENTS } from './cohort'
 import { CRASH_EVENTS, URGENT_REASONS } from '../shared/vocab'
 
 /**
@@ -235,6 +237,60 @@ export async function clockChecks(today: string): Promise<Check[]> {
   ]
 }
 
+/**
+ * How many records each store holds right now — the population, never a
+ * record. Maps without the bookkeeping beside them; the door as entries,
+ * not its index.
+ */
+export async function countStores(): Promise<Sizes> {
+  const keys = async (name: string) => (await getStore(name).list()).blobs.map((b) => b.key)
+  const [maps, progress, cohort, contacts, reports] = await Promise.all(['maps', 'progress', 'cohort', 'contacts', 'reports'].map(keys))
+  return {
+    maps: maps.filter((k) => !isBookkeeping(k)).length,
+    progress: progress.length,
+    door: cohort.filter((k) => k.split('/').length === SEGMENTS).length,
+    contacts: contacts.length,
+    reports: reports.length,
+  }
+}
+
+/**
+ * Did a store lose records it should not have? Compares today with the last
+ * day on record. The weekly sweep removes lapsed records a few at a time;
+ * a store losing a quarter of itself between two days is not the sweep
+ * (docs/RECOVERY.md, "Deleted data"). The safety queue is held tighter: a
+ * resolved report leaves a stub, so its count only falls when a member
+ * withdraws one — or when the queue is lost.
+ */
+export function dataCheck(now: Sizes, before: { day: string; sizes: Sizes } | null): Check {
+  const question = 'Has stored data gone missing?'
+  if (!before) {
+    return { id: 'data', question, state: 'ok', cadence: 'now', summary: 'Today’s store sizes are recorded; tomorrow’s run compares against them.', numbers: { ...now } }
+  }
+  const drops: string[] = []
+  let state: State = 'ok'
+  for (const [name, n] of Object.entries(now)) {
+    const was = before.sizes[name] ?? 0
+    if (n >= was) continue
+    const ratio = (was - n) / was
+    const floor = name === 'reports' ? 2 : 8
+    if (was >= floor && ratio > 0.25) state = 'fail'
+    else if ((name === 'reports' || (was >= 8 && ratio > 0.1)) && state === 'ok') state = 'warn'
+    drops.push(`${name} ${was} → ${n}`)
+  }
+  return {
+    id: 'data',
+    question,
+    state,
+    cadence: 'now',
+    summary:
+      drops.length === 0
+        ? `No store is smaller than on ${before.day}.`
+        : `Smaller than on ${before.day}: ${drops.join(', ')}. docs/RECOVERY.md, “Deleted data”, says what to do.`,
+    numbers: { ...now, since: before.day, ...Object.fromEntries(Object.entries(before.sizes).map(([k, v]) => [`${k}Before`, v])) },
+  }
+}
+
 const WORST: State[] = ['ok', 'warn', 'fail']
 
 export default async function handler(req: Request) {
@@ -292,6 +348,16 @@ export default async function handler(req: Request) {
     checks.push(...(await safetyChecks(today)))
   } catch {
     checks.push({ id: 'safety', question: 'Are safety reports waiting?', state: 'fail', cadence: 'now', summary: 'The safety queue could not be read.', numbers: {} })
+  }
+
+  try {
+    const now = await countStores()
+    const before = await sizesBefore(today)
+    await recordSizes(now, today)
+    checks.push(dataCheck(now, before))
+  } catch (err) {
+    await failed('health', 'store sizes could not be read', err)
+    checks.push(unread('data', 'Has stored data gone missing?'))
   }
 
   try {

@@ -239,8 +239,9 @@ that as 0 and moves on, which is safe.
 
 ## What this does not cover
 
-- **The backup (`/export`)** has no import path. It is a document to be
-  loaded somewhere else, not something restored here.
+- **The backup (`/export`)** had no import path until 2026-09-24. It has one
+  now — `netlify/shared/restore.ts`, run by `scripts/restore.ts`, never over a
+  newer record — and a round trip on every PR (`docs/RECOVERY.md`).
 - **The limits store** is counters only, and sweeps itself.
 - **A phone's own storage** (`niyyah.intake.v1`) migrates by defaulting each
   field on read (`src/lib/storage.ts`). It has one reader and one writer.

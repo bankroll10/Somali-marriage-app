@@ -100,7 +100,7 @@ describe('a quiet day reads as a quiet day', () => {
     const h = await health()
     expect(h.status).toBe('ok')
     expect(h.checks.map((c) => c.id).sort()).toEqual(
-      ['backup', 'claude', 'client', 'cost', 'functions', 'limits', 'safety', 'safety-urgent', 'storage', 'sweep'].sort(),
+      ['backup', 'claude', 'client', 'cost', 'data', 'functions', 'limits', 'safety', 'safety-urgent', 'storage', 'sweep'].sort(),
     )
     for (const c of h.checks) expect(c.summary.length, c.id).toBeGreaterThan(10)
   })
