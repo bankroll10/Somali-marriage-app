@@ -4,7 +4,7 @@
     "target": "es2023",
     /* DOM for the Request/Response the Netlify runtime hands the handler. */
     "lib": ["ES2023", "DOM"],
-    "types": ["node"],
+    "types": ["node", "vite/client"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -15,6 +15,8 @@
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
     "noEmit": true,
+    /* The rendered tests (tests/ui, tests/journeys) mount the real components. */
+    "jsx": "react-jsx",
 
     /* Linting */
     "noUnusedLocals": true,
