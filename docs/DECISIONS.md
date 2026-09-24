@@ -153,7 +153,7 @@ not the document about it.
 
 The founder asked for a subtraction audit: give every part a verdict of
 delete, merge, simplify or keep, and keep nothing whose value cannot be
-explained. It shipped as five commits, `0bd7e96` to `d41f879`.
+explained. It shipped as five commits, `0bd7e96` to `d41f879` (PR #69).
 
 ### Why
 

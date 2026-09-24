@@ -263,17 +263,16 @@ still opens and is upgraded on its next keep.
 
 ### Strong and eventual consistency
 
-A Netlify Blobs read is eventually consistent unless the store is opened with
-`consistency: 'strong'`; the package README puts the drift at up to 60
-seconds. Strong: `limits` (constant read-modify-writes), `ops` (the health
-probe reads back what it wrote), and the joint tally's write. Eventual:
-`maps`, `couples`, `progress`, `reports`, every readout. A conditional write
-is checked against the stored version, so a stale read costs a retry or a
-409, never a write over something newer. But a read can lag by up to a
-minute: a map restored on a second phone just after a keep can come back one
-revision old (its next keep is told `stale`), and a code forgotten a moment
-ago can still open from an edge that has not seen the tombstone. The test
-doubles (`tests/support/memory.ts`, `blobs.ts`) are strongly consistent.
+A Netlify Blobs read is eventually consistent, drifting up to 60 seconds per
+the package README, unless the store is opened `consistency: 'strong'`: here
+`limits`, `ops` (the health probe reads back what it wrote) and the joint
+tally's read-modify-write. `maps`, `couples`, `progress`, `reports` and every
+readout read eventually. A conditional write is checked against the stored
+version, so a stale read costs a retry or a 409, never a write over something
+newer; but a map restored on a second phone just after a keep can come back
+one revision old (its next keep is told `stale`), and a code forgotten a
+moment ago can still open from an edge that has not seen the tombstone. The
+test doubles (`tests/support/memory.ts`, `blobs.ts`) are strongly consistent.
 
 ## The readouts, field by field
 
