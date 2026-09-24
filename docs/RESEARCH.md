@@ -36,8 +36,7 @@ beliefs by danger to the company, differently; read both.
 re-identifiable from its facts: KNOWN, so splits are floored at five
 (`netlify/shared/floor.ts`). Seriousness is behaviour: ASSUMED;
 `ending.mattered.shown`. Fear of exposure, the target segments, why people
-hesitate: ASSUMED; since age, the hesitation question and the hook's tally
-went, only conversations test them.
+hesitate: ASSUMED, and only conversations test them now.
 
 ## How we learn
 
