@@ -146,15 +146,13 @@ spend on it yet is different from missing it.
   and fails when anything is open, and GitHub — already on `docs/CONTROL.md`'s
   list — emails the owner on a failed run (`docs/BOARD.md`). Since 2026-09-23
   it runs daily, and a `threats` or `sexual` report fails it the same day
-  rather than the next Monday (`docs/ABUSE.md`). The guide-cap
-  half still has no alert; an outbound channel for it is not in the
-  dependency list, which deliberately has no email/notification vendor. **Trigger:
-  the day a paid Netlify tier or a transactional-email vendor is added for
-  any other reason — piggyback this alert on it rather than adding a new
-  dependency just for this.** Until then, `GUIDE_DAILY_CAP` is what stands in
-  for the guide half of it: an alert tells the founder a runaway month is
-  happening, and a bounded day means she can find out late without it having
-  cost anything (`docs/DEPLOY.md`, `docs/ROADMAP.md`).
+  rather than the next Monday (`docs/ABUSE.md`). The guide-cap half is
+  closed too, 2026-09-24, the same way and still with no new vendor: every
+  cap that refuses is counted by kind (`netlify/shared/ops.ts`), `/health`
+  turns the guide's daily cap red, and the health run every three hours
+  fails on it — as it does on estimated spend over `OPS_COST_ALERT_USD`
+  (`docs/OPS.md`). `GUIDE_DAILY_CAP` still bounds the day; now the founder
+  also hears about it the same afternoon.
 - **No support deflection (FAQ, canned replies, anyone but the founder).**
   Right for a product with a few dozen users. Wrong the day support volume
   and founder attention stop being the same order of magnitude. **Trigger:

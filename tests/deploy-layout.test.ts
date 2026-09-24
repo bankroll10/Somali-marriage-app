@@ -64,7 +64,7 @@ describe('Netlify deploy directories hold only deployable code', () => {
     // would deploy as an endpoint that answers nothing — or worse, one that
     // answers. Shared code lives in netlify/shared, which Netlify never scans.
     const functions = readdirSync(join(process.cwd(), 'netlify/functions')).sort()
-    expect(functions).toEqual(['cohort.ts', 'couple.ts', 'export.ts', 'guide.ts', 'keep.ts', 'pool.ts', 'progress.ts', 'safety.ts', 'sweep.ts', 'vouch.ts'])
+    expect(functions).toEqual(['cohort.ts', 'couple.ts', 'export.ts', 'guide.ts', 'health.ts', 'keep.ts', 'pool.ts', 'progress.ts', 'safety.ts', 'sweep.ts', 'vouch.ts'])
     expect(existsSync(join(process.cwd(), 'netlify/shared/founder.ts'))).toBe(true)
   })
 
@@ -124,6 +124,17 @@ describe('Netlify deploy directories hold only deployable code', () => {
     const deployNode = toml.match(/NODE_VERSION = "(\d+)"/)?.[1]
     expect(deployNode, 'netlify.toml must pin NODE_VERSION').toBeTruthy()
     expect(yml).toContain(`node-version: '${deployNode}'`)
+  })
+
+  it('after a push to main, something asks the live site whether it landed', () => {
+    // A failed Netlify build leaves the last good deploy live and says so only
+    // in Netlify's dashboard (docs/OPS.md). The build writes the commit to
+    // /version.json; the workflow waits for the site to say this one.
+    const yml = readFileSync(join(process.cwd(), '.github/workflows/deployed.yml'), 'utf8')
+    expect(yml).toMatch(/branches: \[main\]/)
+    expect(yml).toContain('version.json')
+    expect(yml).toContain('github.sha')
+    expect(readFileSync(join(process.cwd(), 'vite.config.ts'), 'utf8')).toMatch(/fileName: 'version\.json'[\s\S]*COMMIT_REF/)
   })
 
   it('the gate is still where netlify.toml expects it', () => {

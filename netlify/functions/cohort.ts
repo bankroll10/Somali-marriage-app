@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed } from '../shared/ops'
 import { CODE, normalise } from '../shared/code'
 import { readJson } from '../shared/body'
 import { isFounder, notFounder } from '../shared/founder'
@@ -244,7 +245,7 @@ export default async function handler(req: Request) {
       if (await overHourlyCap('door', DEFAULT_READ_CAP)) return rateLimited()
       return Response.json(await countPool(store, country, scene))
     } catch (err) {
-      console.error('[niyyah] cohort: count failed', err)
+      await failed('cohort', 'count failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -295,7 +296,7 @@ export default async function handler(req: Request) {
     const kept = await liveMap(getStore('maps'), code)
     if (!kept) return Response.json({ error: 'no_map' }, { status: 404 })
   } catch (err) {
-    console.error('[niyyah] cohort: map lookup failed', err)
+    await failed('cohort', 'map lookup failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 
@@ -344,7 +345,7 @@ export default async function handler(req: Request) {
         const reach: ContactRecord = { contact, scene, country, at: day() }
         await getStore('contacts').setJSON(code, stamp(reach))
       } catch (err) {
-        console.error('[niyyah] cohort: contact write failed', err)
+        await failed('cohort', 'contact write failed', err)
         // Say so. Being counted still succeeded and must not be undone, but
         // the response used to be identical either way, so she read "You're
         // counted" with the way to reach her never written — and no readout
@@ -355,7 +356,7 @@ export default async function handler(req: Request) {
 
     return Response.json({ code, ...(await countPool(store, country, scene)), contactStored })
   } catch (err) {
-    console.error('[niyyah] cohort: join failed', err)
+    await failed('cohort', 'join failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })
   }
 }

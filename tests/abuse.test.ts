@@ -128,14 +128,18 @@ describe('a report is filed as the side that files it', () => {
 
 describe('an urgent report does not wait for Monday', () => {
   // The only alert was a job that ran on Mondays. "Threatened me" filed on a
-  // Tuesday was read six days later at best (docs/ABUSE.md).
+  // Tuesday was read six days later at best (docs/ABUSE.md). The rule now
+  // lives in /health, where it is tested as behaviour (tests/ops.test.ts:
+  // urgent fails the daily run, anything open fails Monday's); what is left
+  // here is that the job still runs through the 09:00 hour every day, and
+  // fails on the cadence /health gives each check.
   const watch = readFileSync(new URL('../.github/workflows/watch.yml', import.meta.url), 'utf8')
 
-  it('runs every day, fails on an open threat or explicit report, and on Mondays for the rest', () => {
-    expect(watch).toMatch(/cron: '0 9 \* \* \*'/)
-    expect(watch).toMatch(/select\(\.reason == "threats" or \.reason == "sexual"\)/)
-    expect(watch).toMatch(/date -u \+%u\)" = "1"/)
-    expect(watch).not.toMatch(/cron: '0 9 \* \* 1'/)
+  it('runs through 09:00 every day, and fails each check on its own cadence', () => {
+    expect(watch).toMatch(/cron: '0 \*\/3 \* \* \*'/)
+    expect(watch).toMatch(/\.cadence == "daily" and \$daily/)
+    expect(watch).toMatch(/\.cadence == "weekly" and \$weekly/)
+    expect(watch).toMatch(/"\$hour" = "09" \] && \[ "\$dow" = "1"/)
   })
 })
 

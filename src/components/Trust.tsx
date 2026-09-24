@@ -141,7 +141,8 @@ export default function Trust({ identity, coupleCode, ledger, guideOnDevice, onG
               <h2 className="font-display text-[1.08rem] font-medium text-ink">Where your answers live</h2>
               <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
                 Everything you answer stays on this phone. It leaves only if you tap one of the six
-                things below, and each says exactly what goes. We never ask anyone else’s name.
+                things below, and each says exactly what goes. If the app crashes, it tells us only
+                that it did. We never ask anyone else’s name.
               </p>
             </div>
           </div>

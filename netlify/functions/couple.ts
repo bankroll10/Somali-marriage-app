@@ -1,4 +1,5 @@
 import { getStore } from '@netlify/blobs'
+import { failed } from '../shared/ops'
 import { goneKey, retire } from '../shared/sheet'
 import { mintFree } from '../shared/integrity'
 import { CODE, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
@@ -143,9 +144,9 @@ async function countPair(jointView: Record<string, Joint>): Promise<void> {
         : await tallies.setJSON(TALLY_KEY, next, { onlyIfNew: true })
       if (result.modified) return
     }
-    console.error('[niyyah] couple: tally lost a race three times; one pair uncounted')
+    await failed('couple', 'tally lost a race three times; one pair uncounted')
   } catch (err) {
-    console.error('[niyyah] couple: tally failed; the pair is saved, the count is one short', err)
+    await failed('couple', 'tally failed; the pair is saved, the count is one short', err)
   }
 }
 
@@ -170,7 +171,7 @@ export default async function handler(req: Request) {
         const tally = (await getStore('tallies').get(TALLY_KEY, { type: 'json' })) as JointTally | null
         return Response.json(tally ?? { pairs: 0, topics: {} })
       } catch (err) {
-        console.error('[niyyah] couple: tally read failed', err)
+        await failed('couple', 'tally read failed', err)
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
     }
@@ -192,7 +193,7 @@ export default async function handler(req: Request) {
       }
       return Response.json(view(record), { headers })
     } catch (err) {
-      console.error('[niyyah] couple: read failed', err)
+      await failed('couple', 'read failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -234,7 +235,7 @@ export default async function handler(req: Request) {
       // no side, so there is nothing in it to find (Trust says so).
       return Response.json({ ok: true })
     } catch (err) {
-      console.error('[niyyah] couple: delete failed', err)
+      await failed('couple', 'delete failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -306,12 +307,12 @@ export default async function handler(req: Request) {
       // make one, belong to the pair they are about (docs/INTEGRITY.md).
       const minted = await mintFree(store, stamp(record), async (c) => !!(await store.getMetadata(goneKey(c))))
       if (!minted) {
-        console.error('[niyyah] couple: every minted code collided')
+        await failed('couple', 'every minted code collided')
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
       return Response.json({ code: minted, key: owner })
     } catch (err) {
-      console.error('[niyyah] couple: create failed', err)
+      await failed('couple', 'create failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }
@@ -344,7 +345,7 @@ export default async function handler(req: Request) {
       await countPair(jointOf(updated.first, body.states))
       return Response.json(view(updated))
     } catch (err) {
-      console.error('[niyyah] couple: answer failed', err)
+      await failed('couple', 'answer failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
   }

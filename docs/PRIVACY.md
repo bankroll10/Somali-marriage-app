@@ -113,6 +113,17 @@ turn it off", so the default is never a surprise.
 | `gone/<code>` in `couples`: a day, nothing else | A report can still reach the founder after the sheet is deleted, forgotten or expired — the man she is reporting holds the code too (`netlify/shared/sheet.ts`) | The sheet goes | Nobody; `safety.ts` checks it exists | Ninety days | The weekly sweep | No: without it, deleting the sheet silenced her | **added** |
 | Resolved stub: reason, day, outcome | The taxonomy of harm, joined to nobody | The founder resolves | Founder | For ever | Cannot be: no code, no side, no words | It is the only way harm can be counted | keep |
 
+## 7a. How the service is doing (`ops`, since 2026-09-24)
+
+A number per signal per day — server errors by route, refusals by kind of
+cap, the guide's calls and tokens, and crashes phones reported — so the
+founder can tell whether the service is all right without reading logs
+(`docs/OPS.md`). The one thing that leaves a phone for it is the word `crash`
+or `chunk`, once per page load, when the app breaks: no stack, no screen, no
+code, no install id. Trust says so in one clause. Kept thirty-five days,
+deleted by the weekly sweep; never in `/export`; returned only as totals by
+the founder-gated `/health`.
+
 ## 8. Leaving the site
 
 | Recipient | What it gets | Why | How long | Without it? | Verdict |

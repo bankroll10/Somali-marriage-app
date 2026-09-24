@@ -88,6 +88,14 @@ export default defineConfig(({ mode }) => {
             .digest('hex')
             .slice(0, 12)
           this.emitFile({ type: 'asset', fileName: 'sw.js', source: serviceWorkerJs(version) })
+          // Which commit is live, for the deploy check (.github/workflows/
+          // deployed.yml, docs/OPS.md). COMMIT_REF is Netlify's own build
+          // variable; a local build says so. The day, never the time.
+          this.emitFile({
+            type: 'asset',
+            fileName: 'version.json',
+            source: JSON.stringify({ commit: process.env.COMMIT_REF || 'local', built: new Date().toISOString().slice(0, 10) }),
+          })
         },
         // One HTML document per tool, derived from the built index.html so the
         // hashed asset tags are the same and only the head differs — title,
