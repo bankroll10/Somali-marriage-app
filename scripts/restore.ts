@@ -4,7 +4,7 @@
  * A dry run unless `--write` is given. Needs NETLIFY_AUTH_TOKEN (a personal
  * access token: Netlify → User settings → Applications). Rehearse it against a
  * scratch Netlify site before the day it is needed — never production
- * (docs/RECOVERY.md, "Restore drill"). The rules are netlify/shared/restore.ts's:
+ * (docs/OPS.md, "Restore drill"). The rules are netlify/shared/restore.ts's:
  * progress records and the joint tally, never over anything already there.
  */
 import { readFileSync } from 'node:fs'

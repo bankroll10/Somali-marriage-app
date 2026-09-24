@@ -44,7 +44,7 @@ describe('what the rungs were made of', () => {
   })
 
   it('names each of the four rated grounds in a word, and records nothing for a position she holds', () => {
-    // Faith, family and vision are described, never rated (docs/ALIGNMENT.md S5),
+    // Faith, family and vision are described, never rated (docs/PRODUCT.md S5),
     // so the learning record carries no state for them.
     const facts = factsFrom({ ...none, reflection: buildReflection({}) })
     expect(Object.keys(facts.grounds!).sort()).toEqual(['intention', 'character', 'emotional', 'selfAwareness'].sort())

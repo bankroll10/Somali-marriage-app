@@ -10,7 +10,7 @@
 #
 # Without an ANTHROPIC_API_KEY repository secret it warns and passes: the
 # offline suite is the gate that always bites, and this one bites the day the
-# secret is added (docs/DEPLOY.md).
+# secret is added (docs/OPS.md).
 name: guide-eval
 
 on:

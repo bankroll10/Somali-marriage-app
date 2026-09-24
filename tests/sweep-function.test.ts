@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { memStore, stores } from './support/memory'
 
 /**
- * The weekly sweep: what the founder's `/pool?sweep=1` does, for every pool,
- * on a schedule — so the way to reach someone lives exactly as long as her
- * map whether or not anyone remembers (docs/RISKS.md R3).
+ * The weekly sweep: lapsed maps, expired couple sheets and step counts past
+ * their year go on a schedule, so what Trust says about how long each lives
+ * stays true whether or not anyone remembers (docs/PRODUCT.md R3).
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
@@ -60,7 +60,10 @@ describe('the weekly sweep', () => {
     // The expired sheet is gone; what it leaves is its reporting window — a
     // date, and nothing about either of them (netlify/shared/sheet.ts).
     expect([...stores.get('couples')!.keys()].sort()).toEqual(['ACDEFG', 'gone/HJKMNP'])
-    expect(Object.keys(JSON.parse(stores.get('couples')!.get('gone/HJKMNP')!))).toEqual(['expiresAt'])
+    const gone = JSON.parse(stores.get('couples')!.get('gone/HJKMNP')!)
+    expect(Object.keys(gone)).toEqual(['expiresAt'])
+    // A day, never the moment, like every other date in every store.
+    expect(gone.expiresAt).toMatch(/^\d{4}-\d{2}-\d{2}$/)
   })
 
   it('takes a step count past its year — unless it reached married, which is kept by rule', async () => {

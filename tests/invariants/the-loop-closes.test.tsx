@@ -26,7 +26,7 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
  *
  * Every result ends in words to say, and a few days later asks whether they
  * were said — on the right side, and, for a pair, about the same conversation
- * on both phones. This is what docs/DIFFERENTIATION.md names as the thing a
+ * on both phones. This is what docs/PRODUCT.md names as the thing a
  * competitor copying our homepage would not have: a read or the eleven, the
  * words, "did you say them?", the two of you blind, the Ending. Each link of
  * it was broken somewhere before 2026-09-24 — a man asked about her script,

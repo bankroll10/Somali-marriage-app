@@ -7,7 +7,7 @@
  * *finishes*, and until now nothing at all was recorded when someone started.
  * A six-of-eleven read and a zero-of-eleven read were byte-identical in every
  * store, which made the most basic question about a questionnaire —
- * is it too long? — impossible to ask. See docs/EXPERIMENTS.md.
+ * is it too long? — impossible to ask. See docs/RESEARCH.md.
  *
  * This is the denominator. One bit per instrument per person, for ever: she
  * began the read. Not how far she got, not how long she took, not how many

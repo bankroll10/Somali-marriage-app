@@ -36,7 +36,7 @@ describe('every word the server accepts is a word the app uses', () => {
     // The alphabet is chosen so nothing in it can be misread off a cracked
     // screen or misheard down a phone: no B against 8, no O or 0, no I or 1.
     // That was the server's secret until the entry field enforced it too
-    // (src/lib/code.ts, docs/NORMAN.md), and a second private copy of it used
+    // (src/lib/code.ts, docs/DESIGN.md), and a second private copy of it used
     // to sit in src/lib/progress.ts. One of them now, held in step here.
     expect(CLIENT_ALPHABET).toEqual(SERVER_ALPHABET)
     expect(CLIENT_CODE_LENGTH).toEqual(SERVER_CODE_LENGTH)

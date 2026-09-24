@@ -22,7 +22,7 @@
  * topics carry a `man` variant, merged by `beforeYesTopics` the way read.ts
  * merges its own. The base strings are the woman's, and the printed guide
  * reads them through its neutral voice, so they must also hold for a couple
- * reading together — no sentence here names a side by role (docs/VOICE.md).
+ * reading together — no sentence here names a side by role (docs/DESIGN.md).
  */
 
 /** A script: why this is the question, the words, and how to read the answer. Mirrors `Script` in read.ts. */

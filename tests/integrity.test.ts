@@ -3,7 +3,7 @@ import { ALPHABET } from '../netlify/shared/code'
 import { blobs } from './support/blobs'
 
 /**
- * The data model, broken on purpose (docs/INTEGRITY.md).
+ * The data model, broken on purpose (docs/PRIVACY.md).
  *
  * Netlify Blobs has no transactions: every operation here that touches more
  * than one key is a sequence, and any step of it can fail after the ones

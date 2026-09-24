@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { serviceWorkerJs } from '../src/lib/serviceWorker'
 
 /**
- * The offline shell (docs/LINKS.md) — kept honest the same way
+ * The offline shell (docs/DESIGN.md) — kept honest the same way
  * tests/tools.test.ts holds the tool pages to the rest of the app: the
  * generator, the build wiring, and the header rule all have to agree.
  */
@@ -36,7 +36,7 @@ describe('the worker script', () => {
     expect(js).toContain('caches.delete(k)')
   })
 
-  // docs/THREAT.md, T3: the first version keyed every response on its full
+  // docs/SECURITY.md, T3: the first version keyed every response on its full
   // URL, so opening `/?map=ACDEFG` wrote a live map code into Cache Storage.
   it('keys a navigation by path alone — no ?map=, ?couple= or ?vouch= code ever lands on disk', () => {
     expect(js).toContain("request.mode === 'navigate' ? new Request(url.origin + url.pathname) : request")

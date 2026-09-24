@@ -1,353 +1,450 @@
-# Niyyah — Product Strategy (v8, the PM lens)
+# Niyyah — the product
 
-> The PM's job: make Niyyah the thing this generation reaches for whenever
-> something about marriage actually *moves* — and to make sure the product is
-> paid, measured and designed so that its interest and the member's never point
-> in different directions.
->
-> The one-sentence version of everything here — the problem, the purpose, the
-> North Star, and every screen held against them — is `docs/NORTHSTAR.md`.
+What Niyyah is, who it is for, what it measures, claims and may sell, and what
+comes next. Where this page and the code disagree, the code wins. The
+marketplace (the door, the pool and matching, the sample introduction, the
+family vouch, Profile, Plus) was removed on 2026-09-24 because there were no
+members; git keeps it (`docs/DECISIONS.md`).
 
-## 0. The hard question: "Why would anyone open this?"
+## 0. What Niyyah is
 
-**The trap.** Dating apps get daily opens from a slot machine — likes, matches,
-notifications engineered for anxiety. A *marriage* app has the retention
-paradox on top: success = churn. The tempting answer is to borrow the wellness
-playbook instead: a daily check-in, a reflection of the day, a milestone on day
-seven. That is the same loop with softer copy, and it optimises for the same
-thing — opens — which has no relationship to marrying well.
+**The problem: finding out too late.** Somali singles in the diaspora lose
+years to people who were never serious, and enter marriages that break over
+things nobody said aloud: where you would live, money sent home, his family in
+your home, a second wife, qabiil. These get answered after the families are
+involved, when saying no has become a public cost. **The purpose:** those
+conversations happen before the yes, and the one about seriousness in the
+first month, not the sixth.
 
-**The reframe.** Niyyah is not opened daily. It is opened when something
-happens, and it is measured by what happened afterwards. The member's life
-generates the triggers: a slow reply, a family conversation looming, a man who
-has not said the word marriage after three months. The product's job at that
-moment is to hand her an instrument that ends in words she can say — and then,
-days later, to ask whether she said them.
+> **Every screen exists to move one person from finding out late to saying it
+> early.**
 
-So there are exactly two reasons to open Niyyah, and the product designs for
-both and nothing else:
+Niyyah is a web app of instruments for a relationship a person already has,
+opened from a bare link with no account; what she tells it stays on her phone
+unless she keeps it on our server under a code. Each instrument ends in words
+she can say, and days later it asks whether she said them. A marriage product
+that succeeds loses its member, so it is not built for daily opens: it is
+opened when **something happened** (the ask box and moment chips on Home, the
+read, the eleven) or **since last time** (the follow-up).
 
-| Reason | Surface | Ends in |
+## 1. Who it is for
+
+**Her**: a practising Somali woman in the diaspora, 24–34, structurally
+unserved: a minority on Hinge, wary of the low-trust Muslim apps, judged by the
+aunties. Call her Hodan: 27, a nurse in Columbus, prays, wants children soon,
+has a mother who asks every week. **Women first, and not negotiable**: if she
+feels safe and respected, men follow. **Him**: the serious man, 26–36, arrives
+through her, answering the eleven she sends. He is never charged for reach, and
+nothing yet tells him why answering serves him (§10, item 5). **Not for** the
+casual dater.
+
+| Stage | The job (Jobs-to-be-Done; HYPOTHESIS until R1's sessions) | Reading |
 |---|---|---|
-| **Something happened** | The ask box → the Guide, routed; the read; the eleven | Words to say, and a follow-up written down |
-| **Since last time** | The follow-up card on Home | "We talked" / "not yet" / "it went differently" — and the record moves |
+| Preparing | Handle family pressure; know what I want; find anyone serious | The map answers the weakest job; finding someone, the product cannot do |
+| Talking | Know whether he is serious before investing more; the next thing to ask | The read: the sharpest job in the product |
+| Deciding | Have the eleven conversations before the families lock the outcome | The eleven, the two-sided sheet, the printed guide; the nikah coordinator is a second customer |
+| Married | Pass on what worked without it sounding like advice | Mostly the company's job, and labelled so |
 
-Everything else on Home is quiet: the work card (one thing from the map), the
-stage band (where she is, changed only by her), and the doors to the
-instruments for her stage. A daily reflection card used to sit here too; it did
-no North Star work and it went (`docs/NORTHSTAR.md`).
+Welcome's second door, "Talking to someone? Get a read.", exists because the
+read answers the highest-pain job, for the person who already has someone. A
+verdict changes only on evidence from a person, never on a build.
 
-## 1. The instruments, and what each one is for
+### The institution rule
 
-| Instrument | The job it does | Ends in | Goal it serves |
+Nothing that would need renaming for a second community carries a community's
+name. The product is Niyyah, an intention, not "the Somali app", and a
+community's content (its cities, its eleven, its lines) lives in `src/data/` as
+data. The brand strings live in `src/data/brand.ts`; `vite.config.ts` fills
+`index.html` from it, and `tests/brand.test.ts` holds every surface to it. The
+rule is enforceable by test for the brand strings only: BeforeYes, Couple, Home
+and Read still name the community as content, and a second community gets a
+second `src/data`, not a rename.
+
+Why: some 20,000 Somali diaspora marriages a year (asserted, not derived) cap a
+Somali-only company near $12M a year even at a fifth of them and $3,000 each.
+For the same reason every stored member record carries a version `v`
+(`netlify/shared/record.ts`), added while there were none to migrate, so a
+later change of shape is a transcription rather than an archaeology.
+
+## 2. The loop, and the instruments
+
+The loop is what makes Niyyah different: a read or the eleven; the words; did
+you say them?; where did you land; the two of you, blind; the Ending.
+
+| Instrument | Ends in | Where |
+|---|---|---|
+| The read: what he has done, not said | The one question to ask next, word for word | `src/lib/read.ts`; `/tools/is-he-serious`, `/tools/is-she-serious` |
+| Before you say yes: the eleven conversations found out too late | The one to open this week, and the words | `src/lib/beforeYes.ts`, `src/data/eleven.ts`; `/tools/before-you-say-yes` |
+| The two-sided eleven: he answers on his own phone, no account, blind | Where they match, and the one to open together | `netlify/functions/couple.ts` (`joint()`, symmetric) |
+| The family words: the wali, hooyo, mahr, two families meeting, the in-laws after the nikah | Word for word, for either side | `src/data/families.ts`; `/tools/families` |
+| The map: where she stands, in sixteen questions and seven grounds (§7, S5) | Grounds in words; it feeds the guide and her side of the eleven | `src/data/intake.ts`, `src/lib/reflection.ts` |
+| The guide: the moment, in the right voice | Words, and a follow-up | `src/lib/coach.ts`, `netlify/functions/guide.ts` |
+| The follow-up: "did you say it?" | The record of what happened | `src/lib/followup.ts` |
+| The Ending: married, and leaving | Her record, one share, Forget me | `src/components/Ending.tsx` |
+
+Beside them: Report a concern (`netlify/functions/safety.ts`, read weekly by
+the founder) and a help line picked by her country. None of it is a feed, a
+score or a ritual.
+
+**Getting in.** Welcome → Identity (gender, first name, 18+) → "what's
+happening right now" → by stage, the Hook and the map, the read, the eleven or
+the Ending. `?read`, `?eleven`, `?families` and the tool paths in
+`src/data/tools.ts` skip Welcome, and the read's chooser is folded into its
+start buttons. A read or eleven finished with nothing else said is taken as
+`talking` or `deciding` (`src/lib/inferStage.ts`), so the read-first person
+gets a Home and a follow-up. **Activation**: one instrument's words in the
+first session, and one follow-up answered within fourteen days.
+
+**The follow-up.** Every result writes down what it told her to do. After three
+days the next open asks once, on Home, or on Welcome for someone with no Home;
+"not yet" is asked once more a week later unless she puts it away. Both phones
+in a pair are asked about the joint's conversation, and his keeps the pair
+(`couple.side = 'second'`). `tests/invariants/the-loop-closes.test.tsx` holds
+the loop.
+
+**The guide** closes every reply on an act ("I'll say this — ask me in three
+days" writes a follow-up) and is budgeted by progress: fifteen replies per rung
+and per follow-up answered (`src/lib/budget.ts`), no visible counter, no
+unlimited tier. Four voices: auntie, brother, therapist, islamic. It is **on in
+production, deliberately (2026-09-10)**: the founder declined leaving
+`ANTHROPIC_API_KEY` unset. It is safe because Trust names Claude and Anthropic
+and offers "Keep the Guide on this device", and `GUIDE_DAILY_CAP` bounds the
+day (an hourly cap resets 720 times a month); both caps fail closed (R5). A3
+governs: if fewer than one in five who reach an ending name the guide, the live
+half goes (`docs/RESEARCH.md`). Else the local voice answers
+(`docs/GUIDE-EVAL.md`).
+
+**The Ending. Success is deletion.** Her record, headed by the conversations
+she had that she was not going to have; permission to go; the one share only a
+married person can make (`via=married`); then, skippable, three closed
+questions (who she married, what decided it, what was real) and a line for
+whoever is where she was; then Forget me (`src/components/ForgetMe.tsx`),
+because "you can delete the app" was false while her map, couple sheet and step
+count outlived the uninstall. A marriage is counted only when she says so, for
+free. A courtship that ends gets Ended: ending is allowed.
+
+## 3. The North Star, and how it is read
+
+**`followed-through` per hundred `arrived`**: of everyone who opened this, how
+many had a conversation they were not going to have. Only helping a specific
+person say a specific hard thing moves it.
+
+**How it is read.** The readout (`/progress`, `netlify/functions/progress.ts`)
+returns `cohorts`: per arrival month, `{ arrived, followedThrough }`. The North
+Star is `followedThrough / arrived` on two rows, this month against last,
+whole-population and never floored. Arrivals by day, which it replaced, could
+not say it: a conversation in October by someone who came in September had no
+row to be divided by. Only the follow-up writes the numerator; the guide's own
+follow-ups stay out of `facts.through`. How to pull it: `docs/OPS.md`.
+
+**The test for any screen:** does it help someone find out earlier, and does it
+end in something they can say? What it changed:
+- **Welcome's lead promises the routing, not the map**: a read, the eleven, or
+  two minutes on where you stand. The read is in the first breath.
+- **The three marriage-breakers moved into the map**: `household`, `work` and
+  `money-home` joined chapter two, and thirteen questions became sixteen
+  (`src/data/intake.ts`); the eleven shows "You told your map…" beside them. If
+  A1 fires (completion under 50% at twenty arrivals), their chapter is kept.
+- **The daily reflection card went**: it ended in nothing anyone could say.
+  "Readiness" left every label, and an eleven for someone with no "two" was
+  declined.
+
+## 4. What survives a copy
+
+> **If every competitor copied our homepage tomorrow, what would still make
+> Niyyah different once someone uses it?** It works on the relationship you
+> already have. It tells you what he has done; gives you one conversation and
+> the words; asks days later whether you had it; puts the same eleven to him,
+> blind; and when you marry, lets you go. A marketplace is paid while you look.
+> We are paid when you stop needing us (§5).
+
+Somali, marriage-first, wali, verification, photo privacy, compatibility, deen
+filters and no swiping are everyone's claims now, so Welcome's bullets and the
+description (`src/data/brand.ts`) say what someone gets on the first visit.
+The words can be copied in a month; the mechanism costs a copier these:
+
+| Structural difference | Why a marketplace will not copy it |
+|---|---|
+| Instruments open from a bare link, no account, no install | An app-store funnel is an account funnel |
+| They serve a relationship that began elsewhere | A marketplace serves its own inventory |
+| The man answers on his own phone, blind, with no account | He is not a customer; there is no growth case |
+| It asks whether the conversation happened | They measure sessions, likes and matches |
+| The Ending: delete the app, with Forget me beside it | Subscription revenue needs the member to stay |
+
+Verification stays below table stakes (an 18+ tap; no family check since the
+vouch went): nobody is introduced, so it would hold documents with nothing to
+protect. `src/data/` ships in plaintext and the guide is the most copyable
+thing here; none of it is defended. **The moat is the monthly loop run against
+the readout** (`docs/RESEARCH.md`): a copier gets the constants as they were on
+the day they copied them. Every user adds ids from closed lists: the grounds,
+the read's band, which conversation was had, the pair's joint in
+`tallies/joint` (no pair in it), why a courtship ended, who she married.
+
+> **A model may add a layer on top of something the product already does
+> completely without it. It may never be the thing that produces the map, the
+> read or the eleven. With no key set, a member loses a better sentence — never
+> an instrument.**
+
+Live-model code lives only in `netlify/functions/guide.ts` and
+`src/lib/coach.ts`; `tests/durable.test.ts` asserts it and builds the map
+offline. A model behind the map ("the last local seam") is declined. "Powered
+by AI" is gone, and `tests/voice.test.ts` keeps it out; Trust still names
+Claude and Anthropic, as a disclosure, not a claim. Sharing is named by its
+mechanism, `navigator.share` (`src/lib/share.ts`): no SDK, no pixel, no vendor.
+
+## 5. What may be sold
+
+**Principle: nothing we sell may earn more when a member is doing worse.** The
+test for every line and sentence: does it earn more if she stays single longer,
+opens the app more often, or is having a worse night? If yes, it does not ship.
+
+**No gate has passed.** Until one does, nothing here gets payment code: no SDK,
+no checkout, no record of who would pay. `tests/monetization.test.tsx` fails if
+a payment SDK appears in `package.json`, and reads this page for that sentence.
+
+Trust promises: "Everything here is free. Nothing that protects you is ever
+paid, at any price." "Nothing is priced by the reply, the message or the month,
+and staying single never earns us more." "We will never sell your data, and
+never charge you without asking first." **Never sold**: replies, reach,
+visibility, filters, or anything that protects her. A payment never buys a say,
+data or a timetable.
+
+### A. The lines
+
+Each is asked who pays, when, after what value, for what, whether it earns more
+if she is stuck, whether it can be delivered, its margin and its support
+burden. Prices are a prediction written on 2026-09-11; none is on a screen.
+
+| Line | Who pays, and when | Earns more if she is stuck? | Delivery, margin |
 |---|---|---|---|
-| The read | "Is he serious?" — what he has actually done | The one question to ask next | Seriousness, compatibility |
-| Before you say yes | The eleven conversations found out too late | The one to open this week, and the words | Compatibility, progression |
-| The two-sided eleven | He answers on his own phone; neither sees the other's sheet | Where they match, and the one to open together | Compatibility, trust |
-| The family words | Telling the wali, the first talk with hooyo, opening mahr | Word for word | Progression |
-| The family vouch | The only verification we claim | A father's first name and one sentence, kept | Trust, seriousness |
-| The map | Where she stands, in words, and the one thing to do about it | The work card | Seriousness |
-| The Guide | The moment, in the right voice | Words, and a follow-up | Progression |
-| The follow-up | "Did you say it?" | The record of what actually happened | Progression — the North Star |
-| The door | The honest count toward a city opening | "We'll write to you" | Trust |
+| **Talking it through, with a matchmaker** (the call; was "Deciding together") | The couple, once per person for life, after the joint view (`he-answered`). Never at a declared stage: `deciding` is a free word (`docs/DECISIONS.md` decision 16) | No: once for life, paid before the decision, the same whatever they decide | About 1.5 founder hours; $99, about $64 an hour after fees |
+| **The first year married, as a gift** | A guest, at the wedding; the couple are never sold to | No: bought once, by someone else, never on "if things get hard" | A sheet, not yet written; $79 |
 
-Nothing above is a feed, a score, or a ritual. Each ends in an act in the world.
+Retired: **a matchmaker in your corner** (the families' fee at the nikah) and
+the free year for those counted before their pool opened, with the
+marketplace. **Sponsor a place**, removed from `src/data/ending.ts` and
+`src/components/Ending.tsx`: money for a place that costs nothing, on the
+screen a marriage is reported from; if it returns, it has a stated use and its
+own gate, never on the Ending. **Events**: a ticket earns most from whoever
+stays single. **Niyyah+**, a monthly unlimited guide, is the counter-example.
 
-## 2. Onboarding & activation
+### B. The gates
 
-**Current funnel:** Welcome → identity → *what's happening right now* → the
-instrument for that stage. Preparing goes to the hook and the sixteen-question
-map. Talking goes straight to the read. Deciding goes to the eleven. Married
-goes to the guide.
+**The call** is sold under its own name, only after both have seen the joint
+view, by someone with no stake in the answer. (1) Given free to the first five
+couples who ask: at least 3 say it changed what they talked about, none says it
+pushed them, hours are written down. (2) At least 10 couples reach the joint
+view in a month (`/progress` `he-answered`). (3) Offered by hand, with a hosted
+link, to ten couples: at least 3 buy. Step 3 waited for public launch, the day
+the first pool opened; with no pool, a launch day must be written first. **The
+gift**: the sheet is written and given free to the first married couples, 2 say
+it helped, and someone asks unprompted to give it.
 
-**The aha moments:** (1) the read telling her what he has and hasn't shown, in
-her situation, in ninety seconds; (2) the map naming her thinnest ground and
-handing her one thing to do about it; (3) the follow-up remembering.
+### C. Payment identity
 
-**Activation:** *reached one instrument's words within the first session, and
-answered one follow-up within fourteen days.* Not "signed up", not "completed
-the map", not "sent a message to the guide". The second half is the one that
-matters: it is the first time the product knows something happened. For the
-read-first user it was unreachable by construction until 2026-09-12 — she had
-no Home, so the follow-up her read wrote was never asked
-(`src/lib/inferStage.ts`, `docs/BOARD.md`).
+A code is the only identity Niyyah holds. Payment records stay with the
+processor, never in Blobs, `/export` or the learning record; nothing bought is
+delivered by her map code. First: an entity, terms, refunds, a mailbox that
+answers, a tax decision, and a line on Trust saying what a payment reveals.
 
-**The front door promises the right thing.** It used to promise "your number".
-It now promises the one thing to say next (`docs/NORTHSTAR.md`).
+### D. No payment infrastructure: the decision, and when it changes
 
-**The ticket to the door is the short map**, since 2026-09-12 (`docs/BOARD.md`
-decision 3): the three answers `netlify/functions/pool.ts` reads — practice,
-children, non-negotiables — plus her age and a way to reach her. The sixteen
-are offered afterwards, from Home, as the thing that makes a reading. A man
-who arrives at the door is counted on the same terms, and a counted person
-has a Home (`src/lib/inferStage.ts`). Count-me is offered to `preparing`
-members only — supply is who is looking (decision 2).
+**Nothing is built for payments until a gate in section B passes.** Then money
+is taken by hand, through a hosted payment link, and code comes only at about
+ten transactions a month on a line; that commit deletes "No gate has passed"
+above and changes `tests/monetization.test.tsx`. Nothing in the app asks
+whether someone would pay; that is learned in conversations
+(`docs/RESEARCH.md`).
 
-## 3. The map
+### E. The incentive audit
 
-The map was a 0–100 readiness score with a counting ring, seven numbered bars,
-and a growth badge. The weights were an answer key: the woman who answered most
-honestly — returning to her deen, still healing, anxiously attached — scored
-lowest, and then read that the score decided who she meets. The screen had to
-apologise for this on its own face.
+Every sentence that names a paid stage, a price or money is read against the
+test above and checked for truth, at every release that touches one, under a
+new date. The first run (2026-09-24) fixed every fail; most were on Plus and
+Profile, since gone, and one was the Ending's sponsor-a-place.
+`tests/monetization.test.tsx` holds the rest: Trust's promises, with no price;
+the guide never sells, because the day it says a human one costs money the
+advice is a funnel; the Ending asks for no money; no payment SDK.
 
-The map now names each of the seven grounds in a word — *thin*, *steady*,
-*strong* — and derives its headline from the pattern. Growth is a diff of her
-answers between readings ("last time: still healing; now: at peace with it"),
-never a delta. Nothing numeric about readiness leaves the device: the cohort
-store and the waitlist form carry what she named as hardest and what she has
-done here, not how "ready" a self-report said she was. A retake is offered when
-her life changes — a stage change, a conversation she confirms she had, ninety
-days — never because she has done N steps.
+### F. Kill criteria, stated before the data
 
-## 4. The Guide
+**The call**: fewer than 3 of 5 free calls change what the couple talked about;
+fewer than 3 of 10 buy; any couple says it pushed them; calls average over 2.5
+founder hours (repriced or stopped, not squeezed); couples who had it end from
+`deciding` at a sharply different rate, and the conversations say why. **The
+gift**: ten married couples use the sheet free and nobody asks to give it.
 
-The Guide is the retention engine every doc used to name, and it is where the
-category's incentives were most quietly present. Three changes:
+## 6. What we measure, and what we never build
 
-- **It closes.** Every reply ends on a concrete action. The chips underneath are
-  closers, not extenders: *copy the words*, *I'll say this — ask me in three
-  days* (which writes a follow-up), *that's enough for tonight*.
-- **It remembers outcomes.** A script handed over in the guide is a follow-up
-  like any other. The product asks, days later, whether she said it.
-- **It is budgeted by progress.** Replies refill when a rung is reached — a
-  read, a follow-up answered, a stage change, a couple code, a vouch. There is
-  no visible counter and no unlimited tier. When the budget is spent, the wall
-  points at the instruments, not at a price.
+Screen time, messages and swipes rise when a person is stuck, so the only
+measurement is a ladder of rungs, each a claim about her life
+(`src/lib/rungs.ts`): `arrived`, `situated`, `mapped`, `kept`, `read`,
+`eleven`, `asked-him`, `he-answered`, `followed-through`, `deciding`,
+`married`, each counted on its own. `kept` is apart from `mapped` because a map
+dropped and a map kept are different failures. Lagging outcome: `married` per
+hundred `arrived`; distribution: arrivals by source per hundred
+followed-through (§9).
 
-## 5. Monetisation
+Beside each rung, what it was made of (`src/lib/facts.ts`): ids from closed
+lists, never a sentence (the rated grounds, the read's band, the eleven's one
+to open, conversations confirmed, why a courtship ended, the three answers on
+the way out, questionnaires begun, whether she asked the guide), crossed
+against marriage in the readout. It travels only while Trust's "Tell us which
+steps you reach" (`countMe`) is on, under an install code that cannot be joined
+to her map code, and every split by a quasi-identifier is floored at five
+(`netlify/shared/floor.ts`). Field by field: `docs/PRIVACY.md`. **Never
+measured**: active users, time in app, replies sent, check-ins, sessions.
 
-**Principle: nothing we sell may earn more when a member is doing worse.**
+**Never built, by name.** Anyone should be able to reject a proposal by
+pointing at a line; these mechanics came back once without anyone choosing
+them.
+- A score on a person, hers included. A feed, a deck, a swipe.
+- A daily ritual, a streak, a milestone counter, a comeback nudge.
+- "Who liked you", interest limits, paid visibility, filters as a paid tier.
+- A guide-reply counter she can see, or an unlimited tier.
+- Photos, messaging between members, or a profile before there is a room.
+- Notifications about people. A referral reward, an invite counter,
+  share-to-unlock, or a link that carries who sent it.
+- Any mechanic whose success is measured by its own repetition.
 
-**Free, forever:** the map and every reading, the work, the read, the eleven,
-the two-sided eleven, the family words, the vouch, reporting a concern,
-being introduced, replying to anyone serious, and the guide within its budget.
+## 7. What an instrument may claim
 
-**Paid once, at a step forward, and only after its gate passes**
-(`docs/MONETIZATION.md` — none has):
+No introduction has been made, no marriage has come out of this product, and
+the literature (Finkel et al. 2012; Joel et al. 2017) says no algorithm
+predicts relationship success from self-reports. Every weight here is
+editorial: fine for an order, never for a grade. **A number may order what is
+shown, never grade a person or a pair to them; "not known" is said, never
+scored; no screen claims predictive power.** `tests/voice.test.ts` scans `src/`
+for the overclaims ("predict", "carry the most weight", "most couples never",
+"Grounded and ready", "will find you someone").
 
-1. **Talking it through, with a matchmaker** — one call for the two of them,
-   after both have seen the joint view. Once per person, for life. The joint
-   view and the family words stay free and are not part of it.
-2. **Concierge matchmaking** — when a city opens. AI + a vetted human, the role
-   our families already pay for, paid by the families at the nikah and agreed
-   before the first introduction. Priced and staffed as what it is: a
-   matchmaker has a matchmaker's margins, and the software does the queue and
-   the candidates, never the choosing (`docs/ROADMAP.md`).
-3. **The first year married, as a gift** — bought by a guest, never sold to
-   the couple.
+### S3. The read's weights and bands
 
-Events are struck: a ticket per event is per-use pricing. Everyone counted
-before their pool opens keeps every paid feature free for a year after it
-opens — a promise about what a member is charged; what a family pays at a
-nikah, or a guest gives, is outside it (`src/data/plus.ts`). Prices are set at
-launch; the mechanism is decided now and written into `src/data/plus.ts`.
+Weights (public .26, intent .21, consistency .20, pressure .19, family .14)
+summed into a band could call a man "strong" who goes quiet on hard things.
+**Removed.** The band is read from the five states on her screen: **strong** if
+being known is *shown*, nothing is *not yet* and four of five are *shown*;
+**thin** if more are *not yet* than *shown*; **mixed** otherwise. Ties break by
+`PRIORITY` (public, pressure, intent, family, consistency), an order stated as
+an order. The copy says "not a verdict on {him}, and not a prediction"
+(`src/lib/read.ts`).
 
-**Never sold:** replies, a lifted counter, reach, visibility, who-liked-you,
-filters, more introductions, or anything that protects her.
+### S4. The read's option weights and `stateOf`
 
-## 6. Metrics — what goes on the wall
+Option weights 0–1 and `stateOf` at .7 and .35: editorial, which answer shows
+more of the thing. **Kept, as an ordering of answers**, shown as three words
+and her own notes. An answer that says nothing about him ("I have not told
+{him}", `nonneg: 'untold'`) is `null`, not scored as half. The man's variants
+(`ManVariant`, `src/data/read.ts`) stay: the road is not symmetric.
 
-Defined in `src/lib/rungs.ts`; the code wins over this document.
+### S5. The map's grounds
 
-- **North Star: followed-through per hundred arrived.** How many people had a
-  conversation they were not going to have.
-- **Per city:** each rung reached — situated, mapped, read, eleven, asked him,
-  he answered, vouched, counted, deciding, married.
-- **Lagging outcome:** married per hundred arrived.
-- **Counter-metric:** sessions per week, expected to *fall* after a rung.
-- **Trust guardrails:** reported-safety incidents (near zero; reputation is the
-  kill switch), vouch rate, women's share of the door.
-- **Explicitly not measured:** DAU/WAU, time in app, replies sent, check-ins,
-  introductions viewed, match count.
-- **Beside each rung, what it was made of** (`src/lib/facts.ts`): the grounds
-  in a word, the read's band and thinnest ground, counts of the eleven and
-  the one to open, which conversation was confirmed, the three closed answers
-  on the way out — every one an id from a closed list, never an answer in her
-  words. The readout crosses each against whether she married. How those
-  tables move the constants is `docs/OPERATING.md`.
+Faith, family, children and timeline were weighted as readiness, and a Muslim
+whose faith is private was told it was her thinnest ground. **Positions are
+described, never rated.** Faith, family and vision read "Your position", in her
+words, with no state and no weight. Only the four rated grounds (intention,
+character, steadiness, knowing yourself) decide the headline and the thinnest
+ground (`src/lib/reflection.ts`, `src/data/intake.ts`).
 
-## 7. When a pool opens
+### S6. Before-you-say-yes and the couple joint
 
-A pool is a city, or a country for the people who said they would travel
-within it — the smallest geography in which both sides clear the door's
-target, given each member's stated reach (`docs/SCALE.md`). Clearing the
-target is the door's promise; what opens the pool is the checklist in
-`docs/LIQUIDITY.md` — live, still looking, aged, nobody stranded — because
-forty and forty can be a room where a quarter of the women have nobody in
-their band. The marketplace, when it exists, obeys the same rules as the
-instruments:
+Each topic's `consequence` (.6–.95) and `STATE_URGENCY` pick "the one to open
+this week". **The order stays, because something has to be opened first. No
+difference is light.** A top tier once told a couple who differed on qabiil
+that theirs "isn't the ones that carry the most weight". A difference is now
+counted in words ("One conversation doesn't line up yet"), whichever topic it
+is (`src/lib/beforeYes.ts`).
 
-- **One introduction at a time.** The next arrives only after a yes or a no
-  *with a reason*. A considered no is progress and is recorded; it is not a
-  swipe.
-- **Non-negotiables gate only where the answers plainly contradict them.**
-  Two of seven can be checked — faith against "lighter in practice", children
-  where one wants them and the other does not; everything else she said she
-  will not compromise on becomes "the first thing to ask him"
-  (`docs/ALIGNMENT.md`).
-- **Nothing is scored.** Where the two answers are the same, where they
-  differ — every difference, never "the one that matters most" — what is not
-  known yet, and one question to open with. No percentage, no band, no
-  weighted fit.
-- **What decides who meets whom:** a person, by hand — reading the ledger
-  (what she has actually done here), what each of them said they will not
-  compromise on, and how they'd live. Never a readiness number, and never an
-  assumption neither of them stated, such as an age band.
-- **Never:** who liked you, interest limits, paid visibility, notifications
-  about people.
+G1–G8 (the gate), S1–S2 (the weighted fit), U1–U4 and U6 (the pool) went
+with matching on 2026-09-24 (`docs/DECISIONS.md`). U5, `K_FLOOR` 5, is a
+privacy control. U7: per-answer weights, rated-ground weights and
+`consequence` are editorial orderings, never summed or shown as numbers.
+Authority is earned back by hand: after twenty endings, `ended.which` may
+revise `consequence`, citing the count.
 
-## 8. The ending — the state this product is designed to reach
+## 8. The risk register
 
-**Success is deletion.** Not churn dressed up: the actual designed destination
-is a member who marries, is handed something worth keeping, is told plainly
-that she can delete the app, and does. Every screen before it is built to get
-her there sooner, and the ending is the only screen that exists to be the last
-one anybody sees.
+Every system was held against Cagan's four risks on 2026-09-17, by one rule:
+"already built" is not evidence of value; a person other than the founder
+choosing it is. Nothing had that. The systems rated UNNECESSARY (the vouch, the
+pool and sample, Plus) and the AT RISK door went on 2026-09-24. A closed risk
+is struck through with its date, never deleted.
 
-Worked backward, here is what had to happen and where each piece lives:
-
-| What had to happen | Where it happens | What it leaves behind |
+| Id | Risk | The rule in the code that answers it |
 |---|---|---|
-| Something hurt enough to open this | Welcome, the second door ("Is he serious?") | `arrived` |
-| She said what was actually happening | Situation | `situated` |
-| She got clear about herself | The map, the work | `mapped` |
-| She saw what he had *done*, not said | The read | `read`, and a question to ask |
-| Incompatibilities surfaced before the families | The eleven; the two-sided eleven | `eleven`, `asked-him`, `he-answered` |
-| The trust barrier with her family came down | The family words; the vouch | `vouched` |
-| The conversations actually happened | The follow-up | `followed-through` — the North Star |
-| They decided | Stage: deciding | `deciding` |
-| She married, and left | **The ending** | `married`, her record, four answers, one link |
+| **R1 · Value** | Never chosen by anyone | No code: five sessions on `docs/PROTOCOL.md`'s script at `/tools/is-he-serious` or `/tools/is-she-serious`; three days later, count who reports a conversation. Two or more of five: the read and the eleven lead every post. Zero: nothing new is built until the founder knows why. Entries in `docs/RESEARCH.md` |
+| **R2 · Usability** | The read's result was a wall: 593 words, eight calls to action | `src/components/Read.tsx`: the band, the one question and two actions; the rest behind "More you can do here". Home's stage band no longer repeats its cards |
+| **R3 · Feasibility** | Screens promised what the code could not do ("we write to you") and held personal data on the promise | The promises became the present tense, and `tests/voice.test.ts` fails on them. `netlify/functions/sweep.ts`, weekly, makes every stated lifetime true: kept maps after a year, couple sheets after ninety days, step counts after a year unless `married`; and it empties the retired `cohort`, `contacts` and `vouches` stores |
+| **R4 · Viability: safety, privacy, legal** | Forget me could erase the other side's safety report; the public tools had no notice | Forget me touches no report; a report stays until the founder resolves it (`netlify/functions/keep.ts`, `docs/SECURITY.md` O1). Trust is one tap from both public tools and Back returns there (`Read.tsx`, `BeforeYes.tsx`, `src/hooks/useNiyyah.ts`); `CONTACT_EMAIL` is on Home and in Forget me |
+| **R5 · Viability: cost, supplier** | The one route that spends money failed open | `overCapOrUnknown` (`netlify/shared/limit.ts`): the guide checks the day, then the hour, and a count it cannot read is a refusal; the offline voice answers. The console spend limit is the founder's; its row in `docs/OPS.md` stays blank until set |
 
-**What the ending gives her, in this order and no other:** her record first
-("how you chose", built only from things she really did, headed by the count
-of conversations she had that she was not going to have); then permission to
-go, said plainly; then the one thing only she can send; then, below all of it
-and skippable, the four questions; then the optional ask, last.
-
-**What the ending gives us — the only outcome data that will ever exist:**
-- **Who she married.** Someone she was already talking to, someone her family
-  brought, someone we introduced, or someone else. This single answer decides
-  where the next year of work goes: it separates a marketplace that worked
-  from instruments that helped a relationship that already existed. Today the
-  honest expectation is that most marriages come from the second, which is
-  exactly why the read and the eleven are the centre of the product and the
-  marketplace is not.
-- **What actually decided it** — seeing what he had done, one of the eleven,
-  the families meeting, or getting clear about herself.
-- **Which instruments were real** and which were decoration.
-- **One line for the next person**, in her words.
-
-Marriages are counted only when a person says so on the way out. Saying so is
-free, unlocks nothing, and is never a condition of anything — the moment it
-costs something, it stops being said, and the metric dies. The three closed
-answers reach us under "Count me", beside her rungs; the line she writes for
-the next person never does.
+**Standing risks.** One safety incident in a tight community can end this;
+the dormant close switch (`netlify/edge-functions/gate.ts`) shuts every route
+in one deploy. The wrong tone makes this the "corny Muslim app". Drift (§6).
+Over-index on women's trust. People who know each other can recognise each
+other's facts: no photo, name or free text on the server, and the k-floor.
+**The founder's, not code**: the sessions, the spend limit, and a read address
+for `VITE_CONTACT_EMAIL`.
 
 ## 9. How it spreads
 
-Assume advertising is expensive, founder hype is gone, and growth cannot be
-brute-forced. In this community, nothing that says "I am looking" gets
-forwarded — a profile, a match, a map. What gets said to a friend is about
-*him*, about a *conversation*, or about a *couple*. So the product's outputs,
-which are words a person can say, are the thing that travels, and the product
-is the footnote.
+In this community, nothing that says "I am looking" gets forwarded: a profile,
+a match, a map. What gets said to a friend is about *him*, a *conversation* or
+a *couple*. So the words travel and the product is the footnote: every
+invitation (`src/data/invite.ts`) is about the instrument and the friend, never
+the sender's own use of a marriage product, and what travels is text (the
+image path, `card.ts` and `shareImage()`, had no importers and was deleted).
+The loops: "I said the words, and something happened"; the two-sided eleven;
+the family words, across generations; the couple it worked for.
 
-Four loops, in order of strength:
+Every link opens the instrument it describes (`src/lib/entry.ts`); only
+`docs/ASSETS.md` declares a URL live. A link may carry `via=`, the kind of
+thing that carried it: `words`, `eleven`, `couple`, `family`, `married`; a kind
+of room, `group`, `alumni`, `professional`, `mosque`; or `press`. Never who
+sent it, never which room; first arrival wins (`netlify/shared/vocab.ts`).
 
-1. **"I said the words, and something happened."** The moment a follow-up
-   resolves to "we talked" is the moment worth telling someone. Home keeps the
-   card for one more beat and offers one thing: send the words she just used
-   to a friend who is talking to someone. Every script card carries the same
-   send.
-2. **The two-sided eleven.** Every use recruits a man onto his own phone with
-   no account; the joint result is something a couple talks about with other
-   couples, and his screen offers to send the eleven to a friend who is about
-   to get engaged.
-3. **The family words and the vouch.** Cross-generational: the aunties are the
-   existing matchmaking network, and the vouch puts the product on a father's
-   phone.
-4. **The couple it worked for.** The ending's two shares — the eleven for the
-   friend who is talking to someone, the door for the one who is looking,
-   through the spouse's side. The only loop that reaches an unattached man
-   without anyone admitting they are looking (`docs/FLYWHEEL.md`).
+### The wedge
 
-Four links open an instrument directly — `?read`, `?eleven`, `?families`, `?door` —
-with no Welcome and no account. Any link may carry `&via=` naming what kind of
-link it was (words, eleven, couple, door, family, married — a link from
-someone this worked for — or group, a link shared into a community's chat
-rather than sent to one person; the kind of room, never the room) and never
-who sent it; it is the only attribution
-recorded, first arrival wins, and the founder's readout splits every rung by
-it. The two-sided eleven also adds each answered pair to a count of how pairs
-come out per topic, with no pair in it, and a family vouch now lives exactly as
-long as the map it was given about. The metric is **arrivals by source per hundred
-followed-through**. Every shared link reaches a stranger: the site
-opened on 2026-09-12, and `docs/DEPLOY.md` holds the one description of that
-and of the close switch that can shut it again.
+A channel, not a brand. The first forty are found in the **Twin Cities, aged
+twenty-five to thirty-four, through the alumni and young-professional networks
+where women and men already mix** (SSA-UMN alumni, the SNABPI Minneapolis
+chapter), with the mosques' young-adult circles second. No copy says "alumni"
+or "professional". The metro holds the largest Somali community in North
+America (about 84,000), 25–34 is where family pressure turns weekly, and these
+networks run on group chats. Columbus is second, Toronto third, the UK later.
 
-## 10. Roadmap
+**How to acquire it**, inside §6: (1) ten connectors, by name (the SSA-UMN
+alumni board, SNABPI chapter leads, the networking-night organisers, two imams
+with young-adult programmes), one ask each: post the link; (2) the eleven
+first, `/?eleven&via=alumni` (or `professional`, `mosque`), then the read, as
+"he answered the same eleven on his own phone" is what a stranger repeats
+(`docs/DECISIONS.md` decision 6); (3) one "before you say yes" evening with a
+chapter; (4) the room-kind rows of `vias` and `sidesByVia`, weekly.
 
-Reorganised on 2026-09-18 by `docs/TREE.md`, which is the live order and the
-reasoning: one outcome (`followed-through` per hundred `arrived`), the person's
-opportunities beneath it, solutions only beneath those. `docs/ROADMAP.md`
-mirrors this table with the gates in full. Each item says which layer it is —
-an experiment, a solution, or a subtraction — because a list that mixes them
-cannot be prioritised, and because the previous nine versions of this list were
-made entirely of solutions.
+**The eight-week rule.** After eight weeks, fewer than five men who arrived
+through a room link (`sidesByVia.man.group.arrived` and its `alumni`,
+`professional`, `mosque` siblings) means change the channel first, the city
+second (Columbus). A man who came through someone's eleven is already talking
+to her, and `press` asked nobody by name; neither counts (`src/lib/entry.ts`).
+The rule's other half, twenty women counted, read the door, which is gone.
 
-0. **Post the link.** Ten connectors by name, then the five catalogued URLs
-   with a room-kind `via` (`docs/ASSETS.md`), and the door's honest count into
-   the same rooms weekly — `docs/WEDGE.md` steps 1–4. An experiment, not a
-   build, which is exactly why it was missing from this list for nine passes:
-   every item below waits on it and it waits on nothing.
-1. **The five sessions** (`docs/RISKS.md` R1, `docs/PROTOCOL.md`), read
-   against `docs/JOBS.md`. The only experiment in the set that runs with zero
-   traffic, and the gate on every subtraction below. Promoted out of item 6,
-   where it was buried inside "read what comes back".
-2. **What must be true before strangers arrive** — a mailbox on our own
-   domain (`docs/CONTROL.md`), the Anthropic spend limit written down, and
-   `VITE_CONTACT_EMAIL` pointed at an address someone reads. None of it can be
-   added to traffic that has already come and gone.
-3. **Subtract** — the four decisions in `docs/TREE.md`: Plus, the sample
-   introduction and its invented people, the door's counting apparatus, and the
-   vouch held rather than cut. The first time subtraction has appeared on this
-   list. Gated on item 1, which `docs/PROTOCOL.md` requires.
-4. **The situations become the front door** — the four moments and the five
-   hardest parts ahead of the map. No new component: they exist and render 43
-   taps in, which is the single widest gap between where a person reaches for
-   help and where the product offers it.
-5. **Ask three men what answering her eleven does for them** — the unrun half
-   of A6 and A8, inside item 1's sessions. `docs/GAPS.md` gap 1 is the most
-   load-bearing unevidenced belief in the repository and has ~50 lines of
-   product against it.
-6. **Read what comes back** — A1, A2 and A4 at their thresholds; A6 at four
-   weeks; `docs/REDTEAM.md`'s three at their dates; then the monthly loop of
-   `docs/OPERATING.md`, within what `docs/LEARNING.md` allows. Six decision
-   rules, every one written before its build and none ever run. The moat is the
-   process, not the constants.
-7. **The first pool opens** — one introduction at a time, per §7, Minneapolis
-   first, with the introductions record shipping in the same commit as the
-   pool-open flag (`docs/HARD.md`) and the sequencing `docs/SCALE.md` sets out.
-   The first thing that would actually move the largest opportunity in the
-   category: "there is nobody serious to meet".
-8. **Concierge, by hand** — the founder matchmaking the first ten couples. The
-   oldest durable form of this business and the one families already pay for,
-   and the only test of willingness to pay the free-year promise permits — but
-   a *service*, not a build.
-9. **The first-year sheet** — the eleven's engine over a second topic list.
-   Nobody serves the marriage after the wedding, and it is the married stage's
-   only job that is hers rather than ours.
-10. **Your record**, then **real backend** — the visibility half of Forget me;
-    then auth, persistence, moderation. Both buy durability rather than value.
+## 10. What is next
 
-**Left this list.** *The door, for men* was item 1; M0–M3 are shipped, so it is
-A6, now inside item 5. *Run the loop* was item 0 and is item 6, because a loop
-with nothing in it is not a first step.
+No feature here has been chosen by a stranger. Until one is, **a feature may be
+built now only if it records a vote that would otherwise be lost for ever**, as
+the `kept` rung, the room-kind vias and `v` on every record were.
 
-**Declined: live Claude behind the map.** It sat at 3 on this list for a long
-time, described as closing "the last local seam" — as though local were a
-stage to grow out of. It is the opposite: the map is what gets matched, it is
-built from her answers and a question set that is ours, and it works with the
-network off. `docs/DURABLE.md` has the rule, and `tests/durable.test.ts`
-asserts it.
+| # | Item | Gate |
+|---|---|---|
+| **0** | **Post the link**: ten connectors; the URLs in `docs/ASSETS.md` with a room-kind `via` (§9) | Nothing. Everything below waits on it |
+| **1** | **The five sessions** (R1), on `docs/PROTOCOL.md`'s script, read against §1's jobs | Recruiting only |
+| **2** | **Before strangers arrive**: mail on the domain; the spend limit written into `docs/OPS.md`; `VITE_CONTACT_EMAIL` read by someone | Nothing; none of it retrofits |
+| **3** | **Subtract**: done on 2026-09-24, wider than planned (`docs/DECISIONS.md`) | Done |
+| **4** | **The situations become the front door**: the four moments and the five hardest parts (`src/data/moments.ts`, `src/data/hook.ts`) move ahead of the map; no new component | Item 1 |
+| **5** | **Ask three men what answering her eleven does for them**, in item 1's sessions | Item 1 |
+| **6** | **Read what comes back**: A1, A3, A4 and the red team's convictions, then the monthly loop (`docs/RESEARCH.md`) | Items 0–1 |
+| **7** | **The first-year sheet**: the eleven's engine over a second list, for the marriage after the wedding; the gift's first gate | The first marriage |
+| **8** | **Your record**, then **real backend** | The first member who asks; a store past ~50,000 keys (`docs/OPS.md`) |
+
+The first pool, concierge matchmaking and the introductions record left with
+the marketplace. Live Claude behind the map stays declined (§4).

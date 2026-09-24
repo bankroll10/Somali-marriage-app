@@ -2,9 +2,9 @@
 #
 # Nothing in this product ran on a schedule: the safety queue was read when
 # someone remembered to open /safety, and the backup existed when someone
-# remembered to curl /export (docs/TIME.md). GitHub emails the owner when a
+# remembered to curl /export (docs/OPS.md). GitHub emails the owner when a
 # workflow fails, and this repository already runs one — so a job that fails
-# is the alert, and it adds no vendor (docs/BOARD.md, docs/CONTROL.md).
+# is the alert, and it adds no vendor (docs/DECISIONS.md, docs/OPS.md).
 #
 # The health job, every three hours. From outside, it asks whether the app is
 # up (the page and /version.json answer). Then it reads /health with the
@@ -18,14 +18,14 @@
 # Monday's 09:00 run — so one old report does not send eight emails a day.
 # It prints counts and sentences, never a report, a code or anything of a
 # member's. Until FOUNDER_KEY exists as a repository secret the read is a 401
-# and the job fails, which is the prompt to add it (docs/DEPLOY.md).
+# and the job fails, which is the prompt to add it (docs/OPS.md).
 #
 # The monthly job saves /export as a 35-day artifact — one month and a margin,
 # since each run replaces the last (docs/PRIVACY.md, R5). It runs only when the
 # repository variable BACKUP_TO_ARTIFACT is "true": the export holds
 # pseudonymous learning records, and an artifact on a public repository can be
 # downloaded by anyone signed in to GitHub. Flip the repository private first
-# (docs/BOARD.md action 5), then set the variable. Either way /health says how
+# (docs/DECISIONS.md action 5), then set the variable. Either way /health says how
 # long it has been since /export last answered — a backup taken by hand counts.
 name: watch
 
@@ -85,7 +85,7 @@ jobs:
           rm -f page.html
 
           if [ -z "$FOUNDER_KEY" ]; then
-            echo "::error::FOUNDER_KEY is not a repository secret — add it (Settings → Secrets → Actions) so this check can read /health. docs/DEPLOY.md"
+            echo "::error::FOUNDER_KEY is not a repository secret — add it (Settings → Secrets → Actions) so this check can read /health. docs/OPS.md"
             exit 1
           fi
           status=$(curl -sS -o health.json -w '%{http_code}' -H "Authorization: Bearer $FOUNDER_KEY" "$SITE/.netlify/functions/health" || echo 000)
@@ -130,7 +130,7 @@ jobs:
         run: |
           set -u
           if [ -z "$FOUNDER_KEY" ]; then
-            echo "::error::FOUNDER_KEY is not a repository secret. docs/DEPLOY.md"
+            echo "::error::FOUNDER_KEY is not a repository secret. docs/OPS.md"
             exit 1
           fi
           name="niyyah-backup-$(date -u +%F).json"

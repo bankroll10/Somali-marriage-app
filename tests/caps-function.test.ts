@@ -10,7 +10,7 @@ import { memStore, stores } from './support/memory'
  * write is refused with the same quiet 503 every client already treats as
  * "try later", nothing is written, and no other bucket is touched. A bad body
  * never spends the cap, and his answer to her eleven is never capped at all.
- * See netlify/shared/limit.ts and docs/SCALE.md.
+ * See netlify/shared/limit.ts and docs/OPS.md.
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
@@ -187,7 +187,7 @@ describe('the read and delete paths are bounded', () => {
     expect((await keep(new Request(url, { method: 'DELETE' }))).status).toBe(503)
   })
 
-  // docs/THREAT.md, T2: thirty made-up codes an hour used to spend the whole
+  // docs/SECURITY.md, T2: thirty made-up codes an hour used to spend the whole
   // reporting cap and bury every real report after them.
   it('a report against a pair that does not exist spends the probe bucket, not the reporting cap', async () => {
     vi.stubEnv('SAFETY_HOURLY_CAP', '1')
@@ -214,7 +214,7 @@ describe('the read and delete paths are bounded', () => {
     expect(members('reports')).toEqual([])
   })
 
-  it('a hyphenated bucket reads the underscored variable docs/DEPLOY.md names', async () => {
+  it('a hyphenated bucket reads the underscored variable docs/OPS.md names', async () => {
     // `couple-read` used to look for COUPLE-READ_HOURLY_CAP, which no shell
     // can set, so the documented COUPLE_READ_HOURLY_CAP silently never bound.
     const { envName } = await import('../netlify/shared/limit')

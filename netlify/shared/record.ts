@@ -4,7 +4,7 @@
  * Five record shapes were already told apart by heuristics — a key's segment
  * count, whether a field is present, the length of a date — and the backup
  * stamped `version: 2` on its wrapper while the records inside it carried
- * nothing, which docs/HARD.md called exactly backwards. It deferred the fix to
+ * nothing, which docs/SECURITY.md called exactly backwards. It deferred the fix to
  * "the next shape change", because retrofitting a version onto records that
  * exist is a migration in itself.
  *
@@ -13,8 +13,8 @@
  * expensive costs nothing today and will never cost nothing again — the first
  * real member makes it a migration. So every member record written from here
  * on carries `v`, and the day a shape changes, the reader branches on a number
- * instead of a guess, and docs/SCALE.md's move to a real database is a
- * transcription rather than an archaeology (docs/BACKWARD.md).
+ * instead of a guess, and docs/OPS.md's move to a real database is a
+ * transcription rather than an archaeology (docs/PRODUCT.md).
  *
  * What is stamped: a record about a member — her kept map, her ladder record,
  * a report and its resolved stub, a pair's sheets. What is not: a counter

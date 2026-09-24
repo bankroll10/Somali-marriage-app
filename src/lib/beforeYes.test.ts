@@ -95,7 +95,7 @@ describe('the headline is about the conversations, never about him', () => {
     const r = buildBeforeYes(answers({ live: 'differ', 'second-wife': 'differ' }))!
     expect(r.headline).toBe('Two conversations don’t line up yet.')
   })
-  it('never calls a difference light — the wedding and the mahr read like any other (docs/ALIGNMENT.md S6)', () => {
+  it('never calls a difference light — the wedding and the mahr read like any other (docs/PRODUCT.md S6)', () => {
     const light = buildBeforeYes(answers({ 'aroos-mahr': 'differ' }))!
     const heavy = buildBeforeYes(answers({ live: 'differ' }))!
     expect(light.headline).toBe(heavy.headline)
@@ -161,7 +161,7 @@ describe('what the Guide is told', () => {
   })
 })
 
-// Moved from tests/alignment-audit.test.ts (docs/ALIGNMENT.md), when matching went.
+// Moved from tests/alignment-audit.test.ts (docs/PRODUCT.md), when matching went.
 describe('Before you say yes never ranks a difference as a light one', () => {
   it('a single difference on qabiil is named, not weighed', () => {
     const topics = beforeYesTopics('woman')

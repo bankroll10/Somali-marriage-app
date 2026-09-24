@@ -12,7 +12,7 @@ import { CODE, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '..
 /**
  * The one report a member can make about a real, named person.
  *
- * docs/LEARNING.md draws one line through everything this product collects:
+ * docs/PRIVACY.md draws one line through everything this product collects:
  * no free text about anyone but yourself, ever — except here. Trust already
  * promises "players, liars and creeps removed, not warned," and a report is
  * inescapably about a specific person. This is the single carve-out, kept as
@@ -26,11 +26,11 @@ import { CODE, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '..
  *    one open field is a short line of her own words, because "what
  *    happened" sometimes needs more than six categories can hold — but it
  *    goes nowhere but here.
- *  - Tier 4 per docs/LEARNING.md: founder-read only. Never listed beside a
+ *  - Tier 4 per docs/PRIVACY.md: founder-read only. Never listed beside a
  *    tally, never a signal to `progress.ts` or `couple.ts`, never joined to
  *    the map or the install id.
  *
- * ─── Two things this got wrong, fixed — docs/HARD.md ───────────────────────
+ * ─── Two things this got wrong, fixed — docs/SECURITY.md ───────────────────────
  *
  * **Reports are append-only now.** Each one used to be written to
  * `` `${code}-${side}` `` with a plain `setJSON`, and nothing here validates
@@ -46,7 +46,7 @@ import { CODE, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '..
  * **Resolving keeps the lesson.** It used to delete, so "resolved" and "never
  * happened" were the same byte: nothing proved a report had been acted on, and
  * no pattern across reports was ever visible — which made the harm taxonomy
- * `docs/GAPS.md` names as its own test permanently uncomputable. Resolving now
+ * `docs/RESEARCH.md` names as its own test permanently uncomputable. Resolving now
  * takes an outcome from a closed list, deletes the record, and leaves an
  * anonymous stub: the reason, the day, what was done. **No code, no side, no
  * details.** Her words are expunged exactly as LEARNING promises; the fact
@@ -55,7 +55,7 @@ import { CODE, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '..
  * And unlike every other readout, this one **fails closed** with no founder
  * key set. See `requireFounder` in netlify/shared/founder.ts.
  *
- * **Two buckets, in this order** (docs/THREAT.md, T2). The reporting cap used
+ * **Two buckets, in this order** (docs/SECURITY.md, T2). The reporting cap used
  * to be spent before the pair was checked, so thirty POSTs an hour with made-
  * up codes — each one a 404 — spent the whole hour's cap, and every real
  * report after them was refused. The cheapest denial of service in the
@@ -64,7 +64,7 @@ import { CODE, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '..
  * exists spends the reporting cap: burying real reports needs thirty live
  * couple codes an hour, not thirty strings.
  *
- * **Never withdrawn from outside** (docs/SECURITY.md, O1; docs/ABUSE.md,
+ * **Never withdrawn from outside** (docs/SECURITY.md, O1; docs/SECURITY.md,
  * coercion). Forget me once deleted every report under `${couple}-${side}-`,
  * read from a snapshot the caller had written — so the reported man could keep
  * a map that claimed to be her and erase her reports by forgetting it. Then a
@@ -185,7 +185,7 @@ export default async function handler(req: Request) {
 
     // Only onto an id nobody holds: a colliding id must never overwrite
     // another report — it is the one thing a person who was frightened sent
-    // (docs/INTEGRITY.md).
+    // (docs/PRIVACY.md).
     let id = ''
     try {
       for (let attempt = 0; attempt < MINT_ATTEMPTS && !id; attempt++) {
@@ -202,10 +202,10 @@ export default async function handler(req: Request) {
   }
 
   if (req.method === 'DELETE') {
-    // Resolving a report expunges her words, per docs/LEARNING.md, and keeps
+    // Resolving a report expunges her words, per docs/PRIVACY.md, and keeps
     // what is left: the kind of harm, the day, and what was done about it —
     // joined to nobody. Deleting outright made "resolved" and "never happened"
-    // the same byte. See docs/HARD.md.
+    // the same byte. See docs/SECURITY.md.
     const params = new URL(req.url).searchParams
     const code = normalise(params.get('code'))
     const side = params.get('side') ?? ''

@@ -4,14 +4,14 @@
  * A report is read within the week, and the product said nothing about what
  * to do before then: no emergency number, no helpline, anywhere in the app,
  * on a screen whose second reason is "Threatened me, or someone I know"
- * (docs/ABUSE.md). This is that line — the country's emergency number, and one
+ * (docs/SECURITY.md). This is that line — the country's emergency number, and one
  * national, free, round-the-clock line for abuse in a relationship.
  *
  * Every number was checked against the service's own site, or a government
  * page naming it, on HELP_CHECKED. A number that could not be confirmed is
  * left out rather than guessed: Somalia's emergency numbers differ by region
  * and by source, so it gets the generic line, not a number that may ring
- * nowhere. Re-check once a year (docs/OPERATING.md) — Sweden's changed in
+ * nowhere. Re-check once a year (docs/OPS.md) — Sweden's changed in
  * 2025 (the old 020-50 50 50 still connects).
  *
  * Static text on her own phone. Nothing is sent, nothing is logged, and the

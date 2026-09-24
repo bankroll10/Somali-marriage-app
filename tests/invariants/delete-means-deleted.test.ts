@@ -13,7 +13,7 @@ import { blobs, serve, type Served } from '../support/server'
 vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsModule)
 
 /**
- * INVARIANT — delete means deleted (docs/TESTING.md, docs/INTEGRITY.md).
+ * INVARIANT — delete means deleted (docs/TESTING.md, docs/PRIVACY.md).
  *
  * One person uses everything the product has — keeps her map, sends a man
  * the eleven and he answers, is counted on the ladder, reports a concern —
@@ -25,7 +25,7 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
  *  - the tombstone that closes her code — a reason and a date, so the code
  *    can never be kept again from another phone;
  *  - her report — a message to the founder, which forget me must never take
- *    (docs/ABUSE.md, coercion);
+ *    (docs/SECURITY.md, coercion);
  *  - the joint tally — how pairs come out, counts with no pair in them.
  * The couple sheet leaves only its reporting window: a date, and nothing
  * either of them answered.

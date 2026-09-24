@@ -18,14 +18,14 @@ import { send } from './net'
  * a woman who sent him the eleven, kept nothing, and tapped this was told it
  * was done while both sheets sat on the server for the rest of the ninety
  * days. Trust says "deletes ... the eleven you sent him" without a condition,
- * and now that is true of her too (docs/BOARD.md).
+ * and now that is true of her too (docs/DECISIONS.md).
  *
  * Each server call is best-effort and reported honestly — a 404 means it was
  * already gone, which is the same as done. The local wipe happens whatever
  * the server said: her phone is hers, and it is the one thing we can
  * guarantee.
  *
- * All but one key (docs/INTEGRITY.md). When a server delete fails, the codes
+ * All but one key (docs/PRIVACY.md). When a server delete fails, the codes
  * it needed are kept — the codes and nothing else, none of her answers — as a
  * pending forget. The phone used to be wiped whatever happened, and Trust
  * told her to tap Forget me again: but the retry had no code left to send, so
@@ -148,7 +148,7 @@ export async function forgetMe(): Promise<Forgotten> {
   // Not her reports. They used to be withdrawn here, by the receipts this phone
   // held — so a forget me made with someone standing over her erased the only
   // record of what he did, and he never had to know there was one
-  // (docs/ABUSE.md, coercion). A report is a message to the founder, and like
+  // (docs/SECURITY.md, coercion). A report is a message to the founder, and like
   // any sent message it is not taken back by clearing a phone: it stays until
   // she has read it, and then only the kind of harm and what was done remain
   // (netlify/functions/safety.ts). Trust says so.
@@ -177,7 +177,7 @@ export async function forgetMe(): Promise<Forgotten> {
  * Shared with the error screen's "Start completely fresh", which used to call
  * `clearProgress` alone and leave the kept code behind — the exact
  * irreversible-overwrite path `useNiyyah`'s own startFresh documents
- * (docs/FAIL.md).
+ * (docs/DESIGN.md).
  */
 export function clearEverything(): void {
   clearProgress()

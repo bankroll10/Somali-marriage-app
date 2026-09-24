@@ -70,7 +70,7 @@ export async function updateCouple(
  * eleventh tap of eleven, and a null used to send him to a screen reading
  * "This link isn't working — it may have expired, or been copied wrong",
  * throwing away every answer he had just given. A timeout is not a dead link,
- * and his answers are worth more than the round trip (docs/FAIL.md).
+ * and his answers are worth more than the round trip (docs/DESIGN.md).
  */
 export async function answerCouple(code: string, states: Record<string, string>): Promise<CoupleView | 'answered' | Why> {
   const res = await post({ side: 'second', code, states })

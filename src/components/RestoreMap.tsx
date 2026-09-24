@@ -26,7 +26,7 @@ export default function RestoreMap() {
     if (!code.trim() || state === 'checking') return
     // Checked here, before anything is spent. A code of the wrong length was
     // costing a network round trip and a second and a half to come back as
-    // "no map found", which is not what was wrong (docs/NORMAN.md).
+    // "no map found", which is not what was wrong (docs/DESIGN.md).
     if (!isCode(code)) {
       setState('not-a-code')
       return

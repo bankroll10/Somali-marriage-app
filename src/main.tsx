@@ -45,7 +45,7 @@ async function resolveEntry(): Promise<{ entry: Entry | null; pending?: Pending 
   // opened rather than on the marketing page (src/lib/entry.ts).
   rememberEntry(entry)
   // Stripped before any round trip, so a code never sits in the bar (or in a
-  // screenshot of it) while the network answers — THREAT T10.
+  // screenshot of it) while the network answers — docs/SECURITY.md T10.
   window.history.replaceState({}, '', window.location.pathname)
   if (entry.kind === 'map' && entry.code) {
     // Her own link, on the phone that already holds her map: nothing to
@@ -104,7 +104,7 @@ void resolveEntry().then(
   () => render(null),
 )
 
-// The offline shell (src/lib/serviceWorker.ts, docs/LINKS.md). Production
+// The offline shell (src/lib/serviceWorker.ts, docs/DESIGN.md). Production
 // only — a dev-server module graph has nothing in common with a built
 // shell, and a worker left registered from `npm run dev` would keep
 // serving a stale localhost cache after the server stops. After `load`,

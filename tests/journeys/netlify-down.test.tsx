@@ -13,7 +13,7 @@ import { blobs, serve, type Served } from '../support/server'
 vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsModule)
 
 /**
- * DRILL — Netlify is down (docs/RECOVERY.md).
+ * DRILL — Netlify is down (docs/OPS.md).
  *
  * Every function and every store unreachable, from the first tap. The claim
  * this product makes for that day is local-first: what a member does lives on
@@ -63,7 +63,7 @@ describe('with Netlify down from the first tap', () => {
     expect(m.text()).toMatch(/That didn’t save — nothing is lost/)
     // Her map is on her phone exactly as it was, and no code was invented.
     // (The first keep's once key stays until a keep succeeds, so the retry
-    // below is the same first keep, never a second map — docs/INTEGRITY.md.)
+    // below is the same first keep, never a second map — docs/PRIVACY.md.)
     expect(JSON.parse(phone.storage.get('niyyah.intake.v1')!).answers).toEqual(JSON.parse(before!).answers)
     expect(phone.storage.has('niyyah.keep.code.v1')).toBe(false)
     m.unmount()

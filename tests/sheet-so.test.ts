@@ -154,7 +154,7 @@ describe('the version switcher reuses established vocabulary, not new coinages',
 
 describe('printed length — measured elsewhere, pinned here', () => {
   // The real page-count and bottom-slack numbers come from headless-Chrome
-  // PDF renders (docs/SHEET.md), not from vitest — jsdom has no print
+  // PDF renders (docs/ASSETS.md), not from vitest — jsdom has no print
   // layout engine. What's pinned here is that the print rules that made
   // those measurements true are still present in the source.
   it('four-page: each subject still starts its own printed page', () => {

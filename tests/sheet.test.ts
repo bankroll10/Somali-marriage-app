@@ -10,7 +10,7 @@ import { describe, expect, it } from 'vitest'
  * "typical mahr" range, a second link that looks like a Niyyah page and is
  * not. So each one is pinned here rather than kept in a brief. The exact
  * print measurements are not: they were set by rendering, and a number read
- * back out of the CSS proves nothing about the page (docs/SHEET.md).
+ * back out of the CSS proves nothing about the page (docs/ASSETS.md).
  */
 
 const HTML = readFileSync('public/niyyah-money-conversation-sheet.html', 'utf8')
@@ -239,7 +239,7 @@ describe('on a phone, and to a screen reader', () => {
   })
 
   it('keeps every field at the 16px floor that stops iOS zooming on focus', () => {
-    // docs/MOBILE.md's rule, carried onto a page that shares none of its CSS.
+    // docs/DESIGN.md's rule, carried onto a page that shares none of its CSS.
     expect(CSS.match(/font-size: 1rem; \/\* 16px floor/g)).toHaveLength(2)
   })
 
@@ -342,7 +342,7 @@ describe('the one-page variant', () => {
     // narrower print column, which dropped its rule below the first one.
     // Shortened labels keep both on one line and both rules aligned —
     // verified in Chromium: both labels render at the same height and both
-    // textareas' top edge lands at the same y (docs/SHEET.md).
+    // textareas' top edge lands at the same y (docs/ASSETS.md).
     for (const n of [1, 2, 3, 4]) {
       expect(ONE_PAGE).toContain(`<label for="s${n}-agree">Agreed</label>`)
       expect(ONE_PAGE).toContain(`<label for="s${n}-open">Still deciding</label>`)
@@ -358,7 +358,7 @@ describe('the one-page variant', () => {
     // A screen rule with higher specificity (`.cols input[type='text']`) once
     // overrode the print height of every answer line, because 1.9rem
     // recomputes against print's 9pt root. The print rule has to be restated
-    // at that specificity; what it is set to is docs/SHEET.md's measurement.
+    // at that specificity; what it is set to is docs/ASSETS.md's measurement.
     expect(O_PRINT).toMatch(/\.cols input\[type='text'\] \{\s*min-height:/)
   })
 

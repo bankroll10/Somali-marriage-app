@@ -70,7 +70,7 @@ const SAVE_DEBOUNCE_MS = 250
  * failed check used to end the matter for the session, because the effect's
  * deps did not change when the read failed. A
  * retry is not a poll: two attempts, twenty seconds apart, and then silence
- * until she opens the app again (docs/FAIL.md, and docs/FOGG.md's line on
+ * until she opens the app again (docs/DESIGN.md, and docs/DESIGN.md's line on
  * re-engagement).
  */
 const RECHECK_TRIES = 1
@@ -150,7 +150,7 @@ export function useNiyyah(entry: Entry | null = null) {
   const [endedFrom, setEndedFrom] = useState<'talking' | 'deciding' | null>(null)
   // Which questionnaires she has begun. The denominator a completion rate needs,
   // since finishing one is already a rung. A set, never a count — see
-  // src/data/instruments.ts and docs/EXPERIMENTS.md.
+  // src/data/instruments.ts and docs/RESEARCH.md.
   const [began, setBegan] = useState<string[]>(saved?.began ?? [])
   // What the product told her to do, and whether she did it. See lib/followup.ts.
   const [followups, setFollowups] = useState<FollowUp[]>(saved?.followups ?? [])
@@ -171,7 +171,7 @@ export function useNiyyah(entry: Entry | null = null) {
   const [guideAsk, setGuideAsk] = useState<{ text: string; why: string } | null>(null)
   // Trust is one tap from Home and from either public tool, so a stranger on
   // /tools/is-he-serious can read what leaves her phone before she answers
-  // anything (docs/RISKS.md R4). Back returns to wherever she came from.
+  // anything (docs/PRODUCT.md R4). Back returns to wherever she came from.
   const [trustReturn, setTrustReturn] = useState<TrustReturn>('home')
   // Where the eleven opens. Its front page, unless she came from a Home card
   // that promised more: "where you left it" opens her result, and "He
@@ -231,7 +231,7 @@ export function useNiyyah(entry: Entry | null = null) {
 
   // A Forget me the server did not receive: its codes are sent again every
   // time the app opens, until every delete has landed (src/lib/forget.ts,
-  // docs/INTEGRITY.md).
+  // docs/PRIVACY.md).
   useEffect(() => {
     void retryPendingForget()
   }, [])
@@ -278,7 +278,7 @@ export function useNiyyah(entry: Entry | null = null) {
       // the deps were `[couple, identity.gender]` and neither changes on a
       // failure, so one bad read meant her device stopped looking for the
       // rest of the session, and the follow-up the whole pair loop hangs on
-      // was never written (docs/FAIL.md). One more attempt, later — a check,
+      // was never written (docs/DESIGN.md). One more attempt, later — a check,
       // not a poll.
       if (!v) {
         if (coupleTries < RECHECK_TRIES) timer = window.setTimeout(() => setCoupleTries((n) => n + 1), RECHECK_MS)
@@ -308,7 +308,7 @@ export function useNiyyah(entry: Entry | null = null) {
     // the next change to any of these twenty dependencies wrote all of it
     // back to niyyah.intake.v1. The local half of "forget me" was undone by
     // the app's own autosave, on exactly the path where the server half had
-    // already failed (docs/FAIL.md).
+    // already failed (docs/DESIGN.md).
     if (forgotten.current) return
     const t = window.setTimeout(() => {
       // And not by a save scheduled a moment before she tapped it: the check
@@ -414,7 +414,7 @@ export function useNiyyah(entry: Entry | null = null) {
     // storage on mount, so a person who started over was shown "Your map is
     // kept" under a code whose map she no longer had, and the next tap on
     // "Keep this map" re-keyed that code, overwriting the real map with the
-    // empty one. Irreversibly, from one mis-tap (docs/NORMAN.md).
+    // empty one. Irreversibly, from one mis-tap (docs/DESIGN.md).
     forgetCode()
     // A half-finished read from before the reset is not hers any more, and nor
     // is the couple screen a link left her part-way through.
@@ -437,7 +437,7 @@ export function useNiyyah(entry: Entry | null = null) {
     // server delete actually landed: this used to discard the result and
     // replace regardless, so a timed-out DELETE left her kept map on the
     // server and showed her a stranger's app as proof it was gone — against
-    // the one promise this product is built on (docs/NORMAN.md).
+    // the one promise this product is built on (docs/DESIGN.md).
     if (result.map && result.progress && result.couple) window.location.replace('/')
     return result
   }
@@ -460,7 +460,7 @@ export function useNiyyah(entry: Entry | null = null) {
     // over the guide — otherwise `openGuide` below overwrote it, the stage's own
     // screen was unreachable from here, and the first thing a married person met
     // was an empty compose box they had to write into before the product would
-    // say anything (docs/AUDIT.md §6, measured in docs/VALUE.md).
+    // say anything (docs/DECISIONS.md (AUDIT) §6, measured in docs/DESIGN.md).
     if (next === 'married' && marriedOpensEnding(wasIn, !!ending)) return
     if (next === 'preparing') setScreen('hook')
     else if (next === 'talking') setScreen(read ? 'home' : 'read')

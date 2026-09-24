@@ -6,7 +6,7 @@ import type { Chapter, Question } from '../types'
  * (0–1) that informs the readiness reading for its dimension — only where the
  * answer is about readiness. Faith, family, children and timeline are
  * positions a person holds, so their options carry no weight and their grounds
- * are described, never rated (docs/ALIGNMENT.md S5).
+ * are described, never rated (docs/PRODUCT.md S5).
  *
  * This is intentionally edited prose, not generated. It is the soul of the app.
  *
@@ -20,9 +20,9 @@ import type { Chapter, Question } from '../types'
  * answer, and the three positions have none, which data/intake.test.ts guards. The removed questions are in git
  * history if the signal ever says people want to go deeper.
  *
- * Sixteen, since docs/NORTHSTAR.md: the three "how you'd live" questions moved
+ * Sixteen, since docs/PRODUCT.md: the three "how you'd live" questions moved
  * into chapter two. That evidence said twenty-three was too many; it says
- * nothing about sixteen, and A1 (docs/EXPERIMENTS.md) now measures completion,
+ * nothing about sixteen, and A1 (docs/RESEARCH.md) now measures completion,
  * so the cap is policed by a number rather than a memory.
  */
 /**
@@ -30,11 +30,11 @@ import type { Chapter, Question } from '../types'
  * app asks: whose house, whether she works, and money sent home.
  *
  * These used to sit outside the chapters, on a screen she may never open.
- * docs/NORTHSTAR.md found that inverted against the one thing this product is
+ * docs/PRODUCT.md found that inverted against the one thing this product is
  * for: finding out early. So they are in chapter two, where the intake already
  * says "the life you want", and the eleven shows her side of each. No
  * `weight`, so the seven grounds do not move. The cap is A1's to police
- * (docs/EXPERIMENTS.md): sixteen, one of them optional, against evidence that
+ * (docs/RESEARCH.md): sixteen, one of them optional, against evidence that
  * twenty-three was too many.
  */
 const household: Question = {

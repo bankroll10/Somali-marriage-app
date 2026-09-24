@@ -18,7 +18,7 @@ interface Props {
    * link, which is the first thing most people do after sending one. Without
    * it this screen greeted her as him and, one tap later, had her answering
    * the eleven as him: her answers became his side, the joint sheet became her
-   * answers against her own, and it could not be undone (docs/NIELSEN.md N1).
+   * answers against her own, and it could not be undone (docs/DESIGN.md N1).
    */
   yours?: boolean
   /**
@@ -28,7 +28,7 @@ interface Props {
   onAnswered: (states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>) => void
   /**
    * He began her eleven. The one instrument whose abandonment was invisible on
-   * both devices — see src/data/instruments.ts and docs/EXPERIMENTS.md.
+   * both devices — see src/data/instruments.ts and docs/RESEARCH.md.
    */
   onBegan: () => void
   onRead: () => void
@@ -53,11 +53,11 @@ type Phase = 'loading' | 'dead' | 'unreachable' | 'answered-already' | 'intro' |
 export default function Couple({ code, yours = false, onAnswered, onBegan, onRead, onBuildMap, onHome, saveOk = true }: Props) {
   const [phase, setPhase] = useState<Phase>('loading')
   // The eleventh answer is a network write. Without this a second tap fired it
-  // twice, the second came back 409, and the screen went blank (docs/NORMAN.md).
+  // twice, the second came back 409, and the screen went blank (docs/DESIGN.md).
   const [sending, setSending] = useState(false)
   const [answerFor, setAnswerFor] = useState<Gender>('man')
   // Read once, on the way in. His answers used to live only here, so a reload
-  // or a backgrounded tab cost him all of them (docs/FAIL.md).
+  // or a backgrounded tab cost him all of them (docs/DESIGN.md).
   const [draft] = useState(() => loadDraft('couple'))
   const [picked, setPicked] = useState<Record<string, string>>(() => draft?.answers ?? {})
   const [index, setIndex] = useState(0)
@@ -74,7 +74,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
       if (typeof v === 'string') setPhase(v === 'not-found' || v === 'expired' || v === 'not-a-code' ? 'dead' : 'unreachable')
       else if (v.status === 'joint') {
         // Which side answered, so a report from here is filed as that side —
-        // it defaulted to "man" for everyone (docs/ABUSE.md).
+        // it defaulted to "man" for everyone (docs/SECURITY.md).
         if (v.answerFor) setAnswerFor(v.answerFor)
         setView(v)
         setPhase('answered-already')
@@ -114,7 +114,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
       // A timeout is not a dead link. This used to drop him on "This link
       // isn't working — it may have expired, or been copied wrong" and throw
       // away all eleven answers, on the eleventh tap, for a two-second blip
-      // on someone else's phone (docs/FAIL.md). His answers are still in
+      // on someone else's phone (docs/DESIGN.md). His answers are still in
       // `picked`; he stays exactly where he is and taps again.
       if (result === 'not-found' || result === 'expired' || result === 'not-a-code') {
         setPhase('dead')
@@ -269,7 +269,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                       // that fires a ten-second network write looked exactly
                       // like the ten before it. That missing feedback is what
                       // produced the second tap the guard exists for
-                      // (docs/FAIL.md).
+                      // (docs/DESIGN.md).
                       disabled={sending}
                       style={{ animationDelay: `${i * 40}ms` }}
                       className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 disabled:opacity-60 ${
@@ -298,7 +298,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 {/* Back existed from question two, so tapping Start committed
                     him to eleven questions with no way back to what the screen
                     had just told him. Read.tsx steps back to its intro from
-                    question one; this now does the same (docs/PLACE.md). */}
+                    question one; this now does the same (docs/DESIGN.md). */}
                 <button
                   onClick={() => (index > 0 ? setIndex(index - 1) : setPhase('intro'))}
                   className="mt-5 text-sm font-medium text-muted underline-offset-4 hover:underline"
@@ -312,7 +312,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
 
         {/* Answered, but the joint sheet did not come back — a second tap, a
             second device, or the read failing. This branch rendered nothing at
-            all before (docs/NORMAN.md). */}
+            all before (docs/DESIGN.md). */}
         {phase === 'answered-already' && view?.status !== 'joint' && (
           <div className="py-16">
             <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Already answered</p>

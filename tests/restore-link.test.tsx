@@ -30,7 +30,7 @@ describe('the restore link', () => {
   })
 
   it('says a different code is someone else’s map, whatever name the sender wrote', async () => {
-    // An ex keeps a map with her name and city in it (docs/ABUSE.md). The
+    // An ex keeps a map with her name and city in it (docs/SECURITY.md). The
     // phone's own code is the one fact he cannot set.
     const incoming = { identity: { firstName: 'Hodan' }, answers: {} } as unknown as PersistedState
     const theirs = await mount(<ConfirmRestore code="ACDEFGHJ" incoming={incoming} current={null} ownCode="KMNPQRST" onDone={() => {}} />)

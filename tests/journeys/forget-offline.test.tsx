@@ -16,7 +16,7 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
  * The one control that makes every privacy sentence enforceable, on the one
  * path where it used to fail silently: the phone was wiped, the retry had no
  * code left to send, and her map stayed on the server for a year
- * (docs/INTEGRITY.md). Here, through the real screens: she keeps her map,
+ * (docs/PRIVACY.md). Here, through the real screens: she keeps her map,
  * opens Trust from her profile, and forgets while the network is down. Trust
  * must say what is still held and show her the code to write in with; her
  * phone must keep nothing but that; and the next time Niyyah opens with the
@@ -69,7 +69,7 @@ describe('forget me, with the server down', () => {
     expect(residue(['Hodan'], [phone]).filter((l) => l.startsWith('phone'))).toEqual([])
     // The page is not replaced on this path, so the app is still holding
     // everything it just erased — and its autosave used to write it all back
-    // on the next change to anything (docs/FAIL.md). Change something, wait
+    // on the next change to anything (docs/DESIGN.md). Change something, wait
     // past the autosave, and look again.
     await m.press(/^Keep the Guide on this device/)
     await new Promise((r) => setTimeout(r, 400))

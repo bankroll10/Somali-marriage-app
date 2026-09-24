@@ -191,7 +191,7 @@ describe('the readout', () => {
     // A man who arrives through her eleven is already talking to someone; he is
     // not supply for anyone else. `sides` alone says seven men, `vias` alone
     // says six through a group, and neither can say whether they are the same
-    // men (docs/REDTEAM.md).
+    // men (docs/RESEARCH.md).
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'ACDEFK']) {
       await post({ id, rungs: ['arrived'], gender: 'man', via: 'group' })
     }
@@ -214,9 +214,9 @@ describe('the readout', () => {
   })
 
   it('counts the map kept apart from the map built, so gap #3 is computable', async () => {
-    // docs/GAPS.md #3 — "people will not put a map on a server" — is its own
-    // failure. Five built a map and stopped; five kept it. Before the `kept`
-    // rung the two were the same number (docs/ROADMAP.md).
+    // docs/RESEARCH.md, open question 3 — "people will not put a map on a
+    // server" — is its own failure. Five built a map and stopped; five kept it. Before the `kept`
+    // rung the two were the same number (docs/PRODUCT.md).
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
       await post({ id, rungs: ['arrived', 'mapped'] })
     }
@@ -253,7 +253,7 @@ describe('the readout', () => {
 
   it('a link shared into a community group is its own source, and says nothing about which group', async () => {
     // The first forty are found through alumni and professional group chats
-    // (docs/WEDGE.md). Their arrivals get a row of their own so the founder can
+    // (docs/PRODUCT.md). Their arrivals get a row of their own so the founder can
     // read that channel against one-to-one sends — and the row is a kind of
     // room, never a room: no group name, no id, nothing but `group`.
     for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) {
@@ -346,7 +346,7 @@ describe('the founder key', () => {
     vi.stubEnv('FOUNDER_KEY', '')
     await post({ id: ID, rungs: ['arrived'] })
     // Unset used to mean open; a misconfigured deploy published every readout
-    // and the founder learned of it from this log line (docs/BOARD.md). Now
+    // and the founder learned of it from this log line (docs/DECISIONS.md). Now
     // unset means closed, and the log line says how to open it.
     expect((await readout()).status).toBe(401)
     expect(warn.mock.calls.flat().join(' ')).toContain('FOUNDER_KEY is not set')
@@ -574,7 +574,7 @@ describe('the facts', () => {
  * that ends the reporting. So the one outcome this product exists to cause
  * dropped out of every readout at day 366 and the historical count changed
  * retroactively, while the blob stayed on disk for ever because nothing
- * deleted it either. docs/HARD.md.
+ * deleted it either. docs/SECURITY.md.
  */
 describe('what the year does and does not take', () => {
   const stale = (extra: Record<string, unknown>) => ({

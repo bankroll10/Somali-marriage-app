@@ -259,7 +259,7 @@ describe('a new code for a map someone has seen', () => {
   })
 })
 
-describe('two phones, one map (docs/INTEGRITY.md)', () => {
+describe('two phones, one map (docs/PRIVACY.md)', () => {
   const ok = (body: object) => new Response(JSON.stringify(body), { status: 200 })
 
   it('sends the revision it last saw, and remembers the one it gets back', async () => {

@@ -196,8 +196,11 @@ export async function safetyChecks(today: string): Promise<Check[]> {
     {
       id: 'safety',
       question: 'Are safety reports waiting?',
-      state: open > 0 ? (age > 7 ? 'fail' : 'warn') : 'ok',
-      // Monday's run fails on anything open — Trust promises a weekly read.
+      // Anything open fails, and the weekly cadence means only Monday's 09:00
+      // run turns that into an email: Trust and the report screen promise a
+      // read within the week. It used to fail only past seven days, so a
+      // report filed on a Tuesday first reached the founder thirteen days on.
+      state: open > 0 ? 'fail' : 'ok',
       cadence: 'weekly',
       summary: open === 0 ? 'No report is open.' : `${open} open report${open === 1 ? '' : 's'}; the oldest is ${age} day${age === 1 ? '' : 's'} old.`,
       numbers: { open, urgent, oldestDays: oldest ? age : null },
@@ -254,9 +257,9 @@ export async function countStores(): Promise<Sizes> {
  * Did a store lose records it should not have? Compares today with the last
  * day on record. The weekly sweep removes lapsed records a few at a time;
  * a store losing a quarter of itself between two days is not the sweep
- * (docs/RECOVERY.md, "Deleted data"). The safety queue is held tighter: a
- * resolved report leaves a stub, so its count only falls when a member
- * withdraws one — or when the queue is lost.
+ * (docs/OPS.md, "Deleted data"). The safety queue is held tighter: a
+ * resolved report leaves a stub and nothing withdraws one, so its count only
+ * falls when the queue is lost.
  */
 export function dataCheck(now: Sizes, before: { day: string; sizes: Sizes } | null): Check {
   const question = 'Has stored data gone missing?'
@@ -282,7 +285,7 @@ export function dataCheck(now: Sizes, before: { day: string; sizes: Sizes } | nu
     summary:
       drops.length === 0
         ? `No store is smaller than on ${before.day}.`
-        : `Smaller than on ${before.day}: ${drops.join(', ')}. docs/RECOVERY.md, “Deleted data”, says what to do.`,
+        : `Smaller than on ${before.day}: ${drops.join(', ')}. docs/OPS.md, “Deleted data”, says what to do.`,
     numbers: { ...now, since: before.day, ...Object.fromEntries(Object.entries(before.sizes).map(([k, v]) => [`${k}Before`, v])) },
   }
 }

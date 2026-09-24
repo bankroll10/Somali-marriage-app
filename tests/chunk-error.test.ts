@@ -22,7 +22,7 @@ describe('a screen that never reached the phone', () => {
     expect(isChunkLoadError(null)).toBe(false)
   })
 
-  // docs/THREAT.md, T18: a dropped signal used to land on a screen whose second
+  // docs/SECURITY.md, T18: a dropped signal used to land on a screen whose second
   // button erased every key on the phone, the kept-map code included.
   it('is never offered a button that erases her data', () => {
     const boundary = readFileSync('src/components/ErrorBoundary.tsx', 'utf8')

@@ -1,7 +1,7 @@
 /**
  * Why a member is reporting a concern about whoever is on the other side of
  * her eleven — the six reasons this product actually acts on, and the one
- * carve-out in docs/LEARNING.md that lets a report say a line more than that.
+ * carve-out in docs/PRIVACY.md that lets a report say a line more than that.
  *
  * Must match netlify/shared/vocab.ts SAFETY_REASONS.
  */
@@ -25,7 +25,7 @@ export const SAFETY_REASONS: SafetyReason[] = [
  * rather than a promise in front of it.
  *
  * This product has no accounts, so there is no ban button that means anything
- * (`docs/TIME.md`). The real levers are social: a conversation, or a word to
+ * (`docs/OPS.md`). The real levers are social: a conversation, or a word to
  * their family.
  *
  * Never shown to a member. This is the founder's own vocabulary, and it exists

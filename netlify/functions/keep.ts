@@ -73,7 +73,7 @@ export type { KeptMap } from '../shared/integrity'
 
 type Store = ReturnType<typeof getStore>
 
-/** A code that was forgotten or moved answers 410, and says which (docs/INTEGRITY.md). */
+/** A code that was forgotten or moved answers 410, and says which (docs/PRIVACY.md). */
 const closed = (why: string) => Response.json({ error: why }, { status: 410, headers: { 'Cache-Control': 'no-store' } })
 
 /** A map, carried to a new code: the same answers and first day, a fresh year, one more revision. */
@@ -122,11 +122,11 @@ export default async function handler(req: Request) {
     // Never cached, by a browser or anything between: the body is her whole
     // map, and the only thing protecting it is a code in the URL. A 404 is
     // not cached either — "nothing here" for a code is a wrong answer the
-    // day it is kept (docs/THREAT.md, T4).
+    // day it is kept (docs/SECURITY.md, T4).
     const headers = { 'Cache-Control': 'no-store' }
     try {
       // A code she forgot or changed opens nothing, even if a forget or a move
-      // stopped part-way and the map is still there (docs/INTEGRITY.md).
+      // stopped part-way and the map is still there (docs/PRIVACY.md).
       const why = await ended(store, code)
       if (why) return closed(why)
       const kept = (await store.getWithMetadata(code, { type: 'json' })) as { data: KeptMap; etag?: string } | null
@@ -150,7 +150,7 @@ export default async function handler(req: Request) {
   // in it.
   //
   // In this order, so that any step can fail and a retry finishes it
-  // (docs/INTEGRITY.md): the code is closed first, so from that moment it
+  // (docs/PRIVACY.md): the code is closed first, so from that moment it
   // restores nothing and cannot be kept again from another phone; then the
   // sheet is retired; the map goes last, because it is the one thing that
   // says which couple sheet was hers. A retry after the map went, with the
@@ -182,7 +182,7 @@ export default async function handler(req: Request) {
       // throwaway map claiming to be her, forget it, and erase every report
       // she had filed about him (docs/SECURITY.md, O1). A report stays until
       // the founder has read and resolved it (netlify/functions/safety.ts,
-      // docs/ABUSE.md).
+      // docs/SECURITY.md).
       await store.delete(code)
       return Response.json({ forgotten: true })
     } catch (err) {
@@ -193,14 +193,14 @@ export default async function handler(req: Request) {
 
   // ── A new code, everything carried across ────────────────────────────────
   // For a code someone else has seen. Possession is the authority here
-  // (docs/HARD.md), so a code read over her shoulder or taken from her phone
+  // (docs/SECURITY.md), so a code read over her shoulder or taken from her phone
   // let its holder read her map and write over it. The only way to take it
-  // back was forget me, which cost her the map (docs/THREAT.md T8,
-  // docs/ABUSE.md).
+  // back was forget me, which cost her the map (docs/SECURITY.md T8,
+  // docs/SECURITY.md).
   //
   // Journaled, so that a failure at any step is finished by a retry or undone
   // by the sweep, and never leaves a whole copy of her map under a code nobody
-  // was told (docs/INTEGRITY.md):
+  // was told (docs/PRIVACY.md):
   //
   //   1. `moving/<old>` names the new code before anything is copied. A retry
   //      finds it and resumes the same move — the same new code, never a
@@ -330,12 +330,12 @@ export default async function handler(req: Request) {
    * bare write under whatever code the body carried — so a code nobody held
    * was created on demand, skipping `mint`'s `onlyIfNew`, and a guessed code
    * overwrote a stranger's map as surely as DELETE once destroyed one
-   * (docs/HARD.md row 3, docs/BOARD.md). Nothing under the code is a 404, and
+   * (docs/SECURITY.md row 3, docs/DECISIONS.md). Nothing under the code is a 404, and
    * the client mints fresh; something under it is written with the etag it
    * was read at, so two saves racing lose one cleanly instead of
    * interleaving.
    *
-   * And only by a phone that has seen the latest keep (docs/INTEGRITY.md). A
+   * And only by a phone that has seen the latest keep (docs/PRIVACY.md). A
    * phone that last kept at revision 2 cannot write over revision 3 kept from
    * another phone since — it is told `stale`, and she decides which to keep.
    * A phone that sends no revision (an older client, or a code kept before

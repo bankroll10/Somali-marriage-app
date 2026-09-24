@@ -10,7 +10,7 @@ import type { Stage } from '../types'
  * only question this product asks about her life, and the North Star's
  * numerator) rendered nowhere, because it renders only on Home. The metric
  * for the one user the wedge is built around read zero by construction
- * (docs/BOARD.md).
+ * (docs/DECISIONS.md).
  *
  * The instrument is the answer to the situation question. A read is eleven
  * questions about someone she is talking to; the eleven is what a couple asks
@@ -41,7 +41,7 @@ export function hasHomeFor(i: { completed: boolean; stage: Stage }): boolean {
  * left the ending — the one screen built for this moment — unreachable from
  * the only place a person says they are married. What she met instead was an
  * empty compose box she had to write into before the product would say
- * anything (docs/AUDIT.md §6, measured in docs/VALUE.md).
+ * anything (docs/DECISIONS.md (AUDIT) §6, measured in docs/DESIGN.md).
  */
 export function marriedOpensEnding(from: Stage, hasEnding: boolean): boolean {
   return from !== 'married' && !hasEnding

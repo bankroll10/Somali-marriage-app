@@ -18,7 +18,7 @@ import { hasHomeFor, stageAfterInstrument } from './inferStage'
  * written, persisted, and unreachable for ever — and "followed through per
  * hundred arrived", the one number the whole thing is for, read zero by
  * construction for exactly the person the product is aimed at
- * (`src/lib/inferStage.ts`, `docs/BOARD.md`).
+ * (`src/lib/inferStage.ts`, `docs/DECISIONS.md`).
  *
  * A stranger opening a link on a phone that has never seen Niyyah is the
  * sprint's main subject, so this walks that person end to end: no answers, no

@@ -16,7 +16,7 @@
  * store and could count by hand, so this does not protect against the founder;
  * it protects against a leaked founder key and against casual inference. And a
  * floored cell beside an unfloored total can be recovered by subtraction when
- * every other cell in the row is shown — OPERATING.md says so, rather than
+ * every other cell in the row is shown — docs/PRIVACY.md says so, rather than
  * pretend otherwise. It is cheap, it removes the easy read, and the honest
  * sentence on Trust and the day-precision dates do the heavier lifting.
  */

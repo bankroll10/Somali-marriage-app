@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { DESCRIPTION } from '../src/data/brand'
 
 /**
- * The brand's first sentences live in one file — docs/BACKWARD.md's
+ * The brand's first sentences live in one file — docs/PRODUCT.md's
  * institution rule, for the strings it can be enforced on. index.html reads
  * them at build time; the manifest is static and is held equal here; the
  * components import them. tests/voice.test.ts holds "powered by AI" out.

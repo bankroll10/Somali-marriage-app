@@ -4,7 +4,7 @@
  * These used to load from fonts.googleapis.com, which made Google the only
  * third party the browser ever contacted — and meant Google saw the IP address
  * of every person who opened a Somali marriage app. That is hard to square
- * with docs/LEARNING.md, and it put a dependency in the critical path of the
+ * with docs/PRIVACY.md, and it put a dependency in the critical path of the
  * share card, which blocks on document.fonts.ready before measuring text.
  *
  * These are Google's own @font-face declarations with the URLs pointed at
@@ -65,7 +65,7 @@
   --color-sand: #e7dcc6;
   --color-ink: #1f2420;
   --color-ink-soft: #3c423b;
-  /* Darkened 2026-09-20 (docs/ACCESS.md) from #75726a — 4.30:1 on cream,
+  /* Darkened 2026-09-20 (docs/DESIGN.md) from #75726a — 4.30:1 on cream,
      just under WCAG AA's 4.5:1 for normal text, in the single most-used
      text color in the product. Same hue and near-identical to the eye;
      4.63:1 now. */
@@ -265,7 +265,7 @@
     animation: screen-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
 
-  /* Safe-area padding (docs/MOBILE.md). iOS's status bar (black-translucent,
+  /* Safe-area padding (docs/DESIGN.md). iOS's status bar (black-translucent,
      see index.html) and home-indicator gesture bar both sit inside the
      visual viewport once this app runs standalone (viewport-fit=cover) —
      nothing here used env() before this pass. Every one of these falls back

@@ -3,14 +3,14 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * The performance pass, held honest (docs/PERFORMANCE.md).
+ * The performance pass, held honest (docs/DESIGN.md).
  *
  * Structural only — scanned source, no jsdom, in the shape of
  * tests/mobile.test.ts and tests/load.test.ts. What it guards is the one
  * thing a future change is most likely to quietly undo: every screen past
  * Welcome loading lazily, and a streaming reply never forcing more than one
  * render per frame. Both were measured, not assumed — the numbers are in
- * docs/PERFORMANCE.md.
+ * docs/DESIGN.md.
  */
 
 const SRC = join(import.meta.dirname, '..', 'src')

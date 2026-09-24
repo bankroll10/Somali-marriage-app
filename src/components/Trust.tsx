@@ -56,7 +56,7 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
           </h1>
           {/* What's free, in three sentences. A whole screen used to say this,
               beside a list of paid products nobody can buy yet
-              (docs/MONETIZATION.md is the plan; this is the promise). */}
+              (docs/PRODUCT.md is the plan; this is the promise). */}
           <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
             {[
               'Everything here is free. Nothing that protects you is ever paid, at any price.',
@@ -124,11 +124,14 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 under your code:
               </p>
               <ul className={LIST}>
-                <li>the first name you gave</li>
+                <li>the first name you gave, that you are 18 or over, and whether you are a woman or a man</li>
                 <li>your answers, and every reading of your map</li>
-                <li>where you said you are</li>
-                <li>any read or Before you say yes you’ve done</li>
+                <li>where you said you are, and where you are in it — preparing, talking, deciding, married</li>
+                <li>any read or Before you say yes you’ve done, and which of the four you began</li>
                 <li>your couple code</li>
+                <li>the words we handed you, and whether you said them</li>
+                <li>any courtship you told us ended, and what decided it if you said</li>
+                <li>how many guide replies you’ve used, and your two settings here</li>
                 <li>if you’ve married, what you told us on the way out</li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
@@ -137,6 +140,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 The code is registered to nobody, and without it nobody can reach the map.
+              </p>
+              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+                Your kept map lives in one place, with the company we rent storage from, and the
+                founder’s backup does not include it. If that storage were lost, the map would be
+                too, which is why it also stays on your phone.
               </p>
             </Disclose>
 
@@ -203,8 +211,9 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 If you opened Niyyah from a link someone sent you, it also says what kind of link
                 that was — words, the eleven, a couple’s link, a family link, a link shared
-                into a community’s group, or a link from someone this worked for — and not who sent
-                it, or which group.
+                into a community’s group (and whether that was an alumni or professional group, or
+                a mosque), a link in an article, or a link from someone this worked for — and not
+                who sent it, which group, or which article.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 One more word, once: that you have asked the guide at all — not what you asked, not
@@ -255,7 +264,7 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
           {/* The mechanism, and its honest limit — 182 words that a person
               reading a promise does not have to read to trust it, and must be
               able to find the moment she wants to hold us to it
-              (docs/LOAD.md). Same words, on a row that says what they are. */}
+              (docs/DESIGN.md). Same words, on a row that says what they are. */}
           {/* The route, on the screen that promises it.
               This paragraph has said "you can report a concern about them"
               since the safety function shipped, and this screen offered no way
@@ -263,7 +272,7 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               sheet, four taps deep, reachable only after he had answered. A
               person is most motivated to report weeks later, when something has
               happened — and at that moment the prompt did not exist anywhere
-              she would look (docs/FOGG.md). */}
+              she would look (docs/DESIGN.md). */}
           {coupleCode && (identity.gender === 'woman' || identity.gender === 'man') && (
             <div className="mt-4 rounded-card border border-cream/20 bg-cream/10 p-4">
               <ReportConcern code={coupleCode} side={identity.gender} />
@@ -300,7 +309,7 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
  * `desc` is the sentence that answers the question most people have; `more` is
  * the part that only matters if they want it. Count me's reason used to be a
  * hundred words of storage mechanics sitting open above the switch
- * (docs/LOAD.md), which is a fine way to make a person stop reading before the
+ * (docs/DESIGN.md), which is a fine way to make a person stop reading before the
  * sentence that says they can turn it off.
  */
 function Control({

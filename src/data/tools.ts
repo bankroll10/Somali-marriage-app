@@ -27,7 +27,7 @@
  * three did rather than a new one: the audit that added it found it still
  * minted as a query-only link (`?families`), which carries no static preview
  * of its own. It has no `about`; a person arrives at the family words for
- * themself, not to read someone else. See `docs/LINKS.md`.
+ * themself, not to read someone else. See `docs/DESIGN.md`.
  *
  * `via` is what a share of the blank tool records: the same id the invitation
  * row already uses for the same gesture (`src/data/invite.ts`). No new id,

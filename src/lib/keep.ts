@@ -29,7 +29,7 @@ const ENDPOINT = '/.netlify/functions/keep'
  *  - Not the line she writes for the next person at the end. Ending says it
  *    never leaves; it went with every keep (docs/PRIVACY.md, C3).
  *  - No moment finer than a day. Every other store has kept that rule since
- *    docs/LEARNING.md; this one carried millisecond timestamps, a follow-up id
+ *    docs/PRIVACY.md; this one carried millisecond timestamps, a follow-up id
  *    built from one, and `updatedAt` — a last-seen time under another name
  *    (docs/PRIVACY.md, C1–C2). What comes back after a restore is used only in
  *    days.
@@ -84,7 +84,7 @@ export function rememberedCode(): string | null {
 
 /**
  * The revision of the map this phone last kept or brought back
- * (docs/INTEGRITY.md). Sent with every re-keep, so a phone that has not seen
+ * (docs/PRIVACY.md). Sent with every re-keep, so a phone that has not seen
  * a keep made from another phone since cannot write over it.
  */
 const REV_KEY = 'niyyah.keep.rev.v1'
@@ -126,7 +126,7 @@ export function forgetCode() {
 
 
 /**
- * Why a keep did not produce a code (docs/INTEGRITY.md):
+ * Why a keep did not produce a code (docs/PRIVACY.md):
  *  - `stale` — the map was kept from another phone since this one last saw
  *    it. Nothing was written over it; this phone keeps its answers.
  *  - `moved` — the code was changed on another phone, and opens nothing now.
@@ -217,7 +217,7 @@ async function keepOnce(): Promise<string | KeepProblem> {
   // used to commit first, so a second attempt that timed out left the device
   // with no code at all while the screen said "nothing is lost" — and if the
   // 404 had been transient, the map it pointed at was still there and no
-  // longer reachable (docs/FAIL.md).
+  // longer reachable (docs/DESIGN.md).
   if (res?.status === 404 && rememberedCode()) {
     const replacement = await put(null)
     if (replacement?.ok) {
@@ -278,7 +278,7 @@ export async function rotateCode(): Promise<string | null> {
  * again" for all of them — so a person whose map had *expired* (the server
  * deletes the blob on that read) was told to check her typing, and a person
  * with a perfectly good code and no signal was told her map did not exist. She
- * retypes a correct code at a server that cannot answer (docs/NORMAN.md).
+ * retypes a correct code at a server that cannot answer (docs/DESIGN.md).
  */
 export type RestoreProblem = 'not-a-code' | 'not-found' | 'expired' | 'moved' | 'forgotten' | 'unreachable'
 

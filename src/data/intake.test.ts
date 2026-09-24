@@ -47,7 +47,7 @@ function canScore(q: (typeof allQuestions)[number]): boolean {
 describe('the intake — short enough to finish, complete enough to read', () => {
   it('stays short — the first testers did not finish 23', () => {
     // Thirteen, then sixteen when the three "how you'd live" questions moved
-    // in from Profile (docs/NORTHSTAR.md). Raising it again is a product
+    // in from Profile (docs/PRODUCT.md). Raising it again is a product
     // decision that needs A1's completion rate, not a question that felt too
     // good to leave out.
     expect(totalQuestions).toBeLessThanOrEqual(16)
@@ -63,7 +63,7 @@ describe('the intake — short enough to finish, complete enough to read', () =>
     }
   })
 
-  it('no answer that is a position carries a readiness weight (docs/ALIGNMENT.md S5)', () => {
+  it('no answer that is a position carries a readiness weight (docs/PRODUCT.md S5)', () => {
     // Faith, family and children are positions; how soon is a timeline, not readiness.
     for (const id of ['practice', 'family-role', 'children', 'timeline']) {
       const q = allQuestions.find((x) => x.id === id)!

@@ -4,13 +4,13 @@ import { describe, expect, it } from 'vitest'
 import { BANNED } from './voice-rules'
 
 /**
- * The voice, held as a list of things it does not say (docs/VOICE.md).
+ * The voice, held as a list of things it does not say (docs/DESIGN.md).
  *
  * Every phrase here was live in the product on 2026-09-20, most of them
  * dozens of times. They fall into five habits: the verbal tic ("actually" —
  * sixty occurrences), announcing sincerity ("genuinely", "on purpose"),
  * therapy vocabulary outside the one voice allowed it, startup nouns
- * ("founding cohort", "platform"), and the phrase docs/PROTOCOL.md:386 names
+ * ("founding cohort", "platform"), and the phrase docs/PROTOCOL.md ("Exaggerated") names
  * as its example of an exaggerated cultural claim. A word that earns its
  * place goes on the allowlist with a reason; nothing else does.
  *
@@ -23,7 +23,7 @@ const DIRS = ['components', 'data', 'lib']
 
 
 /**
- * Authority the product has not earned, said to a member (docs/ALIGNMENT.md).
+ * Authority the product has not earned, said to a member (docs/PRODUCT.md).
  * No introduction has been made and nothing here has been measured against
  * an outcome, so no screen predicts, ranks a difference as light, or quotes
  * a statistic about other couples. Copy only: the guide may say that nobody
@@ -42,7 +42,7 @@ const OVERCLAIMS: [RegExp, string][] = [
  * Promises the code cannot keep. Until 2026-09-17 four screens said "the day
  * someone fits your map, we write to you" with no matching and no outbound
  * channel anywhere, and the sample introduction promised photos and a guided
- * conversation, both refused permanently (docs/STRATEGY.md §6). Every one was
+ * conversation, both refused permanently (docs/PRODUCT.md §6). Every one was
  * warm, well written and false. A screen says what exists.
  */
 const PROMISES: [RegExp, string][] = [

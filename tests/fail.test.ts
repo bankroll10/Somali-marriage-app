@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest'
  *
  * Read from the source. Each of these is a defect that existed and was
  * shipped, so each one is a thing somebody could reasonably re-introduce
- * without noticing (docs/FAIL.md). What a test can *cause* — a limiter whose
+ * without noticing (docs/DESIGN.md). What a test can *cause* — a limiter whose
  * store will not open, a body cut off mid-upload, two answers landing at once, the autosave after a
  * failed forget — moved to tests/failure-modes.test.ts and
  * tests/journeys/forget-offline.test.tsx on 2026-09-24, where it is proved by

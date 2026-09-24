@@ -6,7 +6,7 @@ import { SAFETY_REPLY, askCoach, needsCrisisLine, needsHelpLine } from '../src/l
 import { buildSystemPrompt, sanitiseContext } from '../netlify/shared/prompt'
 
 /**
- * Somewhere to go when it cannot wait a week (docs/ABUSE.md). Before this
+ * Somewhere to go when it cannot wait a week (docs/SECURITY.md). Before this
  * there was no emergency number or helpline anywhere in the app, on a report
  * screen whose second reason is a threat, under a read whose caution band
  * said "not a question for an app" and gave no line to call, and behind a

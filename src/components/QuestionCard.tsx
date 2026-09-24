@@ -152,7 +152,7 @@ function MultiChoice({
           // At the maximum, the options she has not picked are dimmed. They
           // used to stay tappable and silently do nothing — a control that
           // looks unavailable, accepts the tap and answers with neither a
-          // change nor a reason (docs/NORMAN.md). Now the tap is refused, and
+          // change nor a reason (docs/DESIGN.md). Now the tap is refused, and
           // assistive tech is told why by the counter below.
           <div key={opt.id} className={disabled ? 'opacity-45 transition-opacity' : ''} aria-disabled={disabled || undefined}>
             <OptionRow

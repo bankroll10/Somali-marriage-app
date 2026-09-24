@@ -12,10 +12,10 @@ import type { CoachMessage, ModeId } from '../types'
  * The local matcher is therefore not scaffolding — it is the offline voice, and
  * the one that speaks whenever the live guide cannot: no ANTHROPIC_API_KEY, the
  * route unreachable, a cap met, a decline. The live guide is on in production
- * (netlify/functions/guide.ts, a decision recorded in docs/ROADMAP.md), and the
+ * (netlify/functions/guide.ts, a decision recorded in docs/PRODUCT.md), and the
  * Trust screen says so — it names what is sent and offers "Keep the Guide on
  * this device", which answers offline and sends nothing. This comment used to
- * say the opposite of both (docs/BOARD.md).
+ * say the opposite of both (docs/DECISIONS.md).
  */
 
 function normalize(s: string): string {
@@ -42,7 +42,7 @@ function hasWords(message: string, keyword: string): boolean {
 
 /**
  * Words that mean this may not be a relationship question at all
- * (docs/ABUSE.md): a threat, force, a man or woman asking for money before the
+ * (docs/SECURITY.md): a threat, force, a man or woman asking for money before the
  * families have met, someone holding pictures over her. Matched as whole
  * words, on her own phone; nothing is sent or kept because of it.
  */
@@ -234,7 +234,7 @@ export interface CoachReply {
    * those words replaced by the canned framework — she watched a tailored
    * answer being typed and then saw it vanish. And a fallback must not cost
    * one of her replies: the comment at the charge site says it already does
-   * not, and until now it did (docs/FAIL.md).
+   * not, and until now it did (docs/DESIGN.md).
    */
   live: boolean
 }

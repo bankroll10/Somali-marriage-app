@@ -22,7 +22,7 @@ import type {
  * ─── The seam that was here, and why it is closed ──────────────────────────
  * This file used to carry a plan to put a model behind `generateReflection` —
  * the roadmap called it "the last local seam", as though local were a stage to
- * grow out of. docs/DURABLE.md declines it, and the reasoning is worth keeping
+ * grow out of. docs/PRODUCT.md declines it, and the reasoning is worth keeping
  * where the temptation lives:
  *
  * The map is the durable asset. It is the thing that gets matched, it is built
@@ -58,7 +58,7 @@ const DIMENSION_LABELS: Record<Dimension, string> = {
  * faith" on Home; wanting family informed rather than central, or no children,
  * or a three-year timeline, scored lower too. That is a religious and cultural
  * verdict the guide is forbidden to give, from weights nobody measured
- * (docs/ALIGNMENT.md S5). So these are described, in her own words, and never
+ * (docs/PRODUCT.md S5). So these are described, in her own words, and never
  * rated; and they are never anyone's thinnest ground, though the work on them
  * is still offered after the rated grounds'.
  */
@@ -520,7 +520,7 @@ export function snapshotOf(answers: Answers, date: string): MapSnapshot {
   for (const d of r.dimensions) if (d.state) grounds[d.dimension] = d.state
   // Only the map's own answers — the hook is asked before the map and is not
   // part of it. How you'd live used to be excluded here too; it is in chapter
-  // two now (docs/NORTHSTAR.md), so whose house she pictures is something the
+  // two now (docs/PRODUCT.md), so whose house she pictures is something the
   // next reading can say has changed.
   const own: Answers = {}
   for (const q of allQuestions) if (answers[q.id] !== undefined) own[q.id] = answers[q.id]
@@ -582,7 +582,7 @@ export function changesBetween(
 
 /**
  * Async entry point used by the UI. Local synthesis — and it stays local; see
- * the seam note at the top of this file and docs/DURABLE.md.
+ * the seam note at the top of this file and docs/PRODUCT.md.
  */
 export async function generateReflection(answers: Answers): Promise<Reflection> {
   // Small intentional pause — this moment should feel considered, not instant.

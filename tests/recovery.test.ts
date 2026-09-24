@@ -11,7 +11,7 @@ import { day } from '../netlify/shared/day'
 vi.mock('@netlify/blobs', async () => (await import('./support/blobs')).blobsModule)
 
 /**
- * Disaster-recovery drills (docs/RECOVERY.md).
+ * Disaster-recovery drills (docs/OPS.md).
  *
  * Each scenario the review names that can be simulated safely is simulated
  * here, on every PR: a store lost, a store corrupted, a backup restored, a
@@ -188,8 +188,8 @@ describe('a broken migration: every record shape ever written, read by the code 
   // filed and one resolved, a code changed, a member forgotten). v0 is the
   // same records as they were before versioning — no `v`, no `rev`,
   // timestamps to the millisecond. A change that cannot read one of these
-  // fails here first (docs/RECOVERY.md, "A broken migration";
-  // docs/INTEGRITY.md). The door's and the vouch's records are still here:
+  // fails here first (docs/OPS.md, "A broken migration";
+  // docs/PRIVACY.md). The door's and the vouch's records are still here:
   // they are on the server, and the sweep has to empty them.
   for (const version of ['v0', 'v1']) {
     it(`reads ${version} without a crash on any route`, async () => {
@@ -251,7 +251,7 @@ describe('a lost or compromised secret', () => {
 })
 
 describe('the domain lost: the site can move to another address', () => {
-  // docs/RECOVERY.md, "Domain failure". Built with VITE_SITE_HOST set to the
+  // docs/OPS.md, "Domain failure". Built with VITE_SITE_HOST set to the
   // fallback, only the printed sheets (fixed on paper by design) and the
   // contact address (mail lives on the domain) may still name the old one.
   it('the guide and its sample carry the configured host, and never the old one', async () => {

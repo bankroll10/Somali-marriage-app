@@ -111,7 +111,7 @@ export default function KeepMap({ onKept }: Props = {}) {
           never ask you for it.
         </p>
         {/* A code someone has seen is a key someone holds. This used to have one
-            remedy, forget me, which cost her everything (docs/ABUSE.md). */}
+            remedy, forget me, which cost her everything (docs/SECURITY.md). */}
         {changed ? (
           <p className="mt-3 text-[0.82rem] leading-relaxed text-forest text-pretty">
             New code. The old one opens nothing now, and any link with it in is dead.

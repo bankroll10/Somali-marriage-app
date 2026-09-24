@@ -39,7 +39,7 @@ describe('Forget me clears every key the app writes', () => {
     // One key outlives the wipe, on purpose: a forget the server did not
     // receive, holding only the codes still to delete. It is Forget me's own
     // unfinished instruction, and it goes the moment the server has done it
-    // (src/lib/forget.ts, docs/INTEGRITY.md).
+    // (src/lib/forget.ts, docs/PRIVACY.md).
     const outlives = new Set(['niyyah.forget.pending.v1'])
     for (const key of found) {
       if (outlives.has(key)) continue

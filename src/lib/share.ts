@@ -14,7 +14,7 @@ export type ShareResult = 'shared' | 'copied' | 'cancelled' | 'failed'
  * Deliberately named by mechanism rather than by destination: `navigator.share`
  * hands the words to whatever the person already has, so this outlives every
  * app that happens to be on their phone this year and depends on none of them.
- * No SDK, no pixel, no vendor — see docs/CONTROL.md and docs/DURABLE.md.
+ * No SDK, no pixel, no vendor — see docs/OPS.md and docs/PRODUCT.md.
  *
  * Returns 'shared' when the sheet handled it, 'cancelled' if the user dismissed
  * it (we do nothing — no surprise copy), 'copied' on the desktop fallback, and
@@ -24,7 +24,7 @@ export type ShareResult = 'shared' | 'copied' | 'cancelled' | 'failed'
  * and control fell through to the same return, so six screens showed a tick and
  * the word "Copied" when nothing had been copied. A confirmation that is
  * sometimes false is worse than none, because it stops her checking
- * (docs/NORMAN.md).
+ * (docs/DESIGN.md).
  */
 export async function shareOrCopy(payload: SharePayload): Promise<ShareResult> {
   const full = payload.url ? `${payload.text}\n\n${payload.url}` : payload.text
@@ -55,10 +55,10 @@ export async function shareOrCopy(payload: SharePayload): Promise<ShareResult> {
 /**
  * There was an image share here — `shareImage`, and `src/lib/card.ts`, which
  * drew a reflection onto a 1080×1350 canvas for a story or a group chat. Both
- * went with the daily reflection card that `docs/NORTHSTAR.md` removed from
+ * went with the daily reflection card that `docs/PRODUCT.md` removed from
  * Home, and both sat unreferenced afterwards: a whole rendering path, fully
  * built, that nothing in the product could reach. What travels here is words —
  * the exact sentence that worked, sent by one person to one person
  * (`docs/PRODUCT.md` §9) — and an image of the product was never that.
- * `docs/ROADMAP.md`.
+ * `docs/PRODUCT.md`.
  */

@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 /**
- * A strong accessibility baseline, held honest (docs/ACCESS.md).
+ * A strong accessibility baseline, held honest (docs/DESIGN.md).
  *
  * Source-level checks, for what the rendered audit in tests/ui/screens.test.tsx
  * cannot reach: colour contrast (there is no layout without a browser), the

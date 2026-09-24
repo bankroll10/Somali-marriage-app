@@ -21,7 +21,7 @@ const URGENT = new Set(['threats', 'sexual'])
  * whoever is on the other side of this code. Trust promises reports have real
  * consequences; until this existed, nothing backed that sentence for anyone
  * met through the eleven. Founder-read only. Never a tally, never fed to
- * anything that learns. See netlify/functions/safety.ts and docs/LEARNING.md.
+ * anything that learns. See netlify/functions/safety.ts and docs/PRIVACY.md.
  */
 export default function ReportConcern({ code, side }: Props) {
   const [state, setState] = useState<State>('closed')
@@ -81,7 +81,7 @@ export default function ReportConcern({ code, side }: Props) {
         It is read within the week, so it is not an emergency line.
       </p>
       {/* The report used to be the only thing on this screen, on a list whose
-          second reason is a threat (docs/ABUSE.md). */}
+          second reason is a threat (docs/SECURITY.md). */}
       <HelpLine urgent={!!reason && URGENT.has(reason)} className="mt-2" />
       <div className="mt-3 flex items-center gap-3">
         <button

@@ -167,7 +167,7 @@ control that *is* on screen, so a copy change reads as one.
   real navigation. Playwright in Chromium is the manual check before a
   release.
 - **Netlify Blobs' own consistency.** The doubles are strongly consistent.
-  The platform's eventual consistency is named in `docs/INTEGRITY.md`.
+  The platform's eventual consistency is named in `docs/PRIVACY.md`.
 - **The live model.** The guide is graded offline on every PR, and live on
   demand with `npm run eval:guide` (`docs/GUIDE-EVAL.md`).
 - **Screens no test taps its way to:** the ended flow, ReportConcern and the

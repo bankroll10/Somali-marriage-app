@@ -6,7 +6,7 @@ import { applyDemoParams } from './demo'
  * run on any phone, from any link: `joinniyyah.com/?fresh`, sent by someone
  * who wanted her work gone, cleared everything she had written — and left the
  * kept code behind, so the next save wrote the emptied map over her kept one
- * (docs/ABUSE.md, sabotage). Nothing stripped the switch, so a reload did it
+ * (docs/SECURITY.md, sabotage). Nothing stripped the switch, so a reload did it
  * again. On the live site they now act only on a phone with nothing to lose.
  */
 

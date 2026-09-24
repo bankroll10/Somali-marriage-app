@@ -14,7 +14,7 @@ import { OPS_SIGNALS, type OpsRoute } from './vocab'
  * per day, in its own store.
  *
  * The rules that keep it from becoming the analytics this product refuses
- * (docs/LEARNING.md):
+ * (docs/PRIVACY.md):
  *  - **A closed list.** A signal is one of OPS_SIGNALS or it is dropped —
  *    so no code, city, id, route parameter or text can ever be counted.
  *  - **A day, never a time.** Keys are `day/<YYYY-MM-DD>/<signal>`.
@@ -100,8 +100,8 @@ export async function pruneOps(now = Date.now()): Promise<number> {
 
 /**
  * How many records each store holds, once a day — population totals, never a
- * record (docs/LEARNING.md tier 3). The only way a store that was wiped, or
- * half-wiped, shows up before a member writes in (docs/RECOVERY.md).
+ * record (docs/PRIVACY.md tier 3). The only way a store that was wiped, or
+ * half-wiped, shows up before a member writes in (docs/OPS.md).
  */
 export type Sizes = Record<string, number>
 

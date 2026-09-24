@@ -7,7 +7,7 @@
  * nothing here reaches a screen until `approved` is true. Callers fall back to
  * English.
  *
- * Review of 2026-09-12 (docs/BOARD.md, "The Somali lines"): all ten were read
+ * Review of 2026-09-12 (docs/DECISIONS.md, "The Somali lines"): all ten were read
  * as understandable Somali; seven were reworded for naturalness — fuller
  * constructions where the draft translated an English idiom word for word,
  * and the married line softened, since "and you chose it" read as scolding.
@@ -19,7 +19,7 @@
  * are not gated; they are the vocabulary of the diaspora, not sentences.
  *
  * `somali` and `english` are two fields, not one string with a full stop
- * between them (2026-09-20, docs/ACCESS.md) — so a caller can mark the
+ * between them (2026-09-20, docs/DESIGN.md) — so a caller can mark the
  * Somali sentence `lang="so"` without also marking its own English gloss,
  * which a screen reader would otherwise try to pronounce as Somali. The
  * pairing itself is unchanged: every approved line still carries both.

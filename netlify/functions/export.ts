@@ -10,7 +10,7 @@ import type { ProgressRecord } from './progress'
  * with no copy anywhere else. If that account is suspended — a marriage app
  * with member content is exactly the kind of thing an acceptable-use review
  * reads badly — or if the storage product is discontinued, the compounding
- * asset built over years is gone in an afternoon. `docs/CONTROL.md` ranks that
+ * asset built over years is gone in an afternoon. `docs/OPS.md` ranks that
  * second only to not owning the domain. This is the answer to it: one request
  * that hands back the part nobody could recreate, in a form that could be
  * loaded somewhere else.
@@ -26,7 +26,7 @@ import type { ProgressRecord } from './progress'
  * What it deliberately refuses to return, and this is the more important half:
  *
  *  - **Kept maps.** Every member's intake answers and first name. A single
- *    endpoint that dumps those is precisely the honeypot docs/LEARNING.md
+ *    endpoint that dumps those is precisely the honeypot docs/PRIVACY.md
  *    exists to prevent, and it is not the business's to lose — her map is on
  *    her phone, and the code to fetch it is hers.
  *  - **Pair sheets.** Two people's answers on the eleven. They expire in ninety
@@ -47,7 +47,7 @@ export interface Backup {
    * Version 3: the door's counts are gone with the door (2026-09-24).
    * The records inside carry their own version — `v`, netlify/shared/record.ts
    * — since 2026-09-11; before that the wrapper was versioned and the asset
-   * inside it was not, which docs/HARD.md called exactly backwards.
+   * inside it was not, which docs/SECURITY.md called exactly backwards.
    */
   version: 3
   /** Install code → the whole record. The learning asset. */
@@ -59,7 +59,7 @@ export interface Backup {
   /**
    * Records that could not be read — corrupt, or not JSON — and so are not in
    * this copy. Named, not hidden: a backup that silently dropped them would
-   * say it was whole. Zero on a healthy store (docs/RECOVERY.md).
+   * say it was whole. Zero on a healthy store (docs/OPS.md).
    */
   skipped: number
 }
@@ -83,7 +83,7 @@ async function allProgress(store: Store, skip: () => Promise<void>, now = Date.n
     blobs.map(async ({ key }) => {
       // One record that cannot be read costs that record, never the backup.
       // It used to cost the backup: one corrupt blob and every month's copy
-      // was a 503 until someone read the logs (docs/RECOVERY.md).
+      // was a 503 until someone read the logs (docs/OPS.md).
       let record: ProgressRecord | null
       try {
         record = (await store.get(key, { type: 'json' })) as ProgressRecord | null

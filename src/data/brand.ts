@@ -1,12 +1,12 @@
 /**
  * The brand's first sentences, in one place.
  *
- * docs/BACKWARD.md's institution rule — nothing that would need renaming for
+ * docs/PRODUCT.md's institution rule — nothing that would need renaming for
  * a second community lives outside `src/data` — was declared "already true of
  * the code" on the day it was written, and it was not: the hero's eyebrow, a
  * Welcome bullet, the `<title>`, the meta description, the social-card alt and
  * the web manifest all carried the community's name as literals in
- * `src/components` and `index.html` (docs/BOARD.md). These are those strings.
+ * `src/components` and `index.html` (docs/DECISIONS.md). These are those strings.
  * `index.html` reads them at build time through vite.config.ts; the manifest
  * is static JSON and `tests/brand.test.ts` holds it equal to what is here.
  *
@@ -15,17 +15,17 @@
  * marriage" in BeforeYes, Couple, Home and Read. Those are content, and the day a second
  * community is served they are a second `src/data` of content, not a rename.
  * The rule is enforceable by test for the brand strings only, and
- * docs/BACKWARD.md now says so.
+ * docs/PRODUCT.md now says so.
  *
  * The description and the social card changed on 2026-09-24
- * (docs/DIFFERENTIATION.md). Both used to say only what every competitor can
+ * (docs/PRODUCT.md). Both used to say only what every competitor can
  * also claim — Somali, serious, faithful, done in the open — and the card
  * promised "find someone serious", a marketplace the product does not yet
  * have. They now say what someone gets on the first visit, which is also the
  * thing a copy of our homepage would not give them.
  *
  * "Powered by AI" is gone from all three surfaces that still carried it after
- * docs/DURABLE.md recorded it removed — the model may add a sentence, never
+ * docs/PRODUCT.md recorded it removed — the model may add a sentence, never
  * be the reason (tests/durable.test.ts). No imports: vite.config.ts loads
  * this file at build time.
  */

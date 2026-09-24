@@ -19,7 +19,7 @@ interface Props {
   /**
    * False when the browser refuses to persist. The warning used to live on Home
    * only — which is after this screen, and this screen is where the sixteen
-   * answers that would be lost are given (docs/NORMAN.md).
+   * answers that would be lost are given (docs/DESIGN.md).
    */
   saveOk?: boolean
   answers: Answers

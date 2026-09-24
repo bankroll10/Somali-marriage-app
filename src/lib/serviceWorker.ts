@@ -1,12 +1,12 @@
 /**
  * The offline shell.
  *
- * An audit of Niyyah as a linked-to product (docs/LINKS.md) found the gap
+ * An audit of Niyyah as a linked-to product (docs/DESIGN.md) found the gap
  * `index.html` had been promising since the manifest and the home-screen
  * meta tags went in: nothing registered a service worker, so a member who
  * saved Niyyah to her home screen and opened it with no signal saw the
  * browser's own "no internet connection" page — not Niyyah's, not even
- * styled, before any of the product's own honest failure states (docs/FAIL.md)
+ * styled, before any of the product's own honest failure states (docs/DESIGN.md)
  * had a chance to say anything. Confirmed in Chromium: an offline reload
  * failed at `net::ERR_INTERNET_DISCONNECTED`, before a single byte of this
  * app ran.
@@ -15,7 +15,7 @@
  * job: keep the shell — the built HTML, JS, CSS and fonts — available from
  * a previous visit, so the app itself loads offline and its own state
  * (everything already lives in localStorage) and its own fail-open network
- * code (docs/FAIL.md) take it from there. It is not offline data sync, not a
+ * code (docs/DESIGN.md) take it from there. It is not offline data sync, not a
  * write queue, not a push channel — none of those exist here and this does
  * not add them.
  *
@@ -37,7 +37,7 @@
  *     first version keyed every response on the full URL, so opening
  *     `/?map=ACDEFG` wrote a live map code — the sole authenticator for a
  *     whole map — into Cache Storage on disk, where anyone with the phone
- *     could list it until the next deploy. Same for `?couple=`. Found by the STRIDE pass (docs/THREAT.md, T3); the shell a
+ *     could list it until the next deploy. Same for `?couple=`. Found by the STRIDE pass (docs/SECURITY.md, T3); the shell a
  *     navigation needs never depends on its query anyway. Hashed assets keep
  *     their full URL — they carry no secret.
  *

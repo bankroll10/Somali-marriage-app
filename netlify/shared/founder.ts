@@ -12,8 +12,8 @@
  * dangerous. That reasoning was wrong about two routes and weak about the
  * rest: `/export` returns every progress record whole, and the cost of a misconfigured deploy was silent
  * publication that the founder would learn of from a cold-start log line
- * (docs/BOARD.md). The cost of failing closed is one environment variable,
- * and the recovery is one line in docs/DEPLOY.md: set `FOUNDER_KEY`. Local
+ * (docs/DECISIONS.md). The cost of failing closed is one environment variable,
+ * and the recovery is one line in docs/OPS.md: set `FOUNDER_KEY`. Local
  * runs and tests set it too — a readout that answers without a key is the bug
  * this file exists to make impossible.
  *
@@ -44,16 +44,16 @@ function warnOnce(message: string) {
 
 /**
  * True only when a key is configured and the request carries
- * `Authorization: Bearer <FOUNDER_KEY>`. Read per call, never at module load:
- * a rotated key must take effect on the next request, and tests stub the
- * environment between cases.
+ * `Authorization: Bearer <FOUNDER_KEY>`. Read per call, never at module load,
+ * so tests can stub the environment between cases. A rotated key reaches the
+ * functions with the next deploy: Netlify hands them variables at deploy time.
  */
 export function isFounder(req: Request): boolean {
   const key = process.env.FOUNDER_KEY
   if (!key) {
     // Closed, and said once per cold start so the reason is in the logs
     // rather than in a 401 the founder has to guess at.
-    warnOnce('[niyyah] FOUNDER_KEY is not set — every readout refuses until it is (docs/DEPLOY.md)')
+    warnOnce('[niyyah] FOUNDER_KEY is not set — every readout refuses until it is (docs/OPS.md)')
     return false
   }
   const header = req.headers.get('authorization') ?? ''
@@ -82,8 +82,8 @@ export function notFounder(): Response {
 
 /**
  * The same gate. This was the fail-closed exception for `/safety` alone,
- * while every other readout failed open (docs/HARD.md row 6); since
- * docs/BOARD.md every readout fails closed, so the two are one gate. Kept as
+ * while every other readout failed open (docs/SECURITY.md row 6); since
+ * docs/DECISIONS.md every readout fails closed, so the two are one gate. Kept as
  * a name because the safety queue is the route where the distinction mattered
  * most, and the call sites read better for saying so.
  */

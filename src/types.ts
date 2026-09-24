@@ -32,7 +32,8 @@ export interface Identity {
   /**
    * Country id (see data/countries.ts). Only asked, and only meaningful, when
    * the scene is `other` — a named city already knows its country. It picks
- * her help line, and never leaves the phone.
+   * her help line. It leaves the phone only inside a map she asks us to keep;
+   * never on the progress record, never to the guide.
    */
   country?: string
 }
@@ -114,7 +115,7 @@ export interface CoupleState {
   /**
    * Which side of the pair this phone is. Absent means the one who sent it;
    * 'second' is the one who answered her link — whose Home, until 2026-09-24,
-   * never knew there was a pair at all (docs/DIFFERENTIATION.md).
+   * never knew there was a pair at all (docs/PRODUCT.md).
    */
   side?: 'second'
   /**
@@ -203,7 +204,7 @@ export interface DimensionReading {
   /**
    * Where she stands, in a word — or `null` for a ground that is a position
    * she holds (faith, family, vision), which the map describes and never
-   * rates (docs/ALIGNMENT.md S5).
+   * rates (docs/PRODUCT.md S5).
    */
   state: GroundState | null
   /** A short, human reading of where they stand. */
