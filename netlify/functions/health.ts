@@ -258,8 +258,8 @@ export async function countStores(): Promise<Sizes> {
  * day on record. The weekly sweep removes lapsed records a few at a time;
  * a store losing a quarter of itself between two days is not the sweep
  * (docs/RECOVERY.md, "Deleted data"). The safety queue is held tighter: a
- * resolved report leaves a stub, so its count only falls when a member
- * withdraws one — or when the queue is lost.
+ * resolved report leaves a stub and nothing withdraws one, so its count only
+ * falls when the queue is lost.
  */
 export function dataCheck(now: Sizes, before: { day: string; sizes: Sizes } | null): Check {
   const question = 'Has stored data gone missing?'

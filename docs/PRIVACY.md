@@ -181,8 +181,8 @@ a retry had no code to send and the map stayed for a year.
 **Tombstones.** A forgotten or moved code answers **410** with which, from
 `GET`, `POST` and `PUT`, even if the map is still there, and never names a
 new code. `mintFree` treats a tombstoned code, or a couple code with a
-`gone/` window, as taken. **What stays**
-(`tests/invariants/delete-means-deleted.test.ts`): the tombstone; her report,
+`gone/` window, as taken. **What stays**, checked by
+`tests/invariants/delete-means-deleted.test.ts`: the tombstone; her report,
 since a withdrawal under someone's eye is the case this exists for
 (`docs/SECURITY.md` O1); the joint tally, with no code (Trust: "The one thing
 it cannot reach"); the sheet's `gone/` window, a date.
@@ -227,13 +227,12 @@ re-keep, and the map records it so Forget me and a move take it along.
 | 3 | Tombstone `ended/<old>` = moved; delete the old once key, map, then journal | The old code is closed | Retry finishes and answers `to`; the sweep rolls forward |
 | 4 | Answer `{code: to, rev}` | The move is done; only the answer is lost | A retry answers 410 moved; the phone drops the old code and her next keep makes a new map |
 
-Forgotten mid-move, forgetting wins and the copy goes. The couple sheet and
-reports, under their own code, do not move. **Other sequences.** *He
-answers:* the sheet, then the joint tally. **Accepted:** a failure leaves the
-tally one short, logged; exactly-once would need pair ids in `tallies`. *A
-report:* `onlyIfNew` on a fresh id. *Resolve:* the stub, then the delete;
-idempotent. *Retire:* `gone/`, then the delete. *A step:* one conditional
-write.
+Forgotten mid-move, forgetting wins and the copy goes; the couple sheet and
+reports do not move. **Other sequences.** *He answers:* the sheet, then the
+joint tally. **Accepted:** a failure leaves the tally one short, logged;
+exactly-once would need pair ids in `tallies`. *A report:* `onlyIfNew` on a
+fresh id. *Resolve:* the stub, then the delete; idempotent. *Retire:*
+`gone/`, then the delete. *A step:* one conditional write.
 
 **Remaining windows:** `deleteIfUnchanged` leaves the gap between its read
 and delete (Blobs has no conditional delete). A mint that lands before a
@@ -332,13 +331,14 @@ protects against a leaked key, not against the founder, who holds the stores.
   says only what is true: "a random code that is not your map code".
 - **The kept map is the most sensitive record** (first name, city, answers
   with `working-on` in her words, couple code, read, eleven, ended
-  courtships), still readable by the founder. **The guide's context** goes to
-  a third party with her message about a man, without name or age (C5).
+  courtships), still readable by the founder, and it has one server copy:
+  the backup leaves it out, so a lost `maps` store loses it (Trust says so;
+  her phone keeps its own). **The guide's context** goes to a third party
+  with her message about a man, without name or age (C5).
 - **Backups outlive a forget:** the artifact up to 35 days (R5), a hand-saved
-  copy while kept. `restore.ts` writes what is missing, so restoring an older
-  backup would bring a forgotten step count back.
-- **No secret variables on this plan:** anyone on the Netlify team can read
-  every site key (`docs/OPS.md`).
+  copy while kept, and `restore.ts` writes what is missing, so restoring one
+  would bring a forgotten step count back. **No secret variables on this
+  plan:** anyone on the Netlify team can read every site key (`docs/OPS.md`).
 - **Two copies the sweep cannot reach:** Netlify Form rows from before
   2026-09-23 carry a contact (C7), and a `reach-<date>/` export may sit on the
   founder's machine (R4). Both go by hand.

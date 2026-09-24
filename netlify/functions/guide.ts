@@ -98,8 +98,8 @@ const MODEL = 'claude-opus-5'
  *
  * The refusal is the ordinary 503 the client already reads as "fall back to
  * the offline voice", so a member who meets a cap gets the local guide rather
- * than a wall. There is no alert when one is hit (docs/TIME.md); a bounded day
- * is what stands in for it until an outbound channel exists.
+ * than a wall. The daily cap being hit turns `/health`'s `limits` red, and the
+ * health run emails the founder (docs/OPS.md).
  */
 const DEFAULT_HOURLY_CAP = 300
 const DEFAULT_DAILY_CAP = 400

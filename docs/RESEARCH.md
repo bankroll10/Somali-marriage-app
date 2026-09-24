@@ -58,13 +58,12 @@ In order of credibility, the only order in which a claim is promoted:
    - What would you never want a screenshot of?
 4. **Founder opinion.** ASSUMED, dated, never promoted on its own.
 
-**Lists.** Every closed list's `other` or `none` share is the test of the
-list: for the hook, `none` above a third meant the five hardest parts were
-the wrong five; since "Something else", `none` means only skipped
+**Lists.** A closed list's `other` or `none` share is the test of the list:
+for the hook, `none` above a third meant the five hardest parts were the
+wrong five; since "Something else", `none` means only skipped
 (`docs/DECISIONS.md` decision 8). A list changes in the monthly hour, one
-change at a time, on a hundred records. **Declined:** asking "what did you
-try before this?" in the app (it describes a person; only pairings,
-conversations and questions are collected, `docs/PRIVACY.md`), and a
+change at a time, on a hundred records. **Declined:** "what did you try
+before this?" in the app (it describes a person, `docs/PRIVACY.md`), and a
 pre-order to test price (`docs/PRODUCT.md`).
 
 **Reclassification log** (date, claim, from → to, evidence):
@@ -116,9 +115,9 @@ committed. A `new` gets a row above before anything else.
 ### 2026-09-12 · walk
 
 **Context.** The founder on a phone, on the live site; not a member. **What
-they said.** Reading as a man, asked whether the answers were a bug. They
-were right; behind them, his result called her "he", three questions graded
-him backwards, and no family script was his. Fixed (`speak()`,
+they said.** Reading as a man, asked whether the answers were a bug. The
+answers were right; behind them, his result called her "he", three questions
+graded him backwards, and no family script was his. Fixed (`speak()`,
 `approach-her-family`, `tests/invariants/both-sides.test.ts`). **Bears on.**
 Gap 1, conviction 1; answers neither. **New rule:** nothing ships to a side
 of the product nobody has walked on a phone.
@@ -145,8 +144,8 @@ without a read, so a ratio of rungs is a share, not a strict conversion.
 leave at the read" read the same. `gender` (chosen at Identity, last told
 wins) gives `sides`, floored like every split (under five reads `null`, not
 zero): `sides.man` is `null` until five men arrive, the first moment a
-conclusion about men is worth drawing. `facts` are never
-split by side. Why `sidesByVia` exists: "First", under the convictions.
+conclusion about men is worth drawing. `facts` are never split by side.
+Why `sidesByVia` exists: "First", under the convictions.
 
 **It cannot answer:** who saw or opened a link; where she stopped inside a
 questionnaire; why anyone stopped; who sent a link; time, sessions, returns;
@@ -266,9 +265,8 @@ reply), and a weekly revision cadence (read often, decide monthly).
 ## The monthly loop
 
 The constants in `src/data/` can be copied; the process that revises them
-cannot. Read monthly: read daily, a readout becomes a dashboard, then the
-thing optimised for. How to reach a readout: `docs/OPS.md`; its fields:
-`docs/PRIVACY.md`.
+cannot. Read monthly: read daily, a readout becomes the thing optimised for.
+How to reach a readout: `docs/OPS.md`; its fields: `docs/PRIVACY.md`.
 
 **The number.** Open `/progress` and read `cohorts`: per arrival month,
 `{arrived, followedThrough}`. Compute `100 × followedThrough / arrived` for
