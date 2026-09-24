@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { COUNTRIES } from '../netlify/shared/vocab'
+import { COUNTRY_IDS } from '../src/data/countries'
 import { HELP, dial } from '../src/data/help'
 import { SAFETY_REPLY, askCoach, needsCrisisLine, needsHelpLine } from '../src/lib/coach'
 import { buildSystemPrompt, sanitiseContext } from '../netlify/shared/prompt'
@@ -17,14 +17,14 @@ import { buildSystemPrompt, sanitiseContext } from '../netlify/shared/prompt'
 const src = (p: string) => readFileSync(new URL(`../${p}`, import.meta.url), 'utf8')
 
 describe('the help directory', () => {
-  it('has a row for every country the door counts, and no other', () => {
-    expect(Object.keys(HELP).sort()).toEqual([...COUNTRIES].sort())
+  it('has a row for every country she can pick, and no other', () => {
+    expect(Object.keys(HELP).sort()).toEqual([...COUNTRY_IDS].sort())
   })
 
   it('names an emergency number and a free line for every real country but one', () => {
     // Somalia's numbers differ by region and by source; a number that may ring
     // nowhere is worse than the generic line (src/data/help.ts).
-    for (const id of [...COUNTRIES].filter((c) => c !== 'other' && c !== 'so')) {
+    for (const id of [...COUNTRY_IDS].filter((c) => c !== 'other' && c !== 'so')) {
       expect(HELP[id].emergency, id).toMatch(/^\d{3}$/)
       expect(HELP[id].line?.number, id).toMatch(/^[\d -]+$/)
     }
@@ -32,7 +32,7 @@ describe('the help directory', () => {
 
   it('names a crisis line for every real country but one, and the hours where it is not always open', () => {
     // Checked 2026-09-24 for the Guide's evaluation (docs/GUIDE-EVAL.md).
-    for (const id of [...COUNTRIES].filter((c) => c !== 'other' && c !== 'so')) {
+    for (const id of [...COUNTRY_IDS].filter((c) => c !== 'other' && c !== 'so')) {
       expect(HELP[id].crisis?.number, id).toMatch(/^\+?[\d ]+$/)
     }
     expect(HELP.dk.crisis?.hours).toBeTruthy()

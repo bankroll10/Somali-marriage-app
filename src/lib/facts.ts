@@ -33,8 +33,8 @@ export interface Facts {
   grounds?: Partial<Record<Dimension, GroundState>>
   /** How the read came out, and the ground it found thinnest. */
   read?: { band: ReadBand; thin: ReadDimension }
-  /** How many of the eleven were in each state, and the one it told her to open. Counts, never her sheet. */
-  eleven?: { agree: number; differ: number; notTalked: number; unknown: number; open: string }
+  /** Which of the eleven it told her to open. Never her sheet. */
+  eleven?: { open: string }
   /** Conversations she confirmed she had, as `source:topic`. Never the guide's. */
   through?: string[]
   /** The three closed answers on the way out. Never the line she wrote. */
@@ -107,15 +107,7 @@ export function factsFrom(i: FactsInput): Facts {
 
   if (i.beforeYes) {
     const b = buildBeforeYes(i.beforeYes.answers, i.gender)
-    if (b && TOPICS.has(b.open.id)) {
-      facts.eleven = {
-        agree: b.counts.agree,
-        differ: b.counts.differ,
-        notTalked: b.counts['not-talked'],
-        unknown: b.counts.unknown,
-        open: b.open.id,
-      }
-    }
+    if (b && TOPICS.has(b.open.id)) facts.eleven = { open: b.open.id }
   }
 
   const through = new Set<string>()

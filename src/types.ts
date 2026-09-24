@@ -31,7 +31,8 @@ export interface Identity {
   scene?: string
   /**
    * Country id (see data/countries.ts). Only asked, and only meaningful, when
-   * the scene is `other` — a named city already knows its country.
+   * the scene is `other` — a named city already knows its country. It picks
+ * her help line, and never leaves the phone.
    */
   country?: string
 }

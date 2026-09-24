@@ -26,5 +26,5 @@ export const countries: Country[] = [
   { id: 'other', label: 'Somewhere else' },
 ]
 
-/** Must match netlify/shared/vocab.ts COUNTRIES. */
+/** Every country she can pick; tests/help.test.ts holds src/data/help.ts to it. */
 export const COUNTRY_IDS: string[] = countries.map((c) => c.id)

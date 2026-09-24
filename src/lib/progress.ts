@@ -89,7 +89,6 @@ export async function reportRungs(
   scene?: string,
   facts?: Facts,
   gender?: Gender,
-  country?: string,
 ): Promise<void> {
   const id = installId()
   if (!id || rungs.length === 0) return
@@ -97,7 +96,7 @@ export async function reportRungs(
   // The facts are part of the signature: a re-render with the same facts posts
   // nothing, and a new fact — a read taken, a conversation confirmed — posts once.
   // So is which side she is on, so a correction at Identity posts once too.
-  const signature = `${scene ?? ''}:${country ?? ''}:${gender ?? ''}:${rungs.join(',')}:${some ? JSON.stringify(some) : ''}`
+  const signature = `${scene ?? ''}:${gender ?? ''}:${rungs.join(',')}:${some ? JSON.stringify(some) : ''}`
   if (signature === lastSent) return
   lastSent = signature
 
@@ -113,10 +112,6 @@ export async function reportRungs(
         id,
         rungs,
         ...(scene ? { scene } : {}),
-        // The country the scene sits in, or the one she named for "somewhere
-        // else" — so the ladder can be read for the nine countries with no
-        // named city (docs/BOARD.md). A closed id, floored on the server.
-        ...(country ? { country } : {}),
         ...(via ? { via } : {}),
         ...(gender ? { gender } : {}),
         ...(some ? { facts: some } : {}),

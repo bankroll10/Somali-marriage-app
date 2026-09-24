@@ -47,14 +47,12 @@ describe('every word the server accepts is a word the app uses', () => {
   it('vias', () => expect(sorted(vocab.VIAS)).toEqual(sorted(VIAS)))
   it('scenes', () => expect(sorted(vocab.SCENES)).toEqual(sorted(scenes.map((s) => s.id))))
 
-  it('the countries, and which country each named city is in', () => {
-    expect(sorted(vocab.COUNTRIES)).toEqual(sorted(COUNTRY_IDS))
-    const named = Object.fromEntries(scenes.filter((s) => s.country).map((s) => [s.id, s.country]))
-    expect(vocab.SCENE_COUNTRY).toEqual(named)
-    // Every city's country is a country the server accepts; only `other` has none.
+  it('every named city sits in a country the app knows; only `other` has none', () => {
+    // The country never leaves the phone now (it picks her help line), so
+    // this is the client's own list held to itself.
     for (const s of scenes) {
       if (s.id === 'other') expect(s.country).toBeUndefined()
-      else expect(vocab.COUNTRIES.has(s.country!)).toBe(true)
+      else expect(COUNTRY_IDS).toContain(s.country!)
     }
   })
   it('asked — what a person asked, ever', () => expect(sorted(vocab.ASKED)).toEqual(sorted(ASKED)))

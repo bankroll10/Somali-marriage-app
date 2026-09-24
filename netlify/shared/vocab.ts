@@ -33,33 +33,6 @@ export const SCENES = new Set([
   'other',
 ])
 
-/** Must match src/data/countries.ts. */
-export const COUNTRIES = new Set(['us', 'ca', 'uk', 'se', 'no', 'dk', 'nl', 'fi', 'de', 'au', 'ke', 'ae', 'so', 'other'])
-
-/**
- * Must match `country` on each named city in src/data/scenes.ts. A city
- * implies its country; only `other` has to be told one.
- */
-export const SCENE_COUNTRY: Record<string, string> = {
-  'twin-cities': 'us',
-  toronto: 'ca',
-  london: 'uk',
-  columbus: 'us',
-  stockholm: 'se',
-  seattle: 'us',
-  'san-diego': 'us',
-  birmingham: 'uk',
-  bristol: 'uk',
-  leicester: 'uk',
-  gothenburg: 'se',
-  oslo: 'no',
-  copenhagen: 'dk',
-  helsinki: 'fi',
-  amsterdam: 'nl',
-  nairobi: 'ke',
-  melbourne: 'au',
-}
-
 /** Must match src/data/hook.ts, plus 'none' for a hardest part never named. */
 export const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'other', 'ready', 'none'])
 

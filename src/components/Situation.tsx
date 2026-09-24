@@ -11,7 +11,7 @@ interface Props {
   identity: Identity
   onChoose: (stage: Stage) => void
   onScene: (scene: string) => void
-  /** Her country when she is somewhere else, and how far she would go. */
+  /** Her country when she is somewhere else, for her help line. */
   onChangeIdentity: (updater: (prev: Identity) => Identity) => void
   onBack: () => void
 }

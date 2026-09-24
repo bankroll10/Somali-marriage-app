@@ -194,18 +194,13 @@ describe('the readout', () => {
     expect((await post({ id: 'ACDEFN', rungs: ['arrived'], facts: { asked: ['auntie'] } })).status).toBe(400)
   })
 
-  it('splits the ladder by country, floored — so the North Star reads for the nine countries with no named city', async () => {
-    for (const id of ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ']) await post({ id, rungs: ['arrived'], scene: 'other', country: 'ke' })
-    await post({ id: 'ACDEFK', rungs: ['arrived'], scene: 'london', country: 'uk' })
-    await post({ id: 'ACDEFM', rungs: ['arrived'] })
-    const body = await (await readout()).json()
-    expect(body.countries.ke.arrived).toBe(5)
-    expect(body.countries.uk.arrived).toBeNull()
-    expect(body.countries.unsaid.arrived).toBeNull()
-    // Last told wins, like the scene — she moved.
-    await post({ id: 'ACDEFK', rungs: ['arrived'], country: 'se' })
-    expect(JSON.parse(stores.get('progress')!.get('ACDEFK')!).country).toBe('se')
-    expect((await post({ id: 'ACDEFN', rungs: ['arrived'], country: 'mars' })).status).toBe(400)
+  it('holds no country, even from an older client that still sends one', async () => {
+    // The country was added for the pooled door and was a quasi-identifier
+    // with nothing left to read it (2026-09-24). A report that carries one is
+    // taken, and the country is not kept.
+    expect((await post({ id: 'ACDEFK', rungs: ['arrived'], scene: 'london', country: 'uk' })).status).toBe(200)
+    expect(JSON.parse(stores.get('progress')!.get('ACDEFK')!).country).toBeUndefined()
+    expect('countries' in (await (await readout()).json())).toBe(false)
   })
 
   it('tells the kind of room apart — alumni, professional, mosque — and never the room', async () => {
@@ -432,8 +427,15 @@ describe('the founder key', () => {
 
 describe('the facts', () => {
   const read = { band: 'mixed', thin: 'public' }
-  const eleven = { agree: 7, differ: 2, notTalked: 1, unknown: 1, open: 'money-home' }
+  const eleven = { open: 'money-home' }
+  /** What an older client sends: the same, with how many of the eleven were in each state. */
+  const olderEleven = { agree: 7, differ: 2, notTalked: 1, unknown: 1, open: 'money-home' }
   const grounds = { faith: 'steady', family: 'thin' }
+
+  it('takes an older client’s eleven, and keeps only the one to open', async () => {
+    expect((await post({ id: ID, rungs: ['arrived', 'eleven'], facts: { eleven: olderEleven } })).status).toBe(200)
+    expect(JSON.parse(stores.get('progress')!.get(ID)!).facts.eleven).toEqual({ open: 'money-home' })
+  })
 
   it('accepts facts from the closed lists and stores them', async () => {
     const res = await post({ id: ID, rungs: ['arrived', 'read', 'eleven'], facts: { grounds, read, eleven, through: ['beforeYes:money-home', 'read:early'], ending: { who: 'brought', used: ['map'] } } })
@@ -448,8 +450,8 @@ describe('the facts', () => {
       { grounds: { faith: 'great' } },
       { read: { band: 'great', thin: 'public' } },
       { read: { band: 'mixed', thin: 'early' } },
-      { eleven: { ...eleven, agree: 8 } },
       { eleven: { ...eleven, open: 'pets' } },
+      { eleven: { ...eleven, sheet: 'hers' } },
       { through: ['guide:should I tell my mother'] },
       { through: ['read:money-home'] },
       { through: ['beforeYes'] },
@@ -475,7 +477,7 @@ describe('the facts', () => {
       facts: {
         grounds: { faith: 'strong' },
         read: { band: 'strong', thin: 'intent' },
-        eleven: { ...eleven, agree: 8, differ: 1 },
+        eleven: { open: 'live' },
         through: ['beforeYes:money-home'],
         ending: { who: 'family', mattered: 'eleven' },
       },
@@ -516,7 +518,7 @@ describe('the facts', () => {
     // Whole-population counts are never floored.
     expect(body.facts.through).toEqual({ 'beforeYes:money-home': 6, 'couple:live': 1 })
     expect(body.facts.throughByTopic).toEqual({ 'money-home': 6, live: 1 })
-    expect(body.facts.eleven.differ).toEqual({ '2': 6 })
+    expect(body.facts.eleven).toEqual({ open: { 'money-home': 6 } })
     // Cross-tabs are floored cell by cell.
     expect(body.facts.marriedBy.through['money-home']).toEqual({ through: 6, married: 5 })
     expect(body.facts.marriedBy.through.live).toEqual({ through: null, married: null })
@@ -524,12 +526,21 @@ describe('the facts', () => {
     expect(body.facts.marriedBy.readThin.public).toEqual({ read: 6, married: 5 })
   })
 
-  it('buckets an older record’s moment into its day', async () => {
-    await memStore('progress').setJSON('QRTWXY', { first: { arrived: '2026-09-01T13:45:12.345Z' }, expiresAt: '2027-09-01T00:00:00.000Z' })
-    await post({ id: ID, rungs: ['arrived'] })
+  it('reads the North Star by arrival month: of each month’s arrivals, how many have followed through since', async () => {
+    // Followed-through per hundred arrived, this month against last, is two
+    // rows of this. The count of arrivals by day it replaced could not say it.
+    const store = memStore('progress')
+    const rec = (arrived: string, through?: string) =>
+      ({ first: { arrived, ...(through ? { 'followed-through': through } : {}) }, expiresAt: '2099-01-01' })
+    await store.setJSON('ACDEFG', rec('2026-08-03', '2026-09-20'))
+    await store.setJSON('HJKMNP', rec('2026-08-19'))
+    await store.setJSON('QRTWXY', rec('2026-08-30'))
+    await store.setJSON('ACDEFH', rec('2026-09-02', '2026-09-10'))
+    // A record written before dates were days reads its month the same way.
+    await store.setJSON('ACDEFJ', rec('2026-09-01T13:45:12.345Z'))
     const body = await (await readout()).json()
-    expect(body.arrivedByDay['2026-09-01']).toBe(1)
-    expect(Object.keys(body.arrivedByDay).every((k) => k.length === 10)).toBe(true)
+    expect(body.cohorts).toEqual({ '2026-08': { arrived: 3, followedThrough: 1 }, '2026-09': { arrived: 2, followedThrough: 1 } })
+    expect('arrivedByDay' in body).toBe(false)
   })
 
   it('accepts an ended list from the closed lists, replaces it whole, and bounds it at eight', async () => {

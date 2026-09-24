@@ -175,10 +175,7 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               <ul className={LIST}>
                 <li>which of your map’s seven grounds read thin, steady or strong</li>
                 <li>how the read came out, and which ground it found thinnest</li>
-                <li>
-                  how many of the eleven you had agreed on, differed on, not had, or did not yet know
-                  your own answer to, and which one it told you to open
-                </li>
+                <li>which of the eleven it told you to open</li>
                 <li>which conversation you later confirmed you had</li>
                 <li>
                   at the end, the three things you tap on the way out — who you married, what decided

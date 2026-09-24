@@ -61,14 +61,11 @@ describe('what the rungs were made of', () => {
     for (const id of Object.keys(readAnswers)) expect(serialised).not.toContain(`"${id}"`)
   })
 
-  it('counts the eleven to exactly eleven and names the one to open — never her sheet', () => {
+  it('names the one of the eleven to open, and nothing else — never her sheet, never how many', () => {
     const facts = factsFrom({ ...none, beforeYes: { at: '2026-01-01', answers: elevenAnswers } })
     const e = facts.eleven!
-    expect(e.agree + e.differ + e.notTalked + e.unknown).toBe(11)
-    expect(e.differ).toBe(2)
-    expect(e.notTalked).toBe(1)
     expect(beforeYesTopics('woman').map((t) => t.id)).toContain(e.open)
-    expect(Object.keys(e).sort()).toEqual(['agree', 'differ', 'notTalked', 'open', 'unknown'])
+    expect(Object.keys(e)).toEqual(['open'])
   })
 
   it('lists the conversations she confirmed as source:topic — never the guide’s, never "not yet"', () => {

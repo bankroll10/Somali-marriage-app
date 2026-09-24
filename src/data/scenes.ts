@@ -12,7 +12,7 @@ export interface Scene {
   label: string
   /** A short, warm line that makes the place feel seen. */
   note: string
-  /** The country this city is in. Absent only for `other`. Must match vocab.ts SCENE_COUNTRY. */
+  /** The country this city is in, for its help line. Absent only for `other`. */
   country?: string
 }
 
@@ -44,8 +44,9 @@ export function getScene(id?: string): Scene | undefined {
 }
 
 /**
- * The country a person is counted in: her city's, when she named one; the one
- * she picked, when she is somewhere else. Undefined until she has said.
+ * Her country, for her help line: her city's, when she named one; the one she
+ * picked, when she is somewhere else. Undefined until she has said. It never
+ * leaves the phone.
  */
 export function countryFor(identity: { scene?: string; country?: string }): string | undefined {
   return getScene(identity.scene)?.country ?? (identity.scene === 'other' ? identity.country : undefined)
