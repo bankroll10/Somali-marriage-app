@@ -94,7 +94,7 @@ What each suite holds beyond its mutation:
 | Journey | What it holds |
 |---|---|
 | `keep-and-restore` | Keep on one phone, type the code into a new one: her map, word for word. A wrong code says what is wrong and adopts nothing. |
-| `tool-link-read` | A man opens `/tools/is-she-serious`, answers about her, and gets the band his answers earn. |
+| `tool-link-read` | A man opens `/tools/is-she-serious`, answers about her, and gets the band his answers earn. Back from "Now the other half of it" offers "Enter Niyyah", never a fresh start over his read. |
 | `eleven-two-phones` | She sends the eleven; he opens only the link her share sheet got. Both see the joint; neither sees the other's note. *He answered* opens the joint. |
 | `forget-offline` | Forget me with the network down. The phone keeps only the pending codes, even after the autosave has had a reason to run, and the next launch finishes it. |
 | `netlify-down` | Every function unreachable from the first tap. A stranger still takes a whole read; a member opens her space and a failed keep loses nothing. |

@@ -129,7 +129,12 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
       onBegin={n.startFresh}
       onRead={() => n.setScreen('read')}
       hasProgress={n.hasProgress}
-      completed={n.completed}
+      // A Home is progress too. Someone who took a read or the eleven from a
+      // link has one and no map; Back from "Now the other half of it" landed
+      // here with only "Start where you are", which wiped the read, the pair
+      // code and the follow-up without asking (docs/DECISIONS.md, the
+      // completion review, B3).
+      completed={n.completed || n.hasHome}
       onResume={n.resume}
       onEnter={n.enterHome}
       // Only when there is no Home to ask it on — a Home asks it itself.
