@@ -1037,7 +1037,8 @@ structurally — not in a score, not in a sentence, but in what it asks her to d
 fifth state ("We differ, and we've settled how") with urgency between `agree` and
 `not-talked` would fix it in one place and change no copy. Hold the hypothesis to the
 existing rule: a new state is a closed id in `netlify/shared/vocab.ts` with a
-`docs/PRIVACY.md` row, and `tests/vocab-sync.test.ts`. Not built here.
+`docs/PRIVACY.md` row, and `tests/vocab-sync.test.ts`. Not built here. **Built in
+Part 8**, as a fix to an untrue claim rather than on the evidence named in §9.
 
 The mirror error is `second-wife`, where the same four states soften a binary. One list,
 two shape mismatches in opposite directions, because one shape was fitted to eleven topics
@@ -1123,10 +1124,238 @@ Nothing here changes the list; each line names the test that exists.
 |---|---|---|
 | The eleven's proportions are wrong (§2, §4) | PROTOCOL Q9 "which is missing?", Q11 portability; `ended.reason` `other` share; conviction 4's "most `ended.reason` outside the eleven" | Two participants independently naming conflict or intimacy → a twelfth conversation, drafted, gated by Q12 |
 | `live` and `his-family-in-home` are one conversation | `/couple` joint states on the two moving together; `facts.throughByTopic` on both after one is said | Both said or both unsaid in most sheets → merge, freeing a seat |
-| A settled difference needs a state (§5) | Sessions: does anyone say "we don't agree, and it's fine"? `differ` share per topic at twenty sheets | `differ` leading on `money-home` or `work` while those couples marry (`marriedBy.through`) → a fifth state |
+| A settled difference needs a state (§5) | Sessions: does anyone say "we don't agree, and it's fine"? `differ` share per topic at twenty sheets | `differ` leading on `money-home` or `work` while those couples marry (`marriedBy.through`) → a fifth state. **Built 2026-09-24 (Part 8)** as `settled`, a fix to an untrue claim; this row now tests whether it is used |
 | `second-wife` is a non-negotiable, not a conversation | `ended.which.eleven['second-wife']` against `ended.which['non-negotiable']`; sessions | Named as an ending reason more than as a conversation → it moves to the dealbreakers as well as staying in the eleven |
 | `qabiil` and `second-wife` are exaggerated | PROTOCOL's "Exaggerated" verdict, two independent | Verdict → the `why` strings rewritten as customs named as customs; `consequence` of `second-wife` revisited with the count cited |
 | Power needs its own seat | Sessions: what did he "expect you'd know"? PROTOCOL Q6 | Named unprompted by two → a conversation drafted from `deen-daily`'s second clause |
 
 Two lines of copy (`live` "first year"; `second-wife` "one of the few") and the `Flexible`
 key belong in the next copy commit, not this audit.
+
+## Part 8: Disagreement — what can be solved, what is lived with, and what is a line (2026-09-24)
+
+The founder asked how Niyyah treats disagreement, using the distinction
+relationship research draws between **problems a couple can solve** and
+**lasting differences a couple manages**. No proprietary assessment was used.
+The surfaces audited: Before you say yes, the eleven, the two-sided joint,
+the read, the guide (live prompt and offline voice), and the family words.
+The question was where the product implies that agreement is good, that
+difference is bad, that conflict means incompatibility, or that a hard
+conversation must end in consensus. Two constraints held throughout:
+never press someone to give up a genuine non-negotiable, and never
+manufacture incompatibility from two answers that differ. There is no
+percentage and no score.
+
+### 1. The rule adopted
+
+A difference is one of three kinds:
+- **settled once**, a decision (the mahr, the hall);
+- **lived with**, through an arrangement both keep (money home each month,
+  practice at two paces);
+- **a line**, a position one of them will not move.
+
+Before a nikah there is a fourth: **unknown until it is said**. The
+lasting kind is well described in clinical work on couples (Gottman's
+"perpetual problems"). It is class B to check, used as a concept, and no
+figure from it is used (`docs/RESEARCH.md` L19).
+
+**The kind belongs to her, per difference, never to the topic.** A second
+wife is a line for most of the women this is written for, and for some a
+condition agreed before the nikah. Money home is usually lived with, and
+for someone it is a line. So no topic is pre-sorted:
+- pre-sorting a topic as non-negotiable would manufacture incompatibility;
+- pre-sorting it as negotiable would be pressure;
+- every topic offers every kind, and the topic changes only the words.
+
+### 2. What the audit found
+
+**Agreement as the good answer:**
+- The eleven's state weights were agree 1, differ 0.1, below not-talked
+  at 0.35. Nothing read them, but the data said it.
+- The result drew a difference in clay, the colour kept for errors, and
+  listed it first.
+- The follow-up made "We agree" the filled button and "We don't agree"
+  the outline one.
+- The Ending credited only agreements.
+- "Only where you match" appeared on eleven surfaces.
+
+**Difference as the bad answer:**
+- "One conversation doesn't line up **yet**."
+- "Nothing is crossed."
+- `differ` was reopened ahead of every unopened topic, for as long as the
+  sheet existed. The joint did the same: `differ-somewhere` 0.9 over
+  `both-not-talked` 0.6.
+- `live.why`: "come apart on that in the first year".
+
+**Conflict as incompatibility:**
+- The read's `nonneg` scored "pushed back" (0.1) below changing the
+  subject (0.2). That put an honest "that isn't me" in the same box as
+  pressure, against the eleven's own "a plain 'no' and a plain 'I might'
+  are both answers you can build on".
+- `hard` scored his "goes quiet for a while" as a gap (0.3), while her own
+  map calls a pause that comes back "workable and healthy" (0.8).
+- The pressure script assumed being blamed, even when the gap was her
+  non-negotiables.
+- The offline guide had no answer for a disagreement. It gave the
+  courtship framework ("that is part of the answer"), or whatever a
+  keyword touched: "he wants to live with his mother and I don't" got "a
+  man worth having expects your family".
+- No eval case covered a couple disagreeing.
+
+**Consensus as the required outcome:**
+- A difference already talked about got its opening words again.
+- The follow-up took a boolean; the printed guide had one box for a
+  difference, "Still discussing".
+- `ALL_AGREED` was reached only if every topic was agreed.
+- The family words said "I'd rather we walk in agreeing", and "We have
+  agreed on ———" had no slot for a difference.
+
+**Pressure on a non-negotiable.** No copy did this: the map, the
+reflection and the auntie all say "hold them". The pressure was
+structural. After "we don't agree" on a second wife, the engine handed it
+back as the first conversation to open, every time. There was no way to
+say "this is a line, and I have said it". The live prompt had no rule
+against coaching a middle.
+
+**What was already right, and stays:**
+- "Either can work" (`aroos-mahr`).
+- "A specific answer you don't like is worth more than a vague one you
+  do" (`live`).
+- The man's distrust of a quick yes.
+- "Agreement from six months ago is a memory".
+- The read rewarding *coming back*, not agreeing.
+- "They can disagree without cruelty".
+- Ended's "That is allowed".
+- S6's "No difference is light", which the fix keeps: no topic's
+  difference is ranked lighter than another's.
+
+### 3. The eleven, one by one
+
+The kinds: **line**; **arranged** (settled once); **managed** (lived with,
+through a system); **unknown**. Every topic keeps every kind. The table
+says what the product must not assume.
+
+| Topic | Plausible kinds | Must not |
+|---|---|---|
+| `live` | City: arranged. With his mother: a line for some. Near family: managed | Split "own front door" against "with family" |
+| `his-family-in-home` | Hosting: managed. Someone moving in: a line for some | Read limits on hosting as an insult to his family |
+| `work` | Whether she works: can be a line. Who does what at home: managed for life | Treat "in seasons" as unresolved |
+| `money-home` | Mostly managed; occasionally a line | Keep reopening an arranged budget |
+| `children` | Whether: line-shaped. How many, how soon, language, dugsi: arranged | Offer a middle on whether |
+| `deen-daily` | Practice: managed. What each expects of the other: can be a line | Treat a pace difference as incompatibility, or a line on expectations as a preference |
+| `aroos-mahr` | Arranged, once | Build a system for a one-time decision |
+| `qabiil` | Between the two, usually not a difference at all. His stance if family raises it: unknown until it happens; a line if he will not stand with her | Count "it doesn't matter to me" as agreement |
+| `going-back` | A plan: arranged. Long stays: managed. Moving there: a line for some | Treat "we'd figure it out" as settled |
+| `second-wife` | A line for most readers; for some, a condition agreed before the nikah (the ruling goes to a scholar) | Default to "work it out" |
+| `families-disagree` | A stance, arranged as a rule ("us first"). A line if he will not be a team | Treat an easy "of course" as done |
+
+### 4. What was built
+
+**`settled`.** A new shared state: "We see it differently, and we've
+worked out how."
+- It ranks just above agreement (0.2) and below anything unopened.
+- When every topic is agreed, settled or a line, the sheet ends in
+  `ALL_HAD`, "go back over them".
+- The joint gains `both-settled`. Any other mix with `settled` is two
+  people who do not describe the same conversation.
+- *Decision 19:* a fix. FollowUp promised "the list stays true to where
+  you are", and for this couple it did not.
+
+**The second question.** "We've talked, and we don't agree" no longer
+ends there. It opens "Where does that leave it?":
+- *It's still open*
+- *We've worked out how to live with it*
+- *It's a line for me*
+
+It is inline, on both phones (`src/components/ElevenChoices.tsx`), and
+nothing is recorded until the second answer. His buttons gain the radio
+roles hers had.
+
+**Lines.** On whichever phone names them:
+- A line is never chosen to open and never given words to work it out.
+- It is listed as hers and named first in the headline, as what she said.
+- The summary says nothing will hand it back.
+- `SAY_THE_LINE` gives words for saying it plainly, once, and for
+  listening for whether the other answer is final. It does not listen for
+  agreement.
+- **Kept on the phone:** a line is the pseudo-state `line` only while
+  answering. On save it becomes `differ` plus the topic in `lines`
+  (`sheetOf`), so the couple link carries a plain difference by
+  construction. No screen announces her position before she has said it.
+- A kept map drops `lines` on the client, by type, and on the server; a
+  restored line reads as open, and Trust says so. The guide is told the
+  first line's topic, so it never coaches her off it.
+- *Decision 19:* a fix, to "takes no position on any of them — qabiil and
+  a second wife included". One stored field, in its own commit.
+
+**Words after a difference.**
+- `WORK_IT_OUT` replaces the opening words for an open difference on her
+  own sheet. It asks each of them what they could not live with **before
+  any middle**, so a line shows itself before anyone is asked to bend it.
+- The two-sided sheet keeps each topic's opening words, since one of the
+  two may not know there is a difference.
+- One chooser (`scriptForState`) serves the result and the follow-up, so
+  the words shown again match.
+
+**Language:**
+- Headlines: "One conversation is still open between you"; "You've named
+  one line the two of you don't share"; "Where you see things
+  differently, you have worked out how".
+- "Only where you match" became "only where the two of you stand".
+- `tests/voice-rules.ts` now bans "where you match", "line up yet" and
+  "nothing is crossed".
+- The result drops clay for a difference, and a line gets its own mark.
+- The follow-up has four answers, drawn alike, under "Not agreeing is an
+  answer too".
+- The Ending credits every conversation had.
+- Printed boxes: *Agreed · Worked out · Still open · A line · Need help*.
+  The sample was printed through Chromium and is still one page. The full
+  guide closes with words for an open difference and for a line.
+- The family words now say "walk in knowing where we each stand", with a
+  slot for a difference worked out.
+- `live.why` no longer predicts the first year.
+- The weights are null.
+
+**The read.** Relabels only; ids and weights are unchanged, and there is
+no new option.
+- `pushed` now reads "keeps trying to talk me out of them", and the
+  helper says a plain answer counts even when it isn't hers.
+- His pause that comes back now sits with "comes back".
+- When `nonneg` made pressure thin, `NONNEG_SCRIPT` asks for a plain
+  answer, not agreement.
+- Its own commit, because `read.thin` readouts shift from this date.
+
+**The guide:**
+- A grounding rule on every request: a difference is not a verdict, and
+  agreement is not the goal; never "compatible" or "incompatible"; never
+  coach a line toward a compromise or toward giving it up; an open
+  difference starts from what each could not live with; a worked-out one
+  is not reopened unless asked.
+- The eleven's note names what is worked out, still open and a line.
+- The offline voice has one voice-independent answer for a disagreement.
+- A `disagreement` eval category (three cases) was added, and its
+  baseline recorded; no existing case moved.
+
+**Docs:**
+- `docs/PRODUCT.md` S6: "No difference is a verdict, either".
+- `docs/RESEARCH.md` L19.
+- PRIVACY and Trust rows for `settled`, `both-settled`, lines and the
+  guide note.
+- The tally's two joints are not comparable across 2026-09-24.
+
+### 5. What this does not do, and what would move it
+
+- No score, no percentage, and no topic classified. `consequence` is
+  unchanged.
+- The live eval (`npm run eval:guide`) needs a key and was not run.
+- Whether anyone uses the kinds is unknown. `/couple` `both-settled` per
+  topic, `ended.which.eleven`, and PROTOCOL's sessions can tell:
+  - *Up:* someone says "we don't agree, and it's fine" unprompted.
+  - *Down:* sessions say "worked out how" is how people describe giving
+    in, or that naming a line felt like the app pushing an ending.
+- Not done:
+  - `second-wife`'s "one of the few questions where the answer shapes
+    the rest of a life" (a count, L9) is still in the copy.
+  - The printed guide's neutral voice writes "they has" where the
+    woman's voice has "{he} has". That bug predates this change.
+
