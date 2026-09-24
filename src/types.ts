@@ -32,7 +32,8 @@ export interface Identity {
   /**
    * Country id (see data/countries.ts). Only asked, and only meaningful, when
    * the scene is `other` — a named city already knows its country. It picks
- * her help line, and never leaves the phone.
+   * her help line. It leaves the phone only inside a map she asks us to keep;
+   * never on the progress record, never to the guide.
    */
   country?: string
 }

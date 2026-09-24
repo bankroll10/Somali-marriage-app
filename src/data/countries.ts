@@ -2,7 +2,7 @@
  * The countries the diaspora lives in.
  *
  * Asked only when her city is `other`, so the help line she is shown is her
- * country's (src/data/help.ts). Never sent anywhere.
+ * country's (src/data/help.ts). It leaves the phone only inside a kept map.
  */
 export interface Country {
   id: string

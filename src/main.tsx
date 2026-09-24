@@ -45,7 +45,7 @@ async function resolveEntry(): Promise<{ entry: Entry | null; pending?: Pending 
   // opened rather than on the marketing page (src/lib/entry.ts).
   rememberEntry(entry)
   // Stripped before any round trip, so a code never sits in the bar (or in a
-  // screenshot of it) while the network answers — THREAT T10.
+  // screenshot of it) while the network answers — docs/SECURITY.md T10.
   window.history.replaceState({}, '', window.location.pathname)
   if (entry.kind === 'map' && entry.code) {
     // Her own link, on the phone that already holds her map: nothing to

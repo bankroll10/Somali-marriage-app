@@ -124,11 +124,14 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 under your code:
               </p>
               <ul className={LIST}>
-                <li>the first name you gave</li>
+                <li>the first name you gave, that you are 18 or over, and whether you are a woman or a man</li>
                 <li>your answers, and every reading of your map</li>
-                <li>where you said you are</li>
-                <li>any read or Before you say yes you’ve done</li>
+                <li>where you said you are, and where you are in it — preparing, talking, deciding, married</li>
+                <li>any read or Before you say yes you’ve done, and which of the four you began</li>
                 <li>your couple code</li>
+                <li>the words we handed you, and whether you said them</li>
+                <li>any courtship you told us ended, and what decided it if you said</li>
+                <li>how many guide replies you’ve used, and your two settings here</li>
                 <li>if you’ve married, what you told us on the way out</li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
@@ -208,8 +211,9 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 If you opened Niyyah from a link someone sent you, it also says what kind of link
                 that was — words, the eleven, a couple’s link, a family link, a link shared
-                into a community’s group, or a link from someone this worked for — and not who sent
-                it, or which group.
+                into a community’s group (and whether that was an alumni or professional group, or
+                a mosque), a link in an article, or a link from someone this worked for — and not
+                who sent it, which group, or which article.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 One more word, once: that you have asked the guide at all — not what you asked, not

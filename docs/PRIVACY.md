@@ -93,8 +93,9 @@ conversation, or a question?* Only the last three are collected.
 
 **What she controls.** The steps switch gates the call itself; it is **on by
 default**, says "On unless you turn it off", and `arrived` posts on first
-render: opt-out, not consent (`docs/DECISIONS.md`). "Keep the Guide on this
-device" stops every guide call. Forget me is on Trust and the married Ending.
+render: opt-out, not consent, because the men's kill tests (`docs/RESEARCH.md`)
+need every arrival in the denominator. "Keep the Guide on this device" stops
+every guide call. Forget me is on Trust and the married Ending.
 
 ## On her phone
 
@@ -107,7 +108,7 @@ Plaintext `localStorage`, this browser only; every key is in `LOCAL_KEYS`,
 | `coachThreads` (in it) | Guide conversations, both sides' words | **Last 40 per voice** (R6); the guide reads 10 | Forget me; Start over |
 | `niyyah.keep.code.v1`, `.rev.v1`, `.once.v1` | Her map code; the revision last seen; a first keep's key until its code comes back | Until forget | Forget me; Start over (code, revision) |
 | `niyyah.install.v1`, `niyyah.via.v1` | The random id her steps go under, not her map code; one word for the link that first brought her | From the first report / `?via=` link | Forget me |
-| `niyyah.draft.v1`; `niyyah.entry.v1` | A half-finished read or eleven, as ids; a `?couple=` link part-way through | 30 days; 24 hours | Finishing; Start over; Forget me |
+| `niyyah.draft.v1`; `niyyah.entry.v1` | A half-finished read or eleven, as ids; a `?couple=` link part-way through | 30 days; 24 hours | Finishing or leaving; Start over; Forget me |
 | `niyyah.forget.pending.v1` | Only the codes a failed Forget me still has to delete | Until they land | Itself |
 | `niyyah.events.v1`, `.reports.v1`, `.waitlist.queue.v1` | Nothing writes them: an old event diary (C6), old report receipts, a door ping | Older phones | Forget me |
 | Service worker cache | The app shell, for offline | Until the next deploy | A deploy. Never a code or a `/.netlify/*` response (`docs/SECURITY.md` T3) |
@@ -121,18 +122,17 @@ things below." One row per thing.
 |---|---|---|---|
 | She taps Keep this map | `POST /keep` | The snapshot: `niyyah.intake.v1` minus the guide's threads and follow-ups, the advice line, `updatedAt`, the earlier read, and the couple's key, joint and side, every moment cut to its day (C1–C3); her code and revision, or a once key | `maps` |
 | She restores, or changes her code | `GET`, `PUT /keep?code=` | The code | — |
-| She sends him the eleven | `POST /couple` | Eleven closed states and her side; later her owner key, to change them | `couples` |
+| She sends him the eleven | `POST /couple` | Eleven closed states and her side; later her owner key, to change them, and the code alone (`GET`) to see whether he answered | `couples` |
 | He answers | `POST /couple` | The code and his eleven states. Only the joint comes back | `couples`, `tallies` |
 | The steps switch is on | `POST /progress` | Install id, rung ids, city, via, side, facts; 4 KB at most | `progress` |
-| She asks the live guide | `POST /guide` → Anthropic | Her message; up to 10 earlier turns (6,000 characters); woman or man; city; nine answers (timeline, practice, faith's role, family's role, children, closeness, what feels safe, non-negotiables, hardest part); stage; a line each for a read and the eleven (C4, C5) | Not stored by us; Anthropic's retention is under its API terms |
+| She asks the live guide | `POST /guide` → Anthropic | The voice; her message; up to 10 earlier turns (6,000 characters); woman or man; city; nine answers (timeline, practice, faith's role, family's role, children, closeness, what feels safe, non-negotiables, hardest part); stage; a line each for a read and the eleven (C4, C5) | Not stored by us; Anthropic's retention is under its API terms |
 | She reports a concern | `POST /safety` | Couple code, her side, reason id, up to 500 characters | `reports` |
 | The app crashes | `POST /health` | `crash` or `chunk`, once per page load; no stack, screen, code or id | `ops`, a day's total |
 | She taps Forget me | `DELETE` keep, progress, couple | Her three codes | — |
 
-Links carry `?map=` or `?couple=` (a code) and `?via=` (a kind); the address
-bar is cleaned before any request (`docs/SECURITY.md` O2). Function logs hold
-route names and error objects, never a body. Fonts come from our own origin
-(`src/index.css`); no other third party is contacted.
+Links carry `?map=` or `?couple=` (a code) and `?via=` (a kind), cleaned from
+the address bar before any request (`docs/SECURITY.md` O2). Logs hold route
+names and errors, never a body. Fonts are self-hosted (`src/index.css`).
 
 ## What the server holds, and for how long
 
@@ -151,7 +151,7 @@ route names and error objects, never a body. Fonts come from our own origin
 | `progress` | `<install>` | `first` (rung → day), `scene`, `via`, `gender`, `facts`, `expiresAt` | progress `POST` | A year from the last step; **kept once `married`** | Her Forget me; sweep; the readout as it walks | ✓ |
 | `tallies` | `joint` | `{pairs, topics}` | The second side's answer | Kept | — (no code) | — |
 | `limits` | `<bucket>-<h\|d>-<stamp>` | A counter, no identity | Every capped route | One period | The next period's first write | — |
-| `ops` | `day/…`, `sizes/…`, `last/…` | Numbers | Routes; `/health`; export; sweep | 35 days | Sweep | — |
+| `ops` | `day/…`, `sizes/…`, `last/…` | Numbers | Routes; `/health`; export; sweep | 35 days; `last/…` is overwritten | Sweep | — |
 | `cohort`, `contacts`, `vouches` | any | Retired 2026-09-24: door entries, ways to reach people, relatives' names and phones | Nothing | Until the next sweep | Sweep empties every key | — |
 
 `gone/<code>` stores its window's end as a full timestamp: the one stored

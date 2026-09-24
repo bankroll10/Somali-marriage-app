@@ -1,7 +1,7 @@
 # Research: how Niyyah learns what is true
 
-What Niyyah does not know yet, how it finds out, and what it does when it
-does. The North Star, followed-through per hundred arrived, is defined in
+What Niyyah does not know yet, how it finds out, and what it changes once
+it knows. The North Star, followed-through per hundred arrived, is defined in
 `docs/PRODUCT.md`. Real member evidence is zero: every rate below is a
 readout field waiting for its first records.
 
@@ -77,7 +77,7 @@ A new experiment copies a row; its smallest test builds nothing if it can.
 
 | Id | Hypothesis | Measure | Decision rule | Status |
 |---|---|---|---|---|
-| **A1** · Onboarding length | A serious person answers sixteen questions about herself before receiving anything (one optional; twenty-three were cut on two testers who stopped, then three "how you'd live" questions came back) | `rungs.mapped / facts.began.map`, and the same for `read` and `eleven`. His side: `rungs['he-answered'] / rungs['asked-him']`, both from her phone; `facts.began.couple` against `he-answered` tells "opened and quit" from "never opened" | At twenty arrivals. Read under 60% → shorten the read first. Map under 50% → cut to one chapter, the one with the "how you'd live" questions. Couple under 50% → fix the two-sided flow, not the channel. Above those, length is not the constraint. Followed-through per hundred arrived must not fall as completion rises | Built (`facts.began`). No readings |
+| **A1** · Onboarding length | A serious person answers sixteen questions about herself before receiving anything (one optional; twenty-three were cut on two testers who stopped, then three "how you'd live" questions moved in) | `rungs.mapped / facts.began.map`, and the same for `read` and `eleven`. His side: `rungs['he-answered'] / rungs['asked-him']`, both from her phone; `facts.began.couple` against `he-answered` tells "opened and quit" from "never opened" | At twenty arrivals. Read under 60% → shorten the read first. Map under 50% → cut to one chapter, the one with the "how you'd live" questions. Couple under 50% → fix the two-sided flow, not the channel. Above those, length is not the constraint. Followed-through per hundred arrived must not fall as completion rises | Built (`facts.began`). No readings |
 | **A2** · A family vouch as verification | — | — | — | Retired with the vouch, 2026-09-24 |
 | **A3** · The guide is worth opening the app for | Guidance carries the first people. It is the only live cost: `netlify/functions/guide.ts` calls a model under hourly and daily caps | `facts.followedThroughBy.asked.guide`: of everyone who ever asked the guide (one bit, `facts.asked`), how many followed through, against everyone who did not. Later `facts.ending.used.guide` | At twenty `followed-through`: askers not above non-askers → the live model goes and the local voice stays. At the first endings, fewer than one in five naming the guide confirms it | Built (`src/lib/facts.ts`; `docs/DECISIONS.md` decision 15). Kept on by the founder's choice, 2026-09-10. No readings |
 | **A4** · Family-oriented progression | People want family in the room and will use written words to put them there | `facts.through['family:<id>']` per hundred who reached `mapped` | No family script confirmed as said by twenty people who built maps → the family path is aspiration, not product | Nothing to build. No readings |

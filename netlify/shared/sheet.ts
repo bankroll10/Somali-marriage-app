@@ -22,8 +22,11 @@
  * beside `netlify/functions` rather than in it.
  */
 
+import { day } from './day'
+
+const DAY_MS = 24 * 60 * 60 * 1000
 /** How long a report can still be made after the sheet is gone. */
-export const REPORT_WINDOW_MS = 90 * 24 * 60 * 60 * 1000
+export const REPORT_WINDOW_MS = 90 * DAY_MS
 
 const GONE = 'gone/'
 
@@ -48,7 +51,10 @@ interface Couples {
  */
 export async function retire(couples: Couples, code: string, from = Date.now()): Promise<boolean> {
   if (!(await couples.get(code, { type: 'json' }))) return false
-  await couples.setJSON(goneKey(code), { expiresAt: new Date(from + REPORT_WINDOW_MS).toISOString() })
+  // A day, never the moment (netlify/shared/day.ts): this was the one date in
+  // any store still written to the millisecond. The day after the ninetieth,
+  // since a bare day reads as its midnight, so the window is never shorter.
+  await couples.setJSON(goneKey(code), { expiresAt: day(from + REPORT_WINDOW_MS + DAY_MS) })
   await couples.delete(code)
   return true
 }

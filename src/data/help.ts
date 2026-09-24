@@ -11,7 +11,7 @@
  * page naming it, on HELP_CHECKED. A number that could not be confirmed is
  * left out rather than guessed: Somalia's emergency numbers differ by region
  * and by source, so it gets the generic line, not a number that may ring
- * nowhere. Re-check once a year (docs/OPERATING.md) — Sweden's changed in
+ * nowhere. Re-check once a year (docs/OPS.md) — Sweden's changed in
  * 2025 (the old 020-50 50 50 still connects).
  *
  * Static text on her own phone. Nothing is sent, nothing is logged, and the
