@@ -232,6 +232,15 @@ Each was checked by reintroducing its defect: the store opened outside the
 try, an unguarded body read, the token written first, an unconditional
 vouch write, an unconditional couple write. All went red.
 
+Since 2026-09-24 `tests/ops.test.ts` holds the operations counts and
+`/health` to the same standard (`docs/OPS.md`): each of the nine things the
+founder is alarmed about is caused, and `/health` must say so on the cadence
+it promises. Eight mutations were each shown to turn it red: a route that
+stops counting its failures, a cap that stops counting refusals, a city in a
+cap's signal, a signal outside the closed list, a report's code in the reply,
+a sweep or a backup that stops marking itself, and a guide that stops counting
+tokens.
+
 ### The guardrail: `tests/catalog.ts`
 
 It maps every file to its categories, to its **kind** (behaviour, source or

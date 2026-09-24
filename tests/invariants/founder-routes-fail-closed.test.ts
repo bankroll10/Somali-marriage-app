@@ -31,6 +31,7 @@ const ROWS: Row[] = [
   { fn: 'couple', method: 'GET', path: 'couple' },
   { fn: 'export', method: 'GET', path: 'export' },
   { fn: 'guide', method: 'GET', path: 'guide' },
+  { fn: 'health', method: 'GET', path: 'health' },
   { fn: 'pool', method: 'GET', path: 'pool?scene=twin-cities' },
   { fn: 'progress', method: 'GET', path: 'progress' },
   { fn: 'safety', method: 'GET', path: 'safety' },

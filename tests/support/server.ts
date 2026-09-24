@@ -2,6 +2,7 @@ import cohort from '../../netlify/functions/cohort'
 import couple from '../../netlify/functions/couple'
 import exportFn from '../../netlify/functions/export'
 import guide from '../../netlify/functions/guide'
+import health from '../../netlify/functions/health'
 import keep from '../../netlify/functions/keep'
 import pool from '../../netlify/functions/pool'
 import progress from '../../netlify/functions/progress'
@@ -32,6 +33,7 @@ export const HANDLERS: Record<string, Handler> = {
   export: exportFn,
   // The guide takes Netlify's context as well; nothing here reads it.
   guide: (req) => guide(req, {} as never),
+  health,
   keep,
   pool,
   progress,

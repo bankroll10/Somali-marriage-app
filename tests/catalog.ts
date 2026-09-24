@@ -154,6 +154,7 @@ export const CATALOG: Record<string, Entry> = {
 
   // ── Rendered accessibility ────────────────────────────────────────────────
   'tests/ui/screens.test.tsx': { categories: ['accessibility'], kind: 'behaviour' },
+  'tests/ui/crash.test.tsx': { categories: ['failure', 'security'], kind: 'behaviour' },
 
   // ── Functions over the in-memory store ────────────────────────────────────
   'tests/caps-function.test.ts': { categories: ['integration', 'security'], kind: 'behaviour' },
@@ -181,6 +182,7 @@ export const CATALOG: Record<string, Entry> = {
   // ── Failure, caused ───────────────────────────────────────────────────────
   'tests/integrity.test.ts': { categories: ['failure', 'integration'], kind: 'behaviour', invariants: ['delete-means-deleted'] },
   'tests/failure-modes.test.ts': { categories: ['failure', 'integration'], kind: 'behaviour' },
+  'tests/ops.test.ts': { categories: ['failure', 'integration', 'security'], kind: 'behaviour' },
   'tests/chunk-error.test.ts': { categories: ['failure'], kind: 'mixed' },
   'tests/fail.test.ts': { categories: ['failure'], kind: 'source' },
 

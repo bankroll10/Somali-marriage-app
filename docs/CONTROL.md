@@ -17,7 +17,7 @@ rather than quietly giving up later.
 | **Google Play** | Same | Same |
 | **Authentication provider** | There are no accounts. A six-character code is the whole identity | An Auth0 or Firebase holding the front door, and a migration nobody survives cleanly |
 | **Payment processor** | Nothing is sold yet | Manageable — but see the rule below about where payment must never live |
-| **Analytics vendor** | `src/lib/analytics.ts` writes to `localStorage` and sends nothing anywhere | A third party watching every member of a marriage app |
+| **Analytics vendor** | `src/lib/analytics.ts` keeps events in memory for the session and sends nothing anywhere. Operational health is counted by the product itself, as totals with no one in them (`docs/OPS.md`) | A third party watching every member of a marriage app |
 | **Social SDKs** | Sharing uses the browser's own share sheet | A tracking pixel on a page about someone's marriage |
 | **Paid acquisition** | The product is designed to travel by word of mouth | A channel whose price is set by someone else and rises every year |
 
@@ -195,7 +195,7 @@ trusted person.
 
 | Account | 2FA on | Recovery codes kept where | Second person | Notes |
 |---|---|---|---|---|
-| GitHub (`bankroll10`) | — | — | — | Owns the repository. Private since the audit's decision 5 |
+| GitHub (`bankroll10`) | — | — | — | Owns the repository. **Public as of 2026-09-24** (this row said private; the API says otherwise) — the monthly backup artifact waits on it going private (`docs/OPS.md`). Also where the health and deploy alerts arrive, by email |
 | Netlify (the team) | — | — | — | Holds every store, every secret and the deploys; "team access is the whole boundary" |
 | Anthropic console | — | — | — | **Monthly spend limit set:** — **(write the number here the day it is set; blank means unset).** The bound outside the code (`netlify/functions/guide.ts`) — and since 2026-09-17 the guide fails closed when its own counter cannot be read (`docs/RISKS.md` R5), so the console limit is the second bound rather than the only one |
 | Registrar for joinniyyah.com | — | — | — | Registrar: — · Expires: — · Auto-renew: — · Registrar lock: — . Renew for several years |

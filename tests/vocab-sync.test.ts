@@ -23,6 +23,7 @@ import { ALPHABET as SERVER_ALPHABET, CODE_LENGTH as SERVER_CODE_LENGTH } from '
 import { HESITATION_IDS } from '../src/data/hesitation'
 import { INSTRUMENT_IDS } from '../src/data/instruments'
 import { ASKED } from '../src/lib/facts'
+import { CRASH_EVENTS } from '../src/lib/crash'
 
 /**
  * The server accepts only words from closed lists, and each list has a twin in
@@ -129,6 +130,12 @@ describe('every word the server accepts is a word the app uses', () => {
 
   it('a conversation can be confirmed under every source but the guide', () => {
     expect(sorted(Object.keys(vocab.THROUGH_TOPICS))).toEqual(['beforeYes', 'couple', 'family', 'read'])
+  })
+
+  it('the only two things a phone says about the app failing on it', () => {
+    expect(sorted(vocab.CRASH_EVENTS)).toEqual(sorted(CRASH_EVENTS))
+    // And each is an operations signal /health counts.
+    for (const e of CRASH_EVENTS) expect(vocab.OPS_SIGNALS.has(`client.${e}`), e).toBe(true)
   })
 
   it('the reasons a safety report can give', () => {

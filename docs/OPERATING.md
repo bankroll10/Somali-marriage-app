@@ -22,6 +22,11 @@ dashboard; a dashboard becomes a metric; a metric becomes the thing the
 product optimises for. The ladder is the only metric. Everything below is
 calibration.
 
+Whether the *service* is all right — up, deployed, not failing, not
+overspending, backed up — is a different question with a different page:
+`docs/OPS.md`, and the health run it describes, which stays quiet until
+something is wrong. It holds nothing about members and is not a readout.
+
 One readout does not wait for the month: `GET /safety` (`netlify/functions/safety.ts`)
 holds a real, named concern about a real person, and nobody is notified when
 one arrives — see `docs/TIME.md`. **Check it weekly**, on its own, whatever
@@ -292,10 +297,9 @@ key is in the function log.
 
 Three kinds of blob outlive their purpose and have no sweep:
 
-- **Vouches for maps that lapsed.** A vouch lives while its map does, and a
-  map lapses a year after its last keep. The vouch blob stays, harmless and
-  unreadable through any route. Once a year: list `maps`, list `vouches`,
-  delete vouches whose code has no map.
+- **Vouches for maps that lapsed.** Swept weekly since 2026-09-23, with their
+  ask and token, by `netlify/functions/sweep.ts` — listed here only because
+  this list used to say they had no sweep.
 - **Door entries for maps that lapsed.** Swept on a `/pool?...&sweep=1` read
   of that pool, and weekly for every pool by `netlify/functions/sweep.ts` since
   2026-09-17 (`docs/RISKS.md` R3): the member key and its index go, a lapsed map's blob goes with
@@ -358,9 +362,10 @@ In this order, because each question only means something after the last:
 6. **One revision.** Pick the single row above with the clearest signal, move
    its constant, and write the line below.
 7. **Save the backup.** One curl, one file, kept somewhere that is not Netlify.
-   Since 2026-09-12 `.github/workflows/watch.yml` saves it monthly as a 90-day
+   Since 2026-09-12 `.github/workflows/watch.yml` saves it monthly as a 35-day
    artifact once the repository is private and `BACKUP_TO_ARTIFACT` is set;
-   this step is then a check that last month's artifact exists.
+   this step is then a check that last month's artifact exists. Either way,
+   `/health`'s backup check says how many days it has been (`docs/OPS.md`).
 8. **Do people finish what they open?** `rungs.read / facts.began.read`, and
    the same for the map, the eleven and the couple side. `docs/EXPERIMENTS.md`
    holds the decision rule for each, fixed in advance — if one fires, act on it

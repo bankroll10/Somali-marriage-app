@@ -92,7 +92,7 @@ these live in the repository, and none should.
 |---|---|---|
 | `PREVIEW_PASSWORD` | **The close switch** (`netlify/edge-functions/gate.ts`). Any username, this password. Deleted on 2026-09-12; set it only to shut the site after a safety incident. | **No gate — the normal state since 2026-09-12. The site is open to anyone with the link.** |
 | `ANTHROPIC_API_KEY` | Switches on the live Guide (`netlify/functions/guide.ts`). Also, optionally, a **GitHub Actions secret** of the same name, so `.github/workflows/guide-eval.yml` can evaluate the live Guide on pull requests that change it (about $4 a run; `docs/GUIDE-EVAL.md`). Use a separate key with its own console spend limit, so the eval can never spend the members' budget. | The Guide answers from its offline voice; no error shown. Without the GitHub secret, the live eval warns and passes; the offline eval still gates every PR. |
-| `FOUNDER_KEY` | Bearer token on every readout (`netlify/shared/founder.ts`). Also a **GitHub Actions secret** of the same name, so `.github/workflows/watch.yml` can read `/safety` every morning. | **Every readout answers 401 until it is set** — fails closed since 2026-09-12 (`docs/BOARD.md`); the recovery is setting it. |
+| `FOUNDER_KEY` | Bearer token on every readout (`netlify/shared/founder.ts`). Also a **GitHub Actions secret** of the same name, so `.github/workflows/watch.yml` can read `/health` every three hours (`docs/OPS.md`). | **Every readout answers 401 until it is set** — fails closed since 2026-09-12 (`docs/BOARD.md`); the recovery is setting it. |
 | `VITE_WAITLIST_FORM` | Names the Netlify form signups post to. Already set in `netlify.toml`. | The signup card falls back to a mailto. |
 | `VITE_SITE_HOST` | The domain the app calls itself, in every link it hands out and every share card. | `joinniyyah.com` — ours, and the same default the code carries. Set in every context; see `docs/OWNED.md`. |
 | `VITE_CONTACT_EMAIL` | Where a signup reaches a human when the form is down. | Defaults to `salaam@joinniyyah.com`, which does not receive mail yet — so production must keep this set to an address a person reads. The one open step in `docs/CONTROL.md`'s cutover. |
@@ -114,6 +114,8 @@ these live in the repository, and none should.
 | `COUPLE_ANSWER_HOURLY_CAP` | His answers to the eleven, in one hour. This row said *"his answer is never capped"* until 2026-09-20; it has been capped since the write-paths pass, and three live knobs were undocumented (`docs/FAIL.md`). | `600` |
 | `COUPLE_FORGET_HOURLY_CAP` | Joint sheets deleted in one hour — forget me reaches this store too. | `600` |
 | `PROGRESS_FORGET_HOURLY_CAP` | Rung records deleted in one hour, the progress half of forget me. | `600` |
+| `HEALTH_HOURLY_CAP` | Crash reports phones may send in one hour (`POST /health`, `src/lib/crash.ts`) — a count, so a script can inflate it and nothing else. | `60` |
+| `OPS_COST_ALERT_USD` | The estimated guide spend in a day at which `/health`'s cost check turns red and the health run emails the owner (`docs/OPS.md`). | `20` — about half the worst possible day under the caps. |
 
 Every `*_HOURLY_CAP` and `*_DAILY_CAP` is a circuit breaker, not a member
 limit: one counter per route per period, with no identity attached, refused
@@ -198,6 +200,15 @@ curl -s -H "Authorization: Bearer $FOUNDER_KEY" \
   https://<your-site>/.netlify/functions/export -o "backup-$(date +%F).json"
 ```
 
+## Did it deploy? Is it up?
+
+Every build writes `/version.json` with the commit it was built from
+(`vite.config.ts`, from Netlify's `COMMIT_REF`). After each push to `main`,
+`.github/workflows/deployed.yml` waits up to fifteen minutes for the live
+site to say that commit, and fails — emailing the owner with both commits —
+if it never does. The health run every three hours also fetches the page and
+`/version.json` from outside. `docs/OPS.md` is the runbook for both.
+
 ## The safety queue
 
 `GET /.netlify/functions/safety`, behind the founder key, lists every open
@@ -205,8 +216,9 @@ report against a real, named person a member has raised a concern about —
 see `netlify/functions/safety.ts` and `docs/LEARNING.md` for what this is and
 is not. Unlike the monthly readouts, this one does not wait for the month:
 `docs/OPERATING.md` calls for checking it weekly — and since 2026-09-12
-`.github/workflows/watch.yml` does the weekly read itself and fails when
-anything is open. Resolving a report is
+`.github/workflows/watch.yml` reads it itself: since 2026-09-24 through
+`/health`, every three hours, failing the same day on a threat or something
+explicit and on Monday on anything open (`docs/OPS.md`). Resolving a report is
 `DELETE /.netlify/functions/safety?code=<code>&side=<woman|man>&id=<id>&outcome=<outcome>`,
 which deletes the report and leaves an anonymous stub carrying the outcome;
 `docs/OPERATING.md` has the exact command and `SAFETY_OUTCOMES` in
