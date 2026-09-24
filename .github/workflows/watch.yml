@@ -1,35 +1,39 @@
-# The two things the founder had to remember, on a clock.
+# The founder's smoke alarm, on a clock (docs/OPS.md).
 #
 # Nothing in this product ran on a schedule: the safety queue was read when
 # someone remembered to open /safety, and the backup existed when someone
-# remembered to curl /export (docs/TIME.md). Trust promises the founder reads
-# reports "every week and no later", and no mechanism kept the word. docs/TIME.md
-# said an alert needed "an outbound channel this product does not have yet" —
-# but GitHub emails the owner when a workflow fails, and this repository already
-# runs one. So: a job that fails when a report is open is the alert, and it adds
-# no vendor (docs/BOARD.md).
+# remembered to curl /export (docs/TIME.md). GitHub emails the owner when a
+# workflow fails, and this repository already runs one — so a job that fails
+# is the alert, and it adds no vendor (docs/BOARD.md, docs/CONTROL.md).
 #
-# Two schedules, one file. The safety job reads /safety with the founder's key
-# every morning. It fails on Mondays when anything is open, and on any day when
-# an open report says "threatened me" or "sent something explicit" — those two
-# cannot wait for Monday (docs/ABUSE.md). It prints the counts, never the body,
-# which holds free text naming a person. Until FOUNDER_KEY exists as a repository
-# secret the request is a 401 and the job fails too, which is the prompt to add
-# it (docs/DEPLOY.md).
+# The health job, every three hours. From outside, it asks whether the app is
+# up (the page and /version.json answer). Then it reads /health with the
+# founder's key — storage, server errors, Claude, spend, caps, the safety
+# queue, the backup, the sweep, crashes on phones — and writes every check to
+# the run's summary as a table. That summary is the dashboard: one page in the
+# Actions tab, readable on a phone. A failing check fails the job, and so
+# emails the founder, on its own cadence: a broken key or a storage outage on
+# the next run; an urgent report (threats, or something explicit) in the
+# 09:00 run; anything open, a stale backup or a stalled sweep only in
+# Monday's 09:00 run — so one old report does not send eight emails a day.
+# It prints counts and sentences, never a report, a code or anything of a
+# member's. Until FOUNDER_KEY exists as a repository secret the read is a 401
+# and the job fails, which is the prompt to add it (docs/DEPLOY.md).
 #
 # The monthly job saves /export as a 35-day artifact — one month and a margin,
-# since each run replaces the last (docs/PRIVACY.md, R5) — replacing the by-hand
-# step in docs/OPERATING.md. It runs only when the repository variable
-# BACKUP_TO_ARTIFACT is "true": the export holds pseudonymous learning records,
-# and an artifact on a public repository can be downloaded by anyone signed in
-# to GitHub. Flip the repository private first (docs/BOARD.md action 5), then
-# set the variable.
+# since each run replaces the last (docs/PRIVACY.md, R5). It runs only when the
+# repository variable BACKUP_TO_ARTIFACT is "true": the export holds
+# pseudonymous learning records, and an artifact on a public repository can be
+# downloaded by anyone signed in to GitHub. Flip the repository private first
+# (docs/BOARD.md action 5), then set the variable. Either way /health says how
+# long it has been since /export last answered — a backup taken by hand counts.
 name: watch
 
 on:
   schedule:
-    # Every day, 09:00 UTC — the safety check (urgent daily, the rest on Mondays).
-    - cron: '0 9 * * *'
+    # Every three hours, on the hour UTC — the health check. The 09:00 run is
+    # the daily one, and Monday's 09:00 run the weekly one.
+    - cron: '0 */3 * * *'
     # The first of the month, 09:30 UTC — the backup.
     - cron: '30 9 1 * *'
   workflow_dispatch:
@@ -37,8 +41,8 @@ on:
       job:
         description: Which job to run by hand
         type: choice
-        options: [safety, backup]
-        default: safety
+        options: [health, backup]
+        default: health
 
 env:
   SITE: ${{ vars.SITE_URL || 'https://joinniyyah.com' }}
@@ -50,37 +54,70 @@ permissions:
   contents: read
 
 jobs:
-  safety:
-    if: github.event.schedule == '0 9 * * *' || (github.event_name == 'workflow_dispatch' && inputs.job == 'safety')
+  health:
+    if: github.event.schedule == '0 */3 * * *' || (github.event_name == 'workflow_dispatch' && inputs.job == 'health')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Read the safety queue
+      - name: Is the app up, and how is it?
         env:
           FOUNDER_KEY: ${{ secrets.FOUNDER_KEY }}
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
         run: |
           set -u
+          hour=$(date -u +%H)
+          dow=$(date -u +%u)
+          daily=false; weekly=false
+          if [ "$MANUAL" = "true" ] || [ "$hour" = "09" ]; then daily=true; fi
+          if [ "$MANUAL" = "true" ] || { [ "$hour" = "09" ] && [ "$dow" = "1" ]; }; then weekly=true; fi
+          summary="$GITHUB_STEP_SUMMARY"
+          echo "## Niyyah, $(date -u +'%Y-%m-%d %H:00') UTC" >> "$summary"
+          down=0
+
+          # Is the app up? The page, and the file the build writes.
+          page=$(curl -sS -o page.html -w '%{http_code}' "$SITE/" || echo 000)
+          if [ "$page" != "200" ] || ! grep -q 'id="root"' page.html; then
+            echo "::error::$SITE/ answered $page, or not with the app. Is the app up? No."
+            echo "| 🔴 | Is the app up? | $SITE/ answered $page. |" >> "$summary"
+            down=1
+          fi
+          version=$(curl -sS "$SITE/version.json" | jq -r '.commit // empty' 2>/dev/null || true)
+          rm -f page.html
+
           if [ -z "$FOUNDER_KEY" ]; then
-            echo "::error::FOUNDER_KEY is not a repository secret — add it (Settings → Secrets → Actions) so this check can read /safety. docs/DEPLOY.md"
+            echo "::error::FOUNDER_KEY is not a repository secret — add it (Settings → Secrets → Actions) so this check can read /health. docs/DEPLOY.md"
             exit 1
           fi
-          status=$(curl -sS -o body.json -w '%{http_code}' -H "Authorization: Bearer $FOUNDER_KEY" "$SITE/.netlify/functions/safety")
+          status=$(curl -sS -o health.json -w '%{http_code}' -H "Authorization: Bearer $FOUNDER_KEY" "$SITE/.netlify/functions/health" || echo 000)
           if [ "$status" != "200" ]; then
-            echo "::error::/safety answered $status — the key is wrong, or the site is down. Nobody can read the queue until this is green."
+            echo "::error::/health answered $status — functions are down, or the key is wrong. docs/OPS.md"
+            echo "| 🔴 | Are functions up? | /health answered $status. |" >> "$summary"
             exit 1
           fi
-          open=$(jq '.reports | length' body.json)
-          urgent=$(jq '[.reports[] | select(.reason == "threats" or .reason == "sexual")] | length' body.json)
-          rm -f body.json
-          if [ "$urgent" -gt 0 ]; then
-            echo "::error::$urgent open report(s) of a threat or something explicit. Read /safety today — docs/OPERATING.md."
+
+          {
+            echo ""
+            [ "$down" = "0" ] && echo "The app is up; the live commit is \`${version:-unknown}\`."
+            echo ""
+            echo "| | Question | Now |"
+            echo "|---|---|---|"
+            jq -r '.checks[] | "| \(if .state == "ok" then "🟢" elif .state == "warn" then "🟡" else "🔴" end) | \(.question) | \(.summary) |"' health.json
+            echo ""
+            echo "Seven days of counts: \`curl -H \"Authorization: Bearer \$FOUNDER_KEY\" $SITE/.netlify/functions/health | jq .days\` — docs/OPS.md says what each one means."
+          } >> "$summary"
+
+          # Fail — and so email — on each check's own cadence.
+          alarms=$(jq -r --argjson daily "$daily" --argjson weekly "$weekly" '
+            .checks[] | select(.state == "fail")
+            | select(.cadence == "now" or (.cadence == "daily" and $daily) or (.cadence == "weekly" and $weekly))
+            | "\(.question) \(.summary)"' health.json)
+          rm -f health.json
+          if [ -n "$alarms" ]; then
+            while IFS= read -r line; do echo "::error::$line"; done <<< "$alarms"
             exit 1
           fi
-          if [ "$open" -gt 0 ] && { [ "$(date -u +%u)" = "1" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; }; then
-            echo "::error::$open open safety report(s). Read /safety this week — docs/OPERATING.md."
-            exit 1
-          fi
-          echo "Nothing that cannot wait: $open open, none urgent."
+          if [ "$down" != "0" ]; then exit 1; fi
+          echo "Nothing that cannot wait."
 
   backup:
     if: (github.event.schedule == '30 9 1 * *' || (github.event_name == 'workflow_dispatch' && inputs.job == 'backup')) && vars.BACKUP_TO_ARTIFACT == 'true'

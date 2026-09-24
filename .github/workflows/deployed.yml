@@ -1,0 +1,53 @@
+# Did the deploy land? (docs/OPS.md)
+#
+# Netlify builds main on its own, and a build that fails — verify red, a
+# broken bundle, a Netlify outage — leaves the last good deploy live and
+# says so only in Netlify's own dashboard. This asks the site. Every build
+# writes /version.json with the commit it was built from (vite.config.ts);
+# after a push to main, this waits up to fifteen minutes for the live site
+# to say that commit. If it never does, the job fails, and GitHub emails the
+# founder with both commits — the one that is live and the one that is not.
+# No Netlify token: the site is asked the same way a visitor would ask it.
+name: deployed
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  SITE: ${{ vars.SITE_URL || 'https://joinniyyah.com' }}
+
+permissions:
+  contents: read
+
+# A newer push supersedes the wait for an older one: only the latest commit
+# can ever be live, so only its check means anything.
+concurrency:
+  group: deployed
+  cancel-in-progress: true
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Wait for the live site to say this commit
+        env:
+          WANT: ${{ github.sha }}
+        run: |
+          set -u
+          live=""
+          for i in $(seq 1 30); do
+            live=$(curl -sS "$SITE/version.json?check=$i" | jq -r '.commit // empty' 2>/dev/null || true)
+            if [ "$live" = "$WANT" ]; then
+              echo "## Deployed" >> "$GITHUB_STEP_SUMMARY"
+              echo "\`$WANT\` is live on $SITE after about $(( (i - 1) * 30 )) seconds." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "::error::After fifteen minutes $SITE still serves ${live:-nothing readable}, not $WANT. The Netlify deploy log says why — docs/OPS.md, 'Did a deployment fail?'"
+          echo "## Not deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "Live: \`${live:-unknown}\`. Expected: \`$WANT\`. See the Netlify deploy log." >> "$GITHUB_STEP_SUMMARY"
+          exit 1
