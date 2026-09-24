@@ -10,7 +10,7 @@ import { shareOrCopy } from '../lib/share'
 import { withVia } from '../lib/links'
 import { SITE_URL } from '../lib/site'
 import { track } from '../lib/analytics'
-import ScriptCard from './ScriptCard'
+import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
@@ -404,6 +404,7 @@ function Result({
       <List title="Talked about, and agreed" items={result.byState.agree} tone="forest" />
 
       <ScriptCard script={result.open.script} title={title} source="beforeYes" travel="eleven" />
+      <CheckBack what="you had this one" />
 
       {!jointFirst && together}
 
@@ -559,6 +560,14 @@ function Together({
       setView(null)
       return
     }
+    // Seen once, kept: the joint cannot change after he answers, and the
+    // server forgets the pair after ninety days. This used to say "We couldn't
+    // check whether he has answered — that is us" about a pair Home said had
+    // answered months ago.
+    if (couple.joint) {
+      setView({ status: 'joint', joint: couple.joint })
+      return
+    }
     let live = true
     setView('asking')
     readCouple(couple.code).then((v) => {
@@ -585,15 +594,15 @@ function Together({
 
   async function ask() {
     setState('sending')
-    const code = await createCouple(picked, gender)
-    if (!code) {
+    const made = await createCouple(picked, gender)
+    if (!made) {
       setState('error')
       return
     }
     track('couple_created')
-    onCouple({ code, at: new Date().toISOString() })
+    onCouple({ code: made.code, at: new Date().toISOString(), ...(made.key ? { key: made.key } : {}) })
     setState('idle')
-    void share(code)
+    void share(made.code)
   }
 
   if (couple && typeof view === 'object' && view?.status === 'joint') {
@@ -611,8 +620,12 @@ function Together({
           ))}
         </ul>
         {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" travel="couple" />}
+        {r.open && <CheckBack what="the two of you had it" />}
         <p className="mt-4 text-[0.8rem] leading-relaxed text-muted text-pretty">
-          {he === 'he' ? 'He' : 'She'} saw this same list, and nothing else. Your answers were frozen the moment {he} answered; {he === 'he' ? 'his' : 'hers'} were sent once.
+          {couple.side === 'second'
+            ? `${he === 'he' ? 'He' : 'She'} sees this same list, and nothing else. ${he === 'he' ? 'His' : 'Her'} answers were frozen the moment you answered; yours were sent once.`
+            : `${he === 'he' ? 'He' : 'She'} saw this same list, and nothing else. Your answers were frozen the moment ${he} answered; ${he === 'he' ? 'his' : 'hers'} were sent once.`}{' '}
+          It stays on this phone after the link ends.
         </p>
         <ReportConcern code={couple.code} side={gender} />
       </div>

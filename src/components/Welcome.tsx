@@ -1,4 +1,8 @@
+import { useState } from 'react'
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
+import FollowUp, { FollowedThrough } from './home/FollowUp'
+import type { FollowUpAsk } from '../lib/followup'
+import type { FollowUp as FollowUpRecord } from '../types'
 import RestoreMap from './RestoreMap'
 import { BUILT_BY, EYEBROW } from '../data/brand'
 
@@ -11,6 +15,14 @@ interface Props {
   onResume: () => void
   onEnter: () => void
   onPhilosophy: () => void
+  /**
+   * A conversation someone was handed words for, days ago, with no Home to be
+   * asked about it on — a stranger who took the family words, say. Asked here,
+   * where they land, instead of never (docs/DIFFERENTIATION.md).
+   */
+  followUpAsk?: FollowUpAsk | null
+  onAnswerFollowUp?: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
+  onAskGuide?: (text: string) => void
 }
 
 
@@ -22,7 +34,11 @@ export default function Welcome({
   onResume,
   onEnter,
   onPhilosophy,
+  followUpAsk = null,
+  onAnswerFollowUp,
+  onAskGuide,
 }: Props) {
+  const [hadIt, setHadIt] = useState<FollowUpAsk | null>(null)
   return (
     <div className="relative min-h-dvh overflow-hidden bg-forest-deep text-cream">
       <GeoBackdrop className="opacity-70" />
@@ -34,6 +50,22 @@ export default function Welcome({
         </header>
 
         <main className="flex flex-1 flex-col justify-center py-16">
+          {onAnswerFollowUp && (hadIt || followUpAsk) && (
+            <div className="-mt-8 mb-10 rounded-card bg-cream px-4 pb-4 text-ink">
+              {hadIt ? (
+                <FollowedThrough ask={hadIt} onDone={() => setHadIt(null)} />
+              ) : (
+                <FollowUp
+                  ask={followUpAsk!}
+                  onAnswer={(id, outcome, agreed, putAway) => {
+                    if (outcome === 'asked') setHadIt(followUpAsk)
+                    onAnswerFollowUp(id, outcome, agreed, putAway)
+                  }}
+                  onAskGuide={(text) => onAskGuide?.(text)}
+                />
+              )}
+            </div>
+          )}
           <p className="animate-fade mb-5 text-sm font-medium uppercase tracking-[0.25em] text-gold-soft">
             {EYEBROW}
           </p>

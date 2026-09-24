@@ -68,7 +68,7 @@ const VISITS: Record<string, Visit> = {
   sample: { who: 'member', taps: [/^What decides who you meet/, /^How an introduction will look/], lands: /A sample — not a real member/ },
   plus: { who: 'member', taps: [/^What decides who you meet/, /^What’s free/], lands: /We never earn more because you’re having a hard night/ },
   coach: { who: 'member', taps: [/^Talk to your guide/], lands: /Different moments need different wisdom/ },
-  'read — the chooser': { who: 'stranger', link: () => instrumentLink('read', 'words'), lands: /who are you reading\?/i },
+  'read — the chooser': { who: 'stranger', link: () => instrumentLink('read', 'words'), lands: /Are they serious\?/ },
   'read — a question': { who: 'stranger', link: () => toolLink('is-he-serious', 'words'), taps: ['Start the read'], lands: /1 of 12/ },
   'read — the result': {
     who: 'stranger',

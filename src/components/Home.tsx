@@ -31,6 +31,8 @@ interface Props {
   onAsk: (text: string, mode?: ModeId) => void
   onOpenMap: () => void
   onOpenProfile: () => void
+  /** Trust, from married Home — which hides the profile, the only other way there. */
+  onOpenTrust?: () => void
   /** The read on someone — the fastest route from a live problem to an answer. */
   onOpenRead: () => void
   /** True once she has taken one, so the card offers the result rather than the pitch. */
@@ -47,6 +49,10 @@ interface Props {
    * on the only screen she returns to (docs/NIELSEN.md N2).
    */
   coupleAnswered?: boolean
+  /** She sent him the eleven and he has not answered yet. */
+  coupleWaiting?: boolean
+  /** This phone answered someone else's link — the second side of the pair. */
+  coupleSecond?: boolean
   onOpenFamilies: () => void
   /** How she chose — her record, reachable again after the ending. */
   onOpenEnding: () => void
@@ -54,7 +60,7 @@ interface Props {
   onRestart: () => void
   /** The one open thing to ask her about — usually null. See lib/followup.ts. */
   followUpAsk: FollowUpAsk | null
-  onAnswerFollowUp: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean) => void
+  onAnswerFollowUp: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
   /** Her last read, so Home can ask — once a month — whether it still stands. */
   read: ReadRecord | null
   onReadStillStands: () => void
@@ -88,12 +94,15 @@ export default function Home({
   onAsk,
   onOpenMap,
   onOpenProfile,
+  onOpenTrust,
   onOpenRead,
   hasRead,
   onOpenBeforeYes,
   onOpenJoint,
   hasBeforeYes,
   coupleAnswered = false,
+  coupleWaiting = false,
+  coupleSecond = false,
   onOpenFamilies,
   onOpenEnding,
   onPhilosophy,
@@ -138,9 +147,9 @@ export default function Home({
   // beat, because the moment she had the conversation is the moment worth
   // handing the words to someone else. Cleared on navigation with the screen.
   const [hadIt, setHadIt] = useState<FollowUpAsk | null>(null)
-  const answerFollowUp: Props['onAnswerFollowUp'] = (id, outcome, agreed) => {
+  const answerFollowUp: Props['onAnswerFollowUp'] = (id, outcome, agreed, putAway) => {
     if (outcome === 'asked' && followUpAsk) setHadIt(followUpAsk)
-    onAnswerFollowUp(id, outcome, agreed)
+    onAnswerFollowUp(id, outcome, agreed, putAway)
   }
 
   return (
@@ -233,6 +242,14 @@ export default function Home({
             <p className="mt-4 text-[0.8rem] leading-relaxed text-cream/50 text-pretty">
               If your situation changes, say so below — only you decide where you are.
             </p>
+            {onOpenTrust && (
+              <TextButton
+                onClick={onOpenTrust}
+                className="relative mt-1 text-[0.82rem] font-medium text-gold-soft underline-offset-4 hover:underline"
+              >
+                What we hold, and Forget me →
+              </TextButton>
+            )}
           </section>
         )}
 
@@ -330,8 +347,12 @@ export default function Home({
         )}
 
         {/* Deciding together: the conversations most of us have too late,
-            asked in month two, and the words for the families. */}
-        {(stage === 'deciding' || coupleAnswered) && (
+            asked in month two, and the words for the families. Also at
+            "talking", once she has been through them or sent them: the
+            read-first person — whose relationship began somewhere else — used
+            to be inferred "talking" and never shown the eleven on Home again,
+            and "Waiting for him" never appeared here at all. */}
+        {(stage === 'deciding' || coupleAnswered || coupleWaiting || (stage === 'talking' && hasBeforeYes)) && (
           <button
             onClick={coupleAnswered ? onOpenJoint : onOpenBeforeYes}
             className={`animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border p-5 text-left transition-all hover:-translate-y-0.5 ${
@@ -344,9 +365,9 @@ export default function Home({
               <CompassGlyph />
             </GlyphTile>
             <span className="flex-1">
-              {coupleAnswered && (
+              {(coupleAnswered || coupleWaiting) && (
                 <span className="mb-1 block text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-ink">
-                  {answerer} answered
+                  {coupleWaiting ? `Waiting for ${answerer === 'He' ? 'him' : 'her'}` : coupleSecond ? 'You both answered' : `${answerer} answered`}
                 </span>
               )}
               <span className="font-display text-[1.2rem] font-medium text-ink">
@@ -358,8 +379,12 @@ export default function Home({
               </span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
                 {coupleAnswered
-                  ? `${answerer} answered the eleven on ${answerer === 'He' ? 'his' : 'her'} own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
-                  : hasBeforeYes
+                  ? coupleSecond
+                    ? `You answered ${answerer === 'He' ? 'his' : 'her'} eleven on your own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
+                    : `${answerer} answered the eleven on ${answerer === 'He' ? 'his' : 'her'} own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
+                  : coupleWaiting
+                    ? `You sent ${answerer === 'He' ? 'him' : 'her'} the eleven. When ${answerer === 'He' ? 'he answers' : 'she answers'}, where the two of you stand shows up here — and nowhere else.`
+                    : hasBeforeYes
                     ? 'The conversations you’ve had, the ones you haven’t, and the one to open next.'
                     : 'Eleven conversations most couples have too late — where you’d live, money home, a second wife — and which one to open this week.'}
               </span>

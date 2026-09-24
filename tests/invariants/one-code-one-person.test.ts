@@ -82,7 +82,7 @@ describe('nothing else she is handed opens a map', () => {
     const her = phoneWith('ZqHodanOnly')
     const code = (await keepMap())!
     const states = await fc.sample(sheet, 1)[0]
-    const pair = (await createCouple(states, 'woman', undefined))!
+    const pair = (await createCouple(states, 'woman'))!.code
     const token = (await askVouch(code))!
     const install = installId()!
     expect(await sendReport(pair, 'woman', 'harassment', 'Zq details')).toBe('sent')

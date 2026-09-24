@@ -51,6 +51,8 @@ export interface ReadResult {
   script: Script
   /** Present only for the one pattern that is not ours to coach. */
   caution?: string
+  /** Which caution: a request for money, or being kept hidden. */
+  concern?: 'money' | 'hidden'
   /** Watch-list, for a read taken too early to conclude anything. */
   watch?: string[]
 }
@@ -202,6 +204,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
       dimensions,
       thin,
       script: scriptFor(thin, gender),
+      concern: 'money',
       caution: fix(
         `Send nothing more until your families have met — not a loan, not a ticket, not an investment. Tell ${CONFIDANTE[gender]} exactly what {he} asked for, this week. If {he} is serious, the families meeting first costs {him} nothing.`,
       ),
@@ -227,6 +230,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
       dimensions,
       thin,
       script: scriptFor(thin, gender),
+      concern: 'hidden',
       caution: fix(
         `Tell one person who knows you — ${CONFIDANTE[gender]} — exactly what you have just told us. Out loud, to a human being, this week. Not for advice. So that someone other than {him} knows the shape of it.`,
       ),
@@ -313,7 +317,10 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
 }
 
 /** A one-line summary of a past read, for the Guide's context. */
-export function readSummary(result: Pick<ReadResult, 'band' | 'thin'>, gender: Gender = 'woman'): string {
+export function readSummary(
+  result: Pick<ReadResult, 'band' | 'thin' | 'concern'>,
+  gender: Gender = 'woman',
+): string {
   const BAND: Record<ReadBand, string> = {
     early: 'too early to tell',
     strong: '{he} has done most of what the read asks about',
@@ -321,5 +328,11 @@ export function readSummary(result: Pick<ReadResult, 'band' | 'thin'>, gender: G
     thin: 'very little shown so far',
     caution: 'a pattern of being kept hidden',
   }
-  return speak(gender)(`${BAND[result.band]}; thinnest ground: ${DIMENSION_LABEL[result.thin].toLowerCase()}`)
+  // The guide was told every caution was "being kept hidden" — including a
+  // man who had asked her for money, which is the one it most needs to know.
+  const band =
+    result.band === 'caution' && result.concern === 'money'
+      ? '{he} has asked for money before the families have met'
+      : BAND[result.band]
+  return speak(gender)(`${band}; thinnest ground: ${DIMENSION_LABEL[result.thin].toLowerCase()}`)
 }

@@ -8,7 +8,7 @@ import { Announce, ArrowRight, CheckIcon, TextButton } from '../ui'
 
 interface Props {
   ask: FollowUpAsk
-  onAnswer: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean) => void
+  onAnswer: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
   onAskGuide: (text: string) => void
 }
 
@@ -17,8 +17,9 @@ interface Props {
  *
  * The one place this product asks about her life rather than about itself. It
  * is not a reminder and not a streak: it comes days after we handed her the
- * words, it asks once, and every answer closes it — "not yet" as fully as
- * "we talked". Nothing here congratulates her and nothing counts.
+ * words, and it asks once. "Not yet" is asked about one more time, a week
+ * later, unless she puts it away; every other answer closes it. Nothing here
+ * congratulates her and nothing counts.
  */
 export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
   const [phase, setPhase] = useState<'asking' | 'howd-it-go' | 'the-words'>('asking')
@@ -51,7 +52,11 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
             <button
               onClick={() => {
                 onAnswer(id, 'differently')
-                onAskGuide(`I was going to talk to them about ${ask.label}, and it went differently.`)
+                onAskGuide(
+                  ask.travel === 'guide'
+                    ? 'I was going to say the words you gave me, and it went differently.'
+                    : `I was going to talk to them about ${ask.label}, and it went differently.`,
+                )
               }}
               className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
             >
@@ -92,13 +97,23 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
               Then here they are again. There’s no hurry in this — the words keep.
             </p>
             <ScriptCard script={ask.script} title="The words, again" source="followup" travel={ask.travel} />
-            <button
-              onClick={() => onAnswer(id, 'not-yet')}
-              className="group mt-5 inline-flex items-center gap-1.5 text-[0.85rem] font-medium text-forest underline-offset-4 hover:underline"
-            >
-              Put it away for now
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </button>
+            <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2">
+              <button
+                onClick={() => onAnswer(id, 'not-yet')}
+                className="group inline-flex items-center gap-1.5 text-[0.85rem] font-medium text-forest underline-offset-4 hover:underline"
+              >
+                {ask.followUp.outcome === 'not-yet' ? 'Still not yet' : 'Ask me again in a week'}
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              </button>
+              {ask.followUp.outcome !== 'not-yet' && (
+                <TextButton
+                  onClick={() => onAnswer(id, 'not-yet', undefined, true)}
+                  className="text-[0.85rem] font-medium text-muted hover:underline"
+                >
+                  Put it away
+                </TextButton>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -137,6 +152,16 @@ export function FollowedThrough({ ask, onDone }: { ask: FollowUpAsk; onDone: () 
         </p>
         {ask.writesBack && (
  <p className="mt-2 text-[0.9rem] leading-snug text-muted text-pretty">It’s in your sheet now, as it went.</p>
+        )}
+        {/* A question was put to someone, and something came back. What that
+            answer means was written on the card she was handed days ago, and
+            was never shown again — the half of the read that only matters
+            after the conversation. */}
+        {ask.travel === 'read' && (
+          <div className="mt-3 border-l-2 border-gold/40 pl-3">
+            <p className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-gold-ink">What the answer tells you</p>
+            <p className="mt-1 text-[0.9rem] leading-snug text-ink-soft text-pretty">{ask.script.tells}</p>
+          </div>
         )}
         <p className="mt-3 text-[0.9rem] leading-snug text-ink-soft text-pretty">
           Someone you know is talking to someone. Send them the words you just used.

@@ -56,7 +56,7 @@ async function aWholeLife() {
   expect(await joinCohort({ scene: 'twin-cities', gender: 'woman', contact: CONTACT })).toBeTruthy()
 
   const [hers, his] = fc.sample(sheet, 2)
-  const pair = (await createCouple(hers, 'woman'))!
+  const pair = (await createCouple(hers, 'woman'))!.code
   const state = JSON.parse(her.storage.get('niyyah.intake.v1')!)
   her.storage.set('niyyah.intake.v1', JSON.stringify({ ...state, couple: { code: pair } }))
   expect(await sendReport(pair, 'woman', 'harassment', 'Zq what he said')).toBe('sent')

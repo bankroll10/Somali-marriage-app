@@ -102,7 +102,7 @@
 - **HYPOTHESIS.** People want family *in* the room, and will use written words
   to put them there — the wali, hooyo, two families meeting.
 - **WHY WE BELIEVE IT.** Opinion, stated throughout: "You want your family in
-  the room — not managing you from outside it." Five scripts exist for it.
+  the room — not managing you from outside it." Seven scripts exist for it.
 - **WHAT WOULD CONFIRM IT.** Family scripts are taken and later confirmed as
   said, at a rate comparable to the read's question and the eleven's.
 - **WHAT WOULD DISPROVE IT.** Scripts are opened and never taken, or taken and

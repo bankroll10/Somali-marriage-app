@@ -132,3 +132,20 @@ export default function ScriptCard({ script, title, preface, source, travel, onT
     </div>
   )
 }
+
+/**
+ * The one line that tells her the product will come back to this — once.
+ *
+ * Every instrument writes a follow-up when it hands her words
+ * (src/lib/followup.ts), and none of them said so: the question arrived three
+ * days later out of nowhere, if she opened the app at all. The guide was the
+ * only screen that told her. Said once, under the words, so the asking is
+ * expected rather than a surprise — and never a reminder, a streak or a nudge.
+ */
+export function CheckBack({ what = 'you had it', className = 'mt-3' }: { what?: string; className?: string }) {
+  return (
+    <p className={`${className} text-[0.85rem] leading-snug text-muted text-pretty`}>
+      In three days, the next time you open Niyyah, it asks whether {what} — once, and only then.
+    </p>
+  )
+}

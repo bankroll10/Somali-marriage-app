@@ -56,7 +56,9 @@ describe('reading the joint', () => {
 describe('the handshake, from her phone', () => {
   it('creates and returns the code', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => json({ code: 'ACDEFG' })))
-    expect(await createCouple(Object.fromEntries(IDS.map((id) => [id, 'agree'])), 'woman')).toBe('ACDEFG')
+    expect(await createCouple(Object.fromEntries(IDS.map((id) => [id, 'agree'])), 'woman')).toEqual({ code: 'ACDEFG' })
+    vi.stubGlobal('fetch', vi.fn(async () => json({ code: 'ACDEFG', key: 'OWNERKEY' })))
+    expect(await createCouple(Object.fromEntries(IDS.map((id) => [id, 'agree'])), 'woman')).toEqual({ code: 'ACDEFG', key: 'OWNERKEY' })
   })
   it('reads open, joint, and dead links', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => json({ status: 'open', answerFor: 'man' })))

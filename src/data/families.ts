@@ -117,6 +117,22 @@ const SCRIPTS: FamilyScript[] = [
         'You are listening for whether {he} sees this as “ours to decide first”. If {he} defers everything to the elders, you will be deferring for the rest of the marriage.',
     },
   },
+  // The two below were promised before they existed: "words for two families
+  // meeting" in the free list (src/data/plus.ts), and married Home's "the
+  // in-law conversations do not end at the nikah" (docs/DIFFERENTIATION.md).
+  {
+    id: 'families-meet',
+    title: 'Before the two families sit down',
+    when: 'The week the families meet — to your own people, first.',
+    stages: ['deciding'],
+    script: {
+      why: 'The meeting between the families is where a great deal gets decided quickly, by people who love you and are not you. If your own family walks in knowing what the two of you have already agreed, and what you want left to you, you are part of the room instead of the subject of it.',
+      words:
+        'Before our families sit down together, I want to tell you what the two of us have already talked about, so nothing surprises you in the room. We have agreed on ———. The one thing I would like to decide myself, with {him}, is ———. I trust you with the rest. Please ask me before you agree to anything that changes where we live or how we live.',
+      tells:
+        'Listen for whether they repeat back what you said. A parent who asks what you agreed has heard you. If the answer is “leave it to us”, name the one thing that is yours, once — and tell {him} which it is, so the two of you say the same thing in the room.',
+    },
+  },
   {
     id: 'end-it-kindly',
     title: 'Ending it kindly',
@@ -128,6 +144,19 @@ const SCRIPTS: FamilyScript[] = [
         'I’ve thought about this carefully, and I don’t think we’re right for each other for marriage. I’m not going to go quiet on you — you deserve to hear it plainly. I have valued getting to know you, and I mean that. I’ll make dua for you.',
       tells:
         'Send it once, clearly, and then stop. Don’t explain twice; don’t answer a debate. Kindness here is clarity, not softness. Then tell one person you trust that you have done it, so that the community’s version of the story is yours.',
+    },
+  },
+  {
+    id: 'in-laws-after',
+    title: 'When the families pull, after the nikah',
+    when: 'The first time one of your families expects something the two of you did not agree to.',
+    stages: ['married'],
+    script: {
+      why: 'Most first-year arguments are not between the two of you. They are between two families, carried home by one of you. The couples who come through it are the ones who decided early to talk to each other first, and to their families second.',
+      words:
+        'Something came up with my family, and before I answer them I want to talk to you. I don’t want either of our families to hear about something between us before we have heard it from each other. Can we agree we always do it in that order — us first, then them?',
+      tells:
+        'You are listening for whether {he} agrees to the order, not to any particular answer. If {he} says yes and then answers {his} family first anyway, say so once, calmly, the same week. The habit is set in the first year.',
     },
   },
 ]
