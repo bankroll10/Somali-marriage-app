@@ -115,6 +115,32 @@ const RULING_WORDS = [
   'polygamy', 'polygyny', 'istikhara', 'too far', 'is it okay', 'is it allowed', 'deferred',
 ]
 
+/**
+ * A difference between the two of them, said as one. Every voice used to
+ * answer it with the courtship framework — "notice what it costs you … that is
+ * part of the answer" — reading a disagreement as a verdict on him, or with
+ * whatever its keywords happened to touch: "he wants to live with his mother
+ * and I don't" got "a man worth having expects your family". One answer, in
+ * any voice, that separates the kinds of difference and puts the kind in her
+ * hands (docs/DECISIONS.md Part 8).
+ */
+const DIFFERENCE_WORDS = [
+  'we disagree', "we don't agree", 'we dont agree', "don't agree on", 'dont agree on', 'we keep arguing', 'keep arguing',
+  'we argue', 'we see it differently', 'see it differently', 'compromise', 'meet in the middle', 'middle ground',
+  'meet him halfway', 'meet her halfway', 'halfway', 'incompatible', 'not compatible', 'we are different on', "we're different on",
+  'we worked out', 'keep reopening',
+]
+
+export const DIFFERENCE_REPLY = `Not agreeing is not a verdict on the two of you. Some differences get settled once. Some you live alongside, with an arrangement you both keep. And some are a line for one of you. Only you can say which this one is.
+
+• If it is a line for you, you do not owe anyone a middle. Say it plainly, once, and listen for whether their answer is final too.
+• If it is still open, start with what each of you could not live with, before anyone looks for a middle.
+• If you have worked out how you live with it, say the arrangement back to each other in one sentence. If you both say it the same way, it is real.
+
+Try: "We see this differently, and I don't want either of us to pretend we don't. Can we each say what we couldn't live with here, and what we could?"
+
+Say that this week, and listen for whether they name theirs.`
+
 const DEFERENCE = `For the ruling itself, take it to a scholar or imam you trust. A guide can share principles; a ruling is theirs to give.`
 
 /** The guide's own words that point at real-world help — the numbers belong under them. */
@@ -390,7 +416,9 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
   if (needsCrisisLine(message)) return { text: CRISIS_REPLY, closers: [], live: false }
   if (needsHelpLine(message)) return { text: SAFETY_REPLY, closers: closersFor(SAFETY_REPLY), live: false }
   if (HARM_WORDS.some((w) => hasWords(normalize(message), w))) return { text: HARM_REPLY, closers: closersFor(HARM_REPLY), live: false }
-  const reply = voiceReply(message, ctx, modeId)
+  const reply = DIFFERENCE_WORDS.some((w) => hasWords(normalize(message), w))
+    ? { text: DIFFERENCE_REPLY, closers: closersFor(DIFFERENCE_REPLY), live: false }
+    : voiceReply(message, ctx, modeId)
   // Principles, never rulings, and the ruling's owner named.
   if (RULING_WORDS.some((w) => hasWords(normalize(message), w)) && !/\b(scholar|imam)\b/i.test(reply.text)) {
     const text = `${reply.text}\n\n${DEFERENCE}`

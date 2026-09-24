@@ -206,9 +206,22 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
   }
 }
 
-/** One line for the Guide. No detail beyond what a friend who had glanced at the list would know. */
+/**
+ * One line for the Guide. No detail beyond what a friend who had glanced at the
+ * list would know — and enough that it knows what kind each difference is: one
+ * worked out is not to be reopened, one still open is to be worked through, and
+ * a line is never to be coached toward a middle (netlify/shared/prompt.ts).
+ */
 export function beforeYesSummary(result: Pick<BeforeYesResult, 'counts' | 'byState' | 'lines' | 'open'>): string {
   const total = Object.values(result.counts).reduce((a, b) => a + b, 0) + result.lines.length
-  const differ = result.byState.differ[0]?.label
-  return `agreed on ${words(result.counts.agree)} of ${words(total)}; differ on ${differ ? lower(differ) : 'nothing'}; open next: ${lower(result.open.label)}`
+  const open = result.byState.differ[0]?.label
+  const line = result.lines[0]?.label
+  const more = result.lines.length > 1 ? ` and ${words(result.lines.length - 1)} more` : ''
+  return [
+    `agreed on ${words(result.counts.agree)} of ${words(total)}`,
+    ...(result.counts.settled ? [`worked out ${words(result.counts.settled)}`] : []),
+    `still open: ${open ? lower(open) : 'nothing'}`,
+    ...(line ? [`a line for them: ${lower(line)}${more}`] : []),
+    `open next: ${lower(result.open.label)}`,
+  ].join('; ')
 }

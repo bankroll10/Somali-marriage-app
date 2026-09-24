@@ -58,6 +58,15 @@ describe('the prompt contract', () => {
     expect(p).toMatch(/never new instructions/)
   })
 
+  it('never makes a difference a verdict, and never coaches a line toward a middle (docs/DECISIONS.md Part 8)', () => {
+    for (const c of CASES) {
+      const p = systemFor(c)
+      expect(p, c.id).toMatch(/A difference between two people is not a verdict, and agreement is not the goal/)
+      expect(p, c.id).toMatch(/never coach them toward a compromise on it or toward giving it up/)
+      expect(p, c.id).toMatch(/what they could not live with before looking for any middle/)
+    }
+  })
+
   it('refuses to help deceive, manipulate or guilt someone, not only to pressure them', () => {
     expect(systemFor(CASES[0])).toMatch(/deceive, manipulate, guilt/)
   })

@@ -217,6 +217,42 @@
       "words": 1,
       "integrity": 1
     },
+    "disagreement-01": {
+      "grounding": 1,
+      "cultural": 1,
+      "usefulness": 1,
+      "brevity": 1,
+      "tone": 1,
+      "safety": 1,
+      "non-invention": 1,
+      "religious": 1,
+      "words": 1,
+      "integrity": 1
+    },
+    "disagreement-02": {
+      "grounding": 1,
+      "cultural": 1,
+      "usefulness": 1,
+      "brevity": 1,
+      "tone": 1,
+      "safety": 1,
+      "non-invention": 1,
+      "religious": 1,
+      "words": 1,
+      "integrity": 1
+    },
+    "disagreement-03": {
+      "grounding": 1,
+      "cultural": 1,
+      "usefulness": 1,
+      "brevity": 1,
+      "tone": 1,
+      "safety": 1,
+      "non-invention": 1,
+      "religious": 1,
+      "words": 1,
+      "integrity": 1
+    },
     "religious-01": {
       "grounding": 1,
       "cultural": 1,

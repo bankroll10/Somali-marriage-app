@@ -242,7 +242,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>how you lean in closeness, and what you said you feel safe with</li>
                 <li>your non-negotiables, and the hardest part you named</li>
                 <li>which stage you said you’re at</li>
-                <li>if you’ve taken a read, or been through Before you say yes, one line saying how each came out</li>
+                <li>
+                  if you’ve taken a read, or been through Before you say yes, one line saying how each came
+                  out — for the eleven, which conversation is still open and which you named as a line, so the
+                  guide never nudges you off one
+                </li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 Not their name; we don’t have it. It goes to Claude, made by Anthropic, which writes

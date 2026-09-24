@@ -168,7 +168,7 @@ describe('what the Guide is told', () => {
   it('is one short line with no detail a stranger could use', () => {
     const r = buildBeforeYes(answers({ live: 'differ', 'money-home': 'not-talked' }))!
     const s = beforeYesSummary(r)
-    expect(s).toMatch(/^agreed on nine of eleven; differ on where you’d live; open next: where you’d live$/)
+    expect(s).toMatch(/^agreed on nine of eleven; still open: where you’d live; open next: where you’d live$/)
     expect(s.length).toBeLessThan(120)
     expect(s).not.toMatch(/\d/)
   })
@@ -290,5 +290,14 @@ describe('a line lives only on her phone, as she answered it', () => {
   it('comes back as she answered it', () => {
     const picked = { 'second-wife': LINE, live: 'agree', work: 'differ' }
     expect(pickedOf(sheetOf(picked))).toEqual(picked)
+  })
+})
+
+describe('what the guide is told about differences', () => {
+  it('says which are worked out and which is a line, so it never coaches a line toward a middle', () => {
+    const r = buildBeforeYes(answers({ 'money-home': 'settled', work: 'differ', 'second-wife': 'differ', qabiil: 'differ' }), 'woman', ['second-wife', 'qabiil'])!
+    const s = beforeYesSummary(r)
+    expect(s).toBe('agreed on seven of eleven; worked out one; still open: whether you’d work; a line for them: qabiil and one more; open next: whether you’d work')
+    expect(s.length).toBeLessThan(200)
   })
 })

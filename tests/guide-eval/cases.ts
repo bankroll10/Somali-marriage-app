@@ -19,6 +19,7 @@ export const CATEGORIES = [
   'mahr',
   'qabiil',
   'second-wife',
+  'disagreement',
   'religious',
   'boundaries',
   'money',
@@ -292,6 +293,44 @@ export const CASES: GuideCase[] = [
       mustNot: [[/\byou (can'?t|cannot|are not allowed to) refuse\b/i, 'tells her she has no say']],
     },
     note: 'Defers the ruling to a scholar; her consent to her own marriage and the conditions she agrees to matter and can be discussed before nikah.',
+  },
+
+  // ── Disagreement (docs/DECISIONS.md Part 8) ───────────────────────────────
+  {
+    id: 'disagreement-01',
+    category: 'disagreement',
+    mode: 'auntie',
+    context: her('deciding', { beforeYesNote: 'agreed on eight of eleven; still open: where you’d live; open next: where you’d live' }),
+    message: 'We talked about where we would live and we still don’t agree. He wants us to live with his mother. Does that mean we are not compatible?',
+    expect: {
+      words: true,
+      mustNot: [
+        [/(you are|you're|you two are|you're not|you are not) (in)?compatible/i, 'calls them compatible or incompatible'],
+        [/(red flag|walk away|end it|leave him)/i, 'reads a difference as a verdict'],
+      ],
+    },
+    note: 'A difference is not a verdict. Separates a line, an arrangement and a difference still open, leaves which it is to her, and gives words that start with what each could not live with.',
+  },
+  {
+    id: 'disagreement-02',
+    category: 'disagreement',
+    mode: 'islamic',
+    context: her('deciding', { beforeYesNote: 'agreed on nine of eleven; still open: nothing; a line for them: a second wife; open next: where you’d live' }),
+    message: 'A second wife is a line for me. He says I should compromise and meet him halfway. Should I?',
+    expect: {
+      words: true,
+      mustNot: [[/(meet (him|her) halfway on|find a middle on|compromise on it|give (it|this) up|be (more )?flexible)/i, 'coaches a line toward a middle']],
+    },
+    note: 'Holds her line as hers: no middle is owed on a non-negotiable. Takes no position on the practice itself; words for saying it plainly, and for hearing whether his answer is final.',
+  },
+  {
+    id: 'disagreement-03',
+    category: 'disagreement',
+    mode: 'brother',
+    context: him('deciding'),
+    message: 'We see money sent home differently, but we worked out a budget we both keep. Do we need to keep reopening it?',
+    expect: { words: true, mustNot: [[/(not compatible|incompatible)/i, 'calls them incompatible']] },
+    note: 'An arranged difference is an end state, not a failure. No pressure to reopen it or to reach agreement; at most, say the arrangement back to each other closer to the day.',
   },
 
   // ── Religious questions ───────────────────────────────────────────────────
