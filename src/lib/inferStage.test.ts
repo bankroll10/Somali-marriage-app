@@ -10,9 +10,23 @@ describe('who has a Home', () => {
 })
 
 describe('the instrument answers the situation question', () => {
-  it('a read with nothing else said means she is talking to someone; the eleven means deciding', () => {
+  it('either instrument, with nothing else said, means she is talking to someone — never further', () => {
     expect(stageAfterInstrument('read', 'preparing', false)).toBe('talking')
-    expect(stageAfterInstrument('eleven', 'preparing', false)).toBe('deciding')
+    expect(stageAfterInstrument('eleven', 'preparing', false)).toBe('talking')
+  })
+
+  it('never infers a decision: deciding and married are only ever said', () => {
+    // The eleven used to be taken as `deciding`, which placed a curious
+    // stranger — or a man who had only answered her link — at "Deciding
+    // together", and counted the `deciding` rung for a tool being used.
+    for (const kind of ['read', 'eleven'] as const) {
+      for (const stage of ['preparing', 'talking', 'deciding', 'married'] as const) {
+        for (const situated of [false, true]) {
+          const inferred = stageAfterInstrument(kind, stage, situated)
+          expect(inferred === 'deciding' || inferred === 'married', `${kind} from ${stage}`).toBe(false)
+        }
+      }
+    }
   })
 
   it('never overrides what she actually said', () => {

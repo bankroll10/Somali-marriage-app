@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildRead, readSummary } from './read'
-import { EXAMPLE_ANSWERS, READ_QUESTION_COUNT, readQuestions, scriptFor } from '../data/read'
+import { DIMENSION_LABEL, EXAMPLE_ANSWERS, READ_QUESTION_COUNT, readQuestions, scriptFor } from '../data/read'
 import { familyScripts, familyScriptsLine } from '../data/families'
 
 /**
@@ -384,5 +384,19 @@ describe('the read summarises her answers; it does not predict', () => {
     expect(`${r.headline} ${r.summary}`).not.toMatch(/\bpredicts?\b|passing time produces|rarer than/i)
     expect(r.summary).toMatch(/not a prediction/)
     expect(readSummary({ band: 'strong', thin: 'public' })).not.toMatch(/predict/i)
+  })
+})
+
+describe('what the dimensions are called', () => {
+  it('does not call contact follow-through', () => {
+    // Two of the three answers under `consistency` are how soon they text back
+    // and how often you have met: contact, which the most eager person has
+    // most of. The label says what is counted (docs/DECISIONS.md, the
+    // commitment audit).
+    const consistency = readQuestions('woman').filter((q) => q.dimension === 'consistency').map((q) => q.id)
+    expect(consistency.sort()).toEqual(['in-person', 'initiative', 'plans'])
+    expect(DIMENSION_LABEL.consistency).not.toMatch(/follow-through/i)
+    expect(DIMENSION_LABEL.consistency).toMatch(/contact/i)
+    expect(DIMENSION_LABEL.consistency).toMatch(/plans/i)
   })
 })

@@ -79,9 +79,10 @@ describe('the eleven, the same way', () => {
       const followups = noteFollowUp([], 'beforeYes', result!.open.id, new Date(START).toISOString())
       expect(followups).toHaveLength(1)
 
-      // The eleven puts someone further along than the read does.
+      // The eleven gives a Home the same way the read does, and no further:
+      // deciding is only ever her own tap.
       const inferred = stageAfterInstrument('eleven', 'preparing', false)
-      expect(inferred).toBe('deciding')
+      expect(inferred).toBe('talking')
       expect(hasHomeFor({ completed: false, stage: inferred! })).toBe(true)
 
       const ask = openFollowUp(followups, gender, START + MIN_AGE_DAYS * DAY)
