@@ -48,7 +48,7 @@ and stays there until behaviour or a member says otherwise.
 | **Safety** | Players, liars, creeps; six kinds of harm; one incident can kill us | ASSUMED / LIKELY | `safety` reasons; `other`'s share |
 | **Competing alternatives** | Hinge exposes her; Muzz and Salams are low-trust; aunties are limited and judging | ASSUMED — no instrument | hook `finding`; conversations |
 | **Willingness to pay** | Families already pay matchmakers, at the nikah | ASSUMED — demoted 2026-09-12: attested by nobody in this repository (`docs/REDTEAM.md` assumption 7), and this file's own rule classes founder opinion as ASSUMED | the ten conversations' wedding-payment question; three practising matchmakers' fees (`docs/BOARD.md`) |
-| | They will pay this product, at a price not yet set | UNKNOWN | the first pool's checkout for "Deciding together" |
+| | They will pay this product, at a price not yet set | UNKNOWN | the gates in `docs/MONETIZATION.md`: five free calls, then ten offers of the paid one at launch; the families' and matchmakers' named amounts |
 | **Reasons people hesitate** | Exposure; "does opening this mean something failed"; the toll gate of thirteen questions | ASSUMED — until this pass, no instrument | `hesitated` by reason; `countedBy.hesitated`; and, for the toll gate itself, `rungs / facts.began` (`docs/EXPERIMENTS.md`) |
 
 ## The gaps, ranked by how dangerous it is if we are wrong
@@ -148,8 +148,11 @@ other constant, one change at a time, on a hundred records.
   about a person collected for the founder's curiosity, not for her — the
   test in `docs/LEARNING.md` fails. It stays a conversation.
 - **A pre-order or reservation to test price.** It contradicts the promise
-  that everyone here before launch keeps every paid feature free for a year.
-  The first pool's checkout is the test.
+  that everyone counted before their pool opens keeps every paid feature free
+  for a year after it opens (a promise about what a member is charged; a
+  family's fee at a nikah is outside it), and `docs/MONETIZATION.md` rules out
+  recording willingness to pay in the app. The ten conversations ask; the
+  gates in that page are the test.
 - **A "saw the door" rung.** An attention trace, refused by LEARNING. `mapped`
   against `counted` is the honest funnel; `hesitated` says why.
 - **An age band on the door.** Still deferred as a key segment, per

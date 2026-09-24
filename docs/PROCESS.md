@@ -141,7 +141,9 @@ whether anyone reads the rest:
    `docs/STRATEGY.md`'s rule — does it earn more if she stays single longer,
    opens the app more, or is having a worse night? `docs/REDTEAM.md`'s third
    threat is that the tilt arrives a sentence at a time and no readout shows
-   it.
+   it. First run 2026-09-24: `docs/MONETIZATION.md` section E — nine fails,
+   every one fixed, and `tests/monetization.test.tsx` holds the ones a test
+   can. Each run adds its rows there under its date.
 
 ## Talk to users: `docs/FEEDBACK.md`
 

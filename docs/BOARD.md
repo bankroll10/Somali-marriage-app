@@ -201,7 +201,8 @@ Ranked by how much of the plan rests on each.
   generic relationship coaching with one community-specific weight.
 - **FACT** — The skew sits where the price does not. Every instrument is free
   forever (`src/data/plus.ts`); "Deciding together" at $99 bundles two things
-  already listed free plus one call with a human.
+  already listed free plus one call with a human. *(Answered 2026-09-24,
+  `docs/MONETIZATION.md`: only the call is sold, once per person.)*
 - **FACT** — The claimed cultural-depth skew does not ship: all ten Somali
   lines are `approved: false` and every caller falls back to English.
 - **INFERENCE** — The honest door is a skew only once its number is

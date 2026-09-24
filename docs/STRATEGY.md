@@ -134,8 +134,8 @@ slot machine, and this is a marriage.
 **The lifecycle is still the moat — but it is an exit, not a retention curve.**
 Single → talking → deciding → married. The same product that helped her choose
 helps her build the first year. When she marks herself married, the app goes
-quiet: the check-in disappears, the introductions disappear, the upsell
-disappears. What stays is the words for two families and the guide for the
+quiet: the check-in disappears, the introductions disappear, and nothing is
+offered to her for sale. What stays is the words for two families and the guide for the
 first year. A member who no longer needs us is the outcome, and the door count
 that today shows how many people are waiting will one day show how many were
 married.
@@ -152,19 +152,26 @@ anxiety, time in app, or how long someone stays single. The moment it does, the
 company's incentive and the member's interest point in opposite directions, and
 every product decision after that is a negotiation between them.
 
-**What we charge for — bought once, and it ends on its own:**
+**What we charge for — paid once, at a step forward, and it ends on its own.**
+Each line, and the gate it must pass before any money is taken, is in
+`docs/MONETIZATION.md`; no gate has passed and no payment code exists.
 
-- **A stage.** "Deciding together": the two-sided eleven with a joint
-  conversation guide, the family scripts, and one call with a human matchmaker.
-  Bought once per courtship. It is priced for the outcome — a good decision —
-  not for the month.
-- **A person.** Concierge matchmaking (AI + a vetted human) when a city opens.
-  This is *culturally native*: Somali families **already pay** aunties and
-  matchmakers real money. We productise the most trusted role in the community —
-  at a matchmaker's margins, not software's: a human paid at the nikah is a
-  service, and `docs/BACKWARD.md`'s margins row is tested against the
-  software-priced lines alone (`docs/BOARD.md`).
-- **Vetted IRL events** — halal, family-friendly. Revenue + liquidity + trust.
+- **A conversation.** "Talking it through, with a matchmaker" (formerly
+  "Deciding together"): one call with a human, for the two of them, after both
+  have seen the joint view of the two-sided eleven. Once per person, for life
+  — a second courtship's call is free, so nothing is earned when one ends. The
+  joint view and the family words are free and are not part of it.
+- **A person.** Concierge matchmaking (AI + a vetted human) when a city opens,
+  paid by the families at the nikah, a fixed fee agreed before the first
+  introduction. This is *culturally native*: Somali families **already pay**
+  aunties and matchmakers real money. We productise the most trusted role in
+  the community — at a matchmaker's margins, not software's: a human paid at
+  the nikah is a service, and `docs/BACKWARD.md`'s margins row is tested
+  against the software-priced lines alone (`docs/BOARD.md`).
+- **A gift.** The first year married, bought by a guest at the wedding.
+- **Not events.** A ticket per event earns most from whoever stays single and
+  keeps coming — per-use pricing. Struck until one is free to members or paid
+  once (`docs/MONETIZATION.md`).
 
 **The price, as a prediction** — written 2026-09-11, before the first pool,
 so the eventual checkout tests a belief rather than reacting to a room
@@ -172,17 +179,17 @@ so the eventual checkout tests a belief rather than reacting to a room
 
 | Line | Price | Paid |
 |---|---|---|
-| Deciding together | $99, once, for one courtship | At the joint view of the two-sided eleven — when he has answered. Never at the stage she declares: `deciding` is a measured rung and stays a free word (`docs/BOARD.md`, decision 16) |
-| A matchmaker in your corner | $1,500 at the nikah, the company's share half; nothing owed if nothing came of it | At the nikah |
-| The first year, as a gift | $79 | By someone else, at the wedding |
+| Talking it through, with a matchmaker | $99, once per person for life | After the joint view of the two-sided eleven — when he has answered. Never at the stage she declares: `deciding` is a measured rung and stays a free word (`docs/BOARD.md`, decision 16) |
+| A matchmaker in your corner | $1,500 at the nikah, the company's share half; nothing owed if nothing came of it | At the nikah, by the families, agreed before the first introduction |
+| The first year married, as a gift | $79 | By someone else, at the wedding |
 
 At those prices, with three in five marriages using a matchmaker, the
 company's take is **about $628 a marriage** — $99 + 3/5 × the company's half
 of $1,500 ($450) + $79 — not the ~$1,000 an earlier draft reached by counting
 the matchmaker's half as ours: a $2.5M company at total dominance of the
 diaspora (`docs/BACKWARD.md`, corrected in `docs/BOARD.md`). The
-software-priced part is $178, and $79 once the call inside "Deciding
-together" is priced as the founder's hour it is. The institution price —
+software-priced part is $178, and $79 once the $99 call is priced as the
+founder's hour it is. The institution price —
 $3,000 and up at the nikah — is a *fee*, not a take: at half share and three
 in five it is a $1,078 take, still the $2.5M row; a $3,000 *take* needs a fee
 near $9,400 at the written share. What a matchmaker actually charges is
@@ -232,20 +239,20 @@ where this community has always paid the person who helped. Run the test on
 each line: does it earn more if she stays single longer, opens the app more
 often, or is having a worse night? If yes it does not ship. What survives has
 a property no subscription can have: **revenue is strictly increasing in
-successful exits.** We are paid when someone moves (deciding together), paid
-again if a human matchmaker did the work (at the nikah, nothing owed if
-nothing came of it), and paid by somebody else at the celebration (the first
-year, as a wedding gift). A member who never leaves is a member who never
+successful exits.** We are paid once when a couple have seen where they
+match (the call), again if a human matchmaker did the work (at the nikah,
+nothing owed if nothing came of it), and by somebody else at the celebration
+(the first year married, as a wedding gift). A member who never leaves is a member who never
 pays, and a member who marries is worth more to us than one who stays — which
 is the opposite of every competitor's incentive, and the only arrangement
 under which the advice in this product can be trusted.
 
-**The ask at the ending is optional and comes last, after everything is
-given.** A woman who has just married is handed her record, told she can
-delete the app, and only then offered the auntie's part: paying for the next
-woman's place in her city rather than her own. It must never be a condition of
-anything — the moment reporting a marriage costs money, marriages stop being
-reported, and the one outcome metric this company has dies with it.
+**The ending asks for nothing.** A woman who has just married is handed her
+record and told she can delete the app. It used to close on "sponsor a place
+for someone else" — money for a place that costs nothing, with no stated use.
+Removed 2026-09-24 (`docs/MONETIZATION.md`): the moment reporting a marriage
+costs money, or comes with an ask, marriages stop being reported, and the one
+outcome metric this company has dies with it.
 
 **Why the unit economics can work:** sky-high intent, high willingness-to-pay
 for an outcome, and a community where **word of mouth is everything** — so if we

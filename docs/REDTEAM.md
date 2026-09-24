@@ -259,7 +259,9 @@ after the fifth city.
   (`src/data/plus.ts`). The company has arranged not to know whether anyone
   will pay until at least twelve months after its first pool opens, and
   `docs/EXPERIMENTS.md` A5 records this as "Defer" — the polite word for a
-  decision not to find out. "Culturally attested" in `docs/GAPS.md` is
+  decision not to find out. *(Since answered: the promise was bounded
+  2026-09-12 to what a member is charged, and `docs/MONETIZATION.md` sets
+  the gates, 2026-09-24.)* "Culturally attested" in `docs/GAPS.md` is
   attested by nobody in this repository.
 - **CURRENT EVIDENCE.** None. No price exists anywhere in the code.
 - **MISSING EVIDENCE.** A real checkout at a real price — which the promise

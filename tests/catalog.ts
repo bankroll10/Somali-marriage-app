@@ -203,6 +203,7 @@ export const CATALOG: Record<string, Entry> = {
   },
   'tests/tools.test.ts': { categories: ['contract'], kind: 'mixed', invariants: ['links-open-the-right-thing'] },
   'tests/help.test.ts': { categories: ['contract'], kind: 'mixed' },
+  'tests/monetization.test.tsx': { categories: ['contract', 'accessibility'], kind: 'mixed' },
   'tests/guides.test.ts': { categories: ['unit', 'contract'], kind: 'mixed' },
   'tests/sheet.test.ts': { categories: ['contract'], kind: 'behaviour' },
   'tests/sheet-so.test.ts': { categories: ['contract'], kind: 'behaviour' },

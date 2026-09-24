@@ -75,8 +75,9 @@ one is zero — the link has never been posted.
 
 Ranked by how hard they bind. The first is arithmetic; the rest are choices.
 
-1. **Somali-only at $1,000 a marriage.** Caps revenue near $4M a year even at
-   total dominance. Mathematical. Either the take is institution-priced or
+1. **Somali-only at $628 a marriage.** Caps revenue near $2.5M a year even at
+   total dominance (the ~$1,000 and $4M first written here counted the
+   matchmaker's half as ours; corrected above). Mathematical. Either the take is institution-priced or
    the population is not one community.
 2. **The matchmaker as the default paid line.** A person paid at the nikah is
    a service; services carry services margins and founder hours per marriage
@@ -138,9 +139,10 @@ forecloses nothing. Four things pass; one is code.
   reads the value's `v` to know its key's layout, and a key change is a
   migration, named as such (`docs/HARD.md` row 18).
 - **The price, written down.** `docs/ROADMAP.md`'s open BUILD NOW item.
-  `docs/STRATEGY.md` §5 now carries a prediction with a date: Deciding
-  together $99 a courtship; a matchmaker in your corner $1,500 at the nikah,
-  the company's share half; the first year $79 as a gift. At those prices and
+  `docs/STRATEGY.md` §5 now carries a prediction with a date: the call with a
+  matchmaker after the joint view (then "Deciding together") $99, once per
+  person for life since `docs/MONETIZATION.md` (it was per courtship); a matchmaker in your corner $1,500 at the nikah,
+  the company's share half; the first year married $79 as a gift. At those prices and
   three in five marriages using a matchmaker the take is about $628 — the
   $2.5M line in the table above, once the matchmaker's half is counted as his
   and not ours (`docs/BOARD.md`). **So a $3,000 *take* — a fee near $9,400 at
@@ -175,7 +177,8 @@ today than at its trigger.
   institution rule; the endgame points here for what its first sentence costs.
 - `docs/ROADMAP.md`: BUILD NOW item 4 done.
 - `docs/REDTEAM.md`: the third finding's "what can be decided now" — decided.
-- `docs/PROCESS.md`: the incentive audit runs from now.
+- `docs/PROCESS.md`: the incentive audit runs from now. First run 2026-09-24,
+  `docs/MONETIZATION.md` section E: nine fails, all fixed.
 - `docs/SCALE.md`: records carry `v`; `netlify/functions/export.ts`: the
   wrapper is no longer the only thing versioned.
 - `README.md`: pointer.

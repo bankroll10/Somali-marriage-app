@@ -123,18 +123,25 @@ category's incentives were most quietly present. Three changes:
 the two-sided eleven, the family words, the vouch, reporting a concern,
 being introduced, replying to anyone serious, and the guide within its budget.
 
-**Bought once, ends on its own:**
+**Paid once, at a step forward, and only after its gate passes**
+(`docs/MONETIZATION.md` — none has):
 
-1. **Deciding together** — per courtship: the joint conversation guide over the
-   two-sided eleven, the family scripts, one call with a human matchmaker.
+1. **Talking it through, with a matchmaker** — one call for the two of them,
+   after both have seen the joint view. Once per person, for life. The joint
+   view and the family words stay free and are not part of it.
 2. **Concierge matchmaking** — when a city opens. AI + a vetted human, the role
-   our families already pay for. Priced and staffed as what it is: a
+   our families already pay for, paid by the families at the nikah and agreed
+   before the first introduction. Priced and staffed as what it is: a
    matchmaker has a matchmaker's margins, and the software does the queue and
    the candidates, never the choosing (`docs/ROADMAP.md`).
-3. **Events** — vetted, halal, family-friendly.
+3. **The first year married, as a gift** — bought by a guest, never sold to
+   the couple.
 
-Founding members keep everything free for a year after launch. Prices are set
-at launch; the mechanism is decided now and written into `src/data/plus.ts`.
+Events are struck: a ticket per event is per-use pricing. Everyone counted
+before their pool opens keeps every paid feature free for a year after it
+opens — a promise about what a member is charged; what a family pays at a
+nikah, or a guest gives, is outside it (`src/data/plus.ts`). Prices are set at
+launch; the mechanism is decided now and written into `src/data/plus.ts`.
 
 **Never sold:** replies, a lifted counter, reach, visibility, who-liked-you,
 filters, more introductions, or anything that protects her.

@@ -13,8 +13,9 @@ interface Props {
  * no-card trial to start it. The copy was honest and the mechanism was not —
  * a product paid to lift a reply counter earns most from the member having the
  * worst night. There is no trial and no plan here now. The guide is free and
- * budgeted by progress; what will be sold is bought once, for a stage or for a
- * person, and prices are set at launch rather than invented here.
+ * budgeted by progress; what will be sold is paid once, after a step forward,
+ * and prices are set at launch rather than invented here. Each paid line says
+ * who pays, when, and after what — docs/MONETIZATION.md is the audit.
  */
 export default function Plus({ onBack }: Props) {
   return (
@@ -33,8 +34,8 @@ export default function Plus({ onBack }: Props) {
             </h1>
             <p className="mt-4 max-w-md text-[1.02rem] leading-relaxed text-cream/80 text-pretty">
               Every app in this category is paid when you stay longer, message more, or stay single. Ours
-              isn’t priced by the reply, the message or the month. What we will sell is bought once — for a
-              stage, or for a person — and it ends when it has done its job.
+              isn’t priced by the reply, the message or the month. What we will sell is paid once, after
+              something real has already happened — and it ends when it has done its job.
             </p>
           </div>
         </section>
@@ -78,7 +79,7 @@ export default function Plus({ onBack }: Props) {
 
         <section className="mt-8">
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.2em] text-muted">
-            What will cost money, with the launch
+            What will cost money, and when
           </p>
           <div className="space-y-3">
             {paidLater.map((item) => (
@@ -87,25 +88,21 @@ export default function Plus({ onBack }: Props) {
                   <CheckIcon size={14} />
                 </span>
                 <div>
-                  <p className="flex flex-wrap items-center gap-2 font-display text-[1.1rem] font-medium text-ink">
-                    {item.title}
-                    <span className="rounded-full bg-sand px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-wide text-muted">
-                      Bought once
-                    </span>
-                  </p>
+                  <p className="font-display text-[1.1rem] font-medium text-ink">{item.title}</p>
+                  <p className="mt-1 text-[0.82rem] font-medium text-gold-ink text-pretty">{item.badge}</p>
                   <p className="mt-1 text-[0.9rem] leading-relaxed text-muted text-pretty">{item.body}</p>
                 </div>
               </div>
             ))}
           </div>
           <p className="mt-4 text-[0.88rem] leading-relaxed text-muted text-pretty">
-            Prices are set at launch, not before. If Niyyah does its job you will stop paying us, and that is
+            Prices are set at launch, not before. If Niyyah does its job you will stop needing us, and that is
             the outcome we are building for.
           </p>
         </section>
 
         <section className="mt-8 rounded-card border border-gold/30 bg-gold/[0.07] p-6">
-          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">The first year</p>
+          <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">A free year, if you were counted early</p>
           <p className="mt-3 font-display text-[1.4rem] font-medium leading-snug tracking-tight text-ink text-balance">
             Your first year is on us.
           </p>

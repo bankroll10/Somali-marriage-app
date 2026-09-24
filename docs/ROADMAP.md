@@ -186,7 +186,7 @@ audit's main finding about engineering effort.
 The introductions record (same-commit rule holds), match quality, mutual
 interest, block-before-introduction, the joint alignment tally, the
 pool-open flag, running counters, "your pool opened" mail, payments and the
-checkout, events, the first-year sheet, the age band, the prior-marriage
+checkout (each gated in `docs/MONETIZATION.md`), the first-year sheet, the age band, the prior-marriage
 question, real backend, schema versions, per-country readouts, the
 matchmaker's tooling, the safety alert. Their triggers are already written
 and correct. Nothing about them changes but their position. The cohort
@@ -208,9 +208,9 @@ Two move *down*, against their own documents:
 - **The sample introduction's Home card.** *Done.*
 - **Concierge as a software roadmap item.** It fails **Scale** and **Time**
   outright: founder hours per member, a job wearing a product's clothes.
-  `docs/STRATEGY.md` calls it "productising the most trusted role in the
+  `docs/STRATEGY.md` called it "productising the most trusted role in the
   community at software margins" — a human matchmaker has a matchmaker's
-  margins, as `docs/REDTEAM.md` said. It is deleted as a thing to *build*
+  margins, as `docs/REDTEAM.md` said, and STRATEGY now says so. It is deleted as a thing to *build*
   and kept as a thing to *do*: the founder matchmaking the first ten
   couples by hand, which is also the only honest test of willingness to pay —
   and since 2026-09-12 one the free-year promise plainly permits: the promise

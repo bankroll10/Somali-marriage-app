@@ -344,7 +344,7 @@ export default function Profile({
         )}
 
         {/* Three commitments that were being asked *while* she answered how she
-            would live: a price, an invite, and the whole door join flow. The
+            would live: what’s free, an invite, and the whole door join flow. The
             screen showed 24 buttons at once and one heading (docs/LOAD.md).
             Nothing is removed — each is one tap away, named, and she reaches
             them when she is looking for them rather than in the middle of
@@ -353,7 +353,7 @@ export default function Profile({
             route to any of it. */}
         <Disclose
           summary="Other things you can do here"
-          hint="The door, the price, an invite"
+          hint="The door, what’s free, an invite"
           className="mt-5"
         >
           <div className="flex flex-col gap-3.5">
