@@ -6,7 +6,7 @@ import { day } from '../shared/day'
 import { readJson } from '../shared/body'
 import { stamp } from '../shared/record'
 import { overHourlyCap, rateLimited } from '../shared/limit'
-import { CODE, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
+import { CODE, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
 
 /**
  * The one report a member can make about a real, named person.
@@ -190,14 +190,21 @@ export default async function handler(req: Request) {
     // cannot bury the queue (see the header).
     if (await overHourlyCap('safety', DEFAULT_HOURLY_CAP)) return rateLimited()
 
-    const id = newCode(TOKEN_LENGTH)
-    const record: Report = { id, code, side: body.side as 'woman' | 'man', reason: body.reason!, ...(details ? { details } : {}), at: day() }
+    // Only onto an id nobody holds: a colliding id must never overwrite
+    // another report — it is the one thing a person who was frightened sent
+    // (docs/INTEGRITY.md).
+    let id = ''
     try {
-      await store.setJSON(keyFor(code, body.side!, id), stamp(record))
+      for (let attempt = 0; attempt < MINT_ATTEMPTS && !id; attempt++) {
+        const candidate = newCode(TOKEN_LENGTH)
+        const record: Report = { id: candidate, code, side: body.side as 'woman' | 'man', reason: body.reason!, ...(details ? { details } : {}), at: day() }
+        if ((await store.setJSON(keyFor(code, body.side!, candidate), stamp(record), { onlyIfNew: true })).modified) id = candidate
+      }
     } catch (err) {
       console.error('[niyyah] safety: write failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
+    if (!id) return Response.json({ error: 'unavailable' }, { status: 503 })
     // The receipt. The app no longer keeps it (src/lib/safety.ts).
     return Response.json({ received: true, receipt: id })
   }

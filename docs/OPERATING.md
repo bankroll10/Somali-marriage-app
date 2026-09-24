@@ -280,6 +280,16 @@ Do not migrate stored records.
 
 ## Housekeeping (rarely)
 
+**Since 2026-09-24 the weekly sweep also puts right what a failed step left
+behind** (`docs/INTEGRITY.md`). Its log line and response carry three new
+counts:
+- `reconciled`: second door entries, and indexes that pointed at nothing;
+- `journals`: changes of code abandoned part-way, rolled back or finished;
+- `errors`: records it could not read or remove, tried again next week.
+
+A non-zero `errors` for two weeks running is a record to look at by hand. The
+key is in the function log.
+
 Three kinds of blob outlive their purpose and have no sweep:
 
 - **Vouches for maps that lapsed.** A vouch lives while its map does, and a

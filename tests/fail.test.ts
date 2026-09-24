@@ -122,8 +122,9 @@ describe('a write that matters is conditional', () => {
     // `asked/` is claimed before the pointer is written, because forget me
     // finds the token by reading it — one written first could never be swept.
     const ask = vouch.slice(vouch.indexOf("side === 'ask'"))
+    expect(ask.indexOf('`asked/${code}`, token, { onlyIfNew: true }')).toBeGreaterThan(-1)
     expect(ask.indexOf('`asked/${code}`, token, { onlyIfNew: true }')).toBeLessThan(
-      ask.indexOf('`token/${token}`, code'),
+      ask.indexOf('`token/${mine}`, code, { onlyIfNew: true }'),
     )
   })
 })

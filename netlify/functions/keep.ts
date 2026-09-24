@@ -1,10 +1,23 @@
 import { getStore } from '@netlify/blobs'
-import { CODE, mint, normalise } from '../shared/code'
+import { CODE, TOKEN, normalise } from '../shared/code'
 import { day, toDays } from '../shared/day'
 import { readJson } from '../shared/body'
 import { overHourlyCap, rateLimited } from '../shared/limit'
 import { stamp } from '../shared/record'
 import { retire } from '../shared/sheet'
+import {
+  DAY_MS,
+  YEAR_MS,
+  deleteIfUnchanged,
+  ended,
+  lapsed,
+  mintFree,
+  movingKey,
+  onceKey,
+  tombstone,
+  type Journal,
+  type KeptMap,
+} from '../shared/integrity'
 
 /**
  * The first thing this business actually owns.
@@ -28,7 +41,7 @@ import { retire } from '../shared/sheet'
  */
 
 /** Keys expire after a year of not being touched — see `expiresAt` below. */
-const TTL_MS = 365 * 24 * 60 * 60 * 1000
+const TTL_MS = YEAR_MS
 /** A whole map, generously. Checked against the raw body, before it is parsed. */
 const MAX_BODY = 128_000
 /**
@@ -54,12 +67,98 @@ const DEFAULT_HOURLY_CAP = 300
  * circuit breaker on a script, not a limit on a person.
  */
 const DEFAULT_READ_CAP = 600
+/** Conditional writes lose a race now and then; three tries, like every one here. */
+const ATTEMPTS = 3
 
-export interface KeptMap {
-  /** Everything the app needs to restore her, as written by lib/storage.ts. */
-  snapshot: unknown
-  createdAt: string
-  expiresAt: string
+export type { KeptMap } from '../shared/integrity'
+
+type Store = ReturnType<typeof getStore>
+
+/** A code that was forgotten or moved answers 410, and says which (docs/INTEGRITY.md). */
+const closed = (why: string) => Response.json({ error: why }, { status: 410, headers: { 'Cache-Control': 'no-store' } })
+
+/** A map, carried to a new code: the same answers and first day, a fresh year, one more revision. */
+function carried(kept: KeptMap, now: number): KeptMap {
+  return { snapshot: kept.snapshot, createdAt: kept.createdAt ?? day(now), expiresAt: day(now + TTL_MS), rev: (kept.rev ?? 0) + 1 }
+}
+
+/**
+ * Everything kept under `from`, written under `to` as well — the vouch, the
+ * link her family was sent, her place at the door and the way to reach her.
+ * Every write is an overwrite of the same value, so running it twice is the
+ * same as running it once.
+ */
+async function copyAcross(from: string, to: string) {
+  const vouches = getStore('vouches')
+  const cohort = getStore('cohort')
+  const contacts = getStore('contacts')
+  const vouch = await vouches.get(from, { type: 'json' })
+  if (vouch) await vouches.setJSON(to, vouch)
+  const token = (await vouches.get(`asked/${from}`, { type: 'text' })) as string | null
+  if (token) {
+    await vouches.set(`asked/${to}`, token)
+    await vouches.set(`token/${token}`, to)
+  }
+  // The door entry's key ends in the code: the same place, under the new one.
+  const member = (await cohort.get(`index/${from}`, { type: 'text' })) as string | null
+  const entry = member ? await cohort.get(member, { type: 'json' }) : null
+  if (member && entry) {
+    const moved = member.replace(/[^/]+$/, to)
+    await cohort.setJSON(moved, entry)
+    await cohort.set(`index/${to}`, moved)
+  }
+  const reach = await contacts.get(from, { type: 'json' })
+  if (reach) await contacts.setJSON(to, reach)
+}
+
+/**
+ * Everything kept under a code, except the map itself and anything it points
+ * at through another code (the couple sheet has its own). Every step is a
+ * delete, so it is safe to run again after any of them failed.
+ */
+async function clearUnder(code: string, opts: { token?: boolean } = {}) {
+  const vouches = getStore('vouches')
+  const cohort = getStore('cohort')
+  const contacts = getStore('contacts')
+  if (opts.token) {
+    const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
+    if (token && (await vouches.get(`token/${token}`, { type: 'text' })) === code) await vouches.delete(`token/${token}`)
+  }
+  await vouches.delete(`asked/${code}`)
+  await vouches.delete(code)
+  const member = (await cohort.get(`index/${code}`, { type: 'text' })) as string | null
+  if (member) await cohort.delete(member)
+  await cohort.delete(`index/${code}`)
+  await contacts.delete(code)
+}
+
+/**
+ * Finish a move whose copies are all written: close the old code, clear what
+ * was under it, and put the journal away. Shared with the sweep, which rolls
+ * an abandoned move forward from here once the old code is closed.
+ */
+export async function finishMove(maps: Store, old: string, now = Date.now()) {
+  await tombstone(maps, old, 'moved', now)
+  // Not the token: it already points at the new code, and the link her
+  // family holds must keep working.
+  await clearUnder(old)
+  await maps.delete(old)
+  await maps.delete(movingKey(old))
+}
+
+/**
+ * Undo a move that was abandoned before the old code was closed: everything
+ * written under the new code goes, and her family's link points home again.
+ * The new code was never handed to anyone — a move answers only once it is
+ * finished — so nothing that anyone holds stops working.
+ */
+export async function rollBackMove(maps: Store, old: string, to: string) {
+  const vouches = getStore('vouches')
+  const token = (await vouches.get(`asked/${old}`, { type: 'text' })) as string | null
+  if (token) await vouches.set(`token/${token}`, old)
+  await clearUnder(to)
+  await maps.delete(to)
+  await maps.delete(movingKey(old))
 }
 
 /** Normalise what a human typed: case, spaces, and the dash people add. */
@@ -82,13 +181,18 @@ export default async function handler(req: Request) {
     // day it is kept (docs/THREAT.md, T4).
     const headers = { 'Cache-Control': 'no-store' }
     try {
-      const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
+      // A code she forgot or changed opens nothing, even if a forget or a move
+      // stopped part-way and the map is still there (docs/INTEGRITY.md).
+      const why = await ended(store, code)
+      if (why) return closed(why)
+      const kept = (await store.getWithMetadata(code, { type: 'json' })) as { data: KeptMap; etag?: string } | null
       if (!kept) return Response.json({ error: 'not_found' }, { status: 404, headers })
-      if (Date.parse(kept.expiresAt) < Date.now()) {
-        await store.delete(code)
+      if (lapsed(kept.data)) {
+        // Only the version read as lapsed: one renewed a moment ago stays.
+        await deleteIfUnchanged(store, code, kept.etag)
         return Response.json({ error: 'expired' }, { status: 404, headers })
       }
-      return Response.json({ snapshot: kept.snapshot }, { headers })
+      return Response.json({ snapshot: kept.data.snapshot, rev: kept.data.rev ?? 0 }, { headers })
     } catch (err) {
       console.error('[niyyah] keep: read failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -98,10 +202,18 @@ export default async function handler(req: Request) {
   // ── Forget ───────────────────────────────────────────────────────────────
   // Everything kept under her code, gone: the map, the eleven she sent him,
   // her family's vouch and the token that pointed at it, her place on the
-  // door, and the way to reach her. Possession of the code is the authority, exactly as it is for
-  // restoring — and it is safe only because the vouch link no longer carries
-  // the code. Asking twice is a quiet 404: there was nothing left to forget.
-  // What cannot be undone is not here at all: a count with no code in it.
+  // door, and the way to reach her. Possession of the code is the authority,
+  // exactly as it is for restoring — and it is safe only because the vouch
+  // link no longer carries the code. What cannot be undone is not here at
+  // all: a count with no code in it.
+  //
+  // In this order, so that any step can fail and a retry finishes it
+  // (docs/INTEGRITY.md): the code is closed first, so from that moment it
+  // restores nothing and cannot be kept again from another phone; then every
+  // store is cleared, each step a delete; the map goes last, because it is
+  // the one thing that says which couple sheet was hers. A retry after the map
+  // went, with the code closed as forgotten, runs the clearing again and
+  // answers that it is done.
   if (req.method === 'DELETE') {
     const code = normalise(new URL(req.url).searchParams.get('code') ?? '')
     if (!CODE.test(code)) return Response.json({ error: 'bad_code' }, { status: 400 })
@@ -109,30 +221,21 @@ export default async function handler(req: Request) {
     if (await overHourlyCap('forget', DEFAULT_READ_CAP)) return rateLimited()
     try {
       const kept = (await store.get(code, { type: 'json' })) as KeptMap | null
-      if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
+      const why = await ended(store, code)
+      if (!kept && why !== 'forgotten') return Response.json({ error: 'not_found' }, { status: 404 })
+      if (why !== 'forgotten') await tombstone(store, code, 'forgotten')
+
       // The one thing read out of the snapshot, and the one thing it may name:
       // the sheet. Anyone holding a couple code can already delete it
       // (netlify/functions/couple.ts), so a forged snapshot gains nothing here.
-      const snapshot = (kept.snapshot ?? {}) as { couple?: { code?: unknown } }
+      const snapshot = (kept?.snapshot ?? {}) as { couple?: { code?: unknown } }
       const coupleCode = typeof snapshot.couple?.code === 'string' ? normalise(snapshot.couple.code) : ''
-
-      const couples = getStore('couples')
-      const vouches = getStore('vouches')
-      const cohort = getStore('cohort')
-      const contacts = getStore('contacts')
-
       // Retired, not erased: a report about it can still reach the founder.
-      if (CODE.test(coupleCode)) await retire(couples, coupleCode)
-      const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
-      if (token) await vouches.delete(`token/${token}`)
-      await vouches.delete(`asked/${code}`)
-      await vouches.delete(code)
-      const member = (await cohort.get(`index/${code}`, { type: 'text' })) as string | null
-      if (member) await cohort.delete(member)
-      await cohort.delete(`index/${code}`)
-      // The way to reach her, which used to be deleted by hand — see
-      // netlify/functions/cohort.ts and docs/OWNED.md.
-      await contacts.delete(code)
+      if (CODE.test(coupleCode)) await retire(getStore('couples'), coupleCode)
+      // The vouch, its ask and the token that pointed at it; her place at the
+      // door and its index; the way to reach her, which used to be deleted by
+      // hand — see netlify/functions/cohort.ts and docs/OWNED.md.
+      await clearUnder(code, { token: true })
       // Reports are not touched here, and cannot be. This cascade used to
       // take every report under `${couple}-${side}-`, reading both the couple
       // code and the side out of the snapshot — which is whatever the caller
@@ -158,52 +261,75 @@ export default async function handler(req: Request) {
   // him. The only way to take it back was forget me, which cost her the map,
   // the vouch and her place at the door (docs/THREAT.md T8, docs/ABUSE.md).
   //
-  // This mints a new code, moves every store keyed by the old one under it,
-  // and only then deletes the old: a failure part-way leaves the old code
-  // working and some copies under a code nobody was told, which the weekly
-  // sweep takes (netlify/functions/sweep.ts). The couple sheet has its own
-  // code and is not moved; nor are reports, which are keyed by it.
+  // Journaled, so that a failure at any step is finished by a retry or undone
+  // by the sweep, and never leaves a whole copy of her map under a code nobody
+  // was told (docs/INTEGRITY.md):
+  //
+  //   1. `moving/<old>` names the new code before anything is copied. A retry
+  //      finds it and resumes the same move — the same new code, never a
+  //      second copy.
+  //   2. Everything is copied under the new code; each copy is an overwrite.
+  //   3. The old map is read again: a save that landed while this ran is
+  //      carried across, not lost with the old code.
+  //   4. The old code is closed, what was under it cleared, the journal put
+  //      away, and only then is the new code handed back.
+  //
+  // A move abandoned before step 4 is rolled back by the sweep; one abandoned
+  // during it is rolled forward. The couple sheet has its own code and is not
+  // moved; nor are reports, which are keyed by it.
   if (req.method === 'PUT') {
     const old = normalise(new URL(req.url).searchParams.get('code') ?? '')
     if (!CODE.test(old)) return Response.json({ error: 'bad_code' }, { status: 400 })
     // The forget bucket: it is a delete, and it is as rare.
     if (await overHourlyCap('forget', DEFAULT_READ_CAP)) return rateLimited()
     try {
-      const kept = (await store.get(old, { type: 'json' })) as KeptMap | null
-      if (!kept) return Response.json({ error: 'not_found' }, { status: 404 })
-      const code = await mint((c, v: KeptMap) => store.setJSON(c, v, { onlyIfNew: true }), stamp(kept))
-      if (!code) return Response.json({ error: 'unavailable' }, { status: 503 })
+      const now = Date.now()
+      let journal = (await store.get(movingKey(old), { type: 'json' })) as Journal | null
+      const why = await ended(store, old)
+      // Closed and no move in flight: it was forgotten, or its move finished.
+      if (why && !journal) return closed(why)
 
-      const vouches = getStore('vouches')
-      const cohort = getStore('cohort')
-      const contacts = getStore('contacts')
-
-      const vouch = await vouches.get(old, { type: 'json' })
-      if (vouch) await vouches.setJSON(code, vouch)
-      const token = (await vouches.get(`asked/${old}`, { type: 'text' })) as string | null
-      if (token) {
-        await vouches.set(`asked/${code}`, token)
-        await vouches.set(`token/${token}`, code)
+      const read = (await store.getWithMetadata(old, { type: 'json' })) as { data: KeptMap; etag?: string } | null
+      if (!journal) {
+        if (!read) return Response.json({ error: 'not_found' }, { status: 404 })
+        const minted = await mintFree(store, stamp(carried(read.data, now)), async (c) => !!(await ended(store, c)))
+        if (!minted) return Response.json({ error: 'unavailable' }, { status: 503 })
+        const claimed = await store.setJSON(movingKey(old), stamp({ to: minted, at: day(now) }), { onlyIfNew: true })
+        if (claimed.modified) journal = { to: minted, at: day(now) }
+        else {
+          // Another attempt at the same move got there first: use its code.
+          await store.delete(minted)
+          journal = (await store.get(movingKey(old), { type: 'json' })) as Journal | null
+          if (!journal) return Response.json({ error: 'unavailable' }, { status: 503 })
+        }
       }
-      // The door entry's key ends in the code: the same place, under the new one.
-      const member = (await cohort.get(`index/${old}`, { type: 'text' })) as string | null
-      const entry = member ? await cohort.get(member, { type: 'json' }) : null
-      const moved = member ? member.replace(/[^/]+$/, code) : null
-      if (moved && entry) {
-        await cohort.setJSON(moved, entry)
-        await cohort.set(`index/${code}`, moved)
-      }
-      const reach = await contacts.get(old, { type: 'json' })
-      if (reach) await contacts.setJSON(code, reach)
+      const code = journal.to
 
-      // Everything is across. Now the old code opens nothing.
-      await contacts.delete(old)
-      if (member) await cohort.delete(member)
-      await cohort.delete(`index/${old}`)
-      await vouches.delete(`asked/${old}`)
-      await vouches.delete(old)
-      await store.delete(old)
-      return Response.json({ code })
+      // Forgotten while it was moving: forgetting wins. What was copied under
+      // the new code goes with everything else.
+      if (why === 'forgotten') {
+        await clearUnder(code, { token: true })
+        await store.delete(code)
+        await store.delete(movingKey(old))
+        return closed(why)
+      }
+
+      if (!why) {
+        // A resumed move whose mint was lost: write the copy again.
+        if (read && !(await store.getMetadata(code))) await store.setJSON(code, stamp(carried(read.data, now)), { onlyIfNew: true })
+        await copyAcross(old, code)
+        // The old map, read again. A save that landed since it was copied is
+        // carried across now, not deleted with the old code a moment later.
+        for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+          const again = (await store.getWithMetadata(old, { type: 'json' })) as { data: KeptMap; etag?: string } | null
+          if (!again || !read || again.etag === read.etag) break
+          await store.setJSON(code, stamp(carried(again.data, now)))
+          read.etag = again.etag
+        }
+      }
+      await finishMove(store, old, now)
+      const moved = (await store.get(code, { type: 'json' })) as KeptMap | null
+      return Response.json({ code, rev: moved?.rev ?? 0 })
     } catch (err) {
       console.error('[niyyah] keep: new code failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -219,7 +345,7 @@ export default async function handler(req: Request) {
   // `req.json()` first and `JSON.stringify` the result back to check its size.
   // A real map is a few kilobytes; anything far past that is a mistake or an
   // attempt to use us as free storage.
-  const body = await readJson<{ snapshot?: unknown; code?: unknown }>(req, MAX_BODY)
+  const body = await readJson<{ snapshot?: unknown; code?: unknown; rev?: unknown; once?: unknown }>(req, MAX_BODY)
   if (body instanceof Response) return body
   if (!body.snapshot || typeof body.snapshot !== 'object') {
     return Response.json({ error: 'missing_snapshot' }, { status: 400 })
@@ -251,44 +377,88 @@ export default async function handler(req: Request) {
   if (body.code && !CODE.test(code)) {
     return Response.json({ error: 'bad_code' }, { status: 400 })
   }
+  // The revision this phone last saw, and the key of this first keep — both
+  // optional, so an older client keeps exactly as it always did.
+  const seen = typeof body.rev === 'number' && Number.isInteger(body.rev) && body.rev >= 0 ? body.rev : undefined
+  const once = typeof body.once === 'string' && TOKEN.test(body.once) ? body.once : undefined
 
   // Bounded, like every public write — after validation, before any read.
   if (await overHourlyCap('keep', DEFAULT_HOURLY_CAP)) return rateLimited()
 
   const now = Date.now()
+
+  /**
+   * Re-keeping under her code: only ever *over her own map*. This used to be a
+   * bare write under whatever code the body carried — so a code nobody held
+   * was created on demand, skipping `mint`'s `onlyIfNew`, and a guessed code
+   * overwrote a stranger's map as surely as DELETE once destroyed one
+   * (docs/HARD.md row 3, docs/BOARD.md). Nothing under the code is a 404, and
+   * the client mints fresh; something under it is written with the etag it
+   * was read at, so two saves racing lose one cleanly instead of
+   * interleaving.
+   *
+   * And only by a phone that has seen the latest keep (docs/INTEGRITY.md). A
+   * phone that last kept at revision 2 cannot write over revision 3 kept from
+   * another phone since — it is told `stale`, and she decides which to keep.
+   * A phone that sends no revision (an older client, or a code kept before
+   * revisions) is accepted as before.
+   */
+  const rekeep = async (target: string, rev: number | undefined): Promise<Response> => {
+    for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+      const existing = (await store.getWithMetadata(target, { type: 'json' })) as { data: KeptMap; etag?: string } | null
+      if (!existing) return Response.json({ error: 'not_found' }, { status: 404 })
+      const was = existing.data
+      const held = was.rev ?? 0
+      if (rev !== undefined && held > rev) return Response.json({ error: 'stale', rev: held }, { status: 409 })
+      // Re-keeping refreshes the year but keeps the day it was first kept. A
+      // createdAt that moved on every save was a last-seen timestamp under
+      // another name — an activity trace this store has no business holding.
+      const kept: KeptMap = { snapshot, createdAt: was.createdAt ?? day(now), expiresAt: day(now + TTL_MS), rev: held + 1 }
+      const { modified } = await store.setJSON(target, stamp(kept), { onlyIfMatch: existing.etag })
+      if (modified) return Response.json({ code: target, rev: kept.rev })
+    }
+    return Response.json({ error: 'conflict' }, { status: 409 })
+  }
+
   try {
-    // Re-keeping under her code: only ever *over her own map*. This used to be
-    // a bare write under whatever code the body carried — so a code nobody
-    // held was created on demand, skipping `mint`'s `onlyIfNew`, and a guessed
-    // code overwrote a stranger's map as surely as DELETE once destroyed one
-    // (docs/HARD.md row 3, docs/BOARD.md). Now: nothing under the code is a
-    // 404, and the client mints fresh; something under it is written with the
-    // etag it was read at, so two saves racing lose one cleanly instead of
-    // interleaving. Three tries, like every conditional write here.
     if (code) {
-      for (let attempt = 0; attempt < 3; attempt++) {
-        const existing = await store.getWithMetadata(code, { type: 'json' })
-        if (!existing) return Response.json({ error: 'not_found' }, { status: 404 })
-        const was = existing.data as KeptMap
-        // Re-keeping refreshes the year but keeps the day it was first kept. A
-        // createdAt that moved on every save was a last-seen timestamp under
-        // another name — an activity trace this store has no business holding.
-        const kept: KeptMap = { snapshot, createdAt: was.createdAt ?? day(now), expiresAt: day(now + TTL_MS) }
-        const { modified } = await store.setJSON(code, stamp(kept), { onlyIfMatch: existing.etag })
-        if (modified) return Response.json({ code })
+      // A code she forgot, or changed, from another phone: it is not kept
+      // again behind her back. The phone is told which, and she decides.
+      const why = await ended(store, code)
+      if (why) return closed(why)
+      return await rekeep(code, seen)
+    }
+    // The same first keep, again — a double tap, or a reply that never
+    // arrived: the map that attempt made, kept again, rather than a second map
+    // under a second code.
+    if (once) {
+      const prior = (await store.get(onceKey(once), { type: 'json' })) as { code?: unknown } | null
+      if (typeof prior?.code === 'string' && CODE.test(prior.code) && !(await ended(store, prior.code))) {
+        const res = await rekeep(prior.code, undefined)
+        if (res.status !== 404) return res
       }
-      return Response.json({ error: 'conflict' }, { status: 409 })
     }
     // A code nobody holds yet: minted with `onlyIfNew`, so a collision costs a
     // retry instead of somebody's map — see netlify/shared/code.ts for why
-    // that is not theoretical.
-    const kept: KeptMap = { snapshot, createdAt: day(now), expiresAt: day(now + TTL_MS) }
-    const minted = await mint((c, v: KeptMap) => store.setJSON(c, v, { onlyIfNew: true }), stamp(kept))
+    // that is not theoretical — and never a code that was forgotten or moved.
+    const kept: KeptMap = { snapshot, createdAt: day(now), expiresAt: day(now + TTL_MS), rev: 1 }
+    const minted = await mintFree(store, stamp(kept), async (c) => !!(await ended(store, c)))
     if (!minted) {
       console.error('[niyyah] keep: every minted code collided')
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
-    return Response.json({ code: minted })
+    if (once) {
+      const claimed = await store.setJSON(onceKey(once), stamp({ code: minted, expiresAt: day(now + DAY_MS) }), { onlyIfNew: true })
+      if (!claimed.modified) {
+        // Two copies of the same first keep, at the same moment: one map.
+        const winner = (await store.get(onceKey(once), { type: 'json' })) as { code?: unknown } | null
+        if (typeof winner?.code === 'string' && winner.code !== minted) {
+          await store.delete(minted)
+          return await rekeep(winner.code, undefined)
+        }
+      }
+    }
+    return Response.json({ code: minted, rev: 1 })
   } catch (err) {
     // Storage is unavailable. The app keeps working exactly as it did before
     // this function existed — her map is still on her device — so this degrades

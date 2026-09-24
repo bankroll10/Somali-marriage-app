@@ -91,6 +91,8 @@ const MAX_BODY = 4_096
 const DEFAULT_HOURLY_CAP = 1000
 /** Forgets in one hour, from everyone — the read-cap shape from keep.ts, since this deletes. */
 const DEFAULT_FORGET_CAP = 600
+/** Conditional writes lose a race now and then; three tries, like every one here. */
+const ATTEMPTS = 3
 
 /** Mirrors src/lib/facts.ts, with the ids as plain strings. Every value is validated against vocab.ts. */
 export interface Facts {
@@ -595,27 +597,36 @@ export default async function handler(req: Request) {
   // The day, never the moment — see netlify/shared/day.ts.
   const at = day(now)
   try {
-    const existing = (await store.get(id, { type: 'json' })) as ProgressRecord | null
-    // Only ever adds. A rung already reached keeps the date it was first
-    // reached, so a returning visitor cannot rewrite her own history and a
-    // reported rung can never be taken back.
-    const first: Record<string, string> = { ...(existing?.first ?? {}) }
-    for (const rung of rungs) first[rung] ??= at
-    // The via, like a rung's date, is first-told-wins: how she found this,
-    // not how she last opened it.
-    const via = existing?.via ?? body.via
-    const merged = mergeFacts(existing?.facts, facts)
-    const record: ProgressRecord = {
-      first,
-      ...(body.scene ? { scene: body.scene } : existing?.scene ? { scene: existing.scene } : {}),
-      ...(body.country ? { country: body.country } : existing?.country ? { country: existing.country } : {}),
-      ...(via ? { via } : {}),
-      ...(body.gender ? { gender: body.gender } : existing?.gender ? { gender: existing.gender } : {}),
-      ...(merged && Object.keys(merged).length ? { facts: merged } : {}),
-      expiresAt: day(now + TTL_MS),
+    // Written at the version it was read, three tries, like every
+    // read-modify-write here. A bare write lost a rung whenever two tabs
+    // reported at once — and this record only ever adds (docs/INTEGRITY.md).
+    for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+      const held = (await store.getWithMetadata(id, { type: 'json' })) as { data: ProgressRecord; etag?: string } | null
+      const existing = held?.data ?? null
+      // Only ever adds. A rung already reached keeps the date it was first
+      // reached, so a returning visitor cannot rewrite her own history and a
+      // reported rung can never be taken back.
+      const first: Record<string, string> = { ...(existing?.first ?? {}) }
+      for (const rung of rungs) first[rung] ??= at
+      // The via, like a rung's date, is first-told-wins: how she found this,
+      // not how she last opened it.
+      const via = existing?.via ?? body.via
+      const merged = mergeFacts(existing?.facts, facts)
+      const record: ProgressRecord = {
+        first,
+        ...(body.scene ? { scene: body.scene } : existing?.scene ? { scene: existing.scene } : {}),
+        ...(body.country ? { country: body.country } : existing?.country ? { country: existing.country } : {}),
+        ...(via ? { via } : {}),
+        ...(body.gender ? { gender: body.gender } : existing?.gender ? { gender: existing.gender } : {}),
+        ...(merged && Object.keys(merged).length ? { facts: merged } : {}),
+        expiresAt: day(now + TTL_MS),
+      }
+      const written = held
+        ? await store.setJSON(id, stamp(record), { onlyIfMatch: held.etag })
+        : await store.setJSON(id, stamp(record), { onlyIfNew: true })
+      if (written.modified) return Response.json({ ok: true })
     }
-    await store.setJSON(id, stamp(record))
-    return Response.json({ ok: true })
+    return Response.json({ error: 'conflict' }, { status: 409 })
   } catch (err) {
     // The app never depended on this and must never start. Failing to count
     // someone is a measurement problem, not her problem.

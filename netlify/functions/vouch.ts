@@ -1,5 +1,6 @@
 import { getStore } from '@netlify/blobs'
-import { CODE, LEGACY_TOKEN, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
+import { CODE, LEGACY_TOKEN, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
+import { liveMap } from '../shared/integrity'
 import { day } from '../shared/day'
 import { readJson } from '../shared/body'
 import { stamp } from '../shared/record'
@@ -185,7 +186,9 @@ export default async function handler(req: Request) {
       // here, not deleted; the weekly sweep deletes it once the map is gone
       // (netlify/functions/sweep.ts, docs/PRIVACY.md R1).
       const [map, record] = await Promise.all([
-        getStore('maps').getMetadata(code),
+        // A vouch on a map past its year, or closed, is not shown — it goes
+        // with the map (netlify/shared/integrity.ts `liveMap`).
+        liveMap(getStore('maps'), code),
         store.get(code, { type: 'json' }) as Promise<VouchRecord | null>,
       ])
       // Never cached: a family member's name, keyed by a secret.
@@ -210,7 +213,7 @@ export default async function handler(req: Request) {
     // Bounded, like every public write — after validation, before any read.
     if (await overHourlyCap('vouch', DEFAULT_HOURLY_CAP)) return rateLimited()
     try {
-      if (!(await getStore('maps').getMetadata(code))) return Response.json({ error: 'no_map' }, { status: 404 })
+      if (!(await liveMap(getStore('maps'), code))) return Response.json({ error: 'no_map' }, { status: 404 })
       // One token per map, reused: asking twice sends the same link, and
       // forgetting a map has one token to find.
       const existing = (await store.get(`asked/${code}`, { type: 'text' })) as string | null
@@ -234,8 +237,17 @@ export default async function handler(req: Request) {
         if (winner && isToken(winner)) return Response.json({ token: winner })
         return Response.json({ error: 'unavailable' }, { status: 503 })
       }
-      await store.set(`token/${token}`, code)
-      return Response.json({ token })
+      // The pointer, only onto a token nobody holds: one that collides with a
+      // link already handed out must never re-point another family's link at
+      // this map (docs/INTEGRITY.md). On a collision this ask takes a fresh
+      // token — `asked/` is this map's own, so it is simply rewritten.
+      let mine = token
+      for (let attempt = 0; attempt < MINT_ATTEMPTS; attempt++) {
+        if ((await store.set(`token/${mine}`, code, { onlyIfNew: true })).modified) return Response.json({ token: mine })
+        mine = newToken()
+        await store.set(`asked/${code}`, mine)
+      }
+      return Response.json({ error: 'unavailable' }, { status: 503 })
     } catch (err) {
       console.error('[niyyah] vouch: ask failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -272,7 +284,7 @@ export default async function handler(req: Request) {
   // A vouch attaches to a kept map. A code nobody has kept a map under is not a
   // person, and is not vouched for.
   try {
-    if (!(await getStore('maps').getMetadata(code))) return Response.json({ error: 'no_map' }, { status: 404 })
+    if (!(await liveMap(getStore('maps'), code))) return Response.json({ error: 'no_map' }, { status: 404 })
   } catch (err) {
     console.error('[niyyah] vouch: map lookup failed', err)
     return Response.json({ error: 'unavailable' }, { status: 503 })

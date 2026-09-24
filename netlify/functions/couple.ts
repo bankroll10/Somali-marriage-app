@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs'
-import { retire } from '../shared/sheet'
-import { CODE, TOKEN_LENGTH, mint, newCode, normalise } from '../shared/code'
+import { goneKey, retire } from '../shared/sheet'
+import { mintFree } from '../shared/integrity'
+import { CODE, TOKEN_LENGTH, newCode, normalise } from '../shared/code'
 import { sameSecret } from '../shared/secret'
 import { isFounder, notFounder } from '../shared/founder'
 import { GENDERS, TOPICS, YES_STATES as STATES } from '../shared/vocab'
@@ -301,7 +302,9 @@ export default async function handler(req: Request) {
         createdAt: day(now),
         expiresAt: day(now + TTL_MS),
       }
-      const minted = await mint((c, v: CoupleRecord) => store.setJSON(c, v, { onlyIfNew: true }), stamp(record))
+      // Never the code of a sheet that is gone: its reports, and the window to
+      // make one, belong to the pair they are about (docs/INTEGRITY.md).
+      const minted = await mintFree(store, stamp(record), async (c) => !!(await store.getMetadata(goneKey(c))))
       if (!minted) {
         console.error('[niyyah] couple: every minted code collided')
         return Response.json({ error: 'unavailable' }, { status: 503 })

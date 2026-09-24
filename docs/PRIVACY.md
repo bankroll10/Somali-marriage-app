@@ -74,7 +74,7 @@ That is the honest limit of every row marked founder.
 |---|---|---|---|---|---|---|---|
 | Door key `country/scene/gender/reach/hook/code` | The public count, and which pool she is in | She joins the door | Public as counts only; the founder in storage | As long as her kept map | Forget me; weekly sweep when the map lapses | No | keep |
 | `ledger` (which instruments she used) | The seriousness that got her counted | Join | Founder, in counts floored at five | Same | Same | Partly | keep |
-| `contacts/<code>`: email or phone, city, country, day | Telling her when her pool opens | Join, if she gives it | **Founder, with her own credentials. No URL returns it** | As long as her kept map | Forget me; weekly sweep; `/pool?sweep=1` | No | keep, **now the only copy** (C7) |
+| `contacts/<code>`: email or phone, city, country, day | Telling her when her pool opens | Join, if she gives it | **Founder, with her own credentials. No URL returns it** | As long as her kept map — since 2026-09-24 truly: the weekly sweep takes any contact whose map is gone, however it was orphaned (`docs/INTEGRITY.md`) | Forget me; weekly sweep; `/pool?sweep=1` | No | keep, **now the only copy** (C7) |
 | The founder's monthly `reach-<date>/` export | One vendor's loss must not lose the people waiting | Monthly, by hand | Founder | **Only the latest is kept** (was all of them) | By hand, the month after | No | **retention fixed** (R4) |
 
 ## 4. Step counts (`progress`, keyed by a random install id, not the map code)

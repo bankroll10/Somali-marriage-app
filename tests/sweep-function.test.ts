@@ -19,6 +19,13 @@ function memStore(name: string) {
       const v = m.get(key) ?? null
       return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
     },
+    // The version is the value itself: enough for the sweep to see that a
+    // map read as lapsed has not changed before it deletes it.
+    getMetadata: async (key: string) => (m.has(key) ? { etag: m.get(key)!, metadata: {} } : null),
+    getWithMetadata: async (key: string, opts?: { type?: string }) => {
+      const v = m.get(key) ?? null
+      return v === null ? null : { data: opts?.type === 'json' ? JSON.parse(v) : v, etag: v, metadata: {} }
+    },
     // Conditional options work here too: the real store returns { modified }
     // from `set` exactly as it does from `setJSON`, and vouch.ts now claims
     // `asked/<code>` with onlyIfNew so no token can outlive forget me.
@@ -95,7 +102,17 @@ describe('the weekly sweep', () => {
     seed('HJKMNP', 'man', null)
     await run()
     const again = await run()
-    expect((await again.json()).swept).toEqual({ entries: 0, maps: 0, contacts: 0, vouches: 0, couples: 0, progress: 0 })
+    expect((await again.json()).swept).toEqual({
+      entries: 0,
+      maps: 0,
+      contacts: 0,
+      vouches: 0,
+      couples: 0,
+      progress: 0,
+      reconciled: 0,
+      journals: 0,
+      errors: 0,
+    })
     expect([...stores.get('cohort')!.keys()].sort()).toEqual(['index/ACDEFG', 'us/twin-cities/woman/city/serious/ACDEFG'])
   })
 

@@ -2,8 +2,9 @@ import { getStore } from '@netlify/blobs'
 import { day } from '../shared/day'
 import { CODE } from '../shared/code'
 import { isGone, retire } from '../shared/sheet'
+import { DAY_MS, deleteIfUnchanged, ended, isBookkeeping, isMoving, lapsed, type Journal, type KeptMap } from '../shared/integrity'
 import { SEGMENTS } from './cohort'
-import type { KeptMap } from './keep'
+import { finishMove, rollBackMove } from './keep'
 
 /**
  * The weekly sweep — what makes "the way to reach you lives exactly as long as
@@ -41,6 +42,15 @@ import type { KeptMap } from './keep'
  * performs by hand and a stranger could not misuse: it only ever removes
  * what the product had already promised to remove.
  *
+ * And, since 2026-09-24, it is where everything a failed step left behind is
+ * put right (docs/INTEGRITY.md): a way to reach someone whose map is gone,
+ * however it was orphaned; an index that points at nothing; a second door
+ * entry for one person, left by two joins at once; a change of code
+ * abandoned part-way, rolled back or finished. Every record is its own step:
+ * one it cannot read is counted in `errors` and tried again next week, and
+ * everything else still goes — a single bad blob used to stop the sweep for
+ * every store, every week, for good.
+ *
  * Netlify does not expose a scheduled function over HTTP in production; if
  * it ever did, the same reasoning holds.
  */
@@ -52,7 +62,7 @@ export interface Swept {
   entries: number
   /** Kept maps past their year, removed. */
   maps: number
-  /** Ways to reach someone, removed with their entry. */
+  /** Ways to reach someone whose map is gone or lapsed — with their entry, or orphaned. */
   contacts: number
   /** Vouches whose map is gone or lapsed — each with its ask and token, counted once. */
   vouches: number
@@ -60,47 +70,138 @@ export interface Swept {
   couples: number
   /** Step counts past their year that never reached `married`. */
   progress: number
+  /** Second door entries for one person, and indexes that point at nothing. */
+  reconciled: number
+  /** Changes of code abandoned part-way: rolled back, or finished. */
+  journals: number
+  /** Records that could not be read or removed this week. Everything else still went; these are tried again. */
+  errors: number
 }
 
-export async function sweepLapsed(cohort: Store, maps: Store, contacts: Store, now = Date.now()): Promise<Swept> {
-  const swept: Swept = { entries: 0, maps: 0, contacts: 0, vouches: 0, couples: 0, progress: 0 }
+const empty = (): Swept => ({ entries: 0, maps: 0, contacts: 0, vouches: 0, couples: 0, progress: 0, reconciled: 0, journals: 0, errors: 0 })
 
-  // Every door entry, in every pool. `index/<code>` keys are not entries.
-  const { blobs } = await cohort.list()
-  for (const { key } of blobs) {
-    const parts = key.split('/')
-    if (parts.length !== SEGMENTS) continue
-    const code = parts[SEGMENTS - 1]
-    const kept = (await maps.get(code, { type: 'json' })) as KeptMap | null
-    const expired = !!kept && Date.parse(kept.expiresAt) < now
-    if (kept && !expired) continue
-    await cohort.delete(key)
-    await cohort.delete(`index/${code}`)
-    swept.entries += 1
-    if (expired) {
-      await maps.delete(code)
-      swept.maps += 1
+/** A move still in flight is left alone for this long — a move takes seconds, and the sweep runs at midnight. */
+const JOURNAL_GRACE_MS = 2 * DAY_MS
+
+/** One record's work, which may fail without stopping anyone else's. */
+async function each(swept: Pick<Swept, 'errors'>, work: () => Promise<void>): Promise<void> {
+  try {
+    await work()
+  } catch (err) {
+    swept.errors += 1
+    console.error('[niyyah] sweep: one record failed; the rest go on', err)
+  }
+}
+
+/** Whether a code's map can still be acted on — netlify/shared/integrity.ts `liveMap`, remembered for one run. */
+function liveness(maps: Store, now: number) {
+  const seen = new Map<string, Promise<boolean>>()
+  return (code: string): Promise<boolean> => {
+    if (!seen.has(code)) {
+      seen.set(
+        code,
+        (async () => {
+          const kept = (await maps.get(code, { type: 'json' })) as KeptMap | null
+          return !!kept && !lapsed(kept, now) && !(await ended(maps, code))
+        })(),
+      )
     }
-    await contacts.delete(code)
-    swept.contacts += 1
+    return seen.get(code)!
+  }
+}
+
+/**
+ * The door, the maps and the ways to reach people — everything whose life is
+ * a kept map's.
+ */
+export async function sweepLapsed(cohort: Store, maps: Store, contacts: Store, now = Date.now()): Promise<Swept> {
+  const swept = empty()
+
+  // Moves abandoned part-way, first, so everything after sees the codes as
+  // they will stay. Before the old code was closed: rolled back — the new
+  // code was never handed to anyone. After: finished.
+  for (const { key } of (await maps.list({ prefix: 'moving/' })).blobs) {
+    await each(swept, async () => {
+      const journal = (await maps.get(key, { type: 'json' })) as Journal | null
+      if (!journal || Date.parse(journal.at) + JOURNAL_GRACE_MS > now) return
+      const old = key.slice('moving/'.length)
+      const why = await ended(maps, old)
+      if (why === 'moved') await finishMove(maps, old, now)
+      else await rollBackMove(maps, old, journal.to)
+      swept.journals += 1
+    })
   }
 
-  // Kept maps past their year with no door entry: the blob goes too — one
-  // expiry rule, whichever reader gets there first (keep.ts deletes on read).
-  const all = await maps.list()
-  for (const { key } of all.blobs) {
-    const kept = (await maps.get(key, { type: 'json' })) as KeptMap | null
-    if (kept && typeof kept.expiresAt === 'string' && Date.parse(kept.expiresAt) < now) {
-      await maps.delete(key)
-      swept.maps += 1
-    }
+  const live = liveness(maps, now)
+
+  // A door entry whose map is gone, past its year or closed goes, with its
+  // index and the way to reach her.
+  for (const { key } of (await cohort.list()).blobs) {
+    const parts = key.split('/')
+    if (parts.length !== SEGMENTS) continue
+    await each(swept, async () => {
+      const code = parts[SEGMENTS - 1]
+      if (await live(code)) return
+      await cohort.delete(key)
+      if ((await cohort.get(`index/${code}`, { type: 'text' })) === key) await cohort.delete(`index/${code}`)
+      swept.entries += 1
+      await contacts.delete(code)
+      swept.contacts += 1
+    })
+  }
+
+  // The door, reconciled. One person has one entry, and her index names it.
+  // An index that names nothing goes; an entry her index does not name is a
+  // second join's leftover and goes too — but never one written today, which
+  // may be a join caught between writing its entry and writing its index.
+  const today = day(now)
+  for (const { key } of (await cohort.list()).blobs) {
+    await each(swept, async () => {
+      if (key.startsWith('index/')) {
+        const target = (await cohort.get(key, { type: 'text' })) as string | null
+        if (target && (await cohort.getMetadata(target))) return
+        await cohort.delete(key)
+        swept.reconciled += 1
+        return
+      }
+      const parts = key.split('/')
+      if (parts.length !== SEGMENTS) return
+      const code = parts[SEGMENTS - 1]
+      if ((await cohort.get(`index/${code}`, { type: 'text' })) === key) return
+      const record = (await cohort.get(key, { type: 'json' })) as { at?: unknown } | null
+      if (typeof record?.at === 'string' && record.at >= today) return
+      await cohort.delete(key)
+      swept.reconciled += 1
+    })
+  }
+
+  // A way to reach someone lives exactly as long as her map, however it was
+  // left behind: a join that raced her forget, a change of code that stopped
+  // part-way. It used to go only with a door entry, so an orphan stayed for
+  // ever (docs/PRIVACY.md).
+  for (const { key } of (await contacts.list()).blobs) {
+    await each(swept, async () => {
+      if (!CODE.test(key) || (await live(key))) return
+      await contacts.delete(key)
+      swept.contacts += 1
+    })
+  }
+
+  // Maps past their year, and the bookkeeping beside them — a tombstone at
+  // the end of its year, a first keep's once key at the end of its day.
+  // Only the version read as lapsed is deleted: one renewed by its owner a
+  // moment ago stays (netlify/shared/integrity.ts `deleteIfUnchanged`).
+  for (const { key } of (await maps.list()).blobs) {
+    if (isMoving(key)) continue
+    await each(swept, async () => {
+      const read = (await maps.getWithMetadata(key, { type: 'json' })) as { data: { expiresAt?: unknown }; etag?: string } | null
+      if (!read || !lapsed(read.data, now)) return
+      if ((await deleteIfUnchanged(maps, key, read.etag)) && !isBookkeeping(key)) swept.maps += 1
+    })
   }
 
   return swept
 }
-
-const lapsed = (record: { expiresAt?: unknown } | null, now: number) =>
-  !!record && typeof record.expiresAt === 'string' && Date.parse(record.expiresAt) < now
 
 /**
  * Everything whose life is someone else's: vouches (a map's), couple sheets
@@ -108,66 +209,62 @@ const lapsed = (record: { expiresAt?: unknown } | null, now: number) =>
  * `sweepLapsed`, so a map it has just removed counts as gone here.
  */
 export async function sweepExpired(maps: Store, vouches: Store, couples: Store, progress: Store, now = Date.now()) {
-  let v = 0
-  let c = 0
-  let p = 0
+  const out = { vouches: 0, couples: 0, progress: 0, errors: 0 }
+  const live = liveness(maps, now)
 
-  // A map is live if it is there and inside its year. Asked once per code.
-  const live = new Map<string, boolean>()
-  const isLive = async (code: string) => {
-    if (!live.has(code)) {
-      const kept = (await maps.get(code, { type: 'json' })) as KeptMap | null
-      live.set(code, !!kept && !lapsed(kept, now))
-    }
-    return live.get(code)!
+  for (const { key } of (await vouches.list()).blobs) {
+    await each(out, async () => {
+      let code: string | null = null
+      if (key.startsWith('asked/')) code = key.slice('asked/'.length)
+      else if (key.startsWith('token/')) code = ((await vouches.get(key, { type: 'text' })) as string | null) ?? ''
+      else if (CODE.test(key)) code = key
+      if (code === null) return
+      if (code && (await live(code))) return
+      await vouches.delete(key)
+      if (CODE.test(key)) out.vouches += 1
+    })
   }
 
-  // `<code>` is a vouch; `asked/<code>` names the token; `token/<t>` names the
-  // code. Each is judged by the map it leads to.
-  const { blobs } = await vouches.list()
-  for (const { key } of blobs) {
-    let code: string | null = null
-    if (key.startsWith('asked/')) code = key.slice('asked/'.length)
-    else if (key.startsWith('token/')) code = ((await vouches.get(key, { type: 'text' })) as string | null) ?? ''
-    else if (CODE.test(key)) code = key
-    if (code === null) continue
-    if (code && (await isLive(code))) continue
-    await vouches.delete(key)
-    if (CODE.test(key)) v += 1
-  }
-
-  // A sheet past its ninety days is retired, leaving its reporting window
-  // behind; a window past its own end is deleted (netlify/shared/sheet.ts).
   for (const { key } of (await couples.list()).blobs) {
-    const record = (await couples.get(key, { type: 'json' })) as { expiresAt?: unknown } | null
-    if (!lapsed(record, now)) continue
-    if (isGone(key)) {
-      await couples.delete(key)
-      continue
-    }
-    await retire(couples, key, Date.parse(record!.expiresAt as string))
-    c += 1
+    await each(out, async () => {
+      const record = (await couples.get(key, { type: 'json' })) as { expiresAt?: unknown } | null
+      if (!lapsed(record, now)) return
+      if (isGone(key)) {
+        await couples.delete(key)
+        return
+      }
+      await retire(couples, key, Date.parse(record!.expiresAt as string))
+      out.couples += 1
+    })
   }
 
   for (const { key } of (await progress.list()).blobs) {
-    const record = (await progress.get(key, { type: 'json' })) as { first?: Record<string, unknown>; expiresAt?: unknown } | null
-    if (record?.first && 'married' in record.first) continue
-    if (lapsed(record, now)) {
-      await progress.delete(key)
-      p += 1
-    }
+    await each(out, async () => {
+      const record = (await progress.get(key, { type: 'json' })) as { first?: Record<string, unknown>; expiresAt?: unknown } | null
+      if (record?.first && 'married' in record.first) return
+      if (lapsed(record, now)) {
+        await progress.delete(key)
+        out.progress += 1
+      }
+    })
   }
 
-  return { vouches: v, couples: c, progress: p }
+  return out
+}
+
+/** The whole sweep, every store, as the schedule runs it. */
+export async function sweep(now = Date.now()): Promise<Swept> {
+  const maps = getStore('maps')
+  const swept = await sweepLapsed(getStore('cohort'), maps, getStore('contacts'), now)
+  const rest = await sweepExpired(maps, getStore('vouches'), getStore('couples'), getStore('progress'), now)
+  return { ...swept, vouches: rest.vouches, couples: rest.couples, progress: rest.progress, errors: swept.errors + rest.errors }
 }
 
 export default async function handler(_req: Request) {
   try {
-    const maps = getStore('maps')
-    const swept = await sweepLapsed(getStore('cohort'), maps, getStore('contacts'))
-    Object.assign(swept, await sweepExpired(maps, getStore('vouches'), getStore('couples'), getStore('progress')))
+    const swept = await sweep()
     console.log(
-      `[niyyah] sweep: ${swept.entries} entries, ${swept.maps} maps, ${swept.contacts} contacts, ${swept.vouches} vouches, ${swept.couples} couples, ${swept.progress} step counts on ${day()}`,
+      `[niyyah] sweep: ${swept.entries} entries, ${swept.maps} maps, ${swept.contacts} contacts, ${swept.vouches} vouches, ${swept.couples} couples, ${swept.progress} step counts, ${swept.reconciled} reconciled, ${swept.journals} moves, ${swept.errors} errors on ${day()}`,
     )
     return Response.json({ swept, at: day() })
   } catch (err) {

@@ -1,6 +1,6 @@
 import { loadProgress, saveProgress, type PersistedState } from './storage'
 import type { Identity, WaitlistState } from '../types'
-import { cleanCode, isCode } from './code'
+import { ALPHABET, cleanCode, isCode } from './code'
 import { send } from './net'
 
 /**
@@ -83,17 +83,43 @@ export function rememberedCode(): string | null {
   }
 }
 
-export function rememberCode(code: string) {
+/**
+ * The revision of the map this phone last kept or brought back
+ * (docs/INTEGRITY.md). Sent with every re-keep, so a phone that has not seen
+ * a keep made from another phone since cannot write over it.
+ */
+const REV_KEY = 'niyyah.keep.rev.v1'
+/**
+ * The key of a first keep still waiting for its code. Reused by every attempt
+ * until one comes back, so a double tap, or a reply lost on the way, is one
+ * map under one code rather than two.
+ */
+const ONCE_KEY = 'niyyah.keep.once.v1'
+
+export function rememberCode(code: string, rev?: number) {
   try {
     localStorage.setItem(CODE_KEY, code)
+    if (typeof rev === 'number') localStorage.setItem(REV_KEY, String(rev))
+    else localStorage.removeItem(REV_KEY)
   } catch {
     /* storage refused — she still has the code on screen */
+  }
+}
+
+/** The revision this phone last saw, or nothing for a code kept before revisions — which the server accepts as before. */
+export function rememberedRev(): number | undefined {
+  try {
+    const n = Number(localStorage.getItem(REV_KEY))
+    return localStorage.getItem(REV_KEY) !== null && Number.isInteger(n) && n >= 0 ? n : undefined
+  } catch {
+    return undefined
   }
 }
 
 export function forgetCode() {
   try {
     localStorage.removeItem(CODE_KEY)
+    localStorage.removeItem(REV_KEY)
   } catch {
     /* nothing to forget */
   }
@@ -106,7 +132,45 @@ export interface KeepPatch {
 }
 
 /**
- * Send the current map up, and return the code that brings it back.
+ * Why a keep did not produce a code (docs/INTEGRITY.md):
+ *  - `stale` — the map was kept from another phone since this one last saw
+ *    it. Nothing was written over it; this phone keeps its answers.
+ *  - `moved` — the code was changed on another phone, and opens nothing now.
+ *  - `forgotten` — she asked, from another phone, for it to be forgotten.
+ *  - `unreachable` — no answer, or one that made no sense.
+ * For the last two the code is dropped from this phone: it opens nothing, and
+ * the next keep she asks for is a new map under a new code — because she asked.
+ */
+export type KeepProblem = 'stale' | 'moved' | 'forgotten' | 'unreachable'
+
+/** One key for one first keep, until a code comes back for it. */
+function onceKey(): string | undefined {
+  try {
+    const held = localStorage.getItem(ONCE_KEY)
+    if (held && /^[ACDEFGHJKMNPQRTWXY34789]{10}$/.test(held)) return held
+    const bytes = crypto.getRandomValues(new Uint8Array(10))
+    const fresh = [...bytes].map((b) => ALPHABET[b % ALPHABET.length]).join('')
+    localStorage.setItem(ONCE_KEY, fresh)
+    return fresh
+  } catch {
+    return undefined
+  }
+}
+
+function clearOnce() {
+  try {
+    localStorage.removeItem(ONCE_KEY)
+  } catch {
+    /* nothing to clear */
+  }
+}
+
+/** The keep in flight, if any: two taps at once share one request. */
+let inFlight: Promise<string | KeepProblem> | null = null
+
+/**
+ * Send the current map up, and return the code that brings it back — or say
+ * why not.
  *
  * Re-keeps under her existing code when she has one, so keeping an updated map
  * never hands her a second code to remember.
@@ -117,9 +181,17 @@ export interface KeepPatch {
  * send the map from a quarter-second ago — without the one fact being counted
  * requires.
  */
-export async function keepMap(patch?: KeepPatch): Promise<string | null> {
+export function keepMapDetail(patch?: KeepPatch): Promise<string | KeepProblem> {
+  if (inFlight) return inFlight
+  inFlight = keepOnce(patch).finally(() => {
+    inFlight = null
+  })
+  return inFlight
+}
+
+async function keepOnce(patch?: KeepPatch): Promise<string | KeepProblem> {
   const state = loadProgress()
-  if (!state) return null
+  if (!state) return 'unreachable'
   const snapshot = patch?.identity ? { ...state, identity: { ...state.identity, ...patch.identity } } : state
   const body = keptSnapshot(snapshot)
 
@@ -127,14 +199,33 @@ export async function keepMap(patch?: KeepPatch): Promise<string | null> {
     send(ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ snapshot: body, code: code ?? undefined }),
+      body: JSON.stringify(
+        code
+          ? { snapshot: body, code, rev: rememberedRev() }
+          : { snapshot: body, once: onceKey() },
+      ),
     })
 
+  const why = async (res: Response): Promise<string> => {
+    try {
+      return ((await res.json()) as { error?: string }).error ?? ''
+    } catch {
+      return ''
+    }
+  }
+
   let res = await put(rememberedCode())
-  // Her remembered code points at nothing — the map lapsed, or was forgotten
-  // from another device. The server no longer creates a map under a code it
-  // did not mint (netlify/functions/keep.ts), so keep fresh: she gets a new
-  // one, and nobody else's map is ever written over.
+  if (res?.status === 409 && (await why(res)) === 'stale') return 'stale'
+  if (res?.status === 410) {
+    // Closed from another phone. Never re-created behind her back: the code
+    // is dropped, and she is told which.
+    const closed = await why(res)
+    forgetCode()
+    return closed === 'moved' ? 'moved' : closed === 'forgotten' ? 'forgotten' : 'unreachable'
+  }
+  // Her remembered code points at nothing — the map lapsed. The server no
+  // longer creates a map under a code it did not mint (netlify/functions/keep.ts),
+  // so keep fresh: she gets a new one, and nobody else's map is ever written over.
   //
   // The old code is dropped only once the new one is in hand. `forgetCode()`
   // used to commit first, so a second attempt that timed out left the device
@@ -148,17 +239,32 @@ export async function keepMap(patch?: KeepPatch): Promise<string | null> {
       res = replacement
     }
   }
-  if (!res?.ok) return null
+  if (!res?.ok) return 'unreachable'
 
   try {
-    const { code } = (await res.json()) as { code?: string }
-    if (!code) return null
-    rememberCode(code)
+    const { code, rev } = (await res.json()) as { code?: string; rev?: number }
+    if (!code || !isCode(code)) return 'unreachable'
+    rememberCode(code, rev)
+    clearOnce()
     return code
   } catch {
-    return null
+    return 'unreachable'
   }
 }
+
+/**
+ * The same, as a code or nothing — for callers that only need a code to go on
+ * with. A stale phone gets nothing here, and so never writes over the newer
+ * map: the door counts her under the code she already has.
+ */
+export async function keepMap(patch?: KeepPatch): Promise<string | null> {
+  const result = await keepMapDetail(patch)
+  // By name, never by shape: "unreachable" cleans to eight letters of the code
+  // alphabet, and would pass for a code.
+  return PROBLEMS.has(result) ? null : result
+}
+
+const PROBLEMS: ReadonlySet<string> = new Set<KeepProblem>(['stale', 'moved', 'forgotten', 'unreachable'])
 
 /**
  * A new code for a map someone else has seen, with everything kept under the
@@ -171,9 +277,9 @@ export async function rotateCode(): Promise<string | null> {
   const res = await send(`${ENDPOINT}?code=${encodeURIComponent(old)}`, { method: 'PUT' })
   if (!res?.ok) return null
   try {
-    const { code } = (await res.json()) as { code?: string }
+    const { code, rev } = (await res.json()) as { code?: string; rev?: number }
     if (!code || !isCode(code)) return null
-    rememberCode(code)
+    rememberCode(code, rev)
     return code
   } catch {
     return null
@@ -188,7 +294,10 @@ export async function rotateCode(): Promise<string | null> {
  * with a perfectly good code and no signal was told her map did not exist. She
  * retypes a correct code at a server that cannot answer (docs/NORMAN.md).
  */
-export type RestoreProblem = 'not-a-code' | 'not-found' | 'expired' | 'unreachable'
+export type RestoreProblem = 'not-a-code' | 'not-found' | 'expired' | 'moved' | 'forgotten' | 'unreachable'
+
+/** The revision each fetched map came with, until she adopts it — see `adoptMap`. */
+const fetchedRev = new Map<string, number>()
 
 /** Fetch a kept map by its code, saying why when it cannot. */
 export async function restoreDetail(code: string): Promise<PersistedState | RestoreProblem> {
@@ -209,13 +318,23 @@ export async function restoreDetail(code: string): Promise<PersistedState | Rest
         return 'not-found'
       }
     }
+    if (res.status === 410) {
+      // Closed: changed on another phone, or forgotten. Said, not guessed.
+      try {
+        const { error } = (await res.json()) as { error?: string }
+        return error === 'moved' ? 'moved' : 'forgotten'
+      } catch {
+        return 'forgotten'
+      }
+    }
     if (res.status === 400) return 'not-a-code'
     return 'unreachable'
   }
 
   try {
-    const { snapshot } = (await res.json()) as { snapshot?: KeptSnapshot }
+    const { snapshot, rev } = (await res.json()) as { snapshot?: KeptSnapshot; rev?: number }
     if (!snapshot || typeof snapshot !== 'object') return 'unreachable'
+    if (typeof rev === 'number') fetchedRev.set(clean, rev)
     // Fetched, not adopted. This used to remember the code here, so opening
     // anyone's `?map=` link made their code this phone's own: every keep, join
     // and vouch-ask after it wrote under a code the sender holds and reads
@@ -240,7 +359,9 @@ export async function restoreDetail(code: string): Promise<PersistedState | Rest
  */
 export function adoptMap(code: string, snapshot: PersistedState): void {
   saveProgress(snapshot)
-  rememberCode(cleanCode(code))
+  // With the revision it came at, so this phone's next keep is from the latest.
+  const clean = cleanCode(code)
+  rememberCode(clean, fetchedRev.get(clean))
 }
 
 /** The same, for callers that only need the map or nothing (the `?map=` link). */

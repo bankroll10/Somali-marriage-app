@@ -35,6 +35,10 @@ function memStore(name: string) {
       const v = m.get(key) ?? null
       return v !== null && opts?.type === 'json' ? JSON.parse(v) : v
     },
+    getMetadata: async (key: string) => {
+      down()
+      return m.has(key) ? { etag: etag(key), metadata: {} } : null
+    },
     getWithMetadata: async (key: string, opts?: { type?: string }) => {
       down()
       const v = m.get(key) ?? null

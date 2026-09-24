@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { adoptMap, codeFromUrl, keepMap, keptSnapshot, rememberedCode, restoreLink, restoreMap } from './keep'
+import { adoptMap, codeFromUrl, keepMap, keepMapDetail, keptSnapshot, rememberCode, rememberedCode, rememberedRev, restoreDetail, restoreLink, restoreMap } from './keep'
 import { loadProgress, saveProgress } from './storage'
 import { defaultGuideUse, defaultTrust } from '../types'
 
@@ -296,5 +296,81 @@ describe('a new code for a map someone has seen', () => {
     const { rotateCode } = await import('./keep')
     expect(await rotateCode()).toBeNull()
     expect(rememberedCode()).toBe('ACDEFG34')
+  })
+})
+
+describe('two phones, one map (docs/INTEGRITY.md)', () => {
+  const ok = (body: object) => new Response(JSON.stringify(body), { status: 200 })
+
+  it('sends the revision it last saw, and remembers the one it gets back', async () => {
+    saveProgress(state)
+    rememberCode('ACDEFGHJ', 3)
+    const spy = vi.fn(async (_input: string, _init?: RequestInit) => ok({ code: 'ACDEFGHJ', rev: 4 }))
+    vi.stubGlobal('fetch', spy)
+    expect(await keepMap()).toBe('ACDEFGHJ')
+    expect(JSON.parse(spy.mock.calls[0][1]?.body as string).rev).toBe(3)
+    expect(rememberedRev()).toBe(4)
+  })
+
+  it('a phone behind another is told so, writes nothing over it, and keeps its code', async () => {
+    saveProgress(state)
+    rememberCode('ACDEFGHJ', 2)
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'stale', rev: 3 }), { status: 409 })))
+    expect(await keepMapDetail()).toBe('stale')
+    // The door counts her under the code she already has; no second map.
+    expect(await keepMap()).toBeNull()
+    expect(rememberedCode()).toBe('ACDEFGHJ')
+  })
+
+  it('a code closed from another phone is dropped, never quietly replaced by a new map', async () => {
+    saveProgress(state)
+    rememberCode('ACDEFGHJ', 2)
+    const spy = vi.fn(async () => new Response(JSON.stringify({ error: 'moved' }), { status: 410 }))
+    vi.stubGlobal('fetch', spy)
+    expect(await keepMapDetail()).toBe('moved')
+    expect(spy).toHaveBeenCalledTimes(1)
+    expect(rememberedCode()).toBeNull()
+  })
+
+  it('never mistakes a problem for a code', async () => {
+    // "unreachable" cleans to eight letters of the code alphabet.
+    saveProgress(state)
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
+    expect(await keepMapDetail()).toBe('unreachable')
+    expect(await keepMap()).toBeNull()
+  })
+
+  it('a first keep sent twice carries the same key both times, until a code comes back', async () => {
+    saveProgress(state)
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('lost') }))
+    await keepMap()
+    const spy = vi.fn(async (_input: string, _init?: RequestInit) => ok({ code: 'ACDEFGHJ', rev: 1 }))
+    vi.stubGlobal('fetch', spy)
+    await keepMap()
+    const first = JSON.parse(spy.mock.calls[0][1]?.body as string).once
+    expect(first).toMatch(/^[ACDEFGHJKMNPQRTWXY34789]{10}$/)
+    expect(localStorage.getItem('niyyah.keep.once.v1')).toBeNull()
+  })
+
+  it('two taps at once are one request', async () => {
+    saveProgress(state)
+    const spy = vi.fn(async () => ok({ code: 'ACDEFGHJ', rev: 1 }))
+    vi.stubGlobal('fetch', spy)
+    const [a, b] = await Promise.all([keepMap(), keepMap()])
+    expect(a).toBe('ACDEFGHJ')
+    expect(b).toBe('ACDEFGHJ')
+    expect(spy).toHaveBeenCalledTimes(1)
+  })
+
+  it('a restored map is adopted at the revision it came at', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => ok({ snapshot: { answers: {}, identity: {} }, rev: 7 })))
+    const map = await restoreDetail('ACDEFGHJ')
+    adoptMap('ACDEFGHJ', map as never)
+    expect(rememberedRev()).toBe(7)
+  })
+
+  it('a restore of a closed code says which', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response(JSON.stringify({ error: 'forgotten' }), { status: 410 })))
+    expect(await restoreDetail('ACDEFGHJ')).toBe('forgotten')
   })
 })

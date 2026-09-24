@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { LOCAL_KEYS, forgetMe } from './forget'
+import { LOCAL_KEYS, forgetMe, retryPendingForget } from './forget'
 
 /**
  * Forget me is the control that makes every sentence on Trust enforceable.
@@ -90,10 +90,37 @@ describe('forget me', () => {
     expect(store.size).toBe(0)
   })
 
-  it('wipes the phone even when the server cannot be reached, and says so', async () => {
+  it('wipes everything but the codes still to delete when the server cannot be reached, and says which', async () => {
     seed()
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true })
+    // The code is named, so she can write in with it (docs/INTEGRITY.md).
+    expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true, code: 'ACDEFG' })
+    // One key is left: the codes, and none of her answers.
+    expect([...store.keys()]).toEqual(['niyyah.forget.pending.v1'])
+    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ code: 'ACDEFG', id: 'HJKMNP' })
+  })
+
+  it('finishes a forget the server missed — tapping again, or just opening the app — and then leaves nothing', async () => {
+    seed()
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
+    await forgetMe()
+    // Tapping Forget me again used to send nothing, and say it was done.
+    const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"forgotten":true}', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true })
+    expect(spy.mock.calls.map((c) => c[0]).sort()).toEqual(['/.netlify/functions/keep?code=ACDEFG', '/.netlify/functions/progress?id=HJKMNP'])
+    expect(store.size).toBe(0)
+  })
+
+  it('sends a pending forget again on its own, and keeps what still did not land', async () => {
+    seed()
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
+    await forgetMe()
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes('/keep') ? new Response('{}', { status: 200 }) : new Response('{}', { status: 503 }))))
+    expect(await retryPendingForget()).toBe(false)
+    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ id: 'HJKMNP' })
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })))
+    expect(await retryPendingForget()).toBe(true)
     expect(store.size).toBe(0)
   })
 
@@ -127,6 +154,8 @@ describe('forget me', () => {
         'niyyah.install.v1',
         'niyyah.intake.v1',
         'niyyah.keep.code.v1',
+        'niyyah.keep.once.v1',
+        'niyyah.keep.rev.v1',
         'niyyah.reports.v1',
         'niyyah.via.v1',
         'niyyah.waitlist.queue.v1',
