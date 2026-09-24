@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { answerCouple, coupleLink, coupleReading, createCouple, readCouple, type Joint } from './couple'
-import { beforeYesTopics } from '../data/beforeYes'
+import { beforeYesTopics, ownAnswerFirst } from '../data/beforeYes'
 
 const IDS = beforeYesTopics('woman').map((t) => t.id)
 const all = (kind: Joint) => Object.fromEntries(IDS.map((id) => [id, kind])) as Record<string, Joint>
@@ -44,6 +44,14 @@ describe('reading the joint', () => {
     const r = coupleReading({ ...all('both-agree'), qabiil: 'one-thinks-talked', work: 'both-not-talked' })
     expect(r.lines[0].id).toBe('qabiil')
     expect(r.lines[1].id).toBe('work')
+  })
+
+  it('when one of them does not know their own answer, the words are for finding it first', () => {
+    // The joint used to hand the topic's script — words for a conversation
+    // with the other person, when the conversation to have is with yourself.
+    const r = coupleReading({ ...all('both-agree'), [IDS[0]]: 'unknown-somewhere' })
+    expect(r.open?.kind).toBe('unknown-somewhere')
+    expect(r.open?.script.words).toBe(ownAnswerFirst('woman').words)
   })
 
   it('still ends in words when everything is agreed', () => {

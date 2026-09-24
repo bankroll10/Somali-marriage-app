@@ -361,34 +361,38 @@ export function useNiyyah(entry: Entry | null = null) {
     // the app's own autosave, on exactly the path where the server half had
     // already failed (docs/FAIL.md).
     if (forgotten.current) return
-    const t = window.setTimeout(
-      () =>
-        setSaveOk(
-          saveProgress({
-            answers,
-            identity,
-            trust,
-            mapHistory,
-            stage,
-            situated,
-            steps,
-            guide: guideUse,
-            waitlist,
-            read,
-            beforeYes,
-            couple,
-            vouch,
-            ending,
-            endings,
-            hesitated,
-            began,
-            followups,
-            completed,
-            coachThreads,
-          }),
-        ),
-      SAVE_DEBOUNCE_MS,
-    )
+    const t = window.setTimeout(() => {
+      // And not by a save scheduled a moment before she tapped it: the check
+      // above runs when a save is scheduled, and a change inside the debounce
+      // window — an answer on the Ending, then Forget me — used to fire after
+      // the phone was cleared and write every value straight back. Found by
+      // tests/invariants/the-loop-closes.test.tsx, forgetting from the Ending.
+      if (forgotten.current) return
+      setSaveOk(
+        saveProgress({
+          answers,
+          identity,
+          trust,
+          mapHistory,
+          stage,
+          situated,
+          steps,
+          guide: guideUse,
+          waitlist,
+          read,
+          beforeYes,
+          couple,
+          vouch,
+          ending,
+          endings,
+          hesitated,
+          began,
+          followups,
+          completed,
+          coachThreads,
+        }),
+      )
+    }, SAVE_DEBOUNCE_MS)
     return () => window.clearTimeout(t)
   }, [
     answers,

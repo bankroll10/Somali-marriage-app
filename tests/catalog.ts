@@ -53,6 +53,7 @@ export type Invariant =
   | 'founder-routes-fail-closed'
   | 'links-open-the-right-thing'
   | 'both-sides-semantically-correct'
+  | 'the-loop-closes'
 
 export const INVARIANTS: Record<Invariant, string> = {
   'one-code-one-person': 'A person’s map is restored by her code and nothing else, and never to anyone holding a different one.',
@@ -62,6 +63,8 @@ export const INVARIANTS: Record<Invariant, string> = {
   'founder-routes-fail-closed': 'Every founder readout refuses without the right key, with nothing about a member in the refusal.',
   'links-open-the-right-thing': 'A link the product hands out opens the instrument it was for, for the person it was sent to.',
   'both-sides-semantically-correct': 'A man and a woman each read the other person in the right words, on every instrument.',
+  'the-loop-closes':
+    'Every result ends in words to say, and a few days later asks whether they were said — on the right side, and for a pair, about the same conversation on both phones. The Ending lets her go, and takes itself off our server (docs/DIFFERENTIATION.md).',
 }
 
 export interface Entry {
@@ -87,7 +90,7 @@ export const CATALOG: Record<string, Entry> = {
   'src/lib/entry.test.ts': { categories: ['unit'], kind: 'behaviour', invariants: ['links-open-the-right-thing'] },
   'src/lib/facts.test.ts': { categories: ['unit'], kind: 'behaviour' },
   'src/lib/followup-chain.test.ts': { categories: ['unit'], kind: 'behaviour' },
-  'src/lib/followup.test.ts': { categories: ['unit'], kind: 'behaviour' },
+  'src/lib/followup.test.ts': { categories: ['unit'], kind: 'behaviour', invariants: ['the-loop-closes'] },
   'src/lib/forget.test.ts': { categories: ['unit', 'failure'], kind: 'behaviour', invariants: ['delete-means-deleted'] },
   'src/lib/inferStage.test.ts': { categories: ['unit'], kind: 'behaviour' },
   'src/lib/keep.test.ts': { categories: ['unit', 'failure'], kind: 'behaviour', invariants: ['one-code-one-person'] },
@@ -140,6 +143,11 @@ export const CATALOG: Record<string, Entry> = {
     kind: 'behaviour',
     invariants: ['both-sides-semantically-correct'],
   },
+  'tests/invariants/the-loop-closes.test.tsx': {
+    categories: ['e2e', 'property', 'accessibility'],
+    kind: 'behaviour',
+    invariants: ['the-loop-closes', 'both-sides-semantically-correct', 'delete-means-deleted'],
+  },
 
   // ── Journeys: the rendered app, driven by taps, over the real server ───────
   'tests/journeys/keep-and-restore.test.tsx': { categories: ['e2e', 'failure'], kind: 'behaviour', invariants: ['one-code-one-person'] },
@@ -148,7 +156,11 @@ export const CATALOG: Record<string, Entry> = {
     kind: 'behaviour',
     invariants: ['links-open-the-right-thing', 'both-sides-semantically-correct'],
   },
-  'tests/journeys/eleven-two-phones.test.tsx': { categories: ['e2e', 'security'], kind: 'behaviour', invariants: ['private-sheets'] },
+  'tests/journeys/eleven-two-phones.test.tsx': {
+    categories: ['e2e', 'security'],
+    kind: 'behaviour',
+    invariants: ['private-sheets', 'the-loop-closes'],
+  },
   'tests/journeys/forget-offline.test.tsx': { categories: ['e2e', 'failure'], kind: 'behaviour', invariants: ['delete-means-deleted'] },
   'tests/journeys/door.test.tsx': { categories: ['e2e', 'integration'], kind: 'behaviour' },
   'tests/journeys/netlify-down.test.tsx': { categories: ['e2e', 'failure'], kind: 'behaviour' },
