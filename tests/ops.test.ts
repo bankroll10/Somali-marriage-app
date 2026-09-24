@@ -237,10 +237,10 @@ describe('are safety reports waiting?', () => {
   const report = (id: string, reason: string, at: string) =>
     blobs.put('reports', `TWXY3478-woman-${id}`, { id, code: 'TWXY3478', side: 'woman', reason, details: 'Zq private words', at, v: 1 })
 
-  it('warns on an open report, and fails only on Monday’s run', async () => {
+  it('fails on any open report, on the weekly cadence, so Monday’s run emails within the week', async () => {
     report('ACDEFGHJKM', 'harassment', daysAgo(2))
     const h = await health()
-    expect(h.checks.find((c) => c.id === 'safety')).toMatchObject({ state: 'warn', cadence: 'weekly' })
+    expect(h.checks.find((c) => c.id === 'safety')).toMatchObject({ state: 'fail', cadence: 'weekly' })
     expect(h.checks.find((c) => c.id === 'safety-urgent')?.state).toBe('ok')
   })
 

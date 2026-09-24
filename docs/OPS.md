@@ -105,7 +105,7 @@ Set these in Netlify under Site configuration → Environment variables, unless 
 | `BACKUP_TO_ARTIFACT` (GitHub → Variables) | Set it to `true` to have the monthly job save `/export` as a 35-day artifact. Set it only once the repository is private: an artifact on a public repository can be downloaded by anyone signed in to GitHub | No artifact. Back up by hand |
 | `NETLIFY_AUTH_TOKEN` (your shell only) | Lets `scripts/restore.ts` reach the stores. Create one under Netlify → User settings → Applications | The restore script refuses to run |
 
-**Caps.** Every `*_HOURLY_CAP` and `*_DAILY_CAP` is a circuit breaker, not a member limit (`netlify/shared/limit.ts`). Each is one counter per bucket per period, with no identity attached. A refusal is the same quiet `503 rate_limited` that a client already treats as "try later", so past a cap a member sees what she sees when storage is down. The cap is read on every call, so a change takes effect on the next request without a deploy.
+**Caps.** Every `*_HOURLY_CAP` and `*_DAILY_CAP` is a circuit breaker, not a member limit (`netlify/shared/limit.ts`). Each is one counter per bucket per period, with no identity attached. A refusal is the same quiet `503 rate_limited` that a client already treats as "try later", so past a cap a member sees what she sees when storage is down. The cap is read on every call, but Netlify hands functions their variables at deploy time: a changed cap takes effect once you redeploy (Deploys → Trigger deploy), not before.
 
 | Variable | Bounds, per hour from everyone unless stated | Default |
 |---|---|---|
@@ -203,7 +203,7 @@ The health job fetches `/` and `/version.json` from outside, the way a visitor w
 
 ### 5. Are safety reports waiting?
 
-Two checks count open reports and never read what they say. **`safety-urgent`** is red on any open report of `threats` or `sexual`, and emails in the 09:00 run. **`safety`** is amber while anything is open, and red once the oldest open report is more than seven days old; that red emails in Monday's run. **Do this:** read `/safety` and resolve each report (The readouts, below). Trust promises a read every week, so read the queue weekly whatever colour it is.
+Two checks count open reports and never read what they say. **`safety-urgent`** is red on any open report of `threats` or `sexual`, and emails in the 09:00 run. **`safety`** is red while anything is open, on a weekly cadence: Monday's 09:00 run emails if any report is waiting, so a report is read within the week Trust and the report screen promise. **Do this:** read `/safety` and resolve each report (The readouts, below).
 
 ### 6. Are costs abnormal?
 
@@ -465,7 +465,7 @@ The architecture is Netlify Functions over Blobs on a free plan, and the only qu
 
 | When | Change |
 |---|---|
-| A link is first posted into a large group, or on a launch day | Raise whichever cap `limits` shows refusing. No deploy is needed |
+| A link is first posted into a large group, or on a launch day | Raise whichever cap `limits` shows refusing, then trigger a deploy so functions read it |
 | `GUIDE_DAILY_CAP` goes red on a day of real traffic | Raise `GUIDE_DAILY_CAP`, after checking `cost` and the console limit |
 | `/progress` passes about 2,000 records, or gives its first 503 | Pre-aggregate: write `tallies/progress` on each report using `couple.ts`'s etag pattern, decrement it on forget, and keep today's full recompute as the monthly repair. At about 1,000 records `/progress` makes 1,000 concurrent reads in one invocation, and `/export` does the same. That is where the first timeout is expected |
 | The backup outgrows one response | Page `/export` by prefix. Never widen what it returns |

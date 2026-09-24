@@ -37,7 +37,7 @@ call outsider-ish, performative, exaggerated or gender-inverted goes
 
 The banned list, each entry with its reason: the tic (`actually`,
 `deliberately`), sweeping claims (`the whole road`, `single best`,
-`decide a Somali marriage`), therapy outside the therapist (`your peace`,
+`decide a Somali marriage`), therapy and self-help register (`your peace`,
 `regulate`, `journey`) and startup nouns (`founding cohort`, `platform`).
 `voice.test.ts` adds **overclaims** (`predicts`, "will find you someone") and
 **promises the code cannot keep** ("we write to", blocking, "powered by AI").
@@ -244,12 +244,13 @@ decisions at once, (6) internal logic, (7) heavy material with no hierarchy.
 - **One disclosure primitive**, `<Disclose>` in `ui.tsx`; `<details>` is written
   by hand nowhere else. The closed hint is the *answer* ("Your answers, under a
   code only you have"), so most people never open it.
-- **One primary action at a result**; the rest in "More you can do here".
+- **One primary action at a result**, the rest in "More you can do here": the
+  read's result went from eight calls to action to three, then the eleven's.
 - **Section titles are headings**, not styled `<p>`s.
 - **Don't ask a choice the product can make**: the guide opens the voice
   `defaultModeFor` recommends, the others behind "Or choose a different voice".
-- **Measure what renders**: `innerText` for words, `checkVisibility()` for
-  controls (`getBoundingClientRect()` still lays out closed `<details>`).
+- **Measure what renders**: `innerText` for words, `checkVisibility()` (not
+  `getBoundingClientRect()`) for controls inside a closed `<details>`.
 
 Current from the load pass: **L0** `<Disclose>`, **L1** Trust as the answer
 then one row per thing that leaves the phone (four rows now), **L4** the
@@ -337,8 +338,7 @@ answered" had no control — the same exit; (6) the vouch form — gone with the
 vouch; (7) the guide's header chevron switched voice — it is Back, to Home.
 
 **Still open:** Welcome's `<h1>` ("What’s in your way?") and Home's ("Salaam,
-{name}.") do not name the place; question screens are titled only
-"{i} of {n}".
+{name}.") do not name the place; question screens say only "{i} of {n}".
 
 **Predicted confusions:** **C1** "counted" meant three things — resolved
 2026-09-20 ("Tell us which steps you reach"). **C2** "the eleven" is a name no

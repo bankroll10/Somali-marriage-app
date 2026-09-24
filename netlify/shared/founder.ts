@@ -44,9 +44,9 @@ function warnOnce(message: string) {
 
 /**
  * True only when a key is configured and the request carries
- * `Authorization: Bearer <FOUNDER_KEY>`. Read per call, never at module load:
- * a rotated key must take effect on the next request, and tests stub the
- * environment between cases.
+ * `Authorization: Bearer <FOUNDER_KEY>`. Read per call, never at module load,
+ * so tests can stub the environment between cases. A rotated key reaches the
+ * functions with the next deploy: Netlify hands them variables at deploy time.
  */
 export function isFounder(req: Request): boolean {
   const key = process.env.FOUNDER_KEY

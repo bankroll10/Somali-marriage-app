@@ -196,8 +196,11 @@ export async function safetyChecks(today: string): Promise<Check[]> {
     {
       id: 'safety',
       question: 'Are safety reports waiting?',
-      state: open > 0 ? (age > 7 ? 'fail' : 'warn') : 'ok',
-      // Monday's run fails on anything open — Trust promises a weekly read.
+      // Anything open fails, and the weekly cadence means only Monday's 09:00
+      // run turns that into an email: Trust and the report screen promise a
+      // read within the week. It used to fail only past seven days, so a
+      // report filed on a Tuesday first reached the founder thirteen days on.
+      state: open > 0 ? 'fail' : 'ok',
       cadence: 'weekly',
       summary: open === 0 ? 'No report is open.' : `${open} open report${open === 1 ? '' : 's'}; the oldest is ${age} day${age === 1 ? '' : 's'} old.`,
       numbers: { open, urgent, oldestDays: oldest ? age : null },

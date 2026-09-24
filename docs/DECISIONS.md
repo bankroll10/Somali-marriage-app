@@ -345,7 +345,7 @@ here: B5 (`kept` is a rung) and B6 (resume a part-finished read or eleven).
 
 The atomic-network analysis of 2026-09-12 found the door's count measured
 what the gate could see, not whether anyone could be introduced: the coded
-gate passed about 56% of pairs at any size. Its six conditions are the bar
+gate passed about 56% of pairs at any size. Its six conditions (§6) are the bar
 for any future pool, one metro at a time: men ≥ 20 active and preparing, and
 women ≥ men; every member ≥ 1 eligible active counterpart and 80% ≥ 3; seven
 in ten answer an introduction within fourteen days; the founder makes ≥ 10

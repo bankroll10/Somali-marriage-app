@@ -138,6 +138,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 The code is registered to nobody, and without it nobody can reach the map.
               </p>
+              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+                Your kept map lives in one place, with the company we rent storage from, and the
+                founder’s backup does not include it. If that storage were lost, the map would be
+                too, which is why it also stays on your phone.
+              </p>
             </Disclose>
 
             <Disclose summary={fix('Asking {him} to do the eleven too')} hint="Only where you match comes back">

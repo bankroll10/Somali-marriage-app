@@ -1,12 +1,12 @@
 # Privacy: what leaves her phone, what the server keeps, and how it goes
 
-The ledger for every piece of data Niyyah touches: what stays on her phone,
-what leaves it and when, what each server store holds and for how long, how
-deletion works when a step fails, and what each founder readout field is.
-`src/components/Trust.tsx` is the promise; this file holds the code to it.
-Who could take the data is `docs/SECURITY.md`. **"The founder"** is one
-person holding Netlify credentials: she can open every store, but not the
-phone or Anthropic. "No endpoint returns it" means no URL returns it.
+What stays on her phone, what leaves it and when, what each server store
+holds and for how long, how deletion works when a step fails, and what each
+founder readout field is. `src/components/Trust.tsx` is the promise; this
+file holds the code to it. Who could take the data is `docs/SECURITY.md`.
+**"The founder"** is one person holding Netlify credentials: she can open
+every store, but not the phone or Anthropic. "No endpoint returns it" means
+no URL returns it.
 
 ## Standing rules
 
@@ -37,15 +37,14 @@ inferring marriage from silence.
 
 | Tier | Where | Holds | Readable by | Joinable to |
 |---|---|---|---|---|
-| **1 · The device** | `localStorage` | Her answers and sheets, guide threads and the follow-ups it handed her, the advice line, her first name | Her | Nothing, unless she keeps her map |
-| **2 · The install code** | `progress` | Rungs, dated to the day; facts as closed ids | Founder, as distributions, never records | Not by key, not by name (see "Honest limits") |
-| **3 · No code at all** | `tallies` | How pairs come out on the eleven | Founder | Nothing: there is no id |
-| **3 · No code at all** | `ops` | A number per signal per day: errors by route, caps that refused, the guide's calls and tokens, crashes phones reported; once a day, how many records `maps`, `progress` and `reports` hold. 35 days | Founder, through `/health` | Nothing: no id, city or time; it describes the service |
-| **4 · Human-read** | `reports` | A safety report: couple code, side, reason id, up to 500 characters of her words | Founder, through the fail-closed `GET /safety` | The couple code only. Never beside a tally, never a signal to `progress` or `couple`, never joined to a map or install id |
+| **Tier 1 · The device** | `localStorage` | Her answers and sheets, guide threads and the follow-ups it handed her, the advice line, her first name | Her | Nothing, unless she keeps her map |
+| **Tier 2 · The install code** | `progress` | Rungs, dated to the day; facts as closed ids | Founder, as distributions; the backup holds records | Not by key, not by name (see "Linkability and honest limits") |
+| **Tier 3 · No code at all** | `tallies` | How pairs come out on the eleven | Founder | Nothing: there is no id |
+| **Tier 3 · No code at all** | `ops` | A number per signal per day: errors by route, caps that refused, the guide's calls and tokens, crashes phones reported; once a day, how many records `maps`, `progress` and `reports` hold. 35 days | Founder, through `/health` | Nothing: no id, city or time; it describes the service |
+| **Tier 4 · Human-read** | `reports` | A safety report: couple code, side, reason id, up to 500 characters of her words | Founder, through `GET /safety` | The couple code only. Never beside a tally, never a signal to `progress` or `couple`, never joined to a map or install id |
 
-The kept map is Tier 1 by her choice, under a code registered to nobody.
-`KeptSnapshot` in `src/lib/keep.ts` leaves the guide out;
-`netlify/functions/keep.ts` strips the same fields again for older clients.
+The kept map is Tier 1 by her choice, under a code registered to nobody;
+`KeptSnapshot` (`src/lib/keep.ts`) and `keep.ts` keep the guide out of it.
 
 ### Collected
 
@@ -67,8 +66,7 @@ Only while "Tell us which steps you reach" is on, under the install code:
   bit each, sets merged as unions, so no count can be derived
 - her city if given; woman or man (floored, crossed once with via, never with
   the facts); the kind of link that first brought her, never who or which
-
-Under no code: how pairs come out on the eleven, once he answers.
+- under no code, how pairs come out on the eleven, once he answers
 
 **Country is no longer on the progress record**: a quasi-identifier nothing
 read. It picks her help line on the phone (`src/data/help.ts`, re-checked
@@ -77,11 +75,11 @@ kept. It reaches the server only inside a kept map ("where you said you are").
 
 ### Deliberately not collected
 
-- **Anything she or he typed about the other person.** Free text is where
-  reputation leaks in, in a tight community. **The one carve-out is a safety
-  report** (Tier 4): founder-read, never tallied, and **expunged on
-  resolution**, leaving a stub of reason, days and outcome, joined to nobody,
-  so the kinds of harm can be counted.
+- **Anything she or he typed about the other person**; the ended screen says
+  so at the moment. Free text is where reputation leaks in, in a tight
+  community. **The one carve-out is a safety report** (Tier 4): founder-read,
+  never tallied, and **expunged on resolution**, leaving a stub of reason,
+  days and outcome, joined to nobody, so the kinds of harm can be counted.
 - **His name**, or anyone's. **Clan:** qabiil is one of the eleven, a
   conversation only. **Age:** not asked beyond the 18+ confirmation.
 - **Attention traces**; there is no event log anywhere. **Message content**,
@@ -166,11 +164,11 @@ moment finer than a day, on a key that says nothing about either person.
 **On the phone (`src/lib/forget.ts`).** Any pending forget goes first. Then
 three deletes in parallel: the map by her code, the step count by her install
 id, the eleven by the couple code on the phone (she may have sent it without
-keeping a map). A 404 counts as done. Then every key in `LOCAL_KEYS` goes.
-If a delete failed, **one key is kept**, `niyyah.forget.pending.v1`, with
-only the codes still to delete: sent again on every launch and before the
-next Forget me, and the screen shows her the map code so she can write in.
-Before this, a retry had no code to send and the map stayed for a year.
+keeping a map); a 404 counts as done. Then every key in `LOCAL_KEYS` goes. If
+a delete failed, **one key is kept**, `niyyah.forget.pending.v1`, holding only
+the codes still to delete: sent on every launch and before the next Forget
+me, while the screen shows her the map code so she can write in. Before this,
+a retry had no code to send and the map stayed for a year.
 
 **On the server (`DELETE /keep?code=`),** ordered so a retry finishes:
 
@@ -226,17 +224,16 @@ re-keep, and the map records it so Forget me and a move take it along.
 |---|---|---|---|
 | 1 | Mint `to` with a copy (never a tombstoned code), then write `moving/<old>` = `{to}` (`onlyIfNew`) | The old code works; at worst an unjournaled copy | Retry mints again (a remaining window) |
 | 2 | Re-read the old map; copy a keep that landed since | The old code works; the journal names `to` | **Retry resumes the same `to`**; the sweep rolls back after 2 days |
-| 3 | Tombstone `ended/<old>` = moved | The old code is closed | Retry finishes; the sweep rolls forward |
-| 4 | Delete the old once key, map and journal; answer `{code: to, rev}` | Done, but the answer may be lost | A retry answers 410 moved; the phone drops the old code and her next keep makes a new map |
+| 3 | Tombstone `ended/<old>` = moved; delete the old once key, map, then journal | The old code is closed | Retry finishes and answers `to`; the sweep rolls forward |
+| 4 | Answer `{code: to, rev}` | The move is done; only the answer is lost | A retry answers 410 moved; the phone drops the old code and her next keep makes a new map |
 
-If she forgot the code mid-move, forgetting wins and the copy goes. The
-couple sheet has its own code and does not move; nor do reports.
-
-**Other sequences.** *He answers:* the sheet, then the joint tally (three
-tries). **Accepted:** a failure leaves the tally one short, logged;
-exactly-once would need pair ids in `tallies`. *A report:* `onlyIfNew` on a
-fresh id. *Resolve:* the stub, then the delete; idempotent. *Retire:*
-`gone/`, then the delete. *A step:* one conditional write; two tabs both land.
+Forgotten mid-move, forgetting wins and the copy goes. The couple sheet and
+reports, under their own code, do not move. **Other sequences.** *He
+answers:* the sheet, then the joint tally. **Accepted:** a failure leaves the
+tally one short, logged; exactly-once would need pair ids in `tallies`. *A
+report:* `onlyIfNew` on a fresh id. *Resolve:* the stub, then the delete;
+idempotent. *Retire:* `gone/`, then the delete. *A step:* one conditional
+write.
 
 **Remaining windows:** `deleteIfUnchanged` leaves the gap between its read
 and delete (Blobs has no conditional delete). A mint that lands before a
@@ -254,12 +251,11 @@ journals and once keys; progress; couple sheets; reports and stubs. Not
 
 **Add a field:** the reader defaults it (a missing `rev` reads as 0; a sheet
 with no `owner`, from before 2026-09-23, can no longer be changed). **Change
-what a field means:** bump `v`, and readers branch on it. Bookkeeping keys
-have their own prefixes, and `isBookkeeping` keeps them out of every count of
-maps. The backup writes version 3; `netlify/shared/restore.ts` reads 2 and 3.
-The phone's `niyyah.intake.v1` defaults each field on read.
-`tests/integrity.test.ts` proves a six-character map with no `v` or `rev`
-still opens and is upgraded on its next keep.
+what a field means:** bump `v`; readers branch on it. `isBookkeeping` keeps
+tombstones, journals and once keys out of every count of maps. The backup
+writes version 3; `netlify/shared/restore.ts` reads 2 and 3. The phone's
+`niyyah.intake.v1` defaults each field on read. A six-character map with no
+`v` or `rev` still opens and is upgraded on its next keep.
 
 ### Strong and eventual consistency
 
@@ -276,8 +272,10 @@ test doubles (`tests/support/memory.ts`, `blobs.ts`) are strongly consistent.
 
 ## The readouts, field by field
 
-All sit behind `FOUNDER_KEY` (`netlify/shared/founder.ts`); all but the
-safety queue are aggregate. How and when to read them is `docs/OPS.md`.
+All sit behind `FOUNDER_KEY` and fail closed when it is unset
+(`netlify/shared/founder.ts`). `/progress` and `/couple` return aggregates,
+never one record; the safety queue and the backup return records. How and
+when to read them is `docs/OPS.md`.
 
 ### `GET /progress`: `rungs, scenes, vias, sides, sidesByVia, cohorts, facts`
 
@@ -320,7 +318,7 @@ protects against a leaked key, not against the founder, who holds the stores.
 | Readout | Fields | Comes from | Why |
 |---|---|---|---|
 | `GET /couple` (no code) | `pairs`; `topics[topic][joint]`, joint one of `both-agree`, `both-not-talked`, `one-thinks-talked`, `differ-somewhere`, `unknown-somewhere` | `tallies/joint`, added to when the second side answers. Not floored: no pair, code or side | Which conversations couples here most often miss |
-| `GET /safety` | `reports[]` open, oldest first, each `{id, code, side, reason, details, at}`; `resolved.byReason`, `resolved.byOutcome` | `reports` and its stubs; outcomes `spoke-to-them`, `told-the-family`, `not-enough`, `no-action` | A person may be waiting. **Fails closed** with no key; never cached; `/health` sees only counts |
+| `GET /safety` | `reports[]` open, oldest first, each `{id, code, side, reason, details, at}`; `resolved.byReason`, `resolved.byOutcome` | `reports` and its stubs; outcomes `spoke-to-them`, `told-the-family`, `not-enough`, `no-action` | A person may be waiting. Never cached; `/health` sees only counts |
 | `GET /export` | `at`, `version` (3), `progress` (install id → record), `joint`, `omitted`, `skipped` | Every progress record in its year or married; the joint tally | The learning record survives one vendor. Never a map, sheet, report or `ops` |
 
 ## Linkability and honest limits
@@ -339,8 +337,8 @@ protects against a leaked key, not against the founder, who holds the stores.
 - **Backups outlive a forget:** the artifact up to 35 days (R5), a hand-saved
   copy while kept. `restore.ts` writes what is missing, so restoring an older
   backup would bring a forgotten step count back.
-- **Secret variables are not on this plan:** every Netlify site key is
-  readable by anyone on the team (`docs/OPS.md`).
+- **No secret variables on this plan:** anyone on the Netlify team can read
+  every site key (`docs/OPS.md`).
 - **Two copies the sweep cannot reach:** Netlify Form rows from before
   2026-09-23 carry a contact (C7), and a `reach-<date>/` export may sit on the
   founder's machine (R4). Both go by hand.
@@ -373,12 +371,9 @@ The kept map is the one record the founder can read whole. Encrypt it in the
 browser (AES-GCM) under a key carried only in the restore link's `#fragment`,
 which browsers never send; the server keeps ciphertext under the code, and
 Forget me, lapse and the sweep are unchanged. **Trigger:** 100 kept maps. It
-waits because it changes the restore flow, and minimizing first shrinks
-what would need encrypting.
+waits because it changes the restore flow, and minimizing shrinks it first.
 
-**Held by** `src/lib/keep.test.ts`, `tests/keep-function.test.ts`,
-`tests/guide-prompt.test.ts`, `tests/guide-disclosure.test.ts`,
-`src/lib/coach.test.ts`, `src/lib/storage.test.ts`, `src/lib/forget.test.ts`,
-`tests/forget-keys.test.ts`, `tests/invariants/delete-means-deleted.test.ts`,
-`tests/integrity.test.ts`, `tests/sweep-function.test.ts`,
-`tests/export-function.test.ts` and `tests/floor.test.ts`.
+**Held by** `src/lib/{keep,coach,storage,forget}.test.ts`, and in `tests/`:
+`keep-function`, `guide-prompt`, `guide-disclosure`, `forget-keys`,
+`invariants/delete-means-deleted`, `integrity`, `sweep-function`,
+`export-function` and `floor`.
