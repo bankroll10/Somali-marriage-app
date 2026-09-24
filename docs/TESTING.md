@@ -241,6 +241,14 @@ cap's signal, a signal outside the closed list, a report's code in the reply,
 a sweep or a backup that stops marking itself, and a guide that stops counting
 tokens.
 
+Since 2026-09-24 `tests/monetization.test.tsx` holds what may be sold, to
+whom and when (`docs/MONETIZATION.md`). Seven mutations were each shown to
+turn it red: a paid line priced per month, the family scripts back inside the
+paid call, "once per courtship" restored, the sponsor ask back on the
+rendered Ending, the guide's Matchmaker voice pointing at a paid matchmaker,
+the paid call renamed to the free stage's name, and `stripe` in
+`package.json`.
+
 ### The guardrail: `tests/catalog.ts`
 
 It maps every file to its categories, to its **kind** (behaviour, source or
