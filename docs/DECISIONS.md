@@ -477,8 +477,8 @@ Candidates, not work. *Untrue claim* items need no evidence under decision 19;
 - Give every scored question a man's variant, or a stated reason it needs none. (*new option*)
 - Add a distance answer to `in-person`; make `plans` a rate. (*new option*)
 
-**Not done:** no test against outcomes, since none exists; the eleven, the
-family words and the guide were not reviewed.
+**Not done:** no test against outcomes, since none exists; the family words
+and the guide were not reviewed. The eleven were, in Part 7.
 
 ## Part 5: Commitment: dedication, constraint, sliding and deciding (2026-09-24)
 
@@ -687,3 +687,438 @@ runbook (decision 17) is at `git show 43295a4:docs/LIQUIDITY.md`.
   on Home; reloading re-seeds it (`src/lib/demo.ts`).
 - On the live site both act only on a phone that holds nothing, then leave
   the address bar, because a link that wipes a phone is one anyone can send.
+
+## Part 7: The eleven, audited as content (2026-09-24)
+
+The founder asked for the eleven (`src/data/eleven.ts`) to be audited as content: against
+the domains premarital and relationship research keeps returning to, and against the
+product's own Somali-specific claims. The brief: do not assume eleven is the right number,
+do not assume the current eleven are right, do not reproduce any proprietary premarital
+inventory, and do not change the list. Nothing here is a change; every recommendation is a
+hypothesis with the test that already exists for it.
+
+**Held to.** No commercial premarital questionnaire was read or recreated; the comparison is
+to research *domains*, not items. External sources already in `docs/RESEARCH.md` are cited
+by name. A source added here that the founder has not checked is marked **(to check)** and
+is class F or H until checked.
+
+### 1. What the eleven is, mechanically
+
+Before judging content, what the code does with it, because several findings are about
+the mechanism, not the words.
+
+- There is no score. Each topic takes one of four states — `agree`, `differ`, `not-talked`,
+  `unknown` — and the only calculation is `STATE_URGENCY[state] × consequence`, which picks
+  one conversation to open (`src/lib/beforeYes.ts`). The two-sided sheet does the same with
+  five joint states (`src/lib/couple.ts`). Neither compares *answers*; both compare *whether
+  a conversation happened and whether the two say it landed*.
+- `consequence` (.6–.95) is editorial, unchanged since the first commit (`c42c553`,
+  2026-09-03), and the list has always been eleven. The number was not derived; it was the
+  number the first draft had.
+- The four states carry `weight` 1 / 0.1 / 0.35 / 0.25 "used only for ordering". `differ`
+  has urgency 1, the highest: a difference is always the first thing reopened.
+- The ordering is never shown as a number, and the 2026-09-24 rewrite removed the
+  "load-bearing" tier that once told a couple a difference on qabiil was light (S6).
+
+Two consequences of this shape run through everything below:
+
+1. **The eleven is a checklist of conversations, not an inventory of positions.** That is
+   its strength (nothing is graded) and its blind spot (it cannot tell a settled difference
+   from an unsettled one).
+2. **The four states presume every topic is agree/differ-shaped.** Several are not.
+
+### 2. Coverage against the general research domains
+
+The domains the brief names, and where each lives in Niyyah. "Eleven" means one of the
+eleven; "read", "map", "sheet" mean the other instruments; "—" means nowhere.
+
+| Domain | Where | Coverage |
+|---|---|---|
+| Finances | Eleven `money-home` (who pays, remittances, together/separate); `aroos-mahr`; money sheet N3 (debt, mahr, wedding, obligations) | Good. Household money is framed through remittances first; ordinary spending, saving and debt are in the sheet, not the eleven |
+| Children | Eleven `children` | Good: how many, how soon, language, dugsi. Parenting style and the case of no children are not asked; acceptable before a nikah |
+| Faith / religion | Eleven `deen-daily`; map `practice`, `faith-role` | Good, and the "ordinary Tuesday" framing is the best-written item |
+| Extended family / in-laws | Eleven `his-family-in-home`, `families-disagree`, `qabiil`; family scripts | Strong; three of eleven plus a whole script set |
+| Living arrangements | Eleven `live`, `his-family-in-home` | Covered twice (§4, redundancy) |
+| Work and roles | Eleven `work` (with "who does what at home") | Good; the second half is the substance |
+| Conflict | Read `hard` ("When you raise something difficult, what does {he} do?"); eleven `families-disagree` covers inter-family conflict only | **Absent as a conversation.** The read observes his behaviour under one complaint; nothing asks the two of them how they fight and repair |
+| Communication | The product as a whole | Meta-covered; not a topic and should not be one |
+| Sexual / intimacy expectations | — | **Absent** |
+| Major life goals | Eleven `going-back`, `work`, `children`; map `timeline` | Partial: study, career horizon, a business, are not named |
+| Geography / relocation | Eleven `live` (city), `going-back` (country) | Covered twice |
+| Power / decision-making | Eleven `families-disagree` ("how it gets settled between the two of you"), `work` (who does what), `money-home` (together or separate), `deen-daily` ("what {he} expects of you") | Present but diffused across four items and never named. The most consequential half — what each expects to decide alone, what needs the other's yes (movement, friends, travel, her money, his) — rides inside `deen-daily`'s second question |
+| Expectations of marriage | Spread across all eleven | The list is concrete on purpose; an abstract "what is marriage for" item would be weaker than what is there |
+| Friendship / companionship | — | Absent, correctly: it is experienced, not negotiated. Among the strongest satisfaction correlates (Joel et al. 2020's top predictors are perceived partner commitment, appreciation, sexual satisfaction, perceived partner satisfaction and conflict), and not a conversation to schedule |
+| Boundaries | Eleven `his-family-in-home` (hosting, who moves in); `families-disagree` | Partial. The boundary that is Somali-specific and unnamed: **what of the marriage gets told to hooyo and the sisters**, on either side |
+| Commitment | Read (five dimensions); Part 5 H1 (exclusivity) | Covered by the read. Exclusivity is still not asked anywhere (Part 5) |
+| Health / stress | Map `dealbreakers` `no-addiction` only | **Absent**: mental health, chronic illness, khat, family health history, and the plain fact of a previous marriage or existing children |
+
+Read as a whole: the eleven is dense where Somali life differs (family, household, money to
+family, faith practice, clan, polygyny, return) and thin where the general literature is
+strongest on outcomes (conflict, intimacy, commitment). That is not an accident. The list
+was written in response to an audit that found "no Somali-specific content at all"
+(`c42c553`), so it was assembled to *be Somali* — selected for distinctiveness, not for
+consequence. Seven of eleven are Somali-inflected. The three general domains with the best
+evidence for marital outcome are the three least distinctive, and they are the three absent.
+
+### 3. Each of the eleven
+
+For each: why it deserves scarce attention; what harm comes from finding it out late; what
+kind of issue it is (**compatibility**: a position that cannot be split; **negotiation**: a
+difference that can be arranged; **values**: a belief that can differ without being
+arranged; **conversation**: something to know, not to settle); whether difference can be
+healthy; whether the product treats difference as incompatibility; evidence in the
+ledger's classes; and whether the Somali-specific claim is observed or assumed.
+
+**1. `live` — Where you'd live (.95)**
+- *Scarce attention:* it fixes who is in the house every day and which city her work and
+  people are in; it is decided by lease or by default, and often by a family.
+- *Late harm:* high. A city is a job, a mother, a mosque; a household is daily labour.
+- *Kind:* negotiation (city) and compatibility-adjacent (with his mother or not).
+- *Healthy difference:* yes on city; less so on household, where "with family" against
+  "own front door" is two lives.
+- *Difference as incompatibility:* the copy does not; the mechanism reopens it forever (§5).
+- *Evidence:* B for co-residence with in-laws mattering (Bryant, Conger & Meehan 2001,
+  ledger L5). The item's own `why` still predicts: "come apart on that in the first year"
+  is a dated future the 2026-09-24 rewrite otherwise removed (L12). It passes
+  `tests/voice-rules.ts` only because "first year" is not in the pattern.
+- *Somali claim:* that co-residence with hooyo is a live expectation in diaspora Somali
+  marriages — assumed (F). Plausible, unobserved.
+- *Incidental:* `intake.ts:51` stores `'Flexible'`; `eleven.ts` `yourSide` keys `flexible`.
+  A woman who chose Flexible never sees her own side under this topic.
+
+**2. `his-family-in-home` — His family in your home (.8)**
+- *Scarce attention:* hosting is labour that somebody carries, and a family that visits
+  and one that moves in are different marriages.
+- *Late harm:* high, and gendered: it lands on her time first.
+- *Kind:* negotiation, with a compatibility edge (someone living with you, or not).
+- *Healthy difference:* yes, if arranged — how much, how often, and who cooks.
+- *Difference as incompatibility:* no in copy; the man variant is the best in the list
+  ("A quick yes with nothing behind it").
+- *Evidence:* B (Bryant, Conger & Meehan 2001).
+- *Somali claim:* assumed (F), and the one most likely to be confirmed by sessions.
+- *Overlap:* the prompt of `live` already asks "whether with {his} mother". Two of eleven
+  ask whether hooyo lives with you.
+
+**3. `work` — Whether you'd work (.75)**
+- *Scarce attention:* "of course" before the first child is not an answer; who does what
+  at home when both work is the real question, and it is the one the copy correctly
+  insists on.
+- *Late harm:* high. Broken expectations about home after a first child are among the
+  best-evidenced sources of early decline.
+- *Kind:* negotiation (arrangements) over a values core (what a wife's work is for).
+- *Healthy difference:* yes — "in seasons" is a healthy arrangement of a difference.
+- *Difference as incompatibility:* no in copy. But a couple who differ and have arranged
+  it ("she works; he does mornings") have no state to say so, and stay `differ`.
+- *Evidence:* B (Hackel & Ruble 1992, ledger L5) — the strongest general evidence any
+  item has, after money. At .75 it sits sixth of eleven.
+- *Somali claim:* that a man's assumption about home is unspoken until children — F, but
+  the item's mechanism is general and holds without the Somali claim.
+
+**4. `money-home` — Money sent home (.85)**
+- *Scarce attention:* two families' expectations on one income, unspoken, is the one item
+  where the Somali claim has external support.
+- *Late harm:* high and recurring — monthly.
+- *Kind:* negotiation. Almost never compatibility: what is sent, to whom, from which pot.
+- *Healthy difference:* yes, plainly. One sends, one does not, and a budget holds it.
+- *Difference as incompatibility:* this is the item where the mechanism does the most
+  damage. A negotiated difference here is the healthy end state and it is permanently
+  the first thing reopened (`differ` urgency 1 × .85).
+- *Evidence:* B for money disagreements predicting divorce (Dew, Britt & Huston 2012); B
+  for remitting being widespread and a weight (Hammond et al. 2011; Lindley 2009).
+- *Somali claim:* **observed** in the literature for prevalence; assumed for "discovered
+  after the wedding". The only Somali claim in the list above class F.
+
+**5. `children` — Children (.9)**
+- *Scarce attention:* how many, how soon, which language, dugsi — decisions that get made
+  by whoever pushes hardest if not made together.
+- *Late harm:* high; "inshallah" covering a range from one to eight.
+- *Kind:* compatibility (whether; roughly how many, how soon) with negotiation inside
+  (language, dugsi).
+- *Healthy difference:* on the periphery yes; on whether and roughly when, rarely.
+- *Difference as incompatibility:* the map already lists "Aligned on children" as a
+  non-negotiable, and the eleven says "differ" — the two instruments carry the same fact
+  in different registers, which is fine.
+- *Evidence:* B–A that disagreement on children is among the reasons couples end;
+  general, well replicated.
+- *Somali claim:* that language-at-home and dugsi are the specific sub-decisions — F,
+  and low-risk: they are named as things to ask, not as facts about families.
+
+**6. `deen-daily` — Deen, day to day (.85)**
+- *Scarce attention:* both can say "deen first" and mean different Tuesdays; and the second
+  question — what each expects of the other, unsaid — is the sharpest question in the
+  eleven.
+- *Late harm:* high, and it compounds: practice sets the house, and expectation of the
+  other sets the power in it.
+- *Kind:* values (practice) plus **power** (expectations of the other) — two domains in
+  one item.
+- *Healthy difference:* on practice, some (one prays more; the other is returning). On
+  expectations-of-the-other, difference is exactly what has to be surfaced.
+- *Difference as incompatibility:* no.
+- *Evidence:* B that congruence of religious practice goes with satisfaction and
+  stability; general literature (Mahoney and colleagues on religion in marriage — **to
+  check** for the ledger).
+- *Somali claim:* none specifically; the item is Muslim, not Somali, and portable (PROTOCOL
+  Q11 will show it).
+- *Note:* this item carries the product's only question about what he expects of her —
+  movement, dress, company, what enters the house. That is the power domain, and it is
+  the second clause of a question about prayer.
+
+**7. `aroos-mahr` — The aroos and the mahr (.6)**
+- *Scarce attention:* money attached to two families' expectations, in public.
+- *Late harm:* moderate: a debt, or a resentment; rarely the marriage.
+- *Kind:* negotiation, and the `tells` says so ("Either can work").
+- *Healthy difference:* yes.
+- *Difference as incompatibility:* no.
+- *Evidence:* B that mahr is set at the nikah and the families are deeply involved while
+  the couple leads (Ismail 2018). Wedding debt as a strain: F here; general literature on
+  wedding cost and later outcomes exists (**to check**).
+- *Somali claim:* observed for the practice; assumed for the harm.
+- *Overlap:* the money sheet N3 asks twenty questions across mahr, the wedding, debt and
+  obligations (`docs/ASSETS.md:172` notes the duplication). The part of this item that is
+  not money — "something you two decide, or decided for you" — is `families-disagree`.
+
+**8. `qabiil` — Qabiil (.7)**
+- *Scarce attention:* the question nobody is supposed to ask, and the one that is asked by
+  an uncle after the families are involved, when saying no has become public.
+- *Late harm:* high when it fires, and it fires on the family, not the pair.
+- *Kind:* **not a compatibility issue between the two.** It is a family-power question,
+  and the copy already frames it that way ("what happens if it matters to someone at
+  {his} table").
+- *Healthy difference:* the question does not apply. "We've talked and we agree" on
+  qabiil means agreed on what — that it will not matter? That he will stand with her?
+  The four states do not fit this topic.
+- *Difference as incompatibility:* the 2026-09-24 rewrite fixed the one place it did
+  ("a single difference on qabiil is named, not weighed"). What remains is a shape
+  problem: `differ` on qabiil is semantically empty and yet has urgency 1.
+- *Evidence:* the ledger's own words: "no source was found on clan objections in the
+  diaspora" (L8). Literature on clan persisting in diaspora social organisation exists;
+  on marriage objection rates, nothing checked. F.
+- *Somali claim:* assumed. This and `second-wife` are the two items PROTOCOL's
+  "Exaggerated" verdict is written for, and neither has faced a participant.
+
+**9. `going-back` — Going back (.65)**
+- *Scarce attention:* "one day" can be meant for years and land as a ticket.
+- *Late harm:* very high when it happens — a continent, her work, her people. Rare or
+  common is unknown.
+- *Kind:* negotiation over a values core; also a **plan**, which changes.
+- *Healthy difference:* yes if named (months a year; one stays; not yet).
+- *Difference as incompatibility:* no in copy. The `tells` ("We'd figure it out" means you
+  are not yet in the picture) is the one-person test's model sentence.
+- *Evidence:* return-migration to Somaliland and long stays are documented in diaspora
+  studies (**to check** for a citable row); as a marriage strain, F.
+- *Somali claim:* observed for the phenomenon; assumed for the harm.
+- *Gender:* no `man` variant. Read by a man the prompt becomes "whether she plans to move
+  back … and whether you would go", which inverts the more common direction; the file's
+  own rule ("a token swap produces a different question") arguably applies.
+
+**10. `second-wife` — A second wife (.9)**
+- *Scarce attention:* the one question where "it is permitted" and "I would" are different
+  sentences, and where asking feels like accusing.
+- *Late harm:* the highest on the list when it is real: it reshapes the marriage and the
+  household.
+- *Kind:* **compatibility**, close to a non-negotiable, for most of the women the product
+  is written for. Values for some.
+- *Healthy difference:* rarely. This is the one item where "we've talked and we don't
+  agree" is closer to an ending than a conversation.
+- *Difference as incompatibility:* here the product errs the *other* way. It softens a
+  binary into one of eleven agree/differ topics with the same four states as the aroos,
+  while the map's non-negotiables list omits it. A woman for whom this is absolute is
+  handed a script, not a place to say so.
+- *Evidence:* polygynous households among Somalis in Europe are described in social-policy
+  and ethnographic literature (**to check**); prevalence as a live expectation among
+  diaspora men 26–36 is unknown. F, and the man variant's "She is more afraid to ask this
+  than you are to answer it" is already deferred (L10, L12).
+- *Somali claim:* assumed. The item most likely to draw "not real for anyone I know" in
+  a session, and the item with the highest cost if it is real. Both can be true; only
+  sessions separate them.
+
+**11. `families-disagree` — When the families disagree (.8)**
+- *Scarce attention:* the meta-conversation the other ten depend on: whether the two of
+  them are the unit that decides.
+- *Late harm:* high, and it is the harm the whole product is built around (saying no once
+  the families are involved).
+- *Kind:* **values / stance**, and the one that becomes a test only when it happens.
+- *Healthy difference:* no — but agreement here is cheap ("of course, we") and the copy
+  knows it ("The word you are listening for is 'we'").
+- *Difference as incompatibility:* no.
+- *Evidence:* B that in-law discord predicts later outcomes (Bryant, Conger & Meehan 2001)
+  and that network approval goes with lasting (Sprecher & Felmlee 1992). The stance itself
+  ("a team first") is G, Niyyah's own value.
+- *Somali claim:* that families will want different things — F, and safe: named as a
+  custom, not a count.
+
+### 4. Findings
+
+**Critical domain missing: conflict and repair, as a conversation between the two.**
+The read asks what he does when *she* raises something hard; nothing asks the two of them
+what happens when *they* disagree and how it comes back — who withdraws, who escalates, who
+brings in a mother, what an apology looks like in each family. `families-disagree` is
+inter-family conflict, not theirs. Conflict behaviour is among the five strongest
+predictors of relationship quality in the largest machine-learning study of the field (Joel
+et al. 2020, ledger L4, class A) and demand–withdraw replicates across cultures (Christensen
+et al. 2006). The Somali-specific version is real and unnamed: **who gets told** when they
+fight — hers, his, an uncle, nobody — is a boundary and a conflict question at once, and it
+is exactly the "before the families" mechanism the product exists for. This is the
+strongest case for a twelfth conversation, or for the seat freed by §4's redundancy.
+
+Second, and harder: **intimacy expectations.** For a practising couple the nikah is the
+boundary, which makes it a legitimate pre-nikah conversation and the one most likely to be
+called auntie-ish or outsider-ish if written badly. What it covers: expectations, spacing
+and contraception (half-covered by `children`'s "how soon"), and health. For Somali women
+specifically, the medical literature on FGC and pre-marital or pre-obstetric care in the
+diaspora (Scandinavian and UK studies — **to check**) describes a topic that is found out
+late by both sides at real cost. It should not be an eleven-style agree/differ item; if it
+exists it is a conversation with a health frame and no state recorded. Founder's call, and
+a PROTOCOL Q12 line-by-line test before it ships.
+
+Third, plainly missing and not Somali at all: **what came before** — a previous marriage,
+existing children, a broken engagement — and **health** (mental health, chronic illness,
+khat). The dealbreaker list has `no-addiction`; nothing asks. Low cost to add as a
+conversation; never a signal.
+
+**Redundant domain: the household and geography cluster.** Three of eleven — `live`,
+`his-family-in-home`, `going-back` — cover where you live and who is in it, and two of them
+ask whether hooyo lives with you in almost the same words (`live`'s prompt: "whether with
+{his} mother, near her, or on your own"; `his-family-in-home`'s: "whether a sister or {his}
+mother might live with you one day"). A couple who answered `live` has answered half of
+`his-family-in-home`. `aroos-mahr` is the second redundancy: its money is in `money-home`
+and the twenty-question money sheet; its power question ("decided for you both") is
+`families-disagree`. Two seats, defensibly, are available without losing a question.
+
+**Overweighted: `second-wife` at .9, and the cluster above at three seats.** `consequence`
+is defined as "how much rides on this one", and by that definition .9 holds. But the
+ordering it feeds is also *how often it is opened first*, and a topic with the weakest
+prevalence evidence in the list sits joint-second with `children`. If a participant calls
+it unreal (PROTOCOL "Exaggerated"), every headline it topped was the wrong headline. The
+cluster is overweighted by count: 27% of the list on where and with whom.
+
+**Underweighted: power and decision-making, and `work`.** Power has no seat and lives in
+four second clauses; the part of it that is most Somali — what a husband expects to decide
+alone, and what a wife's yes covers — is a sub-question of a prayer item. `work` at .75
+carries the best general evidence in the list after money (Hackel & Ruble 1992) and is
+sixth.
+
+**Should remain a conversation, never a matching signal:** `qabiil`, `aroos-mahr`,
+`going-back`, `families-disagree`. `qabiil` because it is about the families, not the pair,
+and "differ" is meaningless on it; `aroos-mahr` because it is a negotiation; `going-back`
+because it is a plan, and plans change; `families-disagree` because agreement is cheap and
+only the event tests it. The risk is not today's code, which scores nothing. It is three
+doors left open: the couple sheet's copy says "where you match" three times
+(`src/components/Couple.tsx:192, 216, 325`), the one word the doctrine otherwise refuses;
+the `tallies/joint` blob keeps per-topic joint states for ever; and the monthly loop plans
+to revise `consequence` by `marriedBy.through` — outcome-tuned weights, which is a
+compatibility model by a slower road. Marriage outcomes should revise the *order* of these
+four only with the count cited and the sentence unchanged, as U7 already says; the guard is
+that `differ` on these four never changes a headline.
+
+### 5. The mechanism finding: a settled difference has no state
+
+The copy says "No difference is light." The mechanism says a difference is never settled.
+The four states are: agree; differ; not talked; don't know my own answer. There is no
+"we've talked, we don't agree, and we've arranged it." For `money-home`, `work`,
+`his-family-in-home`, `going-back` and `aroos-mahr` — five of eleven — that arranged
+difference is the healthy end state, and the engine gives it urgency 1 × `consequence`,
+above every unopened topic, for as long as the sheet exists. The headline reads "One
+conversation doesn't line up yet"; the "yet" says agreement is the destination. The
+two-sided sheet inherits it: `differ-somewhere` (.9) outranks `both-not-talked` (.6), so a
+couple who differ on remittances with a budget are told to reopen remittances before a
+topic neither has raised.
+
+So: the product does treat difference as incompatibility, structurally and only
+structurally — not in a score, not in a sentence, but in what it asks her to do next. A
+fifth state ("We differ, and we've settled how") with urgency between `agree` and
+`not-talked` would fix it in one place and change no copy. Hold the hypothesis to the
+existing rule: a new state is a closed id in `netlify/shared/vocab.ts` with a
+`docs/PRIVACY.md` row, and `tests/vocab-sync.test.ts`. Not built here.
+
+The mirror error is `second-wife`, where the same four states soften a binary. One list,
+two shape mismatches in opposite directions, because one shape was fitted to eleven topics
+of three kinds.
+
+### 6. The Somali claims, observed or assumed
+
+By the ledger's own classes, one Somali-specific claim in the eleven is above F: that money
+home is widespread and a weight (B, Hammond et al. 2011; Lindley 2009). Family involvement
+in general is B (Ismail 2018). Everything else — hooyo moving in, clan raised by an uncle,
+"one day I'll go back", a second wife as a live expectation, the aroos as a debt — is
+assumed: plausible, culturally literate, unobserved. Classes C and D are empty; the one
+walk logged was the founder's. The eleven has never been read by a participant under
+PROTOCOL Q9 ("which surprised you by being on the list? which is missing?") or Q11 (which
+would a Pakistani or Arab friend also need?). Until it has, "Somali-specific" describes the
+author, not the evidence.
+
+Where the copy has kept its promises: the 2026-09-24 rewrite removed "decide a marriage",
+"most of us", "year two" from the woman's strings; the `tells` mostly pass the one-person
+test. Two lines that did not get caught: `live`'s "come apart on that in the first year"
+(a dated prediction, L12) and `second-wife`'s "one of the few questions where the answer
+shapes the rest of a life" (a count, L9). Both are one-word fixes and are not made here.
+
+### 7. The strongest case for the current eleven
+
+1. **Every item is a decision that gets made whether or not the two of them make it.**
+   That is the right test for a pre-marriage list and each of the eleven passes it. Nothing
+   on the list is abstract; every prompt names a Tuesday, a suitcase, a ticket, a number.
+2. **It covers the four general domains with the best evidence for early marital strain**
+   — money (Dew 2012), in-laws (Bryant 2001), expectations about home after children
+   (Hackel & Ruble 1992), religious practice — and every one of them in its Somali form.
+3. **The seven Somali items are the product's reason to exist** (conviction 1). No general
+   app asks about remittances, hooyo in the house, qabiil, going back or a second wife, and
+   these are precisely the questions whose cost of asking rises once the families are
+   involved. A list that dropped them to add conflict and intimacy would be a better
+   general list and a worse Niyyah.
+4. **The mechanism is honest.** No score, no grade, "I don't know my own answer yet" as a
+   first-class state, "ask again" on qabiil, man variants where a token swap would ask the
+   wrong question, a headline that names a difference as a difference. The ledger caught
+   its own overclaims and rewrote them. Few products with a list like this can say which
+   class each claim is in.
+5. **It is falsifiable and already instrumented.** `ended.which`, `/couple`
+   `both-not-talked` per topic, `facts.throughByTopic`, PROTOCOL Q9 and Q11, the
+   "Exaggerated" verdict, A9. The list has kill criteria. Most lists have authors.
+6. **Eleven is printable.** One page, one sample of three, sent with a nikah packet. A list
+   of eighteen is a curriculum; this is a conversation.
+
+### 8. The strongest case against them
+
+1. **The number and the weights are inherited, not derived.** Eleven was the first draft's
+   count; `consequence` has not moved since 2026-09-03; the list was assembled to answer
+   "no Somali-specific content", so it optimises for distinctiveness. The three general
+   domains with the strongest outcome evidence — conflict, intimacy, commitment — are
+   absent because they are not Somali.
+2. **Two seats are duplicates.** Hooyo-in-the-house is asked twice; where-you-live is asked
+   three ways; the aroos is in the money sheet. A list that reserves 27% of itself for one
+   cluster and 0% for how the two of them fight has its proportions from its origin, not
+   from the domains.
+3. **One answer shape for three kinds of topic.** Agree/differ fits `children`,
+   `deen-daily`, `work`. It is empty on `qabiil` and `families-disagree`, and it softens
+   `second-wife` — the one item that is a binary for the reader the product is written for
+   — into a conversation with a script.
+4. **Structurally, difference is unsettleable.** No state for an arranged difference;
+   `differ` outranks every unopened topic for ever; "doesn't line up *yet*"; the sheet says
+   "where you match". The product refuses a score and then tells her, by what it opens
+   next, that agreement is the goal.
+5. **Every Somali claim but one is assumed.** Zero sessions. The two items most likely to
+   be called unreal by a participant (`qabiil`, `second-wife`) are also the two the
+   marketing leads with ("a second wife, qabiil" in §0). If a participant says three of the
+   eleven are not real for anyone they know, the PROTOCOL already calls that a verdict, and
+   the list has never been put in front of one.
+6. **It is her list.** Seven of eleven have no man variant; the base strings are hers and
+   the printed guide's neutral voice must hold for both. `going-back` read by a man asks
+   whether *she* is going back. The product is women-first by design, and the eleven is the
+   one instrument he is asked to answer on his own phone; the asymmetry is most costly
+   there.
+
+### 9. What would move it
+
+Nothing here changes the list; each line names the test that exists.
+
+| Hypothesis | Test | Moves on |
+|---|---|---|
+| The eleven's proportions are wrong (§2, §4) | PROTOCOL Q9 "which is missing?", Q11 portability; `ended.reason` `other` share; conviction 4's "most `ended.reason` outside the eleven" | Two participants independently naming conflict or intimacy → a twelfth conversation, drafted, gated by Q12 |
+| `live` and `his-family-in-home` are one conversation | `/couple` joint states on the two moving together; `facts.throughByTopic` on both after one is said | Both said or both unsaid in most sheets → merge, freeing a seat |
+| A settled difference needs a state (§5) | Sessions: does anyone say "we don't agree, and it's fine"? `differ` share per topic at twenty sheets | `differ` leading on `money-home` or `work` while those couples marry (`marriedBy.through`) → a fifth state |
+| `second-wife` is a non-negotiable, not a conversation | `ended.which.eleven['second-wife']` against `ended.which['non-negotiable']`; sessions | Named as an ending reason more than as a conversation → it moves to the dealbreakers as well as staying in the eleven |
+| `qabiil` and `second-wife` are exaggerated | PROTOCOL's "Exaggerated" verdict, two independent | Verdict → the `why` strings rewritten as customs named as customs; `consequence` of `second-wife` revisited with the count cited |
+| Power needs its own seat | Sessions: what did he "expect you'd know"? PROTOCOL Q6 | Named unprompted by two → a conversation drafted from `deen-daily`'s second clause |
+
+Two lines of copy (`live` "first year"; `second-wife` "one of the few") and the `Flexible`
+key belong in the next copy commit, not this audit.
