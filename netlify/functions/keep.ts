@@ -139,6 +139,8 @@ async function clearUnder(code: string, opts: { token?: boolean } = {}) {
  */
 export async function finishMove(maps: Store, old: string, now = Date.now()) {
   await tombstone(maps, old, 'moved', now)
+  const was = (await maps.get(old, { type: 'json' })) as KeptMap | null
+  if (was?.once) await maps.delete(onceKey(was.once))
   // Not the token: it already points at the new code, and the link her
   // family holds must keep working.
   await clearUnder(old)
@@ -236,6 +238,8 @@ export default async function handler(req: Request) {
       // door and its index; the way to reach her, which used to be deleted by
       // hand — see netlify/functions/cohort.ts and docs/OWNED.md.
       await clearUnder(code, { token: true })
+      // The first keep's once key, which names this code for a day.
+      if (kept?.once) await store.delete(onceKey(kept.once))
       // Reports are not touched here, and cannot be. This cascade used to
       // take every report under `${couple}-${side}-`, reading both the couple
       // code and the side out of the snapshot — which is whatever the caller
@@ -413,7 +417,13 @@ export default async function handler(req: Request) {
       // Re-keeping refreshes the year but keeps the day it was first kept. A
       // createdAt that moved on every save was a last-seen timestamp under
       // another name — an activity trace this store has no business holding.
-      const kept: KeptMap = { snapshot, createdAt: was.createdAt ?? day(now), expiresAt: day(now + TTL_MS), rev: held + 1 }
+      const kept: KeptMap = {
+        snapshot,
+        createdAt: was.createdAt ?? day(now),
+        expiresAt: day(now + TTL_MS),
+        rev: held + 1,
+        ...(was.once ? { once: was.once } : {}),
+      }
       const { modified } = await store.setJSON(target, stamp(kept), { onlyIfMatch: existing.etag })
       if (modified) return Response.json({ code: target, rev: kept.rev })
     }
@@ -441,7 +451,7 @@ export default async function handler(req: Request) {
     // A code nobody holds yet: minted with `onlyIfNew`, so a collision costs a
     // retry instead of somebody's map — see netlify/shared/code.ts for why
     // that is not theoretical — and never a code that was forgotten or moved.
-    const kept: KeptMap = { snapshot, createdAt: day(now), expiresAt: day(now + TTL_MS), rev: 1 }
+    const kept: KeptMap = { snapshot, createdAt: day(now), expiresAt: day(now + TTL_MS), rev: 1, ...(once ? { once } : {}) }
     const minted = await mintFree(store, stamp(kept), async (c) => !!(await ended(store, c)))
     if (!minted) {
       console.error('[niyyah] keep: every minted code collided')
