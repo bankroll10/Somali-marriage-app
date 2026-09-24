@@ -111,3 +111,16 @@ describe('the one thing only a married person can send', () => {
     expect(marriedShare(undefined, { eleven: true }).text).toMatch(/Before we said yes, we went through eleven conversations/)
   })
 })
+
+describe('the eleven, at the end', () => {
+  it('credits the conversations had, whatever they came to — not only the agreed ones', () => {
+    const ids = ['live', 'his-family-in-home', 'work', 'money-home', 'children', 'deen-daily', 'aroos-mahr', 'qabiil', 'going-back', 'second-wife', 'families-disagree']
+    const answers = Object.fromEntries(ids.map((id) => [id, 'agree']))
+    Object.assign(answers, { 'money-home': 'settled', work: 'differ', 'second-wife': 'differ', qabiil: 'not-talked' })
+    const e = buildEnding({ ...empty, beforeYes: { at: '2026-05-01T10:00:00.000Z', answers, lines: ['second-wife'] } }, TODAY)
+    const line = e.lines.find((l) => l.text.startsWith('You went through the eleven'))!.text
+    // Seven agreed, one worked out, one still open, one a line: ten had.
+    expect(line).toBe('You went through the eleven conversations before you said yes — ten of them already talked about between you.')
+    expect(line).not.toMatch(/agreed/)
+  })
+})

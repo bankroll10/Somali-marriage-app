@@ -111,9 +111,14 @@ export function buildEnding(i: EndingInput, today: string): Ending {
   // The eleven — the conversations to have before the families do.
   if (i.beforeYes) {
     const r = buildBeforeYes(i.beforeYes.answers, i.gender, i.beforeYes.lines)
+    // What she is credited with is the conversations had, whatever they came
+    // to. It used to count only the agreed ones, as if a difference talked
+    // through, worked out or named as a line were not the thing this was for
+    // (docs/DECISIONS.md Part 8).
+    const had = r ? r.counts.agree + r.counts.settled + r.counts.differ + r.lines.length : 0
     lines.push({
       text: r
-        ? `You went through the eleven conversations before you said yes — ${words(r.counts.agree)} of them already talked through and agreed.`
+        ? `You went through the eleven conversations before you said yes — ${words(had)} of them already talked about between you.`
         : 'You went through the eleven conversations before you said yes.',
       at: day(i.beforeYes.at),
     })
