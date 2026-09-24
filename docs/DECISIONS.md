@@ -4,7 +4,8 @@ What was decided, when, why, and whether it still holds. Part 1 keeps the
 board audit's numbered decisions with their numbers. Part 2 records the
 subtraction of 2026-09-24. Part 3 is the completion review of the same day,
 with decision 19, the product freeze. Part 4 is the Read, reviewed by an
-outside critic. Part 5 says where each of the 58 old docs went.
+outside critic. Part 5 is the commitment audit. Part 6 says where each of the
+58 old docs went.
 
 Every old doc's full text is in git at commit `43295a4`:
 `git show 43295a4:docs/NAME.md`.
@@ -479,7 +480,76 @@ Candidates, not work. *Untrue claim* items need no evidence under decision 19;
 **Not done:** no test against outcomes, since none exists; the eleven, the
 family words and the guide were not reviewed.
 
-## Part 5: Where every old doc went
+## Part 5: Commitment: dedication, constraint, sliding and deciding (2026-09-24)
+
+The founder asked for Niyyah to be audited through commitment research. The
+distinctions used, without borrowing any questionnaire:
+- **Dedication** is wanting a future with this person.
+- **Constraint** is what makes leaving harder as investment accumulates.
+- **Sliding** is moving into more consequential states without deciding.
+- **Deciding** is choosing before the constraints pile up (Stanley, Rhoades &
+  Markman 2006; `docs/RESEARCH.md` row 1, class E for us).
+
+The Read, the eleven, the follow-up and the Ending were read against eight
+things a person might need to notice. Language or logic changed only where the
+product materially misrepresented commitment; everything else is a hypothesis
+below.
+
+### What Niyyah already handles well
+
+- **Stage changes are her own act.** StageBand: "Only you decide this". The
+  `next` chip ("We're deciding whether to marry") is a deciding moment, not a
+  drift.
+- **The deciding stage puts the conversations before the families.** "Then the
+  families are about to be involved. Before they are, there are eleven
+  conversations to have."
+- **The follow-up counts something she did, not time.** "Have you asked it?"
+  The Ending counts "conversations you were not going to have — never days,
+  sessions or taps".
+- **Time is not a reason.** The Read's *thin* band past three months says
+  "this is information, not impatience on your part"; *strong* says "The
+  useful thing now is not more watching. It is one clear conversation."
+- **Her own answer comes first.** The eleven's "I don't know my own answer yet"
+  makes her side something to settle before his.
+- **Leaving is a legitimate outcome.** Ended offers "I stopped"; the Ending,
+  "Nothing here will try to keep you".
+- **Money is refused as a constraint.** The money caution names money asked
+  for before the families meet as something to refuse, never as seriousness.
+
+### Where it confused commitment with momentum
+
+| # | Where | What it did | Material? | Now |
+|---|---|---|---|---|
+| 1 | `src/lib/inferStage.ts` | Finishing the eleven with nothing said set the stage to `deciding`, for a curious stranger or for a man who had only answered her link. The guide was told "deciding together… do not push back toward looking" and said "that's a good sign". The deciding-only family words appeared. The `deciding` rung, the product's measure of a decision (`docs/PRODUCT.md` §5F; `docs/RESEARCH.md` row 1), counted a tool being used | Yes: sliding done by the product | **Fixed.** Either instrument infers `talking`; `deciding` and `married` are only ever her tap. Held by `inferStage.test.ts` and the two-phone journey |
+| 2 | `DIMENSION_LABEL.consistency` | Labelled "Follow-through", but two of its three answers are contact (how soon he texts back, how often you have met). Pursuit reported as follow-through | Yes: the label is the claim | **Fixed.** "Steady contact, and plans kept"; held by `read.test.ts` |
+| 3 | The Read's band | `initiative` and `in-person` still lift the band, so the eager man scores best (Part 4) | A logic change, beyond a label | Hypothesis H4 |
+| 4 | The Read's `family` dimension | Scores his asking how to approach her family as seriousness, and families are the largest constraint | No: the deciding stage and the *strong* band's link to the eleven put the conversations first | Hypothesis H2 |
+| 5 | The deciding guide line | "that's a good sign" praises escalation | No: after fix 1 it only follows a stage she chose | — |
+| 6 | The Ending | "You went through the eleven conversations before you said yes" does not check the order | No: the line is dated, the path (eleven after marriage) is rare, and she is the witness | — |
+
+### Where it could help her decide earlier: hypotheses, not built
+
+| # | If this is true… | Why not built | What tests it, with what exists |
+|---|---|---|---|
+| H1 | Exclusivity is assumed and never discussed, and it belongs among the conversations | Not one of the eleven; a topic is a new option | Sessions (`docs/PROTOCOL.md`): is it named unprompted? `ended.reason` `other` |
+| H2 | Families get involved before the large differences are found | The product cannot see order outside itself | Sessions; `ended.reason` `my-family` and `his-family` from `deciding`, against the `eleven` rung |
+| H3 | Marriage words without movement is a pattern worth naming: intent *shown*, family and public *not yet* | Naming it is interpretation; the *mixed* band already shows the gap | Sessions: do readers see the gap in the five states themselves? |
+| H4 | Contact volume should not lift the band | A change to the band's logic | Sessions reading eager courtships; `ended.which` `consistency` |
+| H5 | Time already spent is why people stay | No question asks it, and none should score it | Sessions; the Ending's free line |
+| H6 | Logistics make momentum: a visa, an age, a parent's health, a booked hall | Asking is a new question | Sessions |
+
+### Where the product refuses to interpret
+
+- **Dedication itself.** It is inside another person; the Read already says
+  "It cannot read a heart", and nothing scores it.
+- **Whether she is sliding.** Only she can say a choice was a choice. The
+  product offers the moment, the stage chip, and never infers it.
+- **Constraint in her life:** money, a family's standing, pressure at home.
+  Not asked, not inferred, never counted as seriousness.
+- **Exclusivity.** Nothing she enters is read as it.
+- **Duration as commitment.** Months in is context, never a signal.
+
+## Part 6: Where every old doc went
 
 The eleven docs now are PRODUCT, DECISIONS, RESEARCH, OPS, SECURITY, PRIVACY,
 DESIGN, ASSETS, PROTOCOL, GUIDE-EVAL and TESTING. A citation of a retired doc
