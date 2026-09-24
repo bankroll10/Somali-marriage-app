@@ -58,11 +58,6 @@ export const MODE_VOICE: Record<string, { label: string; tagline: string; descri
     tagline: 'Intention, modesty, family, respect',
     description: 'Deen, dignity, and a halal path.',
   },
-  matchmaker: {
-    label: 'Matchmaker',
-    tagline: 'Alignment over looks',
-    description: 'Looks past the photos to how two lives would fit.',
-  },
 }
 
 /** The prompt-facing half of src/data/stages.ts. */

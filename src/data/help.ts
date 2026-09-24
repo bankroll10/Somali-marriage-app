@@ -65,13 +65,10 @@ export const HELP: Record<string, Help> = {
   other: {},
 }
 
-/**
- * The crisis lines were checked the same way, on 2026-09-24, for the Guide's
- * evaluation (docs/GUIDE-EVAL.md). Three are not open round the clock and say
- * so: Denmark's, Kenya's and the UAE's. Outside those hours, and wherever there
- * is no line, the emergency number is the line.
- */
-export const CRISIS_CHECKED = '2026-09-24'
+// The crisis lines were checked the same way, on 2026-09-24, for the Guide's
+// evaluation (docs/GUIDE-EVAL.md). Three are not open round the clock and say
+// so: Denmark's, Kenya's and the UAE's. Outside those hours, and wherever there
+// is no line, the emergency number is the line.
 
 /** When the country is not known — the answerer on a couple link has told us nothing. */
 export const EMERGENCY_ANYWHERE = '911 in the US and Canada, 999 in the UK, 112 across Europe, 000 in Australia'

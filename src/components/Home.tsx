@@ -4,7 +4,7 @@ import type { FollowUpAsk } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
-import FollowUp, { FollowedThrough } from './home/FollowUp'
+import { SinceLastTime } from './home/FollowUp'
 import StageBand from './home/StageBand'
 import { CONTACT_EMAIL } from '../lib/site'
 import {
@@ -39,8 +39,8 @@ interface Props {
   hasBeforeYes: boolean
   /**
    * He has answered the eleven she sent. The hook has polled and recorded this
-   * since the two-sided eleven shipped, and its only reader was the analytics
-   * ladder — so the one outcome the instrument exists to produce was invisible
+   * since the two-sided eleven shipped, and its only reader was the ladder —
+   * so the one outcome the instrument exists to produce was invisible
    * on the only screen she returns to (docs/NIELSEN.md N2).
    */
   coupleAnswered?: boolean
@@ -105,16 +105,6 @@ export default function Home({
   const staleRead = !followUpAsk && seeking && !!read && readIsStale(read)
 
   const [ask, setAsk] = useState('')
-  // The follow-up she just answered "we talked" to. The record is resolved at
-  // once (the ladder counts it); this keeps the card on screen for one more
-  // beat, because the moment she had the conversation is the moment worth
-  // handing the words to someone else. Cleared on navigation with the screen.
-  const [hadIt, setHadIt] = useState<FollowUpAsk | null>(null)
-  const answerFollowUp: Props['onAnswerFollowUp'] = (id, outcome, agreed, putAway) => {
-    if (outcome === 'asked' && followUpAsk) setHadIt(followUpAsk)
-    onAnswerFollowUp(id, outcome, agreed, putAway)
-  }
-
   return (
     <div className="min-h-dvh bg-cream pb-16 pt-safe">
       <header className="border-b border-line/70 bg-cream/85 backdrop-blur-md">
@@ -359,13 +349,8 @@ export default function Home({
             courtship. It is the one thing on Home that asks; the daily
             check-in that used to sit below it asked every day and measured
             nothing. */}
-        {hadIt && stage !== 'married' ? (
-          <FollowedThrough ask={hadIt} onDone={() => setHadIt(null)} />
-        ) : (
-          followUpAsk &&
-          stage !== 'married' && (
-            <FollowUp ask={followUpAsk} onAnswer={answerFollowUp} onAskGuide={(text) => onAsk(text)} />
-          )
+        {stage !== 'married' && (
+          <SinceLastTime ask={followUpAsk} onAnswer={onAnswerFollowUp} onAskGuide={(text) => onAsk(text)} />
         )}
 
         {/* A read is about behaviour over time, and a month later the
@@ -416,7 +401,7 @@ export default function Home({
                   Talk to your guide
                 </span>
                 <span className="mt-0.5 block text-[0.88rem] text-muted">
-                  Five voices for the real moments — Auntie, Big Brother, Therapist & more.
+                  Four voices for the real moments — Auntie, Big Brother, Therapist, Islamic values.
                 </span>
               </span>
               <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />

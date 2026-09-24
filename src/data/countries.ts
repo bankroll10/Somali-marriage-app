@@ -28,7 +28,3 @@ export const countries: Country[] = [
 
 /** Must match netlify/shared/vocab.ts COUNTRIES. */
 export const COUNTRY_IDS: string[] = countries.map((c) => c.id)
-
-export function getCountry(id?: string): Country | undefined {
-  return countries.find((c) => c.id === id)
-}

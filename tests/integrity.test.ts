@@ -265,8 +265,9 @@ describe('small writes that must not lose or overwrite', () => {
     blobs.put('reports', `${PAIR}-woman-${TOKEN}`, theirs)
     vi.spyOn(crypto, 'getRandomValues').mockImplementation(drawing(TOKEN, 'CDEFGHJKMN') as never)
     const res = await call(safety, 'POST', 'safety', { code: PAIR, side: 'woman', reason: 'harassment' })
-    expect((await res.json()).receipt).toBe('CDEFGHJKMN')
+    expect(res.status).toBe(200)
     expect(blobs.read('reports', `${PAIR}-woman-${TOKEN}`)).toEqual(theirs)
+    expect(blobs.read('reports', `${PAIR}-woman-CDEFGHJKMN`)).toMatchObject({ reason: 'harassment' })
   })
 
   it('a new pair never takes the code of a sheet that is gone — its reports stay with the pair they are about', async () => {

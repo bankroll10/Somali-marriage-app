@@ -42,16 +42,10 @@ const RULES: Rule[] = [
       /\b(family|families|mother|mum|mom|hooyo|father|dad|aabo|parents|aunt|auntie|aunties|uncle|cousin|sister|brother.?in|clan|qabiil|tribe|reer|community|people talk|what people)\b/i,
   },
   {
-    mode: 'matchmaker',
-    why: 'this sounded like a question about fit',
-    patterns:
-      /\b(who fits|what kind of person|my map|compatible|compatibility|my type|right for me|suited|match me|matches)\b/i,
-  },
-  {
     mode: 'gendered',
     why: 'this sounded like the two of you',
     patterns:
-      /\b(he|him|his|she|her|hers|they|text|texted|texting|message|messaged|reply|replied|call|called|ghost|ghosted|quiet|silent|left me on read|seen|serious|intention|intentions|talking stage|situationship|date|dating|proposal|proposed|meet|meeting|waste|wasting)\b/i,
+      /\b(who fits|what kind of person|compatible|compatibility|my type|right for me|he|him|his|she|her|hers|they|text|texted|texting|message|messaged|reply|replied|call|called|ghost|ghosted|quiet|silent|left me on read|seen|serious|intention|intentions|talking stage|situationship|date|dating|proposal|proposed|meet|meeting|waste|wasting)\b/i,
   },
 ]
 

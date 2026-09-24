@@ -61,3 +61,26 @@ export function formatCode(code: string): string {
  * characters of which are impossible.
  */
 export const EXAMPLE_CODE = 'HJKM47QR'
+
+/**
+ * A fresh code of `length`, drawn on this phone: the install id (a map code's
+ * length, a different code) and a first keep's once key (ten).
+ *
+ * Rejection-sampled, like the server's generator (netlify/shared/code.ts).
+ * `ALPHABET[b % 23]` is biased: 256 is not a multiple of 23, so A, C and D
+ * came up 12 times in 256 and every other symbol 11 (docs/SECURITY.md, O11).
+ * The once key still drew that way until 2026-09-24; there is one generator
+ * on each side now.
+ */
+const LIMIT = 256 - (256 % ALPHABET.length)
+export function newCode(length: number = CODE_LENGTH): string {
+  const out: string[] = []
+  while (out.length < length) {
+    for (const b of crypto.getRandomValues(new Uint8Array(length))) {
+      if (b >= LIMIT) continue
+      out.push(ALPHABET[b % ALPHABET.length])
+      if (out.length === length) break
+    }
+  }
+  return out.join('')
+}

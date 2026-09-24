@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { Gender } from '../types'
 import { SAFETY_REASONS } from '../data/safety'
 import { sendReport } from '../lib/safety'
-import { track } from '../lib/analytics'
 import { Spinner, TextButton } from './ui'
 import HelpLine from './HelpLine'
 
@@ -90,7 +89,6 @@ export default function ReportConcern({ code, side }: Props) {
           onClick={async () => {
             setState('sending')
             const result = await sendReport(code, side, reason!, details.trim() || undefined)
-            if (result === 'sent') track('safety_reported')
             setState(result === 'sent' ? 'sent' : 'error')
           }}
           className="inline-flex items-center gap-2 rounded-full bg-clay px-5 py-2.5 text-[0.85rem] font-medium text-cream transition hover:opacity-90 disabled:opacity-40"

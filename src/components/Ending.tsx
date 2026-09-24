@@ -78,7 +78,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onF
 
   /** The one thing only a married person can send — see `marriedShare` in src/lib/ending.ts. */
   async function tell() {
-    const result = await shareOrCopy(marriedShare(answers.advice, { eleven: didEleven }), 'married_told')
+    const result = await shareOrCopy(marriedShare(answers.advice, { eleven: didEleven }))
     if (result === 'copied') {
       setShared(true)
       window.setTimeout(() => setShared(false), 2400)

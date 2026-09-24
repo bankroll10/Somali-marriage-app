@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
 import { allQuestions, totalQuestions } from '../data/intake'
 import { todayKey } from '../lib/dates'
-import { track } from '../lib/analytics'
 import { applyDemoParams } from '../lib/demo'
 import { buildReflection, generateReflection, snapshotOf } from '../lib/reflection'
 import { routeToMode } from '../lib/route'
@@ -363,7 +362,6 @@ export function useNiyyah(entry: Entry | null = null) {
 
   // ── Actions ────────────────────────────────────────────────────────────────
   function answer(questionId: string, value: AnswerValue) {
-    if (questionId === 'hardest-part' && value) track('hook_answered', { choice: value })
     setAnswers((prev) => ({ ...prev, [questionId]: value }))
   }
 
@@ -389,7 +387,6 @@ export function useNiyyah(entry: Entry | null = null) {
       const rest = prev.filter((s) => s.date !== today)
       return [...rest, snapshotOf(answers, today)].slice(-12)
     })
-    track('map_completed')
     setScreen('reflection')
   }
 
@@ -425,7 +422,6 @@ export function useNiyyah(entry: Entry | null = null) {
     // is the couple screen a link left her part-way through.
     clearAllDrafts()
     forgetEntry()
-    track('onboarding_started')
     setIdentityNext('situation')
     setScreen('identity')
   }
@@ -436,7 +432,6 @@ export function useNiyyah(entry: Entry | null = null) {
    * on this phone is a stranger with a new code.
    */
   async function forgetEverything(): Promise<Forgotten> {
-    track('forgotten')
     // Set before the awaits, so nothing persisted in between survives either.
     forgotten.current = true
     const result = await forgetMe()
@@ -492,7 +487,6 @@ export function useNiyyah(entry: Entry | null = null) {
    * and the map history the new reading will be measured against.
    */
   function retakeMap() {
-    track('map_retake_started')
     setResumeIndex(0)
     setSkipFirstIntro(false)
     setScreen('intake')
@@ -506,7 +500,6 @@ export function useNiyyah(entry: Entry | null = null) {
    * unusually stupid way to lose a person.
    */
   function beginMap() {
-    track('onboarding_started')
     setIdentityNext('hook')
     setScreen(identity.gender && identity.adult ? 'hook' : 'identity')
   }
@@ -645,7 +638,6 @@ export function useNiyyah(entry: Entry | null = null) {
    * arrival that she is already married did not marry through any of this.
    */
   function setStage(next: Stage) {
-    track('stage_changed', { stage: next })
     const from = stage
     setStageRaw(next)
     if (next === 'married' && from !== 'married' && !ending) setScreen('ending')
@@ -674,7 +666,6 @@ export function useNiyyah(entry: Entry | null = null) {
 
   /** She told us how it ended. Every field optional; saving is never required. */
   function saveEnding(record: EndingRecord) {
-    if (!ending) track('ending_recorded')
     setEnding(record)
   }
 
@@ -705,7 +696,6 @@ export function useNiyyah(entry: Entry | null = null) {
     const trimmed = text.trim()
     if (!trimmed) return
     const routed = mode ? { mode, why: '' } : routeToMode(trimmed, gender)
-    track('guide_asked', { mode: routed.mode, tapped: !!mode })
     setGuideMode(routed.mode)
     setGuideAsk({ text: trimmed, why: routed.why })
     setScreen('coach')
@@ -734,7 +724,6 @@ export function useNiyyah(entry: Entry | null = null) {
    */
   function commitFromGuide(words: string, topic: string) {
     const key = topic.trim().slice(0, 80) || words.slice(0, 80)
-    track('guide_committed')
     setFollowups((prev) => noteFollowUp(prev, 'guide', key, new Date().toISOString(), words))
   }
 

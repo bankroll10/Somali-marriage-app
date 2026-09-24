@@ -77,12 +77,71 @@ function name(ctx: CoachContext): string {
  * How a voice addresses the member. The first name is optional at Identity, so
  * every greeting has to read correctly without one — several did not: both
  * branches of `${name ? '. ' : '. '}` emitted the same string, rendering
- * "I'm your matchmaker, . I don't match faces" and "Tell me what you're
- * weighing, — a specific person" to anyone who skipped the field.
+ * "Tell me what you're weighing, — a specific person" to anyone who skipped
+ * the field.
  */
 function addressed(ctx: CoachContext, fallback = 'friend'): string {
   return name(ctx) || fallback
 }
+
+// ── Fit: what to look for, in whichever everyday voice is answering ─────────
+// These were the Matchmaker's, a sixth voice that could only say "there is
+// nobody for me to introduce you to" (removed 2026-09-24, docs/DECISIONS.md).
+// The questions stayed real, so their answers moved to the two everyday
+// voices; routing sends a question about fit to whichever of them is hers.
+function readMap(ctx: CoachContext): string {
+  const a = ctx.answers
+  const bits: string[] = []
+  const faith = a['faith-role']
+  if (typeof faith === 'number' && faith >= 4) bits.push('someone for whom deen is a shared center')
+  const fam = a['family-role']
+  if (fam === 'central' || fam === 'guided') bits.push('a family-minded match who welcomes your people')
+  const tl = a['timeline']
+  if (tl === 'within-1' || tl === '1-2') bits.push('someone ready to move with intention, not drift')
+  if (Array.isArray(a['value-most']) && a['value-most'].length)
+    bits.push(`a character built on what you value most`)
+ return bits.length ? bits.join(', ') : 'someone aligned with the life you described'
+}
+
+const fit: GuidanceMode['intents'] = [
+  {
+    keywords: ['fits me', 'right for me', 'kind of person', 'my type', 'compatible', 'match me', 'suited'],
+    respond: (ctx) =>
+      `From your map, the person who fits you is ${readMap(ctx)}.
+
+Don’t shop for a feeling — recognise a fit. The strongest marriages aren’t the ones with the most spark on day one; they’re the ones where two people are walking toward the same horizon. When you meet someone, ask yourself less “do I feel butterflies?” and more “do we want the same life, and is this someone I respect?” That’s the question that’s still true in year ten.`,
+  },
+  {
+    keywords: ['look for first', 'prioritise', 'prioritize', 'what matters', 'most important', 'first thing'],
+    respond: () =>
+      `Prioritise in this order — it’ll save you years:
+• **Character & deen** first. Honesty, kindness, God-consciousness. Non-negotiable.
+• **Direction & alignment** second. Same horizon on faith, family, children, where you’ll live.
+• **Emotional availability** third. Can they show up, communicate, repair?
+• **Attraction** fourth — it matters, but it’s the easiest to mistake for compatibility.
+
+Most people run that list upside down and wonder why it hurts. Get the top right and attraction grows. Get only the bottom right and it fades into resentment.`,
+  },
+  {
+    keywords: ['green flag', 'green flags', 'good sign', 'good signs', 'what to seek'],
+    respond: () =>
+      `The green flags worth chasing are quiet, not flashy:
+• They’re consistent — the same person on a good day and a bad one.
+• They move toward clarity: comfortable talking future, family, intention.
+• They treat the powerless well — their parents, staff, strangers.
+• They can disagree without cruelty, and apologise without ego.
+• Their words and actions match over time.
+
+Notice: none of these show up in a photo.`,
+  },
+  {
+    keywords: ['alignment', 'attraction', 'chemistry', 'spark', 'butterflies'],
+    respond: () =>
+      `Attraction gets you interested; alignment keeps you married. Chemistry is real, but it’s a terrible *filter* — it lights up just as bright for the wrong person as the right one.
+
+Alignment is whether your lives fit: faith, family, finances, children, pace, values. When those line up, attraction tends to *grow*, because respect is the deepest kind of attraction there is. When they don’t, no amount of spark survives the friction. So feel the spark — but choose on the fit.`,
+  },
+]
 
 // ── Wise Auntie ──────────────────────────────────────────────────────────────
 const auntie: GuidanceMode = {
@@ -137,6 +196,7 @@ Bring them in gently, once it’s real: “For me, this leads to my family — t
 The wish-list — the height, the salary, the perfect family — soften that. No one is complete. The question is never “is he perfect?” It is “is he good, and is he good *for me*?” Don’t settle on character. Don’t crucify a good man for not being a fantasy.`
       },
     },
+    ...fit,
   ],
   fallback: (ctx) =>
     `Come, ${name(ctx) || 'my dear'}, tell your auntie properly — what did he say, what did you feel, what are you afraid of? Give me the real story and I’ll tell you what I see, the way someone who loves you does.`,
@@ -205,6 +265,7 @@ You’re not asking to date her. You’re declaring serious, honourable intent. 
 • Then act. Set the meeting. Talk to the wali. Drifting is the enemy — you beat it by deciding.`
       },
     },
+    ...fit,
   ],
   fallback: (ctx) =>
     `Talk to me straight, ${name(ctx) || 'akhi'} — what’s the actual situation? What did you say, what did she say, where’s it stuck? Give me the details and I’ll tell you the move.`,
@@ -349,100 +410,11 @@ So look past charm to how they treat people: their parents, the waiter, those wh
     `Tell me what you’re navigating, ${name(ctx) || 'friend'}, and we’ll look at it through the lens of our deen — with intention, modesty, and mercy. (And for any ruling you need to be certain of, take it to a trusted scholar.)`,
 }
 
-// ── Matchmaker ───────────────────────────────────────────────────────────────
-function readMap(ctx: CoachContext): string {
-  const a = ctx.answers
-  const bits: string[] = []
-  const faith = a['faith-role']
-  if (typeof faith === 'number' && faith >= 4) bits.push('someone for whom deen is a shared center')
-  const fam = a['family-role']
-  if (fam === 'central' || fam === 'guided') bits.push('a family-minded match who welcomes your people')
-  const tl = a['timeline']
-  if (tl === 'within-1' || tl === '1-2') bits.push('someone ready to move with intention, not drift')
-  if (Array.isArray(a['value-most']) && a['value-most'].length)
-    bits.push(`a character built on what you value most`)
- return bits.length ? bits.join(', ') : 'someone aligned with the life you described'
-}
-
-const matchmaker: GuidanceMode = {
-  id: 'matchmaker',
-  label: 'Matchmaker',
-  tagline: 'Alignment over looks',
- description: 'Looks past the photos to how two lives would fit.',
-  glyph: 'spark',
-  accent: 'clay',
-  greeting: (ctx) =>
-    `I’m your matchmaker, ${addressed(ctx)}. I don’t match faces — I match *futures*.
-
-I’ll be straight with you: there is nobody for me to introduce you to yet, and I won’t pretend otherwise. What I can do now is read your map with you — it says you need ${readMap(ctx)} — and get you clear on what has to be true of the person before you meet anyone, so that when you do, you find out early rather than late.`,
-  starters: [
- { label: 'What kind of person fits me?', prompt: 'Based on my map, what kind of person fits me?' },
-    { label: 'What should I look for first?', prompt: 'What should I prioritise and look for first in someone?' },
-    { label: 'What are my green flags to seek?', prompt: 'What green flags should I be actively looking for?' },
-    { label: 'Why does alignment beat attraction?', prompt: 'Why does alignment matter more than attraction?' },
-  ],
-  intents: [
-    {
-      // Asked who to talk to first, the honest answer is that nobody is here
-      // yet. This used to rank invented people by name — a matchmaker
-      // confidently recommending strangers who do not exist. Whatever that
-      // bought in a demo, it cost the one thing this product actually sells.
-      keywords: ['focus on', 'who first', 'which of them', 'compare', 'best match', 'strongest', 'who should i talk', 'introductions'],
-      respond: () =>
- `I won’t pretend to have people for you. Your city hasn’t opened yet — when it does, you’ll see the real count on the door and I’ll read whoever is there against your map.
-
-Until then the work is the same work, and it isn’t waiting: if you’re already talking to someone, take a read on what he has done, and go through the eleven conversations before the families are involved. If you’re not, your map and the words for your family are what make the first month go well when it comes.
-
-That’s not a consolation. It’s the part most people skip.`,
-    },
-    {
-      keywords: ['fits me', 'right for me', 'kind of person', 'my type', 'compatible', 'match me', 'suited'],
-      respond: (ctx) =>
-        `From your map, the person who fits you is ${readMap(ctx)}.
-
-Don’t shop for a feeling — recognise a fit. The strongest marriages aren’t the ones with the most spark on day one; they’re the ones where two people are walking toward the same horizon. When you meet someone, ask yourself less “do I feel butterflies?” and more “do we want the same life, and is this someone I respect?” That’s the question that’s still true in year ten.`,
-    },
-    {
-      keywords: ['look for first', 'prioritise', 'prioritize', 'what matters', 'most important', 'first thing'],
-      respond: () =>
-        `Prioritise in this order — it’ll save you years:
-• **Character & deen** first. Honesty, kindness, God-consciousness. Non-negotiable.
-• **Direction & alignment** second. Same horizon on faith, family, children, where you’ll live.
-• **Emotional availability** third. Can they show up, communicate, repair?
-• **Attraction** fourth — it matters, but it’s the easiest to mistake for compatibility.
-
-Most people run that list upside down and wonder why it hurts. Get the top right and attraction grows. Get only the bottom right and it fades into resentment.`,
-    },
-    {
-      keywords: ['green flag', 'green flags', 'good sign', 'good signs', 'what to seek'],
-      respond: () =>
-        `The green flags worth chasing are quiet, not flashy:
-• They’re consistent — the same person on a good day and a bad one.
-• They move toward clarity: comfortable talking future, family, intention.
-• They treat the powerless well — their parents, staff, strangers.
-• They can disagree without cruelty, and apologise without ego.
-• Their words and actions match over time.
-
-Notice: none of these show up in a photo. That’s exactly why I look past the photos — and why you should too.`,
-    },
-    {
-      keywords: ['alignment', 'attraction', 'chemistry', 'spark', 'why does', 'butterflies', 'looks'],
-      respond: () =>
-        `Attraction gets you interested; alignment keeps you married. Chemistry is real, but it’s a terrible *filter* — it lights up just as bright for the wrong person as the right one.
-
-Alignment is whether your lives fit: faith, family, finances, children, pace, values. When those line up, attraction tends to *grow*, because respect is the deepest kind of attraction there is. When they don’t, no amount of spark survives the friction. So feel the spark — but choose on the fit.`,
-    },
-  ],
-  fallback: (ctx) =>
-    `Tell me what you’re weighing, ${addressed(ctx)} — a specific person, a doubt, a decision — and I’ll read it against your map and tell you where the real alignment is.`,
-}
-
 export const modes: GuidanceMode[] = [
   auntie,
   brother,
   therapist,
   islamic,
-  matchmaker,
 ]
 
 export function getMode(id: ModeId): GuidanceMode {

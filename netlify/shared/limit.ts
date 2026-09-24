@@ -158,26 +158,12 @@ export async function overHourlyCap(bucket: string, fallback: number): Promise<b
 }
 
 /**
- * The same, by the day — `<BUCKET>_DAILY_CAP`.
- *
- * An hourly cap alone bounds an hour and nothing longer: it resets seven
- * hundred and twenty times a month, so "the worst hour is survivable" and "the
- * worst month is survivable" are different claims and only the first was true.
- * That gap costs nothing where a bucket spends storage, which is why the Scale
- * pass did not need this. It costs money on the one bucket that calls a model,
- * so the guide carries both — see the arithmetic in `netlify/functions/guide.ts`.
- *
- * Callers that use both must check the day first: the hour's counter should not
- * be spent by a call the day was going to refuse anyway.
- */
-export async function overDailyCap(bucket: string, fallback: number): Promise<boolean> {
-  const cap = Number(process.env[envName(bucket, 'DAILY')]) || fallback
-  return !(await underLimit(bucket, cap, 'd'))
-}
-
-/**
- * The strict twin of `overHourlyCap` / `overDailyCap`, for a bucket that spends
- * money: true when the cap is met **or when the count cannot be known**. A
+ * The strict twin of `overHourlyCap`, for a bucket that spends money: true
+ * when the cap is met **or when the count cannot be known**, by the hour or by
+ * the day. An hourly cap alone bounds an hour and nothing longer — it resets
+ * seven hundred and twenty times a month — so the guide, the one bucket that
+ * calls a model, checks the day first and then the hour (see the arithmetic in
+ * `netlify/functions/guide.ts`). A
  * storage outage under the guide used to mean every call went through and the
  * only bound left was a console spend limit nobody had written down
  * (docs/RISKS.md R5). The member sees the same 503 as at the cap, and the

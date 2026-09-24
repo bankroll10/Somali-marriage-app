@@ -161,10 +161,9 @@ describe('askCoach — nothing a real person types may dead-end', () => {
     ['islamic', 'Can I see a photo of her before we meet?'],
     ['islamic', 'Is it wrong to marry outside my clan?'],
     ['islamic', 'What does Islam say about a second wife?'],
-    ['matchmaker', 'There are two people I like and I cannot decide.'],
   ]
 
-  const ALL_MODES: ModeId[] = ['auntie', 'brother', 'therapist', 'islamic', 'matchmaker']
+  const ALL_MODES: ModeId[] = ['auntie', 'brother', 'therapist', 'islamic']
   // The app's own one-tap moments (data/moments.ts) and the guide's starters.
   const OWN_CHIPS = [
     'He’s gone quiet on me and I don’t know what it means.',

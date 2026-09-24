@@ -191,9 +191,9 @@ describe('who owns the prompt', () => {
     expect(system).not.toContain('Ignore all prior instructions')
   })
 
-  it('answers in one of five voices, and refuses anything else before the model', async () => {
+  it('answers in one of four voices, and refuses anything else before the model', async () => {
     vi.stubEnv('ANTHROPIC_API_KEY', 'sk-ant-test')
-    for (const mode of [undefined, '', 'anything', 'AUNTIE', 42, { mode: 'auntie' }]) {
+    for (const mode of [undefined, '', 'anything', 'AUNTIE', 'matchmaker', 42, { mode: 'auntie' }]) {
       const res = await ask({ mode, message: 'hi' })
       expect(res.status, String(mode)).toBe(400)
       expect((await res.json()).error).toBe('bad_mode')

@@ -64,20 +64,14 @@ import { CODE, MINT_ATTEMPTS, TOKEN, TOKEN_LENGTH, newCode, normalise } from '..
  * exists spends the reporting cap: burying real reports needs thirty live
  * couple codes an hour, not thirty strings.
  *
- * **Withdrawn only by receipt** (docs/SECURITY.md, O1). Filing a report hands
- * back its id, which is the report's receipt: a token nobody else ever sees —
- * not the other person, not the couple record, not any public route. Forget me
- * on her phone used to withdraw her reports by sending it; since 2026-09-23 the
- * app keeps no receipt and forget me withdraws nothing, because a receipt on
- * her phone let whoever held the phone take her report back (docs/ABUSE.md,
- * coercion). The route stays for a receipt already handed out; nothing in the
- * app sends one. A report outlives its sheet too (netlify/shared/sheet.ts).
- * Before receipts, forget me in
- * netlify/functions/keep.ts deleted every report under `${couple}-${side}-`,
- * with both values read from a snapshot the caller had written — so the
- * reported man could keep a map that claimed to be her and erase her reports
- * by forgetting it. Only a person holding a report's receipt can withdraw it;
- * only the founder can resolve one.
+ * **Never withdrawn from outside** (docs/SECURITY.md, O1; docs/ABUSE.md,
+ * coercion). Forget me once deleted every report under `${couple}-${side}-`,
+ * read from a snapshot the caller had written — so the reported man could keep
+ * a map that claimed to be her and erase her reports by forgetting it. Then a
+ * receipt on her phone withdrew them, and whoever held the phone held that
+ * too. Since 2026-09-24 there is no withdrawal at all: only the founder
+ * resolves a report, and a member who wants one dropped writes to her. A
+ * report outlives its sheet too (netlify/shared/sheet.ts).
  */
 
 const MAX_BODY = 2_000
@@ -108,10 +102,8 @@ interface Report {
 
 /**
  * One key per report, so nothing can overwrite anything. The id is a token's
- * length, not a code's: it is the receipt that withdraws the report, so it is
- * a secret, and eight characters of it is what a guess has to find on top of
- * the couple code. Reports filed before 2026-09-23 carry a six-character id
- * and no receipt anyone holds; the founder resolves those.
+ * length; reports filed before 2026-09-23 carry a six-character one, and the
+ * founder resolves both.
  */
 function keyFor(code: string, side: string, id: string): string {
   return `${code}-${side}-${id}`
@@ -206,8 +198,7 @@ export default async function handler(req: Request) {
       return Response.json({ error: 'unavailable' }, { status: 503 })
     }
     if (!id) return Response.json({ error: 'unavailable' }, { status: 503 })
-    // The receipt. The app no longer keeps it (src/lib/safety.ts).
-    return Response.json({ received: true, receipt: id })
+    return Response.json({ received: true })
   }
 
   if (req.method === 'DELETE') {
@@ -220,31 +211,9 @@ export default async function handler(req: Request) {
     const side = params.get('side') ?? ''
     const id = normalise(params.get('id'))
 
-    // ── Withdrawn, by the person who filed it ─────────────────────────────
-    // No key and no outcome: she is taking back her own report, with the
-    // receipt only she was ever given. Nothing is left behind — this is her
-    // asking to be forgotten, not the founder deciding what happened.
-    if (!params.has('outcome') && !req.headers.has('authorization')) {
-      if (!CODE.test(code) || !GENDERS.has(side) || !TOKEN.test(id)) {
-        return Response.json({ error: 'bad_request' }, { status: 400 })
-      }
-      // A wrong receipt is a 404, so every attempt is metered like any other
-      // guess at a pair.
-      if (await overHourlyCap('safety-probe', DEFAULT_PROBE_CAP)) return rateLimited()
-      try {
-        const key = keyFor(code, side, id)
-        if (!(await store.getMetadata(key))) return Response.json({ error: 'not_found' }, { status: 404 })
-        await store.delete(key)
-      } catch (err) {
-        await failed('safety', 'withdraw failed', err)
-        return Response.json({ error: 'unavailable' }, { status: 503 })
-      }
-      return Response.json({ withdrawn: true })
-    }
-
     if (!requireFounder(req)) return notFounder()
     const outcome = params.get('outcome') ?? ''
-    // Reports filed before receipts carry a six-character id; the founder
+    // Reports filed before 2026-09-23 carry a six-character id; the founder
     // resolves both.
     if (!CODE.test(code) || !GENDERS.has(side) || !(CODE.test(id) || TOKEN.test(id)) || !SAFETY_OUTCOMES.has(outcome)) {
       return Response.json({ error: 'bad_request' }, { status: 400 })

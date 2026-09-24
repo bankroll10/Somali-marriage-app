@@ -62,9 +62,6 @@ describe('a failure keeps its reason', () => {
     for (const why of ['unreachable', 'refused', 'not-a-code', 'not-found', 'expired', 'taken', 'garbled']) {
       expect(net).toContain(`'${why}'`)
     }
-    // Retrying a lapsed record or a malformed code is futile, and a screen
-    // that offers it is lying twice.
-    expect(net).toMatch(/why === 'unreachable' \|\| why === 'refused'/)
   })
 
   it('does not tell someone their link is broken when the network is', () => {

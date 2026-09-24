@@ -85,7 +85,7 @@ describe('every word the server accepts is a word the app uses', () => {
     expect(sorted(vocab.JOINTS)).toEqual(sorted(produced))
   })
 
-  it('the guide\u2019s five voices, and the copy the prompt speaks them in', () => {
+  it('the guide\u2019s four voices, and the copy the prompt speaks them in', () => {
     // The prompt lives on the server now (netlify/shared/prompt.ts), so the
     // voices and the stage lines have a second copy. These are the two halves
     // of the same words; a change to either without the other would put a

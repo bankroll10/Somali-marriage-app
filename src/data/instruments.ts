@@ -27,11 +27,3 @@
 export type Instrument = 'map' | 'read' | 'eleven' | 'couple'
 
 export const INSTRUMENT_IDS: Instrument[] = ['map', 'read', 'eleven', 'couple']
-
-/** What each one is, for the readout. Never shown to a member. */
-export const INSTRUMENT_LABEL: Record<Instrument, string> = {
-  map: 'The map — the sixteen questions',
-  read: 'A read on someone',
-  eleven: 'Before you say yes',
-  couple: 'His side of the eleven',
-}

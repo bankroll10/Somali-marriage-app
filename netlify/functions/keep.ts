@@ -180,10 +180,9 @@ export default async function handler(req: Request) {
       // code and the side out of the snapshot — which is whatever the caller
       // POSTed. The reported man holds the couple code, so he could keep a
       // throwaway map claiming to be her, forget it, and erase every report
-      // she had filed about him (docs/SECURITY.md, O1). A report is withdrawn
-      // only by the receipt the person who filed it was handed
-      // (netlify/functions/safety.ts), and the app no longer keeps one: a
-      // report stays until the founder has read it (docs/ABUSE.md).
+      // she had filed about him (docs/SECURITY.md, O1). A report stays until
+      // the founder has read and resolved it (netlify/functions/safety.ts,
+      // docs/ABUSE.md).
       await store.delete(code)
       return Response.json({ forgotten: true })
     } catch (err) {

@@ -171,10 +171,11 @@ describe('O6 — the man she sent the eleven to cannot rewrite her side of it', 
     expect(JSON.stringify(read)).not.toContain(created.key)
   })
 
-  it('a sheet from before the key keeps the old check until it expires', async () => {
+  it('a sheet from before the key cannot be changed at all — nothing proves whose it is', async () => {
     memStore('couples').setJSON('HJKMNP', { creator: 'woman', first: TOPICS_ALL, createdAt: 'd', expiresAt: '2099-01-01' })
     expect((await sheet(differ, { code: 'HJKMNP', gender: 'man' })).status).toBe(409)
-    expect((await sheet(differ, { code: 'HJKMNP' })).status).toBe(200)
+    expect((await sheet(differ, { code: 'HJKMNP' })).status).toBe(409)
+    expect(JSON.parse(stores.get('couples')!.get('HJKMNP')!).first).toEqual(TOPICS_ALL)
   })
 
   it('a code nobody minted is never created on demand', async () => {

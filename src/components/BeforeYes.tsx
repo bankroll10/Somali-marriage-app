@@ -9,7 +9,6 @@ import { coupleLink, coupleReading, createCouple, readCouple, type CoupleView } 
 import { shareOrCopy } from '../lib/share'
 import { withVia } from '../lib/links'
 import { SITE_URL } from '../lib/site'
-import { track } from '../lib/analytics'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
@@ -95,7 +94,6 @@ export default function BeforeYes({
   const them = gender ? pronoun : 'them'
 
   function begin() {
-    track('before_yes_started')
     onBegan()
     // Starting is starting: a fresh run drops whatever the last one left.
     clearDraft('eleven')
@@ -107,7 +105,6 @@ export default function BeforeYes({
   /** Back in at the first conversation she never answered for. */
   function resume() {
     if (!draft) return
-    track('before_yes_started')
     setGender(draft.gender)
     if (!identity.gender) onSetGender(draft.gender)
     onBegan()
@@ -143,8 +140,6 @@ export default function BeforeYes({
       return
     }
     clearDraft('eleven')
-    const built = buildBeforeYes(next, gender ?? 'woman')
-    track('before_yes_completed', { open: built?.open.id, differ: built?.counts.differ })
     onSave({ at: new Date().toISOString(), answers: next })
     setPhase('result')
   }
@@ -403,7 +398,7 @@ function Result({
       <List title="Where you don’t know your own answer yet" items={result.byState.unknown} tone="gold" />
       <List title="Talked about, and agreed" items={result.byState.agree} tone="forest" />
 
-      <ScriptCard script={result.open.script} title={title} source="beforeYes" travel="eleven" />
+      <ScriptCard script={result.open.script} title={title} travel="eleven" />
       <CheckBack what="you had this one" />
 
       {!jointFirst && together}
@@ -582,7 +577,6 @@ function Together({
         text: `I’ve been through the eleven conversations on Niyyah — would you do them too? You answer on your own; I never see your answers, only where we match.`,
         url: withVia(coupleLink(code, SITE_URL), 'couple'),
       },
-      'couple_shared',
     )
     if (result !== 'cancelled' && result !== 'failed') {
       setShared(true)
@@ -597,7 +591,6 @@ function Together({
       setState('error')
       return
     }
-    track('couple_created')
     onCouple({ code: made.code, at: new Date().toISOString(), ...(made.key ? { key: made.key } : {}) })
     setState('idle')
     void share(made.code)
@@ -617,7 +610,7 @@ function Together({
             </li>
           ))}
         </ul>
-        {r.open && <ScriptCard script={r.open.script} title="The one to open together" source="couple" travel="couple" />}
+        {r.open && <ScriptCard script={r.open.script} title="The one to open together" travel="couple" />}
         {r.open && <CheckBack what="the two of you had it" />}
         <p className="mt-4 text-[0.8rem] leading-relaxed text-muted text-pretty">
           {couple.side === 'second'

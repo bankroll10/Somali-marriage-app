@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { keepMap, rememberedCode, restoreLink, rotateCode } from '../lib/keep'
 import { formatCode } from '../lib/code'
 import { SITE_URL } from '../lib/site'
-import { track } from '../lib/analytics'
 import { Announce, ArrowRight, CheckIcon, Spinner } from './ui'
 
 /**
@@ -40,7 +39,6 @@ export default function KeepMap({ onKept }: Props = {}) {
       setState('error')
       return
     }
-    track('map_kept')
     setCode(result)
     onKept?.(result)
     setState('idle')

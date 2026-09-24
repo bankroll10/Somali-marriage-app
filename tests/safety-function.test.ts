@@ -76,9 +76,8 @@ describe('reporting a concern', () => {
     expect(answer.received).toBe(true)
 
     const stored = JSON.parse([...stores.get('reports')!.values()][0])
-    // The id is the receipt her phone keeps to withdraw it — a token's length,
-    // because it is a secret (docs/SECURITY.md, O1).
-    expect(answer.receipt).toBe(stored.id)
+    // Nothing comes back that could take it back (docs/ABUSE.md, coercion).
+    expect(answer).toEqual({ received: true })
     expect(stored.reason).toBe('threats')
     expect(stored.details.length).toBe(500)
     expect(stored.at).toMatch(/^\d{4}-\d{2}-\d{2}$/)
@@ -215,38 +214,14 @@ describe('resolving a report', () => {
   })
 })
 
-describe('withdrawing a report', () => {
-  const openReports = () =>
-    [...stores.get('reports')!.entries()].filter(([k]) => !k.startsWith('resolved/')).map(([, v]) => JSON.parse(v))
-  const withdraw = (code: string, side: string, id: string) => del(`code=${code}&side=${side}&id=${id}`)
-
-  it('the receipt takes back exactly that report, and leaves nothing behind', async () => {
-    const { receipt } = await (await post({ code: CODE, side: 'woman', reason: 'threats', details: 'her words' })).json()
-    await post({ code: CODE, side: 'woman', reason: 'harassment' })
-    await post({ code: CODE, side: 'man', reason: 'other' })
-    expect(openReports()).toHaveLength(3)
-
-    const res = await withdraw(CODE, 'woman', receipt)
-    expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ withdrawn: true })
-    expect(openReports().map((r) => r.reason).sort()).toEqual(['harassment', 'other'])
-    // Her asking to be forgotten, not the founder deciding: no stub.
-    expect([...stores.get('reports')!.keys()].some((k) => k.startsWith('resolved/'))).toBe(false)
-    // Once.
-    expect((await withdraw(CODE, 'woman', receipt)).status).toBe(404)
-  })
-
-  it('without the receipt nothing moves — not the right code, not the right side, not a guess', async () => {
-    const { receipt } = await (await post({ code: CODE, side: 'woman', reason: 'threats' })).json()
-    // The other side of the pair holds the code, and can name her side; what
-    // he does not hold is the receipt.
-    expect((await withdraw(CODE, 'woman', 'ACDEFGHJKM')).status).toBe(404)
-    expect((await withdraw(CODE, 'man', receipt)).status).toBe(404)
-    // A six-character id is the founder's to resolve, never a withdrawal.
-    expect((await withdraw(CODE, 'woman', 'ACDEFG')).status).toBe(400)
-    expect((await withdraw('nope', 'woman', receipt)).status).toBe(400)
-    // An outcome, or a key, is resolution — which is the founder's alone.
-    expect((await del(`code=${CODE}&side=woman&id=${receipt}&outcome=no-action`)).status).toBe(401)
-    expect(openReports()).toHaveLength(1)
+describe('nobody but the founder takes a report back', () => {
+  it('a delete without the founder’s key moves nothing — there is no withdrawal', async () => {
+    await post({ code: CODE, side: 'woman', reason: 'threats', details: 'her words' })
+    const [key] = [...stores.get('reports')!.keys()]
+    const id = key.split('-').pop()!
+    // Everything a person holding the pair's code, her side and the id could send.
+    expect((await del(`code=${CODE}&side=woman&id=${id}`)).status).toBe(401)
+    expect((await del(`code=${CODE}&side=woman&id=${id}&outcome=no-action`)).status).toBe(401)
+    expect([...stores.get('reports')!.keys()]).toEqual([key])
   })
 })

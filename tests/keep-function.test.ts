@@ -157,7 +157,7 @@ describe('keeping a map', () => {
     expect(again.snapshot.answers.timeline).toBe('1-2')
   })
 
-  it('a ten-character token — an owner key, a receipt — is not a code, and opens nothing', async () => {
+  it('a ten-character token — an owner key, a report’s id — is not a code, and opens nothing', async () => {
     seed('ACDEFG', { identity: { firstName: 'Sagal' } })
     expect((await get('ACDEFGHJKM')).status).toBe(400)
   })
@@ -188,9 +188,9 @@ describe('keeping a map', () => {
     expect(await res.json()).toEqual({ forgotten: true })
     expect(stores.get('maps')!.has('ACDEFG')).toBe(false)
     expect(stores.get('couples')!.has('HJKMNP')).toBe(false)
-    // Reports are not this cascade's to touch: a report is withdrawn by the
-    // receipt its filer holds (netlify/functions/safety.ts), because anything
-    // read from a snapshot is whatever the caller wrote (docs/SECURITY.md, O1).
+    // Reports are not this cascade's to touch: only the founder resolves one
+    // (netlify/functions/safety.ts), because anything read from a snapshot is
+    // whatever the caller wrote (docs/SECURITY.md, O1).
     expect(stores.get('reports')!.has('HJKMNP-woman-ACDEFG')).toBe(true)
     expect(stores.get('reports')!.has('resolved/QRTWXY')).toBe(true)
     expect(stores.get('couples')!.has('QRTWXY')).toBe(true)
@@ -202,7 +202,7 @@ describe('keeping a map', () => {
     expect((await get('ACDEFG')).status).toBe(410)
   })
 
-  it('takes no report on either side, whatever the snapshot claims — a report goes only by its receipt', async () => {
+  it('takes no report on either side, whatever the snapshot claims — only the founder resolves one', async () => {
     // This cascade used to delete `${couple}-${side}-*`, with both read out of
     // the snapshot. A snapshot is whatever the caller POSTed, so a reported man
     // could keep a map claiming to be her and erase her reports by forgetting

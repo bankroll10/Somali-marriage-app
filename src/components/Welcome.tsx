@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
-import FollowUp, { FollowedThrough } from './home/FollowUp'
+import { SinceLastTime } from './home/FollowUp'
 import type { FollowUpAsk } from '../lib/followup'
 import type { FollowUp as FollowUpRecord } from '../types'
 import RestoreMap from './RestoreMap'
@@ -36,7 +35,6 @@ export default function Welcome({
   onAnswerFollowUp,
   onAskGuide,
 }: Props) {
-  const [hadIt, setHadIt] = useState<FollowUpAsk | null>(null)
   return (
     <div className="relative min-h-dvh overflow-hidden bg-forest-deep text-cream">
       <GeoBackdrop className="opacity-70" />
@@ -48,21 +46,13 @@ export default function Welcome({
         </header>
 
         <main className="flex flex-1 flex-col justify-center py-16">
-          {onAnswerFollowUp && (hadIt || followUpAsk) && (
-            <div className="-mt-8 mb-10 rounded-card bg-cream px-4 pb-4 text-ink">
-              {hadIt ? (
-                <FollowedThrough ask={hadIt} onDone={() => setHadIt(null)} />
-              ) : (
-                <FollowUp
-                  ask={followUpAsk!}
-                  onAnswer={(id, outcome, agreed, putAway) => {
-                    if (outcome === 'asked') setHadIt(followUpAsk)
-                    onAnswerFollowUp(id, outcome, agreed, putAway)
-                  }}
-                  onAskGuide={(text) => onAskGuide?.(text)}
-                />
-              )}
-            </div>
+          {onAnswerFollowUp && (
+            <SinceLastTime
+              ask={followUpAsk}
+              onAnswer={onAnswerFollowUp}
+              onAskGuide={(text) => onAskGuide?.(text)}
+              wrap="-mt-8 mb-10 rounded-card bg-cream px-4 pb-4 text-ink"
+            />
           )}
           <p className="animate-fade mb-5 text-sm font-medium uppercase tracking-[0.25em] text-gold-soft">
             {EYEBROW}

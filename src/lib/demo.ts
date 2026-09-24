@@ -85,8 +85,6 @@ export function seedDemo() {
 }
 
 export function clearForFresh() {
-  // Clear app state only — the local analytics buffer survives ?fresh so
-  // hallway-test funnels aren't wiped between runs.
   clearProgress()
 }
 

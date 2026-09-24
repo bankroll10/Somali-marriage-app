@@ -60,6 +60,7 @@ export const LOCAL_KEYS = [
   // A place at the door not yet sent, from before 2026-09-24, when the door
   // was removed. Nothing writes it now; it held a way to reach her.
   'niyyah.waitlist.queue.v1',
+  // The session event log an older version kept here. Nothing writes it now.
   'niyyah.events.v1',
   // A read or an eleven she was part-way through — see src/lib/draft.ts.
   // Forget me promises the phone is cleared, and this is on the phone.

@@ -47,14 +47,15 @@ export interface CoachMessage {
  * write my bio", "what should my photos show", promising to make her
  * "unmistakable" and "magnetic". It optimised self-presentation for a
  * marketplace with nobody in it, which is the one lesson this product exists
- * to unteach. Five voices are enough, and the router already picks one.
+ * to unteach. The Matchmaker went the same way on 2026-09-24: it could only
+ * say there was nobody to introduce. Four voices are enough, and the router
+ * already picks one.
  */
 export type ModeId =
   | 'auntie'
   | 'brother'
   | 'therapist'
   | 'islamic'
-  | 'matchmaker'
 
 /**
  * The one trust control that does what it says.

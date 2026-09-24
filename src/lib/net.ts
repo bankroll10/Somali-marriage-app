@@ -43,11 +43,6 @@ export const TIMEOUT_MS = 10_000
  */
 export type Why = 'unreachable' | 'refused' | 'not-a-code' | 'not-found' | 'expired' | 'taken' | 'garbled'
 
-/** True when trying the same thing again could plausibly work. */
-export function worthRetrying(why: Why): boolean {
-  return why === 'unreachable' || why === 'refused'
-}
-
 /**
  * Fetch with a clock. Returns null when no response arrived at all — which is
  * a different fact from a response that said no, and callers must keep them

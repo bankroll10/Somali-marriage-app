@@ -41,7 +41,7 @@ describe('the prompt', () => {
     // The prompt used to end with "LIVE APP STATE: connected with [...]",
     // naming simulated matches on every request. Nobody is here yet, and the
     // guide saying otherwise is the one thing this product cannot afford.
-    const p = buildSystemPrompt('matchmaker', ctx)
+    const p = buildSystemPrompt('auntie', ctx)
     expect(p).not.toMatch(/LIVE APP STATE/)
     expect(p).not.toMatch(/connected with|awaiting reply/i)
   })
@@ -148,8 +148,8 @@ describe('the slots the caller fills', () => {
     }
   })
 
-  it('names five voices and no more', () => {
-    expect([...GUIDE_MODES].sort()).toEqual(['auntie', 'brother', 'islamic', 'matchmaker', 'therapist'])
+  it('names four voices and no more', () => {
+    expect([...GUIDE_MODES].sort()).toEqual(['auntie', 'brother', 'islamic', 'therapist'])
     // An unknown mode never reaches here — guide.ts refuses it — but if one
     // ever did, it must not produce a prompt with no persona in it.
     expect(buildSystemPrompt('anything-else', ctx)).toContain('You are one voice of Niyyah')

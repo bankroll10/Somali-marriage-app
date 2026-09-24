@@ -18,8 +18,8 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
  * Possession of a code is the only authority this product has. So a code must
  * bring back exactly the map it was minted for — never another person's,
  * never a mixture — and none of the other things a member is handed (the
- * couple code she sends him, the install id on her phone, a report's
- * receipt) may open a map at all. A link to someone's
+ * couple code she sends him, the install id on her phone, a report's id)
+ * may open a map at all. A link to someone's
  * map, opened on a stranger's phone, fetches without adopting. A code she
  * changed or forgot brings nothing back.
  *
@@ -77,18 +77,18 @@ describe('a code brings back its own map', () => {
 })
 
 describe('nothing else she is handed opens a map', () => {
-  it('not the couple code, the install id or a report’s receipt', async () => {
+  it('not the couple code, the install id or a report’s id', async () => {
     const her = phoneWith('ZqHodanOnly')
     await keepMap()
     const states = await fc.sample(sheet, 1)[0]
     const pair = (await createCouple(states, 'woman'))!.code
     const install = installId()!
     expect(await sendReport(pair, 'woman', 'harassment', 'Zq details')).toBe('sent')
-    const receipt = blobs.keys('reports')[0].split('-').pop()!
+    const reportId = blobs.keys('reports')[0].split('-').pop()!
     const once = 'CDEFGHJKMN'
     expect(her.keys()).toContain('niyyah.keep.code.v1')
 
-    for (const [what, id] of [['couple code', pair], ['install id', install], ['report receipt', receipt], ['a once key', once]]) {
+    for (const [what, id] of [['couple code', pair], ['install id', install], ['report id', reportId], ['a once key', once]]) {
       const res = await call('keep', 'GET', `keep?code=${id}`)
       expect(res.status, what).not.toBe(200)
       expect(await res.text(), what).not.toContain('ZqHodanOnly')

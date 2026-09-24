@@ -1,5 +1,5 @@
 import { loadProgress, saveProgress, type PersistedState } from './storage'
-import { ALPHABET, cleanCode, isCode } from './code'
+import { cleanCode, isCode, newCode } from './code'
 import { send } from './net'
 
 /**
@@ -142,8 +142,7 @@ function onceKey(): string | undefined {
   try {
     const held = localStorage.getItem(ONCE_KEY)
     if (held && /^[ACDEFGHJKMNPQRTWXY34789]{10}$/.test(held)) return held
-    const bytes = crypto.getRandomValues(new Uint8Array(10))
-    const fresh = [...bytes].map((b) => ALPHABET[b % ALPHABET.length]).join('')
+    const fresh = newCode(10)
     localStorage.setItem(ONCE_KEY, fresh)
     return fresh
   } catch {

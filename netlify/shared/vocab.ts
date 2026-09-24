@@ -67,10 +67,10 @@ export const GENDERS = new Set(['woman', 'man'])
 
 /**
  * Must match `ModeId` in src/types.ts and the mode ids in src/data/coach.ts —
- * which of the five voices is answering. The only thing about how the guide
+ * which of the four voices is answering. The only thing about how the guide
  * speaks that a caller gets to choose (netlify/shared/prompt.ts).
  */
-export const GUIDE_MODES = new Set(['auntie', 'brother', 'therapist', 'islamic', 'matchmaker'])
+export const GUIDE_MODES = new Set(['auntie', 'brother', 'therapist', 'islamic'])
 
 /** Must match `Stage` in src/types.ts and the ids in src/data/stages.ts. */
 export const STAGES = new Set(['preparing', 'talking', 'deciding', 'married'])
