@@ -5,11 +5,14 @@ import { describe, expect, it } from 'vitest'
 /**
  * A strong accessibility baseline, held honest (docs/ACCESS.md).
  *
- * Source-level checks, no jsdom, in the shape of tests/mobile.test.ts and
- * tests/voice.test.ts. A real screen-reader/keyboard walk still belongs in a
- * Chromium pass — these are the regressions a source scan can actually catch:
- * a heading disappearing, a label being dropped, a live region losing its
- * role, a selection state losing its aria-pressed.
+ * Source-level checks, for what the rendered audit in tests/ui/screens.test.tsx
+ * cannot reach: colour contrast (there is no layout without a browser), the
+ * reduced-motion helper, the crash screen, and the few components no rendered
+ * screen shows yet. Everything a rendered screen can prove — one main, a
+ * heading, a name on every control and field, a group's name, which option is
+ * chosen, an error reaching its field, lang="so" — moved there on 2026-09-24,
+ * and the regexes that stood in for it were deleted (docs/TESTING.md,
+ * "Pruned"). A real screen-reader walk still belongs in a Chromium pass.
  */
 
 const SRC = join(import.meta.dirname, '..', 'src')
@@ -34,8 +37,6 @@ describe('structure — every screen has a heading, and focus follows it', () =>
   it('gives every previously headingless screen a real h1 or h2', () => {
     for (const [file, needle] of [
       ['components/ShortMap.tsx', '<h1 className="font-display text-[1.05rem] font-medium text-ink">Being counted</h1>'],
-      ['components/Coach.tsx', '<h1 className="font-display text-[1.05rem] font-medium leading-tight text-ink">'],
-      ['components/Reflection.tsx', '<h1 className="sr-only">Building your map</h1>'],
       ['components/Intake.tsx', '<h2 className="text-[0.82rem] font-semibold uppercase tracking-[0.16em] text-gold-ink">'],
     ] as const) {
       expect(read(file), `${file} is missing its heading`).toContain(needle)
@@ -58,17 +59,6 @@ describe('structure — every screen has a heading, and focus follows it', () =>
 })
 
 describe('landmarks — one main per screen, even the ones that had none', () => {
-  it('gives every previously mainless screen a <main> or role="main"', () => {
-    for (const [file, needle] of [
-      ['components/Situation.tsx', '<main className="flex flex-1 flex-col justify-center py-10">'],
-      ['components/Hook.tsx', '<main className="flex flex-1 flex-col justify-center py-10">'],
-      ['components/Identity.tsx', '<main className="flex flex-1 flex-col justify-center py-10">'],
-      ['components/Coach.tsx', '<main className="mx-auto max-w-2xl px-5 py-9">'],
-      ['components/Coach.tsx', 'role="main"'],
-    ] as const) {
-      expect(read(file), `${file} is missing ${needle}`).toContain(needle)
-    }
-  })
 
   it('announces the crash screen as an alert, since it bypasses the normal screen machinery', () => {
     expect(read('components/ErrorBoundary.tsx')).toMatch(/role="alert"/)
@@ -108,23 +98,16 @@ describe('group semantics — a picker\'s buttons need a name for the group, not
     }
   })
 
-  it('gives Identity\'s gender chooser a group label, even though it has no visible one', () => {
-    expect(read('components/Identity.tsx')).toContain('id="identity-gender-label"')
-  })
 })
 
 describe('selection state — a screen reader has to be told what is chosen, not just shown', () => {
-  it('gives every single-select "big card" component a role and aria-checked, not just a color change', () => {
-    for (const file of [
-      'components/Read.tsx',
-      'components/BeforeYes.tsx',
-      'components/Identity.tsx',
-      'components/ReportConcern.tsx',
-    ] as const) {
-      const src = read(file)
-      expect(src, `${file} is missing role="radio"`).toContain('role="radio"')
-      expect(src, `${file} is missing aria-checked`).toMatch(/aria-checked=/)
-    }
+  it('gives ReportConcern\'s reason cards a role and aria-checked, not just a color change', () => {
+    // The read's, the eleven's and Identity's cards are checked on the
+    // rendered screen now (tests/ui/screens.test.tsx); ReportConcern is not
+    // on a screen that suite reaches yet.
+    const src = read('components/ReportConcern.tsx')
+    expect(src).toContain('role="radio"')
+    expect(src).toMatch(/aria-checked=/)
     // QuestionCard's OptionRow backs both a single-select and a genuine
     // multi-select, so its role is computed per kind rather than a literal.
     expect(read('components/QuestionCard.tsx')).toMatch(/aria-checked=\{selected\}/)
@@ -169,12 +152,6 @@ describe('form validation — the error text has to reach the field, not just th
     expect(read('components/Cohort.tsx')).toMatch(/aria-invalid=\{!!contactHint\}/)
   })
 
-  it('gives RestoreMap\'s code field an id-linked error and aria-invalid, not just a visible message', () => {
-    const src = read('components/RestoreMap.tsx')
-    expect(src).toContain('id="restore-code-status"')
-    expect(src).toMatch(/aria-describedby=\{state !== 'idle' && state !== 'checking' \? 'restore-code-status' : undefined\}/)
-    expect(src).toMatch(/aria-invalid=\{state !== 'idle' && state !== 'checking'\}/)
-  })
 })
 
 describe('contrast — computed, not eyeballed', () => {
@@ -292,12 +269,6 @@ describe('lang — a Somali sentence needs lang="so", or a screen reader pronoun
     expect(somali).not.toMatch(/\btext:\s*string/)
   })
 
-  it('wraps the Somali span lang="so" at all three render sites, and keeps the English gloss outside it', () => {
-    for (const file of ['components/Situation.tsx', 'components/BeforeYes.tsx', 'components/Families.tsx'] as const) {
-      const src = read(file)
-      expect(src, `${file} doesn't mark its Somali span lang="so"`).toMatch(/<span lang="so">\{[a-zA-Z.]+\}<\/span>/)
-    }
-  })
 })
 
 describe('the a11y pass reads more than fifteen component files, so an empty result above means clean and not skipped', () => {

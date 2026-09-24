@@ -186,7 +186,10 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
         )}
       </div>
 
-      <div className="mx-auto max-w-xl px-5 pb-32 pt-8 sm:pt-12">
+      {/* The screen's one landmark. The intake is the longest flow in the
+          product and had none: "jump to main" landed nowhere, on every one of
+          its questions (found by tests/ui/screens.test.tsx). */}
+      <main className="mx-auto max-w-xl px-5 pb-32 pt-8 sm:pt-12">
         {insight ? (
           <ChapterInsight
             key={`insight-${current.chapter.id}`}
@@ -211,7 +214,7 @@ export default function Intake({ answers, onAnswer, onComplete, onExit, onBegan,
             />
           </div>
         )}
-      </div>
+      </main>
 
       {/* Bottom action bar */}
       {!showIntro && !insight && (
