@@ -171,6 +171,13 @@ Each route's storage failures also show under `functions`, and the limiter's sho
 
 ### Also on the table
 
+- **`data` — has stored data gone missing?** Red when a store has lost more
+  than a quarter of itself since the last day on record (from at least 8
+  records), or the safety queue has lost reports (from at least 2). `/health`
+  records each store's size once a day to compare — population totals, never
+  a record. Stop the sweep, take a backup of what is left, and follow
+  `docs/RECOVERY.md`, scenario 6.
+
 - **`sweep`: the weekly clean-up.**
   - 🔴 when it has not run for over 8 days. It runs on Sundays, from `netlify/functions/sweep.ts`'s own schedule.
   - 🟡 when it ran with errors. The sweep's log line names the counts.
@@ -180,6 +187,14 @@ Each route's storage failures also show under `functions`, and the limiter's sho
   - `chunk` means a screen's code never arrived: a bad deploy, or a CDN problem.
   - `crash` means a screen threw.
   - The browser console on a test phone, or the build's own test run, shows which screen.
+
+## When it is worse than a red check
+
+`docs/RECOVERY.md` walks ten disasters — Netlify down, corruption, a lost
+variable, a leaked key, a bad deploy, deleted data, a broken migration, the
+domain lost, runaway cost, the founder's laptop — with detection, the first
+hour, recovery, the data-loss bound, what members see and the prevention; and
+which of those procedures are tested on every PR.
 
 ## What is counted, and what never is
 

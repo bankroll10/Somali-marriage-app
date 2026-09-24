@@ -200,6 +200,27 @@ curl -s -H "Authorization: Bearer $FOUNDER_KEY" \
   https://<your-site>/.netlify/functions/export -o "backup-$(date +%F).json"
 ```
 
+## Rolling back
+
+A deploy that is live and broken is rolled back first and understood second
+(`docs/RECOVERY.md`, scenario 5). The data is safe either way: stored records
+are read by older and newer code alike, and `tests/recovery.test.ts` reads
+every shape ever written.
+
+1. Netlify → the site → **Deploys**.
+2. Find the last deploy marked **Published** whose `deployed.yml` run was
+   green — its commit is in the list.
+3. Open it → **Publish deploy**. It is live in seconds; nothing rebuilds.
+4. **Stop auto publishing** (Deploys → the banner, or Deploy settings), so the
+   next push to `main` does not put the broken commit back before it is fixed.
+5. Fix on a branch; let `npm run verify` and the preview pass; merge.
+6. **Start auto publishing**, and confirm `deployed.yml` is green on the fix —
+   it waits for the commit and smoke-tests the page, the functions and storage.
+
+Drill it once, in a quiet hour: publish the previous deploy, check the site,
+publish the latest again. Netlify moves these buttons; the minutes matter on
+the day.
+
 ## Did it deploy? Is it up?
 
 Every build writes `/version.json` with the commit it was built from
@@ -207,7 +228,10 @@ Every build writes `/version.json` with the commit it was built from
 `.github/workflows/deployed.yml` waits up to fifteen minutes for the live
 site to say that commit, and fails — emailing the owner with both commits —
 if it never does. The health run every three hours also fetches the page and
-`/version.json` from outside. `docs/OPS.md` is the runbook for both.
+`/version.json` from outside. Once the commit is live, `deployed.yml` also
+smoke-tests it: the page carries the app, `/health` without a key is a 401
+(the functions answer), and the door's public count is a 200 (storage
+answers). A failure names the rollback above. `docs/OPS.md` is the runbook.
 
 ## The safety queue
 

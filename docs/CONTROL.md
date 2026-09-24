@@ -21,7 +21,7 @@ rather than quietly giving up later.
 | **Social SDKs** | Sharing uses the browser's own share sheet | A tracking pixel on a page about someone's marriage |
 | **Paid acquisition** | The product is designed to travel by word of mouth | A channel whose price is set by someone else and rises every year |
 
-**The exposure is one vendor.** Netlify holds the hostname, all nine data
+**The exposure is one vendor.** Netlify holds the hostname, all ten data
 stores, the only customer list, the deploy pipeline, and three secrets its
 plan refuses to hide. That is not a spread of risks. It is one point through
 which the company can end.
@@ -31,7 +31,7 @@ which the company can end.
 | # | Dependency | If pricing doubles | If access disappears | If policy changes | Can we migrate? | Own the customer? | Own the asset? |
 |---|---|---|---|---|---|---|---|
 | **1** | **The hostname** | Free, so no | Links keep working: DNS repoints at any host on earth | Nothing to reclaim — the registration is ours | Yes. The address moves with us, which is the whole point of owning one | — | **Yes — `joinniyyah.com` is ours.** Was Netlify's; see below |
-| **2** | **Blobs — nine stores** | Free-tier limits, not prices; exceeding them degrades quietly | **Every kept map, vouch, pair sheet, door entry and the whole learning record, gone** | A free account can be suspended on an acceptable-use reading of a marriage app with member content | The surface is get, set, delete, list and one conditional write. A few hundred lines — but there is nothing to migrate if the data is already gone | — | The data yes. **A copy: now yes** |
+| **2** | **Blobs — ten stores** | Free-tier limits, not prices; exceeding them degrades quietly | **Every kept map, vouch, pair sheet, door entry and the whole learning record, gone** | A free account can be suspended on an acceptable-use reading of a marriage app with member content | The surface is get, set, delete, list and one conditional write. A few hundred lines — but there is nothing to migrate if the data is already gone | — | The data yes. **A copy: now yes** |
 | **3** | **Forms — a second copy of the customer list** | n/a | The contact, city and country that are also in the `contacts` store, plus three the store does not hold: who they are seeking, how far they would go, and the hardest part **in their own words**. Not the map code — it used to travel here, putting the map's sole authenticator in a third party's row beside the way to reach her, and was dropped in the reality-sprint pass (`docs/BOARD.md`). The `contacts` store is ours and is exported monthly by the loop in `docs/OPERATING.md` | Retention is theirs | The transport is already portable — `VITE_WAITLIST_URL` posts to any endpoint | **Yes — since `docs/OWNED.md` move 2** | **Yes. A copy leaves every month** |
 | **4** | **Build and deploy** | n/a | The site cannot be rebuilt; the last deploy keeps serving | Build minutes can change | Yes — it is `npm run build`, a static `dist`, and handlers written against the web-standard `Request` | — | Yes, in git |
 | **5** | **The three secrets** | n/a | The edge gate fails open and says so; **every readout fails closed** since 2026-09-12 (`netlify/shared/founder.ts`, `docs/BOARD.md`) — `/export` returns whole records and `/pool` deletes on read, so an unset key refuses rather than publishes | **The free plan refuses to mark them secret**, so every key is plaintext to anyone on the team | Trivial | — | No |
@@ -160,12 +160,10 @@ day between now and a move that may never happen. The control move for storage
 is a *backup*, not an *interface* — and the backup is built. Revisit if a
 second runtime is ever actually needed.
 
-**A service worker for offline use.** Real offline support means cache
-invalidation and an update flow, which is a lot of machinery for a benefit
-this audit does not rank highly: the app is opened when something happens, and
-what a person needs to keep — her map, her words — is already on her phone in
-`localStorage`. Revisit if members start reporting that the app is unreachable
-when they need it.
+**A service worker for offline use.** Declined here, then built on
+2026-09-21 once the launch-from-home-screen case was measured (`docs/LINKS.md`,
+`src/lib/serviceWorker.ts`). It is what keeps the app usable through a Netlify
+outage (`docs/RECOVERY.md`, scenario 1).
 
 **A second host on standby.** Two deployment targets to keep in sync, for a
 risk the backup already covers. Revisit if the company ever depends on

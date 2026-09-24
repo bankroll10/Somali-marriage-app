@@ -605,7 +605,9 @@ table and turn on 2FA everywhere → have a native speaker approve the ten Somal
 lines → delete `PREVIEW_PASSWORD` and deploy → post the eleven, the read and
 the door to the ten connectors, and write down what they say.
 
-*Done 2026-09-12, by the founder:* private; the secret (the `watch` workflow's
+*Done 2026-09-12, by the founder* (as recorded then — on 2026-09-24 the
+GitHub API reports the repository **public**, and `docs/CONTROL.md` still has
+no spend limit written down; `docs/RECOVERY.md` lists both as open): private; the secret (the `watch` workflow's
 first run was green); the spend limit; the backup variable; the gate off and
 `main` deployed; the links posted. *Deferred by the founder:* the accounts
 table and 2FA, "later" — the two logins that matter are GitHub and Netlify.
