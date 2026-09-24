@@ -299,9 +299,9 @@ Here you can slow down and look at what is going on in you — the overthinking,
     {
       keywords: ['overthink', 'overthinking', 'spiral', 'spiralling', 'spiraling', 'cant stop', "can't stop", 'in my head', 'reading too much', 'analysing'],
       respond: (ctx) =>
-        `Let’s slow it down together. Overthinking is usually your mind trying to protect you from not knowing — it is not a sign something is wrong.
+        `Let’s slow it down together. Overthinking is your mind trying to settle what it cannot know yet.
 
-Try separating *fact* from *story*. On one side: what happened (“he replied after four hours”). On the other: the story your mind added (“he’s losing interest”). Almost always, the facts are far calmer than the story.${(() => {
+Try separating *fact* from *story*. On one side: what happened (“he replied after four hours”). On the other: the story your mind added (“he’s losing interest”). If the facts are calmer than the story, let the story go. If they are not, take that seriously, and bring the facts here.${(() => {
           const cs = ctx.answers['comm-safety']
           if (!Array.isArray(cs) || cs.length === 0) return ''
           const map: Record<string, string> = { consistency: 'consistency', directness: 'directness', gentleness: 'gentleness', reassurance: 'reassurance', space: 'respected space', 'follow-through': 'follow-through' }
@@ -314,11 +314,11 @@ Try separating *fact* from *story*. On one side: what happened (“he replied af
       respond: (ctx) => {
         const lean = ctx.answers['attachment'] === 'anxious'
         const intro = lean
-          ? `You named this in your map, so let’s honour it: your heart leans anxious. That isn’t a flaw — it’s a pattern that once kept you safe.`
+          ? `You told your map that when someone goes quiet, you worry and reread. That isn’t a flaw — it is a pattern, and a pattern can be worked with.`
           : `An anxious lean means closeness can trigger a fear of losing it — so you seek reassurance, and silence feels like danger.`
         return `${intro}
 
-The aim is not to stop feeling anxious. It is to not *act* from it. When the wave comes: name it (“this is the fear, not the truth”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. Over time the silence stops feeling like danger.`
+The aim is not to stop feeling anxious. It is to not *act* from it. When the wave comes: name it (“this is the fear, not the truth”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. With practice, a silence can stop feeling like danger.`
       },
     },
     {

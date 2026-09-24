@@ -630,7 +630,7 @@ function Result({
                 </span>
                 <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
  That was about {subject}. Two minutes on you — what you need, and what you
-                  will not compromise on. It makes every read after this one sharper.
+                  will not compromise on. Your guide and your side of the eleven use it.
                 </span>
               </span>
               <ArrowRight className="flex-none text-gold-ink transition-transform group-hover:translate-x-0.5" />

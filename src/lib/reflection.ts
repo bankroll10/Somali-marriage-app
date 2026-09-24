@@ -25,8 +25,8 @@ import type {
  * grow out of. docs/PRODUCT.md declines it, and the reasoning is worth keeping
  * where the temptation lives:
  *
- * The map is the durable asset. It is the thing that gets matched, it is built
- * from her answers and a question set that is ours, and it works with the
+ * The map is the durable asset. It feeds the guide and her side of the eleven
+ * (matching went on 2026-09-24), it is built from her answers and a question set that is ours, and it works with the
  * network off. Putting a supplier behind it would trade something permanent
  * for something rented, and would mean that the day a vendor changes its mind
  * a member cannot get a map at all.
@@ -172,13 +172,13 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       if (why === 'pressure')
         return soon
           ? 'You named the pressure honestly — your family and community expect this, and you are moving anyway. Knowing the difference between their clock and your intention is what keeps you from choosing to end the questions.'
-          : 'You said the expectation comes from around you rather than from inside you. That is an honest place to start, and the reason to go slowly is that a marriage entered to quiet the questions is the hardest one to leave.'
+          : 'You said the expectation comes from around you rather than from inside you. That is an honest place to start, and the reason to go slowly is that a marriage entered to quiet the questions is still a marriage once they stop.'
       if (why === 'ready')
         return soon
           ? 'You know why you are here and roughly when, and you can say it plainly. Say it early.'
  : 'You feel ready, and you are giving yourself room on the timing. That combination — clear on the why, unhurried on the when — leaves room to choose calmly.'
       if (why === 'lonely')
-        return 'You were honest that companionship is a real part of this. It is not a lesser reason, but it is worth watching: loneliness makes almost anyone look like an answer, so let your standards do the filtering rather than your evenings.'
+        return 'You were honest that companionship is a real part of this. It is not a lesser reason, but it is worth watching: loneliness can make almost anyone look like an answer, so let your standards do the filtering rather than your evenings.'
       return 'You are still working out whether you are ready, and you said so instead of performing certainty. Arriving honestly is worth more than arriving fast.'
     }
 
@@ -199,13 +199,13 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
     case 'family': {
       switch (a('family-role')) {
         case 'central':
-          return 'You want your people in this from the beginning. That is not old-fashioned — it is protection, and it tells us to look for someone who expects to meet them rather than someone who flinches.'
+          return 'You want your people in this from the beginning. That is not old-fashioned — it is protection. Look for someone who expects to meet them rather than someone who flinches.'
         case 'guided':
  return 'You bring family in once it is serious. Say that out loud early; the other person may be assuming something different.'
         case 'informed':
-          return 'You keep your family informed and you lead the decision yourself. Hold that clearly: the person who respects it will respect it from day one, and the person who does not will test it slowly.'
+          return 'You keep your family informed and you lead the decision yourself. Hold that clearly, and say it early, so whoever you meet hears it from day one.'
         default:
-          return 'You would rather keep this private until you are sure. That instinct usually comes from somewhere real — and it is worth knowing now whether it is protecting you or delaying a conversation you will still have to have.'
+          return 'You would rather keep this private until you are sure. That instinct is worth taking seriously — and worth knowing now whether it is protecting you or delaying a conversation you will still have to have.'
       }
     }
 
@@ -216,7 +216,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
         case 'no':
           return 'You do not see children in your future, and you said so plainly. That takes more courage to write than to think — and it belongs in the first serious conversation, not the fifth.'
         case 'open':
-          return 'You are open to children with the right person. Watch for the version of that which is really "I will decide later" — the people this hurts are the ones who never said which they meant.'
+          return 'You are open to children with the right person. Watch for the version of that which is really "I will decide later", and say which one you mean, early.'
         default:
           return 'You are still unsure about children. That is an honest place to be at any age, and it is the one question where "we will figure it out" cannot stay the answer.'
       }
@@ -230,11 +230,11 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       const nn = count > 0 && count < WORDS.length ? WORDS[count] : ''
       switch (a('conflict')) {
         case 'talk':
-          return `You talk things through even when it is hard${nn ? `, and you named ${nn} thing${count === 1 ? '' : 's'} you will not compromise on` : ''}. How someone handles the difficult hour says more than how they behave in the easy ones.`
+          return `You talk things through even when it is hard${nn ? `, and you named ${nn} thing${count === 1 ? '' : 's'} you will not compromise on` : ''}. How someone handles the difficult hour is one of the clearest things you can learn about them.`
         case 'space':
           return 'You need space before you can come back to it. That is workable and healthy — as long as the person you choose knows it is a pause and not a punishment. Say it before the first argument, not during it.'
         case 'avoid':
-          return 'You tend to let things pass rather than raise them. Nothing on this map is more worth working on: the things that go unsaid do not leave, they accumulate — and they surface years later wearing a different name.'
+          return 'You tend to let things pass rather than raise them. Nothing on this map is more worth working on: the things that matter do not leave on their own, and unsaid, they can surface years later wearing a different name.'
         default:
           return 'You get heated and then you repair. The repair is the part that matters, and it is a real skill — just make sure the person across from you experiences the repair as clearly as they felt the heat.'
       }
@@ -245,7 +245,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       const att = a('attachment')
       const lean =
         att === 'anxious'
-          ? ' When someone goes quiet you worry first, so a silence will feel worse than it is. Reach for your salah, a walk, a friend, before you reach for the phone.'
+          ? ' When someone goes quiet you worry first. Read a silence slowly: reach for your salah, a walk, a friend, before you reach for the phone.'
           : att === 'avoidant'
             ? ' When someone gets close you pull back. Saying so — "I need a moment, I am not disappearing" — is what keeps that from reading as rejection.'
             : att === 'secure'
@@ -337,7 +337,7 @@ function growthNote(answers: Answers): string {
     'trust|unavailable':
  'You said trusting again is the hardest part, and that you tend to choose people who cannot fully show up. Be gentle with yourself about that: someone unavailable can never test your trust, which makes them feel safer than they are.',
     'serious|rushing':
-      'You want to know whether someone is serious, and you know you tend to move fast. Those work against each other — speed is what makes seriousness impossible to read. Slowness is not a delay here; it is the actual instrument.',
+      'You want to know whether someone is serious, and you know you tend to move fast. Those work against each other — speed is what makes seriousness hard to read. Slowness is not a delay here; it is the actual instrument.',
     'serious|settling':
       'You said the hardest part is knowing if someone is serious, and that you have settled before. That combination has a specific danger: when you have accepted less once, "serious enough" starts to sound like serious.',
     'family|rushing':

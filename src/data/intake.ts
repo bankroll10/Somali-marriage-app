@@ -242,7 +242,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'character',
         prompt: 'When something is wrong between you, what do you do?',
-        helper: 'How we handle conflict says more than how we love.',
+        helper: 'How we handle conflict is one of the clearest things about us.',
         options: [
           { id: 'talk', label: 'I talk it through, even when it’s hard', tags: ['Communicative'], weight: 1 },
           { id: 'space', label: 'I need space first, then I come back to it', tags: ['Reflective'], weight: 0.8 },
@@ -332,7 +332,7 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
           ? 'And faith isn’t a checkbox for you — it’s the frame. Someone walking at a pace beside yours is worth asking about early.'
           : p === 'returning'
             ? 'And you named where you really are with your deen — returning, and honest about it. The right person meets you there.'
-            : 'And you were honest about where faith sits for you right now. That clarity protects you from a mismatch more than any filter could.'
+            : 'And you were honest about where faith sits for you right now. Say it early; that clarity protects you from a mismatch.'
       return `${intention} ${faith}`
     }
     case 'life': {
@@ -340,7 +340,7 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
       const kids = answers['children']
       const family =
         f === 'central' || f === 'guided'
-          ? 'You want your people in the story. That isn’t old-fashioned — it’s protection, and it tells us to look for someone who honours family too.'
+          ? 'You want your people in the story. That isn’t old-fashioned — it’s protection. Look for someone who honours family too.'
           : 'You lead your own decisions with family respected, not ruling. Knowing that now means you can say it before it is tested.'
       const vision =
         kids === 'want'
