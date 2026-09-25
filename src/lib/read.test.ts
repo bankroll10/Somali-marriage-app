@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { buildRead, readSummary } from './read'
-import { DIMENSION_LABEL, EXAMPLE_ANSWERS, NONNEG_SCRIPT, READ_QUESTION_COUNT, readQuestions, scriptFor } from '../data/read'
+import { CAREFUL_SCRIPT, DIMENSION_LABEL, EXAMPLE_ANSWERS, NONNEG_SCRIPT, READ_QUESTION_COUNT, readQuestions, scriptFor } from '../data/read'
 import { familyScripts, familyScriptsLine } from '../data/families'
 
 /**
@@ -442,5 +442,71 @@ describe('what the dimensions are called', () => {
     expect(DIMENSION_LABEL.consistency).not.toMatch(/follow-through/i)
     expect(DIMENSION_LABEL.consistency).toMatch(/contact/i)
     expect(DIMENSION_LABEL.consistency).toMatch(/plans/i)
+  })
+})
+
+describe('careful what she raises (docs/DECISIONS.md Part 9)', () => {
+  const base = {
+    duration: 'months-3',
+    named: 'early',
+    timeline: 'dated',
+    known: 'family',
+    secret: 'no',
+    family: 'how',
+    initiative: 'same-day',
+    'in-person': 'several',
+    plans: 'never',
+    money: 'no',
+    nonneg: 'straight',
+  }
+
+  it('is her report of her own caution, said as that', () => {
+    const q = readQuestions('woman').find((x) => x.id === 'hard')!
+    const o = q.options.find((x) => x.id === 'careful')!
+    expect(o.label).toBe('I’m careful what I raise, because of how he reacts')
+    expect(o.weight).toBe(0)
+    expect(readQuestions('man').find((x) => x.id === 'hard')!.options.find((x) => x.id === 'careful')!.label).toMatch(/because of how she reacts/)
+  })
+
+  it('says it back quietly, with somewhere to take it — not the caution band', () => {
+    const r = buildRead({ ...base, hard: 'careful' })!
+    expect(r.band).not.toBe('caution')
+    expect(r.caution).toBeUndefined()
+    expect(r.careful).toMatch(/worth saying out loud to one person who knows you/)
+    expect(r.careful).toMatch(/So that someone other than him knows/)
+  })
+
+  it('hands her words for one person who knows her, not a question for him — whatever ground is thinnest', () => {
+    for (const over of [{}, { known: 'nobody' }, { named: 'no', timeline: 'none' }]) {
+      const r = buildRead({ ...base, ...over, hard: 'careful' })!
+      expect(r.script.words).toBe(CAREFUL_SCRIPT.words)
+    }
+    expect(CAREFUL_SCRIPT.words).toMatch(/I just want someone to know/)
+  })
+
+  it('holds from the first fortnight, when nothing else can be concluded', () => {
+    const r = buildRead({ ...base, duration: 'weeks-0', hard: 'careful' })!
+    expect(r.band).toBe('early')
+    expect(r.careful).toBeDefined()
+    expect(r.script.words).toBe(CAREFUL_SCRIPT.words)
+  })
+
+  it('with being kept hidden, is the same pattern feeling like the problem is', () => {
+    const r = buildRead({ ...base, secret: 'explicit', hard: 'careful' })!
+    expect(r.band).toBe('caution')
+    expect(r.concern).toBe('hidden')
+    expect(r.summary).toMatch(/you are careful about what you raise, because of how he reacts/)
+  })
+
+  it('tells the guide, so it never hands words to say to him first', () => {
+    const r = buildRead({ ...base, hard: 'careful' })!
+    expect(readSummary(r)).toMatch(/they are careful what they raise with him, because of how he reacts/)
+    expect(readSummary(buildRead({ ...base, hard: 'listens' })!)).not.toMatch(/careful/)
+  })
+
+  it('gives no clinical label and no verdict on him', () => {
+    const r = buildRead({ ...base, hard: 'careful' })!
+    const text = [r.careful, r.summary, r.script.why, r.script.words, r.script.tells].join(' ').toLowerCase()
+    expect(text).not.toMatch(/abus|controlling|narciss|toxic|stonewall|contempt|red flag/)
   })
 })

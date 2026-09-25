@@ -309,6 +309,32 @@ covered it. A crisis reply now comes first in every voice, the crisis line
 beneath; the prompt has the same rule. The offline voice also declines requests
 to guilt, deceive, track or hide.
 
+### Afraid to raise it
+
+Found by the audit of how a couple disagrees (`docs/DECISIONS.md` Part 9,
+2026-09-25). Nothing could hear the difference between "we disagree about
+money" and "I can't bring money up because of how he reacts". The read had
+no answer for it: "I end up feeling like the problem" reached "tell one
+person" only alongside being kept hidden. The eleven handed her words to go
+back into the conversation she could not safely have. The guide's safety
+words had threats and violence, but not control: a phone checked, money
+kept, who she sees, being shouted at, being afraid to raise things.
+
+**Built:**
+- The read's `hard` gains "I'm careful what I raise, because of how {he}
+  reacts". It is her report of her own caution, never a claim about him. It
+  sets a quiet line with the help line beneath, and words for one person who
+  knows her in place of a question for him. With being kept hidden, it is the
+  caution. It is not an alarm on one tap (Part 4). This is the decision 19
+  clause 3 basis for a new answer.
+- The eleven's result says that raising something unsafe is not a difference
+  to work out, with the help line.
+- The guide's safety words and prompt name control and fear.
+
+**D** the eval cases `jealousy-03`, `abuse-04` and `abuse-05`. **R** the help
+line. **C** anything she does not tell us; a report reason for control
+(open question 10).
+
 ## Help lines
 
 `src/data/help.ts` lists, per country in the client's list, the emergency

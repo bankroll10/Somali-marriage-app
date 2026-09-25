@@ -446,6 +446,16 @@ function Result({
         </div>
       )}
 
+      {/* Careful what she raises, because of how {they} reacts. Not a caution
+          — no alarm on one tap — but said back to her, with somewhere to take
+          it (docs/DECISIONS.md Part 9). */}
+      {result.careful && (
+        <div className="animate-rise mt-6 rounded-card border border-line bg-white/60 p-5">
+          <p className="text-[0.98rem] leading-relaxed text-ink text-pretty">{result.careful}</p>
+          <HelpLine className="mt-3" />
+        </div>
+      )}
+
       {previous && (
         <div className="animate-rise mt-6 rounded-card border border-line bg-white/60 p-5">
           <h2 className="text-xs font-medium uppercase tracking-[0.2em] text-muted">
@@ -525,15 +535,17 @@ function Result({
       {/* The point of the whole instrument. */}
       <ScriptCard
         script={result.script}
-        title="The one question to ask next"
+        title={result.careful ? 'The words for one person who knows you' : 'The one question to ask next'}
         travel="read"
         preface={
           result.caution
             ? `The conversation above comes first. If you do decide to ask ${subject} something after it, this is the thing worth asking.`
-            : undefined
+            : result.careful
+              ? `These are not for ${subject}.`
+              : undefined
         }
       />
-      {checksBack && <CheckBack what="you asked it" />}
+      {checksBack && <CheckBack what={result.careful ? 'you told someone' : 'you asked it'} />}
 
       {/* Where she can go from here. Two things above the fold — the words to
           send, in the card above, and the eleven — and the rest behind one
@@ -546,7 +558,7 @@ function Result({
             Not after a caution: "send nothing more" and "tell one person" were
             followed by a card inviting her to send {him} something. There the
             next thing is her own people. */}
-        {result.caution ? (
+        {result.caution || result.careful ? (
           <button
             onClick={onOpenFamilies}
             className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
@@ -604,7 +616,7 @@ function Result({
           </button>
 
 
-          {!result.caution && (
+          {!result.caution && !result.careful && (
           <button
             onClick={onOpenFamilies}
             className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"

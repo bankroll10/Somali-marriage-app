@@ -165,9 +165,14 @@ function describe(f: FollowUp, gender: Gender, current?: { eleven?: Record<strin
     // had put "How would you want to approach my family?" to a woman.
     const key = f.topic as ReadDimension | 'early'
     const script = gapScript(key, current?.read, gender)
+    // Careful what she raises: the words were for one person who knows her,
+    // not a question for {him}, and the follow-up asks about those.
+    const careful = current?.read?.hard === 'careful'
     return {
       followUp: f,
-      question: say('Last time, this was the question to put to {him}. Have you asked it?'),
+      question: careful
+        ? 'Last time, the words were for telling one person who knows you. Did you?'
+        : say('Last time, this was the question to put to {him}. Have you asked it?'),
       label: say(READ_TOPIC[key]),
       script,
       writesBack: false,

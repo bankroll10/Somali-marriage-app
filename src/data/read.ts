@@ -401,6 +401,19 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
         note: '{he} goes quiet when something hard is raised, and it is not raised again',
       },
       { id: 'blames', label: 'I end up feeling like the problem', weight: 0, note: 'you come away from hard conversations feeling like the problem' },
+      // Whether a hard thing can be raised at all, not how it goes when it is.
+      // "We disagree about money" and "I can't bring money up because of how
+      // {he} reacts" were the same answer here, or no answer (docs/DECISIONS.md
+      // Part 9; docs/SECURITY.md, "Afraid to raise it"). Her report of her own
+      // caution, never a claim about {him}: it sets a quiet line and words for
+      // telling one person — not the caution band, which asks for more than
+      // one tap (docs/DECISIONS.md Part 4).
+      {
+        id: 'careful',
+        label: 'I’m careful what I raise, because of how {he} reacts',
+        weight: 0,
+        note: 'you are careful about what you raise with {him}, because of how {he} reacts',
+      },
     ],
   },
 ]
@@ -528,6 +541,21 @@ const SCRIPTS_MAN: Partial<Record<ReadDimension | 'early', Script>> = {
  * The script for this gap, for whoever is reading. Falls back to the shared
  * one, so a new dimension needs a man's variant only where the road differs.
  */
+/**
+ * When she is careful what she raises, because of how the other person
+ * reacts. The one set of words in the read that is not for saying to the
+ * person she is reading: a question put to someone she is careful around is
+ * the conversation she has said she cannot safely have (docs/DECISIONS.md
+ * Part 9). The words are for one person who knows her.
+ */
+export const CAREFUL_SCRIPT: Script = {
+  why: 'Being careful about what you raise, because of how someone reacts, is worth saying out loud to one person who knows you. Not for advice — so that someone other than the two of you knows the shape of it.',
+  words:
+    'Can I tell you something, and you just listen? I’ve noticed I’m careful about what I bring up, because of how they react. I don’t need you to fix it. I just want someone to know.',
+  tells:
+    'Pick someone who will listen before they advise. What they say matters less than that they now know. Whether you raise it with the other person, and when, is yours to decide afterwards.',
+}
+
 /**
  * The words when the thin ground is her non-negotiables — he changed the
  * subject, or keeps trying to talk her out of them — rather than how he meets

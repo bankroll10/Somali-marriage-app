@@ -11,7 +11,7 @@ import {
 } from './followup'
 import type { FollowUp } from '../types'
 import { beforeYesTopics, workItOut } from '../data/beforeYes'
-import { NONNEG_SCRIPT } from '../data/read'
+import { CAREFUL_SCRIPT, NONNEG_SCRIPT } from '../data/read'
 
 const DAY = 24 * 60 * 60 * 1000
 const NOW = Date.parse('2026-06-01T12:00:00.000Z')
@@ -209,5 +209,14 @@ describe('the read’s words shown again are the read’s words', () => {
     const f = noteFollowUp([], 'read', 'pressure', ago(5))
     const ask = openFollowUp(f, 'woman', NOW, { read: { nonneg: 'pushed', hard: 'listens' } })!
     expect(ask.script.words).toBe(NONNEG_SCRIPT.words)
+  })
+})
+
+describe('careful what she raises, days later', () => {
+  it('asks whether she told someone, with the same words', () => {
+    const f = noteFollowUp([], 'read', 'public', ago(5))
+    const ask = openFollowUp(f, 'woman', NOW, { read: { hard: 'careful' } })!
+    expect(ask.question).toBe('Last time, the words were for telling one person who knows you. Did you?')
+    expect(ask.script.words).toBe(CAREFUL_SCRIPT.words)
   })
 })

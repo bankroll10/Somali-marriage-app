@@ -1,5 +1,6 @@
 import type { Gender } from '../types'
 import {
+  CAREFUL_SCRIPT,
   DIMENSION_LABEL,
   NONNEG_SCRIPT,
   readQuestions,
@@ -18,6 +19,9 @@ import {
  * Part 8). Shared with the follow-up, so the words shown again are the same.
  */
 export function gapScript(key: ReadDimension | 'early', answers: Record<string, string> | undefined, gender: Gender = 'woman'): Script {
+  // Careful what she raises: whatever ground is thinnest, the words are for
+  // one person who knows her, not a question to put to {him} (CAREFUL_SCRIPT).
+  if (answers?.hard === 'careful') return CAREFUL_SCRIPT
   if (
     key === 'pressure' &&
     (answers?.nonneg === 'pushed' || answers?.nonneg === 'deflected') &&
@@ -72,6 +76,12 @@ export interface ReadResult {
   caution?: string
   /** Which caution: a request for money, or being kept hidden. */
   concern?: 'money' | 'hidden'
+  /**
+   * She is careful what she raises, because of how {he} reacts. Not a
+   * caution: a quiet line, with the help line beneath it, and the words
+   * become words for one person who knows her (docs/DECISIONS.md Part 9).
+   */
+  careful?: string
   /** Watch-list, for a read taken too early to conclude anything. */
   watch?: string[]
 }
@@ -234,7 +244,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
   // Hidden, and made to feel like the problem. Naming it is right; treating it
   // as a communication issue with a clever script would be wrong.
   const secret = answers.secret === 'explicit'
-  const isolating = secret && (answers.hard === 'blames' || answers.known === 'nobody')
+  const isolating = secret && (answers.hard === 'blames' || answers.hard === 'careful' || answers.known === 'nobody')
   if (isolating) {
     return {
       band: 'caution',
@@ -242,7 +252,9 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
       summary: fix(`${durationNote} You have been asked to keep this hidden, and ${
         answers.hard === 'blames'
           ? 'when you raise something difficult you come away feeling like the problem'
-          : 'there is no one in {his} life who knows you exist'
+          : answers.hard === 'careful'
+            ? 'you are careful about what you raise, because of how {he} reacts'
+            : 'there is no one in {his} life who knows you exist'
       }. Kept quiet, and left doubting yourself, is the shape that leaves someone with nobody to compare notes with. We cannot tell you what {he} intends, and we are not going to guess at {his} character from a few questions. We can tell you that this particular combination is not a question for an app.`),
       shown,
       missing,
@@ -256,6 +268,17 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     }
   }
 
+  // Careful what she raises: said back to her, with somewhere to take it, on
+  // every result that is not already a caution.
+  const carefulLine: { careful?: string } =
+    answers.hard === 'careful'
+      ? {
+          careful: fix(
+            `Being careful about what you raise, because of how {he} reacts, is worth saying out loud to one person who knows you — ${CONFIDANTE[gender]} — this week. Not for advice. So that someone other than {him} knows.`,
+          ),
+        }
+      : {}
+
   // ── Too early to conclude ────────────────────────────────────────────────
   if (duration === 'weeks-0') {
     return {
@@ -266,7 +289,8 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
       missing,
       dimensions,
       thin,
-      script: scriptFor('early', gender),
+      script: gapScript('early', answers, gender),
+      ...carefulLine,
       watch: PRIORITY.map((d) => fix(`${DIMENSION_LABEL[d]} — ${WHY_IT_MATTERS[d]}`)),
     }
   }
@@ -332,12 +356,13 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     dimensions,
     thin,
     script: gapScript(thin, answers, gender),
+    ...carefulLine,
   }
 }
 
 /** A one-line summary of a past read, for the Guide's context. */
 export function readSummary(
-  result: Pick<ReadResult, 'band' | 'thin' | 'concern'>,
+  result: Pick<ReadResult, 'band' | 'thin' | 'concern' | 'careful'>,
   gender: Gender = 'woman',
 ): string {
   const BAND: Record<ReadBand, string> = {
@@ -353,5 +378,8 @@ export function readSummary(
     result.band === 'caution' && result.concern === 'money'
       ? '{he} has asked for money before the families have met'
       : BAND[result.band]
-  return speak(gender)(`${band}; thinnest ground: ${DIMENSION_LABEL[result.thin].toLowerCase()}`)
+  // Careful what they raise: the guide has to know before it hands them words
+  // to say to {him}.
+  const careful = result.careful ? '; they are careful what they raise with {him}, because of how {he} reacts' : ''
+  return speak(gender)(`${band}; thinnest ground: ${DIMENSION_LABEL[result.thin].toLowerCase()}${careful}`)
 }
