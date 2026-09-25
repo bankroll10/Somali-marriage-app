@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { beforeYesSummary, buildBeforeYes } from './beforeYes'
-import { BEFORE_YES_COUNT, LINE, allHad, beforeYesTopics, pickedOf, sayTheLine, sheetOf, workItOut } from '../data/beforeYes'
+import { BEFORE_YES_COUNT, LINE, allHad, beforeYesTopics, pickedOf, sayTheLine, sheetOf, workItOut, yourSideLine } from '../data/beforeYes'
 
 /**
  * Before you say yes tells a woman which conversation to open with a real man.
@@ -302,5 +302,26 @@ describe('what the guide is told about differences', () => {
     const s = beforeYesSummary(r)
     expect(s).toBe('agreed on seven of eleven; worked out one; still open: whether you’d work; a line for them: qabiil and one more; open next: whether you’d work')
     expect(s.length).toBeLessThan(200)
+  })
+})
+
+describe('family, read the right way round (docs/DECISIONS.md Part 10)', () => {
+  it('asks a man about his own mother in the house, not hers', () => {
+    expect(beforeYesTopics('man').find((t) => t.id === 'live')!.prompt).toMatch(/whether with your mother/)
+    expect(beforeYesTopics('woman').find((t) => t.id === 'live')!.prompt).toMatch(/whether with his mother/)
+  })
+  it('reads "involved once serious" back as what she chose, not as an authority she never named', () => {
+    const t = beforeYesTopics('woman').find((t) => t.id === 'families-disagree')!
+    expect(t.yourSide!.lines.guided).toBe('You told your map you want family involved once it is serious.')
+    expect(t.yourSide!.lines.guided).not.toMatch(/decide/)
+  })
+})
+
+describe('her own side, from her map', () => {
+  const live = beforeYesTopics('woman').find((t) => t.id === 'live')!
+  it('shows for the answer the map stores as Flexible — capital F — too', () => {
+    expect(yourSideLine(live, { household: 'Flexible' })).toBe('You told your map you are flexible on where you’d live.')
+    expect(yourSideLine(live, { household: 'with-family' })).toMatch(/one household/)
+    expect(yourSideLine(live, {})).toBeUndefined()
   })
 })

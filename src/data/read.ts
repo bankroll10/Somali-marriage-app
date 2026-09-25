@@ -198,6 +198,20 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
       { id: 'one', label: 'One friend, maybe', weight: 0.35, note: 'perhaps one friend knows about you' },
       { id: 'nobody', label: 'Nobody, as far as I know', weight: 0, note: 'nobody in {his} life knows you exist' },
     ],
+    // Read by a man, "nobody in her life knows you exist" scored her at 0 for
+    // the thing his own `family` question tells him is his step: before his
+    // people have gone to hers, her family often does not know yet, and the
+    // timing is hers (the `secret` variant says the same). A sister or a friend
+    // knowing is the tell on her side (docs/DECISIONS.md Part 10).
+    man: {
+      helper: 'Before your people have gone to hers, her family often does not know yet — that is hers to time. A sister or a friend knowing is the tell.',
+      options: {
+        family: { note: 'her family knows about you — before your people have gone to them' },
+        friends: { weight: 0.85 },
+        one: { weight: 0.5, label: 'One friend or a sister, maybe' },
+        nobody: { weight: 0.2 },
+      },
+    },
   },
   {
     id: 'secret',
@@ -275,7 +289,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
           label: 'She is open to it — no name, no time yet',
           note: 'she is open to your approaching her family, without a name or a time yet',
         },
-        no: { label: 'It has not come up', note: 'approaching her family has not come up' },
+        no: { label: 'It has not come up — I haven’t asked yet', note: 'you have not yet asked her how to approach her family' },
         avoids: {
           label: 'She changes the subject when it comes up',
           note: 'she moves away from the subject of her family when it comes up',

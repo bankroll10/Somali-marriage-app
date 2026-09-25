@@ -66,6 +66,10 @@ export const TOPICS: Topic[] = [
     label: 'Where you’d live',
     prompt: 'Where you’d live — which city, and whether with {his} mother, near her, or on your own.',
     consequence: 0.95,
+    // A token swap would ask a man whether they would live with *her* mother
+    // — the less common direction here. His people's house is the question
+    // his side carries (docs/DECISIONS.md Part 10).
+    man: { prompt: 'Where you’d live — which city, and whether with your mother, near her, or on your own.' },
     why: 'This is rarely decided by two people alone, and it is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and find out only once the lease is signed that they pictured different homes.',
     script: {
       why: 'Where you live decides who is in your home every day, and it is easy not to ask until the lease is signed.',
@@ -300,7 +304,7 @@ export const TOPICS: Topic[] = [
       question: 'family-role',
       lines: {
         central: 'You told your map you want family central to this.',
-        guided: 'You told your map you want family to guide, not decide.',
+        guided: 'You told your map you want family involved once it is serious.',
         informed: 'You told your map you want family informed, with the decision yours.',
         private: 'You told your map you would keep this mostly private from family.',
       },

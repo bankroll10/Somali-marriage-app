@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import type { Answers, BeforeYesRecord, CoupleState, Gender, Identity } from '../types'
 import type { ElevenAt } from '../hooks/useNiyyah'
-import { BEFORE_YES_COUNT, SHEET_OUTCOMES, beforeYesTopics, isDifference, pickedOf, sayTheLine, sheetOf } from '../data/beforeYes'
+import { BEFORE_YES_COUNT, SHEET_OUTCOMES, beforeYesTopics, isDifference, pickedOf, sayTheLine, sheetOf, yourSideLine } from '../data/beforeYes'
 import ElevenChoices from './ElevenChoices'
 import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/beforeYes'
 import { somali } from '../data/somali'
@@ -289,7 +289,7 @@ export default function BeforeYes({
 
   const t = topics[index]
   const chosen = picked[t.id]
-  const side = t.yourSide ? t.yourSide.lines[String(answers[t.yourSide.question] ?? '')] : undefined
+  const side = yourSideLine(t, answers)
   return (
     <Shell onBack={() => (index === 0 ? setPhase('intro') : setIndex(index - 1))} title={`${index + 1} of ${topics.length}`}>
       <div className="h-1 w-full overflow-hidden rounded-full bg-sand">

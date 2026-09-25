@@ -100,6 +100,14 @@ describe('buildReflection', () => {
     expect(r.growthNote).toContain('ask for help')
   })
 
+  it('reads money home as an obligation to plan together, not a match criterion with a prediction on it', () => {
+    // docs/DECISIONS.md Part 10: "will never resent that you do" told her what
+    // he would feel for the rest of the marriage.
+    const r = buildReflection({ ...demoAnswers, 'money-home': 'expected' })
+    expect(r.alignment).toMatch(/can plan it with you/)
+    expect(r.alignment).not.toMatch(/never resent/)
+  })
+
   it('every demo answer id matches a real intake question', () => {
     // Guards the demo seed against an intake rename silently zeroing the map.
     const known = new Set(allQuestions.map((q) => q.id))

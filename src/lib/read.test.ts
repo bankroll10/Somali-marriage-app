@@ -271,6 +271,11 @@ describe('a man reading a woman', () => {
   it('hands him the words for that step, and advertises only scripts he can open', () => {
     expect(familyScripts('man').map((s) => s.id)).toContain('approach-her-family')
     expect(familyScripts('woman').map((s) => s.id)).not.toContain('approach-her-family')
+    // He comes to her father because she told him to — the words say so, and
+    // do not put the father ahead of the conversation with her (Part 10).
+    const his = familyScripts('man').find((s) => s.id === 'approach-her-family')!
+    expect(his.script.words).toMatch(/she told me you are the one I should come to/)
+    expect(his.script.words).not.toMatch(/without coming to you first/)
     for (const g of ['woman', 'man'] as const) {
       const mine = new Set(familyScripts(g).map((s) => s.title.split(',')[0].toLowerCase()))
       for (const part of familyScriptsLine(g).replace(/ — word for word\.$/, '').split(', ')) {
@@ -296,6 +301,17 @@ describe('a man reading a woman', () => {
     expect(opt('man', 'secret', 'explicit').weight).toBeGreaterThan(0)
     expect(opt('woman', 'initiative', 'silence').weight).toBe(0)
     expect(opt('woman', 'secret', 'explicit').weight).toBe(0)
+  })
+
+  it('does not mark her down for a family that does not know yet — the approach is his step (docs/DECISIONS.md Part 10)', () => {
+    const opt = (g: 'man' | 'woman', id: string, o: string) =>
+      readQuestions(g).find((q) => q.id === id)!.options.find((x) => x.id === o)!
+    expect(opt('man', 'known', 'nobody').weight).toBeGreaterThan(0)
+    expect(opt('woman', 'known', 'nobody').weight).toBe(0)
+    expect(readQuestions('man').find((q) => q.id === 'known')!.helper).toMatch(/that is hers to time/)
+    // And "it has not come up" reads as his unasked step, not her gap.
+    expect(opt('man', 'family', 'no').label).toBe('It has not come up — I haven’t asked yet')
+    expect(opt('man', 'family', 'no').note).toMatch(/you have not yet asked her/)
   })
 })
 

@@ -96,6 +96,18 @@ export const LINE_OUTCOME = {
 }
 export const SHEET_OUTCOMES = [...DIFFER_OUTCOMES, LINE_OUTCOME]
 
+/**
+ * Her own side of a topic, from her map, where the map already knows it. The
+ * map stored one household answer as 'Flexible' (capital F) while the lines
+ * are keyed lower-case, so that side never showed (docs/DECISIONS.md Part 7,
+ * Part 10). Old records keep the id they have; the lookup tolerates it.
+ */
+export function yourSideLine(topic: Topic, answers: Record<string, unknown>): string | undefined {
+  if (!topic.yourSide) return undefined
+  const key = String(answers[topic.yourSide.question] ?? '')
+  return topic.yourSide.lines[key] ?? topic.yourSide.lines[key.toLowerCase()]
+}
+
 /** True for the answers that say the two of them found a difference. */
 export function isDifference(state: string | undefined): boolean {
   return state === 'differ' || state === 'settled' || state === LINE
