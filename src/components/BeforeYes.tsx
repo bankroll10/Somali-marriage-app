@@ -11,6 +11,7 @@ import { shareOrCopy } from '../lib/share'
 import { withVia } from '../lib/links'
 import { GUIDE_SOURCE, SITE_URL } from '../lib/site'
 import ScriptCard, { CheckBack } from './ScriptCard'
+import HelpLine from './HelpLine'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
@@ -402,6 +403,21 @@ function Result({
       {result.lines.length > 0 && !openIsLine && (
         <ScriptCard script={sayTheLine(gender)} title="Saying a line plainly" travel="eleven" />
       )}
+
+      {/* The eleven records whether a conversation happened, not whether it
+          can: "we disagree about money" and "I can't raise money because of
+          how he reacts" both land as not talked, or still open, and the words
+          above send her back in. Said once, quietly, under every result, with
+          somewhere to take it (docs/DECISIONS.md Part 9; docs/SECURITY.md,
+          "Afraid to raise it"). */}
+      <div className="mt-6 rounded-card border border-line bg-white/60 p-5">
+        <p className="text-[0.9rem] leading-relaxed text-ink-soft text-pretty">
+          If raising any of these feels unsafe rather than hard — if you are careful what you say because of how{' '}
+          {gender === 'man' ? 'she reacts' : 'he reacts'} — that is not a difference to work out. Tell one person who knows
+          you first.
+        </p>
+        <HelpLine className="mt-2.5" />
+      </div>
 
       {!jointFirst && together}
 

@@ -222,6 +222,10 @@ describe('the eleven, on two phones', () => {
     expect(her.text()).toContain('A line for you')
     expect(her.text()).toContain('The one to open this week is whether you’d work.')
     expect(her.text()).toContain(sayTheLine('woman').words)
+    // Whether a conversation can be had at all is not a difference to work
+    // out (docs/SECURITY.md, "Afraid to raise it").
+    expect(her.text()).toContain('If raising any of these feels unsafe rather than hard')
+    expect(her.text()).toContain('because of how he reacts')
     await her.until(() => saved(herPhone).beforeYes, 'her sheet is saved on her phone')
     expect(saved(herPhone).beforeYes.lines).toEqual(['second-wife'])
     expect(saved(herPhone).beforeYes.answers['second-wife']).toBe('differ')

@@ -335,7 +335,7 @@ export const WORK_IT_OUT: ElevenScript = {
   words:
     'We know we see this differently, and I don’t want either of us to pretend we don’t. Can we each say what we couldn’t live with here, and what we could? Then let’s see whether there’s a way of doing it that we’d both keep — not just one that closes the subject.',
   tells:
-    'Listen for whether {he} can name what {he} couldn’t live with, and whether {he} asks for yours. An arrangement is real when you could both say it back the same way. If what one of you couldn’t live with is the whole question, there is no middle to find: that is a line, and it is allowed to be one.',
+    'Listen for whether {he} can name what {he} couldn’t live with, and whether {he} asks for yours. An arrangement is real when you could both say it back the same way. If what one of you couldn’t live with is the whole question, there is no middle to find: that is a line, and it is allowed to be one. If it gets heated, you can stop — “I want to finish this, not win it; can we come back to it tomorrow?” — and then come back to it.',
 }
 
 /**

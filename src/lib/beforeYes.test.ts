@@ -230,6 +230,9 @@ describe('after a difference, the words are for after a difference', () => {
     expect(couldnt).toBeGreaterThan(-1)
     expect(couldnt).toBeLessThan(w.words.indexOf('a way of doing it'))
     expect(w.tells).toMatch(/that is a line, and it is allowed to be one/)
+    // How, not only what: a way to stop that comes back (docs/DECISIONS.md Part 9).
+    expect(w.tells).toMatch(/If it gets heated, you can stop/)
+    expect(w.tells).toMatch(/and then come back to it/)
   })
   it('reads the same from a man, with her in it', () => {
     expect(workItOut('man').tells).toMatch(/whether she can name what she couldn’t live with/)
