@@ -1762,3 +1762,187 @@ stored: the ids are unchanged, and `docs/PRIVACY.md` needed nothing.
 **Not verified here.** The live eval (`npm run eval:guide`) needs a key. The
 prompt did not change in this pass, so the offline eval and its baseline are
 the whole of what moved.
+
+## Part 11: The words, audited as speech (2026-09-25)
+
+Every instrument ends in words the member is told to say to someone else. Parts
+7–10 read those words for what they claim and which way round they are
+written. This pass read them as speech: would a real adult say this, to this
+person, and would it help? It covered the read's scripts, the eleven's
+scripts and the scripts for each state, the family scripts, every
+"Try:" or quoted line in the offline guide, the follow-up, and the ending.
+
+**The principles.** Say what happened before what it means. Don't open with
+blame. Name the issue plainly. Share your view without claiming a certainty
+you don't have. Leave room for the other person's view. Name a feeling
+without using it as a weapon. Protect their dignity. Move from accusation
+toward understanding each other. Ask questions whose answers could change
+your mind.
+
+**The criteria.** Every line was checked for clarity, naturalness, risk of
+putting the other person on the defensive, accusation, hidden assumption,
+manipulation, over-explaining, cultural naturalness, gender fit and
+actionability. No therapy-speak, no corporate conflict language, nothing
+too polished to send.
+
+**Classes.** KEEP · TIGHTEN · REWRITE · REMOVE · NEEDS SOMALI USER REVIEW.
+
+**The limits.** Existing strings only, and only high-confidence fixes. No
+new conversation, category, flow or stored field. Man-only copy is
+classified but not edited (decision 4: ten men first). The live prompt waits
+for the first `npm run eval:guide`, as RESEARCH.md already says. Tells stay
+as they are unless they quote a line that changed. "The joke is the answer"
+was ruled kept in RESEARCH.md and stays.
+
+### 1. The read (`src/data/read.ts`)
+
+- **`public`, `intent`, `early`: TIGHTEN.** Sound, but written without
+  contractions ("I am not asking"), which nobody speaks. Now contracted,
+  with the extra clause removed.
+- **`family`: REWRITE.** "I would rather hear how you would do it than wonder
+  whether you would" was a neat reversal that also hid a doubt about him. It
+  is now a real question — "who you'd speak to first, and when" — which is
+  one he can only answer by asking about her family. That question back is
+  what the tells listen for.
+- **`consistency`: TIGHTEN.** "The one who starts" didn't say starts what.
+  "I am not keeping score" is a denial that tells him she is. It now gives
+  the observation and asks how it looks from his side.
+- **`pressure`: REWRITE.** "I need you to hear that it lands like that" is
+  therapy-speak, and it asked nothing of the two of them together. It now
+  keeps the observation and the benefit of the doubt, and ends with what she
+  wants: to be able to talk about hard things without either of them coming
+  away feeling that way.
+- **`CAREFUL_SCRIPT`, `NONNEG_SCRIPT`, `SCRIPTS_MAN.family`: KEEP.**
+
+### 2. The eleven (`src/data/eleven.ts`)
+
+- **`work`: REWRITE — hidden assumption.** "I intend to keep working,
+  including after children" was put in the mouth of every woman, including
+  those whose map says one of them at home, in seasons, or unsure. "Something
+  you'd struggle with" cast him as the problem. Now she says she will tell
+  him what she pictures, asks for his, and then asks who does what at home.
+- **`money-home`: REWRITE.** "The way our parents never did with us" assumed
+  something about both families and took a swipe at them. "Is each of ours
+  separate" was unclear. "What do you send home" assumed he sends money; it
+  now asks whether he does, and to whom.
+- **`his-family-in-home`: TIGHTEN.** "Than come to resent it" put a feeling
+  shaped like a threat in her mouth, and the tells then braced for him to
+  hear it as an insult. It now names the real issue: the work landing on one
+  person.
+- **`qabiil`: TIGHTEN.** It asked "from your side, or mine", then only about
+  his family. It now covers both families and asks "what we'd do".
+- **`children`: TIGHTEN.** The only topic script where she never offered her
+  own answer. It now ends "and I'll tell you mine".
+- **`second-wife`: TIGHTEN.** The sentence doubled back on itself; it is now
+  one question. "In your words" over-explained.
+- **`families-disagree`: TIGHTEN.** "I want to be a team with you before we
+  have to be" was too polished to send. Now: "I'd rather we work that out
+  now, before it happens."
+- **`OWN_ANSWER_FIRST`: REWRITE.** "Before I raise this with you" was said
+  while raising it, and "Give me a week" was a demand. Now it asks to come
+  back to it in a week.
+- **`SAY_THE_LINE`: TIGHTEN.** "I won't ask you to pretend" didn't say
+  pretend what. Now: "I don't want you to agree just to please me."
+- **`ALL_HAD`: TIGHTEN.** A shorter opening, and a clear referent instead of
+  "the same things by them".
+- **`WORK_IT_OUT`: KEEP the words; TIGHTEN the line quoted in its tells**,
+  whose semicolon nobody speaks.
+- **`live`, `deen-daily`, `going-back`, `aroos-mahr`, and every `man`
+  variant: KEEP.**
+
+### 3. The family scripts (`src/data/families.ts`)
+
+- **`tell-wali-online`: TIGHTEN — hidden assumption.** "He has asked how to
+  approach you" isn't true for everyone who opens it. "He is serious"
+  claimed a certainty she can't give her father. Now: "I believe he's
+  serious, and he wants to do this properly." Part 10 marked this script as
+  handled well for how it involves family; that still stands.
+- **`send-his-people`: REWRITE (last two sentences).** "I'm not asking for a
+  date" also means asking someone out, and "tell me when wouldn't be" was a
+  riddle. Now: "I'm not asking you to name a day — just to take that step …
+  tell me when would feel right." The tells quote the new question.
+- **`end-it-kindly`: TIGHTEN.** "Right for each other for marriage" had two
+  "for"s. "And I mean that" announced sincerity, which the voice rules rule
+  out.
+- **`in-laws-after`: TIGHTEN.** The middle sentence untangled.
+- **`first-with-hooyo`, `open-mahr-and-living`, `families-meet`: KEEP.**
+  `tell-family-online` and `approach-her-family` are man-only: KEEP.
+
+### 4. The guide
+
+- **The auntie's `family` line: TIGHTEN.** "That's just how I do things
+  seriously" isn't natural English. Now: "For me, if this is serious, it goes
+  to my family — that's how I do things."
+- **The therapist's pull-away line: REWRITE.** "I'm feeling the need for
+  space" is therapy-speak. Now: "I need a bit of time to myself — I'll come
+  back to you."
+- **`PROCESS_REPLY` Try: TIGHTEN.** A quote nested inside a question with a
+  trailing clause is hard to say out loud. It is now one agreement, asked
+  once.
+- **`PRESSURE_REPLY` Try: TIGHTEN.** "Trust me with the when, and the who"
+  is written, not spoken. Now: "Please trust me to choose who, and when."
+- **`DIFFERENCE_REPLY`, `WENT_DIFFERENTLY_REPLY`, the repair line: KEEP.**
+  The therapist's fact-and-story lines are said to yourself, not to another
+  person, so they were out of scope.
+- **The Big Brother lines: KEEP (man-only).** Noted for the sessions: "I
+  see this going to marriage. I want to involve our families and take the
+  next step" announces a step without asking where she is.
+
+### 5. Follow-up and closure
+
+- The follow-up (`src/lib/followup.ts`, `home/FollowUp.tsx`) shows her the
+  same scripts again, and its own sentences are said to the guide, not to a
+  person. **KEEP.**
+- The Ending's two share lines and `invite.ts` are forwarded blurbs, not
+  conversations. **KEEP.**
+- The money sheets ask written questions and contain no scripts. Out of
+  scope.
+
+**REMOVE: none.** Every script either works or could be fixed in place.
+
+### 6. NEEDS SOMALI USER REVIEW
+
+For the sessions (`docs/PROTOCOL.md`). None of these was changed on
+inference:
+- `tell-wali-online`: "Aabo" as the default wali, and the register of "I met
+  him online" and "on your terms" to a father.
+- `first-with-hooyo`: whether this conversation happens in English at all,
+  and whether "I want you in this from the start" sounds like anyone's
+  daughter.
+- `children`: "what they'd call your mother", and "how many" taking children
+  as given.
+- `aroos-mahr`, `open-mahr-and-living`: whether mahr is raised with him
+  directly before the wali, or only through the wali.
+- `PRESSURE_REPLY`: whether asking a parent to ask only "once a month" reads
+  as respectful or as cheek.
+- `qabiil`: "something we're not supposed to ask", as tone.
+- Man-side, deferred under decision 4:
+  - `public` asks her whether she plans to tell people, when her family's
+    timing is hers (Part 10);
+  - `consistency` has him say he messages first, to a woman who may never
+    text first by habit;
+  - `live`'s words still ask him "with your family" (hers);
+  - `approach-her-family`;
+  - every Big Brother line.
+
+### 7. Recommended, not built
+
+One line in the live prompt's format rule (`netlify/shared/prompt.ts`): a
+"Try:" line uses contractions, says what happened before what it means,
+names no feeling as a charge, and ends on a question the other person can
+answer. It waits for the first live eval, with the other prompt changes
+already queued in RESEARCH.md.
+
+### 8. What was built
+
+Copy only, in `src/data/read.ts`, `src/data/eleven.ts`,
+`src/data/families.ts`, `src/data/coach.ts` and `src/lib/coach.ts`. Three
+tests anchored on old phrases now anchor on the new ones, and still check
+the same thing: `src/lib/beforeYes.test.ts` (the own-answer script, and
+her second-wife question) and `src/lib/read.test.ts` (the early script). No
+id, option, state, route or stored field changed. The printed guide is
+written from `eleven.ts` at build time, so it follows.
+
+**Not verified here.** The live eval (`npm run eval:guide`) needs a key. The
+prompt didn't change, so the offline eval and its baseline cover everything
+that moved.

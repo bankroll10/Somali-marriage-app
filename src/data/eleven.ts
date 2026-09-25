@@ -108,7 +108,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'You are not setting a rule. You are finding out whether {he} has pictured you in that house, or only {his} mother.',
       words:
-        'I want to ask about your family and our home — not to set rules, just so I’m not surprised later. Do you picture anyone living with us, now or one day? And how much hosting do you imagine — because I’d rather plan for it than come to resent it.',
+        'I want to ask about your family and our home — not to set rules, just so I’m not surprised later. Do you picture anyone living with us, now or one day? And how much hosting do you imagine? I’d rather we plan for it together than have it all land on one person.',
       tells:
         'Listen for whether {he} answers both halves — who lives with you, and how it would be for you. If {he} hears only the first half, as an insult to {his} mother, you have seen how {he} hears it when it is raised. Say the second half again, plainly.',
     },
@@ -132,7 +132,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: '“Of course” is the start of the answer, not the end of it.',
       words:
-        'I want to be honest about something. I intend to keep working, including after children, and I’d want to know now if that’s something you’d struggle with — not in general, but in practice: who does what at home when we’re both working?',
+        'Can we talk about work? I’ll tell you what I picture after we’re married, and after children, and I want to hear what you picture. Not in general — day to day: who does what at home?',
       tells:
         'Ask the second half — who does what at home — and watch whether {he} has an answer or a joke. The joke is the answer.',
     },
@@ -155,7 +155,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'If nobody talked about money with you growing up, that is a reason to talk about it with {him}, not a reason to skip it.',
       words:
-        'Can we talk about money plainly, the way our parents never did with us? What do you send home each month, and to whom? I’ll tell you mine. And once we’re married — do we decide that together, or is each of ours separate?',
+        'Can we talk about money plainly? Do you send money home — and to whom? I’ll tell you mine. And once we’re married, do we decide that together, or does each of us decide our own?',
       tells:
         'You are not looking for a number. You are looking for whether {he} will say it out loud, and whether “together” comes easily or makes {him} defensive. Someone who can name {his} obligations can be planned around. Someone who won’t, can’t.',
     },
@@ -178,7 +178,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'Vagueness here is not romance. It is a decision being left to whoever pushes hardest later.',
       words:
- 'When you think about children — how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right.',
+ 'When you think about children — how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right — and I’ll tell you mine.',
       tells: 'Listen for whether {he} has pictures or only phrases. Pictures can be talked about. Phrases cannot.',
     },
     yourSide: {
@@ -245,7 +245,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'You are not asking whether it matters to {him}. You are asking what happens if it matters to someone at {his} table.',
       words:
-        'Can I ask something we’re not supposed to ask? Will qabiil come up — from your side, or mine? I’m not asking whether it matters to you. I’m asking what happens if it matters to someone in your family.',
+        'Can I ask something we’re not supposed to ask? Will qabiil come up — from your side, or mine? I’m not asking whether it matters to you. I’m asking what we’d do if it matters to someone in your family, or in mine.',
       tells:
         '“It doesn’t matter to me” is the beginning. What you want to hear is what {he} would do if it mattered to {his} uncle. If {he} has no answer yet, that is the answer for now: ask {him} to think about it, and ask again.',
     },
@@ -282,7 +282,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'It is hard to ask, which is why it is worth asking plainly, once.',
       words:
-        'I want to ask you something straight, and I’m not accusing you of anything. What do you believe about a second wife — not whether it’s permitted, but whether you’d ever want that for your own life? I need to hear it from you, in your words.',
+        'Can I ask you something straight? I’m not accusing you of anything. Would you ever want a second wife — not whether it’s permitted, but in your own life? I’d rather hear it from you now than wonder.',
       tells:
         'You are listening for a plain sentence. A lecture on what is permitted is a way of not answering. A plain “no” and a plain “I might” are both answers you can build on. Only the lecture isn’t.',
     },
@@ -296,7 +296,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'The word you are listening for is “we”.',
       words:
-        'What happens when your family and mine want different things — about the wedding, about where we live, about anything? Between us, how do we decide? I want to be a team with you before we have to be.',
+        'What happens when your family and mine want different things — about the wedding, about where we live, about anything? Between us, how do we decide? I’d rather we work that out now, before it happens.',
       tells:
         'If the answer is about keeping one mother happy and the other quiet, the team is not yet the two of you. That is fixable — but only if you both know it.',
     },
@@ -319,7 +319,7 @@ export const TOPICS: Topic[] = [
 export const OWN_ANSWER_FIRST: ElevenScript = {
   why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is the most fixable state on this list.',
   words:
- 'Before I raise this with you, I’m working out what I want here. Give me a week. Then I’ll tell you plainly, and I’ll want the same back.',
+ 'I haven’t worked out where I stand on this yet, and I want to before we talk about it properly. Can we come back to it in a week? I’ll tell you plainly then, and I’ll want the same from you.',
   tells:
     'Write your own answer down before you ask for {his}. Otherwise {his} becomes yours by default, and you find out later that it never was.',
 }
@@ -339,7 +339,7 @@ export const WORK_IT_OUT: ElevenScript = {
   words:
     'We know we see this differently, and I don’t want either of us to pretend we don’t. Can we each say what we couldn’t live with here, and what we could? Then let’s see whether there’s a way of doing it that we’d both keep — not just one that closes the subject.',
   tells:
-    'Listen for whether {he} can name what {he} couldn’t live with, and whether {he} asks for yours. An arrangement is real when you could both say it back the same way. If what one of you couldn’t live with is the whole question, there is no middle to find: that is a line, and it is allowed to be one. If it gets heated, you can stop — “I want to finish this, not win it; can we come back to it tomorrow?” — and then come back to it.',
+    'Listen for whether {he} can name what {he} couldn’t live with, and whether {he} asks for yours. An arrangement is real when you could both say it back the same way. If what one of you couldn’t live with is the whole question, there is no middle to find: that is a line, and it is allowed to be one. If it gets heated, you can stop — “Can we stop here and pick it up tomorrow? I want to sort this out, not win it.” — and then come back to it.',
 }
 
 /**
@@ -352,7 +352,7 @@ export const WORK_IT_OUT: ElevenScript = {
 export const SAY_THE_LINE: ElevenScript = {
   why: 'A line is not a position to bargain over, and nothing here will ask you to. What is left is whether {he} has heard it plainly, from you, and whether {his} answer is final too.',
   words:
-    'I want to say something plainly, so it isn’t left open between us. This one is a line for me. I’m not asking you to meet me halfway on it, and I won’t ask you to pretend. I’d rather know now whether your answer is final too.',
+    'I want to say something plainly, so it isn’t left open between us. This one is a line for me. I’m not asking you to meet me halfway on it, and I don’t want you to agree just to please me. I’d rather know now whether your answer is final too.',
   tells:
     'You are not listening for agreement. You are listening for a plain answer. If {his} is final too, you have both learned it before the families are involved, which is what this was for. If {he} asks you to give it up, you do not owe that conversation twice.',
 }
@@ -365,7 +365,7 @@ export const SAY_THE_LINE: ElevenScript = {
 export const ALL_HAD: ElevenScript = {
   why: 'Agreement from six months ago is a memory, not a contract — and so is an arrangement. Closer to the day, answers can move.',
   words:
-    'Can we go back over what we agreed on, and how we said we’d handle the things we see differently, now that it’s closer? Not because I doubt you — because I want to make sure we still mean the same things by them.',
+    'Now that it’s getting closer, can we go back over what we agreed, and how we said we’d handle the things we see differently? Not because I doubt you — I just want to check we still mean the same things.',
   tells: 'Watch for which answers have changed. The ones that have are the ones to talk about; the ones that haven’t are the ground you are standing on.',
 }
 

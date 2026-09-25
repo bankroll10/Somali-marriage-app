@@ -490,42 +490,42 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
   public: {
     why: 'Everything else can wait. A person who is serious about you lets you exist in their life.',
     words:
-      'I want to ask you something straight, because I would rather ask than wonder. Does anyone in your life know about me? I am not asking you to announce it tomorrow — I am asking whether you plan to, and roughly when.',
+      'Can I ask you something straight? I’d rather ask than wonder. Does anyone in your life know about me? I’m not asking you to announce it tomorrow — just whether you plan to, and roughly when.',
     tells:
       'A month is an answer. “Soon, inshaAllah” with nothing attached is also an answer — it is just not the one you were hoping for. Do not argue with either. Just note which one you got.',
   },
   intent: {
     why: 'You are not asking for a promise. You are asking whether you are both imagining the same thing.',
     words:
-      'When you picture being married — is that this year, next year, or further out? I am not trying to hold you to a date. I just need to know whether we are imagining the same thing.',
+      'When you picture being married — is that this year, next year, or further out? I’m not trying to hold you to a date. I just need to know if we’re picturing the same thing.',
     tells:
       'An answer, even “further out than you want”, is something you can plan around. A reply that makes the question itself feel unreasonable is an answer too. Note which one you get.',
   },
   family: {
     why: 'This step is not a formality, and asking how they would take it is how you find out whether they have thought about it.',
     words:
-      'How would you want to approach my family? I would rather hear how you would do it than wonder whether you would.',
+      'Have you thought about how you’d approach my family — who you’d speak to first, and when? I’d rather ask than guess.',
     tells:
       'Listen for a question back — about your father, your brother, what your family would expect. Curiosity about the how is the tell. A compliment about your family is not an answer.',
   },
   consistency: {
     why: 'You already know the words. What you need to know is whether the behaviour matches them.',
     words:
-      'Can I say something? I have noticed I am usually the one who starts, and the one keeping plans moving. I am not keeping score — I just want to know whether it looks that way from your side too.',
+      'Can I say something? I’ve noticed I’m usually the one who messages first and keeps our plans moving. Does it look that way from your side?',
     tells:
       'The reply matters less than the fortnight after it. Say it once, then stop starting, and watch what happens. That is your answer, and it does not require anyone to be honest with you.',
   },
   pressure: {
     why: 'How someone handles you at your most inconvenient is one of the clearest signs you can see before a marriage.',
     words:
-      'When I bring up something that is bothering me, I come away feeling like I have done something wrong. I do not think you mean it that way — but I need you to hear that it lands like that.',
+      'Can I tell you something? When I bring up something that’s bothering me, I often come away feeling like I’m the one who did something wrong. I don’t think you mean it that way. But I want us to be able to talk about hard things without either of us ending up feeling like that.',
     tells:
       'Someone who can sit inside that without turning it around has just shown you, live, what this list could only ask about. Someone who cannot has shown you that too.',
   },
   early: {
     why: 'You are early. That is not a problem — it is the best time to ask, before either of you has spent months.',
     words:
-      'Before we go further — can I ask what you are looking for? I would rather know now than in three months.',
+      'Before we go further — can I ask what you’re looking for? I’d rather know now than in three months.',
     tells:
       'It is completely fair to ask this in week one, and it costs you nothing. If it is too much for them this early, you have learned that in week one rather than month six.',
   },

@@ -44,7 +44,7 @@ const SCRIPTS: FamilyScript[] = [
     script: {
       why: 'Assume he will find out. The only question is whether from you, first, with the whole picture — or from a cousin, sideways, with none of it.',
       words:
-        'Aabo, I want to tell you about someone, and I want you to hear it from me first. I met him online — I know that isn’t how you would have chosen. He is serious, he wants to do this properly, and he has asked how to approach you. I’d like you to meet him, on your terms.',
+        'Aabo, I want to tell you about someone, and I want you to hear it from me first. I met him online — I know that isn’t how you would have chosen. I believe he’s serious, and he wants to do this properly. I’d like you to meet him, on your terms.',
       tells:
         'Say the last sentence — “on your terms” — and mean it. Your wali’s job is to protect you. Giving him the role, rather than presenting him with a decision, gives him a way to be an ally instead of an obstacle.',
     },
@@ -85,9 +85,9 @@ const SCRIPTS: FamilyScript[] = [
     script: {
       why: 'This is the step that costs him something: his family’s time, and his name in front of yours. That is why it is worth asking for.',
       words:
-        'I think we’ve talked long enough to know what this is. I’d like you to send your people to my family. I’m not asking for a date — I’m asking for the step. If that feels too soon, tell me honestly, and tell me when wouldn’t be.',
+        'I think we’ve talked long enough to know what this is. I’d like you to send your people to my family. I’m not asking you to name a day — just to take that step. If it feels too soon, tell me honestly, and tell me when would feel right.',
       tells:
-        'Listen for “when” and “who should I bring”. “Let’s not rush” has just told you his timeline is not yours. Give him the second question — “when wouldn’t be” — so that his answer has to have a month in it.',
+        'Listen for “when” and “who should I bring”. “Let’s not rush” has just told you his timeline is not yours. Give him the second question — “when would feel right” — so that his answer has to have a month in it.',
     },
   },
   {
@@ -141,7 +141,7 @@ const SCRIPTS: FamilyScript[] = [
     script: {
       why: 'Ending something halal that did not become a marriage has no ceremony, so it is easy to go quiet instead, and then the other person spends months reading silence. You can do better than that, and it costs one hard message.',
       words:
-        'I’ve thought about this carefully, and I don’t think we’re right for each other for marriage. I’m not going to go quiet on you — you deserve to hear it plainly. I have valued getting to know you, and I mean that. I’ll make dua for you.',
+        'I’ve thought about this carefully, and I don’t think we’re right for each other. I don’t want to just go quiet on you — you deserve to hear it plainly. I’ve valued getting to know you. I’ll make dua for you.',
       tells:
         'Send it once, clearly, and then stop. Don’t explain twice; don’t answer a debate. Kindness here is clarity, not softness. Then tell one person you trust that you have done it, so that the community’s version of the story is yours.',
     },
@@ -154,7 +154,7 @@ const SCRIPTS: FamilyScript[] = [
     script: {
       why: 'Some of the hardest arguments in a first year are not between the two of you. They are between two families, carried home by one of you. Decide now to talk to each other first, and to your families second.',
       words:
-        'Something came up with my family, and before I answer them I want to talk to you. I don’t want either of our families to hear about something between us before we have heard it from each other. Can we agree we always do it in that order — us first, then them?',
+        'Something came up with my family, and before I answer them I want to talk to you. I don’t want our families hearing about things between us before we’ve talked about them ourselves. Can we agree we always do it in that order — us first, then them?',
       tells:
         'You are listening for whether {he} agrees to the order, not to any particular answer. If {he} says yes and then answers {his} family first anyway, say so once, calmly, the same week. The habit starts here.',
     },

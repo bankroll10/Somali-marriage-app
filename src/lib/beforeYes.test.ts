@@ -84,7 +84,7 @@ describe('which one to open', () => {
   it('when she does not know her own answer, the words are for herself first', () => {
     const r = buildBeforeYes(answers({ 'money-home': 'unknown' }))!
     expect(r.open.id).toBe('money-home')
-    expect(r.open.script.words).toMatch(/give me a week/i)
+    expect(r.open.script.words).toMatch(/come back to it in a week/i)
     expect(r.summary).toMatch(/starts with you, not him/i)
   })
   it('when everything is agreed, it still ends in words — to revisit, not to celebrate', () => {
@@ -160,7 +160,7 @@ describe('a man reading a woman', () => {
     expect(his.prompt).toMatch(/what you believe/i)
     expect(his.script.words).toMatch(/what I want for my own life/i)
     const hers = beforeYesTopics('woman').find((t) => t.id === 'second-wife')!
-    expect(hers.script.words).toMatch(/whether you’d ever want that/i)
+    expect(hers.script.words).toMatch(/would you ever want a second wife/i)
   })
 })
 
