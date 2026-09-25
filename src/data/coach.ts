@@ -188,7 +188,7 @@ You are not a secret. You are not a midnight habit. If he cannot text you at noo
       respond: () =>
         `That instinct is the right one. A man worth having *expects* your family.
 
-Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then watch his face. If it scares him off, walaal, you have learned early that he was not ready for your family, and you just saved yourself time. Your people protect you. Let them.`,
+Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then listen to what he says back. If he pulls back at that, you have heard it plainly, and early — which is what you asked for. Your people protect you. Let them.`,
     },
     {
       keywords: ['settling', 'too picky', 'standards', 'unrealistic', 'expecting too much', 'should i lower'],

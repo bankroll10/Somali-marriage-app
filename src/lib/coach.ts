@@ -188,6 +188,40 @@ Try: "When it gets heated, can either of us say 'let's stop and come back to thi
 Agree that one rule this week.`
 
 /**
+ * Pressure from her own family to marry — the weekly questions, the cousin
+ * back home, "say yes quickly". The women's chip that says exactly this ("My
+ * family is pushing me about marriage") matched only `family` in the auntie's
+ * intent and was answered with "A man worth having expects your family. Bring
+ * them in gently": advice to involve the family, given to someone reporting
+ * pressure from it. A man's "my parents want me to marry my cousin" reached
+ * "This is where you become a man in their eyes" (docs/DECISIONS.md Part 10).
+ * One answer, in any voice, after safety and harm: force is a safety matter
+ * (SAFETY_WORDS); pressure short of force is answered here.
+ */
+const PRESSURE_WORDS = [
+  // Family pressure, said as that. Not a bare "pushing me": "he keeps pushing
+  // to meet alone" is him, and a boundary, not this.
+  'family is pushing', 'family keeps pushing', 'parents are pushing', 'parents keep pushing', 'mother is pushing', 'mother keeps pushing',
+  'hooyo is pushing', 'hooyo keeps pushing', 'pushing me to marry', 'pushing me to get married', 'pushing me to say yes',
+  'pressure from my family', 'pressure from my parents', 'family pressure', 'pressuring me to marry', 'under pressure to marry',
+  'keep asking when', 'keeps asking when', 'asks me every week', 'ask me every week', "won't stop asking", 'wont stop asking',
+  'want me to marry', 'wants me to marry', 'expect me to marry', 'expects me to marry', 'expect me to say yes', 'say yes quickly',
+  'bring someone home', 'when will you get married', 'when are you getting married', 'not getting any younger',
+]
+
+export const PRESSURE_REPLY = `The questions can be love that has not learned to speak softly. That does not make them lighter, or yours to answer on their clock.
+
+You can honour your family and the decision can still be yours. The pace is yours even when the questions are not.
+
+• Ask plainly for what you need — time, or to be asked differently. Parents asked for a part can often give it.
+• If it is a particular person they want, your consent is yours to give. Saying so once, calmly, is not disrespect.
+• If it has gone past questions — if you are being made to, or afraid to say no — that is not pressure to manage. Tell one person you trust today; in danger, the emergency number is below.
+
+Try: "I know you want this for me, and I want it too. Trust me with the when, and the who. Can we agree you'll ask me once a month, and I'll tell you where I am?"
+
+Say it to the one who asks most, this week.`
+
+/**
  * The follow-up's "It went differently" sends the guide one of two fixed
  * sentences (src/components/home/FollowUp.tsx), and offline they had no
  * answer of their own: most fell to the framework, and "his family in your
@@ -487,13 +521,15 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
   // voice's own intents, whichever voice she opened.
   const m = normalize(message)
   const fixed = (text: string): CoachReply => ({ text, closers: closersFor(text), live: false })
-  const reply = WENT_DIFFERENTLY_WORDS.some((w) => hasWords(m, w))
-    ? fixed(WENT_DIFFERENTLY_REPLY)
-    : PROCESS_WORDS.some((w) => hasWords(m, w))
-      ? fixed(PROCESS_REPLY)
-      : DIFFERENCE_WORDS.some((w) => hasWords(m, w))
-        ? fixed(DIFFERENCE_REPLY)
-        : voiceReply(message, ctx, modeId)
+  const reply = PRESSURE_WORDS.some((w) => hasWords(m, w))
+    ? fixed(PRESSURE_REPLY)
+    : WENT_DIFFERENTLY_WORDS.some((w) => hasWords(m, w))
+      ? fixed(WENT_DIFFERENTLY_REPLY)
+      : PROCESS_WORDS.some((w) => hasWords(m, w))
+        ? fixed(PROCESS_REPLY)
+        : DIFFERENCE_WORDS.some((w) => hasWords(m, w))
+          ? fixed(DIFFERENCE_REPLY)
+          : voiceReply(message, ctx, modeId)
   // Principles, never rulings, and the ruling's owner named.
   if (RULING_WORDS.some((w) => hasWords(normalize(message), w)) && !/\b(scholar|imam)\b/i.test(reply.text)) {
     const text = `${reply.text}\n\n${DEFERENCE}`

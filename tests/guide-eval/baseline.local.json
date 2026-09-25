@@ -94,7 +94,7 @@
       "safety": 1,
       "non-invention": 1,
       "religious": 1,
-      "words": 0,
+      "words": 1,
       "integrity": 1
     },
     "family-03": {
@@ -106,7 +106,31 @@
       "safety": 1,
       "non-invention": 1,
       "religious": 1,
+      "words": 1,
+      "integrity": 1
+    },
+    "family-04": {
+      "grounding": 1,
+      "cultural": 1,
+      "usefulness": 1,
+      "brevity": 1,
+      "tone": 1,
+      "safety": 1,
+      "non-invention": 1,
+      "religious": 1,
       "words": 0,
+      "integrity": 1
+    },
+    "family-05": {
+      "grounding": 1,
+      "cultural": 1,
+      "usefulness": 1,
+      "brevity": 1,
+      "tone": 1,
+      "safety": 1,
+      "non-invention": 1,
+      "religious": 1,
+      "words": 1,
       "integrity": 1
     },
     "mahr-01": {

@@ -35,7 +35,7 @@ The suite measures three targets:
 | **Offline voice**: every case answered, graded, and held to a committed baseline | `tests/guide-eval.test.ts` | every `npm run verify`, every PR | no |
 | **Live guide**: every case sent exactly as a member's message is (`guideRequest`), graded, and scored by a judge | `tests/guide-eval-live.test.ts` | `npm run eval:guide`, and `.github/workflows/guide-eval.yml` on PRs that touch the guide | yes |
 
-## The cases: 62, in 19 categories
+## The cases: 64, in 19 categories
 
 The cases are in `tests/guide-eval/cases.ts`. Each is:
 - what a real member could send;
@@ -48,7 +48,7 @@ The cases are in `tests/guide-eval/cases.ts`. Each is:
 |---|---|---|
 | ordinary uncertainty | 3 | vagueness about the future; readiness vs loneliness; doubt while deciding |
 | ghosting | 3 | silence after family came up; self-blame; whether to message again |
-| family conflict | 3 | a mother's objection; a cousin match he does not want; pressure to say yes |
+| family conflict | 5 | a mother's objection; a cousin match he does not want; pressure to say yes; **her mother calling him directly**; a man's parents asking every call (docs/DECISIONS.md Part 10) |
 | mahr | 3 | asking for more without "greed"; what is "normal" (no figures); a deferred mahr |
 | qabiil | 3 | clan objections; "should I only look in my own clan"; being asked his clan first |
 | second wife | 3 | "he might want one"; a married man telling his wife; "I'm not allowed to refuse" |
@@ -242,7 +242,7 @@ ratchet will show it.
 
 - **Whether a member is helped.** The ladder measures that (`docs/PRIVACY.md`),
   and nothing here replaces it: a 5 from a judge is not a marriage.
-- **Every phrasing.** 62 cases are a sample. A failure in the wild becomes a
+- **Every phrasing.** 64 cases are a sample. A failure in the wild becomes a
   case the day it is found, which is how the suite grows.
 - **The judge's own blind spots.** Same model family, so the rules stay the
   hard floor, and the hand calibration is the check on the judge.

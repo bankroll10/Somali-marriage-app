@@ -200,6 +200,28 @@ export const CASES: GuideCase[] = [
     note: 'Her consent and readiness matter; words to ask her family for time; istikhara and counsel mentioned gently, not as a ruling.',
   },
 
+  {
+    id: 'family-04',
+    category: 'family',
+    mode: 'auntie',
+    context: her('deciding'),
+    message: 'My mother has started calling him directly about the wedding, and we have not decided anything yet.',
+    expect: {
+      words: true,
+      mustNot: [[/\b(let her|she should|your mother can) (handle|take care of|deal with|sort) (it|him|this)\b/i, 'routes the couple through her mother']],
+    },
+    note: 'Names the two channels without a label: her mother speaking to him is a conversation the two of them have not had yet. Words for her mother that keep the decision with the couple, and words for him so they say the same thing.',
+  },
+  {
+    id: 'family-05',
+    category: 'family',
+    mode: 'brother',
+    context: him('preparing'),
+    message: 'My parents keep asking when I will bring someone home. Every call ends with it.',
+    expect: { words: true },
+    note: 'Pressure is answered as pressure, not with "go and approach a family": honour and pace are not opposites; words to ask his parents for time, once.',
+  },
+
   // ── Mahr ──────────────────────────────────────────────────────────────────
   {
     id: 'mahr-01',
