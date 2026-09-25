@@ -232,6 +232,30 @@ and 15 test the functional and social jobs; the three-day text is the outcome.
 11. *Which of these would a Pakistani or Arab friend of yours also need, and
     which are only ours?* (`docs/RESEARCH.md` conviction 1 — portability)
 
+**C′ · How, not what (if time allows; `docs/DECISIONS.md` Part 9)**
+
+These are what happened, never what would. Each one is a candidate answer in
+an instrument, and none is built until sessions say it is real.
+
+11a. *The last time the two of you disagreed about something that mattered,
+     what happened next? Who came back to it, and how long did it take?*
+     (the read's `hard`; repair)
+11b. *The last time they got something wrong with you, what did they do?*
+     (taking responsibility)
+11c. *Has anything you said ever changed their mind? What was it?*
+     (accepting influence)
+11d. *When they raise something hard with you, how do they start?*
+     (the opening)
+11e. *Is there anything you have stopped raising with them? What stopped
+     you?* (the read's `careful`)
+
+**If an answer describes fear, threats, or control** — a phone checked, money
+kept, who they may see, being shouted at — stop the questions. Say plainly
+that this is not a difference to work out. Name the help line for their
+country (`src/data/help.ts`), and suggest one person they trust. Log the
+session as a safety entry with no detail that could identify anyone, and
+nothing else from it.
+
 **D · The words and the culture (min 26–27)**
 12. *Was anything on those screens said in a way that felt false, exaggerated,
     embarrassing, or like an auntie? Anything that sounded like it was

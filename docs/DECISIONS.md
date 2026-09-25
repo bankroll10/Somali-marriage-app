@@ -1359,3 +1359,158 @@ no new option.
   - The printed guide's neutral voice writes "they has" where the
     woman's voice has "{he} has". That bug predates this change.
 
+
+## Part 9: How they disagree, not only what about (2026-09-25)
+
+The founder asked whether Niyyah attends to **how** a couple handles a
+disagreement, and not only what the disagreement is about. The audit was held
+against the established research constructs:
+- harsh versus soft openings;
+- escalation;
+- contempt;
+- defensiveness;
+- withdrawal and stonewalling;
+- repair;
+- emotional regulation;
+- taking responsibility;
+- coming back to what is unresolved;
+- accepting influence;
+- psychological safety.
+
+The surfaces were the read, the map, the eleven, the guide, the scripts and the
+follow-ups. The constraints: no diagnosis and no clinical labels; decision 19
+binding; no new screens. Every possible addition got one class:
+- ESSENTIAL TO CURRENT INSTRUMENT
+- USEFUL RESEARCH QUESTION
+- BETTER HANDLED BY GUIDE
+- OUT OF SCOPE
+- SAFETY ISSUE
+
+### 1. "We disagree about money" or "we cannot discuss money without contempt, threats, avoidance or control"?
+
+**Before this pass, mostly no, and in one place the product confused the two.**
+
+- **The eleven: no.** It records whether a conversation happened and where it
+  landed. "We can't discuss it" could only land as "not talked" or "still
+  open", and either way the result handed her words to go back in.
+- **The read: partly.**
+  - `hard` separates listening, a pause that comes back, withdrawal, and "I
+    end up feeling like the problem".
+  - `nonneg: pushed` catches pressure on her non-negotiables.
+  - The only safety pattern it knew was being kept hidden. It had nothing for
+    fear, threats, intimidation or control.
+- **The guide: yes for explicit threats and violence; no for control.** It
+  missed a phone checked, money kept, who she may see, being shouted at, and
+  being afraid to raise things. `jealousy-03` ("He checks my phone") passed on
+  the courtship framework.
+- **The offline guide actively conflated the two.** "We keep arguing" was one
+  of the difference words: a message about how they argue got the answer
+  about what kind of difference it was.
+- **The follow-up: no.** "It went differently" sent a fixed sentence with
+  nothing in it, and offline it had no answer. For "his family in your home"
+  it was routed to "a man worth having expects your family".
+- **The map: her own general style only.** Its repair and pause lines are the
+  best writing on this in the product. Its cut "what feels safe" question was
+  still wired into the guide, and Trust still claimed the guide was sent it.
+
+### 2. What was already right, and stays
+
+- Her openings are soft everywhere, and the eval fails an ultimatum.
+- The read measures coming back, not agreeing. A pause or defensiveness that
+  comes back counts as shown, which is what repair research would ask.
+- The `tells` notice how he takes a question: an insult to his mother, a joke,
+  defensiveness, a lecture, "we".
+- The map's reflection says: "a pause and not a punishment"; "the repair is
+  the part that matters".
+- The scripts already contain three process moves: "say so once, calmly, the
+  same week"; "don't answer a debate"; "ask again".
+- The hidden caution, and its refusal to coach.
+
+### 3. Construct by construct
+
+| Construct | What exists | Gap | Class | Done |
+|---|---|---|---|---|
+| Harsh vs soft opening | Her words, soft throughout; the ultimatum grader | How *he* starts; when and where to raise it | His: USEFUL RESEARCH QUESTION. Delivery: BETTER HANDLED BY GUIDE | Prompt line: in person, not in front of family, not mid-argument. `docs/PROTOCOL.md` 11d |
+| Escalation | Nothing about him; her own "heated, then repair" | "Raises his voice, then comes back" vs "shouts at me" | Shouting at her: SAFETY ISSUE. Ordinary heat: USEFUL RESEARCH QUESTION | Safety words and prompt. Open question 11 |
+| Contempt / disrespect | Dealbreaker "respect"; the "insult to his mother" tell | Mockery, put-downs, name-calling when she disagrees | BETTER HANDLED BY GUIDE. A read item: USEFUL RESEARCH QUESTION | `PROCESS_REPLY`: "not an argument style. It is how you are being treated" |
+| Defensiveness | `hard: defensive`; two tells | — | Already covered | — |
+| Withdrawal / stonewalling | `hard: quiet`, `nonneg: deflected`, `family: avoids`; `end-it-kindly` | Days of silence as punishment vs a pause | BETTER HANDLED BY GUIDE; SAFETY ISSUE with fear | `PROCESS_REPLY`: "'I need a break' is not the same as days of silence" |
+| Repair | "Comes back" (read); the map's repair line | Married Home promised "the voice built for repair", with no answer offline: an untrue claim | ESSENTIAL TO CURRENT INSTRUMENT | `PROCESS_REPLY`'s repair line |
+| Emotional regulation | Her self-soothing; her pause | No "stop and come back" handed to her | ESSENTIAL TO CURRENT INSTRUMENT | `WORK_IT_OUT`: "If it gets heated, you can stop … and then come back to it" |
+| Taking responsibility | Nearest is `plans: rescheduled` | Nothing asks | USEFUL RESEARCH QUESTION | PROTOCOL 11b; open question 11 |
+| Returning to unresolved | `hard`; "Not yet" asked again; "ask again" | "It went differently" was a dead end | ESSENTIAL TO CURRENT INSTRUMENT | `WENT_DIFFERENTLY_REPLY`. Tone on the follow-up (a new field): open question 11 |
+| Accepting influence | "Whether he asks for yours"; `nonneg: pushed` inverse | Nothing asks whether he has changed his mind | USEFUL RESEARCH QUESTION | PROTOCOL 11c |
+| Psychological safety | `hard: blames`; the hidden caution | "I'm careful what I raise" had no answer; the eleven sent her back in | **SAFETY ISSUE** | The read's `careful`; the eleven's line; guide words and prompt |
+| Threats, control, isolation | Explicit threats (guide; report `threats`) | Phone, money, contacts; report reasons; Ended | SAFETY ISSUE | Guide words and prompt. Report reason: open question 10. Ended: next pass |
+
+**OUT OF SCOPE**, named so nobody builds them:
+- a conflict-style score for a person or a couple;
+- any ratio of negative to positive exchanges;
+- clinical or pop-psychology labels ("stonewalling", "contempt", "narcissist",
+  "toxic", attachment styles as diagnoses);
+- communication exercises or couples-skills curricula;
+- measures of flooding;
+- recording or transcribing conversations;
+- ongoing conflict coaching for married couples beyond the guide.
+
+### 4. What was built
+
+- **The read's `careful`** (decision 19 clause 3; `docs/SECURITY.md`, "Afraid
+  to raise it"). The answer is "I'm careful what I raise, because of how {he}
+  reacts": her report of her own caution, weight 0.
+  - It sets a quiet line with the help line. It is not the caution band:
+    Part 4 warned against an alarm on one tap of her feeling.
+  - The words become words for one person who knows her, whatever ground is
+    thinnest, and the next step is her own people.
+  - The follow-up asks whether she told someone, and the guide is told.
+  - With being kept hidden, it is the caution.
+  - It caps the band at mixed. The walk on a phone found it still reading "He
+    has done most of what this asks about … worth closing, not worth
+    panicking about … one clear conversation", with "ask about it directly" in
+    the mixed band. Both are fixed.
+- **The eleven's result** says once, under every result, with the help line:
+  "If raising any of these feels unsafe rather than hard — if you are careful
+  what you say because of how he reacts — that is not a difference to work
+  out. Tell one person who knows you first."
+- **`WORK_IT_OUT`** gains a pause that comes back.
+- **The offline guide:**
+  - `PROCESS_REPLY` covers how they argue, in any voice: does it come back;
+    can either of you stop without it being a punishment; does anyone come
+    away mocked, put down or afraid. It includes a repair line and a
+    pause-and-come-back agreement.
+  - `WENT_DIFFERENTLY_REPLY` answers the app's own sentence: it went badly;
+    it settled something; it did not feel safe.
+  - The safety words gain control and fear, kept to phrasings that say it:
+    "won't let me see", never "won't let me"; "checks my phone", never her
+    own "checking my phone".
+- **The live prompt:**
+  - SAFETY FIRST names control.
+  - A rule for how they argue: speak to how; a pause that comes back is not
+    withdrawal; one argument is not a verdict; no labels; mockery or fear
+    named as how they are being treated; when and where to raise it.
+- **Eval:**
+  - a `conflict` category of three cases;
+  - `abuse-04` (a salary card kept) and `abuse-05` (stopped raising money
+    because of how he reacts);
+  - `jealousy-03` now owes a safety answer.
+
+  No existing score moved.
+- **Deleted:** the dead "feels safe" wiring (the guide list, the prompt's
+  "Feels safe with", the therapist's branch). Trust's untrue claim went in the
+  same commit.
+- **Docs:**
+  - `docs/PROTOCOL.md` 11a–11e (what happened, never what would), with a stop
+    rule for any answer that describes fear, threats or control. The protocol
+    had none.
+  - `docs/RESEARCH.md` gets open question 11 and ledger L20.
+
+**Decision 19.** Only the read's answer is new, and it rests on a safety
+requirement. Everything else is one of:
+- a fix to something broken or untrue;
+- a deletion;
+- guide, eval or docs changes.
+
+No screen, route, store, stored field or new flow of data was added.
+
+**Not verified here.** The live eval (`npm run eval:guide`) needs a key. The
+prompt changed, so it needs one run.
