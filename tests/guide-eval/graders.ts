@@ -53,7 +53,9 @@ function sourceText(c: GuideCase): string {
     ...(c.history ?? []).map((t) => t.text),
     c.context.readNote ?? '',
     c.context.beforeYesNote ?? '',
-    String(c.context.identity.scene ?? ''),
+    // The scene reaches the model as an id ("twin-cities"); it may name it as
+    // words ("the Twin Cities"). The first live run failed six cases on that.
+    String(c.context.identity.scene ?? '').replace(/-/g, ' '),
   ].join(' ')
 }
 
@@ -67,7 +69,10 @@ const MAY_NAME = new Set(
     'InshaAllah Insha’Allah Inshallah Mashallah Ameen Amin Nikah Istikhara Eid Ramadan Jummah Friday Monday Tuesday Wednesday ' +
     'Thursday Saturday Sunday Somali Somalia Somaliland Hargeisa Mogadishu Minneapolis London Toronto Columbus Seattle ' +
     'Stockholm Nairobi Melbourne Europe Africa America English Niyyah Claude Anthropic Trust Try Auntie Hooyo Aabo Abo Eedo ' +
-    'Walaal Walaalo Wali Mahr Qabiil Deen Dua Du’a Sheikh Imam Abaayo Adeer Habo'
+    'Walaal Walaalo Wali Mahr Qabiil Deen Dua Du’a Sheikh Imam Abaayo Adeer Habo ' +
+    // The five prayers and the pillars: deen words, never an invented name
+    // (the first live run failed religious-03 on "Fajr").
+    'Fajr Dhuhr Zuhr Asr Maghrib Isha Salah Salat Jumu’ah Taraweeh Hajj Umrah Zakat Sadaqah Dugsi Masjid Khutbah'
   ).split(' '),
 )
 
@@ -166,7 +171,8 @@ export function nonInvention(c: GuideCase, answer: string): Grade {
   for (const m of answer.matchAll(re)) {
     const w = m[1].replace(/['’]s$/, '')
     if (MAY_NAME.has(w)) continue
-    if (new RegExp(`\\b${w}\\b`).test(source)) continue
+    // Case-blind: a word she or the map gave in lower case is still given.
+    if (new RegExp(`\\b${w}\\b`, 'i').test(source)) continue
     notes.push(`names "${w}", which nobody told it`)
   }
   if (STATISTICS.test(answer)) notes.push('cites a statistic or "research" it was never given')

@@ -55,6 +55,20 @@ jobs:
           fi
           npm run eval:guide
 
+      # The same report, in the log, for a reader that cannot fetch artifacts:
+      # a cloud session's network policy can refuse the artifact store while
+      # the log stays readable. Gzipped and base64'd, one marked line per
+      # chunk; reassemble with `grep GUIDE_EVAL_REPORT | cut -d' ' -f3 | tr -d '\n' | base64 -d | gunzip`.
+      # The cases are written for the suite; no member's words are in it.
+      - name: Print the report into the log
+        if: always()
+        run: |
+          for f in tests/guide-eval/results/live-*.json; do
+            [ -f "$f" ] || continue
+            gzip -c "$f" | base64 -w 0 | fold -w 3000 | sed "s|^|GUIDE_EVAL_REPORT $(basename "$f") |"
+            echo
+          done
+
       # The report a person reads, with every answer that lost points quoted.
       - uses: actions/upload-artifact@v4
         if: always()
