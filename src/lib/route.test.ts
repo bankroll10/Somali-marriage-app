@@ -17,6 +17,19 @@ describe('routeToMode', () => {
     expect(routeToMode('hooyo asks about marriage every single week').mode).toBe('auntie')
   })
 
+  it('sends a man’s family question to the brother, not the auntie (docs/DECISIONS.md Part 10)', () => {
+    expect(routeToMode('my parents keep asking when I will bring someone home', 'man').mode).toBe('brother')
+    expect(routeToMode('my parents keep asking when I will get married', 'woman').mode).toBe('auntie')
+  })
+
+  it('treats what to say to her wali as family, and whether one may as deen', () => {
+    const his = routeToMode('What do I say to her wali?', 'man')
+    expect(his.mode).toBe('brother')
+    expect(his.why).toMatch(/family/)
+    expect(routeToMode('what do I tell my father about him', 'woman').mode).toBe('auntie')
+    expect(routeToMode('is it haram to talk to her without her wali knowing', 'man').mode).toBe('islamic')
+  })
+
 
   it('routes the everyday "he went quiet" to the gendered default voice', () => {
     expect(routeToMode('he went quiet on me for three days', 'woman').mode).toBe(

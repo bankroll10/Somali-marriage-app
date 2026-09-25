@@ -1514,3 +1514,251 @@ No screen, route, store, stored field or new flow of data was added.
 
 **Not verified here.** The live eval (`npm run eval:guide`) needs a key. The
 prompt changed, so it needs one run.
+
+## Part 10: Two people, two families (2026-09-25)
+
+The founder asked for Niyyah to be read through a family-systems lens: two
+people deciding inside two families, each with its obligations, expectations
+and history. The lens's tools — boundaries, triangulation, differentiation,
+enmeshment, cutoff, intergenerational expectations, loyalty conflicts, role
+expectations, coalitions, pressure — were used to read the product, never to
+diagnose anyone in it. The surfaces: the wali, hooyo, the parents, siblings,
+in-laws, qabiil, money home, living with parents, the two families disagreeing,
+approaching her family, the two families meeting, pressure after the nikah,
+and the second-wife conversation.
+
+The rule for this pass was **no new features**. Every change is a copy
+calibration, a guide or eval change, a fix to something written the wrong way
+round for a man (PROTOCOL's "gender-inverted" failure), or a fix to a broken
+lookup. Every finding got one class:
+- CURRENT PRODUCT HANDLES WELL
+- LANGUAGE NEEDS CALIBRATION
+- RESEARCH QUESTION
+- POTENTIAL SAFETY ISSUE
+- OUT OF SCOPE
+
+### 1. Where "family involvement" is one variable
+
+The map asks one question, `family-role`: *central / involved once serious /
+kept informed / mostly private*. Everything downstream reads it as one dial
+from family-led to self-directed — the chapter-end insight, the reflection's
+family note, the alignment paragraph ("a family-minded match" against "a match
+who respects that you lead"), the eleven's your-side line on
+`families-disagree`, and the guide's `Family involvement:` field.
+
+That one dial folds together five things that pull apart in a real family:
+
+| Folded in | Why it is not the same thing |
+|---|---|
+| How much she **wants** family in it | A preference |
+| How much family **will be** in it regardless | Pressure. The hook and `why-now` catch it separately; the map never joins the two |
+| **Which** family | The wali, hooyo, the aunties' network and the uncles at the qabiil table are different roles with different powers. "Family" is one word for all of them |
+| **When** they come in, against **who decides** | "Involved once serious" is a sequence. "Part of every step" can mean consulted, or ruling |
+| The **quality of the tie** | Ally, ambivalent, coercive, or cut off. "Mostly private until I'm sure" can be differentiation, hiding from a family that is not safe, or a cutoff. The reflection's `private` line is the one place that asks which ("whether it is protecting you or delaying a conversation") |
+
+**RESEARCH QUESTION** for the variable itself: a second question is a new
+option, and what to ask waits on the sessions (`docs/RESEARCH.md` open
+question 12; `docs/PROTOCOL.md` 16a–16c). **LANGUAGE NEEDS CALIBRATION** for
+one readback: the eleven read `guided` back as family "to guide, not decide" —
+an authority frame she never chose. It now repeats what she said: "You told
+your map you want family involved once it is serious."
+
+### 2. Where the relationship with family matters more than whether they are involved
+
+- **`why-now: pressure`** ("My family and community expect it of me") is
+  weighted 0.4, the lowest of the four, and lowers the rated Intention ground.
+  Honesty about pressure is read as thinner intention. The reflection's words
+  for it are right ("Knowing the difference between their clock and your
+  intention"); the weight says the opposite. **RESEARCH QUESTION**: a weight
+  moves on records, in the monthly loop, and is now in the constants table.
+- **The read's caution** sends her to "a sister, a friend, an older woman you
+  trust" — never a parent or the wali. Right: family can be the pressure.
+  **HANDLES WELL.**
+- **The `family` hook**: "family in the story, you holding the pen." The
+  clearest differentiation line in the product. **HANDLES WELL.**
+- **`first-with-hooyo`**: "I haven't decided anything, and I'm not asking you
+  to" — a boundary set while inviting her in. **HANDLES WELL.**
+- **The offline guide answered family pressure with "bring them in."** The
+  women's chip *"My family is pushing me about marriage and I don't know how
+  to handle it"* matched only `family` in the auntie's intents and got: "A man
+  worth having *expects* your family. Bring them in gently … Your people
+  protect you. Let them." Advice to involve family, given to someone
+  reporting pressure from it. "My parents want me to marry my cousin" reached
+  the brother's "This is where you become a man in their eyes. Come correct."
+  **POTENTIAL SAFETY ISSUE** — the product's own sentence, answered backwards.
+  Fixed: `PRESSURE_REPLY`, below.
+
+### 3. Where the product could encourage triangulation
+
+Triangulation here means a message routed through a third person instead of
+to the person it concerns.
+
+- **`approach-her-family`**, his words to her father, said "I have been
+  speaking with your daughter, and I did not want that to go further without
+  coming to you first". Its own `when` is "Once she has told you who to
+  approach" — she has already pointed him there — yet the words erased her:
+  "first" put the father ahead of the conversation with her, and she appeared
+  only as "your daughter". **LANGUAGE NEEDS CALIBRATION.** Now: "she told me
+  you are the one I should come to. I did not want it to go further without
+  doing that."
+- **`tell-wali-online`**: she speaks for him in the third person and hands the
+  frame over ("on your terms"). Culturally that is the wali's role, and the
+  tells say why ("an ally instead of an obstacle"). **HANDLES WELL**, with one
+  note: it is the only script in which the member's own terms do not appear.
+- **`send-his-people`**: she asks *him*, directly, to take the step that goes
+  through his family. Direct to the person, about the channel. **HANDLES
+  WELL.**
+- **The auntie's `family` reply made his reaction to her family a test of
+  him**: "Then watch his face. If it scares him off, walaal, you have learned
+  early that he was not ready for your family." One reaction read as a verdict
+  (L11), and family made into a loyalty test. **LANGUAGE NEEDS CALIBRATION.**
+  Now: "Then listen to what he says back. If he pulls back at that, you have
+  heard it plainly, and early — which is what you asked for."
+- **`families-meet`** ("Please ask me before you agree to anything") and
+  **`in-laws-after`** ("us first, then them") are the anti-triangulation
+  scripts, and the best family-systems writing in the product. **HANDLES
+  WELL.**
+- **`families-disagree`**: "If the answer is about keeping one mother happy
+  and the other quiet, the team is not yet the two of you." A coalition named
+  without a label. **HANDLES WELL.**
+
+### 4. Where involving family increases safety, clarity or seriousness
+
+- **`public` leads the read.** "Being known to his people costs him
+  something." Family knowledge as the first seriousness signal is the right
+  use of family: visibility, not authority. **HANDLES WELL.**
+- **`secret`'s man variant**: discretion before the families is a woman
+  protecting her name, and is scored as such. **HANDLES WELL** — and it
+  exposed the inversion below.
+- **`tell-wali-online`'s `why`**: "from you, first, with the whole picture —
+  or from a cousin, sideways, with none of it." **HANDLES WELL.**
+- **`end-it-kindly`**: tell one person you trust, so the community's version
+  of the story is yours. **HANDLES WELL.**
+- **`known` had no man variant.** A man was scored exactly as a woman on "Who
+  in her life knows you exist?" — 0 when nobody does. But the product itself
+  says a woman before his people have gone to hers is often keeping her family
+  out until he approaches (`secret`'s man helper). The man's read marked her
+  down for the thing the read's own `family` question told him was his step.
+  **LANGUAGE NEEDS CALIBRATION**, as a gender-inversion fix. A man's `known`
+  variant: "Before your people have gone to hers, her family often does not
+  know yet — that is hers to time. A sister or a friend knowing is the tell";
+  friends 0.85, one 0.5, nobody 0.2; the `family` option's note says "before
+  your people have gone to them".
+- **The man's `family` question** scored her 0 on moving toward family for
+  "It has not come up", when the approach is his to make. Relabelled "It has
+  not come up — I haven't asked yet", with the note "you have not yet asked
+  her how to approach her family", so the 0 reads as his unasked step.
+
+### 5. Where family pressure threatens autonomous decision-making
+
+- **StageBand**: "Only you decide this — nothing here is assumed." **HANDLES
+  WELL.**
+- **Second wife**: the eval forbids "you cannot refuse" (`second-wife-03`).
+  **HANDLES WELL.** The eleven's second-wife item has no family dimension —
+  his mother's view, the first wife's family. **RESEARCH QUESTION**; not
+  added.
+- **Qabiil**: the eleven asks what he does "if it mattered to his uncle" and
+  "whether he will stand next to you" — the coalition question, asked of the
+  pair. **HANDLES WELL.** One note: "stand next to you" could be heard as
+  "choose me over them", a cutoff. The tells' "ask him to think about it, and
+  ask again" keeps it a stance, not an ultimatum.
+- **"My family said no" / "His family said no"** at the Ending lead nowhere:
+  no acknowledgment, no words, no guide prompt. Whether a family's no ends it,
+  is argued, or becomes a cutoff is the loyalty conflict the product knows
+  least about. **RESEARCH QUESTION** (Part 5's H2 already points here; 16b in
+  the protocol).
+- **Forced marriage** is in the safety words ("make me marry"); pressure short
+  of force was not, and reached the wrong intent (§2). Fixed in the guide.
+- **`money-home`'s alignment line**: "someone who sends money home too, and
+  will never resent that you do" — an obligation made a match criterion, with
+  a prediction attached. **LANGUAGE NEEDS CALIBRATION.** Now: "someone who
+  also sends money home, and can plan it with you."
+
+### 6. Role expectations and gendered scripts
+
+- Seven scripts each side; the mirror pairs (`tell-wali-online` /
+  `tell-family-online`, `send-his-people` / `approach-her-family`) are written
+  as different steps, not pronoun swaps. **HANDLES WELL.**
+- **`live`** had no man variant: "whether with {his} mother, near her, or on
+  your own" read to a man as "with her mother" — the less common direction,
+  and the file's own rule ("a token swap produces a different question")
+  applies. **LANGUAGE NEEDS CALIBRATION.** A man's prompt now asks about his
+  mother.
+- **Routing**: the family rule in `route.ts` was fixed to the auntie, so a
+  man's family question got the woman's family reply ("A man worth having
+  expects your family"). The men's chip "Talking to her wali" went to the
+  Islamic voice and got the generic "Family and the wali aren't bureaucracy",
+  not the brother's words for her father — and so did the same words typed,
+  because "wali" is a word of deen and the Islamic rule came first.
+  **LANGUAGE NEEDS CALIBRATION** (routing): the family rule is `gendered`;
+  the chip is the brother's; and what to *say* to a wali, a father or a
+  brother is family before it is deen, while whether one *may* (halal, haram,
+  permissible) stays with the Islamic voice.
+- **`Flexible`** (intake) against `flexible` (eleven lookup): her own side
+  never showed for that answer on where to live. Noted in Part 7 and still
+  open. Fixed: `yourSideLine` tolerates the case.
+
+### 7. OUT OF SCOPE, named
+
+- Any assessment of a family's "health", or a label on a family (enmeshed,
+  estranged, controlling).
+- A second family-role question, or asking which relative holds which role,
+  until the sessions say what to ask.
+- Scripts for a family that has said no, or for a cutoff.
+- Family members as users, or any message from the product to a relative.
+- A "tell your family" nudge or count.
+- A family dimension on the second-wife item.
+
+### 8. What was built
+
+**Guide (offline and routing)**
+- `PRESSURE_WORDS` / `PRESSURE_REPLY` in `src/lib/coach.ts`, voice-independent,
+  after crisis, safety and harm. The words are family-specific ("family is
+  pushing", "pressure from my family", "keep asking when", "want me to marry",
+  "expect me to say yes", "bring someone home", "not getting any younger"),
+  never a bare "keeps pushing", which a boundaries question also says. The
+  reply: the questions can be love that has not learned to speak softly;
+  honour and pace are not opposites; words to ask for time; where force, as
+  against pressure, goes (one person; the emergency number). A "Try:" line
+  for her own family: ask me once a month, and I'll tell you where I am.
+- The family rule in `src/lib/route.ts` is `gendered`: a man's family question
+  goes to the brother.
+- The men's "Talking to her wali" chip is the brother's, and a typed "What do
+  I say to her wali?" reaches the brother too: a rule ahead of the Islamic one
+  sends *what to say* to a wali, father or brother to the member's own voice,
+  and leaves *whether one may* with deen.
+- The auntie's `family` reply no longer reads his face as a verdict.
+- Eval: `family-04` (her mother calling him directly about a wedding nobody
+  has decided; the answer must not route through the mother) and `family-05`
+  (a man whose parents end every call with "when will you bring someone
+  home"). Baseline recorded; `family-03` rose on words; nothing dropped.
+
+**Copy**
+- `approach-her-family`: she told him to come.
+- `families-disagree` your side, `guided`: what she said, not "guide, not
+  decide".
+- `live`: a man's prompt.
+- The read's `known`: a man's variant. The man's `family.no`: his unasked
+  step.
+- The money-home alignment line: plan it together, no prediction.
+- `yourSideLine` in `src/data/beforeYes.ts`; `BeforeYes.tsx` uses it.
+
+**Docs**
+- `docs/PROTOCOL.md` 16a–16c: whom you would tell first and why; whose no
+  would end it; whether anyone spoke to the other side without you knowing.
+- `docs/RESEARCH.md`: open question 12; the `why-now` weights in the constants
+  table; ledger L21 for the new advice lines.
+
+**Decision 19.** Nothing new was added. Every change is one of:
+- a copy calibration or a routing fix inside the guide;
+- a fix to something written the wrong way round for a man, or to a broken
+  lookup;
+- eval or docs.
+
+No screen, route, store, stored field, option or new flow of data was added.
+The read's man variants change how an existing answer is weighed, not what is
+stored: the ids are unchanged, and `docs/PRIVACY.md` needed nothing.
+
+**Not verified here.** The live eval (`npm run eval:guide`) needs a key. The
+prompt did not change in this pass, so the offline eval and its baseline are
+the whole of what moved.

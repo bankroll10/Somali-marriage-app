@@ -271,6 +271,17 @@ nothing else from it.
     not — the words, the look, who sent it, something else?*
 16. *Who in your family knows you're talking to someone? Who would you want
     to know before it goes further, and how would you tell them?*
+16a. *Whom in your family would you tell first, and why that person?* (The
+     role, not the relation: the ally, the gate, the one who tells everyone —
+     `docs/DECISIONS.md` Part 10. Record the role they name.)
+16b. *Whose no would end it? Whose no would you argue with?* (The loyalty
+     question, asked as a past or a plain fact, never as "would you defy".
+     If the answer is "nobody's", ask about the last time someone in the
+     family did not approve of something they chose.)
+16c. *Has anyone in either family spoken to the other person, or to their
+     family, without you knowing first? What happened after?* (Messages
+     routed round the two of them. Record who, by role, and whether it
+     helped or cost them.)
 17. *At the last wedding in your family, was anyone paid for bringing the two
     of them together — who paid, how much, and when?* (`docs/RESEARCH.md`
     conviction 7, word for word, and A5. Amounts, never
