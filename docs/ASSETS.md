@@ -39,9 +39,9 @@ page has no URL here. A new asset does not ship without a row.
 | **N3-note** | A half-page note for whoever hands N3 to a couple | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.html` | **live and checked** | 2026-09-20 |
 | **N3-so** | The money conversation in Somali, four pages, founder-approved | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.html` | **live and checked** | 2026-09-20 |
 | **N3-1page-so** | The Somali version on one printed page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.html` | **live and checked** | 2026-09-20 |
-| **N3-pdf** | N3 as a Letter PDF, four pages | `https://joinniyyah.com/niyyah-money-conversation-sheet.pdf` | **built, not yet checked** | — |
-| **N3-1page-pdf** | N3-1page as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.pdf` | **built, not yet checked** | — |
-| **N3-note-pdf** | N3-note as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.pdf` | **built, not yet checked** | — |
+| **N3-pdf** | N3 as a Letter PDF, four pages | `https://joinniyyah.com/niyyah-money-conversation-sheet.pdf` | **live and checked** | 2026-09-25 |
+| **N3-1page-pdf** | N3-1page as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page.pdf` | **live and checked** | 2026-09-25 |
+| **N3-note-pdf** | N3-note as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.pdf` | **live and checked** | 2026-09-25 |
 | **N3-so-pdf** | N3-so as a Letter PDF, four pages | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.pdf` | **built, not yet checked** | — |
 | **N3-1page-so-pdf** | N3-1page-so as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.pdf` | **built, not yet checked** | — |
 
@@ -113,7 +113,7 @@ is visible somewhere a stranger could find it.
 | 2026-09-19 | WardheerNews, worldwide Somali readership | email `admin@wardheernews.com` | N1c | `…/tools/before-you-say-yes?via=press` | topic inquiry sent |
 | 2026-09-23 | The Somali American, Minneapolis, "Ask a Scholar" column | contact form (editor) | N1c; N2s linked for the editor | `…/tools/before-you-say-yes?via=press` | drafted, not yet sent |
 | 2026-09-23 | KALY-LP 101.7 FM, Somali-language, South Minneapolis | email `Underwriting@kalyradio.org` | none — rate inquiry only | web: `…/tools/before-you-say-yes?via=press`; on air: none | drafted, not yet sent |
-| 2026-09-23 | Dr. Aneesah Nadir and Associates, *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7) | email `info@draneesah.com` | N3-note, pointing to N3-1page | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | drafted, not yet sent |
+| 2026-09-25 | Before the Nikah Institute (Dr. Aneesah Nadir), *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7; finances weeks Oct 5–30) | email, the course's business address | N3-note, N3, N3-1page, their three PDFs, N3-so and N3-1page-so | `…/niyyah-money-conversation-sheet-facilitator-note.html` and the sheets, no via | **replied.** Pitch sent 2026-09-25 (drafted 09-23); she replied the same day with the finances dates and asked for the resource; sent the same day. Ask how it went around Nov 2 (rule 9) |
 | 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent |
 | 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page; PDFs offered | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent, awaiting reply |
 

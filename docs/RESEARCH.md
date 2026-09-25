@@ -276,6 +276,20 @@ graded him backwards, and no family script was his. Fixed (`speak()`,
 Gap 1, conviction 1; answers neither. **New rule:** nothing ships to a side
 of the product nobody has walked on a phone.
 
+### 2026-09-25 · email
+
+**Context.** A US Muslim premarital course, run online over thirteen weeks,
+with finances taught October 5–30; pitched the money conversation sheet
+(N3, with its facilitator note). **What they said.** Replied the same day
+with the dates of the finances weeks and said they looked forward to
+receiving it; the sheets, their PDFs and the Somali versions went back that
+day. The first reply to any pitch in `docs/ASSETS.md`. **Bears on.** A9: an
+institution wants a Niyyah handout, unprompted by anything but the pitch.
+It does not start A9's eight-week clock: an N3 placement carries no via and
+a course is not somewhere a stranger could find the link (`docs/ASSETS.md`,
+rule 9). The measure is what the course says after using it; asked around
+November 2.
+
 ## What the ladder can and cannot answer
 
 Eleven rungs (`src/lib/rungs.ts`; `RUNGS` in `netlify/shared/vocab.ts`),
