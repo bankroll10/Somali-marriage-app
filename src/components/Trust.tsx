@@ -136,8 +136,10 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>if you’ve married, what you told us on the way out</li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                Left out: your conversations with the guide, and anything the guide handed you to
-                say. Those stay on this phone.
+                Left out: your conversations with the guide, anything the guide handed you to
+                say, and which differences in the eleven you named as a line for you — the map
+                keeps each of those only as a difference. Those stay on this phone; a map brought
+                back on another phone shows them as still open.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 The code is registered to nobody, and without it nobody can reach the map.
@@ -149,11 +151,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               </p>
             </Disclose>
 
-            <Disclose summary={fix('Asking {him} to do the eleven too')} hint="Only where you match comes back">
+            <Disclose summary={fix('Asking {him} to do the eleven too')} hint="Only where you stand comes back">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                 {fix(`If you send {him} the link, your eleven answers go to our server under a
                 code with no name on it, and {his} go there when {he} answers. The server
-                sends back only where you match — not your sheet to {him}, and not {his}
+                sends back only where the two of you stand — not your sheet to {him}, and not {his}
                 to you. From your own answer you can still tell whether {he} thinks a
                 conversation happened; that is the point, and {he} can tell the same
                 about you.`)}
@@ -162,8 +164,10 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 {fix(`Your answers are frozen the moment {he} answers, {his} after
                 once, and the whole thing expires after ninety days. Once {he} has
                 answered, your pair is also added to a count of how pairs come out on
-                each of the eleven — both agree, neither has raised it, one thinks it
-                was talked about — with no code and no side attached, so we can learn
+                each of the eleven — both agree, both see it differently and have
+                worked out how, neither has raised it, one thinks it was talked about,
+                you describe it differently, one of you doesn’t know yet — with no code
+                and no side attached, so we can learn
                 which conversations couples here most often miss.`)}
               </p>
             </Disclose>
@@ -235,10 +239,14 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>whether you are a woman or a man, and your city</li>
                 <li>your timeline, where you are in your practice, and how central faith is</li>
                 <li>your family’s role, and children</li>
-                <li>how you lean in closeness, and what you said you feel safe with</li>
+                <li>how you lean in closeness</li>
                 <li>your non-negotiables, and the hardest part you named</li>
                 <li>which stage you said you’re at</li>
-                <li>if you’ve taken a read, or been through Before you say yes, one line saying how each came out</li>
+                <li>
+                  if you’ve taken a read, or been through Before you say yes, one line saying how each came
+                  out — for the eleven, which conversation is still open and which you named as a line, so the
+                  guide never nudges you off one
+                </li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 Not their name; we don’t have it. It goes to Claude, made by Anthropic, which writes

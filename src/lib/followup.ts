@@ -1,6 +1,7 @@
 import type { FollowUp, Gender, ReadRecord } from '../types'
-import { beforeYesTopics, type Topic } from '../data/beforeYes'
-import { scriptFor, speak, type ReadDimension, type Script } from '../data/read'
+import { beforeYesTopics, scriptForState, type Topic } from '../data/beforeYes'
+import { speak, type ReadDimension, type Script } from '../data/read'
+import { gapScript } from './read'
 import { familyScript } from '../data/families'
 import type { WordsSource } from './words'
 
@@ -74,12 +75,18 @@ const READ_DIMENSIONS = new Set<string>(['public', 'intent', 'consistency', 'pre
  * One at a time, oldest question last: a person who has been given three
  * things to do is being given none.
  */
-export function openFollowUp(followups: FollowUp[], gender: Gender = 'woman', now = Date.now()): FollowUpAsk | null {
+export function openFollowUp(
+  followups: FollowUp[],
+  gender: Gender = 'woman',
+  now = Date.now(),
+  /** Her eleven and her read as they stand now, so the words shown again are the words each result gave. */
+  current?: { eleven?: Record<string, string>; read?: Record<string, string> },
+): FollowUpAsk | null {
   const ripe = followups
     .filter((f) => isOpen(f, now))
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
   for (const f of ripe) {
-    const ask = describe(f, gender)
+    const ask = describe(f, gender, current)
     if (ask) return ask
   }
   return null
@@ -114,7 +121,7 @@ const READ_TOPIC: Record<ReadDimension | 'early', string> = {
   early: 'what each of you is looking for',
 }
 
-function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
+function describe(f: FollowUp, gender: Gender, current?: { eleven?: Record<string, string>; read?: Record<string, string> }): FollowUpAsk | null {
   const say = speak(gender)
   if (f.source === 'guide') {
     // The guide's words live only in the reply she was given, so they travel
@@ -157,10 +164,15 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
     // script up in her table, so three days later a man was asked whether he
     // had put "How would you want to approach my family?" to a woman.
     const key = f.topic as ReadDimension | 'early'
-    const script = scriptFor(key, gender)
+    const script = gapScript(key, current?.read, gender)
+    // Careful what she raises: the words were for one person who knows her,
+    // not a question for {him}, and the follow-up asks about those.
+    const careful = current?.read?.hard === 'careful'
     return {
       followUp: f,
-      question: say('Last time, this was the question to put to {him}. Have you asked it?'),
+      question: careful
+        ? 'Last time, the words were for telling one person who knows you. Did you?'
+        : say('Last time, this was the question to put to {him}. Have you asked it?'),
       label: say(READ_TOPIC[key]),
       script,
       writesBack: false,
@@ -174,7 +186,11 @@ function describe(f: FollowUp, gender: Gender): FollowUpAsk | null {
     followUp: f,
     question: say(`Last time, the one to open was ${label}. Have the two of you had it?`),
     label,
-    script: topic.script,
+    // Her own sheet chooses its words by where the topic stands — a difference
+    // still open gets the words for after a difference, not the opening words
+    // again (src/data/beforeYes.ts scriptForState). The two-sided sheet keeps
+    // the opening words: one of them may not know there is a difference.
+    script: f.source === 'beforeYes' ? scriptForState(topic, current?.eleven?.[f.topic], gender) : topic.script,
     writesBack: true,
     travel: f.source === 'couple' ? 'couple' : 'eleven',
   }
@@ -201,9 +217,18 @@ export function conversationsHad(
     .filter((x): x is { label: string; at: string } => x !== null)
 }
 
-/** What "we talked" writes back into her eleven, so the sheet stays true. */
-export function writeBackState(agreed: boolean): 'agree' | 'differ' {
-  return agreed ? 'agree' : 'differ'
+/**
+ * Where a conversation landed, as she says it. "We don't agree" used to be the
+ * only answer after "we talked" that wasn't agreement — so a couple who had
+ * worked a difference out were recorded as open, and a line was recorded as
+ * something to reopen (docs/DECISIONS.md Part 8). Not agreeing is an answer,
+ * and it comes in three kinds.
+ */
+export type Landed = 'agree' | 'settled' | 'differ' | 'line'
+
+/** What "we talked" writes back into her eleven, so the sheet stays true. A line is `differ`, and hers. */
+export function writeBackState(landed: Landed): { state: 'agree' | 'settled' | 'differ'; line: boolean } {
+  return landed === 'line' ? { state: 'differ', line: true } : { state: landed, line: false }
 }
 
 /** She actually had one of them. The one outcome this product exists to cause. */

@@ -477,8 +477,16 @@ Candidates, not work. *Untrue claim* items need no evidence under decision 19;
 - Give every scored question a man's variant, or a stated reason it needs none. (*new option*)
 - Add a distance answer to `in-person`; make `plans` a rate. (*new option*)
 
-**Not done:** no test against outcomes, since none exists; the eleven, the
-family words and the guide were not reviewed.
+**Not done:** no test against outcomes, since none exists; the family words
+and the guide were not reviewed. The eleven were, in Part 7.
+
+**Later (Part 8, 2026-09-24):** `nonneg` and `hard` relabelled, ids and
+weights unchanged. "Pushed back" had put an honest "that isn't me" in the
+same box as pressure; it now reads "keeps trying to talk me out of them",
+and the helper says a plain answer counts even when it isn't hers. His
+pause that comes back now sits with "comes back", where her own map puts
+hers. When `nonneg` is what made pressure thin, the words ask for a plain
+answer, not agreement.
 
 ## Part 5: Commitment: dedication, constraint, sliding and deciding (2026-09-24)
 
@@ -687,3 +695,1070 @@ runbook (decision 17) is at `git show 43295a4:docs/LIQUIDITY.md`.
   on Home; reloading re-seeds it (`src/lib/demo.ts`).
 - On the live site both act only on a phone that holds nothing, then leave
   the address bar, because a link that wipes a phone is one anyone can send.
+
+## Part 7: The eleven, audited as content (2026-09-24)
+
+The founder asked for the eleven (`src/data/eleven.ts`) to be audited as content: against
+the domains premarital and relationship research keeps returning to, and against the
+product's own Somali-specific claims. The brief: do not assume eleven is the right number,
+do not assume the current eleven are right, do not reproduce any proprietary premarital
+inventory, and do not change the list. Nothing here is a change; every recommendation is a
+hypothesis with the test that already exists for it.
+
+**Held to.** No commercial premarital questionnaire was read or recreated; the comparison is
+to research *domains*, not items. External sources already in `docs/RESEARCH.md` are cited
+by name. A source added here that the founder has not checked is marked **(to check)** and
+is class F or H until checked.
+
+### 1. What the eleven is, mechanically
+
+Before judging content, what the code does with it, because several findings are about
+the mechanism, not the words.
+
+- There is no score. Each topic takes one of four states — `agree`, `differ`, `not-talked`,
+  `unknown` — and the only calculation is `STATE_URGENCY[state] × consequence`, which picks
+  one conversation to open (`src/lib/beforeYes.ts`). The two-sided sheet does the same with
+  five joint states (`src/lib/couple.ts`). Neither compares *answers*; both compare *whether
+  a conversation happened and whether the two say it landed*.
+- `consequence` (.6–.95) is editorial, unchanged since the first commit (`c42c553`,
+  2026-09-03), and the list has always been eleven. The number was not derived; it was the
+  number the first draft had.
+- The four states carry `weight` 1 / 0.1 / 0.35 / 0.25 "used only for ordering". `differ`
+  has urgency 1, the highest: a difference is always the first thing reopened.
+- The ordering is never shown as a number, and the 2026-09-24 rewrite removed the
+  "load-bearing" tier that once told a couple a difference on qabiil was light (S6).
+
+Two consequences of this shape run through everything below:
+
+1. **The eleven is a checklist of conversations, not an inventory of positions.** That is
+   its strength (nothing is graded) and its blind spot (it cannot tell a settled difference
+   from an unsettled one).
+2. **The four states presume every topic is agree/differ-shaped.** Several are not.
+
+### 2. Coverage against the general research domains
+
+The domains the brief names, and where each lives in Niyyah. "Eleven" means one of the
+eleven; "read", "map", "sheet" mean the other instruments; "—" means nowhere.
+
+| Domain | Where | Coverage |
+|---|---|---|
+| Finances | Eleven `money-home` (who pays, remittances, together/separate); `aroos-mahr`; money sheet N3 (debt, mahr, wedding, obligations) | Good. Household money is framed through remittances first; ordinary spending, saving and debt are in the sheet, not the eleven |
+| Children | Eleven `children` | Good: how many, how soon, language, dugsi. Parenting style and the case of no children are not asked; acceptable before a nikah |
+| Faith / religion | Eleven `deen-daily`; map `practice`, `faith-role` | Good, and the "ordinary Tuesday" framing is the best-written item |
+| Extended family / in-laws | Eleven `his-family-in-home`, `families-disagree`, `qabiil`; family scripts | Strong; three of eleven plus a whole script set |
+| Living arrangements | Eleven `live`, `his-family-in-home` | Covered twice (§4, redundancy) |
+| Work and roles | Eleven `work` (with "who does what at home") | Good; the second half is the substance |
+| Conflict | Read `hard` ("When you raise something difficult, what does {he} do?"); eleven `families-disagree` covers inter-family conflict only | **Absent as a conversation.** The read observes his behaviour under one complaint; nothing asks the two of them how they fight and repair |
+| Communication | The product as a whole | Meta-covered; not a topic and should not be one |
+| Sexual / intimacy expectations | — | **Absent** |
+| Major life goals | Eleven `going-back`, `work`, `children`; map `timeline` | Partial: study, career horizon, a business, are not named |
+| Geography / relocation | Eleven `live` (city), `going-back` (country) | Covered twice |
+| Power / decision-making | Eleven `families-disagree` ("how it gets settled between the two of you"), `work` (who does what), `money-home` (together or separate), `deen-daily` ("what {he} expects of you") | Present but diffused across four items and never named. The most consequential half — what each expects to decide alone, what needs the other's yes (movement, friends, travel, her money, his) — rides inside `deen-daily`'s second question |
+| Expectations of marriage | Spread across all eleven | The list is concrete on purpose; an abstract "what is marriage for" item would be weaker than what is there |
+| Friendship / companionship | — | Absent, correctly: it is experienced, not negotiated. Among the strongest satisfaction correlates (Joel et al. 2020's top predictors are perceived partner commitment, appreciation, sexual satisfaction, perceived partner satisfaction and conflict), and not a conversation to schedule |
+| Boundaries | Eleven `his-family-in-home` (hosting, who moves in); `families-disagree` | Partial. The boundary that is Somali-specific and unnamed: **what of the marriage gets told to hooyo and the sisters**, on either side |
+| Commitment | Read (five dimensions); Part 5 H1 (exclusivity) | Covered by the read. Exclusivity is still not asked anywhere (Part 5) |
+| Health / stress | Map `dealbreakers` `no-addiction` only | **Absent**: mental health, chronic illness, khat, family health history, and the plain fact of a previous marriage or existing children |
+
+Read as a whole: the eleven is dense where Somali life differs (family, household, money to
+family, faith practice, clan, polygyny, return) and thin where the general literature is
+strongest on outcomes (conflict, intimacy, commitment). That is not an accident. The list
+was written in response to an audit that found "no Somali-specific content at all"
+(`c42c553`), so it was assembled to *be Somali* — selected for distinctiveness, not for
+consequence. Seven of eleven are Somali-inflected. The three general domains with the best
+evidence for marital outcome are the three least distinctive, and they are the three absent.
+
+### 3. Each of the eleven
+
+For each: why it deserves scarce attention; what harm comes from finding it out late; what
+kind of issue it is (**compatibility**: a position that cannot be split; **negotiation**: a
+difference that can be arranged; **values**: a belief that can differ without being
+arranged; **conversation**: something to know, not to settle); whether difference can be
+healthy; whether the product treats difference as incompatibility; evidence in the
+ledger's classes; and whether the Somali-specific claim is observed or assumed.
+
+**1. `live` — Where you'd live (.95)**
+- *Scarce attention:* it fixes who is in the house every day and which city her work and
+  people are in; it is decided by lease or by default, and often by a family.
+- *Late harm:* high. A city is a job, a mother, a mosque; a household is daily labour.
+- *Kind:* negotiation (city) and compatibility-adjacent (with his mother or not).
+- *Healthy difference:* yes on city; less so on household, where "with family" against
+  "own front door" is two lives.
+- *Difference as incompatibility:* the copy does not; the mechanism reopens it forever (§5).
+- *Evidence:* B for co-residence with in-laws mattering (Bryant, Conger & Meehan 2001,
+  ledger L5). The item's own `why` still predicts: "come apart on that in the first year"
+  is a dated future the 2026-09-24 rewrite otherwise removed (L12). It passes
+  `tests/voice-rules.ts` only because "first year" is not in the pattern.
+- *Somali claim:* that co-residence with hooyo is a live expectation in diaspora Somali
+  marriages — assumed (F). Plausible, unobserved.
+- *Incidental:* `intake.ts:51` stores `'Flexible'`; `eleven.ts` `yourSide` keys `flexible`.
+  A woman who chose Flexible never sees her own side under this topic.
+
+**2. `his-family-in-home` — His family in your home (.8)**
+- *Scarce attention:* hosting is labour that somebody carries, and a family that visits
+  and one that moves in are different marriages.
+- *Late harm:* high, and gendered: it lands on her time first.
+- *Kind:* negotiation, with a compatibility edge (someone living with you, or not).
+- *Healthy difference:* yes, if arranged — how much, how often, and who cooks.
+- *Difference as incompatibility:* no in copy; the man variant is the best in the list
+  ("A quick yes with nothing behind it").
+- *Evidence:* B (Bryant, Conger & Meehan 2001).
+- *Somali claim:* assumed (F), and the one most likely to be confirmed by sessions.
+- *Overlap:* the prompt of `live` already asks "whether with {his} mother". Two of eleven
+  ask whether hooyo lives with you.
+
+**3. `work` — Whether you'd work (.75)**
+- *Scarce attention:* "of course" before the first child is not an answer; who does what
+  at home when both work is the real question, and it is the one the copy correctly
+  insists on.
+- *Late harm:* high. Broken expectations about home after a first child are among the
+  best-evidenced sources of early decline.
+- *Kind:* negotiation (arrangements) over a values core (what a wife's work is for).
+- *Healthy difference:* yes — "in seasons" is a healthy arrangement of a difference.
+- *Difference as incompatibility:* no in copy. But a couple who differ and have arranged
+  it ("she works; he does mornings") have no state to say so, and stay `differ`.
+- *Evidence:* B (Hackel & Ruble 1992, ledger L5) — the strongest general evidence any
+  item has, after money. At .75 it sits sixth of eleven.
+- *Somali claim:* that a man's assumption about home is unspoken until children — F, but
+  the item's mechanism is general and holds without the Somali claim.
+
+**4. `money-home` — Money sent home (.85)**
+- *Scarce attention:* two families' expectations on one income, unspoken, is the one item
+  where the Somali claim has external support.
+- *Late harm:* high and recurring — monthly.
+- *Kind:* negotiation. Almost never compatibility: what is sent, to whom, from which pot.
+- *Healthy difference:* yes, plainly. One sends, one does not, and a budget holds it.
+- *Difference as incompatibility:* this is the item where the mechanism does the most
+  damage. A negotiated difference here is the healthy end state and it is permanently
+  the first thing reopened (`differ` urgency 1 × .85).
+- *Evidence:* B for money disagreements predicting divorce (Dew, Britt & Huston 2012); B
+  for remitting being widespread and a weight (Hammond et al. 2011; Lindley 2009).
+- *Somali claim:* **observed** in the literature for prevalence; assumed for "discovered
+  after the wedding". The only Somali claim in the list above class F.
+
+**5. `children` — Children (.9)**
+- *Scarce attention:* how many, how soon, which language, dugsi — decisions that get made
+  by whoever pushes hardest if not made together.
+- *Late harm:* high; "inshallah" covering a range from one to eight.
+- *Kind:* compatibility (whether; roughly how many, how soon) with negotiation inside
+  (language, dugsi).
+- *Healthy difference:* on the periphery yes; on whether and roughly when, rarely.
+- *Difference as incompatibility:* the map already lists "Aligned on children" as a
+  non-negotiable, and the eleven says "differ" — the two instruments carry the same fact
+  in different registers, which is fine.
+- *Evidence:* B–A that disagreement on children is among the reasons couples end;
+  general, well replicated.
+- *Somali claim:* that language-at-home and dugsi are the specific sub-decisions — F,
+  and low-risk: they are named as things to ask, not as facts about families.
+
+**6. `deen-daily` — Deen, day to day (.85)**
+- *Scarce attention:* both can say "deen first" and mean different Tuesdays; and the second
+  question — what each expects of the other, unsaid — is the sharpest question in the
+  eleven.
+- *Late harm:* high, and it compounds: practice sets the house, and expectation of the
+  other sets the power in it.
+- *Kind:* values (practice) plus **power** (expectations of the other) — two domains in
+  one item.
+- *Healthy difference:* on practice, some (one prays more; the other is returning). On
+  expectations-of-the-other, difference is exactly what has to be surfaced.
+- *Difference as incompatibility:* no.
+- *Evidence:* B that congruence of religious practice goes with satisfaction and
+  stability; general literature (Mahoney and colleagues on religion in marriage — **to
+  check** for the ledger).
+- *Somali claim:* none specifically; the item is Muslim, not Somali, and portable (PROTOCOL
+  Q11 will show it).
+- *Note:* this item carries the product's only question about what he expects of her —
+  movement, dress, company, what enters the house. That is the power domain, and it is
+  the second clause of a question about prayer.
+
+**7. `aroos-mahr` — The aroos and the mahr (.6)**
+- *Scarce attention:* money attached to two families' expectations, in public.
+- *Late harm:* moderate: a debt, or a resentment; rarely the marriage.
+- *Kind:* negotiation, and the `tells` says so ("Either can work").
+- *Healthy difference:* yes.
+- *Difference as incompatibility:* no.
+- *Evidence:* B that mahr is set at the nikah and the families are deeply involved while
+  the couple leads (Ismail 2018). Wedding debt as a strain: F here; general literature on
+  wedding cost and later outcomes exists (**to check**).
+- *Somali claim:* observed for the practice; assumed for the harm.
+- *Overlap:* the money sheet N3 asks twenty questions across mahr, the wedding, debt and
+  obligations (`docs/ASSETS.md:172` notes the duplication). The part of this item that is
+  not money — "something you two decide, or decided for you" — is `families-disagree`.
+
+**8. `qabiil` — Qabiil (.7)**
+- *Scarce attention:* the question nobody is supposed to ask, and the one that is asked by
+  an uncle after the families are involved, when saying no has become public.
+- *Late harm:* high when it fires, and it fires on the family, not the pair.
+- *Kind:* **not a compatibility issue between the two.** It is a family-power question,
+  and the copy already frames it that way ("what happens if it matters to someone at
+  {his} table").
+- *Healthy difference:* the question does not apply. "We've talked and we agree" on
+  qabiil means agreed on what — that it will not matter? That he will stand with her?
+  The four states do not fit this topic.
+- *Difference as incompatibility:* the 2026-09-24 rewrite fixed the one place it did
+  ("a single difference on qabiil is named, not weighed"). What remains is a shape
+  problem: `differ` on qabiil is semantically empty and yet has urgency 1.
+- *Evidence:* the ledger's own words: "no source was found on clan objections in the
+  diaspora" (L8). Literature on clan persisting in diaspora social organisation exists;
+  on marriage objection rates, nothing checked. F.
+- *Somali claim:* assumed. This and `second-wife` are the two items PROTOCOL's
+  "Exaggerated" verdict is written for, and neither has faced a participant.
+
+**9. `going-back` — Going back (.65)**
+- *Scarce attention:* "one day" can be meant for years and land as a ticket.
+- *Late harm:* very high when it happens — a continent, her work, her people. Rare or
+  common is unknown.
+- *Kind:* negotiation over a values core; also a **plan**, which changes.
+- *Healthy difference:* yes if named (months a year; one stays; not yet).
+- *Difference as incompatibility:* no in copy. The `tells` ("We'd figure it out" means you
+  are not yet in the picture) is the one-person test's model sentence.
+- *Evidence:* return-migration to Somaliland and long stays are documented in diaspora
+  studies (**to check** for a citable row); as a marriage strain, F.
+- *Somali claim:* observed for the phenomenon; assumed for the harm.
+- *Gender:* no `man` variant. Read by a man the prompt becomes "whether she plans to move
+  back … and whether you would go", which inverts the more common direction; the file's
+  own rule ("a token swap produces a different question") arguably applies.
+
+**10. `second-wife` — A second wife (.9)**
+- *Scarce attention:* the one question where "it is permitted" and "I would" are different
+  sentences, and where asking feels like accusing.
+- *Late harm:* the highest on the list when it is real: it reshapes the marriage and the
+  household.
+- *Kind:* **compatibility**, close to a non-negotiable, for most of the women the product
+  is written for. Values for some.
+- *Healthy difference:* rarely. This is the one item where "we've talked and we don't
+  agree" is closer to an ending than a conversation.
+- *Difference as incompatibility:* here the product errs the *other* way. It softens a
+  binary into one of eleven agree/differ topics with the same four states as the aroos,
+  while the map's non-negotiables list omits it. A woman for whom this is absolute is
+  handed a script, not a place to say so.
+- *Evidence:* polygynous households among Somalis in Europe are described in social-policy
+  and ethnographic literature (**to check**); prevalence as a live expectation among
+  diaspora men 26–36 is unknown. F, and the man variant's "She is more afraid to ask this
+  than you are to answer it" is already deferred (L10, L12).
+- *Somali claim:* assumed. The item most likely to draw "not real for anyone I know" in
+  a session, and the item with the highest cost if it is real. Both can be true; only
+  sessions separate them.
+
+**11. `families-disagree` — When the families disagree (.8)**
+- *Scarce attention:* the meta-conversation the other ten depend on: whether the two of
+  them are the unit that decides.
+- *Late harm:* high, and it is the harm the whole product is built around (saying no once
+  the families are involved).
+- *Kind:* **values / stance**, and the one that becomes a test only when it happens.
+- *Healthy difference:* no — but agreement here is cheap ("of course, we") and the copy
+  knows it ("The word you are listening for is 'we'").
+- *Difference as incompatibility:* no.
+- *Evidence:* B that in-law discord predicts later outcomes (Bryant, Conger & Meehan 2001)
+  and that network approval goes with lasting (Sprecher & Felmlee 1992). The stance itself
+  ("a team first") is G, Niyyah's own value.
+- *Somali claim:* that families will want different things — F, and safe: named as a
+  custom, not a count.
+
+### 4. Findings
+
+**Critical domain missing: conflict and repair, as a conversation between the two.**
+The read asks what he does when *she* raises something hard; nothing asks the two of them
+what happens when *they* disagree and how it comes back — who withdraws, who escalates, who
+brings in a mother, what an apology looks like in each family. `families-disagree` is
+inter-family conflict, not theirs. Conflict behaviour is among the five strongest
+predictors of relationship quality in the largest machine-learning study of the field (Joel
+et al. 2020, ledger L4, class A) and demand–withdraw replicates across cultures (Christensen
+et al. 2006). The Somali-specific version is real and unnamed: **who gets told** when they
+fight — hers, his, an uncle, nobody — is a boundary and a conflict question at once, and it
+is exactly the "before the families" mechanism the product exists for. This is the
+strongest case for a twelfth conversation, or for the seat freed by §4's redundancy.
+
+Second, and harder: **intimacy expectations.** For a practising couple the nikah is the
+boundary, which makes it a legitimate pre-nikah conversation and the one most likely to be
+called auntie-ish or outsider-ish if written badly. What it covers: expectations, spacing
+and contraception (half-covered by `children`'s "how soon"), and health. For Somali women
+specifically, the medical literature on FGC and pre-marital or pre-obstetric care in the
+diaspora (Scandinavian and UK studies — **to check**) describes a topic that is found out
+late by both sides at real cost. It should not be an eleven-style agree/differ item; if it
+exists it is a conversation with a health frame and no state recorded. Founder's call, and
+a PROTOCOL Q12 line-by-line test before it ships.
+
+Third, plainly missing and not Somali at all: **what came before** — a previous marriage,
+existing children, a broken engagement — and **health** (mental health, chronic illness,
+khat). The dealbreaker list has `no-addiction`; nothing asks. Low cost to add as a
+conversation; never a signal.
+
+**Redundant domain: the household and geography cluster.** Three of eleven — `live`,
+`his-family-in-home`, `going-back` — cover where you live and who is in it, and two of them
+ask whether hooyo lives with you in almost the same words (`live`'s prompt: "whether with
+{his} mother, near her, or on your own"; `his-family-in-home`'s: "whether a sister or {his}
+mother might live with you one day"). A couple who answered `live` has answered half of
+`his-family-in-home`. `aroos-mahr` is the second redundancy: its money is in `money-home`
+and the twenty-question money sheet; its power question ("decided for you both") is
+`families-disagree`. Two seats, defensibly, are available without losing a question.
+
+**Overweighted: `second-wife` at .9, and the cluster above at three seats.** `consequence`
+is defined as "how much rides on this one", and by that definition .9 holds. But the
+ordering it feeds is also *how often it is opened first*, and a topic with the weakest
+prevalence evidence in the list sits joint-second with `children`. If a participant calls
+it unreal (PROTOCOL "Exaggerated"), every headline it topped was the wrong headline. The
+cluster is overweighted by count: 27% of the list on where and with whom.
+
+**Underweighted: power and decision-making, and `work`.** Power has no seat and lives in
+four second clauses; the part of it that is most Somali — what a husband expects to decide
+alone, and what a wife's yes covers — is a sub-question of a prayer item. `work` at .75
+carries the best general evidence in the list after money (Hackel & Ruble 1992) and is
+sixth.
+
+**Should remain a conversation, never a matching signal:** `qabiil`, `aroos-mahr`,
+`going-back`, `families-disagree`. `qabiil` because it is about the families, not the pair,
+and "differ" is meaningless on it; `aroos-mahr` because it is a negotiation; `going-back`
+because it is a plan, and plans change; `families-disagree` because agreement is cheap and
+only the event tests it. The risk is not today's code, which scores nothing. It is three
+doors left open: the couple sheet's copy says "where you match" three times
+(`src/components/Couple.tsx:192, 216, 325`), the one word the doctrine otherwise refuses;
+the `tallies/joint` blob keeps per-topic joint states for ever; and the monthly loop plans
+to revise `consequence` by `marriedBy.through` — outcome-tuned weights, which is a
+compatibility model by a slower road. Marriage outcomes should revise the *order* of these
+four only with the count cited and the sentence unchanged, as U7 already says; the guard is
+that `differ` on these four never changes a headline.
+
+### 5. The mechanism finding: a settled difference has no state
+
+The copy says "No difference is light." The mechanism says a difference is never settled.
+The four states are: agree; differ; not talked; don't know my own answer. There is no
+"we've talked, we don't agree, and we've arranged it." For `money-home`, `work`,
+`his-family-in-home`, `going-back` and `aroos-mahr` — five of eleven — that arranged
+difference is the healthy end state, and the engine gives it urgency 1 × `consequence`,
+above every unopened topic, for as long as the sheet exists. The headline reads "One
+conversation doesn't line up yet"; the "yet" says agreement is the destination. The
+two-sided sheet inherits it: `differ-somewhere` (.9) outranks `both-not-talked` (.6), so a
+couple who differ on remittances with a budget are told to reopen remittances before a
+topic neither has raised.
+
+So: the product does treat difference as incompatibility, structurally and only
+structurally — not in a score, not in a sentence, but in what it asks her to do next. A
+fifth state ("We differ, and we've settled how") with urgency between `agree` and
+`not-talked` would fix it in one place and change no copy. Hold the hypothesis to the
+existing rule: a new state is a closed id in `netlify/shared/vocab.ts` with a
+`docs/PRIVACY.md` row, and `tests/vocab-sync.test.ts`. Not built here. **Built in
+Part 8**, as a fix to an untrue claim rather than on the evidence named in §9.
+
+The mirror error is `second-wife`, where the same four states soften a binary. One list,
+two shape mismatches in opposite directions, because one shape was fitted to eleven topics
+of three kinds.
+
+### 6. The Somali claims, observed or assumed
+
+By the ledger's own classes, one Somali-specific claim in the eleven is above F: that money
+home is widespread and a weight (B, Hammond et al. 2011; Lindley 2009). Family involvement
+in general is B (Ismail 2018). Everything else — hooyo moving in, clan raised by an uncle,
+"one day I'll go back", a second wife as a live expectation, the aroos as a debt — is
+assumed: plausible, culturally literate, unobserved. Classes C and D are empty; the one
+walk logged was the founder's. The eleven has never been read by a participant under
+PROTOCOL Q9 ("which surprised you by being on the list? which is missing?") or Q11 (which
+would a Pakistani or Arab friend also need?). Until it has, "Somali-specific" describes the
+author, not the evidence.
+
+Where the copy has kept its promises: the 2026-09-24 rewrite removed "decide a marriage",
+"most of us", "year two" from the woman's strings; the `tells` mostly pass the one-person
+test. Two lines that did not get caught: `live`'s "come apart on that in the first year"
+(a dated prediction, L12) and `second-wife`'s "one of the few questions where the answer
+shapes the rest of a life" (a count, L9). Both are one-word fixes and are not made here.
+
+### 7. The strongest case for the current eleven
+
+1. **Every item is a decision that gets made whether or not the two of them make it.**
+   That is the right test for a pre-marriage list and each of the eleven passes it. Nothing
+   on the list is abstract; every prompt names a Tuesday, a suitcase, a ticket, a number.
+2. **It covers the four general domains with the best evidence for early marital strain**
+   — money (Dew 2012), in-laws (Bryant 2001), expectations about home after children
+   (Hackel & Ruble 1992), religious practice — and every one of them in its Somali form.
+3. **The seven Somali items are the product's reason to exist** (conviction 1). No general
+   app asks about remittances, hooyo in the house, qabiil, going back or a second wife, and
+   these are precisely the questions whose cost of asking rises once the families are
+   involved. A list that dropped them to add conflict and intimacy would be a better
+   general list and a worse Niyyah.
+4. **The mechanism is honest.** No score, no grade, "I don't know my own answer yet" as a
+   first-class state, "ask again" on qabiil, man variants where a token swap would ask the
+   wrong question, a headline that names a difference as a difference. The ledger caught
+   its own overclaims and rewrote them. Few products with a list like this can say which
+   class each claim is in.
+5. **It is falsifiable and already instrumented.** `ended.which`, `/couple`
+   `both-not-talked` per topic, `facts.throughByTopic`, PROTOCOL Q9 and Q11, the
+   "Exaggerated" verdict, A9. The list has kill criteria. Most lists have authors.
+6. **Eleven is printable.** One page, one sample of three, sent with a nikah packet. A list
+   of eighteen is a curriculum; this is a conversation.
+
+### 8. The strongest case against them
+
+1. **The number and the weights are inherited, not derived.** Eleven was the first draft's
+   count; `consequence` has not moved since 2026-09-03; the list was assembled to answer
+   "no Somali-specific content", so it optimises for distinctiveness. The three general
+   domains with the strongest outcome evidence — conflict, intimacy, commitment — are
+   absent because they are not Somali.
+2. **Two seats are duplicates.** Hooyo-in-the-house is asked twice; where-you-live is asked
+   three ways; the aroos is in the money sheet. A list that reserves 27% of itself for one
+   cluster and 0% for how the two of them fight has its proportions from its origin, not
+   from the domains.
+3. **One answer shape for three kinds of topic.** Agree/differ fits `children`,
+   `deen-daily`, `work`. It is empty on `qabiil` and `families-disagree`, and it softens
+   `second-wife` — the one item that is a binary for the reader the product is written for
+   — into a conversation with a script.
+4. **Structurally, difference is unsettleable.** No state for an arranged difference;
+   `differ` outranks every unopened topic for ever; "doesn't line up *yet*"; the sheet says
+   "where you match". The product refuses a score and then tells her, by what it opens
+   next, that agreement is the goal.
+5. **Every Somali claim but one is assumed.** Zero sessions. The two items most likely to
+   be called unreal by a participant (`qabiil`, `second-wife`) are also the two the
+   marketing leads with ("a second wife, qabiil" in §0). If a participant says three of the
+   eleven are not real for anyone they know, the PROTOCOL already calls that a verdict, and
+   the list has never been put in front of one.
+6. **It is her list.** Seven of eleven have no man variant; the base strings are hers and
+   the printed guide's neutral voice must hold for both. `going-back` read by a man asks
+   whether *she* is going back. The product is women-first by design, and the eleven is the
+   one instrument he is asked to answer on his own phone; the asymmetry is most costly
+   there.
+
+### 9. What would move it
+
+Nothing here changes the list; each line names the test that exists.
+
+| Hypothesis | Test | Moves on |
+|---|---|---|
+| The eleven's proportions are wrong (§2, §4) | PROTOCOL Q9 "which is missing?", Q11 portability; `ended.reason` `other` share; conviction 4's "most `ended.reason` outside the eleven" | Two participants independently naming conflict or intimacy → a twelfth conversation, drafted, gated by Q12 |
+| `live` and `his-family-in-home` are one conversation | `/couple` joint states on the two moving together; `facts.throughByTopic` on both after one is said | Both said or both unsaid in most sheets → merge, freeing a seat |
+| A settled difference needs a state (§5) | Sessions: does anyone say "we don't agree, and it's fine"? `differ` share per topic at twenty sheets | `differ` leading on `money-home` or `work` while those couples marry (`marriedBy.through`) → a fifth state. **Built 2026-09-24 (Part 8)** as `settled`, a fix to an untrue claim; this row now tests whether it is used |
+| `second-wife` is a non-negotiable, not a conversation | `ended.which.eleven['second-wife']` against `ended.which['non-negotiable']`; sessions | Named as an ending reason more than as a conversation → it moves to the dealbreakers as well as staying in the eleven |
+| `qabiil` and `second-wife` are exaggerated | PROTOCOL's "Exaggerated" verdict, two independent | Verdict → the `why` strings rewritten as customs named as customs; `consequence` of `second-wife` revisited with the count cited |
+| Power needs its own seat | Sessions: what did he "expect you'd know"? PROTOCOL Q6 | Named unprompted by two → a conversation drafted from `deen-daily`'s second clause |
+
+Two lines of copy (`live` "first year"; `second-wife` "one of the few") and the `Flexible`
+key belong in the next copy commit, not this audit.
+
+## Part 8: Disagreement — what can be solved, what is lived with, and what is a line (2026-09-24)
+
+The founder asked how Niyyah treats disagreement, using the distinction
+relationship research draws between **problems a couple can solve** and
+**lasting differences a couple manages**. No proprietary assessment was used.
+The surfaces audited: Before you say yes, the eleven, the two-sided joint,
+the read, the guide (live prompt and offline voice), and the family words.
+The question was where the product implies that agreement is good, that
+difference is bad, that conflict means incompatibility, or that a hard
+conversation must end in consensus. Two constraints held throughout:
+never press someone to give up a genuine non-negotiable, and never
+manufacture incompatibility from two answers that differ. There is no
+percentage and no score.
+
+### 1. The rule adopted
+
+A difference is one of three kinds:
+- **settled once**, a decision (the mahr, the hall);
+- **lived with**, through an arrangement both keep (money home each month,
+  practice at two paces);
+- **a line**, a position one of them will not move.
+
+Before a nikah there is a fourth: **unknown until it is said**. The
+lasting kind is well described in clinical work on couples (Gottman's
+"perpetual problems"). It is class B to check, used as a concept, and no
+figure from it is used (`docs/RESEARCH.md` L19).
+
+**The kind belongs to her, per difference, never to the topic.** A second
+wife is a line for most of the women this is written for, and for some a
+condition agreed before the nikah. Money home is usually lived with, and
+for someone it is a line. So no topic is pre-sorted:
+- pre-sorting a topic as non-negotiable would manufacture incompatibility;
+- pre-sorting it as negotiable would be pressure;
+- every topic offers every kind, and the topic changes only the words.
+
+### 2. What the audit found
+
+**Agreement as the good answer:**
+- The eleven's state weights were agree 1, differ 0.1, below not-talked
+  at 0.35. Nothing read them, but the data said it.
+- The result drew a difference in clay, the colour kept for errors, and
+  listed it first.
+- The follow-up made "We agree" the filled button and "We don't agree"
+  the outline one.
+- The Ending credited only agreements.
+- "Only where you match" appeared on eleven surfaces.
+
+**Difference as the bad answer:**
+- "One conversation doesn't line up **yet**."
+- "Nothing is crossed."
+- `differ` was reopened ahead of every unopened topic, for as long as the
+  sheet existed. The joint did the same: `differ-somewhere` 0.9 over
+  `both-not-talked` 0.6.
+- `live.why`: "come apart on that in the first year".
+
+**Conflict as incompatibility:**
+- The read's `nonneg` scored "pushed back" (0.1) below changing the
+  subject (0.2). That put an honest "that isn't me" in the same box as
+  pressure, against the eleven's own "a plain 'no' and a plain 'I might'
+  are both answers you can build on".
+- `hard` scored his "goes quiet for a while" as a gap (0.3), while her own
+  map calls a pause that comes back "workable and healthy" (0.8).
+- The pressure script assumed being blamed, even when the gap was her
+  non-negotiables.
+- The offline guide had no answer for a disagreement. It gave the
+  courtship framework ("that is part of the answer"), or whatever a
+  keyword touched: "he wants to live with his mother and I don't" got "a
+  man worth having expects your family".
+- No eval case covered a couple disagreeing.
+
+**Consensus as the required outcome:**
+- A difference already talked about got its opening words again.
+- The follow-up took a boolean; the printed guide had one box for a
+  difference, "Still discussing".
+- `ALL_AGREED` was reached only if every topic was agreed.
+- The family words said "I'd rather we walk in agreeing", and "We have
+  agreed on ———" had no slot for a difference.
+
+**Pressure on a non-negotiable.** No copy did this: the map, the
+reflection and the auntie all say "hold them". The pressure was
+structural. After "we don't agree" on a second wife, the engine handed it
+back as the first conversation to open, every time. There was no way to
+say "this is a line, and I have said it". The live prompt had no rule
+against coaching a middle.
+
+**What was already right, and stays:**
+- "Either can work" (`aroos-mahr`).
+- "A specific answer you don't like is worth more than a vague one you
+  do" (`live`).
+- The man's distrust of a quick yes.
+- "Agreement from six months ago is a memory".
+- The read rewarding *coming back*, not agreeing.
+- "They can disagree without cruelty".
+- Ended's "That is allowed".
+- S6's "No difference is light", which the fix keeps: no topic's
+  difference is ranked lighter than another's.
+
+### 3. The eleven, one by one
+
+The kinds: **line**; **arranged** (settled once); **managed** (lived with,
+through a system); **unknown**. Every topic keeps every kind. The table
+says what the product must not assume.
+
+| Topic | Plausible kinds | Must not |
+|---|---|---|
+| `live` | City: arranged. With his mother: a line for some. Near family: managed | Split "own front door" against "with family" |
+| `his-family-in-home` | Hosting: managed. Someone moving in: a line for some | Read limits on hosting as an insult to his family |
+| `work` | Whether she works: can be a line. Who does what at home: managed for life | Treat "in seasons" as unresolved |
+| `money-home` | Mostly managed; occasionally a line | Keep reopening an arranged budget |
+| `children` | Whether: line-shaped. How many, how soon, language, dugsi: arranged | Offer a middle on whether |
+| `deen-daily` | Practice: managed. What each expects of the other: can be a line | Treat a pace difference as incompatibility, or a line on expectations as a preference |
+| `aroos-mahr` | Arranged, once | Build a system for a one-time decision |
+| `qabiil` | Between the two, usually not a difference at all. His stance if family raises it: unknown until it happens; a line if he will not stand with her | Count "it doesn't matter to me" as agreement |
+| `going-back` | A plan: arranged. Long stays: managed. Moving there: a line for some | Treat "we'd figure it out" as settled |
+| `second-wife` | A line for most readers; for some, a condition agreed before the nikah (the ruling goes to a scholar) | Default to "work it out" |
+| `families-disagree` | A stance, arranged as a rule ("us first"). A line if he will not be a team | Treat an easy "of course" as done |
+
+### 4. What was built
+
+**`settled`.** A new shared state: "We see it differently, and we've
+worked out how."
+- It ranks just above agreement (0.2) and below anything unopened.
+- When every topic is agreed, settled or a line, the sheet ends in
+  `ALL_HAD`, "go back over them".
+- The joint gains `both-settled`. Any other mix with `settled` is two
+  people who do not describe the same conversation.
+- *Decision 19:* a fix. FollowUp promised "the list stays true to where
+  you are", and for this couple it did not.
+
+**The second question.** "We've talked, and we don't agree" no longer
+ends there. It opens "Where does that leave it?":
+- *It's still open*
+- *We've worked out how to live with it*
+- *It's a line for me*
+
+It is inline, on both phones (`src/components/ElevenChoices.tsx`), and
+nothing is recorded until the second answer. His buttons gain the radio
+roles hers had.
+
+**Lines.** On whichever phone names them:
+- A line is never chosen to open and never given words to work it out.
+- It is listed as hers and named first in the headline, as what she said.
+- The summary says nothing will hand it back.
+- `SAY_THE_LINE` gives words for saying it plainly, once, and for
+  listening for whether the other answer is final. It does not listen for
+  agreement.
+- **Kept on the phone:** a line is the pseudo-state `line` only while
+  answering. On save it becomes `differ` plus the topic in `lines`
+  (`sheetOf`), so the couple link carries a plain difference by
+  construction. No screen announces her position before she has said it.
+- A kept map drops `lines` on the client, by type, and on the server; a
+  restored line reads as open, and Trust says so. The guide is told the
+  first line's topic, so it never coaches her off it.
+- *Decision 19:* a fix, to "takes no position on any of them — qabiil and
+  a second wife included". One stored field, in its own commit.
+
+**Words after a difference.**
+- `WORK_IT_OUT` replaces the opening words for an open difference on her
+  own sheet. It asks each of them what they could not live with **before
+  any middle**, so a line shows itself before anyone is asked to bend it.
+- The two-sided sheet keeps each topic's opening words, since one of the
+  two may not know there is a difference.
+- One chooser (`scriptForState`) serves the result and the follow-up, so
+  the words shown again match.
+
+**Language:**
+- Headlines: "One conversation is still open between you"; "You've named
+  one line the two of you don't share"; "Where you see things
+  differently, you have worked out how".
+- "Only where you match" became "only where the two of you stand".
+- `tests/voice-rules.ts` now bans "where you match", "line up yet" and
+  "nothing is crossed".
+- The result drops clay for a difference, and a line gets its own mark.
+- The follow-up has four answers, drawn alike, under "Not agreeing is an
+  answer too".
+- The Ending credits every conversation had.
+- Printed boxes: *Agreed · Worked out · Still open · A line · Need help*.
+  The sample was printed through Chromium and is still one page. The full
+  guide closes with words for an open difference and for a line.
+- The family words now say "walk in knowing where we each stand", with a
+  slot for a difference worked out.
+- `live.why` no longer predicts the first year.
+- The weights are null.
+
+**The read.** Relabels only; ids and weights are unchanged, and there is
+no new option.
+- `pushed` now reads "keeps trying to talk me out of them", and the
+  helper says a plain answer counts even when it isn't hers.
+- His pause that comes back now sits with "comes back".
+- When `nonneg` made pressure thin, `NONNEG_SCRIPT` asks for a plain
+  answer, not agreement.
+- Its own commit, because `read.thin` readouts shift from this date.
+
+**The guide:**
+- A grounding rule on every request: a difference is not a verdict, and
+  agreement is not the goal; never "compatible" or "incompatible"; never
+  coach a line toward a compromise or toward giving it up; an open
+  difference starts from what each could not live with; a worked-out one
+  is not reopened unless asked.
+- The eleven's note names what is worked out, still open and a line.
+- The offline voice has one voice-independent answer for a disagreement.
+- A `disagreement` eval category (three cases) was added, and its
+  baseline recorded; no existing case moved.
+
+**Docs:**
+- `docs/PRODUCT.md` S6: "No difference is a verdict, either".
+- `docs/RESEARCH.md` L19.
+- PRIVACY and Trust rows for `settled`, `both-settled`, lines and the
+  guide note.
+- The tally's two joints are not comparable across 2026-09-24.
+
+### 5. What this does not do, and what would move it
+
+- No score, no percentage, and no topic classified. `consequence` is
+  unchanged.
+- The live eval (`npm run eval:guide`) needs a key and was not run.
+- Whether anyone uses the kinds is unknown. `/couple` `both-settled` per
+  topic, `ended.which.eleven`, and PROTOCOL's sessions can tell:
+  - *Up:* someone says "we don't agree, and it's fine" unprompted.
+  - *Down:* sessions say "worked out how" is how people describe giving
+    in, or that naming a line felt like the app pushing an ending.
+- Not done:
+  - `second-wife`'s "one of the few questions where the answer shapes
+    the rest of a life" (a count, L9) is still in the copy.
+  - The printed guide's neutral voice writes "they has" where the
+    woman's voice has "{he} has". That bug predates this change.
+
+
+## Part 9: How they disagree, not only what about (2026-09-25)
+
+The founder asked whether Niyyah attends to **how** a couple handles a
+disagreement, and not only what the disagreement is about. The audit was held
+against the established research constructs:
+- harsh versus soft openings;
+- escalation;
+- contempt;
+- defensiveness;
+- withdrawal and stonewalling;
+- repair;
+- emotional regulation;
+- taking responsibility;
+- coming back to what is unresolved;
+- accepting influence;
+- psychological safety.
+
+The surfaces were the read, the map, the eleven, the guide, the scripts and the
+follow-ups. The constraints: no diagnosis and no clinical labels; decision 19
+binding; no new screens. Every possible addition got one class:
+- ESSENTIAL TO CURRENT INSTRUMENT
+- USEFUL RESEARCH QUESTION
+- BETTER HANDLED BY GUIDE
+- OUT OF SCOPE
+- SAFETY ISSUE
+
+### 1. "We disagree about money" or "we cannot discuss money without contempt, threats, avoidance or control"?
+
+**Before this pass, mostly no, and in one place the product confused the two.**
+
+- **The eleven: no.** It records whether a conversation happened and where it
+  landed. "We can't discuss it" could only land as "not talked" or "still
+  open", and either way the result handed her words to go back in.
+- **The read: partly.**
+  - `hard` separates listening, a pause that comes back, withdrawal, and "I
+    end up feeling like the problem".
+  - `nonneg: pushed` catches pressure on her non-negotiables.
+  - The only safety pattern it knew was being kept hidden. It had nothing for
+    fear, threats, intimidation or control.
+- **The guide: yes for explicit threats and violence; no for control.** It
+  missed a phone checked, money kept, who she may see, being shouted at, and
+  being afraid to raise things. `jealousy-03` ("He checks my phone") passed on
+  the courtship framework.
+- **The offline guide actively conflated the two.** "We keep arguing" was one
+  of the difference words: a message about how they argue got the answer
+  about what kind of difference it was.
+- **The follow-up: no.** "It went differently" sent a fixed sentence with
+  nothing in it, and offline it had no answer. For "his family in your home"
+  it was routed to "a man worth having expects your family".
+- **The map: her own general style only.** Its repair and pause lines are the
+  best writing on this in the product. Its cut "what feels safe" question was
+  still wired into the guide, and Trust still claimed the guide was sent it.
+
+### 2. What was already right, and stays
+
+- Her openings are soft everywhere, and the eval fails an ultimatum.
+- The read measures coming back, not agreeing. A pause or defensiveness that
+  comes back counts as shown, which is what repair research would ask.
+- The `tells` notice how he takes a question: an insult to his mother, a joke,
+  defensiveness, a lecture, "we".
+- The map's reflection says: "a pause and not a punishment"; "the repair is
+  the part that matters".
+- The scripts already contain three process moves: "say so once, calmly, the
+  same week"; "don't answer a debate"; "ask again".
+- The hidden caution, and its refusal to coach.
+
+### 3. Construct by construct
+
+| Construct | What exists | Gap | Class | Done |
+|---|---|---|---|---|
+| Harsh vs soft opening | Her words, soft throughout; the ultimatum grader | How *he* starts; when and where to raise it | His: USEFUL RESEARCH QUESTION. Delivery: BETTER HANDLED BY GUIDE | Prompt line: in person, not in front of family, not mid-argument. `docs/PROTOCOL.md` 11d |
+| Escalation | Nothing about him; her own "heated, then repair" | "Raises his voice, then comes back" vs "shouts at me" | Shouting at her: SAFETY ISSUE. Ordinary heat: USEFUL RESEARCH QUESTION | Safety words and prompt. Open question 11 |
+| Contempt / disrespect | Dealbreaker "respect"; the "insult to his mother" tell | Mockery, put-downs, name-calling when she disagrees | BETTER HANDLED BY GUIDE. A read item: USEFUL RESEARCH QUESTION | `PROCESS_REPLY`: "not an argument style. It is how you are being treated" |
+| Defensiveness | `hard: defensive`; two tells | — | Already covered | — |
+| Withdrawal / stonewalling | `hard: quiet`, `nonneg: deflected`, `family: avoids`; `end-it-kindly` | Days of silence as punishment vs a pause | BETTER HANDLED BY GUIDE; SAFETY ISSUE with fear | `PROCESS_REPLY`: "'I need a break' is not the same as days of silence" |
+| Repair | "Comes back" (read); the map's repair line | Married Home promised "the voice built for repair", with no answer offline: an untrue claim | ESSENTIAL TO CURRENT INSTRUMENT | `PROCESS_REPLY`'s repair line |
+| Emotional regulation | Her self-soothing; her pause | No "stop and come back" handed to her | ESSENTIAL TO CURRENT INSTRUMENT | `WORK_IT_OUT`: "If it gets heated, you can stop … and then come back to it" |
+| Taking responsibility | Nearest is `plans: rescheduled` | Nothing asks | USEFUL RESEARCH QUESTION | PROTOCOL 11b; open question 11 |
+| Returning to unresolved | `hard`; "Not yet" asked again; "ask again" | "It went differently" was a dead end | ESSENTIAL TO CURRENT INSTRUMENT | `WENT_DIFFERENTLY_REPLY`. Tone on the follow-up (a new field): open question 11 |
+| Accepting influence | "Whether he asks for yours"; `nonneg: pushed` inverse | Nothing asks whether he has changed his mind | USEFUL RESEARCH QUESTION | PROTOCOL 11c |
+| Psychological safety | `hard: blames`; the hidden caution | "I'm careful what I raise" had no answer; the eleven sent her back in | **SAFETY ISSUE** | The read's `careful`; the eleven's line; guide words and prompt |
+| Threats, control, isolation | Explicit threats (guide; report `threats`) | Phone, money, contacts; report reasons; Ended | SAFETY ISSUE | Guide words and prompt. Report reason: open question 10. Ended: next pass |
+
+**OUT OF SCOPE**, named so nobody builds them:
+- a conflict-style score for a person or a couple;
+- any ratio of negative to positive exchanges;
+- clinical or pop-psychology labels ("stonewalling", "contempt", "narcissist",
+  "toxic", attachment styles as diagnoses);
+- communication exercises or couples-skills curricula;
+- measures of flooding;
+- recording or transcribing conversations;
+- ongoing conflict coaching for married couples beyond the guide.
+
+### 4. What was built
+
+- **The read's `careful`** (decision 19 clause 3; `docs/SECURITY.md`, "Afraid
+  to raise it"). The answer is "I'm careful what I raise, because of how {he}
+  reacts": her report of her own caution, weight 0.
+  - It sets a quiet line with the help line. It is not the caution band:
+    Part 4 warned against an alarm on one tap of her feeling.
+  - The words become words for one person who knows her, whatever ground is
+    thinnest, and the next step is her own people.
+  - The follow-up asks whether she told someone, and the guide is told.
+  - With being kept hidden, it is the caution.
+  - It caps the band at mixed. The walk on a phone found it still reading "He
+    has done most of what this asks about … worth closing, not worth
+    panicking about … one clear conversation", with "ask about it directly" in
+    the mixed band. Both are fixed.
+- **The eleven's result** says once, under every result, with the help line:
+  "If raising any of these feels unsafe rather than hard — if you are careful
+  what you say because of how he reacts — that is not a difference to work
+  out. Tell one person who knows you first."
+- **`WORK_IT_OUT`** gains a pause that comes back.
+- **The offline guide:**
+  - `PROCESS_REPLY` covers how they argue, in any voice: does it come back;
+    can either of you stop without it being a punishment; does anyone come
+    away mocked, put down or afraid. It includes a repair line and a
+    pause-and-come-back agreement.
+  - `WENT_DIFFERENTLY_REPLY` answers the app's own sentence: it went badly;
+    it settled something; it did not feel safe.
+  - The safety words gain control and fear, kept to phrasings that say it:
+    "won't let me see", never "won't let me"; "checks my phone", never her
+    own "checking my phone".
+- **The live prompt:**
+  - SAFETY FIRST names control.
+  - A rule for how they argue: speak to how; a pause that comes back is not
+    withdrawal; one argument is not a verdict; no labels; mockery or fear
+    named as how they are being treated; when and where to raise it.
+- **Eval:**
+  - a `conflict` category of three cases;
+  - `abuse-04` (a salary card kept) and `abuse-05` (stopped raising money
+    because of how he reacts);
+  - `jealousy-03` now owes a safety answer.
+
+  No existing score moved.
+- **Deleted:** the dead "feels safe" wiring (the guide list, the prompt's
+  "Feels safe with", the therapist's branch). Trust's untrue claim went in the
+  same commit.
+- **Docs:**
+  - `docs/PROTOCOL.md` 11a–11e (what happened, never what would), with a stop
+    rule for any answer that describes fear, threats or control. The protocol
+    had none.
+  - `docs/RESEARCH.md` gets open question 11 and ledger L20.
+
+**Decision 19.** Only the read's answer is new, and it rests on a safety
+requirement. Everything else is one of:
+- a fix to something broken or untrue;
+- a deletion;
+- guide, eval or docs changes.
+
+No screen, route, store, stored field or new flow of data was added.
+
+**Not verified here.** The live eval (`npm run eval:guide`) needs a key. The
+prompt changed, so it needs one run.
+
+## Part 10: Two people, two families (2026-09-25)
+
+The founder asked for Niyyah to be read through a family-systems lens: two
+people deciding inside two families, each with its obligations, expectations
+and history. The lens's tools — boundaries, triangulation, differentiation,
+enmeshment, cutoff, intergenerational expectations, loyalty conflicts, role
+expectations, coalitions, pressure — were used to read the product, never to
+diagnose anyone in it. The surfaces: the wali, hooyo, the parents, siblings,
+in-laws, qabiil, money home, living with parents, the two families disagreeing,
+approaching her family, the two families meeting, pressure after the nikah,
+and the second-wife conversation.
+
+The rule for this pass was **no new features**. Every change is a copy
+calibration, a guide or eval change, a fix to something written the wrong way
+round for a man (PROTOCOL's "gender-inverted" failure), or a fix to a broken
+lookup. Every finding got one class:
+- CURRENT PRODUCT HANDLES WELL
+- LANGUAGE NEEDS CALIBRATION
+- RESEARCH QUESTION
+- POTENTIAL SAFETY ISSUE
+- OUT OF SCOPE
+
+### 1. Where "family involvement" is one variable
+
+The map asks one question, `family-role`: *central / involved once serious /
+kept informed / mostly private*. Everything downstream reads it as one dial
+from family-led to self-directed — the chapter-end insight, the reflection's
+family note, the alignment paragraph ("a family-minded match" against "a match
+who respects that you lead"), the eleven's your-side line on
+`families-disagree`, and the guide's `Family involvement:` field.
+
+That one dial folds together five things that pull apart in a real family:
+
+| Folded in | Why it is not the same thing |
+|---|---|
+| How much she **wants** family in it | A preference |
+| How much family **will be** in it regardless | Pressure. The hook and `why-now` catch it separately; the map never joins the two |
+| **Which** family | The wali, hooyo, the aunties' network and the uncles at the qabiil table are different roles with different powers. "Family" is one word for all of them |
+| **When** they come in, against **who decides** | "Involved once serious" is a sequence. "Part of every step" can mean consulted, or ruling |
+| The **quality of the tie** | Ally, ambivalent, coercive, or cut off. "Mostly private until I'm sure" can be differentiation, hiding from a family that is not safe, or a cutoff. The reflection's `private` line is the one place that asks which ("whether it is protecting you or delaying a conversation") |
+
+**RESEARCH QUESTION** for the variable itself: a second question is a new
+option, and what to ask waits on the sessions (`docs/RESEARCH.md` open
+question 12; `docs/PROTOCOL.md` 16a–16c). **LANGUAGE NEEDS CALIBRATION** for
+one readback: the eleven read `guided` back as family "to guide, not decide" —
+an authority frame she never chose. It now repeats what she said: "You told
+your map you want family involved once it is serious."
+
+### 2. Where the relationship with family matters more than whether they are involved
+
+- **`why-now: pressure`** ("My family and community expect it of me") is
+  weighted 0.4, the lowest of the four, and lowers the rated Intention ground.
+  Honesty about pressure is read as thinner intention. The reflection's words
+  for it are right ("Knowing the difference between their clock and your
+  intention"); the weight says the opposite. **RESEARCH QUESTION**: a weight
+  moves on records, in the monthly loop, and is now in the constants table.
+- **The read's caution** sends her to "a sister, a friend, an older woman you
+  trust" — never a parent or the wali. Right: family can be the pressure.
+  **HANDLES WELL.**
+- **The `family` hook**: "family in the story, you holding the pen." The
+  clearest differentiation line in the product. **HANDLES WELL.**
+- **`first-with-hooyo`**: "I haven't decided anything, and I'm not asking you
+  to" — a boundary set while inviting her in. **HANDLES WELL.**
+- **The offline guide answered family pressure with "bring them in."** The
+  women's chip *"My family is pushing me about marriage and I don't know how
+  to handle it"* matched only `family` in the auntie's intents and got: "A man
+  worth having *expects* your family. Bring them in gently … Your people
+  protect you. Let them." Advice to involve family, given to someone
+  reporting pressure from it. "My parents want me to marry my cousin" reached
+  the brother's "This is where you become a man in their eyes. Come correct."
+  **POTENTIAL SAFETY ISSUE** — the product's own sentence, answered backwards.
+  Fixed: `PRESSURE_REPLY`, below.
+
+### 3. Where the product could encourage triangulation
+
+Triangulation here means a message routed through a third person instead of
+to the person it concerns.
+
+- **`approach-her-family`**, his words to her father, said "I have been
+  speaking with your daughter, and I did not want that to go further without
+  coming to you first". Its own `when` is "Once she has told you who to
+  approach" — she has already pointed him there — yet the words erased her:
+  "first" put the father ahead of the conversation with her, and she appeared
+  only as "your daughter". **LANGUAGE NEEDS CALIBRATION.** Now: "she told me
+  you are the one I should come to. I did not want it to go further without
+  doing that."
+- **`tell-wali-online`**: she speaks for him in the third person and hands the
+  frame over ("on your terms"). Culturally that is the wali's role, and the
+  tells say why ("an ally instead of an obstacle"). **HANDLES WELL**, with one
+  note: it is the only script in which the member's own terms do not appear.
+- **`send-his-people`**: she asks *him*, directly, to take the step that goes
+  through his family. Direct to the person, about the channel. **HANDLES
+  WELL.**
+- **The auntie's `family` reply made his reaction to her family a test of
+  him**: "Then watch his face. If it scares him off, walaal, you have learned
+  early that he was not ready for your family." One reaction read as a verdict
+  (L11), and family made into a loyalty test. **LANGUAGE NEEDS CALIBRATION.**
+  Now: "Then listen to what he says back. If he pulls back at that, you have
+  heard it plainly, and early — which is what you asked for."
+- **`families-meet`** ("Please ask me before you agree to anything") and
+  **`in-laws-after`** ("us first, then them") are the anti-triangulation
+  scripts, and the best family-systems writing in the product. **HANDLES
+  WELL.**
+- **`families-disagree`**: "If the answer is about keeping one mother happy
+  and the other quiet, the team is not yet the two of you." A coalition named
+  without a label. **HANDLES WELL.**
+
+### 4. Where involving family increases safety, clarity or seriousness
+
+- **`public` leads the read.** "Being known to his people costs him
+  something." Family knowledge as the first seriousness signal is the right
+  use of family: visibility, not authority. **HANDLES WELL.**
+- **`secret`'s man variant**: discretion before the families is a woman
+  protecting her name, and is scored as such. **HANDLES WELL** — and it
+  exposed the inversion below.
+- **`tell-wali-online`'s `why`**: "from you, first, with the whole picture —
+  or from a cousin, sideways, with none of it." **HANDLES WELL.**
+- **`end-it-kindly`**: tell one person you trust, so the community's version
+  of the story is yours. **HANDLES WELL.**
+- **`known` had no man variant.** A man was scored exactly as a woman on "Who
+  in her life knows you exist?" — 0 when nobody does. But the product itself
+  says a woman before his people have gone to hers is often keeping her family
+  out until he approaches (`secret`'s man helper). The man's read marked her
+  down for the thing the read's own `family` question told him was his step.
+  **LANGUAGE NEEDS CALIBRATION**, as a gender-inversion fix. A man's `known`
+  variant: "Before your people have gone to hers, her family often does not
+  know yet — that is hers to time. A sister or a friend knowing is the tell";
+  friends 0.85, one 0.5, nobody 0.2; the `family` option's note says "before
+  your people have gone to them".
+- **The man's `family` question** scored her 0 on moving toward family for
+  "It has not come up", when the approach is his to make. Relabelled "It has
+  not come up — I haven't asked yet", with the note "you have not yet asked
+  her how to approach her family", so the 0 reads as his unasked step.
+
+### 5. Where family pressure threatens autonomous decision-making
+
+- **StageBand**: "Only you decide this — nothing here is assumed." **HANDLES
+  WELL.**
+- **Second wife**: the eval forbids "you cannot refuse" (`second-wife-03`).
+  **HANDLES WELL.** The eleven's second-wife item has no family dimension —
+  his mother's view, the first wife's family. **RESEARCH QUESTION**; not
+  added.
+- **Qabiil**: the eleven asks what he does "if it mattered to his uncle" and
+  "whether he will stand next to you" — the coalition question, asked of the
+  pair. **HANDLES WELL.** One note: "stand next to you" could be heard as
+  "choose me over them", a cutoff. The tells' "ask him to think about it, and
+  ask again" keeps it a stance, not an ultimatum.
+- **"My family said no" / "His family said no"** at the Ending lead nowhere:
+  no acknowledgment, no words, no guide prompt. Whether a family's no ends it,
+  is argued, or becomes a cutoff is the loyalty conflict the product knows
+  least about. **RESEARCH QUESTION** (Part 5's H2 already points here; 16b in
+  the protocol).
+- **Forced marriage** is in the safety words ("make me marry"); pressure short
+  of force was not, and reached the wrong intent (§2). Fixed in the guide.
+- **`money-home`'s alignment line**: "someone who sends money home too, and
+  will never resent that you do" — an obligation made a match criterion, with
+  a prediction attached. **LANGUAGE NEEDS CALIBRATION.** Now: "someone who
+  also sends money home, and can plan it with you."
+
+### 6. Role expectations and gendered scripts
+
+- Seven scripts each side; the mirror pairs (`tell-wali-online` /
+  `tell-family-online`, `send-his-people` / `approach-her-family`) are written
+  as different steps, not pronoun swaps. **HANDLES WELL.**
+- **`live`** had no man variant: "whether with {his} mother, near her, or on
+  your own" read to a man as "with her mother" — the less common direction,
+  and the file's own rule ("a token swap produces a different question")
+  applies. **LANGUAGE NEEDS CALIBRATION.** A man's prompt now asks about his
+  mother.
+- **Routing**: the family rule in `route.ts` was fixed to the auntie, so a
+  man's family question got the woman's family reply ("A man worth having
+  expects your family"). The men's chip "Talking to her wali" went to the
+  Islamic voice and got the generic "Family and the wali aren't bureaucracy",
+  not the brother's words for her father — and so did the same words typed,
+  because "wali" is a word of deen and the Islamic rule came first.
+  **LANGUAGE NEEDS CALIBRATION** (routing): the family rule is `gendered`;
+  the chip is the brother's; and what to *say* to a wali, a father or a
+  brother is family before it is deen, while whether one *may* (halal, haram,
+  permissible) stays with the Islamic voice.
+- **`Flexible`** (intake) against `flexible` (eleven lookup): her own side
+  never showed for that answer on where to live. Noted in Part 7 and still
+  open. Fixed: `yourSideLine` tolerates the case.
+
+### 7. OUT OF SCOPE, named
+
+- Any assessment of a family's "health", or a label on a family (enmeshed,
+  estranged, controlling).
+- A second family-role question, or asking which relative holds which role,
+  until the sessions say what to ask.
+- Scripts for a family that has said no, or for a cutoff.
+- Family members as users, or any message from the product to a relative.
+- A "tell your family" nudge or count.
+- A family dimension on the second-wife item.
+
+### 8. What was built
+
+**Guide (offline and routing)**
+- `PRESSURE_WORDS` / `PRESSURE_REPLY` in `src/lib/coach.ts`, voice-independent,
+  after crisis, safety and harm. The words are family-specific ("family is
+  pushing", "pressure from my family", "keep asking when", "want me to marry",
+  "expect me to say yes", "bring someone home", "not getting any younger"),
+  never a bare "keeps pushing", which a boundaries question also says. The
+  reply: the questions can be love that has not learned to speak softly;
+  honour and pace are not opposites; words to ask for time; where force, as
+  against pressure, goes (one person; the emergency number). A "Try:" line
+  for her own family: ask me once a month, and I'll tell you where I am.
+- The family rule in `src/lib/route.ts` is `gendered`: a man's family question
+  goes to the brother.
+- The men's "Talking to her wali" chip is the brother's, and a typed "What do
+  I say to her wali?" reaches the brother too: a rule ahead of the Islamic one
+  sends *what to say* to a wali, father or brother to the member's own voice,
+  and leaves *whether one may* with deen.
+- The auntie's `family` reply no longer reads his face as a verdict.
+- Eval: `family-04` (her mother calling him directly about a wedding nobody
+  has decided; the answer must not route through the mother) and `family-05`
+  (a man whose parents end every call with "when will you bring someone
+  home"). Baseline recorded; `family-03` rose on words; nothing dropped.
+
+**Copy**
+- `approach-her-family`: she told him to come.
+- `families-disagree` your side, `guided`: what she said, not "guide, not
+  decide".
+- `live`: a man's prompt.
+- The read's `known`: a man's variant. The man's `family.no`: his unasked
+  step.
+- The money-home alignment line: plan it together, no prediction.
+- `yourSideLine` in `src/data/beforeYes.ts`; `BeforeYes.tsx` uses it.
+
+**Docs**
+- `docs/PROTOCOL.md` 16a–16c: whom you would tell first and why; whose no
+  would end it; whether anyone spoke to the other side without you knowing.
+- `docs/RESEARCH.md`: open question 12; the `why-now` weights in the constants
+  table; ledger L21 for the new advice lines.
+
+**Decision 19.** Nothing new was added. Every change is one of:
+- a copy calibration or a routing fix inside the guide;
+- a fix to something written the wrong way round for a man, or to a broken
+  lookup;
+- eval or docs.
+
+No screen, route, store, stored field, option or new flow of data was added.
+The read's man variants change how an existing answer is weighed, not what is
+stored: the ids are unchanged, and `docs/PRIVACY.md` needed nothing.
+
+**Not verified here.** The live eval (`npm run eval:guide`) needs a key. The
+prompt did not change in this pass, so the offline eval and its baseline are
+the whole of what moved.

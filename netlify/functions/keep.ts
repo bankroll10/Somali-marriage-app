@@ -300,6 +300,10 @@ export default async function handler(req: Request) {
   delete snap.waitlist
   delete snap.vouch
   if (snap.ending && typeof snap.ending === 'object') delete (snap.ending as Record<string, unknown>).advice
+  // Her lines — the differences she named as non-negotiable — stay on her
+  // phone; a kept map carries each as the plain `differ` it already is
+  // (docs/DECISIONS.md Part 8).
+  if (snap.beforeYes && typeof snap.beforeYes === 'object') delete (snap.beforeYes as Record<string, unknown>).lines
   if (Array.isArray(snap.followups)) {
     snap.followups = snap.followups
       .filter((f) => !(f && typeof f === 'object' && (f as { source?: unknown }).source === 'guide'))

@@ -1,4 +1,4 @@
-import type { Dimension, EndedRecord, EndingRecord, FollowUp, Gender, GroundState, ReadRecord, Reflection } from '../types'
+import type { BeforeYesRecord, Dimension, EndedRecord, EndingRecord, FollowUp, Gender, GroundState, ReadRecord, Reflection } from '../types'
 import { DIMENSION_LABEL, type ReadDimension } from '../data/read'
 import { beforeYesTopics } from '../data/beforeYes'
 import { familyScripts } from '../data/families'
@@ -61,7 +61,7 @@ export const ASKED = ['guide'] as const
 export interface FactsInput {
   reflection: Reflection | null
   read: ReadRecord | null
-  beforeYes: ReadRecord | null
+  beforeYes: BeforeYesRecord | null
   followups: FollowUp[]
   ending: EndingRecord | null
   endings: EndedRecord[]
@@ -106,7 +106,9 @@ export function factsFrom(i: FactsInput): Facts {
   }
 
   if (i.beforeYes) {
-    const b = buildBeforeYes(i.beforeYes.answers, i.gender)
+    // Her lines decide which topic is open, so they are read here — and go
+    // no further: only the open topic's id is a fact (docs/PRIVACY.md).
+    const b = buildBeforeYes(i.beforeYes.answers, i.gender, i.beforeYes.lines)
     if (b && TOPICS.has(b.open.id)) facts.eleven = { open: b.open.id }
   }
 

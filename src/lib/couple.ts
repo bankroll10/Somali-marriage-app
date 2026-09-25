@@ -1,19 +1,25 @@
 import type { Gender } from '../types'
 import type { Script } from '../data/read'
-import { ALL_AGREED, beforeYesTopics, ownAnswerFirst, type Topic } from '../data/beforeYes'
+import { allHad as allHadScript, beforeYesTopics, ownAnswerFirst, type Topic } from '../data/beforeYes'
 import { send, whyOf, type Why } from './net'
 
 /**
  * The client half of netlify/functions/couple.ts.
  *
  * She sends him the eleven; he answers without an account; both see only where
- * they match. Nothing in here can show either of them the other's sheet,
+ * they stand. Nothing in here can show either of them the other's sheet,
  * because the server never sends it — this file only ever handles the joint.
  */
 
 const ENDPOINT = '/.netlify/functions/couple'
 
-export type Joint = 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
+export type Joint =
+  | 'both-agree'
+  | 'both-settled'
+  | 'both-not-talked'
+  | 'one-thinks-talked'
+  | 'differ-somewhere'
+  | 'unknown-somewhere'
 export type CoupleView =
   | { status: 'open'; answerFor: Gender }
   // `answerFor` on the joint is the side that answered. A server older than
@@ -134,6 +140,9 @@ const URGENCY: Record<Joint, number> = {
   'differ-somewhere': 0.9,
   'unknown-somewhere': 0.7,
   'both-not-talked': 0.6,
+  // Both say they see it differently and have worked out how. Below every
+  // conversation neither has had, the way src/lib/beforeYes.ts ranks `settled`.
+  'both-settled': 0.2,
   'both-agree': 0,
 }
 
@@ -146,12 +155,14 @@ function lineFor(topic: Topic, kind: Joint): string {
   switch (kind) {
     case 'both-agree':
       return `You both say you’ve talked about ${t}, and agree.`
+    case 'both-settled':
+      return `You both say you see ${t} differently, and have worked out how to live with it.`
     case 'both-not-talked':
       return `Neither of you has raised ${t}.`
     case 'one-thinks-talked':
       return `One of you thinks you’ve had this conversation about ${t}. The other doesn’t.`
     case 'differ-somewhere':
-      return `You’ve both talked about ${t} — and at least one of you says you don’t agree.`
+      return `You’ve both talked about ${t}, and you don’t describe where it landed the same way.`
     case 'unknown-somewhere':
       return `One of you doesn’t yet know their own answer on ${t}.`
   }
@@ -164,7 +175,14 @@ function lineFor(topic: Topic, kind: Joint): string {
  */
 export function coupleReading(jointMap: Record<string, Joint>, gender: Gender = 'woman'): CoupleReading {
   const topics = beforeYesTopics(gender)
-  const counts: Record<Joint, number> = { 'both-agree': 0, 'both-not-talked': 0, 'one-thinks-talked': 0, 'differ-somewhere': 0, 'unknown-somewhere': 0 }
+  const counts: Record<Joint, number> = {
+    'both-agree': 0,
+    'both-settled': 0,
+    'both-not-talked': 0,
+    'one-thinks-talked': 0,
+    'differ-somewhere': 0,
+    'unknown-somewhere': 0,
+  }
   const lines: JointLine[] = []
   let best: { topic: Topic; kind: Joint; score: number } | null = null
   for (const topic of topics) {
@@ -178,29 +196,36 @@ export function coupleReading(jointMap: Record<string, Joint>, gender: Gender = 
   // Most urgent first, so what she reads first is what matters most.
   lines.sort((a, b) => URGENCY[b.kind] - URGENCY[a.kind])
 
-  const headline = best
-    ? counts['one-thinks-talked'] > 0
+  // Every conversation had, and each either agreed or arranged on both sides:
+  // nothing is left to open, only to go back over.
+  const allHad = lines.length > 0 && lines.every((l) => l.kind === 'both-agree' || l.kind === 'both-settled')
+
+  const headline = allHad
+    ? counts['both-settled'] > 0
+      ? 'You two have had all eleven. Where you see things differently, you both say you have worked out how.'
+      : 'You two have had all eleven, and you agree on all of them.'
+    : counts['one-thinks-talked'] > 0
       ? 'One of you thinks you’ve had a conversation the other doesn’t remember having.'
       : counts['differ-somewhere'] > 0
         ? 'You’ve had the conversations. Not all of them landed the same way.'
-        : 'Nothing is crossed. Some things are still unopened between you.'
-    : 'You two have had all eleven, and you agree on all of them.'
+        : 'Nothing you have both talked about is still open. Some things are still unopened between you.'
 
   return {
     headline,
     lines,
     // When one of them does not know their own answer yet, the conversation to
     // open is with themselves first — the same words the single-sided eleven
-    // gives for "I don't know my own answer" (src/data/eleven.ts).
+    // gives for "I don't know my own answer" (src/data/eleven.ts). When all
+    // have been had, the words are for going back over them.
     open: best
       ? {
           id: best.topic.id,
           label: best.topic.label,
           kind: best.kind,
-          script: best.kind === 'unknown-somewhere' ? ownAnswerFirst(gender) : best.topic.script,
+          script: allHad ? allHadScript(gender) : best.kind === 'unknown-somewhere' ? ownAnswerFirst(gender) : best.topic.script,
         }
       : lines.length
-        ? { id: lines[0].id, label: lines[0].label, kind: lines[0].kind, script: ALL_AGREED }
+        ? { id: lines[0].id, label: lines[0].label, kind: lines[0].kind, script: allHadScript(gender) }
         : null,
     counts,
   }

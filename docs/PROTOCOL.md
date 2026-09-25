@@ -232,6 +232,30 @@ and 15 test the functional and social jobs; the three-day text is the outcome.
 11. *Which of these would a Pakistani or Arab friend of yours also need, and
     which are only ours?* (`docs/RESEARCH.md` conviction 1 — portability)
 
+**C′ · How, not what (if time allows; `docs/DECISIONS.md` Part 9)**
+
+These are what happened, never what would. Each one is a candidate answer in
+an instrument, and none is built until sessions say it is real.
+
+11a. *The last time the two of you disagreed about something that mattered,
+     what happened next? Who came back to it, and how long did it take?*
+     (the read's `hard`; repair)
+11b. *The last time they got something wrong with you, what did they do?*
+     (taking responsibility)
+11c. *Has anything you said ever changed their mind? What was it?*
+     (accepting influence)
+11d. *When they raise something hard with you, how do they start?*
+     (the opening)
+11e. *Is there anything you have stopped raising with them? What stopped
+     you?* (the read's `careful`)
+
+**If an answer describes fear, threats, or control** — a phone checked, money
+kept, who they may see, being shouted at — stop the questions. Say plainly
+that this is not a difference to work out. Name the help line for their
+country (`src/data/help.ts`), and suggest one person they trust. Log the
+session as a safety entry with no detail that could identify anyone, and
+nothing else from it.
+
 **D · The words and the culture (min 26–27)**
 12. *Was anything on those screens said in a way that felt false, exaggerated,
     embarrassing, or like an auntie? Anything that sounded like it was
@@ -247,6 +271,17 @@ and 15 test the functional and social jobs; the three-day text is the outcome.
     not — the words, the look, who sent it, something else?*
 16. *Who in your family knows you're talking to someone? Who would you want
     to know before it goes further, and how would you tell them?*
+16a. *Whom in your family would you tell first, and why that person?* (The
+     role, not the relation: the ally, the gate, the one who tells everyone —
+     `docs/DECISIONS.md` Part 10. Record the role they name.)
+16b. *Whose no would end it? Whose no would you argue with?* (The loyalty
+     question, asked as a past or a plain fact, never as "would you defy".
+     If the answer is "nobody's", ask about the last time someone in the
+     family did not approve of something they chose.)
+16c. *Has anyone in either family spoken to the other person, or to their
+     family, without you knowing first? What happened after?* (Messages
+     routed round the two of them. Record who, by role, and whether it
+     helped or cost them.)
 17. *At the last wedding in your family, was anyone paid for bringing the two
     of them together — who paid, how much, and when?* (`docs/RESEARCH.md`
     conviction 7, word for word, and A5. Amounts, never

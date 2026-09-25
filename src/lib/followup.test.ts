@@ -10,6 +10,8 @@ import {
   writeBackState,
 } from './followup'
 import type { FollowUp } from '../types'
+import { beforeYesTopics, workItOut } from '../data/beforeYes'
+import { CAREFUL_SCRIPT, NONNEG_SCRIPT } from '../data/read'
 
 const DAY = 24 * 60 * 60 * 1000
 const NOW = Date.parse('2026-06-01T12:00:00.000Z')
@@ -161,9 +163,12 @@ describe('keeping the record', () => {
     expect(noted[0].source).toBe('guide')
   })
 
-  it('writes the talk back into the eleven as it actually went', () => {
-    expect(writeBackState(true)).toBe('agree')
-    expect(writeBackState(false)).toBe('differ')
+  it('writes the talk back into the eleven as it actually went — not agreeing comes in three kinds', () => {
+    expect(writeBackState('agree')).toEqual({ state: 'agree', line: false })
+    expect(writeBackState('settled')).toEqual({ state: 'settled', line: false })
+    expect(writeBackState('differ')).toEqual({ state: 'differ', line: false })
+    // A line is a plain difference in the sheet, and hers beside it.
+    expect(writeBackState('line')).toEqual({ state: 'differ', line: true })
   })
 })
 
@@ -178,5 +183,40 @@ describe('a read a month old', () => {
   it('goes quiet for another month once she says it still stands', () => {
     expect(readIsStale({ ...read, checkedAt: ago(2) }, NOW)).toBe(false)
     expect(readIsStale({ ...read, checkedAt: ago(READ_STALE_DAYS) }, NOW)).toBe(true)
+  })
+})
+
+describe('the words shown again are the words she was given', () => {
+  it('a difference still open on her sheet comes back with the words for after a difference', () => {
+    const f = noteFollowUp([], 'beforeYes', 'money-home', ago(5))
+    const ask = openFollowUp(f, 'woman', NOW, { eleven: { 'money-home': 'differ' } })!
+    expect(ask.script.words).toBe(workItOut('woman').words)
+  })
+  it('an unopened one comes back with its own opening words', () => {
+    const f = noteFollowUp([], 'beforeYes', 'money-home', ago(5))
+    const ask = openFollowUp(f, 'woman', NOW, { eleven: { 'money-home': 'not-talked' } })!
+    expect(ask.script.words).toBe(beforeYesTopics('woman').find((t) => t.id === 'money-home')!.script.words)
+  })
+  it('the two-sided sheet keeps the opening words — one of them may not know there is a difference', () => {
+    const f = noteFollowUp([], 'couple', 'money-home', ago(5))
+    const ask = openFollowUp(f, 'woman', NOW, { eleven: { 'money-home': 'differ' } })!
+    expect(ask.script.words).toBe(beforeYesTopics('woman').find((t) => t.id === 'money-home')!.script.words)
+  })
+})
+
+describe('the read’s words shown again are the read’s words', () => {
+  it('a pressure gap that was her non-negotiables comes back with the words for that', () => {
+    const f = noteFollowUp([], 'read', 'pressure', ago(5))
+    const ask = openFollowUp(f, 'woman', NOW, { read: { nonneg: 'pushed', hard: 'listens' } })!
+    expect(ask.script.words).toBe(NONNEG_SCRIPT.words)
+  })
+})
+
+describe('careful what she raises, days later', () => {
+  it('asks whether she told someone, with the same words', () => {
+    const f = noteFollowUp([], 'read', 'public', ago(5))
+    const ask = openFollowUp(f, 'woman', NOW, { read: { hard: 'careful' } })!
+    expect(ask.question).toBe('Last time, the words were for telling one person who knows you. Did you?')
+    expect(ask.script.words).toBe(CAREFUL_SCRIPT.words)
   })
 })

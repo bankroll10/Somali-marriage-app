@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
-import type { Answers, CoupleState, Gender, Identity, ReadRecord } from '../types'
+import type { Answers, BeforeYesRecord, CoupleState, Gender, Identity } from '../types'
 import type { ElevenAt } from '../hooks/useNiyyah'
-import { BEFORE_YES_COUNT, STATES, beforeYesTopics } from '../data/beforeYes'
+import { BEFORE_YES_COUNT, SHEET_OUTCOMES, beforeYesTopics, isDifference, pickedOf, sayTheLine, sheetOf, yourSideLine } from '../data/beforeYes'
+import ElevenChoices from './ElevenChoices'
 import { buildBeforeYes, type BeforeYesResult, type TopicReading } from '../lib/beforeYes'
 import { somali } from '../data/somali'
 import { coupleLink, coupleReading, createCouple, readCouple, type CoupleView } from '../lib/couple'
@@ -10,6 +11,7 @@ import { shareOrCopy } from '../lib/share'
 import { withVia } from '../lib/links'
 import { GUIDE_SOURCE, SITE_URL } from '../lib/site'
 import ScriptCard, { CheckBack } from './ScriptCard'
+import HelpLine from './HelpLine'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
@@ -21,7 +23,7 @@ interface Props {
   saveOk?: boolean
   /** Her own map, so "your side" can be read back where it already knows it. */
   answers: Answers
-  saved: ReadRecord | null
+  saved: BeforeYesRecord | null
   /**
    * Where to open. 'result' when she came from Home's "where you left it"
    * card; 'joint' from its "He answered" card — her result, with where the
@@ -29,7 +31,7 @@ interface Props {
    * screen's front page, one tap short of what they said.
    */
   opensAt?: ElevenAt
-  onSave: (record: ReadRecord) => void
+  onSave: (record: BeforeYesRecord) => void
   /** The eleven were begun — the denominator for whether they get finished. */
   onBegan: () => void
   onSetGender: (g: Gender) => void
@@ -82,7 +84,8 @@ export default function BeforeYes({
   const atResult = opensAt !== 'front' && !!saved
   const jointFirst = atResult && opensAt === 'joint' && !!couple
   const [phase, setPhase] = useState<Phase>(atResult ? 'result' : 'intro')
-  const [picked, setPicked] = useState<Record<string, string>>(() => (atResult && saved ? saved.answers : {}))
+  // As she answered it: a line is 'line' here, and only here (src/data/beforeYes.ts, LINE).
+  const [picked, setPicked] = useState<Record<string, string>>(() => (atResult && saved ? pickedOf(saved) : {}))
   const [index, setIndex] = useState(0)
   // A run she was pulled out of. Read on the way in, and nowhere else.
   const [draft] = useState(() => loadDraft('eleven'))
@@ -140,7 +143,10 @@ export default function BeforeYes({
       return
     }
     clearDraft('eleven')
-    onSave({ at: new Date().toISOString(), answers: next })
+    // Saved as states, with her lines beside them: a line is `differ` in
+    // anything that could ever be sent.
+    const sheet = sheetOf(next)
+    onSave({ at: new Date().toISOString(), answers: sheet.answers, ...(sheet.lines.length ? { lines: sheet.lines } : {}) })
     setPhase('result')
   }
 
@@ -241,7 +247,7 @@ export default function BeforeYes({
           {saved && (
             <button
               onClick={() => {
-                setPicked(saved.answers)
+                setPicked(pickedOf(saved))
                 setPhase('result')
               }}
               className="animate-fade mt-4 text-sm font-medium text-forest underline-offset-4 transition hover:underline"
@@ -255,7 +261,8 @@ export default function BeforeYes({
   }
 
   if (phase === 'result') {
-    const result = buildBeforeYes(picked, gender)
+    const sheet = sheetOf(picked)
+    const result = buildBeforeYes(sheet.answers, gender, sheet.lines)
     if (!result) return null
     return (
       <Shell onBack={onBack} title="Before you say yes">
@@ -282,7 +289,7 @@ export default function BeforeYes({
 
   const t = topics[index]
   const chosen = picked[t.id]
-  const side = t.yourSide ? t.yourSide.lines[String(answers[t.yourSide.question] ?? '')] : undefined
+  const side = yourSideLine(t, answers)
   return (
     <Shell onBack={() => (index === 0 ? setPhase('intro') : setIndex(index - 1))} title={`${index + 1} of ${topics.length}`}>
       <div className="h-1 w-full overflow-hidden rounded-full bg-sand">
@@ -300,36 +307,16 @@ export default function BeforeYes({
             {side}
           </p>
         )}
-        <div role="radiogroup" aria-labelledby={`before-yes-q-${t.id}`} className="mt-6 flex flex-col gap-2.5">
-          {STATES.map((s, i) => (
-            <button
-              key={s.id}
-              role="radio"
-              aria-checked={chosen === s.id}
-              onClick={() => choose(s.id)}
-              style={{ animationDelay: `${i * 40}ms` }}
-              className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 ${
-                chosen === s.id
-                  ? 'border-forest bg-forest text-cream shadow-lift'
-                  : 'border-line bg-white/50 text-ink hover:border-forest/40 hover:bg-white'
-              }`}
-            >
-              <span
-                className={`mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full border ${
-                  chosen === s.id ? 'border-gold-soft bg-gold-soft/20' : 'border-line group-hover:border-forest/40'
-                }`}
-              />
-              <span className="min-w-0">
-                <span className="block text-[0.98rem] font-medium leading-snug">{s.label}</span>
-                {s.hint && (
-                  <span className={`mt-1 block text-[0.83rem] leading-snug ${chosen === s.id ? 'text-cream/70' : 'text-muted'}`}>
-                    {s.hint}
-                  </span>
-                )}
-              </span>
-            </button>
-          ))}
-        </div>
+        <ElevenChoices
+          key={t.id}
+          topicId={t.id}
+          labelledBy={`before-yes-q-${t.id}`}
+          chosen={chosen}
+          chosenOutcome={isDifference(chosen) ? chosen : undefined}
+          outcomes={SHEET_OUTCOMES}
+          onChoose={choose}
+          onOutcome={choose}
+        />
         <p className="mt-5 text-[0.82rem] leading-relaxed text-muted text-pretty">{t.why}</p>
       </div>
     </Shell>
@@ -374,14 +361,17 @@ function Result({
   onOpenFamilies: () => void
   onBuildMap: () => void
 }) {
-  const allAgreed = result.counts.agree === Object.values(result.counts).reduce((a, b) => a + b, 0)
-  const title = allAgreed
+  const openIsLine = result.lines.some((l) => l.id === result.open.id)
+  const title = openIsLine
+    ? 'Saying a line plainly'
+    : result.allHad
     ? 'The one to go back over'
     : result.open.state === 'unknown'
       ? 'Start with your own answer'
       : 'The one to open this week'
 
-  const together = <Together gender={gender} pronoun={pronoun} picked={picked} couple={couple} onCouple={onCouple} />
+  // What he is compared with is her states alone: a line goes as `differ`.
+  const together = <Together gender={gender} pronoun={pronoun} picked={sheetOf(picked).answers} couple={couple} onCouple={onCouple} />
 
   return (
     <div className="py-8">
@@ -393,13 +383,41 @@ function Result({
       </h1>
       <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">{result.summary}</p>
 
-      <List title="Where you don’t agree" items={result.byState.differ} tone="clay" />
+      {/* What is still to say first, what has been said last. A difference is
+          not drawn in clay, the colour this app keeps for errors: two people
+          seeing something differently is not a fault (docs/DECISIONS.md
+          Part 8). */}
+      <List title="A line for you" items={result.lines} tone="ink" />
+      <List title="Still open between you" items={result.byState.differ} tone="gold" />
       <List title="Not talked about yet" items={result.byState['not-talked']} tone="gold" />
       <List title="Where you don’t know your own answer yet" items={result.byState.unknown} tone="gold" />
+      <List title="Seen differently, and worked out" items={result.byState.settled} tone="forest" />
       <List title="Talked about, and agreed" items={result.byState.agree} tone="forest" />
 
       <ScriptCard script={result.open.script} title={title} travel="eleven" />
       <CheckBack what="you had this one" />
+
+      {/* A line is never the conversation to open. If she has not yet said
+          it to him plainly, these are the words for that — once, and not
+          to bargain over (docs/DECISIONS.md Part 8). */}
+      {result.lines.length > 0 && !openIsLine && (
+        <ScriptCard script={sayTheLine(gender)} title="Saying a line plainly" travel="eleven" />
+      )}
+
+      {/* The eleven records whether a conversation happened, not whether it
+          can: "we disagree about money" and "I can't raise money because of
+          how he reacts" both land as not talked, or still open, and the words
+          above send her back in. Said once, quietly, under every result, with
+          somewhere to take it (docs/DECISIONS.md Part 9; docs/SECURITY.md,
+          "Afraid to raise it"). */}
+      <div className="mt-6 rounded-card border border-line bg-white/60 p-5">
+        <p className="text-[0.9rem] leading-relaxed text-ink-soft text-pretty">
+          If raising any of these feels unsafe rather than hard — if you are careful what you say because of how{' '}
+          {gender === 'man' ? 'she reacts' : 'he reacts'} — that is not a difference to work out. Tell one person who knows
+          you first.
+        </p>
+        <HelpLine className="mt-2.5" />
+      </div>
 
       {!jointFirst && together}
 
@@ -495,9 +513,9 @@ function Result({
   )
 }
 
-function List({ title, items, tone }: { title: string; items: TopicReading[]; tone: 'forest' | 'clay' | 'gold' }) {
+function List({ title, items, tone }: { title: string; items: TopicReading[]; tone: 'forest' | 'gold' | 'ink' }) {
   if (!items.length) return null
-  const dot = tone === 'forest' ? 'bg-forest' : tone === 'clay' ? 'bg-clay' : 'bg-gold'
+  const dot = tone === 'forest' ? 'bg-forest' : tone === 'ink' ? 'bg-ink' : 'bg-gold'
   return (
     <div className="animate-rise mt-7">
       {/* A heading. 434 rendered words under one <h1> until 2026-09-18
@@ -519,7 +537,7 @@ function List({ title, items, tone }: { title: string; items: TopicReading[]; to
  * The two-sided version.
  *
  * Her eleven go up under a code; he opens a link and answers without an
- * account; both then see only where they match. Her side is frozen the moment
+ * account; both then see only where they stand. Her side is frozen the moment
  * he answers, his after once — so neither can flip a topic and read the other.
  * The joint here is read from the server, never from her live local answers.
  */
@@ -574,7 +592,7 @@ function Together({
   async function share(code: string) {
     const result = await shareOrCopy(
       {
-        text: `I’ve been through the eleven conversations on Niyyah — would you do them too? You answer on your own; I never see your answers, only where we match.`,
+        text: `I’ve been through the eleven conversations on Niyyah — would you do them too? You answer on your own; I never see your answers, only where we stand.`,
         url: withVia(coupleLink(code, SITE_URL), 'couple'),
       },
     )
@@ -605,7 +623,7 @@ function Together({
         <ul className="mt-4 flex flex-col gap-2.5">
           {r.lines.map((l) => (
             <li key={l.id} className="flex gap-2.5 text-[0.95rem] leading-snug text-ink-soft text-pretty">
-              <span className={`mt-[0.5rem] h-1.5 w-1.5 flex-none rounded-full ${l.kind === 'both-agree' ? 'bg-forest' : l.kind === 'one-thinks-talked' || l.kind === 'differ-somewhere' ? 'bg-clay' : 'bg-gold'}`} />
+              <span className={`mt-[0.5rem] h-1.5 w-1.5 flex-none rounded-full ${l.kind === 'both-agree' || l.kind === 'both-settled' ? 'bg-forest' : 'bg-gold'}`} />
               <span>{l.line}</span>
             </li>
           ))}
@@ -639,10 +657,10 @@ function Together({
       </p>
       <p className="mt-2.5 text-[0.92rem] leading-relaxed text-muted text-pretty">
         {!couple
-          ? `Send ${pronoun} a link. ${he === 'he' ? 'He' : 'She'} answers the same eleven on ${he === 'he' ? 'his' : 'her'} own — no account, no name — and ${he} never sees your answers. Neither of you sees the other’s. You both see only where you match, and which conversation one of you thinks you’ve had that the other doesn’t.`
+          ? `Send ${pronoun} a link. ${he === 'he' ? 'He' : 'She'} answers the same eleven on ${he === 'he' ? 'his' : 'her'} own — no account, no name — and ${he} never sees your answers. Neither of you sees the other’s. You both see only where the two of you stand, and which conversation one of you thinks you’ve had that the other doesn’t.`
           : view === 'unreachable'
             ? `That is us, not ${pronoun} — the link is fine and your answers are safe. ${he === 'he' ? 'He' : 'She'} may well have answered. Try again in a moment.`
-            : `When ${he} does, you both see only where you match — and where one of you thinks a conversation happened and the other doesn’t. Send the link again if it got lost.`}
+            : `When ${he} does, you both see only where the two of you stand — and where one of you thinks a conversation happened and the other doesn’t. Send the link again if it got lost.`}
       </p>
       {view === 'unreachable' && (
         <button

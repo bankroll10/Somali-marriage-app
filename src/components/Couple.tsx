@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Gender } from '../types'
-import { STATES, beforeYesTopics } from '../data/beforeYes'
+import { SHEET_OUTCOMES, beforeYesTopics, isDifference, sheetOf } from '../data/beforeYes'
+import ElevenChoices from './ElevenChoices'
 import { answerCouple, coupleReading, readCoupleDetail, type CoupleView, type Joint } from '../lib/couple'
 import type { Why } from '../lib/net'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
@@ -25,7 +26,7 @@ interface Props {
    * His eleven, kept on his own device as his own Before you say yes — and the
    * joint he was just shown, so his Home knows there is a pair.
    */
-  onAnswered: (states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>) => void
+  onAnswered: (states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>, lines?: string[]) => void
   /**
    * He began her eleven. The one instrument whose abandonment was invisible on
    * both devices — see src/data/instruments.ts and docs/RESEARCH.md.
@@ -43,7 +44,7 @@ type Phase = 'loading' | 'dead' | 'unreachable' | 'answered-already' | 'intro' |
  *
  * He arrives with a link and no account. Nobody asks his name. He is told
  * exactly one thing before he starts: she never sees his answers, only where
- * they match. That sentence is what makes his answers honest, and honest
+ * they stand. That sentence is what makes his answers honest, and honest
  * answers are the entire value of the instrument.
  *
  * When he finishes he sees the same joint she will, and he is offered the two
@@ -104,7 +105,9 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
       return
     }
     setSending(true)
-    const result = await answerCouple(code, next)
+    // A line is his to say in words; the server is sent a plain difference.
+    const sheet = sheetOf(next)
+    const result = await answerCouple(code, sheet.answers)
     setSending(false)
     if (result === 'answered') {
       setPhase('answered-already')
@@ -125,7 +128,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
     }
     setSendFailed(null)
     clearDraft('couple')
-    onAnswered(next, answerFor, result.status === 'joint' ? result.joint : undefined)
+    onAnswered(sheet.answers, answerFor, result.status === 'joint' ? result.joint : undefined, sheet.lines)
     setView(result)
     setPhase('joint')
   }
@@ -189,7 +192,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">
               It works — this is what {senderObj === 'her' ? 'he' : 'she'} sees when {senderObj === 'her' ? 'he' : 'she'} opens
               it. {senderObj === 'her' ? 'He' : 'She'} has not answered yet. When {senderObj === 'her' ? 'he' : 'she'} does,
-              Home will say so, and you will both see where you match — not each other’s answers.
+              Home will say so, and you will both see where the two of you stand — not each other’s answers.
             </p>
             <p className="animate-rise mt-3 text-[0.92rem] leading-relaxed text-muted text-pretty">
               Answering it here yourself would put your own answers on {senderObj === 'her' ? 'his' : 'her'} side of the
@@ -213,7 +216,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             </p>
             <ul className="animate-rise mt-6 flex flex-col gap-2.5 border-l-2 border-gold/40 pl-4">
               {[
-                `${sender} never sees your answers. Neither of you sees the other’s — only where you match.`,
+                `${sender} never sees your answers. Neither of you sees the other’s — only where the two of you stand.`,
                 'No account. Nobody asks your name.',
                 'Your answers are kept under this link’s code, with no name, for ninety days — then deleted.',
                 'Answer honestly. The only thing this can do is show you both which conversation to have next.',
@@ -256,35 +259,23 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
               </div>
               <div key={t.id} className="animate-rise py-8">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">{t.label}</p>
-                <h2 className="mt-2 font-display text-[1.5rem] font-medium leading-snug tracking-tight text-ink text-balance">
+                <h2 id={`couple-q-${t.id}`} className="mt-2 font-display text-[1.5rem] font-medium leading-snug tracking-tight text-ink text-balance">
                   Have the two of you talked about this?
                 </h2>
                 <p className="mt-2.5 text-[0.98rem] leading-relaxed text-ink-soft text-pretty">{t.prompt}</p>
-                <div className="mt-6 flex flex-col gap-2.5">
-                  {STATES.map((s, i) => (
-                    <button
-                      key={s.id}
-                      onClick={() => choose(s.id)}
-                      // `sending` guarded the eleventh answer and was never
-                      // rendered — no spinner, no disabled state — so the tap
-                      // that fires a ten-second network write looked exactly
-                      // like the ten before it. That missing feedback is what
-                      // produced the second tap the guard exists for
-                      // (docs/DESIGN.md).
-                      disabled={sending}
-                      style={{ animationDelay: `${i * 40}ms` }}
-                      className={`animate-rise group flex w-full items-start gap-3.5 rounded-2xl border p-4 text-left transition-all duration-200 disabled:opacity-60 ${
-                        chosen === s.id ? 'border-forest bg-forest text-cream shadow-lift' : 'border-line bg-white/50 text-ink hover:border-forest/40 hover:bg-white'
-                      }`}
-                    >
-                      <span className={`mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full border ${chosen === s.id ? 'border-gold-soft bg-gold-soft/20' : 'border-line group-hover:border-forest/40'}`} />
-                      <span className="min-w-0">
-                        <span className="block text-[0.98rem] font-medium leading-snug">{s.label}</span>
-                        {s.hint && <span className={`mt-1 block text-[0.83rem] leading-snug ${chosen === s.id ? 'text-cream/70' : 'text-muted'}`}>{s.hint}</span>}
-                      </span>
-                    </button>
-                  ))}
-                </div>
+                <ElevenChoices
+                  key={t.id}
+                  topicId={t.id}
+                  labelledBy={`couple-q-${t.id}`}
+                  chosen={chosen}
+                  chosenOutcome={isDifference(chosen) ? chosen : undefined}
+                  // A line is offered on his side too, and kept on his phone:
+                  // the server is sent a plain difference (docs/DECISIONS.md Part 8).
+                  outcomes={SHEET_OUTCOMES}
+                  disabled={sending}
+                  onChoose={choose}
+                  onOutcome={choose}
+                />
                 {sending && (
                   <p role="status" className="mt-5 flex items-center gap-2 text-[0.88rem] text-muted">
                     <Spinner /> Sending your answers…
@@ -322,7 +313,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             </h1>
             <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
               Your answers are in. {sender} can see where the two of you stand — and neither of
-              you sees the other’s answers, only where you match. Nothing more to do here.
+              you sees the other’s answers, only where the two of you stand. Nothing more to do here.
             </p>
             <Button onClick={onHome} variant="outline" className="mt-7">
               What Niyyah is
@@ -341,7 +332,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
               <ul className="animate-rise mt-6 flex flex-col gap-2.5">
                 {r.lines.map((l) => (
                   <li key={l.id} className="flex gap-2.5 text-[0.95rem] leading-snug text-ink-soft text-pretty">
-                    <span className={`mt-[0.5rem] h-1.5 w-1.5 flex-none rounded-full ${l.kind === 'both-agree' ? 'bg-forest' : l.kind === 'one-thinks-talked' || l.kind === 'differ-somewhere' ? 'bg-clay' : 'bg-gold'}`} />
+                    <span className={`mt-[0.5rem] h-1.5 w-1.5 flex-none rounded-full ${l.kind === 'both-agree' || l.kind === 'both-settled' ? 'bg-forest' : 'bg-gold'}`} />
                     <span>{l.line}</span>
                   </li>
                 ))}

@@ -72,6 +72,14 @@ const VISITS: Record<string, Visit> = {
   },
   'eleven — the front': { who: 'stranger', link: () => inviteLink('beforeYes'), lands: /Before you say yes/ },
   'eleven — a topic': { who: 'stranger', link: () => inviteLink('beforeYes'), taps: ['Start — about him'], lands: /1 of 11/ },
+  // "We don't agree" opens a second question inline: where the difference
+  // stands (src/components/ElevenChoices.tsx, docs/DECISIONS.md Part 8).
+  'eleven — where a difference stands': {
+    who: 'stranger',
+    link: () => inviteLink('beforeYes'),
+    taps: ['Start — about him', /^We’ve talked, and we don’t agree/],
+    lands: /Where does that leave it\?/,
+  },
   'eleven — the result': {
     who: 'stranger',
     link: () => inviteLink('beforeYes'),

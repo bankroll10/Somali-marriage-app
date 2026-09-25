@@ -58,6 +58,20 @@ const SAFETY_WORDS = [
   'help pay', 'pay for his ticket', 'pay for her ticket',
   'loan', 'crypto', 'bitcoin', 'gift card', 'gift cards', 'western union', 'invest',
   'stalking', 'following me', 'followed me',
+  // Control and fear, not only threats and blows (docs/SECURITY.md, "Afraid to
+  // raise it"). Kept to phrasings that say it: "won't let me see", not "won't
+  // let me", which is also a man insisting on paying for dinner.
+  // His or her hands on her phone — never her own ("I keep checking my phone").
+  'checks my phone', 'goes through my phone', 'went through my phone behind',
+  'reads my messages', 'checks my messages', 'goes through my messages',
+  "won't let me see", 'wont let me see', "doesn't let me see", 'doesnt let me see', "won't let me go", 'wont let me go',
+  'not allowed to see my', 'not allowed to go out',
+  'takes my money', 'takes my salary', 'keeps my salary', 'my salary card', 'controls my money', 'controls the money',
+  'shouts at me', 'yells at me', 'screams at me', 'shouting at me', 'yelling at me', 'screaming at me',
+  'scared to tell him', 'scared to tell her', 'afraid to tell him', 'afraid to tell her',
+  'scared to bring', 'afraid to bring', 'scared to raise', 'afraid to raise',
+  'because of how he reacts', 'because of how she reacts', 'scared of how he', 'scared of how she', 'afraid of how he', 'afraid of how she',
+  'walking on eggshells', 'on eggshells', 'punishes me',
 ]
 
 /**
@@ -115,6 +129,118 @@ const RULING_WORDS = [
   'polygamy', 'polygyny', 'istikhara', 'too far', 'is it okay', 'is it allowed', 'deferred',
 ]
 
+/**
+ * A difference between the two of them, said as one. Every voice used to
+ * answer it with the courtship framework — "notice what it costs you … that is
+ * part of the answer" — reading a disagreement as a verdict on him, or with
+ * whatever its keywords happened to touch: "he wants to live with his mother
+ * and I don't" got "a man worth having expects your family". One answer, in
+ * any voice, that separates the kinds of difference and puts the kind in her
+ * hands (docs/DECISIONS.md Part 8).
+ */
+const DIFFERENCE_WORDS = [
+  'we disagree', "we don't agree", 'we dont agree', "don't agree on", 'dont agree on',
+  'we see it differently', 'see it differently', 'compromise', 'meet in the middle', 'middle ground',
+  'meet him halfway', 'meet her halfway', 'halfway', 'incompatible', 'not compatible', 'we are different on', "we're different on",
+  'we worked out', 'keep reopening',
+]
+
+export const DIFFERENCE_REPLY = `Not agreeing is not a verdict on the two of you. Some differences get settled once. Some you live alongside, with an arrangement you both keep. And some are a line for one of you. Only you can say which this one is.
+
+• If it is a line for you, you do not owe anyone a middle. Say it plainly, once, and listen for whether their answer is final too.
+• If it is still open, start with what each of you could not live with, before anyone looks for a middle.
+• If you have worked out how you live with it, say the arrangement back to each other in one sentence. If you both say it the same way, it is real.
+
+Try: "We see this differently, and I don't want either of us to pretend we don't. Can we each say what we couldn't live with here, and what we could?"
+
+Say that this week, and listen for whether they name theirs.`
+
+/**
+ * How the two of them argue, said as that — not what about. "We keep arguing"
+ * used to be one of the difference words and got the answer about kinds of
+ * difference: a message about how, answered as a message about what
+ * (docs/DECISIONS.md Part 9). This is also the answer married Home promises
+ * when it opens "the guide, in the voice built for repair".
+ *
+ * No labels — not "stonewalling", not "contempt" — only what happened, and
+ * what to do. Mockery and fear are named as how she is being treated, and
+ * sent to a person; threats and control never reach here (SAFETY_WORDS).
+ */
+const PROCESS_WORDS = [
+  'we keep arguing', 'keep arguing', 'we argue', 'we argued', 'we keep fighting', 'keep fighting', 'we fight', 'we fought',
+  'we had a fight', 'had a big fight', 'we had an argument', 'had an argument', 'had a big argument', 'after an argument',
+  'after the argument', 'after a fight', 'after the fight', 'we made up', 'how we argue', 'how we fight',
+  'silent treatment', 'silent for days', 'not speaking to me', 'stopped speaking to me',
+  'mocks me', 'makes fun of me', 'puts me down', 'belittles me', 'calls me stupid', 'rolls his eyes', 'rolls her eyes',
+  'shout at each other', 'we shout', 'we both shout',
+]
+
+export const PROCESS_REPLY = `How the two of you argue is a different question from what you argue about, and often the more useful one. Three things are worth knowing:
+
+• Does it come back? A pause is fine. What matters is that one of you returns to it, and the other lets them.
+• Can either of you stop without it being a punishment? "I need a break" is not the same as days of silence.
+• Does anyone come away mocked, put down or afraid? That is not an argument style. It is how you are being treated, and it is worth telling one person who knows you.
+
+If you said something you regret, start the repair yourself, without a "but": "I didn't like how I spoke earlier. Can we start that again?"
+
+Try: "When it gets heated, can either of us say 'let's stop and come back to this tomorrow' — and then we both do come back to it?"
+
+Agree that one rule this week.`
+
+/**
+ * Pressure from her own family to marry — the weekly questions, the cousin
+ * back home, "say yes quickly". The women's chip that says exactly this ("My
+ * family is pushing me about marriage") matched only `family` in the auntie's
+ * intent and was answered with "A man worth having expects your family. Bring
+ * them in gently": advice to involve the family, given to someone reporting
+ * pressure from it. A man's "my parents want me to marry my cousin" reached
+ * "This is where you become a man in their eyes" (docs/DECISIONS.md Part 10).
+ * One answer, in any voice, after safety and harm: force is a safety matter
+ * (SAFETY_WORDS); pressure short of force is answered here.
+ */
+const PRESSURE_WORDS = [
+  // Family pressure, said as that. Not a bare "pushing me": "he keeps pushing
+  // to meet alone" is him, and a boundary, not this.
+  'family is pushing', 'family keeps pushing', 'parents are pushing', 'parents keep pushing', 'mother is pushing', 'mother keeps pushing',
+  'hooyo is pushing', 'hooyo keeps pushing', 'pushing me to marry', 'pushing me to get married', 'pushing me to say yes',
+  'pressure from my family', 'pressure from my parents', 'family pressure', 'pressuring me to marry', 'under pressure to marry',
+  'keep asking when', 'keeps asking when', 'asks me every week', 'ask me every week', "won't stop asking", 'wont stop asking',
+  'want me to marry', 'wants me to marry', 'expect me to marry', 'expects me to marry', 'expect me to say yes', 'say yes quickly',
+  'bring someone home', 'when will you get married', 'when are you getting married', 'not getting any younger',
+]
+
+export const PRESSURE_REPLY = `The questions can be love that has not learned to speak softly. That does not make them lighter, or yours to answer on their clock.
+
+You can honour your family and the decision can still be yours. The pace is yours even when the questions are not.
+
+• Ask plainly for what you need — time, or to be asked differently. Parents asked for a part can often give it.
+• If it is a particular person they want, your consent is yours to give. Saying so once, calmly, is not disrespect.
+• If it has gone past questions — if you are being made to, or afraid to say no — that is not pressure to manage. Tell one person you trust today; in danger, the emergency number is below.
+
+Try: "I know you want this for me, and I want it too. Trust me with the when, and the who. Can we agree you'll ask me once a month, and I'll tell you where I am?"
+
+Say it to the one who asks most, this week.`
+
+/**
+ * The follow-up's "It went differently" sends the guide one of two fixed
+ * sentences (src/components/home/FollowUp.tsx), and offline they had no
+ * answer of their own: most fell to the framework, and "his family in your
+ * home" was routed to "a man worth having expects your family". Differently
+ * can mean it went badly, it settled something, or it was not safe; the answer
+ * starts by telling those apart.
+ */
+const WENT_DIFFERENTLY_WORDS = ['went differently', 'it went differently']
+
+export const WENT_DIFFERENTLY_REPLY = `Differently can mean a few things, so start with which one it was.
+
+• It went badly, but it can come back. Leave it a day, then return to it, more slowly.
+• It settled something you did not expect: a plain answer, even one you did not want. That is still an answer, and it is yours to weigh.
+• It did not feel safe to raise. Then it is not a conversation to try again alone. Tell one person who knows you what happened, today, and if you are ever in danger, the emergency number is below.
+
+Try: "I didn't like how that went. Can we try it again, more slowly, tomorrow?"
+
+Pick the one that fits, and do that this week.`
+
 const DEFERENCE = `For the ruling itself, take it to a scholar or imam you trust. A guide can share principles; a ruling is theirs to give.`
 
 /** The guide's own words that point at real-world help — the numbers belong under them. */
@@ -137,9 +263,11 @@ export const SAFETY_REPLY = `What you have described is more than a question abo
 
 If you are in danger now, call the emergency number below. Then tell one person you trust — a sister, a friend, an older woman or man who knows you — exactly what you told me. Today.
 
-If money is being asked for, send nothing more — not a loan, not a bill, not a ticket, not an investment — until your families have met. That is the shape scams take, however real the person feels.
+If money is being asked for, send nothing more until your families have met. That is the shape scams take, however real the person feels.
 
 If someone is holding pictures or messages over you: do not pay, do not send more, keep what they sent, and tell someone.
+
+If someone checks your phone, keeps your money, decides who you see, shouts at you, or you are careful what you raise because of how they react: that is not a disagreement to work out. Tell that one person, as it is.
 
 The helpline below is free, and you do not have to give your name.`
 
@@ -200,7 +328,6 @@ const GUIDE_ANSWERS = [
   'family-role',
   'children',
   'attachment',
-  'comm-safety',
   'dealbreakers',
   'hardest-part',
 ] as const
@@ -390,7 +517,19 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
   if (needsCrisisLine(message)) return { text: CRISIS_REPLY, closers: [], live: false }
   if (needsHelpLine(message)) return { text: SAFETY_REPLY, closers: closersFor(SAFETY_REPLY), live: false }
   if (HARM_WORDS.some((w) => hasWords(normalize(message), w))) return { text: HARM_REPLY, closers: closersFor(HARM_REPLY), live: false }
-  const reply = voiceReply(message, ctx, modeId)
+  // Then how it went, then how they argue, then what about — each before any
+  // voice's own intents, whichever voice she opened.
+  const m = normalize(message)
+  const fixed = (text: string): CoachReply => ({ text, closers: closersFor(text), live: false })
+  const reply = PRESSURE_WORDS.some((w) => hasWords(m, w))
+    ? fixed(PRESSURE_REPLY)
+    : WENT_DIFFERENTLY_WORDS.some((w) => hasWords(m, w))
+      ? fixed(WENT_DIFFERENTLY_REPLY)
+      : PROCESS_WORDS.some((w) => hasWords(m, w))
+        ? fixed(PROCESS_REPLY)
+        : DIFFERENCE_WORDS.some((w) => hasWords(m, w))
+          ? fixed(DIFFERENCE_REPLY)
+          : voiceReply(message, ctx, modeId)
   // Principles, never rulings, and the ruling's owner named.
   if (RULING_WORDS.some((w) => hasWords(normalize(message), w)) && !/\b(scholar|imam)\b/i.test(reply.text)) {
     const text = `${reply.text}\n\n${DEFERENCE}`

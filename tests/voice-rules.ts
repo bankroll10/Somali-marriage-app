@@ -33,5 +33,7 @@ export const BANNED: [RegExp, string][] = [
   [/\bsingle (best|most)\b/i, 'a verdict from eleven taps'],
   [/\bno other app\b/i, 'a claim about every other app'],
   [/\bload-bearing\b/i, 'jargon'],
+  [/\bwhere (you|we|they) (match|matched)\b/i, 'the eleven records where two people stand, not whether they match (docs/DECISIONS.md Part 8)'],
+  [/\bline up yet\b|\bnothing is crossed\b/i, 'a difference is not on its way to agreement (docs/DECISIONS.md Part 8)'],
   [/\bI’ve seen a hundred\b/i, 'the auntie claiming a record she does not have'],
 ]

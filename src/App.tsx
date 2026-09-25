@@ -114,7 +114,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
   })()
   const beforeYesNote = (() => {
     if (!n.beforeYes) return undefined
-    const built = buildBeforeYes(n.beforeYes.answers, n.identity.gender ?? 'woman')
+    const built = buildBeforeYes(n.beforeYes.answers, n.identity.gender ?? 'woman', n.beforeYes.lines)
     return built ? beforeYesSummary(built) : undefined
   })()
   const backHome = () => {
@@ -330,7 +330,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           code={n.entryCode}
           // Her own link, opened on her own phone (docs/DESIGN.md N1).
           yours={n.couple?.code === n.entryCode && !n.couple?.side}
-          onAnswered={(states, g, joint) => n.answeredCouple(n.entryCode!, states, g, joint)}
+          onAnswered={(states, g, joint, lines) => n.answeredCouple(n.entryCode!, states, g, joint, lines)}
           onBegan={() => n.noteBegan('couple')}
           onRead={() => n.setScreen('read')}
           onBuildMap={n.beginMap}

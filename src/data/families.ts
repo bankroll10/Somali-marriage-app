@@ -99,7 +99,7 @@ const SCRIPTS: FamilyScript[] = [
     script: {
       why: 'This is the step that turns talking into an intention, and it is the one thing no message can do for you. It costs you something to stand in front of her father or her brother and say it out loud. That is exactly why it counts — and why every month you wait, she is the one carrying the question.',
       words:
-        'Assalaamu alaykum. My name is ———. I have been speaking with your daughter, and I did not want that to go further without coming to you first. My intention is marriage, and I want to do this the way you would want it done. If you will allow it, I would like my family to come and sit with yours.',
+        'Assalaamu alaykum. My name is ———. I have been speaking with your daughter, and she told me you are the one I should come to. I did not want it to go further without doing that. My intention is marriage, and I want to do this the way you would want it done. If you will allow it, I would like my family to come and sit with yours.',
       tells:
         'Expect the questions to come fast, and to be about your work, your family and your deen. Answer plainly and do not sell. “I don’t know yet” is a better answer than a smooth one. If he asks you to wait, ask what he would want to see by then — a father who names something is not refusing you, and a father who names nothing has told you something too.',
     },
@@ -112,7 +112,7 @@ const SCRIPTS: FamilyScript[] = [
     script: {
       why: 'If you don’t discuss these between you first, they will be decided in a room you’re not in. Having your own answer before the families meet is the difference between being consulted and being informed.',
       words:
-        'Before our families sit down, I want us to have our own answers. What do you think is right for the mahr — and where do you see us living in the first year? I’d rather we walk in agreeing than find out at the table that we don’t.',
+        'Before our families sit down, I want us to have our own answers. What do you think is right for the mahr — and where do you see us living in the first year? I’d rather we walk in knowing where we each stand than find out at the table.',
       tells:
         'You are listening for whether {he} sees this as “ours to decide first”. If {he} defers everything to the elders now, you have seen how decisions would be made. Say whether that works for you.',
     },
@@ -128,7 +128,7 @@ const SCRIPTS: FamilyScript[] = [
     script: {
       why: 'The meeting between the families is where a great deal gets decided quickly, by people who love you and are not you. If your own family walks in knowing what the two of you have already agreed, and what you want left to you, you are part of the room instead of the subject of it.',
       words:
-        'Before our families sit down together, I want to tell you what the two of us have already talked about, so nothing surprises you in the room. We have agreed on ———. The one thing I would like to decide myself, with {him}, is ———. I trust you with the rest. Please ask me before you agree to anything that changes where we live or how we live.',
+        'Before our families sit down together, I want to tell you what the two of us have already talked about, so nothing surprises you in the room. We have agreed on ———. Where we see it differently, we have worked out ———. The one thing I would like to decide myself, with {him}, is ———. I trust you with the rest. Please ask me before you agree to anything that changes where we live or how we live.',
       tells:
         'Listen for whether they repeat back what you said. A parent who asks what you agreed has heard you. If the answer is “leave it to us”, name the one thing that is yours, once — and tell {him} which it is, so the two of you say the same thing in the room.',
     },

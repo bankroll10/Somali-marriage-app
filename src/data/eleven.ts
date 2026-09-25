@@ -66,7 +66,11 @@ export const TOPICS: Topic[] = [
     label: 'Where you’d live',
     prompt: 'Where you’d live — which city, and whether with {his} mother, near her, or on your own.',
     consequence: 0.95,
-    why: 'This is rarely decided by two people alone, and it is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and still come apart on that in the first year.',
+    // A token swap would ask a man whether they would live with *her* mother
+    // — the less common direction here. His people's house is the question
+    // his side carries (docs/DECISIONS.md Part 10).
+    man: { prompt: 'Where you’d live — which city, and whether with your mother, near her, or on your own.' },
+    why: 'This is rarely decided by two people alone, and it is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and find out only once the lease is signed that they pictured different homes.',
     script: {
       why: 'Where you live decides who is in your home every day, and it is easy not to ask until the lease is signed.',
       words:
@@ -300,7 +304,7 @@ export const TOPICS: Topic[] = [
       question: 'family-role',
       lines: {
         central: 'You told your map you want family central to this.',
-        guided: 'You told your map you want family to guide, not decide.',
+        guided: 'You told your map you want family involved once it is serious.',
         informed: 'You told your map you want family informed, with the decision yours.',
         private: 'You told your map you would keep this mostly private from family.',
       },
@@ -320,10 +324,50 @@ export const OWN_ANSWER_FIRST: ElevenScript = {
     'Write your own answer down before you ask for {his}. Otherwise {his} becomes yours by default, and you find out later that it never was.',
 }
 
-/** When every conversation has been had and agreed — the rarest result, and still not the end. */
-export const ALL_AGREED: ElevenScript = {
-  why: 'Agreement from six months ago is a memory, not a contract. Closer to the day, answers can move.',
+/**
+ * When a difference has been found and is still open. The topic's own words
+ * open a conversation nobody has had; handing them to a couple who have
+ * already had it asked them to start again (docs/DECISIONS.md Part 8).
+ *
+ * These ask each of them, first, what they could not live with — before any
+ * middle. That order is the point: a difference that can be arranged gets
+ * arranged, and a line shows itself as a line before anyone has been asked
+ * to bend it. Nothing here says a difference should end in agreement.
+ */
+export const WORK_IT_OUT: ElevenScript = {
+  why: 'You already know you see this differently. The next conversation is not about who is right. It is about what each of you could not live with, and whether there is an arrangement you would both keep.',
   words:
-    'Can we go back over the things we agreed on, now that it’s closer? Not because I doubt you — because I want to make sure we still mean the same things by them.',
+    'We know we see this differently, and I don’t want either of us to pretend we don’t. Can we each say what we couldn’t live with here, and what we could? Then let’s see whether there’s a way of doing it that we’d both keep — not just one that closes the subject.',
+  tells:
+    'Listen for whether {he} can name what {he} couldn’t live with, and whether {he} asks for yours. An arrangement is real when you could both say it back the same way. If what one of you couldn’t live with is the whole question, there is no middle to find: that is a line, and it is allowed to be one. If it gets heated, you can stop — “I want to finish this, not win it; can we come back to it tomorrow?” — and then come back to it.',
+}
+
+/**
+ * When she has said a difference is a line for her. Never offered as the
+ * conversation to open, and never given words to work it out: a
+ * non-negotiable handed back as the thing to work on is the product taking a
+ * position, and it takes none (docs/DECISIONS.md Part 8). These are for
+ * saying it plainly, once, if she has not.
+ */
+export const SAY_THE_LINE: ElevenScript = {
+  why: 'A line is not a position to bargain over, and nothing here will ask you to. What is left is whether {he} has heard it plainly, from you, and whether {his} answer is final too.',
+  words:
+    'I want to say something plainly, so it isn’t left open between us. This one is a line for me. I’m not asking you to meet me halfway on it, and I won’t ask you to pretend. I’d rather know now whether your answer is final too.',
+  tells:
+    'You are not listening for agreement. You are listening for a plain answer. If {his} is final too, you have both learned it before the families are involved, which is what this was for. If {he} asks you to give it up, you do not owe that conversation twice.',
+}
+
+/**
+ * When every conversation has been had, and each one agreed or worked out.
+ * Still not the end: an arrangement, like an agreement, is worth going back
+ * over closer to the day.
+ */
+export const ALL_HAD: ElevenScript = {
+  why: 'Agreement from six months ago is a memory, not a contract — and so is an arrangement. Closer to the day, answers can move.',
+  words:
+    'Can we go back over what we agreed on, and how we said we’d handle the things we see differently, now that it’s closer? Not because I doubt you — because I want to make sure we still mean the same things by them.',
   tells: 'Watch for which answers have changed. The ones that have are the ones to talk about; the ones that haven’t are the ground you are standing on.',
 }
+
+/** The name the printed guide knew it by (src/lib/guidePages.ts). */
+export const ALL_AGREED = ALL_HAD

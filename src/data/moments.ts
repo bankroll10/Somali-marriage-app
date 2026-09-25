@@ -70,8 +70,10 @@ const men: Moment[] = [
   },
   {
     label: 'Talking to her wali',
- prompt: 'What do I say to her father or brother when the time comes?',
-    mode: 'islamic',
+    prompt: 'What do I say to her father or brother when the time comes?',
+    // The brother has the words for her father; the Islamic voice answered
+    // this with "Family and the wali aren't bureaucracy" (Part 10).
+    mode: 'brother',
   },
 ]
 

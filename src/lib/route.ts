@@ -24,6 +24,17 @@ interface Rule {
 // Order matters: the first match wins, so the most specific topics come first.
 const RULES: Rule[] = [
   {
+    // What to say to her father is a family question, not a question of deen —
+    // even though "wali" is a word of deen. Whether one may (halal, haram,
+    // permissible) stays with the Islamic voice. A man typing "What do I say to
+    // her wali?" got the generic "Family and the wali aren't bureaucracy"
+    // instead of the brother's words for her father (docs/DECISIONS.md Part 10).
+    mode: 'gendered',
+    why: 'this sounded like words for her family',
+    patterns:
+      /^(?!.*\b(halal|haram|permissible|allowed|sin|sunnah)\b).*\b(say|tell|approach|speak|talk|words?)\b[^.?!]*\b(wali|aabo|(her|his|my|the) (father|dad|brother|parents|people))\b/is,
+  },
+  {
     mode: 'islamic',
     why: 'this sounded like a question of deen',
     patterns:
@@ -36,7 +47,10 @@ const RULES: Rule[] = [
       /\b(anxious|anxiety|overthink|overthinking|spiral|spiralling|spiraling|panic|panicking|scared|afraid|insecure|jealous|attached|attachment|obsess|obsessing|can.?t stop|cant stop|numb|depressed|crying|hurt|heartbroken|triggered|abandon|lonely|exhausted|drained|feel nothing|feel empty)\b/i,
   },
   {
-    mode: 'auntie',
+    // The member's own voice, not the auntie's for everyone: a man asking
+    // about her father was handed "A man worth having expects your family"
+    // (docs/DECISIONS.md Part 10).
+    mode: 'gendered',
     why: 'this sounded like family',
     patterns:
       /\b(family|families|mother|mum|mom|hooyo|father|dad|aabo|parents|aunt|auntie|aunties|uncle|cousin|sister|brother.?in|clan|qabiil|tribe|reer|community|people talk|what people)\b/i,

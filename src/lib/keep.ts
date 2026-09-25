@@ -1,6 +1,7 @@
 import { loadProgress, saveProgress, type PersistedState } from './storage'
 import { cleanCode, isCode, newCode } from './code'
 import { send } from './net'
+import type { ReadRecord } from '../types'
 
 /**
  * Keeping a map somewhere it can survive a lost phone.
@@ -37,7 +38,10 @@ const ENDPOINT = '/.netlify/functions/keep'
  * The type is the guarantee for the first two: the fields do not exist on
  * what is sent. The server applies the same rules again, for older clients.
  */
-export type KeptSnapshot = Omit<PersistedState, 'coachThreads'>
+export type KeptSnapshot = Omit<PersistedState, 'coachThreads' | 'beforeYes'> & {
+  /** Her eleven without her lines: those stay on the phone (src/types.ts BeforeYesRecord). */
+  beforeYes: ReadRecord | null
+}
 
 const MOMENT = /^(\d{4}-\d{2}-\d{2})T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?$/
 
@@ -52,9 +56,12 @@ function toDays<T>(value: T): T {
 }
 
 export function keptSnapshot(state: PersistedState): KeptSnapshot {
-  const { coachThreads: _threads, followups, ending, read, couple, ...rest } = state
+  const { coachThreads: _threads, followups, ending, read, couple, beforeYes, ...rest } = state
   // The read before this one stays on the phone — it was never in the kept map.
   const { previous: _previous, ...latest } = read ?? { at: '', answers: {} }
+  // Her lines stay on the phone. In `answers` a line is `differ`, which is all
+  // a kept map says; restored, it comes back as a difference still open.
+  const { lines: _lines, ...sheet } = beforeYes ?? { at: '', answers: {} }
   delete (rest as { updatedAt?: number }).updatedAt
   const { advice: _advice, ...ended } = ending ?? { at: '' }
   // The pair's code and when he answered, as before — not her owner key, not
@@ -63,6 +70,7 @@ export function keptSnapshot(state: PersistedState): KeptSnapshot {
   return toDays({
     ...rest,
     read: read ? latest : null,
+    beforeYes: beforeYes ? sheet : null,
     couple: pair,
     ending: ending ? ended : null,
     // Ids unique within her list, and nothing more: they were built from the

@@ -198,6 +198,20 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
       { id: 'one', label: 'One friend, maybe', weight: 0.35, note: 'perhaps one friend knows about you' },
       { id: 'nobody', label: 'Nobody, as far as I know', weight: 0, note: 'nobody in {his} life knows you exist' },
     ],
+    // Read by a man, "nobody in her life knows you exist" scored her at 0 for
+    // the thing his own `family` question tells him is his step: before his
+    // people have gone to hers, her family often does not know yet, and the
+    // timing is hers (the `secret` variant says the same). A sister or a friend
+    // knowing is the tell on her side (docs/DECISIONS.md Part 10).
+    man: {
+      helper: 'Before your people have gone to hers, her family often does not know yet — that is hers to time. A sister or a friend knowing is the tell.',
+      options: {
+        family: { note: 'her family knows about you — before your people have gone to them' },
+        friends: { weight: 0.85 },
+        one: { weight: 0.5, label: 'One friend or a sister, maybe' },
+        nobody: { weight: 0.2 },
+      },
+    },
   },
   {
     id: 'secret',
@@ -275,7 +289,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
           label: 'She is open to it — no name, no time yet',
           note: 'she is open to your approaching her family, without a name or a time yet',
         },
-        no: { label: 'It has not come up', note: 'approaching her family has not come up' },
+        no: { label: 'It has not come up — I haven’t asked yet', note: 'you have not yet asked her how to approach her family' },
         avoids: {
           label: 'She changes the subject when it comes up',
           note: 'she moves away from the subject of her family when it comes up',
@@ -355,11 +369,25 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     id: 'nonneg',
     dimension: 'pressure',
     prompt: 'Does {he} know what you will not compromise on?',
-    helper: 'The one or two things that decide it for you.',
+    // A plain answer that is not hers is still a straight answer. "Pushed back"
+    // put honest disagreement ("that isn't me") in the same box as pressure,
+    // and scored it below changing the subject (docs/DECISIONS.md Part 8).
+    // The ids and weights are unchanged; the labels say what each measures.
+    helper: 'The one or two things that decide it for you. A plain answer counts, even one that isn’t yours.',
     options: [
-      { id: 'straight', label: 'Yes — and {he} answered straight', weight: 1, note: '{he} knows your non-negotiables and answered them straight' },
+      {
+        id: 'straight',
+        label: 'Yes — and {he} answered straight',
+        weight: 1,
+        note: '{he} knows your non-negotiables and gave you a straight answer, whatever it was',
+      },
       { id: 'deflected', label: 'Yes — but {he} changed the subject', weight: 0.2, note: '{he} moved away from your non-negotiables rather than answering them' },
-      { id: 'pushed', label: 'Yes — and {he} pushed back on them', weight: 0.1, note: '{he} has pushed back on the things you said you would not compromise on' },
+      {
+        id: 'pushed',
+        label: 'Yes — and {he} keeps trying to talk me out of them',
+        weight: 0.1,
+        note: '{he} keeps trying to talk you out of the things you said you would not compromise on',
+      },
       // Says nothing about {him}, so it is not scored — it used to count as 0.5.
       { id: 'untold', label: 'I have not told {him}', weight: null, note: 'you have not told {him} your non-negotiables yet' },
     ],
@@ -370,9 +398,36 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     prompt: 'When you raise something difficult, what does {he} do?',
     options: [
       { id: 'listens', label: 'Listens, and comes back to it', weight: 1, note: '{he} can sit with a hard conversation and return to it' },
-      { id: 'defensive', label: 'Gets defensive, but comes back', weight: 0.7, note: '{he} gets defensive at first but does come back' },
-      { id: 'quiet', label: 'Goes quiet for a while', weight: 0.3, note: '{he} goes quiet when something hard is raised' },
+      // A pause that comes back is the same thing her own map calls "workable
+      // and healthy" in her (src/lib/reflection.ts); "Goes quiet for a while"
+      // scored it as a gap in him. Coming back is what this measures, so the
+      // pause sits with coming back, and withdrawal is named as withdrawal.
+      {
+        id: 'defensive',
+        label: 'Gets defensive or goes quiet, but comes back',
+        weight: 0.7,
+        note: '{he} can get defensive or go quiet at first, but does come back',
+      },
+      {
+        id: 'quiet',
+        label: 'Goes quiet, and it doesn’t come back up',
+        weight: 0.3,
+        note: '{he} goes quiet when something hard is raised, and it is not raised again',
+      },
       { id: 'blames', label: 'I end up feeling like the problem', weight: 0, note: 'you come away from hard conversations feeling like the problem' },
+      // Whether a hard thing can be raised at all, not how it goes when it is.
+      // "We disagree about money" and "I can't bring money up because of how
+      // {he} reacts" were the same answer here, or no answer (docs/DECISIONS.md
+      // Part 9; docs/SECURITY.md, "Afraid to raise it"). Her report of her own
+      // caution, never a claim about {him}: it sets a quiet line and words for
+      // telling one person — not the caution band, which asks for more than
+      // one tap (docs/DECISIONS.md Part 4).
+      {
+        id: 'careful',
+        label: 'I’m careful what I raise, because of how {he} reacts',
+        weight: 0,
+        note: 'you are careful about what you raise with {him}, because of how {he} reacts',
+      },
     ],
   },
 ]
@@ -500,6 +555,37 @@ const SCRIPTS_MAN: Partial<Record<ReadDimension | 'early', Script>> = {
  * The script for this gap, for whoever is reading. Falls back to the shared
  * one, so a new dimension needs a man's variant only where the road differs.
  */
+/**
+ * When she is careful what she raises, because of how the other person
+ * reacts. The one set of words in the read that is not for saying to the
+ * person she is reading: a question put to someone she is careful around is
+ * the conversation she has said she cannot safely have (docs/DECISIONS.md
+ * Part 9). The words are for one person who knows her.
+ */
+export const CAREFUL_SCRIPT: Script = {
+  why: 'Being careful about what you raise, because of how someone reacts, is worth saying out loud to one person who knows you. Not for advice — so that someone other than the two of you knows the shape of it.',
+  words:
+    'Can I tell you something, and you just listen? I’ve noticed I’m careful about what I bring up, because of how they react. I don’t need you to fix it. I just want someone to know.',
+  tells:
+    'Pick someone who will listen before they advise. What they say matters less than that they now know. Whether you raise it with the other person, and when, is yours to decide afterwards.',
+}
+
+/**
+ * The words when the thin ground is her non-negotiables — he changed the
+ * subject, or keeps trying to talk her out of them — rather than how he meets
+ * a complaint. SCRIPTS.pressure is written for being made to feel like the
+ * problem; handed to a woman whose line he is arguing with, it asked the wrong
+ * thing. Not a key of SCRIPTS: the server's list of read topics is unchanged
+ * (netlify/shared/vocab.ts READ_TOPICS). Chosen in src/lib/read.ts.
+ */
+export const NONNEG_SCRIPT: Script = {
+  why: 'What you will not compromise on is not a position to be argued down. What you need is a plain answer about where the other person stands.',
+  words:
+    'I’ve told you the things I won’t compromise on, and I need a plain answer — not agreement, and not an argument. Just where you stand.',
+  tells:
+    'Listen for a plain answer. “That’s where I am too” is one. “That isn’t me” is another, and it is one you can decide with. Changing the subject again, or arguing you out of it again, is an answer as well.',
+}
+
 export function scriptFor(key: ReadDimension | 'early', gender: Gender = 'woman'): Script {
   return (gender === 'man' ? SCRIPTS_MAN[key] : undefined) ?? SCRIPTS[key]
 }

@@ -1,6 +1,6 @@
 import { Button, GeoBackdrop, Logo, ArrowRight } from './ui'
 import { SinceLastTime } from './home/FollowUp'
-import type { FollowUpAsk } from '../lib/followup'
+import type { FollowUpAsk, Landed } from '../lib/followup'
 import type { FollowUp as FollowUpRecord } from '../types'
 import RestoreMap from './RestoreMap'
 import { EYEBROW } from '../data/brand'
@@ -19,7 +19,7 @@ interface Props {
    * where they land, instead of never (docs/PRODUCT.md).
    */
   followUpAsk?: FollowUpAsk | null
-  onAnswerFollowUp?: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
+  onAnswerFollowUp?: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, landed?: Landed, putAway?: boolean) => void
   onAskGuide?: (text: string) => void
 }
 
@@ -139,7 +139,7 @@ export default function Welcome({
           >
             {[
               'It works on the relationship you already have — however you met, with no account.',
-              'Send them the same eleven questions. Each of you answers on your own phone; you both see only where you match.',
+              'Send them the same eleven questions. Each of you answers on your own phone; you both see only where the two of you stand.',
               'A few days later, we ask whether the conversation happened. When you marry, we let you go.',
             ].map((line) => (
               <li key={line} className="flex gap-3 text-[0.93rem] leading-snug text-cream/70 text-pretty">

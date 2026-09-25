@@ -102,7 +102,7 @@ describe('Before you say yes, on generated answers', () => {
 })
 
 describe('the couple reading, on generated joints', () => {
-  const JOINTS: Joint[] = ['both-agree', 'both-not-talked', 'one-thinks-talked', 'differ-somewhere', 'unknown-somewhere']
+  const JOINTS: Joint[] = ['both-agree', 'both-settled', 'both-not-talked', 'one-thinks-talked', 'differ-somewhere', 'unknown-somewhere']
   const joint = fc.record(Object.fromEntries(beforeYesTopics('woman').map((t) => [t.id, fc.constantFrom(...JOINTS)]))) as fc.Arbitrary<
     Record<string, Joint>
   >

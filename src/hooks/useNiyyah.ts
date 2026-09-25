@@ -7,7 +7,7 @@ import { routeToMode } from '../lib/route'
 import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
 import { getStage } from '../data/stages'
 import { rungsFrom } from '../lib/rungs'
-import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState } from '../lib/followup'
+import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState, type Landed } from '../lib/followup'
 import { buildRead } from '../lib/read'
 import { hasHomeFor, marriedOpensEnding, stageAfterInstrument } from '../lib/inferStage'
 import { buildEnding } from '../lib/ending'
@@ -35,6 +35,7 @@ import type {
   Stage,
   TrustSettings,
   ReadRecord,
+  BeforeYesRecord,
   CoupleState,
   EndingRecord,
   EndedRecord,
@@ -139,7 +140,7 @@ export function useNiyyah(entry: Entry | null = null) {
   // The last read she took on someone. Answers only; the reading is recomputed.
   const [read, setRead] = useState<ReadRecord | null>(saved?.read ?? null)
   // Before you say yes — which conversations she and he have actually had.
-  const [beforeYes, setBeforeYes] = useState<ReadRecord | null>(saved?.beforeYes ?? null)
+  const [beforeYes, setBeforeYes] = useState<BeforeYesRecord | null>(saved?.beforeYes ?? null)
   // The two-sided Before you say yes she started, or answered.
   const [couple, setCouple] = useState<CoupleState | null>(saved?.couple ?? null)
   // What she told us on the way out. The success state of this whole product.
@@ -211,8 +212,8 @@ export function useNiyyah(entry: Entry | null = null) {
   )
   // The one open thing to ask her about, or — usually — nothing.
   const followUpAsk = useMemo(
-    () => openFollowUp(followups, identity.gender ?? 'woman'),
-    [followups, identity.gender],
+    () => openFollowUp(followups, identity.gender ?? 'woman', Date.now(), { eleven: beforeYes?.answers, read: read?.answers }),
+    [followups, identity.gender, beforeYes, read],
   )
   const answeredCount = Object.keys(answers).length
   const hasProgress = (answeredCount > 0 || !!identity.gender) && !hasHome
@@ -547,7 +548,7 @@ export function useNiyyah(entry: Entry | null = null) {
   }
 
   /** The same for the eleven: the one it told her to open is the one we ask about. */
-  function saveBeforeYes(record: ReadRecord | null) {
+  function saveBeforeYes(record: BeforeYesRecord | null) {
     setBeforeYes(record)
     if (!record) return
     // She went through it again after sending it, and he has not answered:
@@ -557,7 +558,7 @@ export function useNiyyah(entry: Entry | null = null) {
     if (couple && !couple.answered && !couple.side && couple.key) {
       void updateCouple(couple.code, couple.key, record.answers, identity.gender ?? 'woman')
     }
-    const r = buildBeforeYes(record.answers, identity.gender ?? 'woman')
+    const r = buildBeforeYes(record.answers, identity.gender ?? 'woman', record.lines)
     if (r) setFollowups((prev) => noteFollowUp(prev, 'beforeYes', r.open.id))
     const inferred = stageAfterInstrument('eleven', stage, situated)
     if (inferred) setStageRaw(inferred)
@@ -571,14 +572,16 @@ export function useNiyyah(entry: Entry | null = null) {
    * together. It used to be his individual "one to open", so the pair could
    * be asked, days later, about two different conversations.
    */
-  function answeredCouple(code: string, states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>) {
+  function answeredCouple(code: string, states: Record<string, string>, gender: Gender, joint?: Record<string, Joint>, lines: string[] = []) {
     const now = new Date().toISOString()
     setIdentity((prev) => ({ ...prev, gender }))
-    setBeforeYes({ at: now, answers: states })
+    // His lines are his, on his phone, as hers are on hers; the server had
+    // only `differ` for each (src/data/beforeYes.ts, sheetOf).
+    setBeforeYes({ at: now, answers: states, ...(lines.length ? { lines } : {}) })
     const inferred = stageAfterInstrument('eleven', stage, situated)
     if (inferred) setStageRaw(inferred)
     if (!joint) {
-      const r = buildBeforeYes(states, gender)
+      const r = buildBeforeYes(states, gender, lines)
       if (r) setFollowups((prev) => noteFollowUp(prev, 'beforeYes', r.open.id))
       return
     }
@@ -595,14 +598,20 @@ export function useNiyyah(entry: Entry | null = null) {
    * unasked list actually shrinks as the courtship goes on, instead of staying
    * frozen at the day she filled it in.
    */
-  function answerFollowUp(id: string, outcome: NonNullable<FollowUp['outcome']>, agreed?: boolean, putAway?: boolean) {
+  function answerFollowUp(id: string, outcome: NonNullable<FollowUp['outcome']>, landed?: Landed, putAway?: boolean) {
     const target = followups.find((f) => f.id === id)
     setFollowups((prev) => resolveFollowUp(prev, id, outcome, undefined, putAway))
-    if (outcome !== 'asked' || agreed === undefined || !target) return
+    if (outcome !== 'asked' || landed === undefined || !target) return
     if (target.source !== 'beforeYes' && target.source !== 'couple') return
-    setBeforeYes((prev) =>
-      prev ? { at: new Date().toISOString(), answers: { ...prev.answers, [target.topic]: writeBackState(agreed) } } : prev,
-    )
+    const { state, line } = writeBackState(landed)
+    setBeforeYes((prev) => {
+      if (!prev) return prev
+      // Her other lines stay; this topic is a line only if she just said so.
+      const others = (prev.lines ?? []).filter((t) => t !== target.topic)
+      const lines = line ? [...others, target.topic] : others
+      const { lines: _lines, ...rest } = prev
+      return { ...rest, at: new Date().toISOString(), answers: { ...prev.answers, [target.topic]: state }, ...(lines.length ? { lines } : {}) }
+    })
   }
 
   /**

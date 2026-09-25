@@ -3,7 +3,7 @@ import fc from 'fast-check'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
 import { inviteLink } from '../../src/data/invite'
-import { STATES, beforeYesTopics } from '../../src/data/beforeYes'
+import { beforeYesTopics, isDifference, LINE, sayTheLine, SHEET_OUTCOMES, STATES } from '../../src/data/beforeYes'
 import { entryFromUrl } from '../../src/lib/entry'
 import { coupleReading } from '../../src/lib/couple'
 import { joint, type YesState } from '../../netlify/functions/couple'
@@ -36,10 +36,16 @@ const open = (url: string) => {
   return <App entry={entryFromUrl(u.search, u.pathname)} />
 }
 
+/** A difference is two taps: "we don't agree", then where it stands (src/components/ElevenChoices.tsx). */
 async function answerEleven(m: Mounted, g: Gender, states: Record<string, string>) {
   for (const t of beforeYesTopics(g)) {
-    const label = STATES.find((s) => s.id === states[t.id])!.label
-    await m.press(new RegExp(`^${label}`))
+    const state = states[t.id]
+    if (isDifference(state)) {
+      await m.press(new RegExp(`^${STATES.find((s) => s.id === 'differ')!.label}`))
+      await m.press(new RegExp(`^${SHEET_OUTCOMES.find((o) => o.id === state)!.label}`))
+      continue
+    }
+    await m.press(new RegExp(`^${STATES.find((s) => s.id === state)!.label}`))
   }
 }
 
@@ -199,6 +205,54 @@ describe('the eleven, on two phones', () => {
     await gone.until(() => gone.text().includes(expected.woman.headline), 'the kept joint')
     expect(gone.text()).not.toMatch(/couldn’t check/)
     gone.unmount()
+  })
+
+  it('a line she names stays on her phone: the link carries it as a difference, nothing more', async () => {
+    const ids = beforeYesTopics('woman').map((t) => t.id)
+    const hers = { ...Object.fromEntries(ids.map((t) => [t, 'agree'])), 'second-wife': LINE, work: 'differ' }
+    const sheet = shareSheet()
+    const herPhone = onPhone(new Phone('hers'))
+    const her = await mount(open(inviteLink('beforeYes')))
+    await her.press('Start — about him')
+    await answerEleven(her, 'woman', hers)
+
+    // Her own result names it as hers, never offers it as the one to open,
+    // and gives the words for saying it plainly.
+    expect(her.text()).toContain('You’ve named one line the two of you don’t share.')
+    expect(her.text()).toContain('A line for you')
+    expect(her.text()).toContain('The one to open this week is whether you’d work.')
+    expect(her.text()).toContain(sayTheLine('woman').words)
+    // Whether a conversation can be had at all is not a difference to work
+    // out (docs/SECURITY.md, "Afraid to raise it").
+    expect(her.text()).toContain('If raising any of these feels unsafe rather than hard')
+    expect(her.text()).toContain('because of how he reacts')
+    await her.until(() => saved(herPhone).beforeYes, 'her sheet is saved on her phone')
+    expect(saved(herPhone).beforeYes.lines).toEqual(['second-wife'])
+    expect(saved(herPhone).beforeYes.answers['second-wife']).toBe('differ')
+
+    await her.press(/^Ask him/)
+    const code = new URL(sheet.sent.at(-1)!.url!).searchParams.get('couple')!
+    await her.until(() => blobs.read('couples', code), 'her sheet reached the server')
+    const held = blobs.read('couples', code) as { first: Record<string, string> }
+    expect(held.first['second-wife']).toBe('differ')
+    expect(JSON.stringify(held)).not.toMatch(/"line"|lines/)
+    her.unmount()
+    reload()
+
+    // Days later she is asked about the one she was told to open. Not
+    // agreeing is an answer, in three kinds, and none is drawn as the lesser
+    // one; she says this one is a line too, and her first line stays.
+    later(herPhone, 4)
+    onPhone(herPhone)
+    const home = await mount(<App />)
+    expect(home.text()).toContain('the one to open was whether you’d work')
+    await home.press(/^We talked about it/)
+    for (const l of ['We agree', 'We see it differently, and we’ve worked out how', 'It’s still open']) expect(home.has(l)).toBe(true)
+    await home.press(/^It’s a line for me/)
+    await home.until(() => saved(herPhone).beforeYes.lines?.length === 2, 'both lines are kept')
+    expect(saved(herPhone).beforeYes.answers.work).toBe('differ')
+    expect([...saved(herPhone).beforeYes.lines].sort()).toEqual(['second-wife', 'work'])
+    home.unmount()
   })
 
   it('she goes through it again before he answers, and he is compared with the sheet she has now', async () => {

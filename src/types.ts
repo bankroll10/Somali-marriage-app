@@ -129,7 +129,10 @@ export interface CoupleState {
    * frozen and his was sent once — so it is kept, and shown from here after
    * the link has ended instead of "we couldn't check". On this phone only.
    */
-  joint?: Record<string, 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'>
+  joint?: Record<
+    string,
+    'both-agree' | 'both-settled' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
+  >
 }
 
 export type QuestionType = 'single' | 'multi' | 'scale' | 'text'
@@ -298,6 +301,16 @@ export interface ReadRecord {
    * (src/lib/keep.ts), and nothing about it is sent anywhere.
    */
   previous?: { at: string; answers: Record<string, string> }
+}
+
+/**
+ * Her eleven. `lines` are the topics she answered "we don't agree — it's a
+ * line for me": in `answers` they are `differ`, which is all anything sent
+ * from this phone ever says (src/data/beforeYes.ts, LINE). On this phone
+ * only — the kept map leaves them out (src/lib/keep.ts).
+ */
+export interface BeforeYesRecord extends ReadRecord {
+  lines?: string[]
 }
 
 /**

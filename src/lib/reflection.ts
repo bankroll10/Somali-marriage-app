@@ -400,7 +400,7 @@ function alignmentParagraph(answers: Answers): string {
   if (household === 'with-family') parts.push('someone who pictures one household with family in it, as you do')
   else if (household === 'near-family') parts.push('someone who, like you, wants a front door of your own within reach of family')
   else if (household === 'separate') parts.push('someone at ease with a home that is fully your own')
-  if (answers['money-home'] === 'expected') parts.push('someone who sends money home too, and will never resent that you do')
+  if (answers['money-home'] === 'expected') parts.push('someone who also sends money home, and can plan it with you')
 
   // Only what she said she wants in a person. `coreValues` also carries her
   // timeline, motive and practice tags in its first three slots, so reading

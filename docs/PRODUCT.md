@@ -361,8 +361,17 @@ Each topic's `consequence` (.6–.95) and `STATE_URGENCY` pick "the one to open
 this week". **The order stays, because something has to be opened first. No
 difference is light.** A top tier once told a couple who differed on qabiil
 that theirs "isn't the ones that carry the most weight". A difference is now
-counted in words ("One conversation doesn't line up yet"), whichever topic it
-is (`src/lib/beforeYes.ts`).
+counted in words ("One conversation is still open between you"), whichever
+topic it is (`src/lib/beforeYes.ts`).
+
+**No difference is a verdict, either** (`docs/DECISIONS.md` Part 8). Not
+agreeing is an answer: a difference is still open, worked out (`settled`, an
+arrangement both keep), or a line for her. Which kind is hers to say, per
+difference, never the topic's: no topic is pre-sorted as negotiable or as
+non-negotiable. An arranged difference is not reopened ahead of anything
+unsaid, and a line is never handed back to her as the conversation to
+work on. Nothing says a difference "doesn't line up yet", or that the two
+of them "match".
 
 G1–G8 (the gate), S1–S2 (the weighted fit), U1–U4 and U6 (the pool) went
 with matching on 2026-09-24 (`docs/DECISIONS.md`). U5, `K_FLOOR` 5, is a

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { FollowUp as FollowUpRecord, Identity, ModeId, ReadRecord, Reflection, Stage } from '../types'
-import type { FollowUpAsk } from '../lib/followup'
+import type { FollowUpAsk, Landed } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
@@ -54,7 +54,7 @@ interface Props {
   onRestart: () => void
   /** The one open thing to ask her about — usually null. See lib/followup.ts. */
   followUpAsk: FollowUpAsk | null
-  onAnswerFollowUp: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, agreed?: boolean, putAway?: boolean) => void
+  onAnswerFollowUp: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, landed?: Landed, putAway?: boolean) => void
   /** Her last read, so Home can ask — once a month — whether it still stands. */
   read: ReadRecord | null
   onReadStillStands: () => void
@@ -320,8 +320,8 @@ export default function Home({
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
                 {coupleAnswered
                   ? coupleSecond
-                    ? `You answered ${answerer === 'He' ? 'his' : 'her'} eleven on your own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
-                    : `${answerer} answered the eleven on ${answerer === 'He' ? 'his' : 'her'} own phone. Neither of you sees the other’s answers — only where you match, and the one to open together.`
+                    ? `You answered ${answerer === 'He' ? 'his' : 'her'} eleven on your own phone. Neither of you sees the other’s answers — only where the two of you stand, and the one to open together.`
+                    : `${answerer} answered the eleven on ${answerer === 'He' ? 'his' : 'her'} own phone. Neither of you sees the other’s answers — only where the two of you stand, and the one to open together.`
                   : coupleWaiting
                     ? `You sent ${answerer === 'He' ? 'him' : 'her'} the eleven. When ${answerer === 'He' ? 'he answers' : 'she answers'}, where the two of you stand shows up here — and nowhere else.`
                     : hasBeforeYes

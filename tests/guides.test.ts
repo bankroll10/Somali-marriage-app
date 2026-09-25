@@ -145,17 +145,18 @@ describe('the two pages are not mistakeable for each other', () => {
 
 describe('space to mark each conversation, on paper', () => {
   // The distribution playbook's spec for these cards: a question, a
-  // follow-up, and somewhere to record agreed / still discussing / need help.
+  // follow-up, and somewhere to record where it stands. A difference has
+  // three boxes of its own — worked out, still open, a line — never only
+  // "still discussing" (docs/DECISIONS.md Part 8).
   // A coordinator putting this in a nikah packet is handing over a worksheet,
   // not a leaflet.
-  it('gives every card the three states, on both pages', () => {
+  it('gives every card where it stands, on both pages', () => {
     for (const [name, html, count] of [['guide', full, 11], ['sample', sample, 3]] as const) {
       const rows = html.match(/<p class="mark">.*?<\/p>/g) ?? []
       expect(rows, name).toHaveLength(count)
       for (const row of rows) {
-        expect(row).toContain('<span>Agreed</span>')
-        expect(row).toContain('<span>Still discussing</span>')
-        expect(row).toContain('<span>Need help</span>')
+        for (const box of ['Agreed', 'Worked out', 'Still open', 'A line', 'Need help']) expect(row).toContain(`<span>${box}</span>`)
+        expect(row).not.toContain('Still discussing')
       }
     }
   })
@@ -164,7 +165,7 @@ describe('space to mark each conversation, on paper', () => {
     const css = full.match(/<style>([\s\S]*?)<\/style>/)![1]
     expect(css).toContain('.mark{display:none}')
     const print = css.slice(css.indexOf('@media print'))
-    expect(print).toMatch(/\.mark\{display:flex/)
+    expect(print).toMatch(/\.mark\{display:flex;flex-wrap:wrap/)
     // The boxes are drawn, not typed: no glyph to go missing in a PDF.
     expect(print).toMatch(/\.mark span::before\{content:""/)
   })

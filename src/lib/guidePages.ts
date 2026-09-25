@@ -1,4 +1,4 @@
-import { ALL_AGREED, OWN_ANSWER_FIRST, TOPICS, type ElevenScript, type Topic } from '../data/eleven.js'
+import { ALL_HAD, OWN_ANSWER_FIRST, SAY_THE_LINE, TOPICS, WORK_IT_OUT, type ElevenScript, type Topic } from '../data/eleven.js'
 import { toolPath, type Guide } from '../data/tools.js'
 
 /**
@@ -141,7 +141,7 @@ footer a{color:var(--forest)}
   .cta{display:none}
   a[data-app]::after,a[data-guide]::after{content:" (" attr(href) ")";color:#555;font-weight:400}
   .noprint{display:none}
-  .mark{display:flex;gap:1.4rem;margin:.6rem 0 0;font-size:8.5pt;color:#333;break-before:avoid;page-break-before:avoid}
+  .mark{display:flex;flex-wrap:wrap;gap:.2rem 1.4rem;margin:.6rem 0 0;font-size:8.5pt;color:#333;break-before:avoid;page-break-before:avoid}
   .mark span{display:inline-flex;align-items:center}
   .mark span::before{content:"";display:inline-block;width:9pt;height:9pt;margin-right:.3rem;border:.6pt solid #666}
   body.sample{font-size:9.2pt;line-height:1.28}
@@ -161,7 +161,7 @@ footer a{color:var(--forest)}
   body.sample .close{margin-top:.6rem;padding-top:.5rem}
   body.sample .close h2{font-size:10.5pt;margin-bottom:.2rem}
   body.sample .close p{font-size:8.8pt;margin-bottom:.3rem}
-  body.sample .mark{gap:.7rem;margin-top:.35rem;font-size:7.2pt}
+  body.sample .mark{gap:.15rem .6rem;margin-top:.35rem;font-size:7.2pt}
   body.sample .mark span::before{width:7pt;height:7pt;margin-right:.2rem}
   body.sample footer{margin-top:.5rem;padding-top:.4rem;font-size:8pt}
 }
@@ -183,7 +183,10 @@ function talk(topic: Topic, n: number): string {
     // properly; a row of boxes that cannot be ticked is dead interface. On
     // paper it is what turns a handout into something two people work
     // through, which is what a coordinator means by preparation materials.
-    '<p class="mark"><span>Agreed</span><span>Still discussing</span><span>Need help</span></p>',
+    // "Still discussing" was the only box for a difference, so on paper a
+    // difference could only be unfinished; not agreeing comes in three kinds
+    // (docs/DECISIONS.md Part 8).
+    '<p class="mark"><span>Agreed</span><span>Worked out</span><span>Still open</span><span>A line</span><span>Need help</span></p>',
     '</li>',
   ].join('\n')
 }
@@ -229,7 +232,9 @@ function preface(sample: boolean): string {
 
 function closing(guide: Guide, full: boolean, host: string): string {
   const own = OWN_ANSWER_FIRST
-  const all = ALL_AGREED
+  const all = ALL_HAD
+  const open = WORK_IT_OUT
+  const line = SAY_THE_LINE
   return [
     '<section class="close">',
     ...(full
@@ -238,6 +243,13 @@ function closing(guide: Guide, full: boolean, host: string): string {
           `<p>${esc(neutral(own.why))}</p>`,
           `<blockquote>${esc(neutral(own.words))}</blockquote>`,
           `<p>${esc(neutral(own.tells))}</p>`,
+          '<h2>When you see it differently</h2>',
+          `<p>${esc(neutral(open.why))}</p>`,
+          `<blockquote>${esc(neutral(open.words))}</blockquote>`,
+          `<p>${esc(neutral(open.tells))}</p>`,
+          '<h2>When it is a line for one of you</h2>',
+          `<p>${esc(neutral(line.why))}</p>`,
+          `<blockquote>${esc(neutral(line.words))}</blockquote>`,
           '<h2>When you have had them all</h2>',
           `<p>${esc(neutral(all.why))}</p>`,
           `<blockquote>${esc(neutral(all.words))}</blockquote>`,

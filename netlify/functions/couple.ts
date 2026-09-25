@@ -16,7 +16,7 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
  *
  * She sends him the eleven. He answers with no account, no name, and no
  * knowledge of what she said. Then both of them see one thing: where they
- * match — and, most importantly, where one of them thinks a conversation has
+ * stand — and, most importantly, where one of them thinks a conversation has
  * happened and the other does not.
  *
  * The whole value depends on one guarantee: neither person ever sees the
@@ -62,8 +62,14 @@ const DEFAULT_HOURLY_CAP = 200
  */
 const DEFAULT_ANSWER_CAP = 600
 
-export type YesState = 'agree' | 'differ' | 'not-talked' | 'unknown'
-export type Joint = 'both-agree' | 'both-not-talked' | 'one-thinks-talked' | 'differ-somewhere' | 'unknown-somewhere'
+export type YesState = 'agree' | 'settled' | 'differ' | 'not-talked' | 'unknown'
+export type Joint =
+  | 'both-agree'
+  | 'both-settled'
+  | 'both-not-talked'
+  | 'one-thinks-talked'
+  | 'differ-somewhere'
+  | 'unknown-somewhere'
 type Sides = Record<string, YesState>
 
 interface CoupleRecord {
@@ -101,8 +107,14 @@ type CoupleResponse =
 export function joint(a: YesState, b: YesState): Joint {
   if (a === 'unknown' || b === 'unknown') return 'unknown-somewhere'
   if (a === 'agree' && b === 'agree') return 'both-agree'
+  // Both say they see it differently and have worked out how: the same
+  // arrangement, named from both sides. Any other mix of talked answers —
+  // one says agreed and the other says arranged, or one says it is still
+  // open — is two people who do not see the same conversation, which is
+  // what differ-somewhere names (docs/DECISIONS.md Part 8).
+  if (a === 'settled' && b === 'settled') return 'both-settled'
   if (a === 'not-talked' && b === 'not-talked') return 'both-not-talked'
-  const talked = (x: YesState) => x === 'agree' || x === 'differ'
+  const talked = (x: YesState) => x === 'agree' || x === 'settled' || x === 'differ'
   if (talked(a) !== talked(b)) return 'one-thinks-talked'
   return 'differ-somewhere'
 }
