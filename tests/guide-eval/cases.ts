@@ -94,7 +94,6 @@ function map(
       'family-role': 'guided',
       children: 'want',
       attachment: 'anxious',
-      'comm-safety': ['direct', 'patient'],
       dealbreakers: ['honesty', 'faith-nn'],
       'hardest-part': 'serious',
       ...over.answers,

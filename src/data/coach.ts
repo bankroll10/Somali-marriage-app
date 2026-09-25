@@ -298,16 +298,10 @@ Here you can slow down and look at what is going on in you — the overthinking,
   intents: [
     {
       keywords: ['overthink', 'overthinking', 'spiral', 'spiralling', 'spiraling', 'cant stop', "can't stop", 'in my head', 'reading too much', 'analysing'],
-      respond: (ctx) =>
+      respond: () =>
         `Let’s slow it down together. Overthinking is your mind trying to settle what it cannot know yet.
 
-Try separating *fact* from *story*. On one side: what happened (“he replied after four hours”). On the other: the story your mind added (“he’s losing interest”). If the facts are calmer than the story, let the story go. If they are not, take that seriously, and bring the facts here.${(() => {
-          const cs = ctx.answers['comm-safety']
-          if (!Array.isArray(cs) || cs.length === 0) return ''
-          const map: Record<string, string> = { consistency: 'consistency', directness: 'directness', gentleness: 'gentleness', reassurance: 'reassurance', space: 'respected space', 'follow-through': 'follow-through' }
-          const names = cs.map((id) => map[String(id)]).filter(Boolean).slice(0, 2)
-          return names.length ? ` And remember what you told your map: ${names.join(' and ')} are what make you feel safe. Measure this person against that — not against your anxiety.` : ''
-        })()} You are not in charge of his feelings, only of how you act on yours.`,
+Try separating *fact* from *story*. On one side: what happened (“he replied after four hours”). On the other: the story your mind added (“he’s losing interest”). If the facts are calmer than the story, let the story go. If they are not, take that seriously, and bring the facts here. You are not in charge of his feelings, only of how you act on yours.`,
     },
     {
       keywords: ['anxious', 'anxiously attached', 'attachment', 'reassurance', 'needy', 'clingy', 'fear of losing'],

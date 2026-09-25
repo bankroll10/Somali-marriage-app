@@ -294,7 +294,6 @@ const GUIDE_ANSWERS = [
   'family-role',
   'children',
   'attachment',
-  'comm-safety',
   'dealbreakers',
   'hardest-part',
 ] as const

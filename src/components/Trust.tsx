@@ -239,7 +239,7 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>whether you are a woman or a man, and your city</li>
                 <li>your timeline, where you are in your practice, and how central faith is</li>
                 <li>your family’s role, and children</li>
-                <li>how you lean in closeness, and what you said you feel safe with</li>
+                <li>how you lean in closeness</li>
                 <li>your non-negotiables, and the hardest part you named</li>
                 <li>which stage you said you’re at</li>
                 <li>

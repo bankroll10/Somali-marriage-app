@@ -22,7 +22,6 @@ const raw = {
     'family-role': 'guided',
     children: 'want',
     attachment: 'secure',
-    'comm-safety': ['direct', 'patient'],
     dealbreakers: ['honesty', 'respect'],
     'hardest-part': 'serious',
   },
@@ -107,15 +106,15 @@ describe('the slots the caller fills', () => {
     const long = 'x'.repeat(5_000)
     const c = sanitiseContext({
       identity: { firstName: long },
-      answers: { timeline: long, 'comm-safety': Array(50).fill(long) },
+      answers: { timeline: long, dealbreakers: Array(50).fill('honesty') },
       readNote: long,
       beforeYesNote: long,
     })
     expect(c.timeline.length).toBeLessThanOrEqual(60)
     expect(c.readNote!.length).toBeLessThanOrEqual(200)
     expect(c.beforeYesNote!.length).toBeLessThanOrEqual(200)
-    // Eight items at sixty characters each, not fifty at five thousand.
-    expect(c.commSafety.split(', ')).toHaveLength(8)
+    // Eight items at most, not fifty.
+    expect(c.nonNegotiables.split(', ')).toHaveLength(8)
     // What the member's map can add to the prompt is bounded, whatever the
     // fixed rules weigh: under two thousand characters over an empty map. (The
     // whole prompt was held under 4,000 until the Guide's safety and

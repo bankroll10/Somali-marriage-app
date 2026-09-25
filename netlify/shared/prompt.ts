@@ -149,7 +149,6 @@ export interface SafeContext {
   familyRole: string
   children: string
   attachment: string
-  commSafety: string
   nonNegotiables: string
   hardestPart: string
   stage: string
@@ -180,7 +179,6 @@ export function sanitiseContext(raw: unknown): SafeContext {
     familyRole: line(a['family-role'], MAX_SCALAR) ?? BLANK,
     children: line(a.children, MAX_SCALAR) ?? BLANK,
     attachment: line(a.attachment, MAX_SCALAR) ?? BLANK,
-    commSafety: list(a['comm-safety'], MAX_SCALAR) ?? BLANK,
     nonNegotiables: list(a.dealbreakers, MAX_SCALAR, DEALBREAKERS) ?? BLANK,
     hardestPart: oneOf(a['hardest-part'], HOOKS) ?? BLANK,
     stage: oneOf(ctx.stage, STAGES) ?? 'preparing',
@@ -204,7 +202,7 @@ export function buildSystemPrompt(modeId: string, ctx: SafeContext): string {
     `- ${ctx.gender}, scene: ${ctx.scene}`,
     `- Timeline: ${ctx.timeline} · Practice: ${ctx.practice} · Faith centrality: ${ctx.faithRole}/5`,
     `- Family involvement: ${ctx.familyRole} · Children: ${ctx.children}`,
-    `- Attachment lean: ${ctx.attachment} · Feels safe with: ${ctx.commSafety}`,
+    `- Attachment lean: ${ctx.attachment}`,
     `- Non-negotiables: ${ctx.nonNegotiables}`,
     `- Hardest part right now: ${ctx.hardestPart}`,
     ``,
