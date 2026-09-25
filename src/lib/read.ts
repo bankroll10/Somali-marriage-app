@@ -302,12 +302,18 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
   // past being hidden, and nothing she can see as missing can be summed away.
   const count = (st: DimensionState) => dimensions.filter((d) => d.state === st).length
   const publicShown = dimensions.find((d) => d.dimension === 'public')!.state === 'shown'
-  const band: ReadBand =
+  // Careful what she raises caps it at mixed. "He has done most of what this
+  // asks about … worth closing, not worth panicking about … one clear
+  // conversation" was what a woman who had just said she is careful around him
+  // was told, whenever everything else was shown (docs/DECISIONS.md Part 9).
+  const careful = answers.hard === 'careful'
+  const counted: ReadBand =
     publicShown && count('not-yet') === 0 && count('shown') >= 4
       ? 'strong'
       : count('not-yet') > count('shown')
         ? 'thin'
         : 'mixed'
+  const band: ReadBand = careful && counted === 'strong' ? 'mixed' : counted
 
   const strongest = shown.slice(0, 2)
   const weakest = missing.slice(0, 2)
@@ -334,7 +340,9 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     }${
       weakest.length ? `What is missing is that ${weakest[0]}. ` : ''
     }${WHY_IT_MATTERS[thin]}${
-      mature ? ' At this point it is fair to ask about it directly.' : ''
+      // Not when she is careful what she raises: asking him directly is the
+      // conversation she has said she cannot safely have.
+      mature && !careful ? ' At this point it is fair to ask about it directly.' : ''
     }`
   } else {
     headline = 'So far, {he} has shown you very little of it.'

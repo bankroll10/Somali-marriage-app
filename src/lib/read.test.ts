@@ -491,6 +491,14 @@ describe('careful what she raises (docs/DECISIONS.md Part 9)', () => {
     expect(r.script.words).toBe(CAREFUL_SCRIPT.words)
   })
 
+  it('is never told he has done most of it, or pointed at asking him directly', () => {
+    // Everything else shown: this used to be the strong band, "worth closing,
+    // not worth panicking about … one clear conversation".
+    const r = buildRead({ ...base, hard: 'careful' })!
+    expect(r.band).toBe('mixed')
+    expect(r.summary).not.toMatch(/not worth panicking|ask about it directly|one clear conversation/)
+  })
+
   it('with being kept hidden, is the same pattern feeling like the problem is', () => {
     const r = buildRead({ ...base, secret: 'explicit', hard: 'careful' })!
     expect(r.band).toBe('caution')
