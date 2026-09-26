@@ -2970,8 +2970,9 @@ cruel.
 These are built from facts already stored; no new stored field. There are two
 axes:
 - **Process: open or closed.** Did she confirm at least one conversation here
-  (`followed-through`)? Endings carry no date, so open means "while here", not
-  necessarily "before this decision".
+  (`followed-through`)? For an ending, her phone records this at the moment it
+  ends, as one bit and never a date (`talked`; see "Decided", below). An ending
+  reported before that bit existed can only say "while here".
 - **Outcome: married, or ended.** An ending has a kind (`ENDED_KIND`,
   `netlify/shared/vocab.ts`):
   - `seen` covers a non-negotiable, one of the eleven, and what he did;
@@ -3057,15 +3058,40 @@ talked about it" is the filled button.
     coverage, and the like-for-like window;
   - `src/lib/coach.test.ts`: both sentences meet the same reply.
 
-### Research, not built
+### Decided (2026-09-26, delegated by the founder)
 
-- A non-tool answer to the married "What decided it?" (Part 14, "Where the
-  company reasons the same way"). It is a new
-  closed id, and waits on the sessions.
-- Dating an ending, so that "open" can mean "before this decision". This would
-  add a field to a record that promises "never when", so it waits for a reason
-  strong enough to change that promise.
+Part 15 first left two items open. The founder handed both decisions over.
 
-**Decision 19.** Fixes, tests and docs. No new stored field, no new question,
-and retention unchanged: a marriage is still kept by rule, and now it is read
+- **"What decided it?" hears what was not Niyyah.** Four of its five answers
+  were Niyyah's own tools, so the monthly loop could only ever hear that a tool
+  decided it (Part 14, "Where the company reasons the same way"). It now
+  offers two new answers, first, so the order does not lead toward the tools:
+  - "The timing — we were both ready" (`ready`);
+  - "Our families wanted it for us" (`family-wish`), which is not the same as
+    "The families meeting properly".
+
+  The second is the nearest this screen can come to hearing "we slid into it"
+  without judging anyone. The screen is still one tap, and still skippable.
+  The monthly loop reads the non-tool share before crediting any tool
+  (`docs/RESEARCH.md`).
+- **An ending is not dated. It carries one bit instead.** A date would break
+  "never when, never who" and add a quasi-identifier. When a courtship ends,
+  her phone sets `talked`: whether she had already confirmed a conversation
+  here (`followedThrough`, `src/lib/followup.ts`). The readout places each
+  ending in `decisions` by its own bit, so "open" now means "before", not
+  "at some point".
+  - An ending reported before the bit existed falls back to the person-level
+    value.
+  - A marriage uses the person-level value, which already means "before",
+    because follow-ups stop at `married`.
+  - Trust and `docs/PRIVACY.md` say so.
+
+Tests:
+- the bit travels as given and is refused unless it is a boolean;
+- an ending counts in the column its own bit names, not the person's;
+- the married question offers a non-tool answer before any tool.
+
+**Decision 19.** Fixes, tests and docs. Beyond the founder's two decisions
+above (two answer ids and one bit), no new stored field and no new question.
+Retention is unchanged: a marriage is still kept by rule, and now it is read
 like everything else.

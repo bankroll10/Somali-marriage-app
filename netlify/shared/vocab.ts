@@ -188,7 +188,7 @@ export const ASKED = new Set(['guide'])
 
 /** Must match src/data/ending.ts — the three closed questions on the way out. */
 export const WHO = new Set(['brought', 'family', 'elsewhere'])
-export const MATTERED = new Set(['shown', 'eleven', 'families', 'myself', 'other'])
+export const MATTERED = new Set(['ready', 'family-wish', 'shown', 'eleven', 'families', 'myself', 'other'])
 export const USED = new Set(['read', 'eleven', 'couple', 'families', 'guide', 'map'])
 
 /**

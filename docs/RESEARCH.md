@@ -486,7 +486,7 @@ look better while this number falls is wrong. It is A1's counter-metric too.
 | Scripts | `src/data/read.ts`, `eleven.ts`, `families.ts` | `through["source:topic"]` against how often handed out | Often handed out, rarely said: rewrite. Never confirmed: cut |
 | Joint `URGENCY` | `src/lib/couple.ts` | `/couple` `topics[topic][joint]` | The joint state pairs most land in is the one the line names |
 | The `dealbreakers` question | `src/data/intake.ts` | `ended.which['non-negotiable']` | Ends nothing: aspirational; the question changes |
-| The Ending's question order | `src/data/ending.ts` | `ending.*` answer rates against `married` | Skipped by most: asked last, or dropped |
+| The Ending's question order | `src/data/ending.ts` | `ending.*` answer rates against `married` | Skipped by most: asked last, or dropped. Read `ending.mattered`'s non-tool share (`ready`, `family-wish`, `other`) before crediting any tool with a marriage (`docs/DECISIONS.md` Part 15) |
 | `why-now` weights (1 / 0.6 / 0.4 / 0.5) | `src/data/intake.ts` | `followed-through` against the `why-now` answer, once a hundred hold one (not in the readout yet) | "My family and community expect it of me" is weighted lowest, so honesty about pressure reads as thinner intention. If those who name it follow through as often as the rest, the weight is wrong and moves up (`docs/DECISIONS.md` Part 10). Whether they marry is not the test (Part 15) |
 
 **Rules.** One revision a month: two moves at once cannot be told apart. A

@@ -200,7 +200,8 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 whether you were getting to know {him} or deciding, and — only if you tap one —
                 what decided it: a non-negotiable and which, one of the eleven and which, what
                 {his} read had found thin, your family, {his}, timing, distance, {he} stopped, you
-                did, or something you’d rather not say.`)}
+                did, or something you’d rather not say. With it goes one yes or no: whether you
+                had already had one of the conversations here. Never when.`)}
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 It also says which of the four — the map, a read, the eleven, or the eleven someone

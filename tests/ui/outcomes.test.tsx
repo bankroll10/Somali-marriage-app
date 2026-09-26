@@ -85,3 +85,14 @@ describe('neither ending grades the outcome', () => {
     }
   })
 })
+
+describe('what decided a marriage can be something other than Niyyah', () => {
+  it('offers an answer that is not one of our tools before any that is', async () => {
+    const { endingQuestions } = await import('../../src/data/ending')
+    const ids = endingQuestions('woman').find((q) => q.id === 'mattered')!.options.map((o) => o.id)
+    const tools = ['shown', 'eleven', 'families', 'myself']
+    const firstTool = ids.findIndex((id) => tools.includes(id))
+    expect(ids.slice(0, firstTool)).toEqual(expect.arrayContaining(['ready']))
+    expect(ids).toContain('family-wish')
+  })
+})

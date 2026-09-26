@@ -663,3 +663,35 @@ describe('decisions, by how they were made', () => {
     expect(stores.get('progress')!.has('ACDEFG')).toBe(true)
   })
 })
+
+describe('an ending says whether a conversation came first (docs/DECISIONS.md Part 15)', () => {
+  const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'HJKMNQ']
+
+  it('takes the bit only as a boolean', async () => {
+    const res = await post({ id: 'ACDEFG', rungs: ['arrived'], facts: { ended: [{ stage: 'talking', reason: 'distance', talked: 'yes' }] } })
+    expect(res.status).toBe(400)
+    const ok = await post({ id: 'ACDEFG', rungs: ['arrived'], facts: { ended: [{ stage: 'talking', reason: 'distance', talked: false }] } })
+    expect(ok.status).toBeLessThan(300)
+  })
+
+  it('places an ending by its own bit, not by whether the person followed through later', async () => {
+    // Everyone followed through at some point; each ended one courtship
+    // before that conversation, and one after.
+    for (const id of ids) {
+      await post({
+        id,
+        rungs: ['arrived', 'followed-through'],
+        facts: {
+          ended: [
+            { stage: 'talking', reason: 'distance', talked: false },
+            { stage: 'talking', reason: 'non-negotiable', which: 'faith-nn', talked: true },
+          ],
+        },
+      })
+    }
+    const body = await (await readout()).json()
+    expect(body.facts.decisions.closed['ended:circumstance']).toBe(6)
+    expect(body.facts.decisions.open['ended:circumstance']).toBeNull()
+    expect(body.facts.decisions.open['ended:seen']).toBe(6)
+  })
+})

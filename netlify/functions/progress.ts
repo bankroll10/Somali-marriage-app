@@ -101,7 +101,7 @@ export interface Facts {
   eleven?: { open: string }
   through?: string[]
   ending?: { who?: string; mattered?: string; used?: string[] }
-  ended?: { stage: string; reason: string; which?: string }[]
+  ended?: { stage: string; reason: string; which?: string; talked?: boolean }[]
   /** Which questionnaires she began — the denominator for a completion rate. */
   began?: string[]
   /** What she asked, ever, as a set — today only `guide`. */
@@ -203,16 +203,19 @@ function parseFacts(x: unknown): Facts | null {
     if (!Array.isArray(x.ended) || x.ended.length > MAX_ENDED) return null
     const ended: NonNullable<Facts['ended']> = []
     for (const e of x.ended) {
-      if (!isPlain(e) || !onlyKeys(e, ['stage', 'reason', 'which'])) return null
+      if (!isPlain(e) || !onlyKeys(e, ['stage', 'reason', 'which', 'talked'])) return null
+      // One bit, set on her phone when it ended: had a conversation here come first.
+      if (e.talked !== undefined && typeof e.talked !== 'boolean') return null
+      const talked = typeof e.talked === 'boolean' ? { talked: e.talked } : {}
       if (typeof e.stage !== 'string' || !ENDED_STAGES.has(e.stage)) return null
       if (typeof e.reason !== 'string' || !ENDED_REASONS.has(e.reason)) return null
       const takes = Object.hasOwn(ENDED_WHICH, e.reason) ? ENDED_WHICH[e.reason] : undefined
       // A which only where the reason takes one, and only from that reason's list.
       if (e.which !== undefined) {
         if (!takes || typeof e.which !== 'string' || !takes.has(e.which)) return null
-        ended.push({ stage: e.stage, reason: e.reason, which: e.which })
+        ended.push({ stage: e.stage, reason: e.reason, which: e.which, ...talked })
       } else {
-        ended.push({ stage: e.stage, reason: e.reason })
+        ended.push({ stage: e.stage, reason: e.reason, ...talked })
       }
     }
     out.ended = ended
@@ -441,10 +444,12 @@ function emptyFactsTally() {
     /** The cross-tabs: each fact against whether the person went on to marry. Descriptive, never a grade. */
     marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
     /**
-     * Each reported decision, by how it was made. `open`: she confirmed at
-     * least one conversation here; `closed`: none. Endings carry no date, so
-     * `open` means while here, not necessarily before this one. A marriage
-     * counts once per person, an ending once per ending, by its kind
+     * Each reported decision, by how it was made. `open`: she had confirmed a
+     * conversation here before it; `closed`: not. An ending says so itself
+     * (`talked`, one bit set when it ended); one reported before that bit
+     * existed falls back to whether she ever followed through here. A
+     * marriage uses the person's own, since nothing is followed up after it.
+     * A marriage counts once per person, an ending once per ending, by its kind
      * (`ENDED_KIND`). Every open cell is the unit of success, married or
      * ended alike; a closed cell says nothing about Niyyah either way.
      */
@@ -509,11 +514,11 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
   }
   for (const r of reasons) pair(t.marriedBy.ended, r, 'ended')
 
-  const how = followedThrough ? t.decisions.open : t.decisions.closed
-  if (married) how.married += 1
+  if (married) (followedThrough ? t.decisions.open : t.decisions.closed).married += 1
   for (const e of f.ended ?? []) {
     const kind = ENDED_KIND[e.reason] ?? 'unsaid'
-    how[`ended:${kind}`] += 1
+    const open = typeof e.talked === 'boolean' ? e.talked : followedThrough
+    ;(open ? t.decisions.open : t.decisions.closed)[`ended:${kind}`] += 1
     if (kind === 'seen') bump(t.seenAt, e.stage)
   }
 }

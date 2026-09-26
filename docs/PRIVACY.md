@@ -60,8 +60,9 @@ Only while "Tell us which steps you reach" is on, under the install code:
   unknown) are no longer kept: nothing read them. An older client's counts
   are accepted and dropped before the write
 - that a courtship ended, from which stage, and, only if she taps one, one of
-  ten reasons and which; on the way out, who she married, what decided it,
-  what here she used
+  ten reasons and which, with one bit set on her phone when it ended: whether
+  she had already had a conversation here (never when); on the way out, who
+  she married, what decided it, what here she used
 - which questionnaires she **began**, and that she **asked** the guide: one
   bit each, sets merged as unions, so no count can be derived
 - her city if given; woman or man (floored, crossed once with via, never with
@@ -292,8 +293,8 @@ past its year that never reached `married` is deleted as the tally walks.
 | `facts.read.band[band]`, `.thin[dim]` | How reads come out; the ground most often thinnest | Where men here have not shown themselves |
 | `facts.eleven.open[topic]` | Which of the eleven it most often said to open | The only eleven fact kept |
 | `facts.through["source:topic"]`, `facts.throughByTopic[topic]` | Conversations confirmed as had | Which scripts get said, against how often handed out |
-| `facts.ending.{who,mattered,used}[id]` | Who they married, what decided it, what was real | Ground truth |
-| `facts.ended.reason[id]`, `.stage[id]`, `.which[reason][id]` | Why courtships end, from which stage, and which non-negotiable, topic or ground | Why Somali courtships end; needs no marketplace |
+| `facts.ending.{who,mattered,used}[id]` | Who they married, what decided it (non-tool answers `ready` and `family-wish` first), what was real | Ground truth |
+| `facts.ended.reason[id]`, `.stage[id]`, `.which[reason][id]` | Why courtships end, from which stage, and which non-negotiable, topic or ground. Each ending's `talked` bit is not tallied on its own; it only places the ending in `facts.decisions` | Why Somali courtships end; needs no marketplace |
 | `facts.began[instrument]`, `facts.asked[id]` | Who began the map, a read, the eleven, his side; who ever asked the guide | Completion (`rungs.read / facts.began.read`); the one metered cost |
 | `facts.followedThroughBy.asked[id]` | `{asked, followedThrough}`. Floored | Whether asking the guide goes with the conversation (`docs/RESEARCH.md` A3) |
 | `facts.marriedBy.{ended,through,readThin,open}[id]` | `{ended\|through\|read\|eleven, married}`: of people with this fact, how many married. Floored | Descriptive only, read beside `facts.decisions` and never alone: a marriage is not proof the reasoning was good (`docs/DECISIONS.md` Part 15) |

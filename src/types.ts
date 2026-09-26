@@ -286,6 +286,12 @@ export interface EndedRecord {
   from: 'talking' | 'deciding'
   reason?: string
   which?: string
+  /**
+   * Whether she had already had one of the conversations here when it ended.
+   * One bit, decided on her phone at that moment: never when (docs/DECISIONS.md
+   * Part 15).
+   */
+  talked?: boolean
 }
 
 export interface ReadRecord {

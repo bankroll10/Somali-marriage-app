@@ -653,7 +653,7 @@ export function useNiyyah(entry: Entry | null = null) {
     // fact of it now, and ask — once, skippably — why. Only the reason is a
     // question; that it ended is already true.
     if (next === 'preparing' && (from === 'talking' || from === 'deciding')) {
-      setEndings((prev) => [...prev, { at: new Date().toISOString(), from }].slice(-8))
+      setEndings((prev) => [...prev, { at: new Date().toISOString(), from, talked: followedThrough(followups) }].slice(-8))
       setEndedFrom(from)
       setScreen('ended')
     }
