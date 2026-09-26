@@ -139,7 +139,7 @@ const SCRIPTS: FamilyScript[] = [
     when: 'When you know — and before you spend another month pretending you don’t.',
     stages: ['talking', 'deciding'],
     script: {
-      why: 'Ending something halal that did not become a marriage has no ceremony, so it is easy to go quiet instead, and then the other person spends months reading silence. You can do better than that, and it costs one hard message.',
+      why: 'Ending something that was meant for marriage and did not become one has no ceremony, so it is easy to go quiet instead, and then the other person spends months reading silence. You can do better than that, and it costs one hard message.',
       words:
         'I’ve thought about this carefully, and I don’t think we’re right for each other. I don’t want to just go quiet on you — you deserve to hear it plainly. I’ve valued getting to know you. I’ll make dua for you.',
       tells:

@@ -151,7 +151,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
       {
         id: 'around',
         label: '{He} talks around it',
-        hint: '“One day”, “when the time is right”, “inshaAllah”',
+        hint: '“One day”, “when the time is right”, “inshaAllah” with no when attached',
         weight: 0.2,
         note: '{he} talks around marriage without ever landing on it',
       },

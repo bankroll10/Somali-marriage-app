@@ -156,7 +156,12 @@ generalising about Somali families or predicting outcomes, wait for the first
 
 **Not in the ledger.** Religious content is held to accurate attribution and
 to deferring rulings to a scholar (`docs/GUIDE-EVAL.md`); "marriage is half
-of faith" is graded differently by scholars and wants one's read. The
+of faith" is graded differently by scholars, and the Islamic voice no longer
+teaches it as settled. Where the schools differ (a wali's role, what makes a
+nikah valid, conditions in the contract, contact before the families), the
+product says they differ and does not pick one; Somali custom (qabiil, who
+pays for the aroos, family roles) is named as custom, never as Islamic law
+(`docs/DECISIONS.md` Part 17). The
 company's own beliefs are the open questions and the convictions. Product
 facts are held by tests; this pass found two untrue (Read's "It makes every
 read after this one sharper", when the read never reads the map, and

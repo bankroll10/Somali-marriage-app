@@ -173,6 +173,32 @@ What you can do is hear it once, plainly, and let it stand. If it hurts, tell on
 Try: "I heard you, and I respect it. I won't ask again. I wish you well." Then stop.`
 
 /**
+ * Custom asked about as religion (docs/DECISIONS.md Part 17). The principle is
+ * said as the principle, the custom as custom, and the ruling goes to a
+ * scholar. Offline, "the mahr should go to my father, is that Islamic?"
+ * reached the Auntie's "Your people protect you. Let them."
+ */
+const MAHR_OWNER_RE = /\bmahr\b[^.?!]{0,40}\b(go(es)? to|to) (my|her|his|the) (father|dad|family|parents|uncle|brother)\b|\b(keep|take|hold) (my|her|the) mahr\b/
+
+export const MAHR_OWNER_REPLY = `The mahr is the bride's: a gift to her, not a payment to her family. That principle is not in question. What your family expects around it is custom, and customs can be talked about.
+
+If they have a worry — the cost of the wedding, a debt, how it looks — that is a separate conversation, and it can be had without the mahr changing hands. The details of what is agreed, and how, are a question for a scholar you trust.
+
+Try: "I'd like the mahr to come to me, as it's meant to. If the family need help with the wedding, can we talk about that separately?"`
+
+/** Qabiil asked about as religion: named as custom, the ruling handed on, never decided either way. */
+const CLAN_RE = /\b(qabiil|clan|tribe)\b/
+const AS_RELIGION_RE = /\b(islam|islamic|islamically|haram|halal|sunnah|deen|allowed|permitted|sin)\b/
+
+export const CLAN_RELIGION_REPLY = `Qabiil is how our families have long organised themselves. Whether it has any place in a nikah is a question for a scholar you trust — not for your uncle, and not for me. Scholars discuss suitability between spouses in different ways, and none of that is the same thing as the family's comfort.
+
+What you can do is keep the two apart when you talk to him.
+
+Try: "Uncle, I hear that this matters to the family. Can we ask a scholar what the deen says, and then talk about what the family is worried about?"
+
+Who you marry is still yours to choose, with your wali.`
+
+/**
  * A question that asks for a ruling. The offline voice gives principles, not
  * rulings, and says where the ruling lives — every voice, not only the
  * Islamic one (tests/guide-eval, the religious cases).
@@ -180,6 +206,10 @@ Try: "I heard you, and I respect it. I won't ask again. I wish you well." Then s
 const RULING_WORDS = [
   'haram', 'halal', 'permissible', 'allowed in islam', 'in islam', 'a sin', 'sinful', 'fiqh', 'ruling',
   'polygamy', 'polygyny', 'istikhara', 'too far', 'is it okay', 'is it allowed', 'deferred',
+  // Said the other ways a ruling is asked for (docs/DECISIONS.md Part 17).
+  'permitted', 'forbidden', 'wajib', 'makruh', 'fard', 'is it sunnah',
+  'need a wali', 'without a wali', 'without my wali', 'nikah valid', 'valid nikah',
+  'is it islamic', 'is that islamic', 'islam says', 'islam requires', 'islamically',
 ]
 
 /**
@@ -872,6 +902,11 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
   if (HARM_WORDS.some((w) => hasWords(normalize(message), w))) return { text: HARM_REPLY, closers: closersFor(HARM_REPLY), live: false }
   // A no someone wants a way around: before any voice's words for a father.
   if (NO_WORDS.some((w) => hasWords(normalize(message), w))) return { text: NO_REPLY, closers: closersFor(NO_REPLY), live: false }
+  // Custom asked about as religion: the principle, the custom named as custom,
+  // and the ruling handed on (Part 17).
+  if (MAHR_OWNER_RE.test(normalize(message))) return { text: MAHR_OWNER_REPLY, closers: closersFor(MAHR_OWNER_REPLY), live: false }
+  if (CLAN_RE.test(normalize(message)) && AS_RELIGION_RE.test(normalize(message)))
+    return { text: CLAN_RELIGION_REPLY, closers: closersFor(CLAN_RELIGION_REPLY), live: false }
   // Then how it went, then how they argue, then what about — each before any
   // voice's own intents, whichever voice she opened.
   const m = normalize(message)

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { FORCED_REPLY, NO_REPLY, PRESSURE_REPLY, SAFETY_REPLY, askCoach, closersFor, localReply, needsHelpLine, scriptIn } from './coach'
+import { CLAN_RELIGION_REPLY, FORCED_REPLY, MAHR_OWNER_REPLY, NO_REPLY, PRESSURE_REPLY, SAFETY_REPLY, askCoach, closersFor, localReply, needsHelpLine, scriptIn } from './coach'
 import type { CoachContext } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
@@ -427,5 +427,44 @@ describe('autonomy: force, control by what she stands to lose, and a no (docs/DE
       'My mother says I will embarrass the family if I wait any longer.',
       'At my age they say I am running out of time.',
     ]) expect(say(m), m).toBe(PRESSURE_REPLY)
+  })
+})
+
+describe('religion: principles, never rulings, and custom named as custom (docs/DECISIONS.md Part 17)', () => {
+  const say = (m: string, mode: ModeId = 'islamic') => localReply(m, ctx, mode).text
+
+  it('the Islamic voice does not teach a graded saying as settled, and says where the schools differ', async () => {
+    const { getMode } = await import('../data/coach')
+    const islamic = getMode('islamic')
+    expect(islamic.greeting(ctx)).not.toMatch(/half of faith/i)
+    const wali = say('How involved should my wali be?')
+    expect(wali).toMatch(/where the schools differ/)
+    expect(wali).toMatch(/scholar/)
+    expect(wali).not.toMatch(/barakah that secrecy/)
+  })
+
+  it('a ruling asked another way still reaches a scholar, in any voice', () => {
+    for (const [m, mode] of [
+      ['Do I need a wali to marry?', 'auntie'],
+      ['Is a nikah valid without my father there?', 'brother'],
+      ['Is it islamic to have the walima before the nikah?', 'therapist'],
+    ] as [string, ModeId][]) expect(say(m, mode), m).toMatch(/\b(scholar|imam)\b/)
+  })
+
+  it('the mahr is hers, and what the family expects is custom', () => {
+    for (const m of [
+      'My aunt says the mahr should go to my father because that is our way. Is that Islamic?',
+      'Can my brother keep my mahr for the family?',
+    ]) expect(say(m, 'auntie'), m).toBe(MAHR_OWNER_REPLY)
+    expect(MAHR_OWNER_REPLY).toMatch(/The mahr is the bride's/)
+    expect(MAHR_OWNER_REPLY).not.toMatch(/Your people protect you/)
+  })
+
+  it('qabiil asked about as religion is named as custom and handed to a scholar, never decided either way', () => {
+    expect(say('My uncle says Islam requires me to marry within our qabiil. Is that true?', 'auntie')).toBe(CLAN_RELIGION_REPLY)
+    expect(CLAN_RELIGION_REPLY).toMatch(/scholar/)
+    expect(CLAN_RELIGION_REPLY).not.toMatch(/\b(islam (does not|doesn't) require|is (haram|halal|required))\b/i)
+    // Without a religious word, a clan question is a family one, as before.
+    expect(say('Should I only look for someone from my own qabiil? It would be easier with my family.', 'brother')).not.toBe(CLAN_RELIGION_REPLY)
   })
 })

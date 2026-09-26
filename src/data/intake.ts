@@ -85,7 +85,7 @@ export const chapters: Chapter[] = [
     kicker: '01 · Niyyah & Deen',
     title: 'Intention & faith',
     intro:
-      'Before anyone else, this is between you and your own clarity. Marriage begins with an honest intention — not a feeling, not pressure, not a deadline. And for us, deen is its spine: not to judge, but to find someone walking at a pace that fits beside yours.',
+      'Before anyone else, this is between you and your own clarity. Marriage begins with an honest intention — not a feeling, not pressure, not a deadline. And where deen is its spine, it is there not to judge, but to find someone walking at a pace that fits beside yours.',
     questions: [
       {
         id: 'timeline',

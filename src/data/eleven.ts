@@ -227,7 +227,7 @@ export const TOPICS: Topic[] = [
     label: 'The aroos and the mahr',
     prompt: 'The aroos and the mahr — how big a wedding, who pays, and what your two families will expect.',
     consequence: 0.6,
-    why: 'The wedding is where two families’ expectations meet in public, with money attached. Leave it unsaid and you can end up carrying a debt, or a resentment, that was never yours.',
+    why: 'The mahr is the bride’s, whatever the families expect around it. The wedding is where two families’ expectations meet in public, with money attached. Leave it unsaid and you can end up carrying a debt, or a resentment, that was never yours.',
     script: {
       why: 'Better to hear it from each other than to hear a number through someone else.',
       words:
@@ -284,7 +284,7 @@ export const TOPICS: Topic[] = [
       words:
         'Can I ask you something straight? I’m not accusing you of anything. Would you ever want a second wife — not whether it’s permitted, but in your own life? I’d rather hear it from you now than wonder.',
       tells:
-        'You are listening for a plain sentence. A lecture on what is permitted is a way of not answering. A plain “no” and a plain “I might” are both answers you can build on. Only the lecture isn’t.',
+        'You are listening for a plain sentence. A lecture on what is permitted is a way of not answering. A plain “no” and a plain “I might” are both answers you can build on. Only the lecture isn’t. If you want something written into the nikah about it, what a condition can hold is a question for a scholar.',
     },
   },
   {

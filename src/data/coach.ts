@@ -359,7 +359,7 @@ const islamic: GuidanceMode = {
   greeting: (ctx) =>
     `Bismillah. As-salaamu alaykum, ${addressed(ctx)}.
 
-Let’s anchor this in what our deen teaches — that marriage is half of faith, built on intention, modesty, and mercy. I can help you walk this path with dignity. (For formal rulings, always return to a trusted scholar.) What’s on your heart?`,
+Let’s anchor this in what our deen asks of a marriage — intention, modesty, and mercy. I can help you walk this path with dignity. (For formal rulings, always return to a trusted scholar.) What’s on your heart?`,
   starters: [
     { label: 'How do we get to know each other halal?', prompt: 'How do two people get to know each other for marriage in a halal way?' },
     { label: 'How do I keep my limits while we talk?', prompt: 'How do I keep my limits while we’re getting to know each other?' },
@@ -370,41 +370,41 @@ Let’s anchor this in what our deen teaches — that marriage is half of faith,
     {
       keywords: ['halal', 'get to know', 'talking stage', 'allowed', 'permissible', 'is it ok', 'courting', 'how to'],
       respond: () =>
-        `The beautiful thing about our path is that it protects the heart while it’s deciding. Getting to know someone for marriage is encouraged — the Prophet ﷺ told a man to *look* at the one he intended to marry.
+        `The beautiful thing about our path is that it protects the heart while it’s deciding. Seeing the one you intend to marry is encouraged — the Prophet ﷺ told a man to *look* at the one he intended to marry. How much talking is fine before the families are involved is something scholars answer differently.
 
-A few anchors:
+The anchors most share:
 • Keep the intention clear: this is for marriage, not entertainment.
 • Avoid khalwa — being alone in private. Meet in open settings, ideally with family aware.
 • Keep conversation purposeful and respectful, not flirtatious or late-night secrecy.
 • Involve the wali as it gets serious.
 
-The point is dignity, not suspicion. You can be warm and still be honourable.`,
+The point is dignity, not suspicion. You can be warm and still be honourable. Where the lines fall for you is a question for a scholar you trust.`,
     },
     {
       keywords: ['boundaries', 'modesty', 'haram', 'too far', 'flirt', 'physical', 'hijab', 'lower gaze', 'guard'],
       respond: () =>
         `Limits are not coldness. They are adab — how you honour both of you before a contract binds you — and they protect what you are hoping to build.
 
-Practically: keep conversation in daylight and with purpose, avoid being alone together, and don’t let things drift into the physical or the flirtatious. If you feel things slipping, that’s your signal to step back into the open: bring in family, and decide — toward nikah, or away from it — rather than lingering in a grey zone. Modesty here is a gift you give your future marriage, not a punishment.`,
+Practically: keep conversation in daylight and with purpose, avoid being alone together, and don’t let things drift into the physical or the flirtatious. If you feel things slipping, that’s your signal to step back into the open: bring in family, and decide — toward nikah, or away from it — rather than lingering in a grey zone. Modesty here is a gift you give your future marriage, not a punishment. Where exactly the lines fall is a question for a scholar you trust.`,
     },
     {
       keywords: ['intention', 'niyyah', 'sincere', 'why marriage', 'blessed', 'barakah', 'baraka', 'sunnah'],
       respond: () =>
-        `Everything begins with niyyah — “actions are but by intentions.” Ask yourself honestly: am I seeking this for the sake of Allah, for sakinah and a righteous home, or for ego, loneliness, or status?
+        `Everything begins with niyyah — as the hadith says, “actions are but by intentions.” Ask yourself honestly: am I seeking this for the sake of Allah, for sakinah and a righteous home, or for ego, loneliness, or status?
 
-A blessed marriage tends to be marked by: choosing for deen and character first (“choose the one of deen, may your hands be dusty”), kindness — “the best of you are best to their families” — gratitude, and keeping Allah at the centre. Purify the intention, make du’a, and pray istikhara. Barakah follows sincerity, not perfection.`,
+A blessed marriage tends to be marked by: choosing for deen and character first (in the hadith, “choose the one of deen, may your hands be dusty”), kindness — “the best of you are best to their families” — gratitude, and keeping Allah at the centre. Purify the intention, make du’a, and pray istikhara.`,
     },
     {
       keywords: ['family', 'wali', 'guardian', 'parents', 'involve', 'her father', 'permission'],
       respond: () =>
         `Family and the wali aren’t bureaucracy — they’re a mercy and a protection, especially for the woman. A marriage built in the open, with families honoured, starts on solid ground.
 
-For a sister, the wali’s involvement is part of the path and a safeguard of her rights. For a brother, approaching the family with respect is how you prove your seriousness. Bring them in as soon as it’s real. What’s done in the light, with the people who love you, carries barakah that secrecy never can.`,
+For a sister, the wali has a real place in her nikah; exactly what, and what makes a nikah valid, is where the schools differ, and a question for a scholar you trust. For a brother, approaching the family with respect is how you prove your seriousness. Bring them in as soon as it’s real. What’s done in the light, with the people who love you, starts on firmer ground than anything done in secret.`,
     },
     {
       keywords: ['respect', 'character', 'how he treats', 'kindness', 'red flag', 'akhlaq'],
       respond: () =>
-        `In our deen, character — akhlaq — is the truest measure. “The most complete of believers in faith are the best of them in character, and the best of you are those best to their wives.”
+        `In our deen, character — akhlaq — is the truest measure. As the hadith says, “The most complete of believers in faith are the best of them in character, and the best of you are those best to their wives.”
 
 So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for a lifetime.`,
     },

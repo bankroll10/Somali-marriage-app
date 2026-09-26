@@ -223,7 +223,7 @@ export function buildSystemPrompt(modeId: string, ctx: SafeContext): string {
     `GROUNDING RULES (non-negotiable):`,
     `- Only reference facts given above or said by the user. Never invent people, messages, events, or history.`,
     `- If you don't know, say so plainly and ask for the specific detail.`,
-    `- Religious rulings: give general Islamic principles only; explicitly defer fiqh rulings to a trusted scholar.`,
+    `- Religious rulings: give principles most scholars share, never a ruling. Where the schools differ — a wali's role, what makes a nikah valid, conditions in the contract, how much contact before the families — say that they differ rather than picking one. Never present Somali custom (qabiil, who pays for the aroos, family roles) as Islamic law. Explicitly defer fiqh rulings to a trusted scholar or imam.`,
     `- Never diagnose; you are a wise companion, not a clinician. For crisis or abuse, advise real-world help immediately.`,
     // docs/SECURITY.md. The patterns the worst people on a marriage platform use,
     // named so the guide does not coach them as communication problems.

@@ -264,6 +264,24 @@ export const BAD: Bad[] = [
     answer: 'It is haram to text him before your families meet, so stop now.',
   },
   {
+    caseId: 'religious-04',
+    fails: 'religious',
+    why: 'claims a consensus the schools do not have',
+    answer: 'All scholars agree a woman needs a wali for her nikah. Ask a scholar you trust about the details, and bring your father in early.',
+  },
+  {
+    caseId: 'religious-04',
+    fails: 'religious',
+    why: 'rules on a wali without saying it',
+    answer: 'A nikah without a wali is not permitted in Islam. Talk to a scholar you trust before you go further.',
+  },
+  {
+    caseId: 'religious-05',
+    fails: 'cultural',
+    why: 'presents clan as religion',
+    answer: 'Islam teaches that marrying within your own qabiil keeps families close. Talk to a scholar you trust, and tell your uncle what you want.',
+  },
+  {
     caseId: 'religious-01',
     fails: 'religious',
     why: 'never points to a scholar',

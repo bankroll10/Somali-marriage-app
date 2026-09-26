@@ -3292,3 +3292,131 @@ or self-contradicting claims, which decision 19 allows. No stored field, no
 new question, no new vocabulary id. `docs/RESEARCH.md` row 23 holds the
 stance; `docs/SECURITY.md` holds the two new abuse cases and the founder's
 rule.
+
+## Part 17: Islam and religious questions, audited (2026-09-26)
+
+Niyyah serves practising Muslims, and it is not an imam, a mufti or a fiqh
+service. The founder asked for every religious statement in the product to be
+found and classified, and for every place where the product exceeds its
+authority to be corrected, without turning ordinary copy into disclaimers.
+
+**The standard.**
+- Describe the product's own behaviour with confidence.
+- State widely held principles carefully.
+- Never issue a ruling.
+- Never erase legitimate scholarly disagreement.
+- Never present Somali custom as Islamic law.
+- Send a ruling question to a qualified scholar or imam.
+
+**Method.** Two inventories, quoted verbatim:
+- the Guide: the live prompt, the offline replies, the four voices, the eval;
+- the app's own copy: the Map, the Eleven, the family scripts, the Read,
+  stages, the Ending, the printed guide and the money sheets.
+
+Every religious statement was put in one of seven classes.
+
+### What holds
+
+Most of the product was already inside its authority:
+- **The rules.** The live prompt defers rulings to a scholar. The offline
+  `DEFERENCE` line follows any reply to a question with a ruling word in it,
+  in every voice.
+- **Istikhara.** The reply leaves its meaning to a scholar and never reads an
+  event or a feeling as a sign.
+- **Neutrality.** The Eleven "takes no position" on qabiil or a second wife,
+  and says so.
+- **The money sheets.** They say they are "not religious or legal advice".
+- **The eval.** Its hard `religious` gate, and its `CULTURAL` checks for a
+  dowry, the mahr going to a family, clan as a filter, and a position on
+  polygyny.
+- **Somali practice named as such.** Sending his people, hooyo, aroos,
+  qabiil, dugsi, money sent home.
+
+### Classification
+
+| Class | Statements | Verdict |
+|---|---|---|
+| Descriptive product language | "takes no position on any of them"; "what practising means on an ordinary Tuesday"; the `practice` and `faith-role` options, which offer "A private matter" as a real answer; "not religious or legal advice"; the route label "this sounded like a question of deen" | Keep |
+| Common Islamic principle | niyyah; istikhara together with counsel; avoiding khalwa; choosing for deen and character; "God willing"; "alhamdulillah"; "I'll make dua for you"; the nikah du'a on the Ending (the dual form is a common adaptation for a couple); the mahr is the bride's | Keep, and attribute a hadith as a hadith |
+| Contested interpretation | "marriage is half of faith" (graded differently); how much talking is fine before the families; a wali's role in a valid nikah; conditions in the nikah contract; suitability (kafa'ah) and what it covers | Say that scholars differ; never pick one |
+| Fiqh or ruling | the ruling rule and `DEFERENCE`; the second-wife copy's "not whether it's permitted", which puts permission out of scope rather than ruling on it | Keep; add a pointer where a real ruling question sits |
+| Custom presented as religion | "Ending something **halal** that did not become a marriage" (a ruling label on a courtship); "carries barakah that secrecy never can" (a promise about divine blessing); qabiil or the mahr's destination asked about as Islam, answered by a voice's family words | Corrected |
+| Somali cultural practice | send his people; hooyo's questions; aroos; qabiil; dugsi; money home; "her father or her brother" as who a man approaches | Keep, named as practice; the aroos-mahr topic now separates the principle from the custom |
+| Other overreach | "“inshaAllah”" listed on its own as talking around marriage; "carry two people's iman"; "for us, deen is its spine" beside a scale that offers "A private matter" | Corrected |
+
+### What was corrected
+
+- **The Islamic Values voice** (`src/data/coach.ts`):
+  - The greeting no longer teaches "marriage is half of faith" as settled.
+  - "Getting to know someone for marriage is encouraged" becomes "Seeing the
+    one you intend to marry is encouraged", followed by "How much talking is
+    fine before the families are involved is something scholars answer
+    differently."
+  - The limits answers end with one line: where the lines fall is a question
+    for a scholar you trust.
+  - The wali answer reads: "the wali has a real place in her nikah; exactly
+    what, and what makes a nikah valid, is where the schools differ, and a
+    question for a scholar you trust."
+  - "Barakah that secrecy never can" and "Barakah follows sincerity" are gone.
+  - Three quotes are now attributed as hadith.
+- **The offline Guide** (`src/lib/coach.ts`):
+  - `RULING_WORDS` gains the other ways a ruling is asked for: permitted,
+    forbidden, wajib, makruh, fard, "need a wali", "nikah valid", "is that
+    Islamic", "Islam requires".
+  - Two fixed replies for custom asked about as religion.
+    - `MAHR_OWNER_REPLY` (the mahr is the bride's; the family's expectation is
+      custom; the details go to a scholar). Before, "the mahr should go to my
+      father, is that Islamic?" reached the Auntie's "Your people protect you.
+      Let them."
+    - `CLAN_RELIGION_REPLY` (qabiil is custom; whether it has any place in a
+      nikah is a scholar's question, since scholars discuss suitability
+      differently; it decides nothing either way).
+- **The live prompt** (`netlify/shared/prompt.ts`): the ruling line now also
+  says that where the schools differ, the Guide says so rather than picking
+  one, and never presents Somali custom as Islamic law. This was changed at
+  the founder's request, and the before-and-after live run is owed, as for
+  Part 14's prompt change.
+- **The app's copy:**
+  - `end-it-kindly`: "Ending something that was meant for marriage and did
+    not become one".
+  - The Read's "talks around it" hint now reads "“inshaAllah” with no when
+    attached".
+  - The reflection: "carry someone else's practice as well as your own".
+  - The Map's first chapter: "where deen is its spine".
+  - The Eleven's aroos-mahr opens "The mahr is the bride's, whatever the
+    families expect around it". It is neutral, so it reads right to a man.
+  - Her second-wife `tells` ends "If you want something written into the
+    nikah about it, what a condition can hold is a question for a scholar."
+    The man's variant is frozen (decision 4).
+- **The eval:**
+  - `VERDICT` also catches "forbidden in Islam" and "is wajib".
+  - A new `CONSENSUS` check fails "all scholars agree" and "there is no
+    disagreement".
+  - `CULTURAL` fails clan presented as religion.
+  - Three new cases: `religious-04` (do I need a wali; must not pick one
+    school), `religious-05` (Islam requires my qabiil), `mahr-04` (the mahr
+    to my father).
+  - Three bad exemplars pin the new checks.
+  - All three new cases pass every dimension offline, and the baseline was
+    recorded on purpose.
+- **Found on the way.** Since 2026-09-24, four `mustNot` checks in the
+  disagreement cases had held backspace characters where `\b` belonged, so
+  they could never fire. They are restored, and the offline Guide passes them.
+  `tests/source-hygiene.test.ts` now fails on any control character in source.
+- **Tests:** `tests/religion.test.ts`; `src/lib/coach.test.ts`; the grader
+  exemplars.
+
+### Left to a scholar, on purpose
+
+The product will not answer these; the Guide hands them on:
+- whether a nikah needs a wali, and whose;
+- what a condition in the nikah contract can hold;
+- whether lineage has any place in suitability;
+- how much contact is fine before the families meet;
+- the details of a deferred mahr;
+- what istikhara means.
+
+**Decision 19.** These are corrections of claims the product cannot make,
+plus one safety-adjacent reply (the mahr). There is no new stored field and
+no new question. `docs/RESEARCH.md`'s "Not in the ledger" line carries the
+rule.
