@@ -259,8 +259,14 @@ ratchet will show it.
   ledger). One exception was made on 2026-09-26, at the founder's call, while
   the eval is parked for want of credit: the decision-support lines
   (invariants 1–5, 7, 8), and the "alignment over attraction" rewrite below.
-  Their words are pinned by the prompt contract, and the first live run
-  measures them. Two found on 2026-09-24 still wait:
+  A second was made the same day, on the founder's delegation, from
+  `docs/DECISIONS.md` Part 14: the decision line's reasons clause (a reason
+  that stands in for what they have seen is taken seriously, asked about,
+  never weighed for them, and never read as a sign), and the deciding stage's
+  "Istikhara, then move." became "Istikhara, and counsel from people who know
+  you both.", on Home and in the prompt alike. Their words are pinned by the
+  prompt contract, and the first live run measures them, before and after,
+  on the `reasons` cases above all. Two found on 2026-09-24 still wait:
   - "the trusted marriage platform for the Somali diaspora" becomes "a guide
     for the Somali diaspora on the way to marriage". Nothing has earned
     "trusted", and `tests/voice-rules.ts` bans "platform" in `src/`;
