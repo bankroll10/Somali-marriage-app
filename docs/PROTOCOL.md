@@ -181,6 +181,12 @@ readout can never show.
 - Any English line with a Somali word in it — hooyo, wali, qabiil, aroos,
   mahr, dugsi — that draws a reaction.
 
+**Reasons, said unprompted** (`docs/DECISIONS.md` Part 14)
+- Whether they count at the read's result ("four out of five") or at the
+  eleven's ("nine of eleven"), and what they say next.
+- Whether "at my age", "there's nobody", "it's too late", "my mother loves
+  him" or "everyone says" comes up without being asked. Which, and when.
+
 **Exit**
 - Where they stop. Whether they stop early, and on which screen.
 - Whether they say anything before the founder asks.
@@ -255,6 +261,28 @@ that this is not a difference to work out. Name the help line for their
 country (`src/data/help.ts`), and suggest one person they trust. Log the
 session as a safety entry with no detail that could identify anyone, and
 nothing else from it.
+
+**C″ · What is carrying it (if time allows; `docs/DECISIONS.md` Part 14)**
+
+What happened, never what would. Each answer goes in one bin: *in motion*,
+*someone else's yes*, *one quality*, *the clock*, *after a prayer*, *a count*,
+or *none*. Never name a reasoning error to them, and never say whether a
+reason is a good one.
+
+11f. *Is anything already in motion — a date, a hall, a visit between the
+     families, people who know? When did it start, and which of the big
+     things had you two talked about by then?* (in motion; Part 5's H6)
+11g. *Whose opinion of them do you trust most? What have they seen of them
+     that you haven't — and what have you seen that they haven't?*
+     (someone else's yes)
+11h. *Is there anything on your own list you've let go of for this person?
+     When did that happen, and what was going on at the time?* (one
+     quality, the clock, or pressure — record which they name)
+11i. *When you picture it ending, whose reaction do you picture first?*
+     (status and family; record the role, never a name)
+11j. Only if they raise istikhara or a prayer themselves: *What happened
+     after, and what did you do next?* Record what they did. Never discuss
+     what it meant.
 
 **D · The words and the culture (min 26–27)**
 12. *Was anything on those screens said in a way that felt false, exaggerated,

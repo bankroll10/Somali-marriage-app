@@ -2512,3 +2512,417 @@ is kept.
 
 **Decision 19.** Wording, tests and docs only. No id, weight or stored field
 moved.
+
+## Part 14: The decision, audited for predictable reasoning errors (2026-09-26)
+
+The founder asked for Niyyah to be audited as decision support for a
+high-stakes choice under uncertainty. Fourteen errors were named: sunk cost,
+confirmation bias, the halo effect, availability, optimism, scarcity, social
+proof, authority, status, family pressure, loss aversion, commitment
+escalation, outcome bias and motivated reasoning. Each was read with four
+questions:
+- How could it appear during a courtship?
+- Can Niyyah responsibly help her notice it?
+- Does the product reinforce it by accident?
+- What question would improve the decision without pretending to know the
+  answer?
+
+Ten phrasings were read closely: "I've already invested years"; "My mother
+loves him"; "Everyone says she is perfect"; "He's successful, so…"; "She's
+beautiful, so…"; "I'm almost 30"; "Good Somali men are hard to find"; "The
+wedding planning has already started"; "I made istikhara and then X
+happened"; "They checked nine of eleven boxes".
+
+**The rules for this pass.**
+- No lecture on reasoning errors inside the product. No screen names one, and
+  the Guide never does.
+- Most of what follows is internal product intelligence.
+- No question was added to any instrument.
+- Decision 19 holds. Decision 4 holds: man-only copy is classified, not
+  edited.
+- The founder left three calls to this pass: its scope, the live prompt, and
+  the guide's budget. Each is recorded below with what was chosen.
+
+**Classes.** HANDLES WELL · LANGUAGE NEEDS CALIBRATION · GUIDE GAP · PRODUCT
+REINFORCES · RESEARCH QUESTION · OUT OF SCOPE.
+
+### The one structural finding
+
+**Nearly every error on the list is a reason standing in for something she
+has seen.** Years, a mother's yes, a salary, a face, a booked hall, a count, a
+clock, an event after istikhara: each is offered as if it answered the
+question about him.
+
+Most of them are also real information here:
+- A network's approval went with better relationships (class B, L7).
+- The clock and a small room are real. The market in `docs/RESEARCH.md` is a
+  few hundred people a side.
+- The years are how she knows what she knows.
+- Provision, attraction and a family's name are values she is allowed to
+  hold.
+
+So a lecture would be wrong twice: untrue about her, and useless to her. What
+works is one move. Take the reason seriously, then ask what she has seen of
+him that the reason does not cover.
+
+One rule sits under all of it. **A line she has named is never outvoted.** A
+count, a family's yes, a salary, a face, a booked hall and the years are
+compensatory reasons; a non-negotiable is not.
+
+The product already made the general move. The decision line in the prompt,
+`decideReply`'s three questions and the framework all separate what she saw
+from what she hopes it means, and hold it against her non-negotiables. What
+it lacked was the shape of the reason:
+- Offline, the Guide recognised two of the ten phrasings (years, and a
+  family's yes).
+- In a handful of places, the product itself supplied the reason: to her, to
+  the model, or to its own budget.
+
+### The fourteen, one by one
+
+Each entry answers the four questions in order: **Courtship**, **Notice**,
+**Reinforced**, **Ask**.
+
+**Sunk cost.**
+- *Courtship.* "Two years; leaving feels like wasting it." A mahr already
+  talked through, a family visit made.
+- *Notice.* Yes, when she names the time. The years are information, so the
+  Guide never says "cut your losses".
+- *Reinforced.* The guide's budget paid fifteen replies for saying
+  "deciding", and took them back when a courtship ended. PRODUCT REINFORCES,
+  fixed (below).
+- *Handles well.*
+  - `TIME_REPLY`.
+  - The Read: "it changes because {he} does something, not because more time
+    passes" (`src/lib/read.ts:354`).
+  - Ended: "It ended. That is allowed, and it is progress."
+  - `end-it-kindly`: "before you spend another month pretending you don't".
+- *Ask.* "Knowing everything you know today, would you begin this?"
+
+**Confirmation bias.**
+- *Courtship.* She notices what fits. She answers the read kindly, and asks
+  again until an answer agrees.
+- *Notice.* In part. The read reads her report, so it inherits her reading
+  (Part 4, finding 1).
+- *Reinforced.* Two RESEARCH QUESTIONS:
+  - Home stops showing the read, and the monthly "has anything changed in
+    what he has shown you?", once she says "deciding" (`Home.tsx:101`). The
+    comment guarding it was written for introductions, which are gone.
+  - The read's "Since" block reports a same-week retake as movement
+    (`Read.tsx:462`; Part 4, finding 2). The map has the guard the read
+    lacks: "A different reading is not a step up or down".
+- *Ask.* "What have you seen that doesn't fit how you hope this goes, and
+  have you asked about it?"
+
+**The halo effect.**
+- *Courtship.* "He's successful, so he'd be a good husband." "She's
+  beautiful, so the rest will work itself out." A good family. Deen seen in
+  public.
+- *Notice.* Yes, when she names the quality, and never by treating it as
+  nothing: `fit` says attraction matters.
+- *Reinforced.*
+  - The read's eager pursuer scores best, a halo of attentiveness (Part 4,
+    finding 6; Part 5, H4).
+  - The strong band's "worth holding onto". LANGUAGE NEEDS CALIBRATION, fixed.
+- *Handles well.*
+  - "Words are cheap and everyone has good ones."
+  - "A compliment about your family is not an answer."
+  - The money caution, which overrides every band.
+- *Out of scope offline.* Deen as a halo. A trigger on a religious quality
+  would misroute questions about faith; the live prompt's "one quality" covers
+  it.
+- *Ask.* "What does it tell you about how he would be to live with, and what
+  doesn't it?" "If your sister told you this about the man she was about to
+  marry, what would you ask her?"
+
+**Availability.**
+- *Courtship.* A cousin's divorce, a friend's scam, a story from the group
+  chat. One vivid argument outweighs months.
+- *Notice.* Only when she says it. The Guide cannot know her stories, and a
+  story about someone else has no reliable keywords, so there is no offline
+  trigger.
+- *Reinforced.* The tells that read one reply as a trait were mostly
+  rewritten on 2026-09-24 (L11). "The joke is the answer" stays, because it
+  can be checked against the reply. The money caution is vivid by design, and
+  right (L15).
+- *Ask.* "Is this about him, or about something that happened to someone
+  else? What has he done that looks like it?" RESEARCH QUESTION for the
+  sessions.
+
+**Optimism.**
+- *Courtship.* "He'll change after the nikah." "His mother will soften."
+  "We'll figure out where to live."
+- *Notice.* Yes. It is what the eleven is for: "'We'd figure it out' means
+  you are not yet in the picture"; "Agreement from six months ago is a
+  memory, not a contract".
+- *Reinforced.* Mildly. The one-sided sheet's headline "you agree on every
+  one" is her report of both of them. Part 13 fixed the couple version; the
+  one-sided sheet is hers and stays.
+- *Ask.* "If this stayed exactly as it is after the nikah, could you live
+  with it?"
+
+**Scarcity.**
+- *Courtship.* "I'm almost 30." "Good Somali men are hard to find." A small
+  city.
+- *Notice.* Carefully. Denying the clock is false reassurance, and "you'll
+  find someone" is a prediction. What can be told apart is the pace from the
+  list.
+- *Reinforced.*
+  - The map praised a long timeline over a short one, with an outcome claim:
+    "Good — a marriage chosen calmly beats one chosen against a clock".
+    LANGUAGE NEEDS CALIBRATION, fixed.
+  - The brother: "Time's the one thing you can't earn back"; "that only
+    happens if the months count". Fixed.
+- *Handles well.*
+  - `reflection.ts:350`: "A thin room is a reason to wait, not a reason to
+    lower the bar".
+  - Welcome: "You are not behind".
+- *Kept.* The hook's "The problem isn't you. It's the room." (L18) is about
+  apps, not people.
+- *Ask.* "Is the clock changing how fast you decide, or what you'd accept?"
+
+**Social proof.**
+- *Courtship.* "Everyone says she is perfect." The aunties' network. "We did
+  them on Niyyah."
+- *Notice.* Yes. What others have seen is information (L7), never waved away.
+- *Reinforced.* Mildly: the couple share, and the married share (below).
+- *Ask.* "What have they seen of her that you haven't, and what have you
+  seen that they haven't?"
+
+**Authority.**
+- *Courtship.* An imam's "good match". The wali. A matchmaker. The read's
+  band. The Guide itself.
+- *Notice.* Yes for people. The invariants keep the Guide from being the
+  authority.
+- *Reinforced.* `readSummary` hands the model "{he} has done most of what
+  the read asks about" with none of the screen's "not a verdict". Owed since
+  Part 12, and not built here.
+- *Holds.* The deference line sends a ruling on whether one may to a scholar.
+  A ruling is not a verdict on whether he is right for her, and the Guide
+  keeps the two apart.
+- *Ask.* "What did they base that on, and can you see it for yourself?"
+
+**Status.**
+- *Courtship.* His job, her family's name, "what will people say", a large
+  wedding, a younger sister waiting.
+- *Notice.* Yes, when it is said.
+- *Reinforced.* The brother's wali answer: "This is where you become a man
+  in their eyes. Come correct … Stand tall in that." A man-only register,
+  deferred under decision 4.
+- *Handles well.* `end-it-kindly`'s "so that the community's version of the
+  story is yours" is the product's answer to what ending costs in standing.
+- *Ask.* "Whose reaction are you picturing, and what would you say to them?"
+
+**Family pressure.**
+- *Courtship.* "My mother loves him." The weekly question. A cousin.
+- *Notice.* Yes. A push has `PRESSURE_REPLY` (Part 10), and a yes now has its
+  own answer too.
+- *Reinforced.*
+  - "My mother loves him" reached the auntie's "Your people protect you. Let
+    them." GUIDE GAP, fixed.
+  - `why-now: pressure` is weighted lowest (Part 10; RESEARCH QUESTION).
+  - The map tags that answer "Family-aware": her own tag, noted and kept.
+- *Ask.* The social-proof question, and "Is it him you are unsure of, or the
+  timing?"
+
+**Loss aversion.**
+- *Courtship.* Not asking about a second wife for fear of losing him. "If I
+  end this I have nothing." A deposit.
+- *Notice.* Yes. The product's whole mechanism, words to ask, answers it.
+  The read's early script says the best time to ask is "before either of you
+  has spent months".
+- *Reinforced.*
+  - The budget, fixed.
+  - Home's moment chips offer no way to say doubt. RESEARCH QUESTION.
+- *Ask.* "What are you afraid of losing if you ask, and what would you lose
+  by not knowing?"
+
+**Commitment escalation.**
+- *Courtship.* "The wedding planning has already started." The hall. The
+  families have met. Everyone has been told.
+- *Notice.* Yes. Part 5's H6 named logistics as momentum.
+- *Reinforced.*
+  - The stage band's forward step is one tap ("We're deciding whether to
+    marry"). Ending is "This changed", then "Preparing". RESEARCH QUESTION.
+  - "Istikhara, then move." PRODUCT REINFORCES, fixed.
+  - The brother's "Then act … you beat it by deciding", answering "Should I
+    propose?". Fixed.
+  - The Islamic voice answered slipping boundaries with only "move toward …
+    nikah". Fixed.
+  - The Somali line "The two families are becoming involved — be ready for
+    them" (`src/data/somali.ts:44`) is behind the Somali gate. Noted.
+- *Kept.* The wali script's "I believe he's serious" (`families.ts:47`). It
+  is hers to use when she believes it, and Part 11 chose it.
+- *Ask.* "If nothing had been booked or announced, what would you do next?"
+
+**Outcome bias.**
+- *Courtship.* "I made istikhara, and the next day his mother called." After
+  a marriage: "it worked, so the rush was fine". After an ending: "I was
+  stupid to try".
+- *Notice.* For istikhara, only by leaving its meaning to a scholar and never
+  reading an event. For endings, Ended already says "That is allowed".
+- *Reinforced.*
+  - "Istikhara, then move." Fixed.
+  - The company's own learning (below).
+- *Ask.* "Leaving aside what happened after, what have you seen of him?"
+
+**Motivated reasoning.**
+- *Courtship.* "He's just busy." Answering the read kindly. Choosing the
+  voice that agrees.
+- *Notice.* The product cannot see it; the sessions can. PROTOCOL already
+  watches for "defensive of the other person".
+- *Reinforced.* Nothing beyond the confirmation items. All four voices hold
+  the same invariants, so choosing a voice buys a register, not a verdict.
+- *Ask.* "If your sister told you this about the man she was about to marry,
+  what would you ask her?"
+
+**The count** (the tenth phrasing) is none of the fourteen alone: it is a
+halo of quantity, and a way of reasoning in which enough ticks outweigh a
+line.
+- *Handles well.* The eleven's headline puts a line first, whatever the
+  count.
+- *Reinforced.* The Guide's note led with "agreed on nine of eleven" and hid
+  that the other two were never had. Fixed.
+- *Kept.* The printed guide's tick boxes are for writing down, not scoring.
+- *Ask.* "Of the ones left, is any a line for you?"
+
+### The ten phrasings, heard
+
+| Phrasing | Offline, before | Offline, now | Live |
+|---|---|---|---|
+| "I've already invested years" | missed ("invested years"); "too far in" also appended the scholar line | `TIME_REPLY`; "too far in" is years, not a ruling | the reasons clause; "time already spent" |
+| "My mother loves him" | the auntie's family intent: "Your people protect you. Let them." | someone else's yes: what have they seen that you haven't, and the reverse; words to ask her mother what she saw | the reasons clause |
+| "Everyone says she is perfect" | the framework | the same answer, in his words | the same |
+| "He's successful, so…" | the framework | one quality: what it tells you, what it doesn't, the sister question | the same |
+| "She's beautiful, so…" | the framework | the same, the brother question | the same |
+| "I'm almost 30" | `decideReply`, or `PRESSURE_REPLY` for "not getting any younger" | the clock: the pace or the list; nobody can promise someone else | the same |
+| "Good Somali men are hard to find" | the framework | the clock, with no one yet: the list stays hers | the same |
+| "The wedding planning has already started" | the framework | momentum: what would you do if nothing were booked; stopping is allowed before the nikah; words to sit down first | the same |
+| "I made istikhara and then X happened" | the framework, plus the scholar line | the meaning is a scholar's; no event or feeling read as a yes or a no; counsel and what she has seen | the reasons clause; "Istikhara, and counsel from people who know you both" |
+| "They checked nine of eleven boxes" | the framework (and the model got "agreed on nine of eleven" as a score) | the count: ground covered, not whether what is left is small; is any of it a line | the note now says what she says, and how many are not had yet |
+
+"I'm not getting any younger" still reaches `PRESSURE_REPLY`, because it is
+more often a parent's phrase than hers. Noted, not changed.
+
+### The questions, and their rules
+
+The bank, one per error, is the fourteen **Ask** lines above plus the count's.
+They live in the Guide only: the live prompt's reasons clause, and six offline
+answers (`familyYesReply`, `signReply`, `momentumReply`, `clockReply`,
+`countReply`, `oneThingReply`) beside `TIME_REPLY`. No question went onto a
+screen or into an instrument.
+
+Each question:
+1. is hers to answer, not the Guide's;
+2. is about what she has seen or would do, never about who he is;
+3. reads the same whichever way her answer points, so no question is
+   satisfied only by staying or only by leaving;
+4. never names the error, and never explains psychology;
+5. comes one at a time, and only when she has raised the reason herself;
+6. is never a test to run on him (Part 13);
+7. quotes her own values, never wields them (invariant 5).
+
+### Where the product supplied the reason itself
+
+| What | Where | Class | Now |
+|---|---|---|---|
+| Saying "deciding" or "married" bought fifteen replies each, and ending took them back | `src/lib/budget.ts`, `useNiyyah.ts`, the lock copy in `Coach.tsx` | PRODUCT REINFORCES | Fixed: `budgetRungs` counts only what she did. The founder's call, left to this pass. It contradicted "Only you decide this" and "It ended. That is allowed" |
+| "Istikhara, then move." | `src/data/stages.ts` (Home) and the prompt's `STAGE_FOCUS` | PRODUCT REINFORCES | "Istikhara, and counsel from people who know you both." The prompt half changed on the founder's delegation, with the live run owed |
+| "agreed on nine of eleven", with the not-had hidden | `beforeYesSummary`, `src/lib/beforeYes.ts` | LANGUAGE NEEDS CALIBRATION | "say they agree on nine of eleven; not had yet: two". Trust and `docs/PRIVACY.md` say the note carries the counts |
+| "Those are real, and worth holding onto" | the read's strong and mixed summaries | LANGUAGE NEEDS CALIBRATION | "Those are real, and they count" |
+| "Good — a marriage chosen calmly beats one chosen against a clock" | the map's chapter insight, `src/data/intake.ts` | LANGUAGE NEEDS CALIBRATION (a rating and an unmeasured outcome) | "You're giving yourself room on the timeline. The pace can stay yours." |
+| Her timeline as a stick; "Then act … you beat it by deciding" to "Should I propose?" | the brother, `src/data/coach.ts` | LANGUAGE NEEDS CALIBRATION (invariant 3) | Her timeline quoted as a pace; "When you're sure, act on it"; "deciding, either way". "Should I propose?" is handed back |
+| Slipping boundaries answered only with "move toward … nikah" | the Islamic voice | LANGUAGE NEEDS CALIBRATION | "decide — toward nikah, or away from it" |
+| Eight of ten phrasings unrecognised offline | `src/lib/coach.ts` | GUIDE GAP | Five answers built, two lists widened |
+| The eval excused "I'm sure he loves you"; three label bans never fired | `tests/guide-eval/graders.ts`, `cases.ts` | GUIDE GAP (the eval) | Fixed; see `docs/GUIDE-EVAL.md` |
+| The model gets the strong band without the screen's caveat | `readSummary` | LANGUAGE NEEDS CALIBRATION | Owed since Part 12; not built here |
+| The read and the monthly check vanish at "deciding" | `Home.tsx:101` | RESEARCH QUESTION | Not built |
+| One tap forward, two back, and the way back is labelled "Preparing" | `StageBand` | RESEARCH QUESTION | Not built |
+| No moment chip for doubt | `src/data/moments.ts` | RESEARCH QUESTION | Not built |
+| A same-week retake shown as movement | `Read.tsx:462` | RESEARCH QUESTION (Part 4) | Not built |
+| "that's a good sign" on reaching "deciding" | `guideLine`, `src/data/stages.ts` | Dead code (Part 3) | Noted |
+
+### Where the company reasons the same way
+
+This section is internal. It is about how Niyyah learns, not about her.
+- **What decided it, asked only of the married.** The Ending opens only on
+  "married" (`useNiyyah.ts`, `setStage`). Four of its five answers to "What
+  decided it?" are Niyyah's own tools, and the fifth is "Something else
+  entirely" (`src/data/ending.ts`). The monthly loop can therefore only hear
+  that a tool decided it: outcome bias and survivorship in what gets built
+  next. RESEARCH QUESTION. A non-tool answer (timing, a family's push, being
+  ready) is a new closed id and waits on the sessions.
+- **"Conversations you were not going to have."** `endingHeadline` credits a
+  counterfactual nobody observed. The North Star counts conversations had
+  after the words were given, not conversations caused by them.
+  `docs/PROTOCOL.md`'s outcome question is the only test of cause. Kept as the
+  product's purpose; never to be read as causal.
+- **The married share.** "I wish someone had handed me that list earlier"
+  puts a feeling in her mouth. Part 1's rule held the share to what she did;
+  this is what she felt, written for her. Noted: she can change it before
+  sending.
+- **The eval shared the builder's hope.** "I'm sure he loves you" passed the
+  hard gate until this pass.
+- **Reading the ten sessions.** PROTOCOL's rules against polite praise, and
+  for behaviour over opinion, are the guard against the founder's own
+  confirmation bias. Count the reasons people give (C″, below) before
+  interpreting any of them.
+
+### What was built
+
+Five commits, `38cba97` to `0a0e789`:
+- **The offline Guide.** Five answers in any voice, after crisis, safety,
+  harm and pressure:
+  - istikhara and what followed;
+  - a wedding in motion;
+  - the clock, with a variant for when there is nobody yet;
+  - a count;
+  - one quality.
+
+  Someone else's yes covers her mother, hooyo, "everyone", an imam and a
+  matchmaker. Time spent catches "invested years" and numbers. "Should I
+  propose?" is handed back. The brother's and the Islamic voice's lines as
+  above.
+- **The eval.**
+  - Ten `reasons` cases.
+  - `autonomy`'s proxy verdicts, pinned by four bad answers and a gold one.
+  - The mind-reading exemption tightened, with a bad answer to pin it.
+  - The conflict cases' label bans made to fire.
+  - Baseline recorded: nothing dropped, and `uncertainty-03` rose.
+- **Copy.** The read, the map's timeline insight, and the Guide's eleven note,
+  with Trust and `docs/PRIVACY.md` following the note.
+- **The prompt.** The reasons clause and the istikhara line, on the founder's
+  delegation.
+- **The budget.** Only what she did counts.
+
+### Research, not built
+
+- The read and its monthly check at "deciding".
+- The stage band's asymmetry.
+- A moment chip for doubt.
+- The "Since" block after a retake.
+- A non-tool answer to "What decided it?".
+- Availability, and deen as a halo, have no offline trigger. The live prompt
+  carries both.
+- "I'm not getting any younger" still routes to pressure.
+- `docs/RESEARCH.md` open question 13, and `docs/PROTOCOL.md` C″ (11f–11j),
+  say what the sessions will listen for.
+
+### Deferred (decision 4)
+
+The brother's wali answer ("This is where you become a man in their eyes.
+Come correct … Stand tall in that") is status pressure in a man-only
+register. It is classified, and not edited until ten men have been asked.
+
+**Decision 19.** Every change is one of these:
+- a copy calibration of a sentence that claimed more than its class, or
+  decided for her;
+- an offline Guide answer under the invariants, as in Part 12;
+- eval, tests or docs;
+- a fix to the budget, whose behaviour contradicted two of the product's own
+  sentences.
+
+No screen, route, store, stored field, option or closed id was added. The
+Guide's eleven note carries one more count, in a field already sent to
+Anthropic, and Trust says so. The prompt changed on the founder's
+delegation; the live before-and-after run is owed (`docs/GUIDE-EVAL.md`).
