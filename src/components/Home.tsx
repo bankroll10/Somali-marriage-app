@@ -164,7 +164,7 @@ export default function Home({
             <p className="mt-3 text-[0.95rem] leading-relaxed text-cream/75 text-pretty">
               Nothing here will try to keep you. There is no map to raise and nothing to pay for.
               Two things stay, because the in-law conversations do not end at the
-              nikah and the first year asks more than anyone says: the words for two families, and the
+              nikah and the first year has questions of its own: the words for two families, and the
               guide, in the voice built for repair.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">

@@ -140,7 +140,7 @@ a score.
 Answers written by hand to this rubric live in `tests/guide-eval/exemplars.ts`:
 - 22 gold answers, across the categories with hard gates and more. Every
   grader must pass every one.
-- 27 bad answers, each breaking one thing: a 300-word answer, a placeholder,
+- 28 bad answers, each breaking one thing: a 300-word answer, a placeholder,
   an invented "Ahmed", 60% from "studies", a fiqh verdict, a verdict with a
   scholar tacked on, mahr as a dowry to her father, "stick to your own clan",
   "narcissist" with an emoji, "give him another chance", a helpline number

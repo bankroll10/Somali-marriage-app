@@ -110,7 +110,7 @@ const SCRIPTS: FamilyScript[] = [
     when: 'Before the families set it for you.',
     stages: ['deciding'],
     script: {
-      why: 'If you don’t discuss these between you first, they will be decided in a room you’re not in. Having your own answer before the families meet is the difference between being consulted and being informed.',
+      why: 'If you don’t discuss these between you first, they can be decided in a room you’re not in. Having your own answer before the families meet is the difference between being consulted and being informed.',
       words:
         'Before our families sit down, I want us to have our own answers. What do you think is right for the mahr — and where do you see us living in the first year? I’d rather we walk in knowing where we each stand than find out at the table.',
       tells:

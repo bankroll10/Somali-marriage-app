@@ -125,7 +125,7 @@ export const chapters: Chapter[] = [
           {
             id: 'pressure',
             label: 'My family and community expect it of me',
-            hint: 'Common, and worth naming honestly.',
+            hint: 'Worth naming honestly.',
             tags: ['Family-aware'],
             weight: 0.4,
           },
@@ -169,7 +169,7 @@ export const chapters: Chapter[] = [
     kicker: '02 · Family & Life',
     title: 'The life you want',
     intro:
-      'For us, marriage is rarely two people alone — it is families, roots, and a horizon meeting. Alignment is not about being identical. It is about walking toward the same horizon, with the same people in the story.',
+      'For us, marriage is families, roots, and a horizon meeting — not two people alone. Alignment is not about being identical. It is about walking toward the same horizon, with the same people in the story.',
     questions: [
       {
         id: 'family-role',

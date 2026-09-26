@@ -52,7 +52,7 @@ export interface Topic {
   prompt: string
   /** 0–1. How much rides on this one. Decides which gap gets the words. */
   consequence: number
-  /** Why this one is found out too late, specifically in our families. */
+  /** Why this one is found out too late, specifically in our families (class F, docs/RESEARCH.md L5). */
   why: string
   script: ElevenScript
   yourSide?: YourSide
@@ -70,7 +70,7 @@ export const TOPICS: Topic[] = [
     // — the less common direction here. His people's house is the question
     // his side carries (docs/DECISIONS.md Part 10).
     man: { prompt: 'Where you’d live — which city, and whether with your mother, near her, or on your own.' },
-    why: 'This is rarely decided by two people alone, and it is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and find out only once the lease is signed that they pictured different homes.',
+    why: 'Whether this is decided by the two of you, or with a family in the room, is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and find out only once the lease is signed that they pictured different homes.',
     script: {
       why: 'Where you live decides who is in your home every day, and it is easy not to ask until the lease is signed.',
       words:
@@ -151,7 +151,7 @@ export const TOPICS: Topic[] = [
     label: 'Money sent home',
     prompt: 'Money — who pays for what, and what either of you sends home to family.',
     consequence: 0.85,
-    why: 'Money sent home is easy to leave unsaid until after the wedding. It is not about generosity. It is two families’ expectations landing on one income, unspoken.',
+    why: 'Money sent home is easy to leave unsaid until after the wedding. It is not about generosity. It can be two families’ expectations landing on one income, unspoken.',
     script: {
       why: 'If nobody talked about money with you growing up, that is a reason to talk about it with {him}, not a reason to skip it.',
       words:
@@ -241,7 +241,7 @@ export const TOPICS: Topic[] = [
     label: 'Qabiil',
     prompt: 'Qabiil — whether either of your families will make it a question, and what the two of you have said to each other about it.',
     consequence: 0.7,
-    why: '“It doesn’t matter to me” can be true of both of you and still not settle it. The question was never only about you two. It is whether either family will raise it — and whether {he} will stand next to you when they do.',
+    why: '“It doesn’t matter to me” can be true of both of you and still not settle it. The question was never only about you two. It is whether either family will raise it — and whether {he} will stand next to you if they do.',
     script: {
       why: 'You are not asking whether it matters to {him}. You are asking what happens if it matters to someone at {his} table.',
       words:
@@ -268,7 +268,7 @@ export const TOPICS: Topic[] = [
     label: 'A second wife',
     prompt: 'A second wife — what {he} believes about it for {his} own life, and what {he} has said to you plainly.',
     consequence: 0.9,
-    why: 'It is easy not to ask, because asking feels like an accusation. It isn’t. It is one of the few questions where the answer shapes the rest of a life, and where “it is permitted” and “I would” are very different sentences.',
+    why: 'It is easy not to ask, because asking feels like an accusation. It isn’t. It is a question whose answer shapes the rest of a life, and where “it is permitted” and “I would” are very different sentences.',
     man: {
       prompt: 'A second wife — what you believe about it for your own life, and whether you have said it to her plainly.',
       script: {

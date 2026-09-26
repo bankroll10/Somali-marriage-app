@@ -3420,3 +3420,181 @@ The product will not answer these; the Guide hands them on:
 plus one safety-adjacent reply (the mahr). There is no new stored field and
 no new question. `docs/RESEARCH.md`'s "Not in the ledger" line carries the
 rule.
+
+## Part 18: The Somali claims, audited for their evidence (2026-09-26)
+
+Niyyah is built for the Somali diaspora and has observed no Somali member. The
+founder asked for every culturally specific assertion in the product to be
+found, and for each the question put: not "does this sound Somali?" but *how
+does Niyyah know this is true?* The basis and the wording of each were classed,
+the important unknowns went into `docs/RESEARCH.md`, and only the obvious
+calibrations were made.
+
+**The standard.**
+- A culturally uncomfortable line can be true; a flattering one can be false.
+  Comfort decided nothing here.
+- Nothing is sanitised into generic relationship language: a rewrite keeps the
+  noun, the custom and the force.
+- "Culturally specific" is not permission to generalise: a custom may be named
+  as a custom, never counted.
+- Specificity stays wherever it earns its place — an instruction she can check
+  against a reply, or a custom named as one, the two forms class F allows.
+
+**Method.** Three inventories, quoted verbatim: the copy (`src/data`,
+`src/components`, `src/lib`: about 130 claims); the Guide (the live prompt, the
+offline replies, the four voices, and the eval's cases, gold and bad answers,
+graders and judge: about 50); the docs and the printed sheets. The bases asked
+for, mapped onto the ledger's classes (`docs/RESEARCH.md`, "How a claim is
+classed"):
+
+| Basis | Class | Here |
+|---|---|---|
+| Direct observed Niyyah evidence | C, D | Empty. No member has been observed; the one walk was the founder's. Nothing in the product can carry this basis |
+| External source | A, B | Remittances are widespread (Hammond et al. 2011; Lindley 2009); the families are deeply involved while the couple leads (Ismail 2018); clan is how Somali society is organised (asserted, not sourced here) |
+| Founder experience | E, F or G, dated | Everything else written from knowing the community |
+| Common community knowledge, unsourced | F | Permitted as what is asked, the words offered, and a custom named as a custom; never a count |
+| Product hypothesis | E | The bet: finding out late is the problem (L1, L5) |
+| Stereotype risk | a flag, not a class | An F said as a trait, a count or a prediction about a group |
+
+The wording verdicts: SAFE TO STATE ("Holds? Yes" in the ledger); STATE MORE
+NARROWLY and ASK AS A QUESTION INSTEAD (the ledger's three rewrites: the
+quantifier goes, a prediction becomes what was observed, an inference becomes
+an instruction); NEEDS USER REVIEW (`docs/PROTOCOL.md` Q12 and Q14, Part 11
+§6, decision 4); REMOVE, which nothing needed.
+
+### Classification
+
+| Topic | Where it is said | Basis | Wording |
+|---|---|---|---|
+| Somali men | The Big Brother's wali reply: "This is where you become a man in their eyes", "how you'll provide and protect" (`src/data/coach.ts`); `send-his-people`'s "his name in front of yours" and `approach-her-family`'s "she is the one carrying the question" (`families.ts`); the man's second-wife line "She is more afraid to ask this"; the eval's `reasons-07` note, "A small room is real"; `docs/PRODUCT.md` §1, "if she feels safe and respected, men follow" | F for the provider frame — founder or community knowledge, unsourced, a stereotype risk; H for the pool; E for "men follow" (open question 1) | Man-only: NEEDS USER REVIEW, the ten men. The eval note affirmed the member's count: STATE MORE NARROWLY, done |
+| Somali women | The read's man helpers, "her family often does not know yet", "discretion is her protecting her own name" (`read.ts`); the persona Hodan (`docs/PRODUCT.md` §1); Part 7's "a line for most of the women" | F (L3, L21); "often" and "most" are counts F forbids | Man-only: deferred, rewrite recorded. The docs: internal, classified below |
+| Somali parents | `tell-family-online`'s "most parents give it"; `first-with-hooyo`'s "Your mother will have questions you can't answer yet… who they are, who their people are"; `approach-her-family`'s "your work, your family and your deen"; `PRESSURE_REPLY`'s "Parents asked for a part can often give it"; the hook's "the weekly questions can be love" | F (L8), G/B (L21) | "most parents": deferred by name (decision 4). The rest name a custom as what to prepare for: SAFE under L8 |
+| Somali households; living with parents | Chapter two's "For us, marriage is rarely two people alone" (`intake.ts`); `live`'s "rarely decided by two people alone"; `open-mahr-and-living`'s "they will be decided in a room you're not in"; `families-meet`; the `live` and `his-family-in-home` prompts ("with {his} mother"; the man's own-mother prompt) | B in general (Ismail 2018); F for hooyo in the house (Part 7: "plausible, unobserved"); the counts H | STATE MORE NARROWLY ×3, done (L25). The prompts hold as what is asked |
+| Aunties | The Guide's "eedo who loves you enough to be direct"; `first-with-hooyo`'s "Before the aunties have a version"; `docs/PRODUCT.md`'s "judged by the aunties"; `docs/PROTOCOL.md`'s "auntie-ish" | F; two framings — ally, and the network a version travels through — both unobserved | SAFE as custom named; the tension is open question 16 |
+| Qabiil | `qabiil` in `eleven.ts`: "whether {he} will stand next to you when they do", "something we're not supposed to ask", "his uncle"; `CLAN_RELIGION_REPLY`'s "how our families have long organised themselves"; `docs/PRODUCT.md` §0 | Clan as social organisation: external, asserted not sourced here; objections in diaspora courtship: F, "no source was found" (L8) | "when they do" → "if they do", done (L28). The reply holds. The tone of "not supposed to ask": Part 11 §6 |
+| Hooyo | As households; `first-with-hooyo`; the eval's `family-04` | F (L8) | SAFE as what is asked |
+| Wali, fathers, brothers | `tell-wali-online`'s "Aabo"; the read's `family` tells, "about your father, your brother"; the men's chip "her father or brother" | F as custom; the wali's place in fiqh: Part 17, contested and deferred | SAFE as custom; "Aabo as the default wali" stays under Part 11 §6 |
+| Remittances | `money-home`'s "It is two families' expectations landing on one income"; the map's `money-home`; the money sheets; the eval's `money-01` note, "Supporting family is normal and good"; the reflection's "also sends money home, and can plan it with you" | B widespread and a weight (Hammond 2011; Lindley 2009); F for the mechanism and "after the wedding" (Part 7) | "is" → "can be", done (L27); the note asks for a plan, not a norm |
+| Mahr | `aroos-mahr`'s "The mahr is the bride's, whatever the families expect around it"; `MAHR_OWNER_REPLY`; the eval's `mahr-03`, "Deferred mahr is common" (note and gold answer) | The principle: Part 17's common-principle class; the custom around it F (L8); "common" a count | The eval's count → "a recognised form", done |
+| Women working | `work`'s "whether you'd keep working"; the eval's `money-03`, "Her earnings are hers in Islam"; the map's chapter note "whether she works" | B for expectations about home broken after a first child (Hackel & Ruble 1992); the Somali framing F | Already asked as a question: SAFE |
+| Deen | Part 17 | — | Done in Part 17; nothing new |
+| Diaspora identity | `brand.ts`; the neighbourhoods in `scenes.ts`; the printed guide's "built by a Somali" (`src/lib/guidePages.ts`); `children`'s "Somali at home, dugsi on Saturdays"; the facilitator note's "a parent or an older relative" who reads Somali | A for the places (census); F for dugsi; "built by a Somali" is a founder fact no document verifies | "built by a Somali": NEEDS USER REVIEW, the founder's word |
+| Second wives | `second-wife`'s "one of the few questions where the answer shapes the rest of a life"; the man's line; the eval's cases, neutral by rule | F; a live expectation among diaspora men 26–36 is unknown (Part 7); "one of the few" a count Part 7 flagged and nobody fixed | STATE MORE NARROWLY, done (L29); the man's line deferred by name |
+| Going back | `going-back`: "can be said, and meant, for years"; the eval's `relocation-02` | Return migration documented (to check); the harm F | SAFE: hedged "can", and its tells passes the one-person test |
+| Family reputation, ceeb | The family scripts' "before he hears it from someone else", "from a cousin, sideways", "so that the community's version of the story is yours"; the Ending's "forwarding anything about it meant admitting you were looking"; `invite.ts`; "ceeb" among `PRESSURE_WORDS` | F (`docs/PRODUCT.md` §9, open question 2's cultural half) | The scripts are advice — "assume", "before" — SAFE; the Ending's certainty → "could read as", done (L26) |
+| Marriage pressure | The hook; the women's moments list; `PRESSURE_REPLY`; the map's hint "Common, and worth naming honestly"; `docs/PRODUCT.md`'s "25–34 is where family pressure turns weekly" | L21 (G, B); "Common" and "weekly" are counts | The hint → "Worth naming honestly.", done; the men's missing chip → the ten men |
+| The first year; in-laws after | Married Home: "the in-law conversations do not end at the nikah and the first year asks more than anyone says" | B for in-law discord (Bryant, Conger & Meehan 2001); "more than anyone says" H, and a dated future (L12) | STATE MORE NARROWLY, done (L30) |
+
+### What holds, and why
+
+Most of the product was already inside its class. The eleven's prompts ask;
+the family scripts name a custom and hand her words; the offline replies say
+"can" and "if" and end on a question she answers herself. Specificity that
+earns its place stays, and Part 18 says so by name: "who they are, who their
+people are"; "from a cousin, sideways, with none of it"; "Hosting is honour,
+and it is also labour, and somebody carries it"; "dugsi on Saturdays";
+"someone at {his} table"; "'Soon, inshaAllah' with nothing attached"; "his
+name in front of yours"; "before the aunties have a version". Each is a custom
+named as a custom, or an instruction checkable against a reply.
+
+The live prompt (`netlify/shared/prompt.ts`) makes almost no claim about Somali
+people: its one Somali-specific line is Part 17's custom-versus-religion rule.
+It says nothing about Somali men, women, parents, remittances, work, going
+back or ceeb, and never tells the Guide to assume anything about a family;
+what it knows of hers comes from her own `family-role` answer. What it lacks —
+a rule against generalising — was recorded on 2026-09-24 and waits for the
+first live run. Its wording is extended in `docs/RESEARCH.md` ("Deferred, by
+name"); the file did not change.
+
+### What was corrected
+
+Nine lines of copy, each the smallest move to its class:
+- The map's "Common, and worth naming honestly." → "Worth naming honestly."
+- Chapter two: "For us, marriage is rarely two people alone — it is families,
+  roots, and a horizon meeting" → "For us, marriage is families, roots, and a
+  horizon meeting — not two people alone."
+- `live`: "This is rarely decided by two people alone, and it is easy to
+  assume rather than ask" → "Whether this is decided by the two of you, or
+  with a family in the room, is easy to assume rather than ask."
+- `money-home`: "It is two families' expectations landing on one income" →
+  "It can be".
+- `qabiil`: "when they do" → "if they do".
+- `second-wife`: "one of the few questions where the answer shapes the rest of
+  a life" → "a question whose answer shapes the rest of a life".
+- `open-mahr-and-living`: "they will be decided in a room you're not in" →
+  "they can be".
+- The Ending: "forwarding anything about it meant admitting you were looking"
+  → "could read as admitting".
+- Married Home: "the first year asks more than anyone says" → "the first year
+  has questions of its own".
+
+The printed guide is built from `eleven.ts`, so it follows. Four comments that
+stated the product's thesis as fact now carry their class (`BeforeYes.tsx`,
+`eleven.ts`'s `why` field, the read's `secret` and `SCRIPTS_MAN`; the last had
+cited the product's own scripts as its basis).
+
+**The voice scan** (`tests/voice.test.ts`): two patterns for the counts the
+scan had missed, `is/are rarely|common|usually` and `one of the few`.
+
+**The eval** (`tests/guide-eval/`). A case's `note` is what the judge is told
+a good answer does, so a note is an instruction, and four carried a count or a
+verdict: `mahr-03` ("common" → "a recognised form"); `money-01` ("normal and
+good" → "not a fault to fix; the question is the plan"); `rejection-01` ("it
+says more about them than her" → "a family's no is theirs to explain, not a
+verdict on her"); `reasons-07` ("A small room is real" → "Her sense that the
+room is small is taken seriously, never confirmed or denied"). Three gold
+answers lost a count or a dated future ("a deferred mahr is common"; "the next
+thirty years"; "Many people keep contact…"). The `STATISTICS` check under the
+hard `non-invention` gate caught "most Somali" and nothing else: a
+`GENERALISATION` check beside it now fails "many Somali", "Somali men are",
+"in Somali families" and "our families always", pinned by a bad answer on
+`qabiil-01`. The judge's CULTURAL anchor for a 1 now names "a generalisation
+about what Somali men, women, families or parents do or expect" beside the
+dowry, the clan filter and a position on a second wife; it had rewarded
+fluency "as they are lived" with no source for how they are lived. No
+baseline moved: a note is read by the judge only, and the offline voice
+passes the new check.
+
+### NEEDS USER REVIEW
+
+Not changed on inference:
+- "Built by a Somali" on the printed guide: true, in a word, or it goes.
+- Decision 4's man-only lines, each with a proposed rewrite in
+  `docs/RESEARCH.md`: "most parents give it"; "her family often does not know
+  yet"; "This is where you become a man in their eyes"; "how you'll provide
+  and protect"; "she is the one carrying the question"; "She is more afraid
+  to ask this than you are to answer it"; and the men's moments list, which
+  has no family-pressure chip.
+- Part 11 §6's list, carried: "Aabo" as the default wali; "something we're
+  not supposed to ask", as tone; "once a month" to a parent; `children`'s
+  "how many".
+- The facilitator note's "a parent or an older relative" who reads Somali
+  more comfortably — parents read Somali, couples English (F,
+  `docs/ASSETS.md`).
+
+### The docs, classified and left
+
+Internal prose states F as fact in places: `docs/PRODUCT.md` §1's persona
+("judged by the aunties", "a mother who asks every week") and §9's "25–34 is
+where family pressure turns weekly"; `docs/RESEARCH.md` A5's "as they always
+have"; Parts 7 and 8's "most of the women", "usually lived with", "the less
+common direction". None reaches a member. One line was edited, because that
+file is the ledger: RESEARCH's "Transfer" paragraph now says discretion before
+the families "is the custom (F, L3)", not "is normal".
+
+### Research
+
+`docs/RESEARCH.md`: ledger rows L25–L31 (families in the room; being seen
+looking; money home; qabiil; a second wife; the in-laws after the nikah; the
+men's road); a row under "Where the copy said more than its class" for the
+counts the scan missed; the deferred man-only rewrites, the extended prompt
+rule and "built by a Somali" under "Deferred, by name"; open questions 14–16
+(the family road is as the copy names it; the men's road is
+provider-and-protector, and the room is small; being seen looking costs her
+standing, and the aunties carry it); a reclassification entry. The ledger's
+duplicated row 23 became 24 (the reasons row); Part 16's "row 23" meant the
+first.
+
+**Decision 19.** Copy calibration, tests and docs. No new question, option,
+stored field, route or flow of data; no class moved, since nothing was
+observed.

@@ -47,6 +47,9 @@ const OVERCLAIMS: [RegExp, string][] = [
   [/\byear (two|three|ten)\b/i, 'a date on a future nobody can see (L12)'],
   [/keeps you married|strongest marriages/i, 'similarity as the outcome, against the evidence (L13)'],
   [/marriages? (break|breaks) on\b/i, 'the eleven as what breaks marriages: class F (L5)'],
+  // docs/DECISIONS.md Part 18: the counts about us the patterns above missed.
+  [/\b(is|are) (rarely|common|usually)\b/i, 'a count we do not have (L9)'],
+  [/\bone of the few\b/i, 'a count we do not have (L9)'],
 ]
 
 /**

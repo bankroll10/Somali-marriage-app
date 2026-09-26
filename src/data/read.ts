@@ -239,10 +239,10 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     // Hidden is the sharpest signal there is for a woman, and it is not the
     // same signal for a man. Before the families have met, a woman asking for
     // discretion is usually protecting her own name in a community that will
-    // discuss her either way. So his weights do not read discretion alone as
-    // non-seriousness. Discretion AND nobody in her life knowing him is a
-    // different thing, and src/lib/read.ts still names that combination for
-    // either side.
+    // discuss her either way (class F, docs/RESEARCH.md L3). So his weights do
+    // not read discretion alone as non-seriousness. Discretion AND nobody in
+    // her life knowing him is a different thing, and src/lib/read.ts still
+    // names that combination for either side.
     man: {
       helper: 'Before the families have met, some discretion is her protecting her own name. Repeated, with nobody in her life knowing you, is something else.',
       options: {
@@ -544,10 +544,10 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
  *
  * `family` is the one that cannot be flipped by pronouns: "How would you want
  * to approach my family?" is the right sentence for a woman and the wrong one
- * for a man, because in this culture it is his people who go to hers. The
- * product's own family scripts say so — src/data/families.ts has a woman
- * asking him to send his people — so handing a man her sentence would tell
- * him to wait for a step that is his to take.
+ * for a man, because here it is his people who go to hers (class F,
+ * docs/RESEARCH.md L8: a custom named as a custom, unobserved). The family
+ * scripts in src/data/families.ts are written from the same custom, so handing
+ * a man her sentence would tell him to wait for a step that is his to take.
  */
 const SCRIPTS_MAN: Partial<Record<ReadDimension | 'early', Script>> = {
   family: {

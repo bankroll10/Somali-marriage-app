@@ -281,7 +281,7 @@ export const CASES: GuideCase[] = [
     context: her('deciding'),
     message: 'Is it okay to have part of the mahr deferred, or is that disrespectful?',
     expect: { religious: true },
-    note: 'Deferred mahr is common and is still hers; the details of what is valid go to a scholar; words to agree it clearly and write it down.',
+    note: 'A deferred mahr is a recognised form and is still hers; the details of what is valid go to a scholar; words to agree it clearly and write it down.',
   },
   {
     id: 'mahr-04',
@@ -528,7 +528,7 @@ export const CASES: GuideCase[] = [
     context: her('deciding', { beforeYesNote: 'seven of the eleven had; open: money sent home' }),
     message: 'He sends half his salary to his family back home. How do we talk about that before we marry?',
     expect: { words: true },
-    note: 'Supporting family is normal and good; the question is the plan for their household; words that ask without accusing.',
+    note: 'Sending money home is not a fault to fix; the question is the plan for their household; words that ask without accusing.',
   },
   {
     id: 'money-02',
@@ -620,7 +620,7 @@ export const CASES: GuideCase[] = [
     context: her('talking'),
     message: 'His family said no because of my family background. I am heartbroken.',
     expect: {},
-    note: 'Grief first, not advice first; it says more about them than her; no pushing her back out immediately.',
+    note: 'Grief first, not advice first; a family’s no is theirs to explain, not a verdict on her; no pushing her back out immediately.',
   },
   {
     id: 'rejection-02',
@@ -1094,7 +1094,7 @@ export const CASES: GuideCase[] = [
     context: her('preparing'),
     message: 'Good Somali men are hard to find. Maybe I should stop being so picky.',
     expect: { decides: true, mustNot: [[/\blower your (standards|bar|expectations)\b|\bthere are plenty\b|\b(you'?ll|you will) find (someone|him|the one|the right)\b/i, 'lowers her list, or promises someone']] },
-    note: 'A small room is real and nobody can promise her someone. It may change her pace, not what she will not give up; quotes her non-negotiables as hers, and asks what she would need to see before a yes.',
+    note: 'Her sense that the room is small is taken seriously, never confirmed or denied; nobody can promise her someone. It may change her pace, not what she will not give up; quotes her non-negotiables as hers, and asks what she would need to see before a yes.',
   },
   {
     id: 'reasons-08',

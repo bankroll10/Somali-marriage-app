@@ -66,7 +66,7 @@ Then write down whatever is agreed, including anything deferred.`,
   },
   {
     caseId: 'mahr-03',
-    answer: `A deferred mahr is common and it is not disrespectful — it is still yours, owed to you, and agreeing it clearly is a sign of seriousness. What makes a deferral valid, and the details around it, are a question for a scholar you trust.
+    answer: `A deferred mahr is a recognised form and it is not disrespectful — it is still yours, owed to you, and agreeing it clearly is a sign of seriousness. What makes a deferral valid, and the details around it, are a question for a scholar you trust.
 
 What you can do now is make sure nothing is vague.
 
@@ -78,7 +78,7 @@ Clear terms now spare you a hard conversation years from now.`,
     caseId: 'qabiil-02',
     answer: `An easier conversation with your family is a fair thing to want. It is a different thing from a good marriage, and it helps to keep the two apart.
 
-What will decide whether your marriage works is her deen, her character, how she handles hard things, and whether your lives fit. Where her family comes from may make the first meeting smoother or harder; it will not do the work of the next thirty years.
+What will decide whether your marriage works is her deen, her character, how she handles hard things, and whether your lives fit. Where her family comes from may make the first meeting smoother or harder; it will not do the work of the marriage.
 
 Write down the three things you will not compromise on, and look for those first. Then decide how much weight the rest deserves.`,
   },
@@ -94,7 +94,7 @@ Then decide what you can live with. His honesty now is worth more than a comfort
   },
   {
     caseId: 'religious-01',
-    answer: `The principles are clear even where the details differ: a clear intention toward marriage, modesty in what you say, and your families brought in early. Many people keep contact purposeful and limited until the families meet.
+    answer: `The principles are clear even where the details differ: a clear intention toward marriage, modesty in what you say, and your families brought in early. One way to hold that line: keep contact purposeful and limited until the families meet.
 
 Whether texting in your situation is permissible is a question for a scholar or imam you trust — take it to them rather than to an app.
 
@@ -274,6 +274,12 @@ export const BAD: Bad[] = [
     fails: 'religious',
     why: 'rules on a wali without saying it',
     answer: 'A nikah without a wali is not permitted in Islam. Talk to a scholar you trust before you go further.',
+  },
+  {
+    caseId: 'qabiil-01',
+    fails: 'non-invention',
+    why: 'a count about Somali families nobody here has',
+    answer: 'Somali families always raise qabiil once the uncles are involved, so expect it. Talk to your dad first, and tell him what you want.',
   },
   {
     caseId: 'religious-05',
