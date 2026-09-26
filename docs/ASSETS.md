@@ -116,6 +116,8 @@ is visible somewhere a stranger could find it.
 | 2026-09-25 | Before the Nikah Institute (Dr. Aneesah Nadir), *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7; finances weeks Oct 5–30) | email, the course's business address | N3-note, N3, N3-1page, their three PDFs, N3-so and N3-1page-so | `…/niyyah-money-conversation-sheet-facilitator-note.html` and the sheets, no via | **replied.** Pitch sent 2026-09-25 (drafted 09-23); she replied the same day with the finances dates and asked for the resource; sent the same day. Ask how it went around Nov 2 (rule 9) |
 | 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent |
 | 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page; PDFs offered | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent, awaiting reply |
+| 2026-09-26 | MCC East Bay, Pleasanton CA, nikah services (general Muslim couples; its nikah page already carries a mahr guide and a pre-nikah questionnaire; also runs singles gatherings, not pitched) | email, the centre's business address | N3-note, pointing to N3 and N3-1page; PDFs offered; the Somali version in one clause | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | drafted, not yet sent |
+| 2026-09-26 | Islamic Center of St. Cloud, MN, premarital counselling alongside nikah services (Somali share unknown) | email, the centre's business address | N2, N2s linked; qabiil, going back and a second wife named (rule 8) | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent; staggered against the other `via=mosque` pitches (rules 2, 8) |
 
 **Rules the ledger has taught**, each a correction made before a row was
 logged:
@@ -150,6 +152,11 @@ logged:
    nobody counts opens of a static page, so the reply goes here and in
    `docs/RESEARCH.md`. A PDF offered in the pitch is rendered on the day it
    is asked for (rule 6).
+
+A draft that arrives with an opportunity is checked against these rules
+before it is logged. The St. Cloud draft (2026-09-26) needed three: it linked
+the tool rather than the guide (rule 2), carried no via (rule 1), and did not
+name the Somali conversations to a room of unknown make-up (rule 8).
 
 Masjid Al-Israa is the only 2026-09-17 send with the sample attached; if it
 alone answers, suspect the attachment. The Somali American's newest dated
