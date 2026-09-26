@@ -314,6 +314,46 @@ describe('decision support, never a decision (docs/GUIDE-EVAL.md, the invariants
     expect(say('Thanks — but what do I say to his mother?')).not.toMatch(/^Then go and say it/)
   })
 
+  it('meets a reason that is not about him as a reason, and hands the decision back with what she has seen (Part 14)', () => {
+    const talking = { ...her, stage: 'talking' as const }
+    const cases: [string, CoachContext, RegExp][] = [
+      ['I’ve already invested years in him. I can’t just walk away now, can I?', talking, /time already spent is not, by itself, a reason/],
+      ['My mother loves him. That’s a good sign, right?', talking, /What have they seen of him that you haven't/],
+      ['Everyone says she is perfect. My mum, my sisters, the whole community.', { ...him, stage: 'talking' }, /What have they seen of her that you haven't/],
+      ['He’s successful, he has a good job, so he’d be a good husband, right?', talking, /It is also one thing about him/],
+      ['She’s beautiful, so the rest will work itself out.', { ...him, stage: 'talking' }, /It is also one thing about her/],
+      ['I’m almost 30. Should I just say yes to him?', talking, /the pace or the list/],
+      ['The wedding planning has already started and the hall is booked. It feels too late.', her, /If nothing had been booked or announced/],
+      ['I prayed istikhara and the next day his mother called mine. That’s my answer, isn’t it?', her, /won't read what happened, or what you feel, as a yes or a no/],
+      ['We checked nine of the eleven boxes. That’s good enough, right?', her, /A count tells you how much ground you've covered/],
+    ]
+    for (const [m, ctx, reply] of cases) {
+      const t = say(m, ctx)
+      expect(t, m).toMatch(reply)
+      expect(t, m).toMatch(/\byours\b|Only you/)
+      expect(t, m).not.toMatch(/three things help in almost any situation|Your people protect you|at your age|won't find better/i)
+    }
+  })
+
+  it('with nobody yet, the clock keeps the list and promises no one (Part 14)', () => {
+    const t = say('Good Somali men are hard to find. Maybe I should stop being so picky.', { ...her, stage: 'preparing' })
+    expect(t).toMatch(/Nobody can promise you someone, and I won't pretend to/)
+    expect(t).toMatch(/honesty, shared faith/)
+    expect(t).not.toMatch(/lower|there are plenty|you('ll| will) find/i)
+  })
+
+  it('hears "too far in" as years spent, not as a question for a scholar', () => {
+    const t = say('I’m too far in to walk away now.')
+    expect(t).toMatch(/time already spent/)
+    expect(t).not.toMatch(/scholar/)
+  })
+
+  it('never reads a sign into istikhara, and says who the meaning belongs to', () => {
+    const t = say('Should I marry him? I prayed istikhara and I don’t feel anything either way.', her, 'islamic')
+    expect(t).toMatch(/scholar or imam/)
+    expect(t).not.toMatch(/\b(that|this|it) means (allah|god|yes|no)\b/i)
+  })
+
   it('keeps safety first even when she asks to be told whether to marry', () => {
     const t = say('He checks my phone but otherwise he’s perfect. Should I marry him?')
     expect(t).toMatch(/not a disagreement to work out/)

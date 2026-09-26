@@ -259,17 +259,19 @@ You’re not asking to date her. You’re declaring serious, honourable intent. 
       keywords: ['wasting time', 'stop wasting', 'how long', 'next step', 'move toward', 'lead', 'stuck', 'nikah', 'propose'],
       respond: (ctx) => {
         const tl = ctx.answers['timeline']
+        // Her timeline is quoted as hers, a pace to say out loud, never a clock
+        // to rush a question with (docs/DECISIONS.md Parts 12 and 14).
         const tlLine = tl === 'within-1'
-          ? ' You set your own timeline at within a year — that only happens if the months count.'
+          ? ' You told your map within a year. That’s a pace worth saying out loud, and it doesn’t have to rush a question.'
           : tl === '1-2'
-            ? ' You told your map one to two years — that only happens if the months count.'
+            ? ' You told your map one to two years. That’s a pace worth saying out loud, and it doesn’t have to rush a question.'
             : ''
-        return `Time’s the one thing you can’t earn back, so lead.${tlLine} Leading isn’t pushing — it’s giving clarity at every step so nobody’s guessing.
+        return `Then lead.${tlLine} Leading isn’t pushing — it’s giving clarity at every step so nobody’s guessing.
 
 • Get aligned on the big things first: deen, family, kids, where you’d live.
 • Bring the families in once it’s real — don’t let it float for months.
 • Name it out loud: “I see this going to marriage. I want to involve our families and take the next step.”
-• Then act. Set the meeting. Talk to the wali. Drifting is the enemy — you beat it by deciding.`
+• When you’re sure, act on it: set the meeting, talk to the wali. Drifting is what you’re avoiding, and deciding, either way, is how you beat it.`
       },
     },
     ...fit,
@@ -383,7 +385,7 @@ The point is dignity, not suspicion. You can be warm and still be honourable.`,
       respond: () =>
         `Limits are not coldness. They are adab — how you honour both of you before a contract binds you — and they protect what you are hoping to build.
 
-Practically: keep conversation in daylight and with purpose, avoid being alone together, and don’t let things drift into the physical or the flirtatious. If you feel things slipping, that’s your signal to bring in family and move toward making it real — nikah — rather than lingering in a grey zone. Modesty here is a gift you give your future marriage, not a punishment.`,
+Practically: keep conversation in daylight and with purpose, avoid being alone together, and don’t let things drift into the physical or the flirtatious. If you feel things slipping, that’s your signal to step back into the open: bring in family, and decide — toward nikah, or away from it — rather than lingering in a grey zone. Modesty here is a gift you give your future marriage, not a punishment.`,
     },
     {
       keywords: ['intention', 'niyyah', 'sincere', 'why marriage', 'blessed', 'barakah', 'baraka', 'sunnah'],

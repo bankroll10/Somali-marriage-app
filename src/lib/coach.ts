@@ -260,9 +260,23 @@ function otherOf(ctx: CoachContext): { he: string; him: string } {
 const DECIDE_WORDS = [
   'should i marry', 'should we marry', 'should we get married', 'should i say yes', 'should i accept', 'should i leave',
   'should i end', 'should i stay', 'should i break', 'should i walk away', 'should i give up on',
+  'should i propose', 'should i go through with', 'should i just say yes', 'should i just accept', 'should i just marry',
   'is he the one', 'is she the one', 'is he right for me', 'is she right for me',
   'tell me what to do', 'what would you do', 'decide for me', 'make the decision for me', 'yes or no',
 ]
+
+/**
+ * Her own non-negotiables as a question about him: what has she seen of them,
+ * herself? Quoted, never wielded (invariant 5). With none named, she is asked
+ * to name three, so there is still something to hold him against.
+ */
+function seenOfOwnList(ctx: CoachContext): string {
+  const { him } = otherOf(ctx)
+  const nn = ownNonNegotiables(ctx)
+  return nn.length
+    ? `You told your map what you won't give up: ${nn.join(', ')}. What have you seen of those from ${him} yourself?`
+    : `Name three things you would never give up. What have you seen of them from ${him} yourself?`
+}
 
 export function decideReply(ctx: CoachContext): string {
   const { him } = otherOf(ctx)
@@ -310,7 +324,11 @@ Ask it in person, when you are both calm, and listen to the whole answer.`
 const TIME_WORDS = [
   'wasting it', 'waste it', 'wasted it', 'a waste of', 'all this time', 'all these years', 'too far in', 'invested so much',
   'for two years', 'for three years', 'for four years', 'for five years', 'for years', 'years together',
+  'invested years', 'years into this', 'years into it', 'so many years', 'after everything',
 ]
+/** Years said as a number, or as "two years in" (docs/DECISIONS.md Part 14). */
+const TIME_RE =
+  /\b(for|after) (\d+|two|three|four|five|six|seven|eight|nine|ten|a few|several) years\b|\b(\d+|two|three|four|five|six|seven|eight|nine|ten|a few|several) years (together\b|in(?=\s*($|[.,!?;:]|and\b|now\b|already\b|but\b|so\b)))/
 
 export const TIME_REPLY = `That time is real: the conversations, the hope, what you have given. It is not wasted whichever way you go. It is how you know what you know now.
 
@@ -322,25 +340,183 @@ But time already spent is not, by itself, a reason to stay or to go. The only qu
 
 That last one is yours alone. Write your answer down, for yourself, before you talk to anyone about it.`
 
+/**
+ * Someone else's yes: her family's, her mother's, "everyone's", an imam's or a
+ * matchmaker's. Their approval is real information (docs/RESEARCH.md L7), so
+ * it is never waved away; it is what they have seen, and it sits beside what
+ * she has seen, never in its place (docs/DECISIONS.md Part 14). "My mother
+ * loves him" used to miss this and reach the auntie's "Your people protect
+ * you. Let them."
+ */
 const FAMILY_YES_WORDS = [
   'family says yes', 'family said yes', 'family say yes', 'parents say yes', 'parents said yes', 'everyone says yes',
   'my family likes him', 'my family likes her', 'my family loves him', 'my family loves her',
   'my parents like him', 'my parents like her', 'my family approves', 'my parents approve', 'everyone likes him', 'everyone likes her',
 ]
+const WHO_ELSE = String.raw`(my (mother|mum|mom|father|dad|parents|family|sisters?|brothers?|friends|aunt|aunts|aunties|auntie|uncle|uncles)|hooyo|aabo|everyone|everybody|people|the (imam|sheikh|matchmaker))`
+const OTHERS_YES_RE = [
+  new RegExp(String.raw`\b${WHO_ELSE} (really |all |just )?(loves?|likes?|adores?|approves? of) (him|her)\b`),
+  new RegExp(
+    String.raw`\b${WHO_ELSE} (all )?(says?|said|thinks?) (he|she)('s| is) (perfect|so good|great|amazing|lovely|a catch|the one|right for me|good for me|a (good|great) (man|woman|match|catch|one))\b`,
+  ),
+]
 
 export function familyYesReply(ctx: CoachContext): string {
   const { him } = otherOf(ctx)
-  return `Their yes matters, and it is not yours. Both can be true at once: your family can be glad, and you can still not be sure.
+  return `Their yes matters, and it is not yours. Both can be true at once: they can be glad about ${him}, and you can still want to be sure for yourself.
 
 Your consent is yours to give, and "I don't know yet" is an honest answer, not a problem to hide.
 
+• What have they seen of ${him} that you haven't, and what have you seen that they haven't?
 • What would you need to know, or see, to be sure?
 • Is there something you haven't asked ${him} yet?
-• Is it ${him} you are unsure of, or the timing?
 
-Try: "I'm glad you like ${him}. I'm not sure yet, and I need a little time to be sure for myself. Can you give me that?"
+Try: "I'm glad you like ${him}. Tell me what you've seen in ${him}. I want to hear it, and I need a little time to be sure for myself."
 
 Say it to whoever is asking most, this week.`
+}
+
+/**
+ * A reason that is not about him, standing in for what she has seen
+ * (docs/DECISIONS.md Part 14): a prayer followed by an event, a wedding
+ * already in motion, a clock, a count, one quality. Each is real, and each is
+ * taken seriously; none is weighed for her, and none is named as an error.
+ * Every answer ends by handing the decision back with something she has seen
+ * to decide with.
+ */
+
+/** Istikhara followed by something that happened, a feeling, or a question of whether to marry. */
+const PRAYER_RE = /\b(istikhara|prayed on it|prayed about it)\b/
+const AFTER_PRAYER_RE =
+  /\b(then|after|afterwards|since|next day|the next|sign|signs|dream|dreamt|dreamed|answer|answered|means|meant|happened|feel|felt|feeling|easy|smooth|fell apart|went wrong)\b/
+
+export function signReply(ctx: CoachContext): string {
+  const { him } = otherOf(ctx)
+  return `What istikhara means, and how it is answered, is for a scholar or imam you trust. I won't read what happened, or what you feel, as a yes or a no. Istikhara and asking good counsel go together, and so does what you have seen yourself.
+
+• Leaving aside what happened after, what have you seen ${him} do, and heard ${him} say?
+• ${seenOfOwnList(ctx)}
+• Who knows you both well enough to ask for counsel this week?
+
+The decision is still yours, made with all of that. Ask that one person, and tell them what you have seen, not only what happened.`
+}
+
+/** A wedding, a date, families or people who already know: things in motion, and what stopping would cost. */
+const MOMENTUM_WORDS = [
+  'wedding planning', 'planning the wedding', 'planning our wedding', 'planning my wedding', 'wedding is booked', 'hall is booked',
+  'booked the hall', 'booked a hall', 'already booked', 'invitations', 'the date is set', 'set the date', 'set a date',
+  'nikah date', 'wedding date', 'already told everyone', 'everyone knows', 'families have met', 'families already met',
+  'families have already met', 'mahr is agreed', 'agreed the mahr', 'too late to back out', "can't back out", 'cant back out',
+  'too late to stop', 'too late to change', 'too late now', 'what will people say', 'what would people say', 'embarrass my family',
+  'shame my family', 'bring shame', 'lose face', 'the deposit', 'already paid for',
+]
+
+export function momentumReply(ctx: CoachContext): string {
+  const { him } = otherOf(ctx)
+  return `A date, a hall, families who have met, people who know: those are real, and so is what it would cost to change them. They are also not reasons about ${him}.
+
+• If nothing had been booked or announced, what would you do next?
+• Is there something you haven't asked ${him} yet? There is still time before the nikah.
+• If you want to slow down, who is the one person who would help you say so?
+
+Slowing down, or stopping, is allowed at every point before the nikah, and it is yours to decide. A cost you can name is not the same as a reason.
+
+Try: "Before anything more is booked, I want us to sit down and talk through what we haven't yet. Can we do that this week?"
+
+Say it to ${him}, in person, this week.`
+}
+
+/** Her own clock, or how few people seem to fit. Family's "not getting any younger" is pressure, above. */
+const CLOCK_WORDS = [
+  'at my age', 'my age', 'running out of time', 'getting older', "i'm getting old", 'i am getting old', 'biological clock', 'my clock',
+  'hard to find', 'no good men', 'no good women', 'no good somali', 'not many good', 'few good men', 'few good women',
+  "won't find better", 'wont find better', "won't find anyone", 'wont find anyone', "won't find someone", 'wont find someone',
+  'last chance', 'better than nothing', 'might not get another', 'may not get another', 'slim pickings',
+]
+const CLOCK_RE = /\b(almost|nearly|turning|about to turn|over|past|already) (2[5-9]|3\d|4\d|thirty|forty)\b(?! ?(days|weeks|months|years|hours|minutes|messages|times|%))/
+
+export function clockReply(ctx: CoachContext): string {
+  const nobody = (who: string) =>
+    `The clock is real, and so is the worry that the room is small. Nobody can promise you ${who}, and I won't pretend to.`
+  if (ctx.stage === 'preparing' || ctx.stage === 'married') {
+    const nn = ownNonNegotiables(ctx)
+    const list = nn.length
+      ? `You told your map what you won't give up: ${nn.join(', ')}. Those are yours, and the pace can change without them changing.`
+      : `If you haven't named what you won't give up, name three now, while nobody is in front of you.`
+    return `${nobody('someone')}
+
+What a clock can fairly change is how fast you move. What it shouldn't change, without you noticing, is what you would accept.
+
+${list}
+
+• Is the clock asking you to move faster, or to want less?
+• What would you need to see in someone before you said yes?
+
+Which it is, is yours to say. Write it down tonight.`
+  }
+  const { him } = otherOf(ctx)
+  return `${nobody('someone else')}
+
+What a clock can fairly change is how fast you decide. What it shouldn't change, without you noticing, is what you would accept.
+
+• Set the clock aside for a minute: what have you seen ${him} do, and heard ${him} say?
+• ${seenOfOwnList(ctx)}
+• If you decide sooner, what is the one thing you would still want to ask first?
+
+Which one the clock is changing, the pace or the list, is yours to say. Write it down tonight, then ask that one thing.`
+}
+
+/** A count of what is agreed or covered: "nine of eleven", "all but two". */
+const COUNT_WORDS = ['most of the boxes', 'most boxes', 'all but one', 'all but two', 'most of the eleven', 'most of my list', 'most of the list']
+const NUMBER = String.raw`(\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|most)`
+const COUNT_RE = [
+  new RegExp(String.raw`\b(checked|ticked|ticks|checks|agree on|agreed on|done|had|covered|passed|got) ${NUMBER} (of|out of) (the )?${NUMBER}\b`),
+  new RegExp(String.raw`\b${NUMBER} (of|out of) (the )?${NUMBER} (boxes|things|conversations|topics|questions)\b`),
+]
+
+export function countReply(ctx: CoachContext): string {
+  const { him } = otherOf(ctx)
+  const nn = ownNonNegotiables(ctx)
+  const line = nn.length
+    ? `You told your map you won't give up ${nn.join(', ')}. Is any of what's left touching those?`
+    : `Is any of what's left a line for you?`
+  return `A count tells you how much ground you've covered. It can't tell you whether what's left is small.
+
+• Which are left, still open or not yet talked about? Is there anything in them you haven't asked ${him}?
+• ${line}
+• The ones you agree on: could you each say what you agreed, and would it come out the same?
+
+One open conversation can outweigh all the rest, or be one you can live with. Only you can say which.
+
+Try: "There are still a couple of things we haven't talked through, and I'd rather know them now than after the nikah. Can we start this week?"
+
+Say it in person, when you are both calm.`
+}
+
+/** One quality standing for the whole person: success, looks, a family's name, a list complete on paper. */
+const ONE_THING_WORDS = [
+  "he's successful", 'he is successful', "she's successful", 'she is successful', "he's rich", 'he is rich', "she's rich",
+  'has a good job', 'has a great job', 'makes good money', 'earns well', 'earns a lot',
+  "she's beautiful", 'she is beautiful', "she's so beautiful", "she's gorgeous", 'she is gorgeous', "she's pretty", 'she is pretty',
+  "he's handsome", 'he is handsome', "he's so handsome", "he's gorgeous", 'he is gorgeous', 'good looking', 'good-looking',
+  'perfect on paper', 'good on paper', 'great on paper', 'right on paper', 'on paper he', 'on paper she',
+  'ticks all the boxes', 'ticks every box', 'checks all the boxes', 'checks every box', 'ticks all my boxes', 'checks all my boxes',
+  'from a good family', 'comes from a good family',
+]
+
+export function oneThingReply(ctx: CoachContext): string {
+  const { he, him } = otherOf(ctx)
+  const outside =
+    ctx.identity.gender === 'man'
+      ? 'If your brother told you this about the woman he was about to marry, what would you ask him?'
+      : 'If your sister told you this about the man she was about to marry, what would you ask her?'
+  return `That is real, and it counts for something. It is also one thing about ${him}, and it can't answer the rest for you.
+
+• What does it tell you about how ${he} would be to live with, and what doesn't it?
+• ${seenOfOwnList(ctx)}
+• ${outside}
+
+Whether it is enough is yours to weigh. Ask ${him} the thing you would want to know first, this week.`
 }
 
 /**
@@ -645,8 +821,10 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
         : DIFFERENCE_WORDS.some((w) => hasWords(m, w))
           ? fixed(DIFFERENCE_REPLY)
           : decisionReply(message, m, ctx) ?? voiceReply(message, ctx, modeId)
-  // Principles, never rulings, and the ruling's owner named.
-  if (RULING_WORDS.some((w) => hasWords(normalize(message), w)) && !/\b(scholar|imam)\b/i.test(reply.text)) {
+  // Principles, never rulings, and the ruling's owner named. "Too far in" is
+  // years spent, not a question about how far is too far.
+  const asked = m.replace(/\btoo far (in|gone|along)\b/g, '')
+  if (RULING_WORDS.some((w) => hasWords(asked, w)) && !/\b(scholar|imam)\b/i.test(reply.text)) {
     const text = `${reply.text}\n\n${DEFERENCE}`
     return { ...reply, text, closers: closersFor(text) }
   }
@@ -654,15 +832,23 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
 }
 
 /**
- * Decision support, in any voice: asked to decide, to read a mind, to weigh
- * time already spent, or a family's yes against her own doubt; or she is done.
- * Null when none of those is what she said.
+ * Decision support, in any voice: a reason standing in for what she has seen
+ * (a prayer and what followed, a wedding in motion, someone else's yes, time
+ * spent, the clock, a count, one quality), being asked to decide or to read a
+ * mind; or she is done. Null when none of those is what she said.
  */
 function decisionReply(message: string, m: string, ctx: CoachContext): CoachReply | null {
   const fixed = (text: string): CoachReply => ({ text, closers: closersFor(text), live: false })
   const any = (words: string[]) => words.some((w) => hasWords(m, w))
-  if (any(FAMILY_YES_WORDS)) return fixed(familyYesReply(ctx))
-  if (any(TIME_WORDS)) return fixed(TIME_REPLY)
+  // A reason that is not about him, most particular first (docs/DECISIONS.md
+  // Part 14); then being asked to decide, or to read a mind.
+  if (PRAYER_RE.test(m) && (AFTER_PRAYER_RE.test(m) || any(DECIDE_WORDS))) return fixed(signReply(ctx))
+  if (any(MOMENTUM_WORDS)) return fixed(momentumReply(ctx))
+  if (any(FAMILY_YES_WORDS) || OTHERS_YES_RE.some((re) => re.test(m))) return fixed(familyYesReply(ctx))
+  if (any(TIME_WORDS) || TIME_RE.test(m)) return fixed(TIME_REPLY)
+  if (any(CLOCK_WORDS) || CLOCK_RE.test(m)) return fixed(clockReply(ctx))
+  if (any(COUNT_WORDS) || COUNT_RE.some((re) => re.test(m))) return fixed(countReply(ctx))
+  if (any(ONE_THING_WORDS)) return fixed(oneThingReply(ctx))
   if (any(DECIDE_WORDS)) return fixed(decideReply(ctx))
   if (any(INTENT_WORDS)) return fixed(intentReply(ctx))
   const done = !message.includes('?') && message.trim().length <= 100
