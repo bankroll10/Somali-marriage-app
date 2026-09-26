@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { askCoach, closersFor, scriptIn } from './coach'
+import { askCoach, closersFor, localReply, scriptIn } from './coach'
 import type { CoachContext } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
@@ -275,5 +275,48 @@ describe('the answer arrives a piece at a time', () => {
     await askCoach('is he serious?', { ...ctx, onDeviceOnly: true }, 'auntie', [], (s) => seen.push(s))
     expect(spy).not.toHaveBeenCalled()
     expect(seen).toEqual([])
+  })
+})
+
+describe('decision support, never a decision (docs/GUIDE-EVAL.md, the invariants)', () => {
+  const her: CoachContext = { identity: { firstName: '', gender: 'woman', adult: true }, answers: { dealbreakers: ['honesty', 'faith-nn'] }, stage: 'deciding' }
+  const him: CoachContext = { ...her, identity: { firstName: '', gender: 'man', adult: true } }
+  const say = (m: string, ctx = her, mode: ModeId = 'auntie') => localReply(m, ctx, mode).text
+
+  it('hands the decision back, with her own non-negotiables to decide with', () => {
+    for (const m of ['Should I marry him?', 'Just tell me what to do.', 'Is she the one? I need a yes or no.']) {
+      const t = say(m, m.includes('she') ? him : her)
+      expect(t, m).toMatch(/yours to decide/)
+      expect(t, m).toMatch(/honesty, shared faith/)
+      expect(t, m).not.toMatch(/\byou should\b|\bthat is your answer\b|I.ll tell you what I see/i)
+    }
+  })
+
+  it('never reads a mind, and gives words to ask instead', () => {
+    for (const m of ['Do you think he loves me?', 'Tell me if she is serious.', 'He said he isn’t ready yet. What does he really mean by that?']) {
+      const t = say(m, m.includes('she') ? him : her)
+      expect(t, m).toMatch(/Nobody can see inside another person/)
+      expect(t, m).toMatch(/^Try:/m)
+    }
+    expect(say('Tell me if she is serious.', him)).toMatch(/what she does and says/)
+  })
+
+  it('meets time already spent and a family’s yes as what they are, not as a family or intention question', () => {
+    expect(say('We’ve been talking for two years so leaving feels like wasting it.')).toMatch(/time already spent is not, by itself, a reason to stay or to go/)
+    const fam = say('My family says yes but I don’t know.')
+    expect(fam).toMatch(/Their yes matters, and it is not yours/)
+    expect(fam).not.toMatch(/A man worth having/)
+  })
+
+  it('lets her go when she is done, and only when there is no question left', () => {
+    expect(say('Thank you, that helps. I know what I’m going to say to him.')).toMatch(/^Then go and say it/)
+    expect(say('I don’t want to talk about this anymore tonight.')).toMatch(/^Then we stop here/)
+    expect(say('Thanks — but what do I say to his mother?')).not.toMatch(/^Then go and say it/)
+  })
+
+  it('keeps safety first even when she asks to be told whether to marry', () => {
+    const t = say('He checks my phone but otherwise he’s perfect. Should I marry him?')
+    expect(t).toMatch(/not a disagreement to work out/)
+    expect(t).not.toMatch(/leave him|marry him/i)
   })
 })

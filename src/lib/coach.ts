@@ -1,4 +1,4 @@
-import { getMode, type CoachContext, type CoachIntent } from '../data/coach'
+import { getMode, ownNonNegotiables, type CoachContext, type CoachIntent } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
 /**
@@ -241,6 +241,121 @@ Try: "I didn't like how that went. Can we try it again, more slowly, tomorrow?"
 
 Pick the one that fits, and do that this week.`
 
+/**
+ * Decision support, never a decision (docs/GUIDE-EVAL.md, the invariants).
+ *
+ * Asked to decide — "should I marry him", "is she the one", "just tell me
+ * what to do" — every voice used to reach the framework, which opened "I'll
+ * tell you what I see" and ended "that is part of the answer": a verdict
+ * promised, then implied. "My family says yes but I don't know" reached "A
+ * man worth having expects your family"; "two years… leaving feels like
+ * wasting it" reached "that vagueness is his answer". These answer in any
+ * voice, after safety, harm and the fixed replies above: the decision goes
+ * back to her, with something to decide with.
+ */
+function otherOf(ctx: CoachContext): { he: string; him: string } {
+  return ctx.identity.gender === 'man' ? { he: 'she', him: 'her' } : { he: 'he', him: 'him' }
+}
+
+const DECIDE_WORDS = [
+  'should i marry', 'should we marry', 'should we get married', 'should i say yes', 'should i accept', 'should i leave',
+  'should i end', 'should i stay', 'should i break', 'should i walk away', 'should i give up on',
+  'is he the one', 'is she the one', 'is he right for me', 'is she right for me',
+  'tell me what to do', 'what would you do', 'decide for me', 'make the decision for me', 'yes or no',
+]
+
+export function decideReply(ctx: CoachContext): string {
+  const { him } = otherOf(ctx)
+  const nn = ownNonNegotiables(ctx)
+  const values = nn.length
+    ? `You told your map what you won't give up: ${nn.join(', ')}. Hold what you have seen against those, not against how you feel tonight.`
+    : `If you haven't named what you won't give up, name three now, before anything else.`
+  return `That is yours to decide, and I won't take it from you. What I can do is help you see it clearly.
+
+Split what you know from what you are guessing:
+• What have you seen ${him} do, and heard ${him} say, yourself?
+• What are you hoping, or afraid, that means?
+• What don't you know yet, and could you find it out by asking?
+
+${values}
+
+Yes, no and "not yet" are all real answers. So is asking for more time.
+
+Write one sentence, just for you: what would you need to know, or see, to be sure? That is the next thing to ask for.`
+}
+
+const INTENT_WORDS = [
+  'does he love me', 'does she love me', 'do you think he loves', 'do you think she loves',
+  'is he serious', 'is she serious', 'if he is serious', 'if she is serious', 'is he really serious', 'is she really serious',
+  'what does he really mean', 'what does she really mean', 'what does he mean by', 'what does she mean by',
+  'what is he thinking', 'what is she thinking', 'how does he feel', 'how does she feel', 'does he like me', 'does she like me',
+  'is he playing', 'is she playing', 'does he want to marry me', 'does she want to marry me', 'does he really want', 'does she really want',
+]
+
+export function intentReply(ctx: CoachContext): string {
+  const { he, him } = otherOf(ctx)
+  return `Nobody can see inside another person — not me, and not you from here. What you can see is what ${he} does and says, over time.
+
+• What have you seen yourself? Not what you were told, and not only how it felt.
+• What do you hope, or fear, it means? Keep that separate.
+• What haven't you asked ${him}? Most of what we guess about someone, we could ask.
+
+Niyyah's read asks about what ${he} has done, not what ${he} feels, if you want to set it down.
+
+Try: "I don't want to guess what you're thinking about us. Can you tell me where you see this going, and when?"
+
+Ask it in person, when you are both calm, and listen to the whole answer.`
+}
+
+const TIME_WORDS = [
+  'wasting it', 'waste it', 'wasted it', 'a waste of', 'all this time', 'all these years', 'too far in', 'invested so much',
+  'for two years', 'for three years', 'for four years', 'for five years', 'for years', 'years together',
+]
+
+export const TIME_REPLY = `That time is real: the conversations, the hope, what you have given. It is not wasted whichever way you go. It is how you know what you know now.
+
+But time already spent is not, by itself, a reason to stay or to go. The only question is from here.
+
+• What have these years shown you, plainly?
+• What is still unanswered, and have you asked it?
+• Knowing everything you know today, would you begin this?
+
+That last one is yours alone. Write your answer down, for yourself, before you talk to anyone about it.`
+
+const FAMILY_YES_WORDS = [
+  'family says yes', 'family said yes', 'family say yes', 'parents say yes', 'parents said yes', 'everyone says yes',
+  'my family likes him', 'my family likes her', 'my family loves him', 'my family loves her',
+  'my parents like him', 'my parents like her', 'my family approves', 'my parents approve', 'everyone likes him', 'everyone likes her',
+]
+
+export function familyYesReply(ctx: CoachContext): string {
+  const { him } = otherOf(ctx)
+  return `Their yes matters, and it is not yours. Both can be true at once: your family can be glad, and you can still not be sure.
+
+Your consent is yours to give, and "I don't know yet" is an honest answer, not a problem to hide.
+
+• What would you need to know, or see, to be sure?
+• Is there something you haven't asked ${him} yet?
+• Is it ${him} you are unsure of, or the timing?
+
+Try: "I'm glad you like ${him}. I'm not sure yet, and I need a little time to be sure for myself. Can you give me that?"
+
+Say it to whoever is asking most, this week.`
+}
+
+/**
+ * She is done: thanks, a plan, or "not tonight". A guide that is good at its
+ * job lets her go (invariants 8 and 11). Only a short message with no
+ * question in it, so a thank-you before a real question is still answered.
+ */
+const STOP_WORDS = ["don't want to talk about this", 'dont want to talk about this', 'not tonight', 'enough for tonight', 'goodnight', 'good night', "i'm done for", 'im done for']
+const THANKS_WORDS = [
+  'thank you', 'thanks', 'that helps', 'that helped', 'jazakallah', 'jazak allah', 'i know what to do', "i know what i'm going to",
+  'i know what i will', "i'll talk to", 'i will talk to', "i'll tell him", "i'll tell her", "i'm going to talk to", 'i am going to talk to',
+]
+export const CLOSE_REPLY = `Then go and say it. I'm glad it helped. You don't need to come back here first; the next step is yours.`
+export const STOP_REPLY = `Then we stop here. Nothing needs deciding tonight; it will still be there tomorrow, and so will you.`
+
 const DEFERENCE = `For the ruling itself, take it to a scholar or imam you trust. A guide can share principles; a ruling is theirs to give.`
 
 /** The guide's own words that point at real-world help — the numbers belong under them. */
@@ -298,11 +413,11 @@ function scoreIntent(intent: CoachIntent, message: string): number {
 function frameworkAnswer(ctx: CoachContext, modeId: ModeId): string {
   return `${getMode(modeId).fallback(ctx)}
 
-While you do, three things hold in almost every situation:
+While you do, three things help in almost any situation:
 
-• **Watch behaviour, not words.** Consistency over weeks tells you more than a good speech.
-• **Apply the clarity test.** Do they move toward the future, family, and definition — or keep things comfortable and vague?
-• **Notice what it costs you.** If you have to shrink, over-explain, or keep managing your own worry, that is part of the answer.
+• **Separate what you've seen from what it means.** What was said or done is one thing; what you hope or fear it means is another.
+• **Hold it against what matters to you.** Your non-negotiables, not how tonight feels.
+• **Notice what it costs you.** If you have to shrink, over-explain, or keep managing your own worry, name that to yourself first.
 
 Put your situation against those three.`
 }
@@ -529,13 +644,31 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
         ? fixed(PROCESS_REPLY)
         : DIFFERENCE_WORDS.some((w) => hasWords(m, w))
           ? fixed(DIFFERENCE_REPLY)
-          : voiceReply(message, ctx, modeId)
+          : decisionReply(message, m, ctx) ?? voiceReply(message, ctx, modeId)
   // Principles, never rulings, and the ruling's owner named.
   if (RULING_WORDS.some((w) => hasWords(normalize(message), w)) && !/\b(scholar|imam)\b/i.test(reply.text)) {
     const text = `${reply.text}\n\n${DEFERENCE}`
     return { ...reply, text, closers: closersFor(text) }
   }
   return reply
+}
+
+/**
+ * Decision support, in any voice: asked to decide, to read a mind, to weigh
+ * time already spent, or a family's yes against her own doubt; or she is done.
+ * Null when none of those is what she said.
+ */
+function decisionReply(message: string, m: string, ctx: CoachContext): CoachReply | null {
+  const fixed = (text: string): CoachReply => ({ text, closers: closersFor(text), live: false })
+  const any = (words: string[]) => words.some((w) => hasWords(m, w))
+  if (any(FAMILY_YES_WORDS)) return fixed(familyYesReply(ctx))
+  if (any(TIME_WORDS)) return fixed(TIME_REPLY)
+  if (any(DECIDE_WORDS)) return fixed(decideReply(ctx))
+  if (any(INTENT_WORDS)) return fixed(intentReply(ctx))
+  const done = !message.includes('?') && message.trim().length <= 100
+  if (done && any(STOP_WORDS)) return fixed(STOP_REPLY)
+  if (done && any(THANKS_WORDS)) return fixed(CLOSE_REPLY)
+  return null
 }
 
 /** The voice's own answer: its intents, or the framework. */

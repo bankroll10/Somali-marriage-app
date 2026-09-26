@@ -69,7 +69,8 @@ const NON_NEGOTIABLE_LABELS: Record<string, string> = {
   'kindness-nn': 'good character',
 }
 
-function ownNonNegotiables(ctx: CoachContext): string[] {
+/** Her own non-negotiables, as words. Quoted back to her, never wielded (docs/GUIDE-EVAL.md, invariant 5). */
+export function ownNonNegotiables(ctx: CoachContext): string[] {
   const v = ctx.answers['dealbreakers']
   if (!Array.isArray(v)) return []
   return v.map((id) => NON_NEGOTIABLE_LABELS[String(id)]).filter(Boolean)
@@ -172,21 +173,21 @@ I love you too much to let you waste your time or your heart. Tell me what’s h
     {
       keywords: ['serious', 'passing time', 'entertaining', 'playing', 'wasting', 'intentions', 'just talking'],
       respond: () =>
-        `My dear, don’t confuse late-night texting with intention. A man who wants to marry you moves *toward* your family, not away from them. He talks about the future without sweating.
+        `My dear, late-night texting and intention are not the same thing, and only one of them is something you can see. I can’t see inside him, and neither can you from here.
 
-Watch his feet, not his mouth — does he show up consistently? Does he want to meet your people? If he keeps everything vague and “fun,” walaal, that vagueness *is* his answer. Ask him plainly. Asking is not too much.`,
+Watch his feet, not his mouth — does he show up consistently? Has he moved toward your people? If everything stays vague and “fun,” walaal, that is a question he has not answered yet, not an answer. Ask him plainly. Asking is not too much.`,
     },
     {
       keywords: ['late', 'night', '2am', 'midnight', 'after dark', 'only texts', 'only when', 'booty'],
       respond: () =>
-        `Hmm. Let your auntie be honest with you: texting only after midnight is not courting, whatever it feels like at midnight. Good intentions keep daytime hours.
+        `Hmm. Let your auntie be honest with you: texting only after midnight is not courting, whatever it feels like at midnight. What you have seen is when he writes, not why.
 
-You are not a secret. You are not a midnight habit. If he cannot text you at noon, plan to meet your family, and speak about marriage in daylight, that is your answer. Watch what he does next.`,
+You are not a secret. You are not a midnight habit. Ask him for the daytime things — a call at noon, a plan to meet your family, marriage said out loud — and watch what he does with the asking.`,
     },
     {
       keywords: ['family', 'wali', 'parents', 'mother', 'father', 'brother', 'scare him', 'tell my'],
       respond: () =>
-        `That instinct is the right one. A man worth having *expects* your family.
+        `That instinct is worth trusting. Family is part of how you do this, and that is yours to say.
 
 Bring them in gently, once it’s real: “For me, if this is serious, it goes to my family — that’s how I do things.” Then listen to what he says back. If he pulls back at that, you have heard it plainly, and early — which is what you asked for. Your people protect you. Let them.`,
     },
@@ -195,7 +196,7 @@ Bring them in gently, once it’s real: “For me, if this is serious, it goes t
       respond: (ctx) => {
         const nn = ownNonNegotiables(ctx)
         const yours = nn.length
-          ? `You already told me your non-negotiables: ${nn.join(', ')}. Hold that list like iron.`
+          ? `You already told me your non-negotiables: ${nn.join(', ')}. Those are yours; hold what you see against them.`
           : `Standards are about *character* — honesty, kindness, deen, how he treats his mother. Hold those like iron; never lower them.`
         return `Listen to me. There is a difference between standards and a wish-list. ${yours}
 
@@ -205,7 +206,7 @@ The wish-list — the height, the salary, the perfect family — soften that. No
     ...fit,
   ],
   fallback: () =>
-    `Come, my dear, tell your auntie properly — what did he say, what did you feel, what are you afraid of? Give me the real story and I’ll tell you what I see, the way someone who loves you does.`,
+    `Come, my dear, tell your auntie properly — what did he say, what did you feel, what are you afraid of? Give me the real story and we’ll look at it together, the way someone who loves you does.`,
 }
 
 // ── Big Brother ──────────────────────────────────────────────────────────────
@@ -259,7 +260,7 @@ You’re not asking to date her. You’re declaring serious, honourable intent. 
       respond: (ctx) => {
         const tl = ctx.answers['timeline']
         const tlLine = tl === 'within-1'
-          ? ' You set your own timeline at within a year — so act like a man who meant it.'
+          ? ' You set your own timeline at within a year — that only happens if the months count.'
           : tl === '1-2'
             ? ' You told your map one to two years — that only happens if the months count.'
             : ''
@@ -274,7 +275,7 @@ You’re not asking to date her. You’re declaring serious, honourable intent. 
     ...fit,
   ],
   fallback: () =>
-    `Talk to me straight, akhi — what’s the actual situation? What did you say, what did she say, where’s it stuck? Give me the details and I’ll tell you the move.`,
+    `Talk to me straight, akhi — what’s the actual situation? What did you say, what did she say, where’s it stuck? Give me the details and we’ll work out your next step.`,
 }
 
 // ── Therapist ────────────────────────────────────────────────────────────────
