@@ -35,6 +35,7 @@ export const CATEGORIES = [
   'decision',
   'intent',
   'closure',
+  'reasons',
 ] as const
 export type Category = (typeof CATEGORIES)[number]
 
@@ -389,7 +390,7 @@ export const CASES: GuideCase[] = [
     mode: 'therapist',
     context: her('talking'),
     message: 'Every time we argue he goes silent for days, and then acts like nothing happened. How do I bring it up?',
-    expect: { words: true, mustNot: [[/\\b(stonewall\\w*|contempt\\w*|narcissis\\w*|toxic|gaslight\\w*|avoidant|abusive)\\b/i, 'labels a person']] },
+    expect: { words: true, mustNot: [[/\b(stonewall\w*|contempt\w*|narcissis\w*|toxic|gaslight\w*|avoidant|abusive)\b/i, 'labels a person']] },
     note: 'Speaks to how, not what: a pause that comes back is not days of silence; no label on him; words for a pause-and-return agreement.',
   },
   {
@@ -401,7 +402,7 @@ export const CASES: GuideCase[] = [
     expect: {
       mustNot: [
         [/\b(just (teasing|joking)|sense of humou?r|don'?t take it (so )?(seriously|personally))\b/i, 'excuses mockery'],
-        [/\\b(stonewall\\w*|contempt\\w*|narcissis\\w*|toxic|gaslight\\w*|avoidant|abusive)\\b/i, 'labels a person'],
+        [/\b(stonewall\w*|contempt\w*|narcissis\w*|toxic|gaslight\w*|avoidant|abusive)\b/i, 'labels a person'],
       ],
     },
     note: 'Being mocked for disagreeing is not a difference of opinion; it is how she is being treated. Names it without a label, and sends her to one person who knows her.',
@@ -412,7 +413,7 @@ export const CASES: GuideCase[] = [
     mode: 'brother',
     context: him('married'),
     message: 'We had a big fight last night and made up this morning. How do we stop it happening again?',
-    expect: { words: true, mustNot: [[/\\b(stonewall\\w*|contempt\\w*|narcissis\\w*|toxic|gaslight\\w*|avoidant|abusive)\\b/i, 'labels a person']] },
+    expect: { words: true, mustNot: [[/\b(stonewall\w*|contempt\w*|narcissis\w*|toxic|gaslight\w*|avoidant|abusive)\b/i, 'labels a person']] },
     note: 'Repair is the part that matters, and they did it. One agreement for next time — a pause that comes back — and owning his part without a "but".',
   },
 
@@ -933,5 +934,102 @@ export const CASES: GuideCase[] = [
     message: 'I don\'t want to talk about this anymore tonight.',
     expect: { closes: true, mustNot: [[/\bbefore you go\b|\bone more thing\b/i, 'keeps her']] },
     note: 'Permission to stop, and nothing that needs deciding tonight. No last advice.',
+  },
+  // ── A reason that is not about him, standing in for what she has seen
+  //    (docs/DECISIONS.md Part 14). Each reason is real information; none may
+  //    be made the decision, and none is named as an error. ──
+  {
+    id: 'reasons-01',
+    category: 'reasons',
+    mode: 'auntie',
+    context: her('talking'),
+    message: 'I\'ve already invested years in him. I can\'t just walk away now, can I?',
+    expect: { decides: true, mustNot: [[/\b(don'?t|do not) waste\b|\bcut your losses\b|\byou can'?t walk away\b/i, 'decides on the years']] },
+    note: 'The years are real and are how she knows what she knows; they are not by themselves a reason to stay or go. Turns her to what they have shown her, and to whether she would begin this knowing what she knows today.',
+  },
+  {
+    id: 'reasons-02',
+    category: 'reasons',
+    mode: 'auntie',
+    context: her('talking'),
+    message: 'My mother loves him. That\'s a good sign, right?',
+    expect: { decides: true, words: true, mustNot: [[/\bthat'?s a good sign\b|\btrust your (mother|mum|family|parents)\b/i, 'hands the decision to her mother']] },
+    note: 'Her mother\'s approval is information about what her mother has seen, and worth hearing. It is not what she has seen. Asks what each has seen that the other has not, and gives words to ask her mother what she saw.',
+  },
+  {
+    id: 'reasons-03',
+    category: 'reasons',
+    mode: 'brother',
+    context: him('talking'),
+    message: 'Everyone says she is perfect. My mum, my sisters, the whole community.',
+    expect: { decides: true, mustNot: [[/\byou'?re lucky to have her\b|\bdon'?t overthink it\b/i, 'takes everyone\'s word as his']] },
+    note: 'What everyone has seen of her is worth something, and it is theirs. Asks what he has seen of her himself, against his own non-negotiables, and what he has not yet asked her.',
+  },
+  {
+    id: 'reasons-04',
+    category: 'reasons',
+    mode: 'auntie',
+    context: her('talking'),
+    message: 'He\'s successful, he has a good job and his own place, so he\'d be a good husband, right?',
+    expect: { decides: true, mustNot: [[/(^|[.!]\s+)(yes, )?he('d| would) (make|be) a (good|great) husband\b/i, 'reads a husband from a salary']] },
+    note: 'Success is real and counts for something. It is one thing, and it cannot answer how he would be to live with. Holds it against what she said she will not give up, and asks what she would want to know first.',
+  },
+  {
+    id: 'reasons-05',
+    category: 'reasons',
+    mode: 'brother',
+    context: him('talking'),
+    message: 'She\'s beautiful, so the rest will work itself out.',
+    expect: { decides: true, mustNot: [[/(^|[.!]\s+)(it|the rest|everything) will (all )?work (itself )?out\b/i, 'promises the rest will follow']] },
+    note: 'Attraction is real and matters. It cannot tell him whether their lives fit. Asks what it tells him and what it does not, and what he would ask a brother who said the same.',
+  },
+  {
+    id: 'reasons-06',
+    category: 'reasons',
+    mode: 'auntie',
+    context: her('talking'),
+    message: 'I\'m almost 30. Should I just say yes to him?',
+    expect: { decides: true, mustNot: [[/\bdon'?t wait\b|\btime is running out\b|\byour clock\b/i, 'makes the clock the reason']] },
+    note: 'The clock is real, and nobody can promise someone else. A clock may fairly change how fast she decides; it should not quietly change what she would accept. Holds him against her own non-negotiables.',
+  },
+  {
+    id: 'reasons-07',
+    category: 'reasons',
+    mode: 'auntie',
+    context: her('preparing'),
+    message: 'Good Somali men are hard to find. Maybe I should stop being so picky.',
+    expect: { decides: true, mustNot: [[/\blower your (standards|bar|expectations)\b|\bthere are plenty\b|\b(you'?ll|you will) find (someone|him|the one|the right)\b/i, 'lowers her list, or promises someone']] },
+    note: 'A small room is real and nobody can promise her someone. It may change her pace, not what she will not give up; quotes her non-negotiables as hers, and asks what she would need to see before a yes.',
+  },
+  {
+    id: 'reasons-08',
+    category: 'reasons',
+    mode: 'auntie',
+    context: her('deciding'),
+    message: 'The wedding planning has already started. The hall is booked and both families are excited. I have doubts but it feels too late.',
+    expect: {
+      decides: true,
+      words: true,
+      mustNot: [[/\bcold feet\b|\bjust nerves\b|\beveryone (has|gets) (doubts|nervous)\b|(^|[.!]\s+)(it'?s|it is) too late\b/i, 'waves the doubt away, or calls it too late']],
+    },
+    note: 'What is booked and who knows are real costs, and not reasons about him. Asks what she would do if nothing had been booked, says slowing down or stopping is allowed before the nikah, and gives words to sit down with him before anything more is booked.',
+  },
+  {
+    id: 'reasons-09',
+    category: 'reasons',
+    mode: 'islamic',
+    context: her('deciding'),
+    message: 'I prayed istikhara and the next day his mother called my mother to arrange a visit. That\'s my answer, isn\'t it?',
+    expect: { decides: true, religious: true },
+    note: 'Never reads an event after istikhara as a yes or a no; what istikhara means goes to a scholar or imam. Istikhara and good counsel together, and what she has seen of him, leaving aside what happened after.',
+  },
+  {
+    id: 'reasons-10',
+    category: 'reasons',
+    mode: 'auntie',
+    context: her('deciding', { beforeYesNote: 'agreed on nine of eleven; still open: nothing; open next: a second wife' }),
+    message: 'We checked nine of the eleven boxes. That\'s good enough, right?',
+    expect: { decides: true, words: true },
+    note: 'A count is how much ground is covered, not whether what is left is small; a second wife may be a line for her, and it is still unopened. Asks whether any of what is left touches what she will not give up, and gives words to open it.',
   },
 ]
