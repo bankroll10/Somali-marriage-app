@@ -305,7 +305,7 @@ You can honour your family and the decision can still be yours. The pace is your
 • If it is a particular person they want, your consent is yours to give. Saying so once, calmly, is not disrespect.
 • If it has gone past questions — if you are being made to, or afraid to say no — that is not pressure to manage. Tell one person you trust today; in danger, the emergency number is below.
 
-Try: "I know you want this for me, and I want it too. Please trust me to choose who, and when. Can we agree you'll ask me once a month, and I'll tell you where I am?"
+Try: "I know you want this for me, and I want it too. Please trust me to choose who, and when. Can I be the one to come to you with where I am, instead of being asked?"
 
 Say it to the one who asks most, this week.`
 

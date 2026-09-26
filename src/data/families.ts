@@ -60,7 +60,7 @@ const SCRIPTS: FamilyScript[] = [
       words:
         'Hooyo, Aabo — I want to tell you about someone, and I want you to hear it from me first. I met her online. I know that isn’t how you would have chosen. I’m serious, I want to do this properly, and I want to approach her family the right way. I’d like your help with that.',
       tells:
-        'Say “I’d like your help” and mean it. Asked for their part, most parents give it. Presented with a decision, most look for the flaw in it.',
+        'Say “I’d like your help” and mean it. Asked for their part, parents can give it. Presented with a decision, they may look for the flaw in it.',
     },
   },
   {
@@ -97,7 +97,7 @@ const SCRIPTS: FamilyScript[] = [
     stages: ['talking', 'deciding'],
     for: 'man',
     script: {
-      why: 'This is the step that turns talking into an intention, and it is the one thing no message can do for you. It costs you something to stand in front of her father or her brother and say it out loud. That is exactly why it counts — and why every month you wait, she is the one carrying the question.',
+      why: 'This is the step that turns talking into an intention, and it is the one thing no message can do for you. It costs you something to stand in front of her father or her brother and say it out loud. That is exactly why it counts.',
       words:
         'Assalaamu alaykum. My name is ———. I have been speaking with your daughter, and she told me you are the one I should come to. I did not want it to go further without doing that. My intention is marriage, and I want to do this the way you would want it done. If you will allow it, I would like my family to come and sit with yours.',
       tells:

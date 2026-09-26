@@ -102,7 +102,7 @@ export const TOPICS: Topic[] = [
         words:
           'I want to ask about my family and our home, so nothing surprises you later. Would you be alright with someone from my side living with us one day? And how much hosting feels right to you — I’d rather we plan for it than have you come to resent it.',
         tells:
-          'Listen for whether she has pictured it, or only agreed to it. A quick yes with nothing behind it is the answer that comes back in year two. Answer the same questions yourself, out loud, before you leave the subject.',
+          'Listen for whether she has pictured it, or only agreed to it. A quick yes with nothing behind it is the answer that comes back later. Answer the same questions yourself, out loud, before you leave the subject.',
       },
     },
     script: {
@@ -172,13 +172,13 @@ export const TOPICS: Topic[] = [
   {
     id: 'children',
     label: 'Children',
-    prompt: 'Children — how many, how soon, and whether they’d speak Somali at home and go to dugsi.',
+    prompt: 'Children — whether you want them, how many, how soon, and whether they’d speak Somali at home and go to dugsi.',
     consequence: 0.9,
     why: '“Inshallah, when Allah wills” covers a wide range of very different lives. How soon, how many, Somali in the house, dugsi on Saturdays — these are decisions, and they get made whether or not you make them together.',
     script: {
       why: 'Vagueness here is not romance. It is a decision being left to whoever pushes hardest later.',
       words:
- 'When you think about children — how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right — and I’ll tell you mine.',
+ 'When you think about children — do you want them, how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right — and I’ll tell you mine.',
       tells: 'Listen for whether {he} has pictures or only phrases. Pictures can be talked about. Phrases cannot.',
     },
     yourSide: {
@@ -200,7 +200,7 @@ export const TOPICS: Topic[] = [
     man: {
       prompt: 'Deen, day to day — prayer at home, what “practising” means on an ordinary Tuesday, and what you each expect of the other.',
       script: {
-        why: 'An expectation you assumed she would know is the one that becomes a fight in year two — and the same is true of hers.',
+        why: 'An expectation you assumed she would know is the one that becomes a fight later — and the same is true of hers.',
         words:
           'We both say deen matters. Can I ask what that looks like for you on a normal day — prayer, and what you’d want in the house and not in it? And I’ll say what I’d expect, including anything I might have assumed you’d know.',
         tells: 'Say your half first, and say it plainly. Then note whether her answer is specific, and whether it is about the two of you rather than a list for you.',
@@ -245,7 +245,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'You are not asking whether it matters to {him}. You are asking what happens if it matters to someone at {his} table.',
       words:
-        'Can I ask something we’re not supposed to ask? Will qabiil come up — from your side, or mine? I’m not asking whether it matters to you. I’m asking what we’d do if it matters to someone in your family, or in mine.',
+        'Can I ask something people don’t usually ask? Will qabiil come up — from your side, or mine? I’m not asking whether it matters to you. I’m asking what we’d do if it matters to someone in your family, or in mine.',
       tells:
         '“It doesn’t matter to me” is the beginning. What you want to hear is what {he} would do if it mattered to {his} uncle. If {he} has no answer yet, that is the answer for now: ask {him} to think about it, and ask again.',
     },
@@ -272,7 +272,7 @@ export const TOPICS: Topic[] = [
     man: {
       prompt: 'A second wife — what you believe about it for your own life, and whether you have said it to her plainly.',
       script: {
-        why: 'She is more afraid to ask this than you are to answer it. Say it before she has to.',
+        why: 'Say it before she has to ask.',
         words:
           'I want to say something plainly, so you never have to ask it. Here is what I believe about a second wife — not what is permitted, but what I want for my own life. I’d rather you hear it from me now than wonder.',
         tells:

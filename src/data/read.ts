@@ -204,11 +204,11 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     ],
     // Read by a man, "nobody in her life knows you exist" scored her at 0 for
     // the thing his own `family` question tells him is his step: before his
-    // people have gone to hers, her family often does not know yet, and the
+    // people have gone to hers, her family may not know yet, and the
     // timing is hers (the `secret` variant says the same). A sister or a friend
     // knowing is the tell on her side (docs/DECISIONS.md Part 10).
     man: {
-      helper: 'Before your people have gone to hers, her family often does not know yet — that is hers to time. A sister or a friend knowing is the tell.',
+      helper: 'Before your people have gone to hers, her family may not know yet — that is hers to time. A sister or a friend knowing is the tell.',
       options: {
         family: { note: 'her family knows about you — before your people have gone to them' },
         friends: { weight: 0.85 },
@@ -244,7 +244,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     // her life knowing him is a different thing, and src/lib/read.ts still
     // names that combination for either side.
     man: {
-      helper: 'Before the families have met, some discretion is her protecting her own name. Repeated, with nobody in her life knowing you, is something else.',
+      helper: 'Before the families have met, discretion can be her protecting her own name. Repeated, with nobody in her life knowing you, is something else.',
       options: {
         soft: { weight: 0.65, note: 'she has asked you to hold off telling people for now' },
         explicit: { weight: 0.3, note: 'she has asked you more than once to keep this between the two of you' },

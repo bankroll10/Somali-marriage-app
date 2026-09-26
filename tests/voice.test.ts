@@ -77,11 +77,9 @@ const ALLOWED: [RegExp, string][] = [
   [/Actually, it’s something else/, 'a button in the person’s own voice, correcting us'],
   [/navigator\.platform|process\.platform/, 'code, not copy'],
   [/^\s*\/\\b\(/, 'a routing regex reads what she typed; it is not something we say'],
-  // Man-only lines wait for ten men (decision 4); each is ledgered with its
-  // rewrite in docs/RESEARCH.md ("Deferred, by name").
-  [/the answer that comes back in year two/, 'decision 4: a man-only variant, deferred (L12)'],
-  [/the one that becomes a fight in year two — and the same is true of hers/, 'decision 4: a man-only variant, deferred (L12)'],
-  [/Asked for their part, most parents give it/, 'decision 4: a man-only script, deferred (L9)'],
+  // The man-only lines that waited here for ten men were calibrated on the
+  // founder's delegation (docs/DECISIONS.md Part 18, "Decided"); nothing is
+  // exempt any more.
 ]
 
 /** Comment lines, including the continuation lines of a block comment, which carry no marker of their own. */

@@ -246,10 +246,10 @@ Say what you’re about — “I’m serious, and I’m taking my time to do it 
     {
       keywords: ['her father', 'her brother', 'her wali', 'guardian', 'her family', 'her dad', 'parents'],
       respond: () =>
-        `This is where you become a man in their eyes. Come correct.
+        `This is where they see who you are. Come correct.
 
 • Lead with honour: “I’ve come to you because I’m serious about her for marriage, and I want to do this the right way.”
-• Be ready to speak plainly — your deen, your work, how you’ll provide and protect.
+• Be ready to speak plainly — your deen, your work, how you picture providing.
 • Ask him: “What matters most to you in the man who marries her?” Respect goes a long way.
 • Hide nothing you’d regret later. Honesty now is the foundation of everything.
 

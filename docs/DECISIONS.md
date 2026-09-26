@@ -26,7 +26,7 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 1 | 2026-09-12 | **The gate comes off with the first post** (the quiet launch): delete `PREVIEW_PASSWORD` and deploy; keep `noindex` and `robots.txt` until the first pool opens | Every share path handed a stranger a 401, and the roadmap's first item waited on a launch that needed the links posted first | Done by the founder on 2026-09-12. The `noindex` half was reversed on 2026-09-13 (the search pass). The edge gate stays as the close switch |
 | 2 | 2026-09-12 | **The door promises the condition, not the number:** forty women and forty men who can each be introduced to someone. Count-me is offered to `preparing` members only | `COHORT_TARGET = 40` was shown as a contract while the opening checklist said forty did not open a pool | Retired 2026-09-24 with the feature |
 | 3 | 2026-09-12 | **The ticket to the door is the short map:** the three answers the pool read (practice, children, non-negotiables), then age and a way to reach her; the sixteen questions after. A man is counted on the same terms | The most expensive instrument was the ticket to the marketplace, and the scarce side, a preparing man, met sixteen questions first | Retired 2026-09-24 with the feature |
-| 4 | 2026-09-12 | **The men's instruments wait for ten men.** Nothing on his side is rewritten before ten men are asked what they need; the read's man-variant stays as it is. He is also counted, on decision 3's terms | No man had been asked. What the founder's walk found wrong was repaired; a rewrite on inference was not made | Stands for the instruments: no man has been asked yet. The "counted" half retired 2026-09-24 with the door |
+| 4 | 2026-09-12 | **The men's instruments wait for ten men.** Nothing on his side is rewritten before ten men are asked what they need; the read's man-variant stays as it is. He is also counted, on decision 3's terms | No man had been asked. What the founder's walk found wrong was repaired; a rewrite on inference was not made | Stands for the instruments: no man has been asked yet. The "counted" half retired 2026-09-24 with the door. Its wording lines were calibrated 2026-09-26 on the founder's delegation (Part 18, "Decided"): counts, dated futures and reads of her mind went; nothing on his side was redesigned |
 | 5 | 2026-09-12 | **The repository goes private.** The founder's act | Public, it made every strategy doc, the readout routes, the cap defaults and the safety-queue design downloadable; a backup artifact on it can be downloaded by anyone signed in to GitHub | Open. Recorded done on 2026-09-12, but on 2026-09-24 the GitHub API reported the repository public. The monthly backup artifact waits on it (`.github/workflows/watch.yml`) |
 | 6 | 2026-09-12 | **The playbook leads with the eleven,** the read in the same week; the via split settles which door people use | The lenses disagreed (Need: the read; Productocracy: the eleven), and the eleven is the sentence a stranger repeats | Stands. The wedge is in `docs/PRODUCT.md` |
 | 7 | 2026-09-12 | **Twelve more cities are named** in `src/data/scenes.ts`: Seattle, San Diego, Birmingham, Bristol, Leicester, Gothenburg, Oslo, Copenhagen, Helsinki, Amsterdam, Nairobi, Melbourne. Each reads zero | A city not named before people arrive is recorded as `other` and cannot be re-placed later | Stands. A scene is the progress record's `scene` and picks the help line's country (`src/components/HelpLine.tsx`) |
@@ -3571,6 +3571,36 @@ Not changed on inference:
 - The facilitator note's "a parent or an older relative" who reads Somali
   more comfortably — parents read Somali, couples English (F,
   `docs/ASSETS.md`).
+
+### Decided (2026-09-26, delegated by the founder)
+
+The founder handed the list above to this pass. Each call follows the ledger's
+own rules: a count nobody has goes, a prediction becomes what was seen, an
+inference becomes an instruction, a custom is named as a custom. Decision 4
+keeps its substance — no man-side question, option or flow changed, and ten
+men are still owed — only wording that said more than its class allows was
+calibrated, as the women's lines were on 2026-09-24.
+
+| Item | Call | Why |
+|---|---|---|
+| "Built by a Somali" on the printed guide | Goes; the byline keeps "a marriage product for the Somali diaspora" | The rule was "true, or it goes", and nothing here can establish true. One word from the founder restores it; a false line in print cannot be recalled |
+| `tell-family-online`: "most parents give it… most look for the flaw" | "parents can give it… they may look for the flaw" | Two counts (L9) |
+| `known` man helper: "often does not know yet" | "may not know yet" | A count (L21) |
+| `secret` man helper: "some discretion **is** her protecting her own name" | "discretion **can be** her protecting her own name" | Her motive, said as fact (L3) |
+| Big Brother's wali reply: "become a man in their eyes"; "how you'll provide and protect" | "This is where they see who you are."; "how you picture providing" | A role said as a trait of men (L31) |
+| `approach-her-family`: "every month you wait, she is the one carrying the question" | The clause goes | A claim about her, used as pressure on him (L31; Part 16) |
+| `eleven.ts` man lines: "comes back in year two"; "a fight in year two"; "She is more afraid to ask this than you are to answer it" | "comes back later"; "a fight later"; "Say it before she has to ask." | Dated futures (L12); a read of her mind (L10) |
+| The men's moments, no family-pressure chip | "My family is pushing", the same as the women's | Parity; it reaches `PRESSURE_REPLY` in any voice |
+| "Aabo" as the default wali | Kept | The commonest wali; the Families screen says "Change anything that isn't you" |
+| `qabiil`: "something we're not supposed to ask" | "something people don't usually ask" | "Supposed to" asserts a rule; the tone survives |
+| `PRESSURE_REPLY`: "Can we agree you'll ask me once a month, and I'll tell you where I am?" | "Can I be the one to come to you with where I am, instead of being asked?" | A schedule set for a parent risks reading as cheek (row 21); offering the updates keeps the ask and the respect |
+| `children`: "how many, how soon" | "whether you want them, how many, how soon"; the words ask "do you want them" | The Map already takes no for an answer; the Eleven should not assume it |
+| The facilitator note: "a parent or an older relative" who reads Somali | "for anyone in the room who reads that more comfortably" | A generational claim the sentence does not need; the PDF re-rendered |
+
+Kept, checked: the `initiative` man helper ("Some people never text first, by
+habit") and the `family` man helper ("In our families this step is yours to
+take", a custom named as a custom). `tests/voice.test.ts` no longer exempts any
+line under decision 4; `tests/part18-decided.test.ts` holds the calls.
 
 ### The docs, classified and left
 

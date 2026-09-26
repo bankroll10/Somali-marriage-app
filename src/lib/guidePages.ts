@@ -200,13 +200,13 @@ function about(host: string, guide: Guide, sample = false): string {
   if (sample) {
     return [
       '<div class="about">',
-      `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora, built by a Somali. Free, needs no account, and nothing you read or decide here is recorded. The <a href="${toolPath(guide.toolSlug)}" data-app>interactive version</a> keeps your answers on your own phone unless you choose to send the two-sided sheet to your partner; the app also has a guide that uses an AI model; this page does not. The eleven include qabiil and a second wife, named as such — we take no position on any of them.</p>`,
+      `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora. Free, needs no account, and nothing you read or decide here is recorded. The <a href="${toolPath(guide.toolSlug)}" data-app>interactive version</a> keeps your answers on your own phone unless you choose to send the two-sided sheet to your partner; the app also has a guide that uses an AI model; this page does not. The eleven include qabiil and a second wife, named as such — we take no position on any of them.</p>`,
       '</div>',
     ].join('\n').replace('joinniyyah.com', host)
   }
   return [
     '<div class="about">',
-    `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora, built by a Somali. This guide is free, needs no account, and nothing you read or decide here is recorded — opening this page counts nothing, anywhere.</p>`,
+    `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora. This guide is free, needs no account, and nothing you read or decide here is recorded — opening this page counts nothing, anywhere.</p>`,
     `<p>There is also an <a href="${toolPath(guide.toolSlug)}" data-app>interactive version</a> at joinniyyah.com that asks which of the eleven you two have had and hands you the one to open first. It keeps your answers on your own phone unless you choose to send the two-sided sheet to your partner, who answers on theirs. The app also has a guide that uses an AI model; this page does not.</p>`,
  `<p>The eleven include qabiil and a second wife, named as such. We take no position on any of them. Every conversation ends in words you can say.</p>`,
     '</div>',
