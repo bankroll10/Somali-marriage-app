@@ -130,17 +130,21 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
   {
     id: 'named',
     dimension: 'intent',
-    prompt: 'Has {he} said the word marriage — without you raising it first?',
+    // "Has he said the word marriage — without you raising it first?" was
+    // answered by "Yes, but only after I brought it up": a yes that meant no.
+    // Who raised it first is the thing measured, so the question asks that
+    // (docs/DECISIONS.md Part 13). Ids and weights unchanged.
+    prompt: 'Who first brought up marriage between you?',
     options: [
       {
         id: 'early',
-        label: 'Yes, early and clearly',
+        label: '{He} did — early and clearly',
         weight: 1,
         note: '{he} named marriage {himself}, before you had to ask',
       },
       {
         id: 'after',
-        label: 'Yes, but only after I brought it up',
+        label: 'I did, and {he} agreed',
         weight: 0.5,
         note: '{he} agreed about marriage once you raised it, but did not raise it {himself}',
       },
@@ -151,20 +155,20 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
         weight: 0.2,
         note: '{he} talks around marriage without ever landing on it',
       },
-      { id: 'no', label: 'No, never', weight: 0, note: 'the word marriage has not been said' },
+      { id: 'no', label: 'Nobody has yet', weight: 0, note: 'the word marriage has not been said' },
     ],
   },
   {
     id: 'timeline',
     dimension: 'intent',
- prompt: 'Has {he} given you a timeline you could hold {him} to?',
+    prompt: 'Has {he} said when {he} wants to marry?',
     options: [
       {
         id: 'dated',
         label: 'Yes — a real window, with a reason behind it',
         hint: '“After I finish in June”, “before next Ramadan”',
         weight: 1,
-        note: '{he} gave you a timeline with an actual date attached to it',
+        note: '{he} gave you a window for marriage, with a reason behind it',
       },
       {
         id: 'soft',
@@ -250,7 +254,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
   {
     id: 'family',
     dimension: 'family',
-    prompt: 'Has {he} asked about your family?',
+    prompt: 'Has {he} asked about approaching your family?',
     helper: 'How to approach them, who to speak to, what they would expect.',
     options: [
       {
@@ -300,8 +304,11 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
   {
     id: 'initiative',
     dimension: 'consistency',
-    prompt: 'If you stop texting first, what happens?',
-    helper: 'Be honest. It is a fair thing to have tested.',
+    // "If you stop texting first" was a hypothetical, and "a fair thing to
+    // have tested" invited her to run a test on him. What has happened is the
+    // evidence (docs/DECISIONS.md Part 13).
+    prompt: 'When you don’t message first, what usually happens?',
+    helper: 'From what has happened so far — you don’t need to test it.',
     options: [
       { id: 'same-day', label: '{He} reaches out the same day', weight: 1, note: '{he} reaches out first when you stop' },
       { id: 'day-two', label: 'Within a day or two', weight: 0.75, note: '{he} comes back within a day or two on {his} own' },
@@ -368,7 +375,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
   {
     id: 'nonneg',
     dimension: 'pressure',
-    prompt: 'Does {he} know what you will not compromise on?',
+    prompt: 'When you told {him} what you won’t compromise on, what did {he} do?',
     // A plain answer that is not hers is still a straight answer. "Pushed back"
     // put honest disagreement ("that isn't me") in the same box as pressure,
     // and scored it below changing the subject (docs/DECISIONS.md Part 8).
@@ -377,25 +384,26 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
     options: [
       {
         id: 'straight',
-        label: 'Yes — and {he} answered straight',
+        label: '{He} answered straight',
         weight: 1,
         note: '{he} knows your non-negotiables and gave you a straight answer, whatever it was',
       },
-      { id: 'deflected', label: 'Yes — but {he} changed the subject', weight: 0.2, note: '{he} moved away from your non-negotiables rather than answering them' },
+      { id: 'deflected', label: '{He} changed the subject', weight: 0.2, note: '{he} moved away from your non-negotiables rather than answering them' },
       {
         id: 'pushed',
-        label: 'Yes — and {he} keeps trying to talk me out of them',
+        label: '{He} keeps trying to talk me out of them',
         weight: 0.1,
         note: '{he} keeps trying to talk you out of the things you said you would not compromise on',
       },
       // Says nothing about {him}, so it is not scored — it used to count as 0.5.
-      { id: 'untold', label: 'I have not told {him}', weight: null, note: 'you have not told {him} your non-negotiables yet' },
+      { id: 'untold', label: 'I haven’t told {him} yet', weight: null, note: 'you have not told {him} your non-negotiables yet' },
     ],
   },
   {
     id: 'hard',
     dimension: 'pressure',
     prompt: 'When you raise something difficult, what does {he} do?',
+    helper: 'Think of the last time you did, if you have.',
     options: [
       { id: 'listens', label: 'Listens, and comes back to it', weight: 1, note: '{he} can sit with a hard conversation and return to it' },
       // A pause that comes back is the same thing her own map calls "workable

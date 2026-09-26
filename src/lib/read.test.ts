@@ -259,7 +259,7 @@ describe('a man reading a woman', () => {
     // whether she was asked about hers: it would mark him down for her
     // waiting on the step that is his to take.
     const family = (g: 'man' | 'woman') => readQuestions(g).find((q) => q.id === 'family')!
-    expect(family('woman').prompt).toMatch(/asked about your family/i)
+    expect(family('woman').prompt).toMatch(/asked about approaching your family/i)
     expect(family('man').prompt).not.toBe(family('woman').prompt)
     const best = family('man').options.find((o) => o.weight === 1)!
     expect(best.note).toMatch(/her family/i)
@@ -423,7 +423,7 @@ describe('a difference is not pressure, and a pause is not a gap (docs/DECISIONS
     expect(option('nonneg', 'straight').note).toMatch(/whatever it was/)
   })
   it('names pressure as pressure, not disagreement', () => {
-    expect(option('nonneg', 'pushed').label).toBe('Yes — and he keeps trying to talk me out of them')
+    expect(option('nonneg', 'pushed').label).toBe('He keeps trying to talk me out of them')
     expect(option('nonneg', 'pushed').label).not.toMatch(/pushed back/)
   })
   it('reads a pause that comes back the way her own map does — as coming back', () => {
@@ -532,5 +532,28 @@ describe('careful what she raises (docs/DECISIONS.md Part 9)', () => {
     const r = buildRead({ ...base, hard: 'careful' })!
     const text = [r.careful, r.summary, r.script.why, r.script.words, r.script.tells].join(' ').toLowerCase()
     expect(text).not.toMatch(/abus|controlling|narciss|toxic|stonewall|contempt|red flag/)
+  })
+})
+
+describe('the questions ask what happened, not what she believes (Part 13)', () => {
+  const qs = readQuestions('woman')
+  const q = (id: string) => qs.find((x) => x.id === id)!
+
+  it('asks about what has happened, never a hypothetical', () => {
+    for (const x of qs) expect(x.prompt, x.id).not.toMatch(/\bif you\b|\bwould\b/i)
+  })
+
+  it('never invites her to test him', () => {
+    for (const x of qs) expect(x.helper ?? '', x.id).not.toMatch(/(?<!don’t need to )\btest(ed)?\b/i)
+  })
+
+  it('answers nonneg with what he did, not whether he knows', () => {
+    expect(q('nonneg').prompt).toMatch(/what did he do/i)
+    for (const o of q('nonneg').options) expect(o.label).not.toMatch(/^yes\b/i)
+  })
+
+  it('asks named as who raised it, so no answer contradicts the stem', () => {
+    expect(q('named').prompt).not.toMatch(/without you raising/i)
+    expect(q('named').prompt).toMatch(/who first brought up marriage/i)
   })
 })

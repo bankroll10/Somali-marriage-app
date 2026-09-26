@@ -47,7 +47,7 @@ const household: Question = {
   options: [
     { id: 'with-family', label: 'With family', hint: 'One household — theirs or mine' },
     { id: 'near-family', label: 'Our own place, close to family' },
-    { id: 'separate', label: 'Our own place — our own city, if it comes to it' },
+    { id: 'separate', label: 'Our own place, wherever that is' },
     { id: 'Flexible', label: 'Flexible' },
   ],
 }
@@ -56,7 +56,7 @@ const work: Question = {
   id: 'work',
   type: 'single',
   dimension: 'vision',
-  prompt: 'Work — after marriage, and after children?',
+  prompt: 'What do you picture for work — after marriage, and after children?',
   options: [
     { id: 'both', label: 'We both keep working' },
     { id: 'seasons', label: 'In seasons — it changes with children' },
@@ -69,8 +69,8 @@ const moneyHome: Question = {
   id: 'money-home',
   type: 'single',
   dimension: 'vision',
-  prompt: 'Money sent home to family?',
-  helper: 'If it is sent, the question is whether it’s expected, and how much.',
+  prompt: 'What do you picture for money sent home to family?',
+  helper: 'From either side — whether it’s expected, and how often.',
   options: [
     { id: 'expected', label: 'Expected — every month, from both of us' },
     { id: 'some', label: 'Some, when we can' },
@@ -91,7 +91,7 @@ export const chapters: Chapter[] = [
         id: 'timeline',
         type: 'single',
         dimension: 'intention',
-        prompt: 'What is your timeline for marriage?',
+        prompt: 'When would you like to be married?',
         helper: 'Not a deadline — just where your heart honestly is.',
         options: [
           { id: 'within-1', label: 'Within the next year', tags: ['Ready now'] },
@@ -105,7 +105,10 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'intention',
         prompt: 'Why are you looking for marriage now?',
-        helper: 'There is no wrong answer. Be honest with yourself.',
+        // "There is no wrong answer" was untrue: these options carry weights.
+        // The weights themselves are a research question (docs/RESEARCH.md,
+        // the constants table), not a wording fix.
+        helper: 'If there’s more than one reason, pick the one that weighs most.',
         options: [
           {
             id: 'ready',
@@ -139,7 +142,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'faith',
         prompt: 'Where are you in your practice right now?',
-        helper: 'Honesty here saves years later.',
+        helper: 'Think of an ordinary week, not your best one.',
         options: [
           { id: 'devout', label: 'Practicing steadily — it shapes my daily life', tags: ['Devout'] },
           { id: 'consistent', label: 'Consistent in the core, growing in the rest', tags: ['Grounded'] },
@@ -151,7 +154,7 @@ export const chapters: Chapter[] = [
         id: 'faith-role',
         type: 'scale',
         dimension: 'faith',
-        prompt: 'How central should faith be in your marriage and home?',
+        prompt: 'How much do you want faith to shape your marriage and home?',
         scale: {
           min: 1,
           max: 5,
@@ -185,7 +188,7 @@ export const chapters: Chapter[] = [
         id: 'children',
         type: 'single',
         dimension: 'vision',
-        prompt: 'How do you feel about children?',
+        prompt: 'Do you want children?',
         options: [
           { id: 'want', label: 'I want children, God willing', tags: ['Family-minded'] },
           { id: 'open', label: 'Open to it with the right person', tags: ['Open'] },
@@ -216,7 +219,7 @@ export const chapters: Chapter[] = [
         id: 'dealbreakers',
         type: 'multi',
         dimension: 'character',
-        prompt: 'What are your true non-negotiables?',
+        prompt: 'What are your non-negotiables — the things that would end it, however good the rest was?',
         helper: 'Choose up to three. Knowing these protects your time and heart.',
         max: 3,
         options: [
@@ -242,8 +245,8 @@ export const chapters: Chapter[] = [
         id: 'conflict',
         type: 'single',
         dimension: 'character',
-        prompt: 'When something is wrong between you, what do you do?',
-        helper: 'How we handle conflict is one of the clearest things about us.',
+        prompt: 'When something is wrong with someone close to you, what do you usually do?',
+        helper: 'Think of the last time, not how you’d like to handle it.',
         options: [
           { id: 'talk', label: 'I talk it through, even when it’s hard', tags: ['Communicative'], weight: 1 },
           { id: 'space', label: 'I need space first, then I come back to it', tags: ['Reflective'], weight: 0.8 },

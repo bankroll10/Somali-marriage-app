@@ -203,7 +203,7 @@ export function coupleReading(jointMap: Record<string, Joint>, gender: Gender = 
   const headline = allHad
     ? counts['both-settled'] > 0
       ? 'You two have had all eleven. Where you see things differently, you both say you have worked out how.'
-      : 'You two have had all eleven, and you agree on all of them.'
+      : 'You two have had all eleven, and you both say you agree on all of them.'
     : counts['one-thinks-talked'] > 0
       ? 'One of you thinks you’ve had a conversation the other doesn’t remember having.'
       : counts['differ-somewhere'] > 0
