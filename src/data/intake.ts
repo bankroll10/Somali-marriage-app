@@ -85,7 +85,7 @@ export const chapters: Chapter[] = [
     kicker: '01 · Niyyah & Deen',
     title: 'Intention & faith',
     intro:
-      'Before anyone else, this is between you and your own clarity. Marriage begins with an honest intention — not a feeling, not pressure, not a deadline. And for us, deen is its spine: not to judge, but to find someone walking at a pace that fits beside yours.',
+      'Before anyone else, this is between you and your own clarity. Marriage begins with an honest intention — not a feeling, not pressure, not a deadline. And where deen is its spine, it is there not to judge, but to find someone walking at a pace that fits beside yours.',
     questions: [
       {
         id: 'timeline',
@@ -330,7 +330,7 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
           ? 'Your intention already has shape — you know why you’re here and roughly when. Say it early; nobody has to guess.'
           : tl === 'exploring'
             ? 'You’re exploring seriously, not drifting — that honesty is the right foundation.'
-            : 'You’re giving yourself room on the timeline. Good — a marriage chosen calmly beats one chosen against a clock.'
+            : 'You’re giving yourself room on the timeline. The pace can stay yours.'
       const faith =
         p === 'devout' || p === 'consistent'
           ? 'And faith isn’t a checkbox for you — it’s the frame. Someone walking at a pace beside yours is worth asking about early.'

@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { askCoach, closersFor, localReply, scriptIn } from './coach'
+import { CLAN_RELIGION_REPLY, FORCED_REPLY, MAHR_OWNER_REPLY, NO_REPLY, PRESSURE_REPLY, SAFETY_REPLY, askCoach, closersFor, localReply, needsHelpLine, scriptIn } from './coach'
 import type { CoachContext } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
@@ -314,9 +314,157 @@ describe('decision support, never a decision (docs/GUIDE-EVAL.md, the invariants
     expect(say('Thanks — but what do I say to his mother?')).not.toMatch(/^Then go and say it/)
   })
 
+  it('meets a reason that is not about him as a reason, and hands the decision back with what she has seen (Part 14)', () => {
+    const talking = { ...her, stage: 'talking' as const }
+    const cases: [string, CoachContext, RegExp][] = [
+      ['I’ve already invested years in him. I can’t just walk away now, can I?', talking, /time already spent is not, by itself, a reason/],
+      ['My mother loves him. That’s a good sign, right?', talking, /What have they seen of him that you haven't/],
+      ['Everyone says she is perfect. My mum, my sisters, the whole community.', { ...him, stage: 'talking' }, /What have they seen of her that you haven't/],
+      ['He’s successful, he has a good job, so he’d be a good husband, right?', talking, /It is also one thing about him/],
+      ['She’s beautiful, so the rest will work itself out.', { ...him, stage: 'talking' }, /It is also one thing about her/],
+      ['I’m almost 30. Should I just say yes to him?', talking, /the pace or the list/],
+      ['The wedding planning has already started and the hall is booked. It feels too late.', her, /If nothing had been booked or announced/],
+      ['I prayed istikhara and the next day his mother called mine. That’s my answer, isn’t it?', her, /won't read what happened, or what you feel, as a yes or a no/],
+      ['We checked nine of the eleven boxes. That’s good enough, right?', her, /A count tells you how much ground you've covered/],
+    ]
+    for (const [m, ctx, reply] of cases) {
+      const t = say(m, ctx)
+      expect(t, m).toMatch(reply)
+      expect(t, m).toMatch(/\byours\b|Only you/)
+      expect(t, m).not.toMatch(/three things help in almost any situation|Your people protect you|at your age|won't find better/i)
+    }
+  })
+
+  it('with nobody yet, the clock keeps the list and promises no one (Part 14)', () => {
+    const t = say('Good Somali men are hard to find. Maybe I should stop being so picky.', { ...her, stage: 'preparing' })
+    expect(t).toMatch(/Nobody can promise you someone, and I won't pretend to/)
+    expect(t).toMatch(/honesty, shared faith/)
+    expect(t).not.toMatch(/lower|there are plenty|you('ll| will) find/i)
+  })
+
+  it('hears "too far in" as years spent, not as a question for a scholar', () => {
+    const t = say('I’m too far in to walk away now.')
+    expect(t).toMatch(/time already spent/)
+    expect(t).not.toMatch(/scholar/)
+  })
+
+  it('never reads a sign into istikhara, and says who the meaning belongs to', () => {
+    const t = say('Should I marry him? I prayed istikhara and I don’t feel anything either way.', her, 'islamic')
+    expect(t).toMatch(/scholar or imam/)
+    expect(t).not.toMatch(/\b(that|this|it) means (allah|god|yes|no)\b/i)
+  })
+
   it('keeps safety first even when she asks to be told whether to marry', () => {
     const t = say('He checks my phone but otherwise he’s perfect. Should I marry him?')
     expect(t).toMatch(/not a disagreement to work out/)
     expect(t).not.toMatch(/leave him|marry him/i)
+  })
+})
+
+describe('"It went differently", said or not (docs/DECISIONS.md Part 15)', () => {
+  it('meets both answers with the same reply, which tells went-badly from not-safe', () => {
+    for (const m of [
+      'I talked to them about money home, and it went differently.',
+      'I was going to talk to them about money home, and it went differently.',
+      'I said the words you gave me, and it went differently.',
+    ]) {
+      const t = localReply(m, ctx, 'auntie').text
+      expect(t, m).toMatch(/It went badly, but it can come back/)
+      expect(t, m).toMatch(/did not feel safe/)
+    }
+  })
+})
+
+describe('autonomy: force, control by what she stands to lose, and a no (docs/DECISIONS.md Part 16)', () => {
+  const him: CoachContext = { ...ctx, identity: { ...ctx.identity, gender: 'man' } }
+  const say = (m: string, c: CoachContext = ctx, mode: ModeId = 'auntie') => localReply(m, c, mode).text
+
+  it('being made to marry gets its own answer, in every voice, with the help line beneath', () => {
+    for (const m of [
+      'My family have already agreed with his family and say I am not allowed to refuse him.',
+      'They are marrying me off to my cousin against my will.',
+      'My mother says I have no choice but to marry him, the date is set.',
+    ]) {
+      for (const mode of ['auntie', 'therapist', 'islamic'] as ModeId[]) expect(say(m, ctx, mode), `${mode}: ${m}`).toBe(FORCED_REPLY)
+      expect(needsHelpLine(m), m).toBe(true)
+    }
+    // Tell someone outside the household — never "tell your mother".
+    expect(FORCED_REPLY).toMatch(/outside the household/)
+    expect(FORCED_REPLY).not.toMatch(/your mother/)
+  })
+
+  it('a polygamy question that says "not allowed to refuse it" is not read as force', () => {
+    expect(say('Is polygamy allowed in Islam? My family says I am not allowed to refuse it.', ctx, 'islamic')).not.toBe(FORCED_REPLY)
+  })
+
+  it('a passport held, a status threatened, an exposure threatened: safety first', () => {
+    for (const m of [
+      'He keeps my passport and says if I leave he will call immigration.',
+      'He says if I end it he will send our messages to my father and post the photos.',
+      'He says he will get me deported if I tell anyone.',
+    ]) {
+      expect(say(m, ctx, 'therapist'), m).toBe(SAFETY_REPLY)
+      expect(needsHelpLine(m), m).toBe(true)
+    }
+  })
+
+  it('a no is an answer: never the words for meeting her father', () => {
+    for (const m of [
+      'She said no last week but I think her family would say yes. How do I approach her father anyway?',
+      'She turned me down. How do I change her mind?',
+      'He said no but his family anyway would want this. Can I get his family to talk to him?',
+    ]) {
+      const t = say(m, m.startsWith('He') ? ctx : him, m.startsWith('He') ? 'auntie' : 'brother')
+      expect(t, m).toBe(NO_REPLY)
+      expect(t, m).not.toMatch(/come correct|stand tall/i)
+    }
+    expect(NO_REPLY).toMatch(/^Try:/m)
+  })
+
+  it('reputation and the clock are pressure, and get the pressure answer', () => {
+    for (const m of [
+      'Everyone my age is married and my aunties keep saying what will people say.',
+      'My mother says I will embarrass the family if I wait any longer.',
+      'At my age they say I am running out of time.',
+    ]) expect(say(m), m).toBe(PRESSURE_REPLY)
+  })
+})
+
+describe('religion: principles, never rulings, and custom named as custom (docs/DECISIONS.md Part 17)', () => {
+  const say = (m: string, mode: ModeId = 'islamic') => localReply(m, ctx, mode).text
+
+  it('the Islamic voice does not teach a graded saying as settled, and says where the schools differ', async () => {
+    const { getMode } = await import('../data/coach')
+    const islamic = getMode('islamic')
+    expect(islamic.greeting(ctx)).not.toMatch(/half of faith/i)
+    const wali = say('How involved should my wali be?')
+    expect(wali).toMatch(/where the schools differ/)
+    expect(wali).toMatch(/scholar/)
+    expect(wali).not.toMatch(/barakah that secrecy/)
+  })
+
+  it('a ruling asked another way still reaches a scholar, in any voice', () => {
+    for (const [m, mode] of [
+      ['Do I need a wali to marry?', 'auntie'],
+      ['Is a nikah valid without my father there?', 'brother'],
+      ['Is it islamic to have the walima before the nikah?', 'therapist'],
+    ] as [string, ModeId][]) expect(say(m, mode), m).toMatch(/\b(scholar|imam)\b/)
+  })
+
+  it('the mahr is hers, and what the family expects is custom', () => {
+    for (const m of [
+      'My aunt says the mahr should go to my father because that is our way. Is that Islamic?',
+      'Can my brother keep my mahr for the family?',
+    ]) expect(say(m, 'auntie'), m).toBe(MAHR_OWNER_REPLY)
+    expect(MAHR_OWNER_REPLY).toMatch(/The mahr is the bride's/)
+    expect(MAHR_OWNER_REPLY).not.toMatch(/Your people protect you/)
+  })
+
+  it('qabiil asked about as religion is named as custom and handed to a scholar, never decided either way', () => {
+    expect(say('My uncle says Islam requires me to marry within our qabiil. Is that true?', 'auntie')).toBe(CLAN_RELIGION_REPLY)
+    expect(CLAN_RELIGION_REPLY).toMatch(/scholar/)
+    expect(CLAN_RELIGION_REPLY).not.toMatch(/\b(islam (does not|doesn't) require|is (haram|halal|required))\b/i)
+    // Without a religious word, a clan question is a family one, as before.
+    expect(say('Should I only look for someone from my own qabiil? It would be easier with my family.', 'brother')).not.toBe(CLAN_RELIGION_REPLY)
   })
 })

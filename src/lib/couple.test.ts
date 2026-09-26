@@ -112,3 +112,12 @@ describe('what the joint can claim (Part 13)', () => {
     for (const l of r.lines) expect(l.line).toMatch(/\bsay\b/)
   })
 })
+
+describe('the joint takes no side on whose memory is right (Part 16)', () => {
+  it('never says one of them forgot', () => {
+    const r = coupleReading({ ...all('both-agree'), live: 'one-thinks-talked' as Joint })
+    const text = [r.headline, ...r.lines.map((l) => l.line)].join(' ')
+    expect(text).not.toMatch(/remember|forgot|forget/i)
+    expect(r.headline).toMatch(/one of you says .* and the other says/)
+  })
+})

@@ -54,7 +54,12 @@ const MATTERED: EndingQuestion = {
   id: 'mattered',
  prompt: 'What decided it?',
   helper: 'Looking back — the thing that made the difference.',
+  // What was not Niyyah comes first. With only its own tools to pick from,
+  // the monthly loop could only ever hear that a tool decided it
+  // (docs/DECISIONS.md Part 15).
   options: [
+    { id: 'ready', label: 'The timing — we were both ready' },
+    { id: 'family-wish', label: 'Our families wanted it for us' },
  { id: 'shown', label: 'Seeing what {he} had done, not what {he} said' },
     { id: 'eleven', label: 'One of the eleven conversations' },
     { id: 'families', label: 'The families meeting properly' },

@@ -186,7 +186,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       const p = a('practice')
       const central = typeof answers['faith-role'] === 'number' && (answers['faith-role'] as number) >= 4
       if (p === 'devout')
-        return 'Your deen shapes your day, not just your identity. Look for someone whose practice is already theirs — you should not have to carry two people\u2019s iman.'
+        return 'Your deen shapes your day, not just your identity. Look for someone whose practice is already theirs — you should not have to carry someone else\u2019s practice as well as your own.'
       if (p === 'consistent')
         return central
           ? 'You hold the core steadily and you want faith at the center of your home. Say that early; it filters more honestly than any list of qualities.'

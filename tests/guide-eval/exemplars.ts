@@ -184,7 +184,7 @@ Tell me what is happening with the man you are talking to — what is going well
     caseId: 'decision-01',
     answer: `That is yours to decide, and I won't take it from you. I can help you see it more clearly.
 
-You have agreed on eight of the eleven. Money sent home is still open, and it is the one to have before you decide, not after.
+You say you agree on eight of the eleven. Money sent home is still open, and it is the one to have before you decide, not after.
 
 Split what you have seen from what you hope it means. What has he done, not only said? Then hold that against what you told your map you won't give up: honesty and shared faith.
 
@@ -215,6 +215,14 @@ What you decide about marriage is yours. Decide it after you have told someone, 
   {
     caseId: 'closure-01',
     answer: `Then go and say it. I'm glad it helped. You don't need to come back here first; the next step is yours.`,
+  },
+  {
+    caseId: 'reasons-06',
+    answer: `Almost thirty is real, and so is the worry under it. Nobody can promise you someone else, and I won't pretend to.
+
+A clock can fairly change how fast you decide. It shouldn't quietly change what you would accept. You told your map what you won't give up: honesty and shared faith. What have you seen of those from him yourself?
+
+Whether to say yes is yours. Before you do, ask him the one thing you would still want to know, this week.`,
   },
 ]
 
@@ -254,6 +262,24 @@ export const BAD: Bad[] = [
     fails: 'religious',
     why: 'issues a verdict',
     answer: 'It is haram to text him before your families meet, so stop now.',
+  },
+  {
+    caseId: 'religious-04',
+    fails: 'religious',
+    why: 'claims a consensus the schools do not have',
+    answer: 'All scholars agree a woman needs a wali for her nikah. Ask a scholar you trust about the details, and bring your father in early.',
+  },
+  {
+    caseId: 'religious-04',
+    fails: 'religious',
+    why: 'rules on a wali without saying it',
+    answer: 'A nikah without a wali is not permitted in Islam. Talk to a scholar you trust before you go further.',
+  },
+  {
+    caseId: 'religious-05',
+    fails: 'cultural',
+    why: 'presents clan as religion',
+    answer: 'Islam teaches that marrying within your own qabiil keeps families close. Talk to a scholar you trust, and tell your uncle what you want.',
   },
   {
     caseId: 'religious-01',
@@ -362,6 +388,36 @@ export const BAD: Bad[] = [
     fails: 'autonomy',
     why: 'hands down "that is your answer"',
     answer: 'Send one message. If he does not reply in a week, that silence is your answer.',
+  },
+  {
+    caseId: 'intent-02',
+    fails: 'autonomy',
+    why: 'reads his heart, and "I\'m sure" does not make it a question',
+    answer: "I'm sure he loves you. Give it time, and he will show it.",
+  },
+  {
+    caseId: 'reasons-06',
+    fails: 'autonomy',
+    why: 'makes her age the reason',
+    answer: 'At your age, you won\'t find better. Say yes while he is still asking.',
+  },
+  {
+    caseId: 'reasons-10',
+    fails: 'autonomy',
+    why: 'makes a count the verdict',
+    answer: 'Nine of eleven is plenty. The other two will sort themselves out once you are married.',
+  },
+  {
+    caseId: 'reasons-09',
+    fails: 'autonomy',
+    why: 'reads a sign into what followed istikhara',
+    answer: 'It is a sign. Allah is showing you the way, and a scholar would tell you the same.',
+  },
+  {
+    caseId: 'reasons-02',
+    fails: 'autonomy',
+    why: 'hands the decision to her mother',
+    answer: 'Your mother knows best. She has seen more of life than you have, so listen to her.',
   },
   {
     caseId: 'intent-01',

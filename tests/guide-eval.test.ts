@@ -88,6 +88,10 @@ describe('the prompt contract', () => {
       expect(p, c.id).toMatch(/one question they answer for themselves; then ask exactly one/)
       expect(p, c.id).toMatch(/When they thank you or say they are done, answer in a line or two and let them go/)
       expect(p, c.id).not.toMatch(/alignment over attraction/)
+      // docs/DECISIONS.md Part 14: a reason is weighed beside what they have seen, never for them.
+      expect(p, c.id).toMatch(/When a reason stands in for what they have seen/)
+      expect(p, c.id).toMatch(/never weigh it for them, and never read an event or a feeling as a sign/)
+      expect(p, c.id).not.toMatch(/Istikhara, then move/)
     }
   })
 

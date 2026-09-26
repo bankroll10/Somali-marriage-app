@@ -219,7 +219,12 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 `${sender} never sees your answers. Neither of you sees the other’s — only where the two of you stand.`,
                 'No account. Nobody asks your name.',
                 'Your answers are kept under this link’s code, with no name, for ninety days — then deleted.',
-                'Answer honestly. The only thing this can do is show you both which conversation to have next.',
+                // Told plainly: from an answer and the joint, each side can work
+                // out roughly what the other said. "The only thing this can do"
+                // said less than that (docs/DECISIONS.md Part 16).
+                `From your own answers and where you stand, each of you can work out roughly what the other said. Answer as you would say it to ${sender}’s face.`,
+                // Someone sent them this, and it may not have been a kind someone.
+                `You don’t have to do this. If you close it, ${sender} only ever sees that you haven’t answered.`,
               ].map((line) => (
                 <li key={line} className="text-[0.92rem] leading-snug text-muted text-pretty">{line}</li>
               ))}

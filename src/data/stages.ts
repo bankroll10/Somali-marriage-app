@@ -73,7 +73,7 @@ export const stages: StageDef[] = [
     situation: 'We’re deciding — families, mahr, where we’d live',
     arrival: 'Then the families are about to be involved. Before they are, there are eleven conversations to have.',
     focus:
-      'The unromantic conversations are the ones that protect you: money, where you’ll live, in-laws, children, and what you each do when it gets hard. Istikhara, then move.',
+      'The unromantic conversations are the ones that protect you: money, where you’ll live, in-laws, children, and what you each do when it gets hard. Istikhara, and counsel from people who know you both.',
     mode: 'islamic',
     guideLine:
       'You’re at the deciding stage — the questions get more practical here, and that’s a good sign.',

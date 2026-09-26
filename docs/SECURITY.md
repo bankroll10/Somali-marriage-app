@@ -22,6 +22,11 @@ about what went are cut to one line, so their ids still resolve.
   fallback, claiming the creator's gender, was the O6 hole.
 - **No introductions, no `never-introduce`.** The founder's outcomes are
   `spoke-to-them`, `told-the-family`, `not-enough`, `no-action`.
+  **`told-the-family` is the reporter's own family, at the reporter's request,
+  after the founder has spoken to the reporter.** No family is contacted on
+  the strength of a report alone, whatever it names: the couple code is shared
+  (T13), so a report can come from the person it accuses, and a family told is
+  the one thing here that cannot be untold (`docs/DECISIONS.md` Part 16).
 
 ## The principle: possession of a code is the only authority
 
@@ -334,6 +339,30 @@ kept, who she sees, being shouted at, being afraid to raise things.
 **D** the eval cases `jealousy-03`, `abuse-04` and `abuse-05`. **R** the help
 line. **C** anything she does not tell us; a report reason for control
 (open question 10).
+
+### Being made to marry
+
+Her family and his have agreed; she is told she may not refuse. The people
+applying the pressure are the ones every other reply here would send her to,
+so "tell your mother" is the wrong sentence. **Built** (2026-09-26, Part 16):
+`FORCE_WORDS` and `FORCED_REPLY` in `src/lib/coach.ts`, answered before the
+safety reply and in every voice: her consent is hers; tell one person outside
+the household today; the help line beneath; nothing decided for her.
+Phrasings name the marriage ("not allowed to refuse him", "married off",
+"against my will"), so a question about polygamy that says "not allowed to
+refuse it" is not read as force. The eval's `abuse-06` requires the safety
+answer. **P** none: the product cannot stop it. **D** the eval. **R** the
+reply and the line. **C** the live Guide, until a before-and-after run.
+
+### A report turned on a family
+
+He holds the couple code, files a report as her, and names her father's
+number in the free text. Trust used to say the founder "can speak to them,
+or to their family". **Built** (Part 16): Trust says nobody's family is
+contacted on the other side's word, and the rule above binds the outcome
+`told-the-family` to the reporter's own family, at the reporter's request.
+**P** the rule. **D** a person reads every report (T15). **C** a report that
+is true and names a family the founder cannot reach.
 
 ## Help lines
 

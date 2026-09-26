@@ -156,9 +156,9 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 {fix(`If you send {him} the link, your eleven answers go to our server under a
                 code with no name on it, and {his} go there when {he} answers. The server
                 sends back only where the two of you stand — not your sheet to {him}, and not {his}
-                to you. From your own answer you can still tell whether {he} thinks a
-                conversation happened; that is the point, and {he} can tell the same
-                about you.`)}
+                to you. From your own answers and where you stand, you can work out roughly
+                what {he} said on each one, and {he} can do the same about you. That is the
+                point of it.`)}
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 {fix(`Your answers are frozen the moment {he} answers, {his} after
@@ -200,7 +200,8 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 whether you were getting to know {him} or deciding, and — only if you tap one —
                 what decided it: a non-negotiable and which, one of the eleven and which, what
                 {his} read had found thin, your family, {his}, timing, distance, {he} stopped, you
-                did, or something you’d rather not say.`)}
+                did, or something you’d rather not say. With it goes one yes or no: whether you
+                had already had one of the conversations here. Never when.`)}
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 It also says which of the four — the map, a read, the eleven, or the eleven someone
@@ -244,8 +245,8 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>which stage you said you’re at</li>
                 <li>
                   if you’ve taken a read, or been through Before you say yes, one line saying how each came
-                  out — for the eleven, which conversation is still open and which you named as a line, so the
-                  guide never nudges you off one
+                  out — for the eleven, how many you say you agree on, how many you haven’t had yet, which
+                  conversation is still open, and which you named as a line, so the guide never nudges you off one
                 </li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
@@ -309,10 +310,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
             className="mt-4 border-cream/20 bg-cream/10"
           >
             <p className="text-[0.95rem] leading-relaxed text-cream/90 text-pretty">
-              It reaches the founder, who reads these every week. She can speak
-              to them, or to their family. What she did is written down in her
-              queue, not as a mark on a person, because nobody here has an
-              account to mark.
+              It reaches the founder, who reads these every week. She can reply to
+              you if you left a way to reach you, and, if you ask her to, help you
+              tell your own family. Nobody’s family is contacted on the other
+              side’s word. What she did is written down in her queue, not as a
+              mark on a person, because nobody here has an account to mark.
             </p>
             <p className="mt-2.5 text-[0.95rem] leading-relaxed text-cream/90 text-pretty">
               There are no accounts here, so nobody can be thrown off a list

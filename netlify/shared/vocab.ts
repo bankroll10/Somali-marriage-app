@@ -150,6 +150,25 @@ export const ENDED_REASONS = new Set([
   'other',
 ])
 export const ENDED_STAGES = new Set(['talking', 'deciding'])
+/**
+ * What kind of ending each reason is, for the readout's `decisions` table
+ * (docs/DECISIONS.md Part 15). `seen` is an ending over something she found:
+ * a non-negotiable, one of the eleven, or what he did. That is a clear no, and
+ * the product working, however it feels. The rest say nothing about Niyyah's
+ * reasoning either way. Every reason above has exactly one kind.
+ */
+export const ENDED_KIND: Record<string, 'seen' | 'families' | 'circumstance' | 'stopped' | 'unsaid'> = {
+  'non-negotiable': 'seen',
+  eleven: 'seen',
+  'his-read': 'seen',
+  'my-family': 'families',
+  'his-family': 'families',
+  timeline: 'circumstance',
+  distance: 'circumstance',
+  'he-stopped': 'stopped',
+  'i-stopped': 'stopped',
+  other: 'unsaid',
+}
 /** The three reasons that name a second id, and the list each must come from. */
 export const ENDED_WHICH: Record<string, Set<string>> = {
   'non-negotiable': DEALBREAKERS,
@@ -169,7 +188,7 @@ export const ASKED = new Set(['guide'])
 
 /** Must match src/data/ending.ts — the three closed questions on the way out. */
 export const WHO = new Set(['brought', 'family', 'elsewhere'])
-export const MATTERED = new Set(['shown', 'eleven', 'families', 'myself', 'other'])
+export const MATTERED = new Set(['ready', 'family-wish', 'shown', 'eleven', 'families', 'myself', 'other'])
 export const USED = new Set(['read', 'eleven', 'couple', 'families', 'guide', 'map'])
 
 /**

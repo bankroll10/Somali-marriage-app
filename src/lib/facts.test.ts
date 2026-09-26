@@ -171,3 +171,20 @@ describe('what the rungs were made of', () => {
     for (const leaf of leaves(facts)) expect(leaf).toMatch(/^[A-Za-z-]+(:[A-Za-z-]+)?$/)
   })
 })
+
+describe('an ending carries one bit, never a date (docs/DECISIONS.md Part 15)', () => {
+  it('says whether a conversation here came first, as given, and nothing about when', () => {
+    const facts = factsFrom({
+      ...none,
+      endings: [
+        { at: '2026-03-01T10:00:00Z', from: 'talking', reason: 'eleven', which: 'money-home', talked: true },
+        { at: '2026-04-01T10:00:00Z', from: 'deciding', reason: 'distance', talked: false },
+        { at: '2026-05-01T10:00:00Z', from: 'talking', reason: 'timeline' },
+      ],
+    })
+    expect(facts.ended).toContainEqual({ stage: 'talking', reason: 'eleven', which: 'money-home', talked: true })
+    expect(facts.ended).toContainEqual({ stage: 'deciding', reason: 'distance', talked: false })
+    expect(facts.ended).toContainEqual({ stage: 'talking', reason: 'timeline' })
+    expect(JSON.stringify(facts.ended)).not.toMatch(/2026|\bat\b/)
+  })
+})

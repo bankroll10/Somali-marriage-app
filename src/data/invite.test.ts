@@ -39,3 +39,9 @@ describe('the invitation', () => {
     expect(inviteLink('couple')).toMatch(/\?eleven&via=couple$/)
   })
 })
+
+describe('nothing forwarded is about the sender (Part 16)', () => {
+  it('the couple invite does not say the sender did the eleven, or with whom', () => {
+    expect(inviteText('couple')).not.toMatch(/\bwe did\b|\bwe were\b|\bthe two of us\b|\bneither of us\b/i)
+  })
+})

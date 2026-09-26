@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { guideBudget, repliesLeft } from './budget'
+import { budgetRungs, guideBudget, repliesLeft } from './budget'
 import { REPLIES_PER_STEP } from './budget'
 
 describe('the guide budget refills by progress, not by the calendar', () => {
@@ -24,3 +24,21 @@ describe('the guide budget refills by progress, not by the calendar', () => {
     expect(repliesLeft(2, 1, 10)).toBe(3 * REPLIES_PER_STEP - 10)
   })
 })
+
+describe('a stage she says neither buys nor costs replies (docs/DECISIONS.md Part 14)', () => {
+  const did = ['arrived', 'situated', 'mapped', 'read', 'eleven']
+
+  it('counts what she did, not where she says she is', () => {
+    expect(budgetRungs(did)).toBe(5)
+    expect(budgetRungs([...did, 'deciding'])).toBe(5)
+    expect(budgetRungs([...did, 'deciding', 'married'])).toBe(5)
+  })
+
+  it('leaves the budget the same when she says "deciding", and when a courtship ends', () => {
+    const talking = guideBudget(budgetRungs(did), 1)
+    expect(guideBudget(budgetRungs([...did, 'deciding']), 1)).toBe(talking)
+    // Back to preparing: the deciding rung reads as un-reached again.
+    expect(guideBudget(budgetRungs(did), 1)).toBe(talking)
+  })
+})
+

@@ -40,7 +40,7 @@ export interface Facts {
   /** The three closed answers on the way out. Never the line she wrote. */
   ending?: { who?: string; mattered?: string; used?: string[] }
   /** Courtships that ended: from which stage, why, and which. Never when, never who. */
-  ended?: { stage: 'talking' | 'deciding'; reason: string; which?: string }[]
+  ended?: { stage: 'talking' | 'deciding'; reason: string; which?: string; talked?: boolean }[]
   /**
    * Which questionnaires she began. The denominator for a completion rate —
    * finishing one is already a rung. One bit each, never a count of openings.
@@ -130,13 +130,14 @@ export function factsFrom(i: FactsInput): Facts {
   }
 
   // Only endings she gave a reason for travel; that it ended without one is
-  // hers alone. No date — the ladder already says when things happened.
+  // hers alone. No date — the ladder already says when things happened. One
+  // bit instead: whether a conversation here came before it (Part 15).
   const ended = i.endings
     .filter((e) => e.reason && ENDED_REASONS.has(e.reason))
     .map((e) => {
       const takesWhich = (REASONS_WITH_WHICH as string[]).includes(e.reason!)
       const which = takesWhich && e.which && ENDED_WHICH[e.reason!]?.has(e.which) ? e.which : undefined
-      return { stage: e.from, reason: e.reason!, ...(which ? { which } : {}) }
+      return { stage: e.from, reason: e.reason!, ...(which ? { which } : {}), ...(typeof e.talked === 'boolean' ? { talked: e.talked } : {}) }
     })
     .slice(-8)
     .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))

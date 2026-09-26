@@ -205,7 +205,9 @@ export function coupleReading(jointMap: Record<string, Joint>, gender: Gender = 
       ? 'You two have had all eleven. Where you see things differently, you both say you have worked out how.'
       : 'You two have had all eleven, and you both say you agree on all of them.'
     : counts['one-thinks-talked'] > 0
-      ? 'One of you thinks you’ve had a conversation the other doesn’t remember having.'
+      // Neither side is the one who is right: answer "agree" everywhere and
+      // the old line said the other person forgot (docs/DECISIONS.md Part 16).
+      ? 'On at least one of these, one of you says you’ve talked about it and the other says you haven’t.'
       : counts['differ-somewhere'] > 0
         ? 'You’ve had the conversations. Not all of them landed the same way.'
         : 'Nothing you have both talked about is still open. Some things are still unopened between you.'

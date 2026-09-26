@@ -32,6 +32,29 @@ export function gapScript(key: ReadDimension | 'early', answers: Record<string, 
 }
 
 /**
+ * The other gaps that get their own words for {him}. None once the read has
+ * been told this is not a conversation to have alone: too early to conclude,
+ * a caution, or she is careful what she raises because of how {he} reacts.
+ * The careful case used to fall through, so the screen said "These are not
+ * for {him}" and, a scroll below, handed her one question per gap to put to
+ * {him} (docs/DECISIONS.md Part 16).
+ */
+export function wordsForOthers(result: ReadResult): ReadDimensionReading[] {
+  if (result.band === 'early' || result.caution || result.careful) return []
+  return result.dimensions.filter((d) => d.state !== 'shown' && d.dimension !== result.thin)
+}
+
+/**
+ * Whether the read writes a follow-up at all. A caution's own instruction is
+ * "tell one person"; there are no words for {him} to check on, and asking
+ * "Have you asked it?" three days after "send nothing more" rewards the wrong
+ * conversation. Careful is asked about, as telling someone (src/lib/followup.ts).
+ */
+export function asksBack(result: ReadResult): boolean {
+  return !(result.caution && !result.careful)
+}
+
+/**
  * The engine behind the read.
  *
  * It answers one question — what has the other person actually shown — and it
@@ -326,7 +349,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     headline = '{He} has done most of what this asks about.'
     summary = `${durationNote} ${sentence(join(strongest))}${
       strongest.length ? '. ' : ''
-    }Those are real, and worth holding onto. ${
+    }Those are real, and they count. ${
       weakest.length
         ? `The thinnest part is that ${weakest[0]} — worth closing, not worth panicking about.`
         : `There is no obvious gap in what you have told us.`
@@ -335,7 +358,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     headline = `Real signals — and one gap that is doing a lot of work.`
     summary = `${durationNote} ${
       strongest.length
-        ? `${sentence(join(strongest))}. That is real, and it is worth holding onto. `
+        ? `${sentence(join(strongest))}. That is real, and it counts. `
         : ''
     }${
       weakest.length ? `What is missing is that ${weakest[0]}. ` : ''

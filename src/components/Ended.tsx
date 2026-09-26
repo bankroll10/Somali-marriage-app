@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { EndedRecord, Identity } from '../types'
 import { endedReasons, type EndedReason } from '../data/ended'
 import { Logo, TextButton } from './ui'
+import HelpLine from './HelpLine'
 
 interface Props {
   identity: Identity
@@ -107,6 +108,18 @@ export default function Ended({ identity, from, saved, onSave, onDone }: Props) 
             Nothing about {other} is recorded — no name, no number, nothing you wrote. If you are telling
             us which steps you reach, this reaches us as one of ten words, and never reaches {other}.
           </p>
+        </section>
+
+        {/* The moment of leaving is the one research names as the most
+            dangerous with a controlling partner (docs/RESEARCH.md row 16).
+            Said as an "if", to everyone, because the reason is skippable and
+            the woman it is for may be the one who skips it (Part 16). */}
+        <section className="mt-6 rounded-card border border-line bg-white/40 p-5">
+          <p className="text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
+            If ending it did not feel safe — if {other === 'him' ? 'he' : 'she'} has not accepted it, or you are careful what you say to {other} —
+            that is not yours to carry alone. Tell one person who knows you today.
+          </p>
+          <HelpLine className="mt-3" />
         </section>
 
         <div className="mt-8 text-center">

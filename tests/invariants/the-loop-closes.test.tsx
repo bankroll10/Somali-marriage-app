@@ -79,13 +79,27 @@ describe('the read: words, then the question, on the reader’s own side', () =>
     const m = await mount(open(toolLink(reader === 'woman' ? 'is-he-serious' : 'is-she-serious', 'words')))
     await takeRead(m, reader, want)
     const result = buildRead(want, reader)!
-    // Words, and the promise to come back — once.
+    // Words on the screen, whatever the band.
     expect(m.text()).toContain(result.script.words)
-    expect(m.text()).toMatch(/In three days, the next time you open Niyyah, it asks whether you asked it/)
-    // After a caution, nothing primary on the screen is for sending to them.
+    // After a caution, nothing primary on the screen is for sending to them —
+    // and the loop does not close on a question for them: the caution's own
+    // instruction is "tell one person", so no follow-up is written and the
+    // screen does not promise one (docs/DECISIONS.md Part 16).
     if (result.caution) expect(m.has(/^Before you say yes/)).toBe(false)
-    // Every other gap has its own words, not only the thinnest.
-    if (result.band !== 'early' && !result.caution && result.dimensions.some((d) => d.state !== 'shown' && d.dimension !== result.thin))
+    if (result.caution && !result.careful) {
+      expect(m.text()).not.toMatch(/In three days, the next time you open Niyyah/)
+      expect(m.text()).not.toContain('Words for the other gaps')
+      await m.settle()
+      expect(saved(phone).followups ?? []).toEqual([])
+      m.unmount()
+      return
+    }
+    // The promise to come back — once.
+    expect(m.text()).toMatch(/In three days, the next time you open Niyyah, it asks whether you asked it/)
+    // Every other gap has its own words, not only the thinnest — unless she
+    // is careful what she raises, when none of the words are for them.
+    if (result.careful) expect(m.text()).not.toContain('Words for the other gaps')
+    if (result.band !== 'early' && !result.caution && !result.careful && result.dimensions.some((d) => d.state !== 'shown' && d.dimension !== result.thin))
       expect(m.text()).toContain('Words for the other gaps')
     await m.until(() => saved(phone).followups?.length, 'the follow-up is written down')
     m.unmount()

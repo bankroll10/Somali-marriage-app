@@ -14,7 +14,7 @@ It works on a relationship that began anywhere — a wedding, a cousin, another
 app — with no account. It puts the same eleven questions to him on his own
 phone, blind, and shows the two of them only where they stand. A few days after
 it hands her words, it asks whether she said them. When she marries, it lets
-her go and takes itself off our server (`docs/PRODUCT.md`).
+her go, and offers to take everything off our server (`docs/PRODUCT.md`).
 
 ## What's built
 

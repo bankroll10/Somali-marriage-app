@@ -60,8 +60,9 @@ Only while "Tell us which steps you reach" is on, under the install code:
   unknown) are no longer kept: nothing read them. An older client's counts
   are accepted and dropped before the write
 - that a courtship ended, from which stage, and, only if she taps one, one of
-  ten reasons and which; on the way out, who she married, what decided it,
-  what here she used
+  ten reasons and which, with one bit set on her phone when it ended: whether
+  she had already had a conversation here (never when); on the way out, who
+  she married, what decided it, what here she used
 - which questionnaires she **began**, and that she **asked** the guide: one
   bit each, sets merged as unions, so no count can be derived
 - her city if given; woman or man (floored, crossed once with via, never with
@@ -125,7 +126,7 @@ things below." One row per thing.
 | She sends him the eleven | `POST /couple` | Eleven closed states and her side (a line she named goes as `differ`: `sheetOf`, `src/data/beforeYes.ts`); later her owner key, to change them, and the code alone (`GET`) to see whether he answered | `couples` |
 | He answers | `POST /couple` | The code and his eleven states. Only the joint comes back | `couples`, `tallies` |
 | The steps switch is on | `POST /progress` | Install id, rung ids, city, via, side, facts; 4 KB at most | `progress` |
-| She asks the live guide | `POST /guide` → Anthropic | The voice; her message; up to 10 earlier turns from her first message on (6,000 characters); woman or man; city; eight answers (timeline, practice, faith's role, family's role, children, closeness, non-negotiables, hardest part; "what feels safe" went on 2026-09-25 — its question had been cut and nothing collected it); stage; a line each for a read and the eleven (C4, C5) — the read's says, if she chose it, that she is careful what she raises with him — the eleven's names the topic still open and, if she named any, the first topic that is a line for her, so the guide does not coach her off it | Not stored by us; Anthropic's retention is under its API terms |
+| She asks the live guide | `POST /guide` → Anthropic | The voice; her message; up to 10 earlier turns from her first message on (6,000 characters); woman or man; city; eight answers (timeline, practice, faith's role, family's role, children, closeness, non-negotiables, hardest part; "what feels safe" went on 2026-09-25 — its question had been cut and nothing collected it); stage; a line each for a read and the eleven (C4, C5) — the read's says, if she chose it, that she is careful what she raises with him — the eleven's counts the topics she says they agree on and the ones not had yet (a count only, from 2026-09-26: `docs/DECISIONS.md` Part 14), names the topic still open and, if she named any, the first topic that is a line for her, so the guide does not coach her off it | Not stored by us; Anthropic's retention is under its API terms |
 | She reports a concern | `POST /safety` | Couple code, her side, reason id, up to 500 characters | `reports` |
 | The app crashes | `POST /health` | `crash` or `chunk`, once per page load; no stack, screen, code or id | `ops`, a day's total |
 | She taps Forget me | `DELETE` keep, progress, couple | Her three codes | — |
@@ -292,11 +293,13 @@ past its year that never reached `married` is deleted as the tally walks.
 | `facts.read.band[band]`, `.thin[dim]` | How reads come out; the ground most often thinnest | Where men here have not shown themselves |
 | `facts.eleven.open[topic]` | Which of the eleven it most often said to open | The only eleven fact kept |
 | `facts.through["source:topic"]`, `facts.throughByTopic[topic]` | Conversations confirmed as had | Which scripts get said, against how often handed out |
-| `facts.ending.{who,mattered,used}[id]` | Who they married, what decided it, what was real | Ground truth |
-| `facts.ended.reason[id]`, `.stage[id]`, `.which[reason][id]` | Why courtships end, from which stage, and which non-negotiable, topic or ground | Why Somali courtships end; needs no marketplace |
+| `facts.ending.{who,mattered,used}[id]` | Who they married, what decided it (non-tool answers `ready` and `family-wish` first), what was real | Ground truth |
+| `facts.ended.reason[id]`, `.stage[id]`, `.which[reason][id]` | Why courtships end, from which stage, and which non-negotiable, topic or ground. Each ending's `talked` bit is not tallied on its own; it only places the ending in `facts.decisions` | Why Somali courtships end; needs no marketplace |
 | `facts.began[instrument]`, `facts.asked[id]` | Who began the map, a read, the eleven, his side; who ever asked the guide | Completion (`rungs.read / facts.began.read`); the one metered cost |
 | `facts.followedThroughBy.asked[id]` | `{asked, followedThrough}`. Floored | Whether asking the guide goes with the conversation (`docs/RESEARCH.md` A3) |
-| `facts.marriedBy.{ended,through,readThin,open}[id]` | `{ended\|through\|read\|eleven, married}`: of people with this fact, how many married. Floored | The first outcome table: whether a non-negotiable, a conversation, the read's order and the eleven's order hold up |
+| `facts.marriedBy.{ended,through,readThin,open}[id]` | `{ended\|through\|read\|eleven, married}`: of people with this fact, how many married. Floored | Descriptive only, read beside `facts.decisions` and never alone: a marriage is not proof the reasoning was good (`docs/DECISIONS.md` Part 15) |
+| `facts.decisions.{open,closed}` | Reported decisions: `married` once per person, `ended:{seen,families,circumstance,stopped,unsaid}` once per ending; `open` if she confirmed a conversation here. Floored | How decisions were made, married and ended alike: the outcome table |
+| `facts.seenAt.{talking,deciding}` | Endings over something she found, by stage | Early against late (`docs/RESEARCH.md` L1) |
 
 Gone on 2026-09-24, with what fed them: `countries`, `arrivedByDay` (replaced
 by `cohorts`), the `counted` and `vouched` rungs, the eleven's state
@@ -305,7 +308,7 @@ histograms, `facts.hesitated`, `facts.countedBy`.
 ### Reading `null`: the k-floor
 
 Every cell of a split by a quasi-identifier (city, via, side, side × via) and
-of a `marriedBy` or `followedThroughBy` row under five (`K_FLOOR`,
+of a `marriedBy`, `followedThroughBy` or `decisions` row under five (`K_FLOOR`,
 `netlify/shared/floor.ts`) reads `null`, never omitted. Whole-population
 counts (`rungs`, `cohorts`, the other facts) are never floored, so a lone
 `ending.who.brought: 1` shows. A `null` beside an unfloored total can be
