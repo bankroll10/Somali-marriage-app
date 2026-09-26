@@ -244,8 +244,8 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>which stage you said you’re at</li>
                 <li>
                   if you’ve taken a read, or been through Before you say yes, one line saying how each came
-                  out — for the eleven, which conversation is still open and which you named as a line, so the
-                  guide never nudges you off one
+                  out — for the eleven, how many you say you agree on, how many you haven’t had yet, which
+                  conversation is still open, and which you named as a line, so the guide never nudges you off one
                 </li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">

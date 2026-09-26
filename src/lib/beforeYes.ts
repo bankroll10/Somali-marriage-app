@@ -211,14 +211,20 @@ export function buildBeforeYes(answers: BeforeYesAnswers, gender: Gender = 'woma
  * list would know — and enough that it knows what kind each difference is: one
  * worked out is not to be reopened, one still open is to be worked through, and
  * a line is never to be coached toward a middle (netlify/shared/prompt.ts).
+ *
+ * Agreement is what she says, and the ones not yet had are counted beside it:
+ * "agreed on nine of eleven; still open: nothing" read as a score nearly
+ * passed, when two had never been talked about (docs/DECISIONS.md Part 14).
  */
 export function beforeYesSummary(result: Pick<BeforeYesResult, 'counts' | 'byState' | 'lines' | 'open'>): string {
   const total = Object.values(result.counts).reduce((a, b) => a + b, 0) + result.lines.length
   const open = result.byState.differ[0]?.label
   const line = result.lines[0]?.label
   const more = result.lines.length > 1 ? ` and ${words(result.lines.length - 1)} more` : ''
+  const notHad = result.counts['not-talked'] + result.counts.unknown
   return [
-    `agreed on ${words(result.counts.agree)} of ${words(total)}`,
+    `say they agree on ${words(result.counts.agree)} of ${words(total)}`,
+    ...(notHad ? [`not had yet: ${words(notHad)}`] : []),
     ...(result.counts.settled ? [`worked out ${words(result.counts.settled)}`] : []),
     `still open: ${open ? lower(open) : 'nothing'}`,
     ...(line ? [`a line for them: ${lower(line)}${more}`] : []),

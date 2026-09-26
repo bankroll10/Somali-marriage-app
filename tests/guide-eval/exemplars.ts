@@ -184,7 +184,7 @@ Tell me what is happening with the man you are talking to — what is going well
     caseId: 'decision-01',
     answer: `That is yours to decide, and I won't take it from you. I can help you see it more clearly.
 
-You have agreed on eight of the eleven. Money sent home is still open, and it is the one to have before you decide, not after.
+You say you agree on eight of the eleven. Money sent home is still open, and it is the one to have before you decide, not after.
 
 Split what you have seen from what you hope it means. What has he done, not only said? Then hold that against what you told your map you won't give up: honesty and shared faith.
 

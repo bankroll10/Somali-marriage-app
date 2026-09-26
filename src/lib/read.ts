@@ -326,7 +326,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     headline = '{He} has done most of what this asks about.'
     summary = `${durationNote} ${sentence(join(strongest))}${
       strongest.length ? '. ' : ''
-    }Those are real, and worth holding onto. ${
+    }Those are real, and they count. ${
       weakest.length
         ? `The thinnest part is that ${weakest[0]} — worth closing, not worth panicking about.`
         : `There is no obvious gap in what you have told us.`
@@ -335,7 +335,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     headline = `Real signals — and one gap that is doing a lot of work.`
     summary = `${durationNote} ${
       strongest.length
-        ? `${sentence(join(strongest))}. That is real, and it is worth holding onto. `
+        ? `${sentence(join(strongest))}. That is real, and it counts. `
         : ''
     }${
       weakest.length ? `What is missing is that ${weakest[0]}. ` : ''

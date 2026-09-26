@@ -116,3 +116,12 @@ describe('the questions do not mislead her about how they are read (Part 13)', (
     expect(q('faith-role').prompt).not.toMatch(/\bshould\b/i)
   })
 })
+
+describe('the chapter insight describes a timeline, never rates it (docs/DECISIONS.md Part 14)', () => {
+  it('praises no pace over another, and makes no claim about how a marriage turns out', () => {
+    for (const timeline of ['within-1', '1-2', '3-plus', 'exploring']) {
+      const insight = chapterInsight('niyyah', { timeline, practice: 'consistent' }) ?? ''
+      expect(insight, timeline).not.toMatch(/\bGood\b|\bbeats?\b|against a clock/)
+    }
+  })
+})

@@ -389,6 +389,14 @@ describe('the read summarises her answers; it does not predict', () => {
     expect(r.dimensions.every((d) => d.state !== 'not-yet')).toBe(true)
   })
 
+  it('never tells her to hold on to what she has seen, strong or mixed (docs/DECISIONS.md Part 14)', () => {
+    // "Worth holding onto" beside his best signals can be heard as advice to
+    // keep the relationship, which is hers to decide.
+    for (const r of [buildRead({ ...answers, nonneg: 'straight', hard: 'listens' })!, buildRead(answers)!]) {
+      expect(`${r.headline} ${r.summary}`).not.toMatch(/\bhold(ing)? on(to)?\b/i)
+    }
+  })
+
   it('"I have not told him" says nothing about him, so it is not scored', () => {
     // Scored at 0.5 it dragged "gets defensive, but comes back" under the line.
     const r = buildRead({ ...answers, nonneg: 'untold', hard: 'defensive' })!

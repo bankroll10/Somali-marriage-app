@@ -168,9 +168,27 @@ describe('what the Guide is told', () => {
   it('is one short line with no detail a stranger could use', () => {
     const r = buildBeforeYes(answers({ live: 'differ', 'money-home': 'not-talked' }))!
     const s = beforeYesSummary(r)
-    expect(s).toMatch(/^agreed on nine of eleven; still open: where you’d live; open next: where you’d live$/)
+    expect(s).toMatch(/^say they agree on nine of eleven; not had yet: one; still open: where you’d live; open next: where you’d live$/)
     expect(s.length).toBeLessThan(120)
     expect(s).not.toMatch(/\d/)
+  })
+
+  it('reports agreement as what she says, and counts the ones not had beside it (docs/DECISIONS.md Part 14)', () => {
+    // "Agreed on nine of eleven; still open: nothing" read as a score nearly
+    // passed, when the other two had never been talked about.
+    const r = buildBeforeYes(answers({ children: 'not-talked', 'second-wife': 'unknown' }))!
+    const s = beforeYesSummary(r)
+    expect(s).toMatch(/^say they agree on nine of eleven; not had yet: two; /)
+    expect(s).not.toMatch(/(^|; )agreed on/)
+  })
+
+  it('stays inside the prompt’s 200 characters with the longest labels', () => {
+    const r = buildBeforeYes(
+      answers({ 'his-family-in-home': 'differ', 'families-disagree': 'differ', 'going-back': 'differ', children: 'not-talked', work: 'settled' }),
+      'woman',
+      ['families-disagree', 'going-back'],
+    )!
+    expect(beforeYesSummary(r).length).toBeLessThanOrEqual(200)
   })
 })
 
@@ -300,7 +318,7 @@ describe('what the guide is told about differences', () => {
   it('says which are worked out and which is a line, so it never coaches a line toward a middle', () => {
     const r = buildBeforeYes(answers({ 'money-home': 'settled', work: 'differ', 'second-wife': 'differ', qabiil: 'differ' }), 'woman', ['second-wife', 'qabiil'])!
     const s = beforeYesSummary(r)
-    expect(s).toBe('agreed on seven of eleven; worked out one; still open: whether you’d work; a line for them: qabiil and one more; open next: whether you’d work')
+    expect(s).toBe('say they agree on seven of eleven; worked out one; still open: whether you’d work; a line for them: qabiil and one more; open next: whether you’d work')
     expect(s.length).toBeLessThan(200)
   })
 })
