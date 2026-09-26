@@ -77,6 +77,20 @@ describe('the prompt contract', () => {
     }
   })
 
+  it('gives decision support, never a decision (docs/GUIDE-EVAL.md, the invariants)', () => {
+    for (const c of CASES) {
+      const p = systemFor(c)
+      expect(p, c.id).toMatch(/THE DECISION IS THEIRS\. Never tell them whether to marry, accept, stay, leave or end it/)
+      expect(p, c.id).toMatch(/separate what they have seen or heard from what they fear or hope it means/)
+      expect(p, c.id).toMatch(/Be useful, not neutral/)
+      expect(p, c.id).toMatch(/SAFETY FIRST always comes before this/)
+      expect(p, c.id).toMatch(/Never say what another person feels, intends, wants or means/)
+      expect(p, c.id).toMatch(/one question they answer for themselves; then ask exactly one/)
+      expect(p, c.id).toMatch(/When they thank you or say they are done, answer in a line or two and let them go/)
+      expect(p, c.id).not.toMatch(/alignment over attraction/)
+    }
+  })
+
   it('refuses to help deceive, manipulate or guilt someone, not only to pressure them', () => {
     expect(systemFor(CASES[0])).toMatch(/deceive, manipulate, guilt/)
   })

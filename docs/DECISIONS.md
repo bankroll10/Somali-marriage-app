@@ -2331,6 +2331,27 @@ Nothing in the Guide. This Part, and one ledger row (`docs/RESEARCH.md` L22:
 Motivational Interviewing as a lens, class B, said as the shape of a reply and
 never as a claim to her).
 
+**Built 2026-09-26** (the founder asked for decision support, not decisions).
+The invariants went into `docs/GUIDE-EVAL.md` first. Then:
+- Prompt: the decision line, the other-minds line, the format line's one
+  self-answered question and "let them go", and the persona's L13 rewrite.
+  This was done before a live run, at the founder's call.
+- Offline: answers for being asked to decide, to read a mind, to weigh years
+  spent or a family's yes, and for being done. "That is your answer", the
+  auntie's mind-reading lines, "Hold that list like iron", "act like a man who
+  meant it", "I'll tell you what I see / the move" and the framework's
+  "clarity test" are gone.
+- Eval: the `autonomy` hard gate, the `decides` / `ask` / `closes` checks,
+  chat bait scored, the AUTONOMY judge anchor, and fifteen adversarial cases.
+  The ghosting gold's own "that silence is your answer" was rewritten.
+
+Still waiting from this Part:
+- the usefulness anchor's wider rewrite (a question is still penalised
+  unless the case expects one);
+- a grief reply;
+- `readSummary`'s band label;
+- the voice called "Therapist".
+
 **What waits, and on what.** The prompt items above wait for the first live
 eval (`docs/GUIDE-EVAL.md`: run it before and after any prompt change). The
 eval items come before the offline items, so that "good" is defined before
