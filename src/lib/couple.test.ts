@@ -104,3 +104,11 @@ describe('the handshake, from her phone', () => {
     expect(coupleLink('ACDEFG', 'https://getniyyah.netlify.app')).toBe('https://getniyyah.netlify.app/?couple=ACDEFG')
   })
 })
+
+describe('what the joint can claim (Part 13)', () => {
+  it('reports what both say, never agreement as a fact', () => {
+    const r = coupleReading(all('both-agree'))
+    expect(r.headline).toMatch(/\bsay\b/)
+    for (const l of r.lines) expect(l.line).toMatch(/\bsay\b/)
+  })
+})

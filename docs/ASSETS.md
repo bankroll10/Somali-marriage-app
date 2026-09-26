@@ -109,13 +109,15 @@ is visible somewhere a stranger could find it.
 | 2026-09-17 | ICSA / Dar Al-Hijrah, Counseling & Family Services | phone, then email | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply |
 | 2026-09-17 | The Family & Youth Institute | contact form | N2 | `…/guides/before-you-say-yes?via=group` | sent, awaiting reply |
 | 2026-09-17 | Masjid Al-Israa, Fridley | email, nikah coordinator | N2, with N2s attached as a PDF | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply |
-| 2026-09-18 | Abubakar As-Saddique Islamic Center, Minneapolis | email `aaic@abuubakar.org`, phone 612-871-8600 | N2 + N2s attached, N1c linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent |
+| 2026-09-18 | Abubakar As-Saddique Islamic Center, Minneapolis | email `aaic@abuubakar.org`, phone 612-871-8600 | N2 + N2s attached, N1c linked | `…/guides/before-you-say-yes?via=mosque` | sent by 2026-09-26, awaiting reply |
 | 2026-09-19 | WardheerNews, worldwide Somali readership | email `admin@wardheernews.com` | N1c | `…/tools/before-you-say-yes?via=press` | topic inquiry sent |
-| 2026-09-23 | The Somali American, Minneapolis, "Ask a Scholar" column | contact form (editor) | N1c; N2s linked for the editor | `…/tools/before-you-say-yes?via=press` | drafted, not yet sent |
-| 2026-09-23 | KALY-LP 101.7 FM, Somali-language, South Minneapolis | email `Underwriting@kalyradio.org` | none — rate inquiry only | web: `…/tools/before-you-say-yes?via=press`; on air: none | drafted, not yet sent |
+| 2026-09-23 | The Somali American, Minneapolis, "Ask a Scholar" column | contact form (editor) | N1c; N2s linked for the editor | `…/tools/before-you-say-yes?via=press` | sent by 2026-09-26, awaiting reply |
+| 2026-09-23 | KALY-LP 101.7 FM, Somali-language, South Minneapolis | email `Underwriting@kalyradio.org` | none — rate inquiry only | web: `…/tools/before-you-say-yes?via=press`; on air: none | sent by 2026-09-26, awaiting reply |
 | 2026-09-25 | Before the Nikah Institute (Dr. Aneesah Nadir), *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7; finances weeks Oct 5–30) | email, the course's business address | N3-note, N3, N3-1page, their three PDFs, N3-so and N3-1page-so | `…/niyyah-money-conversation-sheet-facilitator-note.html` and the sheets, no via | **replied.** Pitch sent 2026-09-25 (drafted 09-23); she replied the same day with the finances dates and asked for the resource; sent the same day. Ask how it went around Nov 2 (rule 9) |
-| 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | drafted, not yet sent |
+| 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | sent by 2026-09-26, awaiting reply |
 | 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page; PDFs offered | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent, awaiting reply |
+| 2026-09-26 | MCC East Bay, Pleasanton CA, nikah services (general Muslim couples; its nikah page already carries a mahr guide and a pre-nikah questionnaire; also runs singles gatherings, not pitched) | email, the centre's business address | N3-note, pointing to N3 and N3-1page; PDFs offered; the Somali version in one clause | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent by 2026-09-26, awaiting reply |
+| 2026-09-26 | Islamic Center of St. Cloud, MN, premarital counselling alongside nikah services (Somali share unknown) | email, the centre's business address | N2, N2s linked; qabiil, going back and a second wife named (rule 8) | `…/guides/before-you-say-yes?via=mosque` | sent by 2026-09-26, awaiting reply |
 
 **Rules the ledger has taught**, each a correction made before a row was
 logged:
@@ -151,12 +153,25 @@ logged:
    `docs/RESEARCH.md`. A PDF offered in the pitch is rendered on the day it
    is asked for (rule 6).
 
+A draft that arrives with an opportunity is checked against these rules
+before it is logged. The St. Cloud draft (2026-09-26) needed three: it linked
+the tool rather than the guide (rule 2), carried no via (rule 1), and did not
+name the Somali conversations to a room of unknown make-up (rule 8).
+
 Masjid Al-Israa is the only 2026-09-17 send with the sample attached; if it
 alone answers, suspect the attachment. The Somali American's newest dated
 material was October 2025: send, log, do not wait.
 
 **Who keeps it.** The founder sends; the working session logs what the
-founder reports, the day it happens. A reply goes here as an outcome **and**
+founder reports, the day it happens. Drafts and opportunities the founder
+brings to a working session are logged as **sent** the day they are brought,
+unless the founder says otherwise (founder, 2026-09-26); a draft that needs
+fixing is fixed and logged as sent in the same turn.
+
+The stagger (rule 2) was not kept in the week of 2026-09-26: Abubakar,
+Naperville and St. Cloud all went out under `via=mosque` that week, so their
+arrivals cannot be told apart by date. Read A9's `mosque` count for that
+period as the three together. A reply goes here as an outcome **and**
 in `docs/RESEARCH.md` as what was said: two acceptances start A9's eight-week
 clock.
 

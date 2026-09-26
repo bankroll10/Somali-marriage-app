@@ -99,3 +99,20 @@ describe('the intake — short enough to finish, complete enough to read', () =>
     expect(chapterInsight(last.id, answers)).toBeNull()
   })
 })
+
+describe('the questions do not mislead her about how they are read (Part 13)', () => {
+  it('never says there is no wrong answer where the answers carry weights', () => {
+    for (const q of allQuestions) {
+      const weighted = (q.options ?? []).some((o) => typeof o.weight === 'number')
+      if (weighted) expect(q.helper ?? '', q.id).not.toMatch(/no wrong answer/i)
+    }
+  })
+
+  it('asks about ordinary behaviour, not the best version of it', () => {
+    const q = (id: string) => allQuestions.find((x) => x.id === id)!
+    expect(q('practice').helper).toMatch(/ordinary week/i)
+    expect(q('conflict').prompt).not.toMatch(/between you/i)
+    expect(q('conflict').helper).toMatch(/last time/i)
+    expect(q('faith-role').prompt).not.toMatch(/\bshould\b/i)
+  })
+})

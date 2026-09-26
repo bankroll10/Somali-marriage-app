@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { beforeYesSummary, buildBeforeYes } from './beforeYes'
-import { BEFORE_YES_COUNT, LINE, allHad, beforeYesTopics, pickedOf, sayTheLine, sheetOf, workItOut, yourSideLine } from '../data/beforeYes'
+import { BEFORE_YES_COUNT, LINE, STATES, allHad, beforeYesTopics, pickedOf, sayTheLine, sheetOf, workItOut, yourSideLine } from '../data/beforeYes'
 
 /**
  * Before you say yes tells a woman which conversation to open with a real man.
@@ -323,5 +323,17 @@ describe('her own side, from her map', () => {
     expect(yourSideLine(live, { household: 'Flexible' })).toBe('You told your map you are flexible on where you’d live.')
     expect(yourSideLine(live, { household: 'with-family' })).toMatch(/one household/)
     expect(yourSideLine(live, {})).toBeUndefined()
+  })
+})
+
+describe('the eleven questions, read by both sides (Part 13)', () => {
+  it('never asks what only one side assumes, expects or plans', () => {
+    for (const t of beforeYesTopics('woman')) expect(t.prompt, t.id).not.toMatch(/\b(he|she) (assumes|expects|plans)\b/i)
+  })
+
+  it('asks for agreement each could say back, and counts part of a topic as not talked', () => {
+    const state = (id: string) => STATES.find((s) => s.id === id)!
+    expect(state('agree').hint).toMatch(/each say what you agreed/i)
+    expect(state('not-talked').hint).toMatch(/part of it/i)
   })
 })

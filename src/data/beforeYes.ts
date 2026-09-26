@@ -39,7 +39,16 @@ export type YesState = 'agree' | 'settled' | 'differ' | 'not-talked' | 'unknown'
  * had (Part 7 §5).
  */
 export const STATES: (ReadOption & { id: YesState })[] = [
-  { id: 'agree', label: 'We’ve talked, and we agree', weight: null, note: 'you have talked about {topic}, and you agree' },
+  // Each topic has several parts. Agreeing on the city but never discussing
+  // his mother used to read as "talked, and agree" — the two-sided eleven's
+  // likeliest false agreement (docs/DECISIONS.md Part 13).
+  {
+    id: 'agree',
+    label: 'We’ve talked, and we agree',
+    hint: 'You could each say what you agreed, and it would come out the same.',
+    weight: null,
+    note: 'you have talked about {topic}, and you agree',
+  },
   {
     id: 'settled',
     label: 'We see it differently, and we’ve worked out how',
@@ -52,7 +61,7 @@ export const STATES: (ReadOption & { id: YesState })[] = [
     weight: null,
     note: 'you have talked about {topic}, and it is still open between you',
   },
-  { id: 'not-talked', label: 'We haven’t talked about it', weight: null, note: 'you have not talked about {topic}' },
+  { id: 'not-talked', label: 'We haven’t talked about it', hint: 'Or only about part of it.', weight: null, note: 'you have not talked about {topic}' },
   {
     id: 'unknown',
     label: 'I don’t know my own answer yet',

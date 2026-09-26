@@ -83,7 +83,7 @@ export const TOPICS: Topic[] = [
       lines: {
         'with-family': 'You told your map you picture living with family — one household.',
         'near-family': 'You told your map you picture your own place, close to family.',
-        separate: 'You told your map you picture your own place — your own city, if it comes to it.',
+        separate: 'You told your map you picture your own place, wherever that is.',
  flexible: 'You told your map you are flexible on where you’d live.',
       },
     },
@@ -116,7 +116,7 @@ export const TOPICS: Topic[] = [
   {
     id: 'work',
     label: 'Whether you’d work',
-    prompt: 'Work — whether you’d keep working after marriage and after children, and what {he} assumes about home.',
+    prompt: 'Work — whether you’d keep working after marriage and after children, and who would do what at home.',
     consequence: 0.75,
     why: '“Of course” is easy to say before the first baby, when what each of you assumed about home surfaces. The question is not whether one of you minds the other working. It is what each of you pictures happening at home while you both do.',
     man: {
@@ -149,7 +149,7 @@ export const TOPICS: Topic[] = [
   {
     id: 'money-home',
     label: 'Money sent home',
-    prompt: 'Money — who pays for what, and what each of you sends home to family every month.',
+    prompt: 'Money — who pays for what, and what either of you sends home to family.',
     consequence: 0.85,
     why: 'Money sent home is easy to leave unsaid until after the wedding. It is not about generosity. It is two families’ expectations landing on one income, unspoken.',
     script: {
@@ -194,7 +194,7 @@ export const TOPICS: Topic[] = [
   {
     id: 'deen-daily',
     label: 'Deen, day to day',
-    prompt: 'Deen, day to day — prayer at home, what “practising” means on an ordinary Tuesday, and what {he} expects of you.',
+    prompt: 'Deen, day to day — prayer at home, what “practising” means on an ordinary Tuesday, and what you each expect of the other.',
     consequence: 0.85,
     why: 'Two people can both say “deen comes first” and mean completely different Tuesdays. One means fajr together; the other means Eid and Ramadan. And what each of you expects of the other — at home, in company, in what comes into the house — is something you each have an opinion on, whether or not you have said it.',
     man: {
@@ -253,7 +253,7 @@ export const TOPICS: Topic[] = [
   {
     id: 'going-back',
     label: 'Going back',
-    prompt: 'Going back — whether {he} plans to move back one day, or spend long stretches away, and whether you would go.',
+    prompt: 'Going back — whether either of you plans to move back one day, or spend long stretches away, and whether the other would go.',
     consequence: 0.65,
     why: '“One day I’ll go back” can be said, and meant, for years, and the other person finds out what “one day” means when the ticket is booked. Whether you go together, one of you stays, or you split the year is a marriage-shaped decision.',
     script: {

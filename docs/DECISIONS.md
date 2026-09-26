@@ -2360,3 +2360,155 @@ the offline voice is moved toward it under its ratchet. The copy items
 verdict the screen refused to show her, the other a name that is not true.
 
 **Decision 19.** Docs only.
+
+## Part 13: The questions, audited as questions (2026-09-26)
+
+Part 11 audited the words Niyyah tells a member to say. This Part audits the
+questions: the ones Niyyah asks her (the Read, the Map, the Eleven and the
+two-sided Eleven) and the ones it tells her to ask. Each important question was
+checked against five tests:
+
+- What are we trying to learn?
+- Could someone answer "correctly" and still hide the truth?
+- Would asking about past behaviour, or a concrete scenario, do better than
+  asking about identity or a principle?
+- Does the wording show which answer the "good person" would give?
+- Could two reasonable people read it differently?
+
+The failures looked for were: leading, double-barrelled, morally loaded,
+socially desirable, too abstract, too hypothetical, impossible to answer
+honestly, too easy to game, accusatory, premature and vague. The aim was
+better questions, not an interrogation, so no question was added.
+
+**Scope.** Only wording changed: prompt, helper, label and hint. **No option
+id, weight, state or stored field moved**, so kept records, the server's closed
+vocabularies and the test fixtures are untouched. Where a fix would change what
+an answer means or how it scores, it is listed under Research below and was not
+built. The man-only variants are frozen (decision 4). Shared stems changed,
+since they are not man-only.
+
+### The Read (`src/data/read.ts`): what he has done
+
+- **`named`** was double-barrelled and contradicted itself. "Has he said the
+  word marriage — without you raising it first?" was answered by "Yes, but only
+  after I brought it up", which is a no. It now asks **"Who first brought up
+  marriage between you?"** The answers are "{He} did — early and clearly", "I
+  did, and {he} agreed", the kept talks-around-it answer, and "Nobody has yet".
+- **`timeline`**: "a timeline you could hold him to" was loaded and abstract.
+  It now asks **"Has {he} said when {he} wants to marry?"** The `dated` note
+  said "an actual date" while the option described a window, and now says
+  window.
+- **`family`** (her side): "asked about your family" covered small talk as
+  well as the step itself. It now asks **"Has {he} asked about approaching
+  your family?"**
+- **`initiative`** was a hypothetical ("If you stop texting first"), and its
+  helper invited her to run a test on him ("a fair thing to have tested"). That
+  is gameable, and it is a manipulation Niyyah should not suggest. It now asks
+  **"When you don’t message first, what usually happens?"** with the helper
+  "From what has happened so far — you don’t need to test it." The two tool
+  descriptions in `src/data/tools.ts` follow.
+- **`nonneg`** asked whether he *knows* her non-negotiables, while its answers
+  said what he *did*. It now asks **"When you told {him} what you won’t
+  compromise on, what did {he} do?"** The answers lose their "Yes —" prefix.
+- **`hard`** assumed a hard conversation she would have to average over. Its
+  helper now reads "Think of the last time you did, if you have."
+- Kept as they were, being behavioural and concrete: `duration`, `secret`,
+  `in-person`, `plans`, `money`.
+
+### The Map (`src/data/intake.ts`): her own positions
+
+- **`why-now`**'s helper said "There is no wrong answer", but the options carry
+  weights, so it was untrue. It now reads "If there’s more than one reason,
+  pick the one that weighs most."
+- **`practice`** has identity labels and a socially desirable top answer. The
+  helper now anchors it: "Think of an ordinary week, not your best one."
+- **`faith-role`**: "should" made it normative, and the top of the scale was
+  the good-Muslim answer. It now asks **"How much do you want faith to shape
+  your marriage and home?"**
+- **`household`**: the helper says "Not the city — the house", but the
+  `separate` label said "our own city, if it comes to it". The label is now
+  "Our own place, wherever that is", and the Eleven's your-side line follows.
+- **`children`**: "How do you feel" was abstract, and the options are
+  positions. It now asks **"Do you want children?"**
+- **`work`** and **`money-home`** were fragments. They now ask "What do you
+  picture for work — after marriage, and after children?" and "What do you
+  picture for money sent home to family?" The money helper promised an amount
+  that no option gives. It now reads "From either side — whether it’s
+  expected, and how often."
+- **`dealbreakers`**: "true non-negotiables" was loaded. It now asks "What are
+  your non-negotiables — the things that would end it, however good the rest
+  was?"
+- **`conflict`**: "between you" assumed a partner, and the ideal answer was
+  obvious. It now asks "When something is wrong with someone close to you,
+  what do you usually do?" with the helper "Think of the last time, not how
+  you’d like to handle it."
+- **`timeline`**: the jargon is gone. It now asks "When would you like to be
+  married?"
+- Kept: `family-role`, `value-most`, `attachment`, `healing`, `working-on`.
+
+### The Eleven and the two-sided Eleven
+
+- "Have the two of you talked about this?" is asked of topics with several
+  parts. Agreeing on the city but never discussing his mother read as "talked,
+  and agree". This was the two-sided Eleven's likeliest source of false
+  agreement. The `agree` answer now carries the check "You could each say what
+  you agreed, and it would come out the same." The `not-talked` answer adds
+  "Or only about part of it." Both phones show these through the shared
+  choices.
+- Four topic stems read one way only, and the printed couple guide needs them
+  to read both ways:
+  - `work` now ends "…and who would do what at home";
+  - `money-home` reads "…what either of you sends home to family", with no
+    monthly assumption;
+  - `deen-daily` ends "…and what you each expect of the other";
+  - `going-back` reads "whether either of you plans to move back one day…".
+- `src/lib/couple.ts`: the all-agreed headline said "and you agree on all of
+  them". Two people *saying* they agree is not agreement, and every other line
+  reports what they say. It now reads "…and you both say you agree on all of
+  them."
+
+**Questions she is told to ask** (the scripts, Part 11) were re-read with this
+lens, and nothing more needs changing.
+
+### Tests
+
+These pin what the questions mean, not their exact wording:
+
+- `src/lib/read.test.ts`:
+  - no Read prompt is a hypothetical;
+  - no helper invites her to test him;
+  - `nonneg` is answered with what he did;
+  - `named` asks who raised it.
+- `src/data/intake.test.ts`:
+  - a weighted question never says there is no wrong answer;
+  - `practice` and `conflict` ask about ordinary behaviour;
+  - `faith-role` carries no "should".
+- `src/lib/beforeYes.test.ts`:
+  - no Eleven stem asks what one side alone assumes, expects or plans;
+  - `agree` asks for the say-it-back check;
+  - part of a topic counts as not talked.
+- `src/lib/couple.test.ts`: the joint reports what both say, never agreement
+  as a fact.
+
+### Research, not built
+
+Each of these needs a new option or a scoring change, so each waits for
+evidence under decision 19:
+
+- `known` cannot tell his *claim* ("my mum knows") from what she has *seen*.
+- `hard` has no answer for "nothing hard has come up yet".
+- `why-now`'s weights reward "ready", the socially desirable reason.
+- `pattern`'s `none` ("I’ve already changed the one I had") forces a false
+  claim on anyone with no pattern, and scores highest.
+- "Honesty" as a dealbreaker is near-universal and tells us little.
+- `initiative` scores a test she may never have run. This is already ledgered
+  in `docs/RESEARCH.md`.
+
+### Deferred (decision 4)
+
+On the man's side, `named` scores her down for not raising marriage first,
+though raising it is his step. The man's `work` stem ("what you each assume")
+is kept.
+
+**Decision 19.** Wording, tests and docs only. No id, weight or stored field
+moved.
