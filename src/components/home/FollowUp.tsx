@@ -81,7 +81,7 @@ export default function FollowUp({ ask, onAnswer, onAskGuide, onHadIt }: Props) 
             settled something she did not want, and one she could not raise.
             The first two happened, and a conversation that happened counts
             however it went: a hard one that ends a courtship is not one that
-            never took place (docs/DECISIONS.md Part 14). */}
+            never took place (docs/DECISIONS.md Part 15). */}
         {phase === 'said-it' && (
           <div className="mt-4">
             <p className="text-[0.9rem] leading-snug text-ink-soft text-pretty">Did you get to say it?</p>

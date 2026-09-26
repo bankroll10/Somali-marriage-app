@@ -152,7 +152,7 @@ export const ENDED_REASONS = new Set([
 export const ENDED_STAGES = new Set(['talking', 'deciding'])
 /**
  * What kind of ending each reason is, for the readout's `decisions` table
- * (docs/DECISIONS.md Part 14). `seen` is an ending over something she found:
+ * (docs/DECISIONS.md Part 15). `seen` is an ending over something she found:
  * a non-negotiable, one of the eleven, or what he did. That is a clear no, and
  * the product working, however it feels. The rest say nothing about Niyyah's
  * reasoning either way. Every reason above has exactly one kind.

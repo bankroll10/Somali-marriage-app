@@ -361,7 +361,7 @@ describe('decision support, never a decision (docs/GUIDE-EVAL.md, the invariants
   })
 })
 
-describe('"It went differently", said or not (docs/DECISIONS.md Part 14)', () => {
+describe('"It went differently", said or not (docs/DECISIONS.md Part 15)', () => {
   it('meets both answers with the same reply, which tells went-badly from not-safe', () => {
     for (const m of [
       'I talked to them about money home, and it went differently.',

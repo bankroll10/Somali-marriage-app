@@ -8,7 +8,7 @@ import { openFollowUp } from '../../src/lib/followup'
 import { mount, type Mounted } from '../support/render'
 
 /**
- * Decision quality, not outcome quality (docs/DECISIONS.md Part 14).
+ * Decision quality, not outcome quality (docs/DECISIONS.md Part 15).
  *
  * A conversation that happened counts however it went, and nobody is told
  * their outcome was a success or a failure: a marriage is not proof the

@@ -605,7 +605,7 @@ describe('what the year does and does not take', () => {
 })
 
 /**
- * Decision quality, not outcome quality (docs/DECISIONS.md Part 14). The
+ * Decision quality, not outcome quality (docs/DECISIONS.md Part 15). The
  * readout's outcome table asks how a decision was made, not which way it went:
  * an ending over something she found sits beside a marriage, and a lapsed
  * marriage is not read against endings that have already gone.

@@ -296,7 +296,7 @@ past its year that never reached `married` is deleted as the tally walks.
 | `facts.ended.reason[id]`, `.stage[id]`, `.which[reason][id]` | Why courtships end, from which stage, and which non-negotiable, topic or ground | Why Somali courtships end; needs no marketplace |
 | `facts.began[instrument]`, `facts.asked[id]` | Who began the map, a read, the eleven, his side; who ever asked the guide | Completion (`rungs.read / facts.began.read`); the one metered cost |
 | `facts.followedThroughBy.asked[id]` | `{asked, followedThrough}`. Floored | Whether asking the guide goes with the conversation (`docs/RESEARCH.md` A3) |
-| `facts.marriedBy.{ended,through,readThin,open}[id]` | `{ended\|through\|read\|eleven, married}`: of people with this fact, how many married. Floored | Descriptive only, read beside `facts.decisions` and never alone: a marriage is not proof the reasoning was good (`docs/DECISIONS.md` Part 14) |
+| `facts.marriedBy.{ended,through,readThin,open}[id]` | `{ended\|through\|read\|eleven, married}`: of people with this fact, how many married. Floored | Descriptive only, read beside `facts.decisions` and never alone: a marriage is not proof the reasoning was good (`docs/DECISIONS.md` Part 15) |
 | `facts.decisions.{open,closed}` | Reported decisions: `married` once per person, `ended:{seen,families,circumstance,stopped,unsaid}` once per ending; `open` if she confirmed a conversation here. Floored | How decisions were made, married and ended alike: the outcome table |
 | `facts.seenAt.{talking,deciding}` | Endings over something she found, by stage | Early against late (`docs/RESEARCH.md` L1) |
 

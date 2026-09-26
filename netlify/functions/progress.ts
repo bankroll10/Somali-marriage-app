@@ -344,7 +344,7 @@ async function tally(store: Store) {
     // here: every other record past its year is gone, so a lapsed marriage in
     // the cohorts or the cross-tabs would be read against nobody who ended,
     // and the tables would fill with marriages as the endings dropped out.
-    // Like with like (docs/DECISIONS.md Part 14).
+    // Like with like (docs/DECISIONS.md Part 15).
     if (lapsed) continue
     // Records written before dates were days still hold a moment; the month
     // reads the same off either.
@@ -403,7 +403,7 @@ type Pair = Record<string, { [k: string]: number }>
  * The facts, as distributions. Each line is a question the founder asks the
  * readout. `decisions` is how a decision was made, whichever way it went:
  * a marriage is not proof the reasoning here was good, and an ending over
- * something she found is the product working (docs/DECISIONS.md Part 14).
+ * something she found is the product working (docs/DECISIONS.md Part 15).
  * `marriedBy` says who went on to marry; it describes, and is read beside
  * `decisions`, never alone. Counts of ids, never a record; the install code
  * appears nowhere.

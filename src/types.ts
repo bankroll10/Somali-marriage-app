@@ -258,7 +258,7 @@ export interface FollowUp {
  * Someone leaving because she has decided is this product done right, and this
  * is the record of one of the two ways that happens; Ended is the other. A
  * marriage is not proof the reasoning here was good (docs/DECISIONS.md
- * Part 14). Every field is optional:
+ * Part 15). Every field is optional:
  * an exit that charges a toll in answers is not an exit. `who` is the single
  * question this company cannot answer any other way — whether the instruments
  * helped a relationship she brought with her, or one that began elsewhere.

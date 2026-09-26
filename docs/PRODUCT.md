@@ -143,7 +143,7 @@ row to be divided by. Only the follow-up writes the numerator; the guide's own
 follow-ups stay out of `facts.through`. How to pull it: `docs/OPS.md`.
 
 **What it proves, and what it does not** (audited 2026-09-26, `docs/DECISIONS.md`
-Part 14). It is kept: it measures how people decide, not which way.
+Part 15). It is kept: it measures how people decide, not which way.
 - *It proves* that, of those counted, a share later told us they had a specific
   conversation Niyyah gave them words for. It is a behaviour, not a feeling or
   an open. Keeping someone stuck cannot raise it, and neither can a marriage. It
@@ -299,7 +299,7 @@ fewer than 3 of 10 buy; any couple says it pushed them; calls average over 2.5
 founder hours (repriced or stopped, not squeezed); couples who had it end from
 `deciding` at a sharply different rate and the conversations say the call made
 the trouble rather than found it. A higher ending rate over something they
-found is not a kill: it may be the call working (`docs/DECISIONS.md` Part 14). **The
+found is not a kill: it may be the call working (`docs/DECISIONS.md` Part 15). **The
 gift**: ten married couples use the sheet free and nobody asks to give it.
 
 ## 6. What we measure, and what we never build
@@ -339,7 +339,7 @@ them.
 - Anything that follows a marriage: a check-in, an anniversary message, "are
   you still married?", a question about how it is going. A marriage is not
   proof the reasoning here was good, and watching one to find out is
-  surveillance (`docs/DECISIONS.md` Part 14).
+  surveillance (`docs/DECISIONS.md` Part 15).
 
 ## 7. What an instrument may claim
 

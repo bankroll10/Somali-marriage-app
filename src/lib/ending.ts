@@ -17,7 +17,7 @@ import { toolLink } from './links'
  *
  * Someone leaving because she has decided is this product done right, whichever
  * way she decided; this screen is the married half of that, and Ended is the
- * other (docs/DECISIONS.md Part 14). Every other app in this category treats
+ * other (docs/DECISIONS.md Part 15). Every other app in this category treats
  * leaving as churn and designs against it; here it is the goal, and until now
  * it produced nothing at all —
  * she tapped a stage chip, the screen changed shape, and everything she had

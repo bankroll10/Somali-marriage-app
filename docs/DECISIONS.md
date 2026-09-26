@@ -2927,7 +2927,7 @@ Guide's eleven note carries one more count, in a field already sent to
 Anthropic, and Trust says so. The prompt changed on the founder's
 delegation; the live before-and-after run is owed (`docs/GUIDE-EVAL.md`).
 
-## Part 14: Decision quality, not outcome quality (2026-09-26)
+## Part 15: Decision quality, not outcome quality (2026-09-26)
 
 A good process can end in disappointment, and a reckless one can end happily.
 The founder asked Niyyah to tell the two apart: to judge how a decision was
@@ -3059,7 +3059,8 @@ talked about it" is the filled button.
 
 ### Research, not built
 
-- A non-tool answer to the married "What decided it?" (Part 12). It is a new
+- A non-tool answer to the married "What decided it?" (Part 14, "Where the
+  company reasons the same way"). It is a new
   closed id, and waits on the sessions.
 - Dating an ending, so that "open" can mean "before this decision". This would
   add a field to a record that promises "never when", so it waits for a reason
