@@ -107,7 +107,9 @@ the loop.
 
 **The guide** closes every reply on an act ("I'll say this — ask me in three
 days" writes a follow-up) and is budgeted by progress: fifteen replies per rung
-and per follow-up answered (`src/lib/budget.ts`), no visible counter, no
+she reaches by doing something and per follow-up answered (`src/lib/budget.ts`);
+a stage she says, `deciding` or `married`, neither buys nor costs replies
+(`docs/DECISIONS.md` Part 14), no visible counter, no
 unlimited tier. Four voices: auntie, brother, therapist, islamic. It is **on in
 production, deliberately (2026-09-10)**: the founder declined leaving
 `ANTHROPIC_API_KEY` unset. It is safe because Trust names Claude and Anthropic

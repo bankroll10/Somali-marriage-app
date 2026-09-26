@@ -21,7 +21,7 @@ import { forgetEntry, type Entry, type EntryKind } from '../lib/entry'
 import type { ToolSide } from '../data/tools'
 import { forgetCode, rememberedCode } from '../lib/keep'
 import { defaultGuideUse, defaultTrust } from '../types'
-import { repliesLeft as budgetLeft } from '../lib/budget'
+import { budgetRungs, repliesLeft as budgetLeft } from '../lib/budget'
 import type {
   Answers,
   AnswerValue,
@@ -222,7 +222,8 @@ export function useNiyyah(entry: Entry | null = null) {
   // Refilled by progress, never by the calendar: every rung on the ladder and
   // every follow-up she has answered grants replies. See src/lib/budget.ts.
   const followUpsAnswered = followups.filter((f) => !!f.outcome).length
-  const repliesLeft = budgetLeft(rungs.length, followUpsAnswered, guideUse.replies)
+  // Only what she did: a stage she says never buys or costs replies.
+  const repliesLeft = budgetLeft(budgetRungs(rungs), followUpsAnswered, guideUse.replies)
 
   // False when the browser refuses to persist (private mode, full quota). The
   // UI must say so — a silent failure costs the user their whole reflection.
