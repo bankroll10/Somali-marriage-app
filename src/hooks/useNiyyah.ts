@@ -8,7 +8,7 @@ import { clearProgress, loadProgress, saveProgress } from '../lib/storage'
 import { getStage } from '../data/stages'
 import { rungsFrom } from '../lib/rungs'
 import { followedThrough, noteFollowUp, openFollowUp, resolveFollowUp, writeBackState, type Landed } from '../lib/followup'
-import { buildRead } from '../lib/read'
+import { asksBack, buildRead } from '../lib/read'
 import { hasHomeFor, marriedOpensEnding, stageAfterInstrument } from '../lib/inferStage'
 import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
@@ -539,7 +539,9 @@ export function useNiyyah(entry: Entry | null = null) {
     setRead(record && prior ? { ...record, previous: prior } : record)
     if (!record) return
     const r = buildRead(record.answers, identity.gender ?? 'woman')
-    if (r) setFollowups((prev) => noteFollowUp(prev, 'read', r.band === 'early' ? 'early' : r.thin))
+    // Not after a caution: its instruction is "tell one person", and there is
+    // no question for {him} to ask about (docs/DECISIONS.md Part 16).
+    if (r && asksBack(r)) setFollowups((prev) => noteFollowUp(prev, 'read', r.band === 'early' ? 'early' : r.thin))
     // A read is about someone she is talking to. Said nothing else, that is
     // where she is — and it is what gives the read-first user a Home, so the
     // follow-up just written is ever asked (src/lib/inferStage.ts). Raw: an

@@ -521,7 +521,7 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
     words:
       'Can I say something? I’ve noticed I’m usually the one who messages first and keeps our plans moving. Does it look that way from your side?',
     tells:
-      'The reply matters less than the fortnight after it. Say it once, then stop starting, and watch what happens. That is your answer, and it does not require anyone to be honest with you.',
+      'The reply matters less than the fortnight after it. Say it once, then notice who starts things, without arranging a test. What happens on its own is the answer, and it does not require anyone to be honest with you.',
   },
   pressure: {
     why: 'How someone handles you at your most inconvenient is one of the clearest signs you can see before a marriage.',

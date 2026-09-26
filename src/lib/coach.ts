@@ -50,7 +50,7 @@ const SAFETY_WORDS = [
   'threat', 'threats', 'threatened', 'threatening', 'threatens',
   'hit me', 'hits me', 'hurt me', 'hurts me', 'hurting me',
   'scared of him', 'scared of her', 'afraid of him', 'afraid of her',
-  'forced', 'forcing me', 'force me', 'make me marry', 'making me marry',
+  'forced', 'forcing me', 'force me',
   'blackmail', 'blackmailing', 'blackmailed',
   'nudes', 'pictures of me', 'photos of me', 'videos of me',
   'grabbed me', 'grabbed my', 'pushed me', 'shoved me', 'slapped me', 'slapped', 'choked me', 'kicked me',
@@ -72,7 +72,38 @@ const SAFETY_WORDS = [
   'scared to bring', 'afraid to bring', 'scared to raise', 'afraid to raise',
   'because of how he reacts', 'because of how she reacts', 'scared of how he', 'scared of how she', 'afraid of how he', 'afraid of how she',
   'walking on eggshells', 'on eggshells', 'punishes me',
+  // A passport held, a status threatened, an exposure threatened: control by
+  // what she stands to lose, not by a hand raised (docs/DECISIONS.md Part 16).
+  'has my passport', 'keeps my passport', 'took my passport', 'take my passport',
+  'get me deported', 'have me deported', 'report me to immigration', 'call immigration',
+  'my visa depends', 'my papers depend', 'my status depends',
+  'tell my family everything', 'tell everyone about', 'expose me', 'ruin my name', 'ruin my reputation',
+  'show my family the', 'send the messages to my', 'send them to my father', 'post the photos', 'post my photos', 'post the pictures',
 ]
+
+/**
+ * Being made to marry. Force is the safety exception (docs/RESEARCH.md rows
+ * 16 and 21), and it has its own answer because the people applying it are
+ * usually the ones every other reply would send her to: "tell your mother"
+ * is the wrong sentence when it is her mother. Phrasings that name the
+ * marriage, so "not allowed to refuse it", asked about polygamy, is not this
+ * (docs/DECISIONS.md Part 16).
+ */
+const FORCE_WORDS = [
+  'make me marry', 'making me marry', 'marry me off', 'marrying me off', 'married off', 'against my will',
+  'forced marriage', 'forced to marry', 'forcing me to marry', 'force me to marry', 'no choice but to marry',
+  'not allowed to refuse him', 'not allowed to refuse the', 'not allowed to say no to him',
+  "won't let me refuse", 'wont let me refuse', "won't let me say no", 'wont let me say no',
+  'already agreed for me', 'agreed without asking me', 'made me agree',
+]
+
+export const FORCED_REPLY = `Being made to marry is not a family disagreement to manage, and it is not yours to carry alone. Your consent is yours to give, and a marriage needs it.
+
+Tell one person outside the household today — an aunt, a teacher, a friend's mother, an imam you trust — exactly what has been said, and when. Not for advice yet. So that someone who is not deciding this knows.
+
+If you are being taken somewhere, or you are in danger now, call the emergency number below. The helpline is free, and you do not have to give your name.
+
+Nothing here decides what you do next. It only makes sure you are not the only one who knows.`
 
 /**
  * Words that mean a life may be at risk (tests/guide-eval, the crisis cases).
@@ -118,6 +149,28 @@ const HARM_WORDS = [
 export const HARM_REPLY = `I won't help with that. Pressuring someone, deceiving them or their family, following them after they have stepped away, or hiding a marriage all break the trust a marriage has to stand on, and they can hurt people.
 
 If what is underneath this is fear of losing someone, or a hard conversation you are avoiding, tell me that instead, and I will help you say it honestly.`
+
+/**
+ * Someone said no, and the asker wants a way round it: their family, their
+ * father, persuasion. The live prompt refuses to help anyone pressure another
+ * person (netlify/shared/prompt.ts); offline, "she said no but I want to talk
+ * to her father" reached the Big Brother's words for meeting a father —
+ * "Come correct. Stand tall in that." — with nothing to say that the no was
+ * an answer (docs/DECISIONS.md Part 16). Not HARM_REPLY: this is not malice,
+ * it is hurt, and it gets a plainer sentence.
+ */
+const NO_WORDS = [
+  'she said no but', 'he said no but', 'turned me down', 'change her mind', 'change his mind',
+  'convince her to', 'convince him to', 'persuade her to', 'persuade him to', "won't take no", 'wont take no',
+  'go over her head', 'her father anyway', 'her family anyway', 'his family anyway', 'ask her father instead',
+  'get her family to', 'get his family to', 'make her say yes', 'make him say yes',
+]
+
+export const NO_REPLY = `A no is an answer, and it is theirs to give. Going to their family to change it is going around them, not toward them — and a family's yes over their no is not a yes.
+
+What you can do is hear it once, plainly, and let it stand. If it hurts, tell one person who knows you what happened. That is where the words belong now.
+
+Try: "I heard you, and I respect it. I won't ask again. I wish you well." Then stop.`
 
 /**
  * A question that asks for a ruling. The offline voice gives principles, not
@@ -207,6 +260,11 @@ const PRESSURE_WORDS = [
   'keep asking when', 'keeps asking when', 'asks me every week', 'ask me every week', "won't stop asking", 'wont stop asking',
   'want me to marry', 'wants me to marry', 'expect me to marry', 'expects me to marry', 'expect me to say yes', 'say yes quickly',
   'bring someone home', 'when will you get married', 'when are you getting married', 'not getting any younger',
+  // Reputation and the clock, said the way they are said (Part 16). Not "too
+  // old to" or "getting old": a parent's age is neither.
+  'what will people say', 'people will talk', 'embarrass the family', 'embarrass my family',
+  'shame on the family', 'shame the family', 'shame my family', 'ceeb',
+  'at my age', 'running out of time', 'left on the shelf', 'everyone my age is married', 'all my friends are married',
 ]
 
 export const PRESSURE_REPLY = `The questions can be love that has not learned to speak softly. That does not make them lighter, or yours to answer on their clock.
@@ -541,7 +599,7 @@ const HELP_WORDS = ['emergency', 'helpline', 'in danger', 'real-world help']
 /** Whether this message, hers or the guide's, should carry the help line beneath it. */
 export function needsHelpLine(message: string, from: 'user' | 'coach' = 'user'): boolean {
   const m = normalize(message)
-  return (from === 'user' ? SAFETY_WORDS : HELP_WORDS).some((w) => hasWords(m, w))
+  return (from === 'user' ? [...SAFETY_WORDS, ...FORCE_WORDS] : HELP_WORDS).some((w) => hasWords(m, w))
 }
 
 /**
@@ -807,8 +865,13 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
   // No closers under a crisis: "That's enough for tonight" is the wrong
   // invitation to someone who may be at risk (docs/GUIDE-EVAL.md).
   if (needsCrisisLine(message)) return { text: CRISIS_REPLY, closers: [], live: false }
+  // Being made to marry has its own answer: the people doing it are usually
+  // the ones SAFETY_REPLY's "tell a sister, an older woman" would name.
+  if (FORCE_WORDS.some((w) => hasWords(normalize(message), w))) return { text: FORCED_REPLY, closers: closersFor(FORCED_REPLY), live: false }
   if (needsHelpLine(message)) return { text: SAFETY_REPLY, closers: closersFor(SAFETY_REPLY), live: false }
   if (HARM_WORDS.some((w) => hasWords(normalize(message), w))) return { text: HARM_REPLY, closers: closersFor(HARM_REPLY), live: false }
+  // A no someone wants a way around: before any voice's words for a father.
+  if (NO_WORDS.some((w) => hasWords(normalize(message), w))) return { text: NO_REPLY, closers: closersFor(NO_REPLY), live: false }
   // Then how it went, then how they argue, then what about — each before any
   // voice's own intents, whichever voice she opened.
   const m = normalize(message)

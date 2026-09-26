@@ -3095,3 +3095,200 @@ Tests:
 above (two answer ids and one bit), no new stored field and no new question.
 Retention is unchanged: a marriage is still kept by rule, and now it is read
 like everything else.
+
+## Part 16: Autonomy, red-teamed (2026-09-26)
+
+The founder asked for a red-team of every mechanism that encourages action —
+the family scripts, the Eleven, the Read, the Guide, the follow-ups, the
+Ending, the two-sided Eleven — against the ways a marriage decision stops being
+someone's own: family and religious expectation, age, reputation, money,
+immigration, emotional pressure, threats, coercive control, the fear of shaming
+a family. The rules for the pass: do not diagnose; find real product
+boundaries; a safety requirement may override the freeze, an ordinary opinion
+about relationships may not.
+
+**Method.** Three inventories were taken: every safety mechanism already
+built (Part 9 and before); every piece of copy that tells someone to do
+something, quoted; and the two-sided flow and the Guide's routing, traced. Each
+mechanism was then asked the founder's seven questions, and each finding was
+placed in one of four tiers and given one of three verdicts.
+
+### The four tiers
+
+| Tier | What it looks like here | What Niyyah does | Action orientation |
+|---|---|---|---|
+| **Normal friction** | They disagree; an argument that ends; nerves before raising something; a no that is accepted; a family that asks | The Eleven's differ, settled and line states; `WORK_IT_OUT`; `PROCESS_REPLY`; `DIFFERENCE_REPLY`; words for {him} | Right. Hand words, and ask later whether they were said |
+| **Pressure** | A timetable set by others: family asking, age, "what will people say", "everyone likes him", a partner's ultimatum without a threat, a wedding in motion | `PRESSURE_REPLY`, `familyYesReply`, `TIME_REPLY`: the pace is hers; words to ask for time and to name who decides. Never "say yes" or "say no" | Kept, but the words are for asking for time, not for deciding |
+| **Coercive control** | A pattern of fear or restriction: careful what she raises because of how {he} reacts; phone, money, passport or who she sees controlled; a threat to expose or to immigration; being made to marry | "Do not have this conversation alone." No words for {him}; no "have you asked it"; tell one person who is not deciding this, today; the help line | **Overridden.** Every mechanism switches from "the one to open" to "one person who knows you" |
+| **Immediate safety** | Violence, a threat of harm, being taken somewhere, self-harm, "in danger now" | The emergency number first, the crisis or help line, nothing about the courtship | Overridden entirely |
+
+Two invariants fall out of the table:
+1. **A mechanism that hands words to say to the other person, or asks whether
+   they were said, belongs to tiers 1 and 2.** Once the product has been told
+   tier 3 or 4 — the Read's `careful`, a caution, a safety match in the Guide —
+   it hands words for one person who knows her, and asks only about that.
+2. **Distance is recommended only as time and a witness:** "leave it a day",
+   "ask for a month", "tell one person today". Never as ending, and never as a
+   verdict on {him}.
+
+### The seven questions
+
+**Could Niyyah make someone feel they owe an answer?** A little, by design,
+and more than it should in two places. The follow-up is asked once, three days
+after words were handed over, and "Not yet" says "there's no hurry in this —
+the words keep"; "Put it away" ends it. That is the design. But the Read and
+the Eleven write the follow-up when a result is saved, whether or not she took
+the words (the family scripts and the Guide write it only when she does), and
+the Read wrote one after a money caution, so three days after "send nothing
+more until your families have met" Home asked "Have you asked it?" The second
+is fixed below. The first is recorded.
+
+**Could sharing an Eleven link become pressure?** Yes, in three ways. The
+answerer's intro said "The only thing this can do is show you both which
+conversation to have next", which is less than the truth: from your own
+answers and the joint, each side can work out roughly what the other said on
+every topic (agree gives `both-agree`; settled or differ gives
+`differ-somewhere`; not-talked gives `one-thinks-talked`; unknown gives
+`unknown-somewhere`). Nothing told the answerer they could decline, and a man
+can create the link, so the answerer may be her. And the headline "One of you
+thinks you've had a conversation the other doesn't remember having" took the
+"we talked" side as the true one: answer "agree" everywhere and the product
+said the other person forgot. All three are fixed below. The link's own
+inference is the point of the product and is now said plainly, on his intro
+and on Trust.
+
+**Could family involvement be used against someone?** In two places. The
+Guide's family answers assume the family is the ally ("Your people protect
+you. Let them"), which is right for the woman asking how to bring them in and
+wrong for the woman whose family has agreed a marriage she has not. Offline,
+"not allowed to refuse him" and "married off" reached the voice's own words,
+not a safety answer. And the report: he holds the couple code, can file as
+her, and can name her father's number in the free text; Trust said the founder
+"can speak to them, or to their family", and one of her outcomes is
+`told-the-family`. Both fixed below.
+
+**Could a manipulative partner weaponise Niyyah's language?** The strongest
+vector was the couple headline above ("Niyyah says you forgot"). The next was
+the offline Guide coaching a man past a woman's no: "She said no but I want to
+approach her father anyway" hit the Big Brother's words for meeting a father —
+"This is where you become a man in their eyes. Come correct… Stand tall in
+that." The live prompt forbids helping anyone pressure another person; the
+offline voice had no such check. Fixed below. Forwarded words name Niyyah and
+not the sender, and the Read on the man's side is his reading of her (decision
+4); both are recorded, not changed.
+
+**Could "follow through" reward a conversation that was unsafe to have?** It
+did in one place: after a caution, the follow-up still asked "Have you asked
+it?" and re-showed a question for {him}. Part 15 had already made "It went
+differently" ask whether she got to say it, so a conversation that went badly
+counts without the card that invites her to send the words on. Fixed below.
+
+**When should "do not have this conversation alone" override the action
+orientation?** Whenever the product has been told tier 3 or 4: the Read's
+`careful` answer, either caution, or a safety or force match in the Guide. At
+that point every mechanism that would hand words for {him} hands words for one
+person who knows her instead, and asks only about that. The Read now does this
+fully (before, it said "These are not for {him}" and, a scroll below, handed
+her one question per gap to put to {him}). The Eleven, the couple link and the
+offline Guide do not yet know the Read said `careful`; that is the next step,
+recorded.
+
+**When should the product recommend distance or real-world support without
+deciding the relationship?** Always in the form of time and a witness, never
+in the form of an ending. "Leave it a day, then return to it more slowly";
+"ask for a month"; "tell one person who knows you, today"; in danger, the
+emergency number. The one screen that had none of this was the one that opens
+when a courtship ends, which research names as the most dangerous moment with
+a controlling partner (`docs/RESEARCH.md` row 16). Fixed below, as an "if",
+to everyone.
+
+### Findings and verdicts
+
+BUILD is a safety requirement, and overrides the freeze. FIX is an untrue or
+self-contradicting claim, which decision 19 allows. NOTE is an opinion,
+recorded for the sessions and not built.
+
+| # | Mechanism | Risk | Tier | Verdict |
+|---|---|---|---|---|
+| 1 | Read, the `careful` band | "Words for the other gaps" were hidden only under `early` or a caution; a woman who said she is careful what she raises was still handed one question per gap for {him}, possibly the `pressure` script | 3 | BUILD |
+| 2 | Read follow-up after a money caution | Written for every band; only `careful` switched the question. After "send nothing more", Home asked "Have you asked it?" | 3 | BUILD |
+| 3 | Ended | No help line and no "tell one person" at the highest-risk moment | 3–4 | BUILD |
+| 4 | Guide offline, being made to marry | No vocabulary beyond "make me marry"; the phrasings fell to the Auntie's family answer | 3 | BUILD |
+| 5 | Guide offline, passport, immigration, exposure | Only "threatened" was caught | 3 | BUILD |
+| 6 | Guide offline, a man past her no | The Big Brother's words for a father, to a man she had refused | 2→3 | BUILD |
+| 7 | Guide offline, reputation and age | `PRESSURE_REPLY` unreachable for "what will people say", "everyone my age is married", "ceeb" | 2 | BUILD |
+| 8 | Two-sided Eleven, the answerer's intro and Trust | The inference under-described; no way said to decline | 2 | FIX |
+| 9 | Two-sided Eleven, the headline | Took the "we talked" side as right | 2 | FIX |
+| 10 | The friend invite from the couple screen | "We did them on Niyyah" broke `invite.ts`'s own rule: never about the sender's own use | — | FIX |
+| 11 | The report | Free text, `told-the-family`, and "or to their family" on Trust | 3 | FIX, copy and the founder's rule |
+| 12 | Read, the `consistency` script | "Say it once, then stop starting, and watch" coached the covert test Part 13 removed from the question | — | FIX |
+| 13 | The eval | No case required a safety answer for force, a passport or immigration threat, or an exposure threat; none for coaching past a no; none for reputation as pressure | — | BUILD |
+
+### What was built
+
+- **Read** (`src/lib/read.ts`, `Read.tsx`, `useNiyyah.ts`): `wordsForOthers`
+  returns nothing under `early`, a caution or `careful`; `asksBack` is false
+  under a caution that is not `careful`, so no follow-up is written and the
+  screen does not promise one. `tests/invariants/the-loop-closes.test.tsx`
+  states the caution as the exception.
+- **Ended** (`src/components/Ended.tsx`): "If ending it did not feel safe — if
+  {he} has not accepted it, or you are careful what you say to {him} — that is
+  not yours to carry alone. Tell one person who knows you today." with the
+  emergency line beneath. Said to everyone, as an "if", because the reason is
+  skippable and the woman it is for may be the one who skips it.
+- **Guide offline** (`src/lib/coach.ts`): `FORCE_WORDS` and `FORCED_REPLY`,
+  answered before the safety reply and in every voice (tell one person outside
+  the household; the help line; nothing decided); `SAFETY_WORDS` gains a
+  passport held, a status threatened, an exposure threatened; `NO_WORDS` and
+  `NO_REPLY` answer a no someone wants a way around, before any voice's words
+  for a father; `PRESSURE_WORDS` gains reputation and the clock. Force
+  phrasings name the marriage, so a polygamy question that says "not allowed
+  to refuse it" is not read as force.
+- **Two-sided Eleven** (`Couple.tsx`, `Trust.tsx`, `src/lib/couple.ts`,
+  `src/data/invite.ts`): the intro says what each side can work out and that
+  the answerer may decline; Trust says the same; the headline reads "On at
+  least one of these, one of you says you've talked about it and the other
+  says you haven't"; the friend invite no longer says the sender did the
+  eleven.
+- **The report** (`Trust.tsx`, `docs/SECURITY.md`): "She can reply to you if
+  you left a way to reach you, and, if you ask her to, help you tell your own
+  family. Nobody's family is contacted on the other side's word."
+  `told-the-family` is bound to the reporter's own family, at the reporter's
+  request, after the founder has spoken to the reporter.
+- **Read, `consistency`**: "Say it once, then notice who starts things, without
+  arranging a test."
+- **Eval**: `abuse-06` (made to marry), `abuse-07` (passport and immigration),
+  `abuse-08` (exposure threatened), `manipulation-05` (past her no),
+  `family-06` (reputation and age as pressure). All five pass every dimension
+  offline; the baseline was recorded on purpose.
+- **Tests**: `src/lib/read.test.ts`, `src/lib/coach.test.ts`,
+  `src/lib/couple.test.ts`, `src/data/invite.test.ts`,
+  `tests/ui/autonomy.test.tsx`, and the two-phones journey checks his intro.
+
+### Recorded, not built
+
+- The Read and Eleven follow-ups are written when a result is saved, whether or
+  not she took the words; the family scripts and the Guide write only on take.
+  "Not yet" and "Put it away" soften it.
+- The Eleven, the couple link and the offline Guide do not know the Read said
+  `careful`; only the Read and its follow-up switch. A carried `careful` state
+  is the next step, gated by the first session that shows the Eleven's words
+  handed to someone who had said it.
+- "Send the link again" has no limit. His phone gets a follow-up he never asked
+  for. A stage moves in one tap. Guide replies end "this week" or "tonight".
+  `PRESSURE_REPLY` commits her to monthly updates (row 21). `send-his-people`
+  reads "let's not rush" as a verdict. `end-it-kindly` says "before you spend
+  another month pretending". `approach-her-family` says "every month you wait"
+  (man copy, decision 4). The man's Read on her can be quoted at her (decision
+  4). A report reason for control (open question 10, the first candidate;
+  waits on `other`'s share). A PIN or a quick exit (`docs/SECURITY.md`, "Not
+  built").
+- The live Guide's prompt was not changed: the rules it needs are already in
+  it, and the prompt does not change without a before-and-after run.
+
+**Decision 19.** Findings 1 to 7 and 13 are safety requirements, and the
+founder's rule for this pass lets them override the freeze; 8 to 12 are untrue
+or self-contradicting claims, which decision 19 allows. No stored field, no
+new question, no new vocabulary id. `docs/RESEARCH.md` row 23 holds the
+stance; `docs/SECURITY.md` holds the two new abuse cases and the founder's
+rule.

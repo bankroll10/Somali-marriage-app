@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import type { Gender, Identity, ReadRecord } from '../types'
 import { EXAMPLE_ANSWERS, readQuestions, scriptFor } from '../data/read'
-import { buildRead, type DimensionState, type ReadResult } from '../lib/read'
+import { buildRead, type DimensionState, type ReadResult, asksBack, wordsForOthers } from '../lib/read'
 import { GUIDE_SOURCE } from '../lib/site'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
@@ -417,10 +417,7 @@ function Result({
     : []
   // The other gaps, with their own words. Only the thinnest used to get any —
   // every other "not yet" on the screen was a problem with nothing to say.
-  const otherGaps =
-    result.band === 'early' || result.caution
-      ? []
-      : result.dimensions.filter((d) => d.state !== 'shown' && d.dimension !== result.thin)
+  const otherGaps = wordsForOthers(result)
   return (
     <div className="py-8">
       <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
@@ -545,7 +542,7 @@ function Result({
               : undefined
         }
       />
-      {checksBack && <CheckBack what={result.careful ? 'you told someone' : 'you asked it'} />}
+      {checksBack && asksBack(result) && <CheckBack what={result.careful ? 'you told someone' : 'you asked it'} />}
 
       {/* Where she can go from here. Two things above the fold — the words to
           send, in the card above, and the eleven — and the rest behind one

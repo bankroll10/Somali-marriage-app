@@ -25,7 +25,7 @@ const TEXT: Record<InviteSource, string> = {
     'Before you say yes — the eleven conversations to have before the families do: whose house, money home, a second wife. Niyyah asks which ones you two have had, and gives you the words to open the one that matters. Built for us. No account.',
   // From a couple who did it together, to a couple who is about to decide.
   couple:
-    'Before you say yes — the eleven conversations to have before the families do: where you’d live, money home, a second wife. We did them on Niyyah, each on our own phone; neither of us saw the other’s answers, only where the two of us stood. Two minutes. No account.',
+    'Before you say yes — the eleven conversations to have before the families do: where you’d live, money home, a second wife. Niyyah asks each of you, on your own phones, which ones you’ve had; neither sees the other’s answers, only where you stand. Two minutes. No account.',
 }
 
 /**

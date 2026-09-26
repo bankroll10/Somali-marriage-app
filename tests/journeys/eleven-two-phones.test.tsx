@@ -154,6 +154,10 @@ describe('the eleven, on two phones', () => {
     // knows there is a pair — it used to know nothing.
     const hisPhone = onPhone(new Phone('his'))
     const him = await mount(open(link))
+    // Told plainly before he starts: he may decline, and what each side can
+    // work out from the joint (docs/DECISIONS.md Part 16).
+    expect(him.text()).toContain('You don’t have to do this')
+    expect(him.text()).toContain('each of you can work out roughly what the other said')
     await him.press(/^Start$/)
     await answerEleven(him, 'man', his)
     await him.until(() => him.text().includes(expected.man.headline), 'his joint')

@@ -285,7 +285,7 @@ ratchet will show it.
 
 - **Whether a member is helped.** The ladder measures that (`docs/PRIVACY.md`),
   and nothing here replaces it: a 5 from a judge is not a marriage.
-- **Every phrasing.** 89 cases are a sample. A failure in the wild becomes a
+- **Every phrasing.** 94 cases are a sample. A failure in the wild becomes a
   case the day it is found, which is how the suite grows.
 - **The judge's own blind spots.** Same model family, so the rules stay the
   hard floor, and the hand calibration is the check on the judge.

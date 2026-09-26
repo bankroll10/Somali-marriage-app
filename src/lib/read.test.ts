@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildRead, readSummary } from './read'
+import { asksBack, buildRead, readSummary, wordsForOthers } from './read'
 import { CAREFUL_SCRIPT, DIMENSION_LABEL, EXAMPLE_ANSWERS, NONNEG_SCRIPT, READ_QUESTION_COUNT, readQuestions, scriptFor } from '../data/read'
 import { familyScripts, familyScriptsLine } from '../data/families'
 
@@ -563,5 +563,40 @@ describe('the questions ask what happened, not what she believes (Part 13)', () 
   it('asks named as who raised it, so no answer contradicts the stem', () => {
     expect(q('named').prompt).not.toMatch(/without you raising/i)
     expect(q('named').prompt).toMatch(/who first brought up marriage/i)
+  })
+})
+
+describe('once told it is not safe, the read hands no words for him (docs/DECISIONS.md Part 16)', () => {
+  const base = answers()
+
+  it('careful: no words for the other gaps, and the follow-up asks about telling someone', () => {
+    const r = buildRead({ ...base, hard: 'careful' })!
+    expect(r.careful).toBeTruthy()
+    expect(wordsForOthers(r)).toEqual([])
+    expect(asksBack(r)).toBe(true)
+  })
+
+  it('a money caution: no words for the other gaps, and no follow-up about asking him', () => {
+    const r = buildRead({ ...base, money: 'yes' })!
+    expect(r.caution).toBeTruthy()
+    expect(r.careful).toBeFalsy()
+    expect(wordsForOthers(r)).toEqual([])
+    expect(asksBack(r)).toBe(false)
+  })
+
+  it('otherwise every gap but the thinnest gets its own words', () => {
+    const r = buildRead(base)!
+    if (r.band !== 'early' && !r.caution) {
+      const gaps = r.dimensions.filter((d) => d.state !== 'shown' && d.dimension !== r.thin)
+      expect(wordsForOthers(r)).toEqual(gaps)
+    }
+    expect(asksBack(r)).toBe(true)
+  })
+
+  it('never coaches a test to run on him', () => {
+    for (const q of readQuestions('woman')) expect(q.helper ?? '', q.id).not.toMatch(/(?<!don’t need to )\btest(ed)?\b/i)
+    for (const key of ['public', 'intent', 'family', 'consistency', 'pressure', 'early'] as const) {
+      expect(scriptFor(key, 'woman').tells, key).not.toMatch(/stop starting|\btest (him|her|it)\b|arrange a test/i)
+    }
   })
 })

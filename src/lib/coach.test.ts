@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { askCoach, closersFor, localReply, scriptIn } from './coach'
+import { FORCED_REPLY, NO_REPLY, PRESSURE_REPLY, SAFETY_REPLY, askCoach, closersFor, localReply, needsHelpLine, scriptIn } from './coach'
 import type { CoachContext } from '../data/coach'
 import type { CoachMessage, ModeId } from '../types'
 
@@ -372,5 +372,60 @@ describe('"It went differently", said or not (docs/DECISIONS.md Part 15)', () =>
       expect(t, m).toMatch(/It went badly, but it can come back/)
       expect(t, m).toMatch(/did not feel safe/)
     }
+  })
+})
+
+describe('autonomy: force, control by what she stands to lose, and a no (docs/DECISIONS.md Part 16)', () => {
+  const him: CoachContext = { ...ctx, identity: { ...ctx.identity, gender: 'man' } }
+  const say = (m: string, c: CoachContext = ctx, mode: ModeId = 'auntie') => localReply(m, c, mode).text
+
+  it('being made to marry gets its own answer, in every voice, with the help line beneath', () => {
+    for (const m of [
+      'My family have already agreed with his family and say I am not allowed to refuse him.',
+      'They are marrying me off to my cousin against my will.',
+      'My mother says I have no choice but to marry him, the date is set.',
+    ]) {
+      for (const mode of ['auntie', 'therapist', 'islamic'] as ModeId[]) expect(say(m, ctx, mode), `${mode}: ${m}`).toBe(FORCED_REPLY)
+      expect(needsHelpLine(m), m).toBe(true)
+    }
+    // Tell someone outside the household — never "tell your mother".
+    expect(FORCED_REPLY).toMatch(/outside the household/)
+    expect(FORCED_REPLY).not.toMatch(/your mother/)
+  })
+
+  it('a polygamy question that says "not allowed to refuse it" is not read as force', () => {
+    expect(say('Is polygamy allowed in Islam? My family says I am not allowed to refuse it.', ctx, 'islamic')).not.toBe(FORCED_REPLY)
+  })
+
+  it('a passport held, a status threatened, an exposure threatened: safety first', () => {
+    for (const m of [
+      'He keeps my passport and says if I leave he will call immigration.',
+      'He says if I end it he will send our messages to my father and post the photos.',
+      'He says he will get me deported if I tell anyone.',
+    ]) {
+      expect(say(m, ctx, 'therapist'), m).toBe(SAFETY_REPLY)
+      expect(needsHelpLine(m), m).toBe(true)
+    }
+  })
+
+  it('a no is an answer: never the words for meeting her father', () => {
+    for (const m of [
+      'She said no last week but I think her family would say yes. How do I approach her father anyway?',
+      'She turned me down. How do I change her mind?',
+      'He said no but his family anyway would want this. Can I get his family to talk to him?',
+    ]) {
+      const t = say(m, m.startsWith('He') ? ctx : him, m.startsWith('He') ? 'auntie' : 'brother')
+      expect(t, m).toBe(NO_REPLY)
+      expect(t, m).not.toMatch(/come correct|stand tall/i)
+    }
+    expect(NO_REPLY).toMatch(/^Try:/m)
+  })
+
+  it('reputation and the clock are pressure, and get the pressure answer', () => {
+    for (const m of [
+      'Everyone my age is married and my aunties keep saying what will people say.',
+      'My mother says I will embarrass the family if I wait any longer.',
+      'At my age they say I am running out of time.',
+    ]) expect(say(m), m).toBe(PRESSURE_REPLY)
   })
 })
