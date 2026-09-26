@@ -87,7 +87,7 @@ Every workflow's token can read the repository and do nothing else (`docs/SECURI
 | `verify.yml` | Every PR, and every push to `main` | `npm ci`, `npm run verify` and `npm run build` on Node 22 |
 | `deployed.yml` | Every push to `main`, or by hand | Waits up to 15 minutes for `/version.json` to report the pushed commit, then smoke-tests it (below). A newer push cancels the older wait |
 | `watch.yml` | Every 3 hours; the 1st of each month at 09:30 UTC; or by hand | The health job and the monthly backup (both below) |
-| `guide-eval.yml` | PRs touching `netlify/shared/prompt.ts`, `netlify/functions/guide.ts`, `src/lib/coach.ts`, `src/data/coach.ts` or `tests/guide-eval/**`; or by hand | Evaluates the live guide, at about $4 a run. Without an `ANTHROPIC_API_KEY` repository secret it warns and passes. The offline eval gates every PR inside `verify` (`docs/GUIDE-EVAL.md`) |
+| `guide-eval.yml` | PRs touching `netlify/shared/prompt.ts`, `netlify/functions/guide.ts`, `src/lib/coach.ts`, `src/data/coach.ts` or `tests/guide-eval/**`; or by hand | Evaluates the live guide, at about $4 a run. Without an `ANTHROPIC_API_KEY` repository secret, or when its account has no credit, it warns and passes. The offline eval gates every PR inside `verify` (`docs/GUIDE-EVAL.md`) |
 
 ### Environment variables
 

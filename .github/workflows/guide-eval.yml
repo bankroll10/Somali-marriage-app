@@ -53,7 +53,18 @@ jobs:
             echo "::warning::No ANTHROPIC_API_KEY secret, so the live Guide was not evaluated. The offline suite still ran in verify. docs/GUIDE-EVAL.md"
             exit 0
           fi
-          npm run eval:guide
+          # An account with no credit is the same state as no key: nothing
+          # was evaluated, and the offline suite still ran in verify. It
+          # warns and passes rather than turn every guide PR red while the
+          # eval is parked (docs/GUIDE-EVAL.md). Any other failure fails.
+          set -o pipefail
+          if ! npm run eval:guide 2>&1 | tee eval.log; then
+            if grep -q "credit balance is too low" eval.log; then
+              echo "::warning::The Anthropic account behind ANTHROPIC_API_KEY has no credit, so the live Guide was not evaluated. The offline suite still ran in verify. docs/GUIDE-EVAL.md"
+              exit 0
+            fi
+            exit 1
+          fi
 
       # The same report, in the log, for a reader that cannot fetch artifacts:
       # a cloud session's network policy can refuse the artifact store while
