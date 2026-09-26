@@ -2926,3 +2926,145 @@ No screen, route, store, stored field, option or closed id was added. The
 Guide's eleven note carries one more count, in a field already sent to
 Anthropic, and Trust says so. The prompt changed on the founder's
 delegation; the live before-and-after run is owed (`docs/GUIDE-EVAL.md`).
+
+## Part 14: Decision quality, not outcome quality (2026-09-26)
+
+A good process can end in disappointment, and a reckless one can end happily.
+The founder asked Niyyah to tell the two apart: to judge how a decision was
+made, not which way it went. A breakup after finding a serious
+incompatibility early may be the product working. A marriage is not proof
+that Niyyah's reasoning was good. The founder also asked for an audit of the
+North Star, to keep it unless there was a compelling reason not to, and to
+build no long-term watching of marriages.
+
+**Method.** Six places were read for where an outcome could be mistaken for a
+verdict on the decision:
+- the Ending and Ended screens and their data;
+- the follow-up;
+- the readout and its research metrics (`netlify/functions/progress.ts`,
+  `docs/RESEARCH.md`);
+- the North Star;
+- product language (`docs/PRODUCT.md`, README, comments);
+- what the learning system keeps and plans.
+
+For each, one question: could Niyyah learn the wrong lesson here?
+
+### Five ways to learn the wrong lesson
+
+| Scenario | Where it could be learned | The wrong lesson | The guard |
+|---|---|---|---|
+| A courtship ends | `facts.marriedBy` crossed every fact with "went on to marry". The monthly loop moved `consequence`, `PRIORITY`, `dealbreakers` and `why-now` by it ("rare among the married: raise it") | A topic or ground that ends courtships early reads as a failure, and gets moved down | `facts.decisions`: an ending over something she found (`ended:seen`) sits in the same column as a marriage. No constant moves on the married share any more |
+| A marriage happens | The Ending asks only the married "What decided it?", and four of its five answers are Niyyah's own tools. `marriedBy` read as the outcome table | Whatever the married used gets credit, whether or not it decided anything | A marriage with no conversation here (`decisions.closed.married`) says nothing about Niyyah. `marriedBy` is descriptive and never read alone. A non-tool answer stays a research item |
+| A marriage lasts | Nothing measures it. But married records were kept forever while every other record lapsed after a year, so the tables filled with marriages as endings dropped out | Survivorship: in two years the readout would say "those who did X married", because those who did X and ended were deleted | Like with like: a lapsed marriage counts in `rungs.married` and nowhere else. And nothing ever follows a marriage (`docs/PRODUCT.md`, "Never built") |
+| A hard conversation causes a breakup | "It went differently" sat outside the North Star, yet its own reply covers "it went badly" and "a plain answer, even one you did not want" | A conversation that ended things was recorded as one that never happened. Scripts that work but end courtships would read as "rarely said: rewrite" | The follow-up asks "Did you get to say it?". "I said it" counts as had, however it went |
+| A hard conversation produces agreement | The follow-up's `landed` stays on the phone. The couple headline was fixed in Part 13 | Agreement becomes the good answer, and false agreement ("we talked, and agree") goes uncorrected | Every place it lands counts the same. The four buttons are drawn alike (Part 8). `/couple`'s `one-thinks-talked` is the check on self-report |
+
+The screens she sees were mostly right already. Ended says "It ended. That is
+allowed, and it is progress." The follow-up says "Not agreeing is an answer
+too." **She never hears her outcome graded**, either way. "Product success"
+is the company's reading only. Telling someone her breakup was a win would be
+cruel.
+
+### Outcome categories
+
+These are built from facts already stored; no new stored field. There are two
+axes:
+- **Process: open or closed.** Did she confirm at least one conversation here
+  (`followed-through`)? Endings carry no date, so open means "while here", not
+  necessarily "before this decision".
+- **Outcome: married, or ended.** An ending has a kind (`ENDED_KIND`,
+  `netlify/shared/vocab.ts`):
+  - `seen` covers a non-negotiable, one of the eleven, and what he did;
+  - `families` covers my family and his;
+  - `circumstance` covers timing and distance;
+  - `stopped` covers he stopped and I stopped;
+  - `unsaid` covers other.
+
+How each is read:
+- **Decided in the open** (any open cell, married or ended, counted alike).
+  This is Niyyah's unit of success.
+- **A clear no** (`ended:seen`, either column). She found something she could
+  not live with, and acted. `facts.seenAt` says whether it came from `talking`
+  (early, the aim) or `deciding` (late).
+- **Decided without the conversations here** (closed cells). These say nothing
+  about Niyyah's reasoning, either way.
+- **No decision reported.** This is most people. It is never read as failure
+  and never inferred from silence.
+
+### The North Star: followed-through per hundred arrived
+
+It is kept. It already measures a process: a specific conversation had, not a
+marriage, a feeling or an open. There is no compelling reason to replace it.
+One fix went in (below). The fuller account is in `docs/PRODUCT.md` §3.
+
+**What it proves.** Of those counted, a share later told us they had a
+conversation Niyyah gave them words for. Keeping someone stuck cannot raise
+it, and neither can a marriage. It is now neutral to how the conversation went.
+
+**What it does not prove:**
+- cause, because nobody saw the version where she had no words;
+- that the conversation was honest, safe or good;
+- that the decision after it was good;
+- anything about a marriage;
+- anything about those with step-reporting off.
+
+It is also her report, one conversation counts the same as eleven, and "We
+talked about it" is the filled button.
+
+**What we eventually need beside it:**
+- cause: PROTOCOL's outcome question, in sessions;
+- decision quality: `decisions.open` per reported decision, the share of
+  endings that are `ended:seen`, and `seenAt`;
+- corroboration: `/couple`'s `one-thinks-talked`;
+- harm: safety reports, and how often "I couldn't say it" is picked.
+
+**Never:** whether a marriage lasts.
+
+### What was built
+
+- **The follow-up** (`src/components/home/FollowUp.tsx`). "It went
+  differently" now asks "Did you get to say it?":
+  - "I said it" is `asked`: it counts, and it opens the guide with "I talked to
+    them about …, and it went differently."
+  - "I couldn't say it" is `differently`: it opens the guide with today's
+    sentence.
+
+  Both keep "went differently", so the reply and the live prompt are
+  unchanged. The card inviting her to send the words on appears only after
+  "We talked about it". It never appears after "I said it", when the
+  conversation may have gone badly.
+- **The readout** (`netlify/functions/progress.ts`):
+  - `facts.decisions` and `facts.seenAt`;
+  - `ENDED_KIND`;
+  - a marriage past its year no longer enters `cohorts` or the facts;
+  - a marriage with no facts is still a decision;
+  - comments that called marriage "the one outcome this product exists to
+    cause" or "the asset" were reworded, here and in `src/lib/ending.ts` and
+    `src/types.ts`.
+- **The docs:**
+  - `docs/RESEARCH.md`: every monthly-loop rule that graded by the married
+    share now reads endings or follow-through. The ladder's "Success" row is
+    now "Decision". L1, L3 and L6, and OQ6 and OQ9, were re-evidenced.
+  - `docs/PRODUCT.md`: the North Star audit, the lagging outcome, the kill
+    criterion, and a "Never built" line against following a marriage.
+  - `docs/PRIVACY.md`: the new readout fields.
+  - README: it offers to take everything off the server; it does not do so
+    unasked.
+- **Tests:**
+  - `tests/ui/outcomes.test.tsx`: said-it counts, couldn't doesn't, every
+    landing counts alike, and neither ending grades;
+  - `tests/progress-function.test.ts`: the decisions table, `ENDED_KIND`
+    coverage, and the like-for-like window;
+  - `src/lib/coach.test.ts`: both sentences meet the same reply.
+
+### Research, not built
+
+- A non-tool answer to the married "What decided it?" (Part 12). It is a new
+  closed id, and waits on the sessions.
+- Dating an ending, so that "open" can mean "before this decision". This would
+  add a field to a record that promises "never when", so it waits for a reason
+  strong enough to change that promise.
+
+**Decision 19.** Fixes, tests and docs. No new stored field, no new question,
+and retention unchanged: a marriage is still kept by rule, and now it is read
+like everything else.

@@ -142,6 +142,26 @@ not say it: a conversation in October by someone who came in September had no
 row to be divided by. Only the follow-up writes the numerator; the guide's own
 follow-ups stay out of `facts.through`. How to pull it: `docs/OPS.md`.
 
+**What it proves, and what it does not** (audited 2026-09-26, `docs/DECISIONS.md`
+Part 14). It is kept: it measures how people decide, not which way.
+- *It proves* that, of those counted, a share later told us they had a specific
+  conversation Niyyah gave them words for. It is a behaviour, not a feeling or
+  an open. Keeping someone stuck cannot raise it, and neither can a marriage. It
+  counts a conversation however it went: "It went differently", then "I said
+  it", counts; only "I couldn't say it" does not.
+- *It does not prove* that Niyyah caused the conversation (nobody saw the
+  version where she had no words); that it was honest, safe or good; that the
+  decision after it was good; anything about a marriage; anything about those
+  with "Tell us which steps you reach" off. It is her report, one conversation
+  counts the same as eleven, and "We talked about it" is the filled button.
+- *What we eventually need beside it.* Cause: `docs/PROTOCOL.md`'s outcome
+  question, in sessions. Decision quality: `facts.decisions` (reported
+  decisions made after a conversation here, married and ended alike), the share
+  of endings that were `ended:seen`, and `facts.seenAt`, early against late.
+  Corroboration: `/couple`'s `one-thinks-talked`, the two-sided check on "we
+  talked". Harm: safety reports, and how often "I couldn't say it" is picked.
+- *Never*: whether a marriage lasts. Nothing follows a marriage.
+
 **The test for any screen:** does it help someone find out earlier, and does it
 end in something they can say? What it changed:
 - **Welcome's lead promises the routing, not the map**: a read, the eleven, or
@@ -277,7 +297,9 @@ advice is a funnel; the Ending asks for no money; no payment SDK.
 **The call**: fewer than 3 of 5 free calls change what the couple talked about;
 fewer than 3 of 10 buy; any couple says it pushed them; calls average over 2.5
 founder hours (repriced or stopped, not squeezed); couples who had it end from
-`deciding` at a sharply different rate, and the conversations say why. **The
+`deciding` at a sharply different rate and the conversations say the call made
+the trouble rather than found it. A higher ending rate over something they
+found is not a kill: it may be the call working (`docs/DECISIONS.md` Part 14). **The
 gift**: ten married couples use the sheet free and nobody asks to give it.
 
 ## 6. What we measure, and what we never build
@@ -287,15 +309,17 @@ measurement is a ladder of rungs, each a claim about her life
 (`src/lib/rungs.ts`): `arrived`, `situated`, `mapped`, `kept`, `read`,
 `eleven`, `asked-him`, `he-answered`, `followed-through`, `deciding`,
 `married`, each counted on its own. `kept` is apart from `mapped` because a map
-dropped and a map kept are different failures. Lagging outcome: `married` per
-hundred `arrived`; distribution: arrivals by source per hundred
+dropped and a map kept are different failures. Lagging outcome: decisions made
+after a conversation here per hundred `arrived`, married and ended alike
+(`facts.decisions.open`); `married` per hundred is a count, never a grade; distribution: arrivals by source per hundred
 followed-through (§9).
 
 Beside each rung, what it was made of (`src/lib/facts.ts`): ids from closed
 lists, never a sentence (the rated grounds, the read's band, the eleven's one
 to open, conversations confirmed, why a courtship ended, the three answers on
 the way out, questionnaires begun, whether she asked the guide), crossed
-against marriage in the readout. It travels only while Trust's "Tell us which
+against how the decision was made in the readout (`facts.decisions`), with
+marriage as a description, never a grade. It travels only while Trust's "Tell us which
 steps you reach" (`countMe`) is on, under an install code that cannot be joined
 to her map code, and every split by a quasi-identifier is floored at five
 (`netlify/shared/floor.ts`). Field by field: `docs/PRIVACY.md`. **Never
@@ -312,6 +336,10 @@ them.
 - Notifications about people. A referral reward, an invite counter,
   share-to-unlock, or a link that carries who sent it.
 - Any mechanic whose success is measured by its own repetition.
+- Anything that follows a marriage: a check-in, an anniversary message, "are
+  you still married?", a question about how it is going. A marriage is not
+  proof the reasoning here was good, and watching one to find out is
+  surveillance (`docs/DECISIONS.md` Part 14).
 
 ## 7. What an instrument may claim
 

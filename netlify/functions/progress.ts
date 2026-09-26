@@ -10,6 +10,7 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
 import {
   ASKED,
   DIMENSIONS,
+  ENDED_KIND,
   ENDED_REASONS,
   ENDED_STAGES,
   ENDED_WHICH,
@@ -67,8 +68,8 @@ const ID = CODE
  * A year, refreshed on every report — except once someone has married.
  *
  * The refresh was anti-correlated with the value of the record: it happens on
- * a write, and marrying is the thing that ends the writing. So the one outcome
- * this product exists to cause dropped out of every readout at day 366, and
+ * a write, and marrying is the thing that ends the writing. So every marriage
+ * dropped out of every readout at day 366, and
  * the historical count changed retroactively — while the blob, and its cost,
  * stayed on disk for ever because nothing deleted it either. `export.ts` never
  * checked `expiresAt` at all, so the backup and the readout disagreed in both
@@ -315,9 +316,10 @@ async function tally(store: Store) {
 
   for (const { key, record } of records) {
     if (!record?.first) continue
-    // A marriage is the asset. It never expires, and it is the one thing here
-    // that a member stops writing about precisely because it happened.
-    if (!('married' in record.first) && Date.parse(record.expiresAt) < now) {
+    // A marriage is kept by rule. It never expires, and it is the one thing
+    // here that a member stops writing about precisely because it happened.
+    const lapsed = Date.parse(record.expiresAt) < now
+    if (!('married' in record.first) && lapsed) {
       // The year, made real. Skipping without deleting left the store holding
       // exactly what the readout refuses to count.
       stale.push(key)
@@ -338,6 +340,12 @@ async function tally(store: Store) {
       perSide[id] = (perSide[id] ?? 0) + 1
       perSideVia[id] = (perSideVia[id] ?? 0) + 1
     }
+    // A marriage past its year still counts as a marriage, above. It stops
+    // here: every other record past its year is gone, so a lapsed marriage in
+    // the cohorts or the cross-tabs would be read against nobody who ended,
+    // and the tables would fill with marriages as the endings dropped out.
+    // Like with like (docs/DECISIONS.md Part 14).
+    if (lapsed) continue
     // Records written before dates were days still hold a moment; the month
     // reads the same off either.
     const arrived = record.first.arrived
@@ -346,9 +354,8 @@ async function tally(store: Store) {
       row.arrived += 1
       if ('followed-through' in record.first) row.followedThrough += 1
     }
-    if (record.facts) {
-      tallyFacts(facts, record.facts, 'married' in record.first, 'followed-through' in record.first)
-    }
+    // A marriage with no facts beside it is still a decision.
+    tallyFacts(facts, record.facts ?? {}, 'married' in record.first, 'followed-through' in record.first)
   }
 
   // The sweep. Nothing else in this product ever deleted an expired record, so
@@ -384,6 +391,7 @@ async function tally(store: Store) {
       followedThroughBy: {
         asked: floorRows(facts.followedThroughBy.asked),
       },
+      decisions: floorRows(facts.decisions),
     },
   }
 }
@@ -393,10 +401,12 @@ type Pair = Record<string, { [k: string]: number }>
 
 /**
  * The facts, as distributions. Each line is a question the founder asks the
- * readout, and `marriedBy` is the first outcome table this product has ever
- * had: of the people who confirmed they had a given conversation, or whose
- * read found a given ground thinnest, how many went on to marry. Counts of
- * ids, never a record; the install code appears nowhere.
+ * readout. `decisions` is how a decision was made, whichever way it went:
+ * a marriage is not proof the reasoning here was good, and an ending over
+ * something she found is the product working (docs/DECISIONS.md Part 14).
+ * `marriedBy` says who went on to marry; it describes, and is read beside
+ * `decisions`, never alone. Counts of ids, never a record; the install code
+ * appears nowhere.
  */
 function emptyFactsTally() {
   return {
@@ -428,9 +438,28 @@ function emptyFactsTally() {
      * in years.
      */
     followedThroughBy: { asked: {} as Pair },
-    /** The cross-tabs: each fact against whether the person went on to marry. */
+    /** The cross-tabs: each fact against whether the person went on to marry. Descriptive, never a grade. */
     marriedBy: { through: {} as Pair, readThin: {} as Pair, open: {} as Pair, ended: {} as Pair },
+    /**
+     * Each reported decision, by how it was made. `open`: she confirmed at
+     * least one conversation here; `closed`: none. Endings carry no date, so
+     * `open` means while here, not necessarily before this one. A marriage
+     * counts once per person, an ending once per ending, by its kind
+     * (`ENDED_KIND`). Every open cell is the unit of success, married or
+     * ended alike; a closed cell says nothing about Niyyah either way.
+     */
+    decisions: { open: emptyDecisions(), closed: emptyDecisions() },
+    /**
+     * Endings over something she found (`ended:seen`), by the stage they came
+     * from: `talking` is early, `deciding` is late. Finding out early is the
+     * whole purpose (docs/RESEARCH.md L1).
+     */
+    seenAt: { talking: 0, deciding: 0 } as Counts,
   }
+}
+
+function emptyDecisions(): Counts {
+  return { married: 0, 'ended:seen': 0, 'ended:families': 0, 'ended:circumstance': 0, 'ended:stopped': 0, 'ended:unsaid': 0 }
 }
 
 function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: boolean, followedThrough: boolean) {
@@ -479,6 +508,14 @@ function tallyFacts(t: ReturnType<typeof emptyFactsTally>, f: Facts, married: bo
     reasons.add(e.reason)
   }
   for (const r of reasons) pair(t.marriedBy.ended, r, 'ended')
+
+  const how = followedThrough ? t.decisions.open : t.decisions.closed
+  if (married) how.married += 1
+  for (const e of f.ended ?? []) {
+    const kind = ENDED_KIND[e.reason] ?? 'unsaid'
+    how[`ended:${kind}`] += 1
+    if (kind === 'seen') bump(t.seenAt, e.stage)
+  }
 }
 
 export default async function handler(req: Request) {

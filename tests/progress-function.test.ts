@@ -603,3 +603,63 @@ describe('what the year does and does not take', () => {
     expect(stores.get('progress')!.has('QRTWXY')).toBe(true)
   })
 })
+
+/**
+ * Decision quality, not outcome quality (docs/DECISIONS.md Part 14). The
+ * readout's outcome table asks how a decision was made, not which way it went:
+ * an ending over something she found sits beside a marriage, and a lapsed
+ * marriage is not read against endings that have already gone.
+ */
+describe('decisions, by how they were made', () => {
+  const ids = ['ACDEFG', 'HJKMNP', 'QRTWXY', 'ACDEFH', 'ACDEFJ', 'HJKMNQ']
+
+  it('counts an ending over something she found beside a marriage, in the same open column', async () => {
+    // Six followed through and ended over a non-negotiable, one late; six more
+    // followed through and married; one married without a conversation here.
+    for (const [i, id] of ids.entries()) {
+      await post({
+        id,
+        rungs: ['arrived', 'followed-through'],
+        facts: { ended: [{ stage: i === 0 ? 'deciding' : 'talking', reason: 'non-negotiable', which: 'faith-nn' }] },
+      })
+    }
+    for (const id of ['KMNPQR', 'KMNPQT', 'KMNPQW', 'KMNPQX', 'KMNPQY', 'KMNPRT']) {
+      await post({ id, rungs: ['arrived', 'followed-through', 'married'] })
+    }
+    await post({ id: 'MNPQRT', rungs: ['arrived', 'married'] })
+
+    const body = await (await readout()).json()
+    expect(body.facts.decisions.open).toEqual({
+      married: 6,
+      'ended:seen': 6,
+      'ended:families': null,
+      'ended:circumstance': null,
+      'ended:stopped': null,
+      'ended:unsaid': null,
+    })
+    // Floored like every cross-tab: one closed marriage is a person, not a number.
+    expect(body.facts.decisions.closed.married).toBeNull()
+    expect(body.facts.seenAt).toEqual({ talking: 5, deciding: 1 })
+  })
+
+  it('gives every way a courtship ends exactly one kind', async () => {
+    const { ENDED_KIND, ENDED_REASONS } = await import('../netlify/shared/vocab')
+    for (const r of ENDED_REASONS) expect(ENDED_KIND[r], r).toBeDefined()
+    expect(Object.keys(ENDED_KIND).sort()).toEqual([...ENDED_REASONS].sort())
+    for (const r of ['non-negotiable', 'eleven', 'his-read']) expect(ENDED_KIND[r]).toBe('seen')
+  })
+
+  it('counts a marriage past its year as a marriage, and reads it against nobody', async () => {
+    await memStore('progress').setJSON('ACDEFG', {
+      first: { arrived: '2024-01-01', 'followed-through': '2024-02-01', married: '2024-06-01' },
+      facts: { through: ['beforeYes:money-home'] },
+      expiresAt: '2025-06-01',
+    })
+    const body = await (await readout()).json()
+    expect(body.rungs.married).toBe(1)
+    expect(body.cohorts).toEqual({})
+    expect(body.facts.through).toEqual({})
+    expect(body.facts.decisions.open.married).toBeNull()
+    expect(stores.get('progress')!.has('ACDEFG')).toBe(true)
+  })
+})

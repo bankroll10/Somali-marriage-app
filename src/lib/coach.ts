@@ -222,8 +222,9 @@ Try: "I know you want this for me, and I want it too. Please trust me to choose 
 Say it to the one who asks most, this week.`
 
 /**
- * The follow-up's "It went differently" sends the guide one of two fixed
- * sentences (src/components/home/FollowUp.tsx), and offline they had no
+ * The follow-up's "It went differently" asks whether she got to say it, then
+ * sends the guide a fixed sentence: said it, or could not (both carry "went
+ * differently"; src/components/home/FollowUp.tsx). Offline they had no
  * answer of their own: most fell to the framework, and "his family in your
  * home" was routed to "a man worth having expects your family". Differently
  * can mean it went badly, it settled something, or it was not safe; the answer

@@ -360,3 +360,17 @@ describe('decision support, never a decision (docs/GUIDE-EVAL.md, the invariants
     expect(t).not.toMatch(/leave him|marry him/i)
   })
 })
+
+describe('"It went differently", said or not (docs/DECISIONS.md Part 14)', () => {
+  it('meets both answers with the same reply, which tells went-badly from not-safe', () => {
+    for (const m of [
+      'I talked to them about money home, and it went differently.',
+      'I was going to talk to them about money home, and it went differently.',
+      'I said the words you gave me, and it went differently.',
+    ]) {
+      const t = localReply(m, ctx, 'auntie').text
+      expect(t, m).toMatch(/It went badly, but it can come back/)
+      expect(t, m).toMatch(/did not feel safe/)
+    }
+  })
+})

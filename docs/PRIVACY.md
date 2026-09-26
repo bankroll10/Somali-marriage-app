@@ -296,7 +296,9 @@ past its year that never reached `married` is deleted as the tally walks.
 | `facts.ended.reason[id]`, `.stage[id]`, `.which[reason][id]` | Why courtships end, from which stage, and which non-negotiable, topic or ground | Why Somali courtships end; needs no marketplace |
 | `facts.began[instrument]`, `facts.asked[id]` | Who began the map, a read, the eleven, his side; who ever asked the guide | Completion (`rungs.read / facts.began.read`); the one metered cost |
 | `facts.followedThroughBy.asked[id]` | `{asked, followedThrough}`. Floored | Whether asking the guide goes with the conversation (`docs/RESEARCH.md` A3) |
-| `facts.marriedBy.{ended,through,readThin,open}[id]` | `{ended\|through\|read\|eleven, married}`: of people with this fact, how many married. Floored | The first outcome table: whether a non-negotiable, a conversation, the read's order and the eleven's order hold up |
+| `facts.marriedBy.{ended,through,readThin,open}[id]` | `{ended\|through\|read\|eleven, married}`: of people with this fact, how many married. Floored | Descriptive only, read beside `facts.decisions` and never alone: a marriage is not proof the reasoning was good (`docs/DECISIONS.md` Part 14) |
+| `facts.decisions.{open,closed}` | Reported decisions: `married` once per person, `ended:{seen,families,circumstance,stopped,unsaid}` once per ending; `open` if she confirmed a conversation here. Floored | How decisions were made, married and ended alike: the outcome table |
+| `facts.seenAt.{talking,deciding}` | Endings over something she found, by stage | Early against late (`docs/RESEARCH.md` L1) |
 
 Gone on 2026-09-24, with what fed them: `countries`, `arrivedByDay` (replaced
 by `cohorts`), the `counted` and `vouched` rungs, the eleven's state
@@ -305,7 +307,7 @@ histograms, `facts.hesitated`, `facts.countedBy`.
 ### Reading `null`: the k-floor
 
 Every cell of a split by a quasi-identifier (city, via, side, side × via) and
-of a `marriedBy` or `followedThroughBy` row under five (`K_FLOOR`,
+of a `marriedBy`, `followedThroughBy` or `decisions` row under five (`K_FLOOR`,
 `netlify/shared/floor.ts`) reads `null`, never omitted. Whole-population
 counts (`rungs`, `cohorts`, the other facts) are never floored, so a lone
 `ending.who.brought: 1` shows. A `null` beside an unfloored total can be

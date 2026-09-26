@@ -11,6 +11,8 @@ interface Props {
   ask: FollowUpAsk
   onAnswer: (id: string, outcome: NonNullable<FollowUpRecord['outcome']>, landed?: Landed, putAway?: boolean) => void
   onAskGuide: (text: string) => void
+  /** She had it, and it went the way conversations go: the card that says so. */
+  onHadIt?: () => void
 }
 
 /**
@@ -29,8 +31,8 @@ const LANDED: { id: Landed; label: string }[] = [
   { id: 'line', label: 'It’s a line for me' },
 ]
 
-export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
-  const [phase, setPhase] = useState<'asking' | 'howd-it-go' | 'the-words'>('asking')
+export default function FollowUp({ ask, onAnswer, onAskGuide, onHadIt }: Props) {
+  const [phase, setPhase] = useState<'asking' | 'howd-it-go' | 'the-words' | 'said-it'>('asking')
   const id = ask.followUp.id
 
   return (
@@ -46,7 +48,11 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
         {phase === 'asking' && (
           <div className="mt-4 flex flex-wrap gap-2">
             <button
-              onClick={() => (ask.writesBack ? setPhase('howd-it-go') : onAnswer(id, 'asked'))}
+              onClick={() => {
+                if (ask.writesBack) return setPhase('howd-it-go')
+                onHadIt?.()
+                onAnswer(id, 'asked')
+              }}
               className="rounded-full border border-forest bg-forest px-4 py-2 text-[0.85rem] font-medium text-cream transition-all hover:bg-forest-deep"
             >
               We talked about it
@@ -58,14 +64,7 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
               Not yet
             </button>
             <button
-              onClick={() => {
-                onAnswer(id, 'differently')
-                onAskGuide(
-                  ask.travel === 'guide'
-                    ? 'I was going to say the words you gave me, and it went differently.'
-                    : `I was going to talk to them about ${ask.label}, and it went differently.`,
-                )
-              }}
+              onClick={() => setPhase('said-it')}
               className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
             >
               It went differently
@@ -76,6 +75,48 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
           <p className="mt-2.5 text-[0.8rem] leading-snug text-muted text-pretty">
             “It went differently” opens your guide. {GUIDE_SOURCE}
           </p>
+        )}
+
+        {/* "Differently" covered a conversation that went badly, one that
+            settled something she did not want, and one she could not raise.
+            The first two happened, and a conversation that happened counts
+            however it went: a hard one that ends a courtship is not one that
+            never took place (docs/DECISIONS.md Part 14). */}
+        {phase === 'said-it' && (
+          <div className="mt-4">
+            <p className="text-[0.9rem] leading-snug text-ink-soft text-pretty">Did you get to say it?</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  onAnswer(id, 'asked')
+                  onAskGuide(
+                    ask.travel === 'guide'
+                      ? 'I said the words you gave me, and it went differently.'
+                      : `I talked to them about ${ask.label}, and it went differently.`,
+                  )
+                }}
+                className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
+              >
+                I said it
+              </button>
+              <button
+                onClick={() => {
+                  onAnswer(id, 'differently')
+                  onAskGuide(
+                    ask.travel === 'guide'
+                      ? 'I was going to say the words you gave me, and it went differently.'
+                      : `I was going to talk to them about ${ask.label}, and it went differently.`,
+                  )
+                }}
+                className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
+              >
+                I couldn’t say it
+              </button>
+            </div>
+            <p className="mt-2.5 text-[0.8rem] leading-snug text-muted text-pretty">
+              Either one opens your guide. {GUIDE_SOURCE}
+            </p>
+          </div>
         )}
 
         {phase === 'howd-it-go' && (
@@ -90,7 +131,10 @@ export default function FollowUp({ ask, onAnswer, onAskGuide }: Props) {
               {LANDED.map((l) => (
                 <button
                   key={l.id}
-                  onClick={() => onAnswer(id, 'asked', l.id)}
+                  onClick={() => {
+                    onHadIt?.()
+                    onAnswer(id, 'asked', l.id)
+                  }}
                   className="rounded-full border border-line bg-white/60 px-4 py-2 text-[0.85rem] font-medium text-ink-soft transition-all hover:border-forest/40"
                 >
                   {l.label}
@@ -221,10 +265,8 @@ export function SinceLastTime({
   ) : (
     <FollowUp
       ask={ask!}
-      onAnswer={(id, outcome, agreed, putAway) => {
-        if (outcome === 'asked') setHadIt(ask)
-        onAnswer(id, outcome, agreed, putAway)
-      }}
+      onAnswer={onAnswer}
+      onHadIt={() => setHadIt(ask)}
       onAskGuide={onAskGuide}
     />
   )

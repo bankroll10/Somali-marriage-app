@@ -150,6 +150,25 @@ export const ENDED_REASONS = new Set([
   'other',
 ])
 export const ENDED_STAGES = new Set(['talking', 'deciding'])
+/**
+ * What kind of ending each reason is, for the readout's `decisions` table
+ * (docs/DECISIONS.md Part 14). `seen` is an ending over something she found:
+ * a non-negotiable, one of the eleven, or what he did. That is a clear no, and
+ * the product working, however it feels. The rest say nothing about Niyyah's
+ * reasoning either way. Every reason above has exactly one kind.
+ */
+export const ENDED_KIND: Record<string, 'seen' | 'families' | 'circumstance' | 'stopped' | 'unsaid'> = {
+  'non-negotiable': 'seen',
+  eleven: 'seen',
+  'his-read': 'seen',
+  'my-family': 'families',
+  'his-family': 'families',
+  timeline: 'circumstance',
+  distance: 'circumstance',
+  'he-stopped': 'stopped',
+  'i-stopped': 'stopped',
+  other: 'unsaid',
+}
 /** The three reasons that name a second id, and the list each must come from. */
 export const ENDED_WHICH: Record<string, Set<string>> = {
   'non-negotiable': DEALBREAKERS,
