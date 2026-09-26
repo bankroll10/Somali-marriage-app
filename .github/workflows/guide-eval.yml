@@ -53,7 +53,32 @@ jobs:
             echo "::warning::No ANTHROPIC_API_KEY secret, so the live Guide was not evaluated. The offline suite still ran in verify. docs/GUIDE-EVAL.md"
             exit 0
           fi
-          npm run eval:guide
+          # An account with no credit is the same state as no key: nothing
+          # was evaluated, and the offline suite still ran in verify. It
+          # warns and passes rather than turn every guide PR red while the
+          # eval is parked (docs/GUIDE-EVAL.md). Any other failure fails.
+          set -o pipefail
+          if ! npm run eval:guide 2>&1 | tee eval.log; then
+            if grep -q "credit balance is too low" eval.log; then
+              echo "::warning::The Anthropic account behind ANTHROPIC_API_KEY has no credit, so the live Guide was not evaluated. The offline suite still ran in verify. docs/GUIDE-EVAL.md"
+              exit 0
+            fi
+            exit 1
+          fi
+
+      # The same report, in the log, for a reader that cannot fetch artifacts:
+      # a cloud session's network policy can refuse the artifact store while
+      # the log stays readable. Gzipped and base64'd, one marked line per
+      # chunk; reassemble with `grep GUIDE_EVAL_REPORT | cut -d' ' -f3 | tr -d '\n' | base64 -d | gunzip`.
+      # The cases are written for the suite; no member's words are in it.
+      - name: Print the report into the log
+        if: always()
+        run: |
+          for f in tests/guide-eval/results/live-*.json; do
+            [ -f "$f" ] || continue
+            gzip -c "$f" | base64 -w 0 | fold -w 3000 | sed "s|^|GUIDE_EVAL_REPORT $(basename "$f") |"
+            echo
+          done
 
       # The report a person reads, with every answer that lost points quoted.
       - uses: actions/upload-artifact@v4

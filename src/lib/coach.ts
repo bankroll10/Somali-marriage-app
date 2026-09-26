@@ -183,7 +183,7 @@ export const PROCESS_REPLY = `How the two of you argue is a different question f
 
 If you said something you regret, start the repair yourself, without a "but": "I didn't like how I spoke earlier. Can we start that again?"
 
-Try: "When it gets heated, can either of us say 'let's stop and come back to this tomorrow' — and then we both do come back to it?"
+Try: "Can we agree that when it gets heated, either of us can say 'let's stop and pick this up tomorrow' — and then we both do?"
 
 Agree that one rule this week.`
 
@@ -217,7 +217,7 @@ You can honour your family and the decision can still be yours. The pace is your
 • If it is a particular person they want, your consent is yours to give. Saying so once, calmly, is not disrespect.
 • If it has gone past questions — if you are being made to, or afraid to say no — that is not pressure to manage. Tell one person you trust today; in danger, the emergency number is below.
 
-Try: "I know you want this for me, and I want it too. Trust me with the when, and the who. Can we agree you'll ask me once a month, and I'll tell you where I am?"
+Try: "I know you want this for me, and I want it too. Please trust me to choose who, and when. Can we agree you'll ask me once a month, and I'll tell you where I am?"
 
 Say it to the one who asks most, this week.`
 

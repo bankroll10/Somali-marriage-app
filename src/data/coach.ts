@@ -188,7 +188,7 @@ You are not a secret. You are not a midnight habit. If he cannot text you at noo
       respond: () =>
         `That instinct is the right one. A man worth having *expects* your family.
 
-Bring them in gently, once it’s real: “For me, this leads to my family — that’s just how I do things seriously.” Then listen to what he says back. If he pulls back at that, you have heard it plainly, and early — which is what you asked for. Your people protect you. Let them.`,
+Bring them in gently, once it’s real: “For me, if this is serious, it goes to my family — that’s how I do things.” Then listen to what he says back. If he pulls back at that, you have heard it plainly, and early — which is what you asked for. Your people protect you. Let them.`,
     },
     {
       keywords: ['settling', 'too picky', 'standards', 'unrealistic', 'expecting too much', 'should i lower'],
@@ -320,7 +320,7 @@ The aim is not to stop feeling anxious. It is to not *act* from it. When the wav
       respond: () =>
         `Pulling away is protection, not cruelty. When someone gets close, part of you braces for being hurt or crowded, so you make distance to feel safe again.
 
-The skill is to *notice the urge before you act on it*. When you feel the wall going up, try naming it instead of vanishing: “I’m feeling the need for space.” That one sentence keeps the connection alive while you breathe. The right person can hold your need for space without taking it as rejection — but they can only do that if you tell them, rather than disappear.`,
+The skill is to *notice the urge before you act on it*. When you feel the wall going up, try naming it instead of vanishing: “I need a bit of time to myself — I’ll come back to you.” That one sentence keeps the connection alive while you breathe. The right person can hold your need for space without taking it as rejection — but they can only do that if you tell them, rather than disappear.`,
     },
     {
       keywords: ['calm', 'spiralling now', 'panic', 'anxiety', 'cant breathe', 'overwhelmed', 'right now', 'help me'],

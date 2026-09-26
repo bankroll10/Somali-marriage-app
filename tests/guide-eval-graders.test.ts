@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CASES, CATEGORIES } from './guide-eval/cases'
 import { BAD, GOLD } from './guide-eval/exemplars'
-import { DIMENSIONS, gradeAll } from './guide-eval/graders'
+import { DIMENSIONS, gradeAll, nonInvention } from './guide-eval/graders'
 
 /**
  * The graders, pinned (docs/GUIDE-EVAL.md). A grader is only worth what it
@@ -61,5 +61,20 @@ describe('a bad answer fails the dimension it breaks', () => {
   it('every dimension a rule can see has a bad answer pinning it', () => {
     const pinned = new Set(BAD.map((b) => b.fails))
     for (const d of DIMENSIONS) expect(pinned.has(d), d).toBe(true)
+  })
+})
+
+describe('non-invention reads what the model was told, the way it was told', () => {
+  // The first live run (2026-09-25) failed seven cases for naming "Twin
+  // Cities" to a member whose map says twin-cities, and one for "Fajr".
+  it('lets the member’s own city be named in words, and a prayer by name', () => {
+    const c = caseOf('boundaries-01')
+    expect(c.context.identity.scene).toBe('twin-cities')
+    const answer = 'Many sisters in the Twin Cities keep it simple: after Fajr, say it once, plainly.'
+    expect(nonInvention(c, answer).pass).toBe(true)
+  })
+
+  it('still catches a name nobody gave it', () => {
+    expect(nonInvention(caseOf('boundaries-01'), 'Talk it through with Ahmed before you reply.').pass).toBe(false)
   })
 })

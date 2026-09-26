@@ -82,7 +82,7 @@ describe('honesty about what it can know', () => {
     expect(r.band).toBe('early')
     expect(r.headline).toMatch(/too early/i)
     expect(r.watch).toHaveLength(5)
-    expect(r.script.words).toMatch(/what you are looking for/i)
+    expect(r.script.words).toMatch(/what you’re looking for/i)
   })
 
   it('will not call him strong while she is being kept hidden', () => {
