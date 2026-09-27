@@ -30,9 +30,12 @@ import { WITHDRAWN, WITHDRAWN_DAYS, markerCode, markerDay, removeOn } from './in
  * **What it leaves alone, by decision.** From 2026-09-24 to 2026-09-27 this
  * also emptied the `cohort`, `contacts` and `vouches` stores every week,
  * because the door and the family vouch had been removed and "nothing reads
- * them any more". That deleted the only way to reach real people who had
- * asked to be introduced — two women had signed up for exactly that — on no
- * promise anyone had made to them (docs/DECISIONS.md Part 22). The sweep
+ * them any more". That would have deleted the only way to reach real people
+ * who had asked to be introduced — two women had signed up for exactly that —
+ * on no promise anyone had made to them (docs/DECISIONS.md Part 22). Its one
+ * scheduled slot in that window was 2026-09-27 00:00 UTC; whether that run
+ * executed, and what it deleted, is unverified (docs/BATCH-01-PLAN.md,
+ * finding 4). The sweep
  * removes a record only when a lifetime the product stated has run out, or
  * when the person asked (Forget me, netlify/functions/keep.ts). Retiring a
  * feature is neither. Those three stores are not written, not read by any

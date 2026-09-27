@@ -216,7 +216,29 @@ arithmetic, a pass must name a report that recounts to its numbers, and
 `package-lock.json` requires both suites (`docs/GUIDE-EVAL.md`,
 "Outcomes"; `docs/SESSION-HANDOFF.md`).
 
-**B2 — deferred, not started:**
+**B2 — historical accuracy and outreach bookkeeping: built 2026-09-27**
+(`docs/SESSION-HANDOFF.md`). What the evidence establishes about the held
+stores is now what every current document says: the sweep at `911654a` was
+written to delete every key in `cohort`, `contacts` and `vouches` on each
+run; that code was on `main` from 2026-09-24 05:35 to 2026-09-27 13:49 UTC,
+a window with one `@weekly` slot (2026-09-27 00:00 UTC); whether that run
+executed, and what it deleted, is unverified, and an empty store today would
+not prove it. `docs/PRIVACY.md` (the store row, the sweep paragraph, C7, R1,
+R4), `docs/SECURITY.md` (the summary and T20), `docs/OPS.md` (the recovery
+table and the workflow row), and the comments in `netlify/functions/sweep.ts`
+and `introduce.ts` say so; `docs/DECISIONS.md` keeps its dated text with a
+correction beside decision 21 and Part 22. The five `niyyah-waitlist` rows
+stay the 2026-09-27 metadata observation, contents and distinct-person count
+unread. The `introductions` store is kept apart from that incident. The
+`CLAUDE.md` rule that logged drafts as sent is replaced (authorised by the
+founder's B2 instruction): drafted → sent (founder-reported, date) → sent
+(confirmed) / replied / placed, each on its own evidence. `docs/ASSETS.md`
+gains an evidence column; the six rows of `4e773e7` stand as founder-reported
+on that commit's record, the older "sent" rows are kept as historical claims
+with the source marked unverified, and the Before the Nikah reply keeps its
+source. No participant record was read, no store touched, nobody contacted.
+
+The list as it stood before B2, for the record:
 
 - Operational and documentary accuracy: reword `docs/SECURITY.md` T20,
   `docs/PRIVACY.md` R4 and C7, `docs/OPS.md` ("Deleted data") to unverified;
@@ -266,9 +288,23 @@ it.
 
 ## 7. Founder input still open
 
-1. The held stores: the 2026-09-27 sweep log, the Blobs listing, which form
-   rows are tests. Nothing here decides their retention (decision 21).
+1. The held stores: whether the 2026-09-27 00:00 UTC sweep slot ran
+   (Functions → `sweep` → Logs), what the three stores hold now (Blobs), and
+   which of the five form rows are tests. Nothing here decides their
+   retention (decision 21). The documentation says "unverified" until the
+   founder reads those two places.
 2. `VITE_OPERATOR_NAME`: unset, Looking and Trust say "its founder".
 3. Whether the eval and production Anthropic keys share an account or a
-   spend limit; whether `guide-eval` is a required status check.
-4. The `CLAUDE.md` outreach wording and the relabelling of historical rows.
+   spend limit; whether `guide-eval / live` is a required status check
+   (branch protection is unknown to these sessions, which cannot read it).
+4. Whether any of the "historical sent claim; source unverified" rows in
+   `docs/ASSETS.md` should become founder-reported, on the founder's word.
+   The `CLAUDE.md` wording itself was settled by the B2 instruction.
+5. **Before the pull request:** opening it runs `guide-eval.yml` on the
+   diff. This batch changes the workflow, the harnesses, `package.json`,
+   the prompt-adjacent case files and the lockfile, so both live suites
+   will be *required*, and with an `ANTHROPIC_API_KEY` secret and credit
+   the run will spend money (about $4 for the Guide suite, more for
+   judgment); without them the check is red as `not-evaluated`. No live run
+   has yet validated the repaired harness. Whether a red check blocks the
+   merge depends on branch protection (item 3).

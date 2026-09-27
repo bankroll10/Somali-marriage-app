@@ -14,8 +14,10 @@ import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/voca
  * Niyyah was started so that serious Somali singles could meet each other and
  * move toward marriage. Two women signed up for exactly that through the old
  * door; the door was deleted on 2026-09-24 as a goal with nobody in it, and
- * the weekly sweep then took the only way to reach them (docs/DECISIONS.md
- * Part 22). Introductions between serious Somali singles are a foundational
+ * the weekly sweep deployed with it was written to delete the only store copy
+ * of the way to reach them — whether its one scheduled run did is unverified
+ * (docs/DECISIONS.md Part 22, correction). Introductions between serious
+ * Somali singles are a foundational
  * capability of Niyyah (decision 26), restored one staged gate at a time
  * (Part 23). This is the gate before the first introduction: one route that
  * writes down who wants an introduction and how to reach them.

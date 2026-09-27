@@ -109,24 +109,34 @@ address would be a product change made before the first spot airs, not built.
 
 ## Placements — the ledger
 
-Every pitch, accepted or not. A placement is **accepted** only when the link
-is visible somewhere a stranger could find it.
+Every pitch, accepted or not. A placement is **accepted** (the status
+**placed**) only when the link is visible somewhere a stranger could find it.
 
-| Date | Where | Route | Asset | Link sent | Status |
-|---|---|---|---|---|---|
-| 2026-09-17 | Al-Ansar Islamic Movement of Minnesota, North Minneapolis | email, nikah contact | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply |
-| 2026-09-17 | ICSA / Dar Al-Hijrah, Counseling & Family Services | phone, then email | N2 | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply |
-| 2026-09-17 | The Family & Youth Institute | contact form | N2 | `…/guides/before-you-say-yes?via=group` | sent, awaiting reply |
-| 2026-09-17 | Masjid Al-Israa, Fridley | email, nikah coordinator | N2, with N2s attached as a PDF | `…/guides/before-you-say-yes?via=mosque` | sent, awaiting reply |
-| 2026-09-18 | Abubakar As-Saddique Islamic Center, Minneapolis | email `aaic@abuubakar.org`, phone 612-871-8600 | N2 + N2s attached, N1c linked | `…/guides/before-you-say-yes?via=mosque` | sent by 2026-09-26, awaiting reply |
-| 2026-09-19 | WardheerNews, worldwide Somali readership | email `admin@wardheernews.com` | N1c | `…/tools/before-you-say-yes?via=press` | topic inquiry sent |
-| 2026-09-23 | The Somali American, Minneapolis, "Ask a Scholar" column | contact form (editor) | N1c; N2s linked for the editor | `…/tools/before-you-say-yes?via=press` | sent by 2026-09-26, awaiting reply |
-| 2026-09-23 | KALY-LP 101.7 FM, Somali-language, South Minneapolis | email `Underwriting@kalyradio.org` | none — rate inquiry only | web: `…/tools/before-you-say-yes?via=press`; on air: none | sent by 2026-09-26, awaiting reply |
-| 2026-09-25 | Before the Nikah Institute (Dr. Aneesah Nadir), *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7; finances weeks Oct 5–30) | email, the course's business address | N3-note, N3, N3-1page, their three PDFs, N3-so and N3-1page-so | `…/niyyah-money-conversation-sheet-facilitator-note.html` and the sheets, no via | **replied.** Pitch sent 2026-09-25 (drafted 09-23); she replied the same day with the finances dates and asked for the resource; sent the same day. Ask how it went around Nov 2 (rule 9) |
-| 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | sent by 2026-09-26, awaiting reply |
-| 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page; PDFs offered | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent, awaiting reply |
-| 2026-09-26 | MCC East Bay, Pleasanton CA, nikah services (general Muslim couples; its nikah page already carries a mahr guide and a pre-nikah questionnaire; also runs singles gatherings, not pitched) | email, the centre's business address | N3-note, pointing to N3 and N3-1page; PDFs offered; the Somali version in one clause | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent by 2026-09-26, awaiting reply |
-| 2026-09-26 | Islamic Center of St. Cloud, MN, premarital counselling alongside nikah services (Somali share unknown) | email, the centre's business address | N2, N2s linked; qabiil, going back and a second wife named (rule 8) | `…/guides/before-you-say-yes?via=mosque` | sent by 2026-09-26, awaiting reply |
+**Statuses**, from weakest evidence to strongest: **drafted** · **historical
+sent claim; source unverified** (an older row that read "sent" before the
+evidence column existed, kept as written; its commit is the only record) ·
+**sent (founder-reported, date)** (the founder explicitly reported sending;
+the date is the report's) · **sent (confirmed)** (a delivery receipt or the
+recipient's acknowledgement) · **replied** (the reply itself) · **placed** ·
+**declined** · **no response** (after the follow-up rule 9 allows). Evidence
+of sending is never evidence of delivery or of a placement. The evidence
+column names the source; a row without one says so rather than guessing.
+
+| Date | Where | Route | Asset | Link sent | Status | Evidence / source |
+|---|---|---|---|---|---|---|
+| 2026-09-17 | Al-Ansar Islamic Movement of Minnesota, North Minneapolis | email, nikah contact | N2 | `…/guides/before-you-say-yes?via=mosque` | historical sent claim; source unverified | Logged as sent when the ledger was created, 2026-09-17 (`48329ec`); the record does not say whether that came from a founder report. Delivery unconfirmed; no reply |
+| 2026-09-17 | ICSA / Dar Al-Hijrah, Counseling & Family Services | phone, then email | N2 | `…/guides/before-you-say-yes?via=mosque` | historical sent claim; source unverified | Logged as sent when the ledger was created, 2026-09-17 (`48329ec`); the record does not say whether that came from a founder report. Delivery unconfirmed; no reply |
+| 2026-09-17 | The Family & Youth Institute | contact form | N2 | `…/guides/before-you-say-yes?via=group` | historical sent claim; source unverified | Logged as sent when the ledger was created, 2026-09-17 (`48329ec`); the record does not say whether that came from a founder report. Delivery unconfirmed; no reply |
+| 2026-09-17 | Masjid Al-Israa, Fridley | email, nikah coordinator | N2, with N2s attached as a PDF | `…/guides/before-you-say-yes?via=mosque` | historical sent claim; source unverified | Logged as sent when the ledger was created, 2026-09-17 (`48329ec`); the record does not say whether that came from a founder report. Delivery unconfirmed; no reply |
+| 2026-09-18 | Abubakar As-Saddique Islamic Center, Minneapolis | email `aaic@abuubakar.org`, phone 612-871-8600 | N2 + N2s attached, N1c linked | `…/guides/before-you-say-yes?via=mosque` | sent (founder-reported 2026-09-26), awaiting reply | Founder reported the send in the working session of 2026-09-26 (`4e773e7`, which corrected "drafted, not yet sent"); the send date itself was not recorded; delivery unconfirmed |
+| 2026-09-19 | WardheerNews, worldwide Somali readership | email `admin@wardheernews.com` | N1c | `…/tools/before-you-say-yes?via=press` | historical sent claim; source unverified (topic inquiry) | Logged 2026-09-20 (`ec937a7`) as sent on 2026-09-19; the record does not name who reported it. Delivery unconfirmed; no reply |
+| 2026-09-23 | The Somali American, Minneapolis, "Ask a Scholar" column | contact form (editor) | N1c; N2s linked for the editor | `…/tools/before-you-say-yes?via=press` | sent (founder-reported 2026-09-26), awaiting reply | Founder reported the send in the working session of 2026-09-26 (`4e773e7`, which corrected "drafted, not yet sent"); the send date itself was not recorded; delivery unconfirmed |
+| 2026-09-23 | KALY-LP 101.7 FM, Somali-language, South Minneapolis | email `Underwriting@kalyradio.org` | none — rate inquiry only | web: `…/tools/before-you-say-yes?via=press`; on air: none | sent (founder-reported 2026-09-26), awaiting reply | Founder reported the send in the working session of 2026-09-26 (`4e773e7`, which corrected "drafted, not yet sent"); the send date itself was not recorded; delivery unconfirmed |
+| 2026-09-25 | Before the Nikah Institute (Dr. Aneesah Nadir), *Before the Nikah* (13-week virtual course, Sep 14 – Dec 7; finances weeks Oct 5–30) | email, the course's business address | N3-note, N3, N3-1page, their three PDFs, N3-so and N3-1page-so | `…/niyyah-money-conversation-sheet-facilitator-note.html` and the sheets, no via | **replied.** Ask how it went around Nov 2 (rule 9) | Pitch sent 2026-09-25 (drafted 09-23), founder-reported; her reply the same day, with the finances dates and a request for the resource, is recorded without her name in `docs/RESEARCH.md` Feedback 2026-09-25 (`498d4de`) — the reply is the evidence the pitch arrived; the resource sent the same day, founder-reported |
+| 2026-09-24 | Islamic Center of Naperville, IL, matrimonial services (general Muslim couples) | email `matrimonial@icnmasjid.org` | N2, N2s linked | `…/guides/before-you-say-yes?via=mosque` | sent (founder-reported 2026-09-26), awaiting reply | Founder reported the send in the working session of 2026-09-26 (`4e773e7`, which corrected "drafted, not yet sent"); the send date itself was not recorded; delivery unconfirmed |
+| 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page; PDFs offered | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | historical sent claim; source unverified | Logged as sent 2026-09-24 (`c7d56c7`); the record does not name who reported it. Delivery unconfirmed; no reply |
+| 2026-09-26 | MCC East Bay, Pleasanton CA, nikah services (general Muslim couples; its nikah page already carries a mahr guide and a pre-nikah questionnaire; also runs singles gatherings, not pitched) | email, the centre's business address | N3-note, pointing to N3 and N3-1page; PDFs offered; the Somali version in one clause | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent (founder-reported 2026-09-26), awaiting reply | Founder reported the send in the working session of 2026-09-26 (`4e773e7`, which corrected "drafted, not yet sent"); the send date itself was not recorded; delivery unconfirmed |
+| 2026-09-26 | Islamic Center of St. Cloud, MN, premarital counselling alongside nikah services (Somali share unknown) | email, the centre's business address | N2, N2s linked; qabiil, going back and a second wife named (rule 8) | `…/guides/before-you-say-yes?via=mosque` | sent (founder-reported 2026-09-26), awaiting reply | Founder reported the send in the working session of 2026-09-26 (`4e773e7`, which corrected "drafted, not yet sent"); the send date itself was not recorded; delivery unconfirmed |
 
 **Rules the ledger has taught**, each a correction made before a row was
 logged:
@@ -172,10 +182,16 @@ alone answers, suspect the attachment. The Somali American's newest dated
 material was October 2025: send, log, do not wait.
 
 **Who keeps it.** The founder sends; the working session logs what the
-founder reports, the day it happens. Drafts and opportunities the founder
-brings to a working session are logged as **sent** the day they are brought,
-unless the founder says otherwise (founder, 2026-09-26); a draft that needs
-fixing is fixed and logged as sent in the same turn.
+founder reports, the day it is reported, as the status the evidence supports
+and no stronger. A draft is **drafted** until the founder explicitly reports
+sending it; then **sent (founder-reported, <date of the report>)**. Nothing
+moves to **sent (confirmed)**, **replied** or **placed** without evidence of
+that kind (`CLAUDE.md`). From 2026-09-26 to 2026-09-27 a standing rule logged
+drafts and opportunities as sent the day they were brought; it was replaced
+on 2026-09-27 (BATCH-01 Group B2). The six rows changed on 2026-09-26 stand
+as founder-reported because `4e773e7` records the founder's report of them,
+not because of that rule; the older "sent" rows kept their claim with the
+source marked unverified rather than being relabelled either way.
 
 The stagger (rule 2) was not kept in the week of 2026-09-26: Abubakar,
 Naperville and St. Cloud all went out under `via=mosque` that week, so their

@@ -172,7 +172,7 @@ names and errors, never a body. Fonts are self-hosted (`src/index.css`).
 | `ops` | `day/…`, `sizes/…`, `last/…` | Numbers | Routes; `/health`; export; sweep | 35 days; `last/…` is overwritten | Sweep | — |
 | `introductions` | `<code>` | `contact`, `firstName?`, `gender`, `scene`, `country`, `reach`, `adult` (true; absent on records from before 2026-09-27's batch), `at` | introduce `POST`, under the code the phone minted (or one minted here for an older client). The same request under the same code is answered, never written twice; a different one under a code that exists is refused, never written over | **Scheduled to go on `removeOn`: the Sunday on or before `at` + 180 days** (decision 32; `docs/BATCH-01-PLAN.md` D3), the day the phone's receipt and the founder's list name; sooner if its owner takes it off, or asks the founder to. Never renewed — a retry returns the original `at` | `DELETE /introduce?code=`; Forget me; the founder, by hand; the sweep, on `removeOn` and any later run | ✓ |
 | `introductions` | `withdrawn/<code>/<day>` | `{at}`: the same day, nobody. One immutable key per code per day it was withdrawn on; never rewritten | introduce `DELETE`, before it deletes the record (`onlyIfNew`; a second withdrawal the same day is the same key) | **At least two full days** by the day in its key, then until the first weekly sweep — two to eight days in practice, longer if a run fails or a record is still under its code. While any marker stands under a code, a record under it is excluded from the founder's list and counts, refused on retry and deleted by the sweep on any run | The sweep, after the record under the code is gone, by the key's own day. Blobs has no conditional delete, so no marker is ever read and then deleted: a fresh withdrawal is a different key, which removing an old one cannot touch | — |
-| `cohort`, `contacts`, `vouches` | any | The door's entries and index; ways to reach people who joined the door 2026-09-08 to 2026-09-24; relatives' names and phones from the vouch | Nothing since 2026-09-24 | **Held** until the founder decides their retention by hand (`docs/DECISIONS.md` decision 21). From 2026-09-24 to 2026-09-27 the sweep emptied them weekly; its first run was 2026-09-27 00:00 UTC | A person's own Forget me (`DELETE /keep?code=`); the founder, by hand. Never the sweep | — |
+| `cohort`, `contacts`, `vouches` | any | The door's entries and index; ways to reach people who joined the door 2026-09-08 to 2026-09-24; relatives' names and phones from the vouch | Nothing since 2026-09-24 | **Held** until the founder decides their retention by hand (`docs/DECISIONS.md` decision 21). From 2026-09-24 05:35 to 2026-09-27 13:49 UTC the deployed sweep was written to delete every key in them on each run; its one `@weekly` slot in that window was 2026-09-27 00:00 UTC, and whether that run executed, and what if anything it deleted, is unverified: no session has read the function's log or the stores (`docs/BATCH-01-PLAN.md`, finding 4) | A person's own Forget me (`DELETE /keep?code=`); the founder, by hand. Never the sweep | — |
 
 `gone/<code>` stores its window's end as a full timestamp: the one stored
 moment finer than a day, on a key that says nothing about either person.
@@ -238,10 +238,13 @@ again.
 A name is never held past the day the receipt names by design; a failed
 Sunday is caught by `/health` and the name goes the Sunday after.
 **It never opens `cohort`, `contacts` or `vouches`** (`HELD_STORES`): from
-2026-09-24 to 2026-09-27 it emptied them every week on the ground that the
-door had gone, and took the only way to reach two women who had asked to be
-introduced. A retired feature is not a lifetime (`docs/DECISIONS.md`
-decision 21).
+2026-09-24 to 2026-09-27 the deployed sweep was written to empty them on
+every run on the ground that the door had gone, which would have taken the
+only store copy of the way to reach two women who had asked to be
+introduced. Its one scheduled slot in that window was 2026-09-27 00:00 UTC;
+whether that run executed, and what it deleted, is unverified — nothing has
+read the function's log or the stores (`docs/BATCH-01-PLAN.md`, finding 4).
+A retired feature is not a lifetime (`docs/DECISIONS.md` decision 21).
 
 ## The founder's pilot log, outside the app (decision 31)
 
@@ -427,9 +430,14 @@ protects against a leaked key, not against the founder, who holds the stores.
   (`tests/journeys/looking.test.tsx` holds both).
 - **Two copies the sweep cannot reach:** Netlify Form rows from before
   2026-09-23 carry a contact (C7), and a `reach-<date>/` export may sit on the
-  founder's machine (R4). After 2026-09-27 the form rows are also the
-  surviving copy of the door's real signups (`docs/DECISIONS.md` Part 22),
-  and go by hand only when the founder has decided their retention.
+  founder's machine (R4). If the 2026-09-27 00:00 UTC sweep slot ran, the
+  form rows are the surviving copy of the door's real signups
+  (`docs/DECISIONS.md` Part 22); whether it ran is unverified. On
+  2026-09-27 Netlify listed five `niyyah-waitlist` submissions as metadata
+  only (created 2026-08-29, the last 2026-09-22): their contents, whether
+  they can still be read, and how many distinct people they are were not
+  checked. They go by hand only when the founder has decided their
+  retention.
 
 ## Minimization record
 
@@ -441,14 +449,14 @@ protects against a leaked key, not against the founder, who holds the stores.
 | C4 | The guide's request carried the whole identity and every answer, free text too | Two identity fields and the nine answers the prompt reads |
 | C5 | Her first name and exact age, to Anthropic, on every message | Neither goes: the name went, the age became a range, and the range went with age on 2026-09-24. The name still travelled inside the thread (the greeting and the offline fallbacks carry it); since the completion review the history starts at her first message, on the phone and on the server, and no fallback uses her name |
 | C6 | A 300-event local diary with ms timestamps, read by nothing | Gone with `analytics.ts` on 2026-09-24; an old one is cleared by Forget me |
-| C7 | A second copy of each contact at Netlify Forms | Gone with the door and its form on 2026-09-24 |
+| C7 | A second copy of each contact at Netlify Forms | No new copy since the door and its form went on 2026-09-24. The rows already there were not deleted by anything: Netlify listed five `niyyah-waitlist` submissions on 2026-09-27 (metadata only, contents unread); they stay until the founder decides (decision 21) |
 
 | # | Unnecessary retention | Now |
 |---|---|---|
-| R1 | A lapsed map's vouch: a relative's name, sentence and phone, for ever | Gone with the vouch on 2026-09-24. The sweep emptied `vouches` weekly until 2026-09-27; it is now held for the founder's decision, and Forget me removes a person's own (decision 21) |
+| R1 | A lapsed map's vouch: a relative's name, sentence and phone, for ever | No new vouch since 2026-09-24. The deployed sweep of 2026-09-24 to 2026-09-27 was written to empty `vouches` on each run; whether its one scheduled slot (2026-09-27 00:00 UTC) executed is unverified. The store is held for the founder's decision, and Forget me removes a person's own (decision 21) |
 | R2 | Couple sheets past 90 days, unless someone opened one | Swept weekly |
 | R3 | Step counts past their year, unless the founder opened the readout; backed up regardless | Swept weekly; `/export` skips them |
-| R4 | Every monthly contacts export, "kept as the history" | Only the latest. The sweep emptied `contacts` weekly from 2026-09-24 to 2026-09-27, which deleted the two real signups' store copy on no promise made to them; held now, and never swept (decision 21) |
+| R4 | Every monthly contacts export, "kept as the history" | Only the latest. The deployed sweep of 2026-09-24 to 2026-09-27 was written to empty `contacts` on each run, which would have deleted the two real signups' store copy on no promise made to them; whether its one scheduled slot (2026-09-27 00:00 UTC) executed, and what it deleted, is unverified (`docs/BATCH-01-PLAN.md`, finding 4). Held now, and never swept (decision 21) |
 | R5 | The backup artifact: 90 days of step counts | 35 days (`.github/workflows/watch.yml`) |
 | R6 | Guide threads on the phone, unbounded | Last 40 per voice (`THREAD_LIMIT`) |
 | R7 | Three code comments promising the opposite of the code | Corrected |

@@ -1,186 +1,161 @@
-# Session handoff — BATCH-01, Group B1: reliable evaluation outcomes, and its repair
+# Session handoff — BATCH-01 complete on the branch: Group A, B1 and B2
 
-Written 2026-09-27. Four sessions on one branch so far: the one that built
-Group A of `docs/BATCH-01-PLAN.md`, the one that repaired it (reviewed
-through `e2e5fe8`), the one that built Group B1 — the evaluation outcomes —
-at `551b62e`, and this one, which repaired B1 after an independent review.
-Group A was not reopened. **Group B2 (documentary accuracy, outreach
-bookkeeping) has not been started.**
+Written 2026-09-27. Five sessions on one branch: Group A of
+`docs/BATCH-01-PLAN.md`, its repair (reviewed through `e2e5fe8`), Group B1
+(`551b62e`), B1's repair (`e903363`, reviewed and accepted), and this one,
+Group B2 — historical accuracy and outreach bookkeeping. Group A and B1 were
+not touched by B2. **The next task is the final review of the whole batch,
+not more building.**
 
-## Commits
+## Commits and branch
 
 | What | Commit |
 |---|---|
-| Group A and its repair, reviewed | `261d055` … `e2e5fe8` (see the earlier handoff in `git log -p docs/SESSION-HANDOFF.md`) |
+| Base: branch head at the start of the batch, tree-identical to `origin/main` at `cdcd187` (the merge of PR #83) | `261d055` |
+| The plan | `344fc99` |
+| Group A | `ed5c53e`, handoff `3b987ee` |
+| Group A repair | `5dedfe3`, `e2e5fe8` |
 | Group B1: evaluation outcomes | `551b62e` |
-| The repair of B1 | the commit after `551b62e` (see `git log`) |
+| Group B1 repair | `e903363` |
+| Group B2: historical accuracy and outreach bookkeeping | the commit after `e903363` (see `git log`) |
 
-Branch: `claude/hello-gr0hoz`, pushed. **No pull request was opened, nothing
-was merged, nothing was deployed, no paid evaluation ran, no branch
-protection was changed, no outreach was sent.** A push to this branch
+Branch `claude/hello-gr0hoz`, pushed; base `origin/main` at `cdcd187`.
+**No pull request was opened, nothing was merged, nothing was deployed, no
+paid evaluation ran, no branch protection was changed, no participant record
+was read, no store was touched, nobody was contacted.** A push to this branch
 triggers nothing: Netlify builds `main` only; `verify.yml` runs on pull
-requests and pushes to `main`; `guide-eval.yml` runs on pull requests and by
-hand; `deployed.yml` on pushes to `main`; `watch.yml` on its schedule.
+requests and pushes to `main`; `guide-eval.yml` on pull requests and by hand.
 
-## The repair (2026-09-27, after `551b62e`)
+## Group B2, as built
 
-The review ran the deterministic suites (86 passed, two live tests skipped)
-and reproduced three gaps. Each with the cause, the fix and the regression
-that now fails without it (`docs/GUIDE-EVAL.md`, "Outcomes").
+### 1. The held stores: what is established, and what is not
 
-1. **A contradictory tally earned a pass.** `{ expected: 10, started: 10,
-   completed: 10, answered: 0, judged: 10, requests: 1, succeeded: 1 }` was
-   `evaluated-pass` from `outcomeOf` and accepted by `validateOutcome`. Cause:
-   `decide` only looked for known kinds of incompleteness (a stop, cases
-   never started, unavailable, unjudged), so "nothing answered" and "ten
-   judgements on one response" fell through to the pass branch. Fix
-   (`tests/eval/outcome.ts`): the pass conditions are stated positively in
-   `incompleteness` — started, completed, answered and judged all equal to
-   expected, no unavailable, no stop — and the tally gains
-   `responses: { needed, accounted }`, filled by each harness with its own
-   arithmetic (Guide: two per case; judgment: two per calibration pair, two
-   per Guide text, one per script; a judge-only text that is judged counts
-   as answered). A pass needs `accounted === needed`, and `validateOutcome`
-   refuses `accounted > succeeded`, `answered > succeeded` and
-   `judged > succeeded` outright. A catch-all names the fields that disagree
-   when no branch above described the tally. Regression: "regression (review
-   of 551b62e)…" in `tests/eval/outcome.test.ts`, with the exact tally, plus
-   "every pass condition is stated positively…" which flips each field of a
-   complete run in turn.
-2. **A pass needed no report.** A full passing tally with `report: null`
-   validated, and `verdict` said ok. Fix: `Outcome.report` is the report's
-   file name (`live-<time>.json`, matched by `REPORT_NAME`, never a path), an
-   `evaluated-pass` must name one, `not-required` may not, and a run that
-   started nothing may not. At the filesystem boundary `readOutcome`
-   (`tests/eval/artifacts.ts`) resolves the name inside the suite's own
-   results directory and requires the file to exist, parse, carry
-   `suite` and the outcome's `at`, and recount row by row (`recount`, the
-   same function the harnesses now use to write the tally in the first
-   place) to the recorded numbers; any difference is named. `verdict` also
-   refuses a required pass with no report. Both reports gained `suite`;
-   the judgment report gained `intended: { pairs, guide, scripts }` so its
-   response arithmetic can be recomputed; the outcome's `at` is the
-   report's. Regressions: `tests/eval/workflow.test.ts` ("a pass is believed
-   only with its report behind it…": missing, not JSON, another suite's,
-   another run's, a row dropped, a count changed, a malformed row list, a
-   path in place of a name, `report: null`; both suites' arithmetic),
-   `tests/eval/outcome.test.ts` (the validation branches), and a real
-   stand-in run read back through `readOutcome` with its report then
-   tampered (`tests/guide-eval-live.test.ts`).
-3. **`package-lock.json` required neither suite.** Fix: it requires both,
-   conservatively (`REQUIRES`, via the shared list). Regression: the
-   applicability tests name it among the paths that require both.
+The current documentation said, in five places, that the 2026-09-27 sweep
+*happened* and *took* the two real signups, while `docs/DECISIONS.md` Part 22
+itself recorded the same fact as unverified. The evidence, and only the
+evidence, is now what every current document says:
 
-## What B1 built (unchanged by the repair except as noted above)
+- **Code:** the sweep at `911654a` deleted every key in `cohort`, `contacts`
+  and `vouches` on each run.
+- **Deployment window:** that code was on `main` from 2026-09-24 05:35 UTC
+  (PR #70 merged) to 2026-09-27 13:49 UTC (PR #83 merged; deploy published
+  13:51), which contains one `@weekly` slot, 2026-09-27 00:00 UTC.
+- **Unverified:** whether that slot executed; what, if anything, it deleted;
+  whether the two women's store copies existed at the time. No session has
+  read the function's log or any of the three stores, and an empty store now
+  would not prove a deletion then. No log-retention deadline is asserted.
+- **The form rows:** Netlify listed `niyyah-waitlist` with five submissions
+  on 2026-09-27, as metadata (created 2026-08-29, last 2026-09-22 01:13
+  UTC). Contents, recoverability and the number of distinct people are
+  unread. Kept as the dated observation, never a fresh count.
+- **Kept apart:** the `introductions` store (decision 32) was never opened
+  by that sweep; nothing in this incident is about it.
 
-The full account is `docs/GUIDE-EVAL.md`, "Outcomes". In short:
+Corrected: `docs/PRIVACY.md` (the held-stores row, the sweep paragraph, C7,
+R1, R4, the "two copies" note); `docs/SECURITY.md` (the summary and T20,
+which said "Happened 2026-09-27 00:00 UTC"); `docs/OPS.md` (the recovery
+table's `introductions` row no longer claims the contacts incident, the
+held-stores row carries it with the window and the unverified run, the
+workflow row); the comments in `netlify/functions/sweep.ts` and
+`netlify/functions/introduce.ts` (wording only; `npm run verify` proves no
+behaviour changed). `docs/DECISIONS.md` keeps its dated text and gains a
+correction beside decision 21, beside the Part 22 finding row, and a
+"Correction, 2026-09-27 (BATCH-01 Group B2)" paragraph after Part 22's
+table. Commit messages from the day (`d7b08e4`) say "its first run was";
+they are history and are not rewritten.
 
-1. **A shared layer, `tests/eval/`.** `outcome.ts` (pure, no imports: the
-   four outcomes, the tally, `decide`, `recount`, `validateOutcome`,
-   `REQUIRES` / `NOT_MEASURED`, `applicability`, `verdict`); `session.ts`
-   (every request counted; failures classified as auth / billing / model /
-   transient / other; transient retried three attempts with backoff; fatal
-   stops the run; keys redacted); `artifacts.ts` (the two outcome files on
-   disk, and the report behind each); `check.ts` (the workflow's
-   `applicability` and `verdict` commands, run under plain Node before
-   `npm ci`); `stand-in.ts` (SDK error classes for the tests).
-2. **Both harnesses on that layer.** `tests/guide-eval/live.ts` has
-   `guideSuite` — the whole run, files included — and a report with
-   `expected`, `started`, `requests`, `succeeded`, `stopped`, `errors`, and
-   a `source` per case of `live` / `declined` / `unavailable`.
-   `tests/judgment/live.ts`: `runJudgment` and `judgmentSuite`, calibration
-   first and a stop when the judge fails it, then the themed cases, the
-   held-out set and the unjudged scripts, `width` at a time. The two live
-   test files are thin: with the `*_LIVE=1` flag and no key they record
-   `not-evaluated` and fail.
-3. **The workflow.** Runs on every PR; the first step diffs against the PR's
-   base and classifies; `npm ci` and each suite run only when required; the
-   judgment step reads the Guide's outcome and sends nothing after a fatal
-   stop; the last step always runs and fails closed. `workflow_dispatch`
-   takes `suites` (both / guide / judgment). The `grep "credit balance"` →
-   `exit 0` workaround is gone, and `tests/eval/workflow.test.ts` fails if it
-   comes back.
-4. **Baselines.** Written only by a run that is `evaluated-pass`
-   (`UPDATE_GUIDE_BASELINE=1`, `UPDATE_JUDGMENT_BASELINE=1`,
-   `UPDATE_JUDGMENT_LOCK=1` likewise). No live baseline exists yet. **No
-   quality threshold changed.**
+### 2. The outreach rule
 
-### Required / not-required, as built
+`CLAUDE.md`'s "Outreach drafts count as sent" is replaced, on the founder's
+B2 instruction: a draft is **drafted**; **sent (founder-reported, date)**
+only when the founder explicitly reports sending, with the report's date;
+**sent (confirmed)**, **replied** and **placed** each on evidence of its own
+kind; evidence of sending is not evidence of delivery or placement. The same
+rule is in `docs/ASSETS.md`, "Who keeps it". The authorisation changed the
+rule; it confirmed no particular historical message.
 
-| Changed path | Guide | Judgment |
+### 3. The ledger, reconciled
+
+`docs/ASSETS.md`'s placement ledger has an **Evidence / source** column and
+the statuses above (plus **historical sent claim; source unverified**,
+**declined**, **no response**). Provenance was taken from the file's commit
+history:
+
+| Rows | Status now | Why |
 |---|---|---|
-| `.github/workflows/guide-eval.yml`, `package.json`, `package-lock.json`, `tests/eval/` | required | required |
-| `netlify/functions/guide.ts`, `netlify/shared/prompt.ts`, `netlify/shared/vocab.ts` | required | required |
-| `src/lib/coach.ts`, `src/data/coach.ts`, `tests/voice-rules.ts` | required | required |
-| `tests/guide-eval/cases.ts`, `graders.ts`, `judge.ts` | required | required |
-| `tests/guide-eval-live.test.ts`; the rest of `tests/guide-eval/` | required | — |
-| `tests/judgment-live.test.ts`; `tests/judgment/` | — | required |
-| `src/data/read.ts`, `beforeYes.ts`, `eleven.ts`, `families.ts` | — | required |
-| anything else (including `netlify/shared/{body,counter,day,founder,limit,ops,secret}.ts`, imported by the handler and never read by `guideRequest`) | not-required | not-required |
+| The six changed in `4e773e7` (Abubakar, The Somali American, KALY-LP, Naperville, MCC East Bay, St. Cloud) | sent (founder-reported 2026-09-26), awaiting reply | That commit records "the founder reports every drafted email went out"; the send dates were not recorded and are not invented; delivery unconfirmed |
+| Before the Nikah | replied | Founder-reported send 2026-09-25; her same-day reply is in `docs/RESEARCH.md` Feedback 2026-09-25 (`498d4de`), the evidence the pitch arrived |
+| The four 2026-09-17 rows (Al-Ansar, ICSA / Dar Al-Hijrah, FYI, Masjid Al-Israa) | historical sent claim; source unverified | Logged as sent when the ledger was created (`48329ec`); the record does not say whether from a founder report |
+| WardheerNews (2026-09-19) | historical sent claim; source unverified | `ec937a7` logged the send with a date; the report's source is not named |
+| The Rahma Center (2026-09-24) | historical sent claim; source unverified | `c7d56c7` logged it as sent; the source is not named |
 
-A manual run is required for the suites chosen. The rules are held to the
-suites' real import graphs by `tests/eval/outcome.test.ts`.
+No row was downgraded to "never sent", no report date was manufactured, and
+no older row was relabelled founder-reported on the strength of the old
+draft-equals-sent rule. No parser and no ledger test: nothing in the
+application reads the table (`tests/guides.test.ts` reads the asset URLs
+only).
 
-## Verification, as it actually ran (repair session)
+## Verification, as it actually ran (B2 session)
 
 | Check | Result |
 |---|---|
 | `npm run verify > log 2>&1; echo $?` | exit 0; 108 test files, 1500 passed, 2 skipped (the two live blocks) |
 | `npm run build` | exit 0 |
-| Deterministic eval tests (`tests/eval/*.test.ts`, the stand-in blocks of both live test files) | 91 passed, 2 skipped (the live blocks: `GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE` unset, no key in the session) |
-| Paid evaluation | **none**. No `ANTHROPIC_API_KEY` in the environment; the live blocks skip without the `*_LIVE=1` flags; the stand-in tests never construct an SDK client |
-| Pushing this branch | builds nothing on Netlify, runs no workflow |
+| Live evaluation | disabled: `GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE` unset, no `ANTHROPIC_API_KEY` in the environment; the two live blocks skipped |
+| Diff review | prose and comments only in B2; no runtime change; no participant data; every date in the corrections is one already in the record (`docs/BATCH-01-PLAN.md` finding 4, Part 22, the ledger's commits) |
 
-## Limitations that remain
+## Outstanding release checks, before "PR + merge"
 
-- **No live run has produced an outcome yet.** Everything above is proven
-  against stand-ins. The first real run will be the first `outcome.json`
-  from the model; if it is `evaluated-pass` it writes the first live
-  baselines.
-- **A red check does not block a merge today.** Branch protection on `main`
-  does not require `guide-eval / live` as far as this session can tell (it
-  cannot read branch protection); the docs say so and nothing here changed
-  it. Until the founder sets it, a red check is information.
-- **The report is recounted, not re-graded.** The check proves the outcome's
-  numbers are the report's numbers; it does not re-run the graders or the
-  regression comparison over the report's answers. A harness that graded
-  wrongly would still be believed on its gates.
-- **Every PR now runs the classify step** (checkout, setup-node, a diff, no
-  install): a runner minute or so per PR on unrelated changes, in exchange
-  for a check that exists for every PR.
-- **A PR touching the Guide with no key is red**, where it used to be green
-  with a warning. That is the design: `not-evaluated` is not a pass.
-- **Any lockfile change requires both paid suites**, an SDK bump or not.
-  That is the conservative rule chosen over a diff reader.
-- **A transient failure that persists spends up to three attempts per
-  request** and lets the run continue on other cases; a whole outage is
-  therefore a run of `unavailable` cases rather than an early stop. Only
-  auth, billing and an unknown model stop the run outright.
-- **The two suites share one key and one account** (or not — founder input
-  still open); the second suite reads the first's fatal stop and sends
-  nothing, but a billing failure that begins during the second suite is
-  found by the second suite's own first request.
-- `docs/DECISIONS.md` and `docs/SECURITY.md` were not touched.
-
-## Deferred: Group B2 (not started)
-
-Operational and documentary accuracy (`docs/SECURITY.md` T20,
-`docs/PRIVACY.md` R4 and C7, the `docs/OPS.md` "Deleted data" row reworded to
-unverified; the five form rows as observed submissions; no health counts for
-the held stores); outreach bookkeeping (the seven states, historical rows kept
-uncertain, the `CLAUDE.md` wording only on the founder's word).
-`docs/BATCH-01-PLAN.md` §4.
+1. **Opening the pull request runs `guide-eval.yml` on the whole batch's
+   diff.** The batch changes the workflow, both harnesses, `package.json`,
+   `package-lock.json` and `tests/guide-eval/`, so both live suites will be
+   **required** (`tests/eval/outcome.ts`, `REQUIRES`). With an
+   `ANTHROPIC_API_KEY` repository secret and credit, that run **spends
+   money** (about $4 for the Guide suite; relationship judgment also judges
+   every script the lock marks unjudged, currently 98). Without them the
+   check is red as `not-evaluated`. Decide before opening the PR whether to
+   add the secret and allow the spend, or to open it knowing the check is
+   red.
+2. **No live run has validated the repaired harness.** Every outcome so far
+   is from stand-ins. The first real run is the first evidence that the
+   session, the outcome files and the verdict behave against the API.
+3. **Branch protection on `main` is unknown.** These sessions cannot read
+   it, and it was not changed. Whether a red `guide-eval / live` check blocks
+   the merge is therefore unknown; the docs say so.
+4. `verify.yml` runs on the PR: `npm run verify` and `npm run build`, both
+   exit 0 on this branch at every commit of the batch.
+5. The held stores and the form rows are the founder's to read and decide
+   (below); nothing in the batch depends on it.
+6. Nothing is deployed until `main` moves; Netlify builds `main` only.
 
 ## Founder input still open
 
-The held stores (the 2026-09-27 sweep log, the Blobs listing, which form rows
-are tests); `VITE_OPERATOR_NAME`; whether the eval and production Anthropic
-keys share an account; **whether `guide-eval / live` should be a required
-status check** — now the one setting that decides whether a red outcome
-blocks a merge; the `CLAUDE.md` outreach wording. `docs/BATCH-01-PLAN.md` §7.
+1. Whether the 2026-09-27 00:00 UTC sweep slot ran (Netlify → Functions →
+   `sweep` → Logs); what `cohort`, `contacts`, `vouches` hold now (Blobs);
+   which of the five form rows are tests. The docs say "unverified" until
+   then, and nothing here decides retention (decision 21).
+2. `VITE_OPERATOR_NAME`: unset, Looking and Trust say "its founder".
+3. Whether the eval and production Anthropic keys share an account or a
+   spend limit; whether `guide-eval / live` is a required status check.
+4. Whether any "historical sent claim; source unverified" row in
+   `docs/ASSETS.md` should become founder-reported, on the founder's word.
+
+## Limitations that remain
+
+- Everything in §1 above that is marked unverified stays unverified until
+  the founder reads the two places named; the documentation states the
+  uncertainty rather than resolving it.
+- B1's limitations stand (`git log -p docs/SESSION-HANDOFF.md` for the B1
+  handoff): the report is recounted, not re-graded; every PR runs the
+  classify step; any lockfile change requires both paid suites; a red check
+  is information until branch protection says otherwise.
+- `docs/DECISIONS.md` Parts 22–24 keep their original wording with
+  corrections beside it, so a reader sees both what was believed on the day
+  and what is established.
 
 ## The exact next task
 
-Review of Group B1. Then, if accepted, Group B2 of `docs/BATCH-01-PLAN.md`.
-When credit returns: Actions → guide-eval → Run workflow → `both`, read the
-two `outcome.json` blocks in the log, and proceed only from `evaluated-pass`.
+Final review of the complete batch (`261d055..HEAD`). Then, on the founder's
+"PR + merge": decide item 1 of the release checks first, open one pull
+request for the whole batch, wait for `verify` (and `guide-eval`, if the
+spend is allowed) and merge.
