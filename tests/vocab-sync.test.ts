@@ -14,6 +14,7 @@ import { modes as MODES } from '../src/data/coach'
 import { stages } from '../src/data/stages'
 import { scenes } from '../src/data/scenes'
 import { COUNTRY_IDS } from '../src/data/countries'
+import { REACH_IDS } from '../src/data/reach'
 import { hookOptions } from '../src/data/hook'
 import { SAFETY_OUTCOMES, SAFETY_REASONS } from '../src/data/safety'
 import { ALPHABET as CLIENT_ALPHABET, CODE_LENGTH as CLIENT_CODE_LENGTH } from '../src/lib/code'
@@ -55,6 +56,17 @@ describe('every word the server accepts is a word the app uses', () => {
       else expect(COUNTRY_IDS).toContain(s.country!)
     }
   })
+  it('how far someone on the introduction list would go', () => expect(sorted(vocab.REACH)).toEqual(sorted(REACH_IDS)))
+
+  it('the countries, and which one each named city is in — read by the introduction list alone', () => {
+    expect(sorted(vocab.COUNTRIES)).toEqual(sorted(COUNTRY_IDS))
+    for (const s of scenes) {
+      if (s.id === 'other') expect(vocab.SCENE_COUNTRY[s.id]).toBeUndefined()
+      else expect(vocab.SCENE_COUNTRY[s.id], s.id).toBe(s.country)
+    }
+    expect(Object.keys(vocab.SCENE_COUNTRY).sort()).toEqual(sorted(scenes.filter((s) => s.id !== 'other').map((s) => s.id)))
+  })
+
   it('asked — what a person asked, ever', () => expect(sorted(vocab.ASKED)).toEqual(sorted(ASKED)))
   it('hardest parts, plus none', () => expect(sorted(vocab.HOOKS)).toEqual(sorted([...hookOptions.map((h) => h.id), 'none'])))
 

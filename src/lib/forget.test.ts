@@ -51,7 +51,7 @@ describe('forget me', () => {
     vi.stubGlobal('fetch', spy)
 
     const result = await forgetMe()
-    expect(result).toEqual({ map: true, progress: true, couple: true })
+    expect(result).toEqual({ map: true, progress: true, couple: true, intro: true })
     const calls = spy.mock.calls.map((c) => c[0]).sort()
     expect(calls).toEqual([
       '/.netlify/functions/couple?code=QRSTVW',
@@ -65,7 +65,7 @@ describe('forget me', () => {
     const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"forgotten":true}', { status: 200 }))
     vi.stubGlobal('fetch', spy)
     const result = await forgetMe()
-    expect(result).toEqual({ map: true, progress: true, couple: true })
+    expect(result).toEqual({ map: true, progress: true, couple: true, intro: true })
     const calls = spy.mock.calls.map((c) => [c[0], c[1]?.method]).sort()
     expect(calls).toEqual([
       ['/.netlify/functions/keep?code=ACDEFG', 'DELETE'],
@@ -78,14 +78,14 @@ describe('forget me', () => {
   it('treats already-gone as done', async () => {
     seed()
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{"error":"not_found"}', { status: 404 })))
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
   })
 
   it('with no codes on this phone, calls nobody and still clears', async () => {
     store.set('niyyah.intake.v1', '{"answers":{}}')
     const spy = vi.fn()
     vi.stubGlobal('fetch', spy)
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
     expect(spy).not.toHaveBeenCalled()
     expect(store.size).toBe(0)
   })
@@ -94,7 +94,7 @@ describe('forget me', () => {
     seed()
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     // The code is named, so she can write in with it (docs/PRIVACY.md).
-    expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true, code: 'ACDEFG' })
+    expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true, intro: true, code: 'ACDEFG' })
     // One key is left: the codes, and none of her answers.
     expect([...store.keys()]).toEqual(['niyyah.forget.pending.v1'])
     expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ code: 'ACDEFG', id: 'HJKMNP' })
@@ -107,7 +107,7 @@ describe('forget me', () => {
     // Tapping Forget me again used to send nothing, and say it was done.
     const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"forgotten":true}', { status: 200 }))
     vi.stubGlobal('fetch', spy)
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
     expect(spy.mock.calls.map((c) => c[0]).sort()).toEqual(['/.netlify/functions/keep?code=ACDEFG', '/.netlify/functions/progress?id=HJKMNP'])
     expect(store.size).toBe(0)
   })
@@ -141,6 +141,23 @@ describe('forget me', () => {
     expect(store.size).toBe(0)
   })
 
+  it('takes her name off the introduction list by the code that list handed this phone', async () => {
+    // Its own code under its own key, joined to nothing else (src/lib/introduce.ts).
+    // Forget me sends it as a fourth delete, and a 404 is done.
+    store.set('niyyah.intake.v1', '{"answers":{}}')
+    store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27' }))
+    const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"removed":true}', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
+    expect(spy.mock.calls.map((c) => [c[0], c[1]?.method])).toEqual([['/.netlify/functions/introduce?code=QRTWXY34', 'DELETE']])
+    expect(store.size).toBe(0)
+    // Offline, the code is kept to send again — and named as what is still held.
+    store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27' }))
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false })
+    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intro: 'QRTWXY34' })
+  })
+
   it('names every key the app writes', () => {
     // The list itself; tests/forget-keys.test.ts is what proves it is complete, by
     // reading src/ for every key the app actually writes. A hand-written list
@@ -153,6 +170,7 @@ describe('forget me', () => {
         'niyyah.events.v1',
         'niyyah.install.v1',
         'niyyah.intake.v1',
+        'niyyah.intro.v1',
         'niyyah.keep.code.v1',
         'niyyah.keep.once.v1',
         'niyyah.keep.rev.v1',

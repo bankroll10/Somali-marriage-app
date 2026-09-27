@@ -2,8 +2,10 @@
 
 What Niyyah does not know yet, how it finds out, and what it changes once
 it knows. The North Star, followed-through per hundred arrived, is defined in
-`docs/PRODUCT.md`. Real member evidence is zero: every rate below is a
-readout field waiting for its first records.
+`docs/PRODUCT.md`. Real member evidence is two people: the two women who
+signed up through the door to be introduced (founder-confirmed 2026-09-27,
+"Feedback"). Every rate below is a readout field waiting for its first
+records.
 
 ## How a claim is classed
 
@@ -280,6 +282,11 @@ pre-order to test price (`docs/PRODUCT.md`).
   moved. Nine lines rewritten within F (L25, L27–L30); the Guide's eval gains
   a `non-invention` check for generalisations about Somali people; classes C
   and D are still empty.
+- 2026-09-27 — *Somali singles want to be introduced through Niyyah*
+  (conviction 6, the door's premise): H → D, on two Somali women who signed
+  up for that and nothing else, founder-confirmed ("Feedback"). n = 2, so the
+  copy says nothing general; the door is built on it (A10). *"There are no
+  members"* (Part 2's premise): withdrawn.
 
 ## Experiments
 
@@ -293,9 +300,10 @@ A new experiment copies a row; its smallest test builds nothing if it can.
 | **A3** · The guide is worth opening the app for | Guidance carries the first people. It is the only live cost: `netlify/functions/guide.ts` calls a model under hourly and daily caps | `facts.followedThroughBy.asked.guide`: of everyone who ever asked the guide (one bit, `facts.asked`), how many followed through, against everyone who did not. Later `facts.ending.used.guide` | At twenty `followed-through`: askers not above non-askers → the live model goes and the local voice stays. At the first endings, fewer than one in five naming the guide confirms it | Built (`src/lib/facts.ts`; `docs/DECISIONS.md` decision 15). Kept on by the founder's choice, 2026-09-10. No readings |
 | **A4** · Family-oriented progression | People want family in the room and will use written words to put them there | `facts.through['family:<id>']` per hundred who reached `mapped` | No family script confirmed as said by twenty people who built maps → the family path is aspiration, not product | Nothing to build. No readings |
 | **A5** · Willingness to pay | Families pay a matchmaker at the nikah, as they always have; couples pay once for a call after the joint view. No price exists in code | The wedding-payment question in the ten conversations; three practising matchmakers on what they charge and who pays | The gates in `docs/PRODUCT.md`, written before any sale; conviction 7's three-in-ten. Until a sale, `ending.who.family`. No pre-order, no fake price | No conversation logged. No gate has passed |
-| **A6** · The door, for men | — | — | — | Retired with the door, 2026-09-24 |
-| **A7** · Forty and forty is a market | — | — | — | Retired with the pool, 2026-09-24 |
+| **A6** · The door, for men | — | — | — | Retired with the door, 2026-09-24; its question is A10's `counts[scene].men` |
+| **A7** · Forty and forty is a market | — | — | — | Retired with the pool, 2026-09-24; forty and forty is a recruitment milestone under A10, not a condition (`docs/DECISIONS.md` decision 24) |
 | **A8** · The Ending's door share reaches unattached men | — | — | — | Retired with the door. The Ending shares the eleven alone, A8's own fallback |
+| **A10** · The introduction list | Serious Somali singles will put their names down for an introduction made by hand, and enough of them in one country, within each other's reach, to make one | Names: `GET /introduce` `counts[scene]`, `total`, `reach` per person. Viable pairings: the founder's hand count from the same list (opposite sides, one country, within both reaches), dated here. Mutually accepted introductions: the founder's log, two yeses each. Kept apart from the ladder: nothing in `/progress` moves when a name goes down (`docs/DECISIONS.md` decision 25) | Eight weeks after the doors go live in a room: fewer than ten names in any one country → the door stays, recruitment moves to the rooms (`docs/PRODUCT.md` §9), nothing is built; ten names and no viable pairing → the reach question or the city list changes, not the door; the first mutually accepted introduction → the pilot's hours are written down and both people are pointed at the instruments. Removing the door is not an outcome of this rule (decision 22) | Built 2026-09-27. Two names known before it existed (the door's form) |
 | **A9** · The eleven travels through institutions | A mosque's nikah packet, a counselling service or a resource list carries the eleven to couples, and some open the app | `vias.<via>.arrived`, `.eleven`, `.asked-him`, `.he-answered` for the placement's via; not page opens. The test is `/guides/before-you-say-yes` and its one-page sample, sent with two pitches | Eight weeks after two accepted placements: five or more `eleven` under that via → add a `partner` via, ask for the next. Fewer than five arrivals → no more building for institutions; the printed page stays, outreach moves to the rooms | Built. Waiting on two placements |
 
 **`began`, the denominator.** Every instrument is all-or-nothing, so nothing
@@ -331,6 +339,17 @@ graded him backwards, and no family script was his. Fixed (`speak()`,
 `approach-her-family`, `tests/invariants/both-sides.test.ts`). **Bears on.**
 Gap 1, conviction 1; answers neither. **New rule:** nothing ships to a side
 of the product nobody has walked on a phone.
+
+### 2026-09-27 · founder
+
+**Context.** Two women, cities not recorded here, who signed up through the
+door between 2026-08-29 and 2026-09-22; the founder confirms they are single
+and hoped Niyyah would help them meet someone serious. **What they said.** By
+signing up, that they want to be introduced; nothing else is known from here,
+and nobody has been contacted. **Bears on.** Conviction 6, reopened; A6 and
+A7, retired on "there are no members", which was wrong about them; A10,
+built on it. Class D, n = 2: the copy says nothing general. The founder
+decides whether and how to write to them (`docs/DECISIONS.md` Part 22).
 
 ### 2026-09-25 · email
 
@@ -377,11 +396,13 @@ Why `sidesByVia` exists: "First", under the convictions.
 questionnaire; why anyone stopped; who sent a link; time, sessions, returns;
 one person's timeline; which guide conversation was had (its follow-ups
 count toward `followed-through`, never `facts.through`); facts by city, via
-or side; marriages nobody reports; anything about matching, which went.
+or side; marriages nobody reports; anything about matching, which is done by
+hand from `GET /introduce`, outside the ladder (A10).
 
 **Work on the weakest link, or on nothing.** The last one named, a looking
-man with no link to the door, went with the door. None is named now; A1's
-rates are the first candidate at twenty arrivals.
+man with no link to the door, went with the door, and came back with it on
+2026-09-27: a name on the list with no viable pairing is the weakest link
+now, and A10's rule says what moves when it stays that way.
 
 ## The convictions
 
@@ -396,7 +417,7 @@ A failure the company survives ranks lower. Every test waits on the first post.
 | 3 | People will complete a detailed map | A1 |
 | 4 | The eleven name what ends courtships (was "compatibility systems improve outcomes"; no matching system has been shown to predict success: Finkel et al. 2012, Joel et al. 2017) | After twenty endings, most `ended.reason` outside the eleven → conversation value, not predictive value |
 | 5 | A family vouch is worth its friction | Retired with the vouch, 2026-09-24 |
-| 6 | Quality over quantity: the door's honest count | Retired with the door, 2026-09-24 |
+| 6 | Quality over quantity: introductions made by hand, with both yeses first | Reopened 2026-09-27 on two women who signed up to be introduced (A10). The count stays off the door: it became a scarcity meter last time |
 | 7 | People will pay | Third, below |
 | 8 | Money is aligned with outcomes | Paid at the rarest event, a company is pulled to claim it: the incentive audit, every release |
 | 9 | Family features matter | A4. The hook names family pressure and Welcome promises "not your family"; nobody has asked which she wanted |
@@ -484,6 +505,7 @@ A feature with no rule is an opinion running in production.
 | Family words as the path | A4's rule | A4 |
 | Onboarding length | A1's thresholds, by instrument | A1 |
 | The eleven through institutions | A9's rule | A9 |
+| The introduction list | A10's rule moves recruitment or a question, never the door: removing the signup route, the introduction capability, or changing who Niyyah is for or what the signup promises needs the founder's written approval first (`docs/DECISIONS.md` decision 22) | A10 |
 | The wedge channel | Eight weeks and fewer than five men through a group link (`sidesByVia.man.group.arrived`; `press` excluded, an article is not a room) → channel first (mosque young-adult circles), city second (Columbus). Its women's half read `counted`, gone with the door | `docs/PRODUCT.md` |
 | Support as one inbox | More than a handful of emails in a week | `docs/OPS.md` |
 | The safety queue, one reader | A second reader needed, or a report waits over a week | `docs/SECURITY.md` |

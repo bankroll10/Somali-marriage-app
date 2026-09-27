@@ -17,11 +17,20 @@ import { finishMove, rollBackMove } from './keep'
  *    kept by rule (netlify/functions/progress.ts).
  *  - **A change of code abandoned part-way** is rolled back or finished
  *    (docs/PRIVACY.md).
- *  - **The three retired stores** — `cohort`, `contacts` and `vouches` — are
- *    emptied. The door and the family vouch were removed on 2026-09-24
- *    (docs/DECISIONS.md); what they held was a way to reach someone and a
- *    relative's name and phone, and nothing reads them any more. Once empty,
- *    this pass finds nothing.
+ *
+ * **What it leaves alone, by decision.** From 2026-09-24 to 2026-09-27 this
+ * also emptied the `cohort`, `contacts` and `vouches` stores every week,
+ * because the door and the family vouch had been removed and "nothing reads
+ * them any more". That deleted the only way to reach real people who had
+ * asked to be introduced — two women had signed up for exactly that — on no
+ * promise anyone had made to them (docs/DECISIONS.md Part 22). The sweep
+ * removes a record only when a lifetime the product stated has run out, or
+ * when the person asked (Forget me, netlify/functions/keep.ts). Retiring a
+ * feature is neither. Those three stores are not written, not read by any
+ * route, and not touched here; what becomes of them is the founder's
+ * decision, recorded before anything is deleted. The same rule holds for
+ * `introductions` (netlify/functions/introduce.ts): a name on the list stays
+ * until its owner takes it off.
  *
  * Reports, tallies and limits are never touched: a report waits for the
  * founder, and the other two carry nobody. It is idempotent — a second run
@@ -45,16 +54,19 @@ export interface Swept {
   progress: number
   /** Changes of code abandoned part-way: rolled back, or finished. */
   journals: number
-  /** Records removed from the retired stores: the door's, its contacts', the vouches'. */
-  retired: number
   /** Records that could not be read or removed this week. Everything else still went; these are tried again. */
   errors: number
 }
 
-const empty = (): Swept => ({ maps: 0, couples: 0, progress: 0, journals: 0, retired: 0, errors: 0 })
+const empty = (): Swept => ({ maps: 0, couples: 0, progress: 0, journals: 0, errors: 0 })
 
-/** Stores that belonged to the door and the vouch, emptied and never written again. */
-export const RETIRED_STORES = ['cohort', 'contacts', 'vouches'] as const
+/**
+ * Stores the sweep never opens. The first three belonged to the door and the
+ * vouch (docs/DECISIONS.md Part 22); the fourth is the introduction list,
+ * which has no lifetime of its own. Named so the test can hold the line, and
+ * so nobody re-adds a pass over them without meeting this list.
+ */
+export const HELD_STORES = ['cohort', 'contacts', 'vouches', 'introductions'] as const
 
 /** A move still in flight is left alone for this long — a move takes seconds, and the sweep runs at midnight. */
 const JOURNAL_GRACE_MS = 2 * DAY_MS
@@ -135,27 +147,11 @@ export async function sweepExpired(couples: Store, progress: Store, now = Date.n
   return out
 }
 
-/** The retired stores, emptied. Every key goes; nothing in them is read. */
-export async function sweepRetired(open: (name: string) => Store): Promise<{ retired: number; errors: number }> {
-  const out = { retired: 0, errors: 0 }
-  for (const name of RETIRED_STORES) {
-    const store = open(name)
-    for (const { key } of (await store.list()).blobs) {
-      await each(out, async () => {
-        await store.delete(key)
-        out.retired += 1
-      })
-    }
-  }
-  return out
-}
-
-/** The whole sweep, every store, as the schedule runs it. */
+/** The whole sweep, every store it may touch, as the schedule runs it. */
 export async function sweep(now = Date.now()): Promise<Swept> {
   const swept = await sweepLapsed(getStore('maps'), now)
   const rest = await sweepExpired(getStore('couples'), getStore('progress'), now)
-  const gone = await sweepRetired(getStore)
-  return { ...swept, couples: rest.couples, progress: rest.progress, retired: gone.retired, errors: swept.errors + rest.errors + gone.errors }
+  return { ...swept, couples: rest.couples, progress: rest.progress, errors: swept.errors + rest.errors }
 }
 
 export default async function handler(_req: Request) {
@@ -173,7 +169,7 @@ export default async function handler(_req: Request) {
     // So /health can tell a sweep that ran from one that stopped (docs/OPS.md).
     await mark('sweep', { errors: swept.errors })
     console.log(
-      `[niyyah] sweep: ${swept.maps} maps, ${swept.couples} couples, ${swept.progress} step counts, ${swept.journals} moves, ${swept.retired} retired, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
+      `[niyyah] sweep: ${swept.maps} maps, ${swept.couples} couples, ${swept.progress} step counts, ${swept.journals} moves, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
     )
     return Response.json({ swept, at: day() })
   } catch (err) {

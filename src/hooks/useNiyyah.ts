@@ -20,6 +20,7 @@ import { coupleReading, readCouple, updateCouple, type Joint } from '../lib/coup
 import { forgetEntry, type Entry, type EntryKind } from '../lib/entry'
 import type { ToolSide } from '../data/tools'
 import { forgetCode, rememberedCode } from '../lib/keep'
+import { rememberedIntro, type IntroState } from '../lib/introduce'
 import { defaultGuideUse, defaultTrust } from '../types'
 import { budgetRungs, repliesLeft as budgetLeft } from '../lib/budget'
 import type {
@@ -60,6 +61,10 @@ export type Screen =
   | 'couple'
   | 'ending'
   | 'ended'
+  // The two doors (docs/DECISIONS.md Part 22): a name put down for an
+  // introduction, and the chooser for someone already talking to someone.
+  | 'looking'
+  | 'talking'
 
 const SAVE_DEBOUNCE_MS = 250
 
@@ -78,7 +83,7 @@ const RECHECK_TRIES = 1
 const RECHECK_MS = 20_000
 
 /** The screens Trust can be opened from, and returns to. */
-type TrustReturn = 'read' | 'beforeYes' | 'home'
+type TrustReturn = 'read' | 'beforeYes' | 'home' | 'looking'
 export type ElevenAt = 'front' | 'result' | 'joint'
 
 /** The word in the link, and the screen it opens. A restored map opens nothing of its own. */
@@ -87,6 +92,7 @@ const ENTRY_SCREEN: Partial<Record<EntryKind, Screen>> = {
   read: 'read',
   eleven: 'beforeYes',
   families: 'families',
+  looking: 'looking',
 }
 
 /**
@@ -158,6 +164,12 @@ export function useNiyyah(entry: Entry | null = null) {
   // The code her map is kept under. Read once at mount and refreshed by the
   // actions that keep it, so the `kept` rung stays a pure function of state.
   const [keptCode, setKeptCode] = useState<string | null>(() => rememberedCode())
+  // Her name on the introduction list: the code it is under and the day, read
+  // once at mount and refreshed by the screen that puts it down or takes it
+  // off (src/lib/introduce.ts). Not a rung, not a fact, never reported: a
+  // name put down is counted on its own list, and nothing she does with the
+  // instruments puts it there (docs/DECISIONS.md Part 22).
+  const [intro, setIntro] = useState<IntroState | null>(() => rememberedIntro())
   const [reflection, setReflection] = useState<Reflection | null>(() =>
     saved?.completed ? buildReflection(saved.answers) : null,
   )
@@ -440,7 +452,7 @@ export function useNiyyah(entry: Entry | null = null) {
     // replace regardless, so a timed-out DELETE left her kept map on the
     // server and showed her a stranger's app as proof it was gone — against
     // the one promise this product is built on (docs/DESIGN.md).
-    if (result.map && result.progress && result.couple) window.location.replace('/')
+    if (result.map && result.progress && result.couple && result.intro) window.location.replace('/')
     return result
   }
 
@@ -783,6 +795,8 @@ export function useNiyyah(entry: Entry | null = null) {
     guideMode,
     guideAsk,
     coachThreads,
+    intro,
+    setIntro,
     // derived
     completed,
     hasHome,

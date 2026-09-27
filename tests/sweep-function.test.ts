@@ -33,23 +33,39 @@ describe('the weekly sweep', () => {
 
   it('is idempotent — a second run finds nothing to take', async () => {
     memStore('maps').setJSON('BCDFGH', { snapshot: {}, createdAt: '2025-01-01', expiresAt: LAPSED })
-    memStore('contacts').setJSON('ACDEFG', { contact: 'x@example.com', at: '2026-09-01' })
     await run()
     const again = await run()
-    expect((await again.json()).swept).toEqual({ maps: 0, couples: 0, progress: 0, journals: 0, retired: 0, errors: 0 })
+    expect((await again.json()).swept).toEqual({ maps: 0, couples: 0, progress: 0, journals: 0, errors: 0 })
   })
 
-  // The door and the family vouch were removed on 2026-09-24. What they left
-  // on the server — a way to reach someone, a relative's name, sentence and
-  // phone — is read by nothing, so it is kept by nothing.
-  it('empties the stores the door and the vouch left behind, whatever is in them', async () => {
+  // From 2026-09-24 to 2026-09-27 the sweep emptied these three stores every
+  // week because the door and the vouch had been removed. Two real women had
+  // asked, through the door, to be introduced; the sweep took the only way to
+  // reach them, on no promise anyone had made (docs/DECISIONS.md Part 22). A
+  // retired feature is not a lifetime, and the sweep removes nothing on it.
+  it('leaves what the door and the vouch left behind exactly as it found it, whatever is in it', async () => {
     memStore('cohort').setJSON('us/twin-cities/woman/city/serious/ACDEFG', { at: '2026-09-01', ledger: [] })
     memStore('cohort').set('index/ACDEFG', 'us/twin-cities/woman/city/serious/ACDEFG')
     memStore('contacts').setJSON('ACDEFG', { contact: 'x@example.com', scene: 'twin-cities', country: 'us', at: '2026-09-01' })
     memStore('vouches').setJSON('ACDEFG', { relationship: 'father', firstName: 'Cabdi', sentence: 's', phone: '+1 555', at: 'd' })
+    const before = Object.fromEntries(['cohort', 'contacts', 'vouches'].map((s) => [s, [...stores.get(s)!.entries()]]))
     const res = await run()
-    expect((await res.json()).swept.retired).toBe(4)
-    for (const store of ['cohort', 'contacts', 'vouches']) expect(stores.get(store)!.size, store).toBe(0)
+    expect(res.status).toBe(200)
+    expect((await res.json()).swept).not.toHaveProperty('retired')
+    for (const store of ['cohort', 'contacts', 'vouches']) expect([...stores.get(store)!.entries()], store).toEqual(before[store])
+  })
+
+  // The introduction list has no lifetime of its own: a name stays until its
+  // owner takes it off (netlify/functions/introduce.ts).
+  it('never touches the introduction list', async () => {
+    memStore('introductions').setJSON('HJKMNPQR', { contact: 'x@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: '2025-01-01', v: 1 })
+    await run()
+    expect(stores.get('introductions')!.size).toBe(1)
+  })
+
+  it('names every store it holds off, so a pass over one cannot come back unnoticed', async () => {
+    const { HELD_STORES } = await import('../netlify/functions/sweep')
+    expect([...HELD_STORES].sort()).toEqual(['cohort', 'contacts', 'introductions', 'vouches'])
   })
 
   it('takes a couple sheet past its ninety days, and leaves one inside them', async () => {

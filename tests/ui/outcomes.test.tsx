@@ -71,7 +71,7 @@ describe('neither ending grades the outcome', () => {
       '2026-09-24',
     )
     screen = await mount(
-      <Ending identity={{ firstName: 'Hodan', gender: 'woman', adult: true }} ending={ending} didEleven={false} saved={null} onSave={() => {}} onForget={async () => ({ map: true, progress: true, couple: true })} onBack={() => {}} />,
+      <Ending identity={{ firstName: 'Hodan', gender: 'woman', adult: true }} ending={ending} didEleven={false} saved={null} onSave={() => {}} onForget={async () => ({ map: true, progress: true, couple: true, intro: true })} onBack={() => {}} />,
     )
     expect(screen.text()).not.toMatch(GRADES)
   })

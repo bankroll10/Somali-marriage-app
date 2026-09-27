@@ -39,6 +39,38 @@ export const HOOKS = new Set(['serious', 'family', 'trust', 'finding', 'other', 
 export const GENDERS = new Set(['woman', 'man'])
 
 /**
+ * Must match src/data/countries.ts. Read by the introduction list alone
+ * (netlify/functions/introduce.ts): the one place a person somewhere else
+ * names the country she is in, because an introduction is made in one.
+ * Country left the progress record on 2026-09-24 and stays off it.
+ */
+export const COUNTRIES = new Set(['us', 'ca', 'uk', 'se', 'no', 'dk', 'nl', 'fi', 'de', 'au', 'ke', 'ae', 'so', 'other'])
+
+/** Must match `country` on each named city in src/data/scenes.ts. `other` has none, and names one. */
+export const SCENE_COUNTRY: Record<string, string> = {
+  'twin-cities': 'us',
+  toronto: 'ca',
+  london: 'uk',
+  columbus: 'us',
+  stockholm: 'se',
+  seattle: 'us',
+  'san-diego': 'us',
+  birmingham: 'uk',
+  bristol: 'uk',
+  leicester: 'uk',
+  gothenburg: 'se',
+  oslo: 'no',
+  copenhagen: 'dk',
+  helsinki: 'fi',
+  amsterdam: 'nl',
+  nairobi: 'ke',
+  melbourne: 'au',
+}
+
+/** Must match src/data/reach.ts — how far someone on the introduction list would go. */
+export const REACH = new Set(['city', 'country'])
+
+/**
  * Must match `ModeId` in src/types.ts and the mode ids in src/data/coach.ts —
  * which of the four voices is answering. The only thing about how the guide
  * speaks that a caller gets to choose (netlify/shared/prompt.ts).
@@ -215,7 +247,7 @@ export const URGENT_REASONS = new Set(['threats', 'sexual'])
 export const CRASH_EVENTS = new Set(['crash', 'chunk'])
 
 /** The routes whose failures are counted as `fail.<route>`. */
-export const OPS_ROUTES = ['keep', 'couple', 'progress', 'safety', 'export', 'guide', 'sweep', 'limit', 'health'] as const
+export const OPS_ROUTES = ['keep', 'couple', 'progress', 'safety', 'export', 'guide', 'sweep', 'limit', 'health', 'introduce'] as const
 export type OpsRoute = (typeof OPS_ROUTES)[number]
 
 /** Every rate-limit bucket in netlify/functions, as the kind of cap it is (shared/limit.ts capSignal). */
@@ -234,6 +266,8 @@ export const CAP_FAMILIES = [
   'progress',
   'progress-forget',
   'health',
+  'introduce',
+  'introduce-forget',
 ] as const
 
 /** What the guide's call to Claude came to. `ok` is a whole answer. */

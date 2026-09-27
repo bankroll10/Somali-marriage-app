@@ -36,6 +36,7 @@ const LANDS = {
   readAboutHer: /Is she serious\?/,
   eleven: /Before you say yes/,
   families: /Bringing the families in/,
+  looking: /Put my name down/,
 }
 
 async function landOn(url: string): Promise<string> {
@@ -67,6 +68,7 @@ describe('every link the product hands out opens its instrument', () => {
     ['the families’ words', wordsLink('family'), LANDS.families],
     ['the family words, at their own address', toolLink('families', 'family'), LANDS.families],
     ['the eleven, shared at the end', marriedShare().url, LANDS.eleven],
+    ['the introduction list, as a link into a room', instrumentLink('looking', 'group'), LANDS.looking],
   ]
   it.each(cases)('%s', async (_what, url, lands) => {
     expect(await landOn(url)).toMatch(lands)
@@ -87,7 +89,7 @@ describe('every link the product hands out opens its instrument', () => {
 })
 
 describe('a mangled link never opens something it was not', () => {
-  const KEYS = ['map', 'couple', 'vouch', 'read', 'eleven', 'families', 'door', 'via', 'x', 'code']
+  const KEYS = ['map', 'couple', 'vouch', 'read', 'eleven', 'families', 'looking', 'door', 'via', 'x', 'code']
   const junk = fc.oneof(fc.constant(''), fc.string({ maxLength: 12 }), fc.constantFrom('HJKMNPQR', 'acdefghj', '----', '%00'))
   const query = fc.array(fc.tuple(fc.constantFrom(...KEYS), junk), { maxLength: 5 })
 

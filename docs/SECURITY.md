@@ -13,8 +13,11 @@ The marketplace was deleted (`docs/DECISIONS.md`). Rows, threats and cases
 about what went are cut to one line, so their ids still resolve.
 - **The family vouch, the door, the waitlist and contacts are gone,** with
   their routes and caps (`vouch-read`, `vouch-ask`, `door`,
-  `door-city-<scene>`). The sweep empties the `cohort`, `contacts` and
-  `vouches` stores, so relatives' phone numbers do not outlive the feature.
+  `door-city-<scene>`). The sweep was made to empty the `cohort`, `contacts`
+  and `vouches` stores. **Reversed 2026-09-27** (`docs/DECISIONS.md` Part 22,
+  decision 21): the sweep never opens them; a person's own Forget me removes
+  hers; the rest is held for the founder's decision. The introduction list
+  came back as `POST`/`DELETE`/`GET /introduce` (below).
 - **Reports have no withdrawal route and no receipt.** Filing answers
   `{received: true}`. Only the founder resolves a report, legacy six-character
   report ids included. Forget me clears old receipts (`niyyah.reports.v1`).
@@ -109,6 +112,9 @@ ease, each 1–3. Routes are `/.netlify/functions/<name>`, same-origin, no CORS.
 | `POST` / `DELETE /progress` | install-id holder | 1000/h, 4 kB / 600/h | nothing; no route returns one record |
 | `POST /guide` | anyone | 400/day, 300/h, 32 kB, **fails closed** | a streamed reply; the system prompt is the server's |
 | `POST /health` | anyone | 60/h, 256 bytes | a crash or chunk count |
+| `POST /introduce` | anyone | `introduce` 60/h, 2 kB | `{saved: true, code}`: a minted code, never the record |
+| `DELETE /introduce?code=` | code holder | `introduce-forget` 600/h | `{removed: true}`, or 404; nothing is read back |
+| `GET /introduce` | founder | bearer, **fails closed** | every name on the list, whole, `no-store` |
 | `GET /health`, `/couple` (no code), `/guide`, `/export`, `/progress`; `GET`/`DELETE /safety` | founder | bearer, constant-time, **fails closed** | counts (split cells floored at five), the report queue, the backup |
 | `sweep` | the scheduler | weekly | not reachable over HTTP |
 
@@ -136,6 +142,8 @@ Forget me; and `localStorage`, everything she wrote, in plaintext.
 | T13 | Possession is authority: answer first, delete the pair, report as either side | — | **By design** (row 16); rewriting *her* side was not, and is fixed (O6) |
 | T14 | A guessed install id can add rungs to, or change the city and side on, a step count; `keep` accepted `[A-Z0-9]{6}`; the 18+ gate was client-only | 2 | P2. Alphabet closed (O8); age went 2026-09-24 |
 | T15 | No per-actor record, so a false report looks like a true one | — | **By design:** a person reads every report |
+| T19 | The introduction list holds a way to reach a person under a minted code. A guessed code takes a name off; nothing reads one back to a code holder, and the founder's read is bearer-gated | 3 | Built 2026-09-27: eight-character codes, `introduce-forget` 600/h, `GET` fails closed (`tests/invariants/founder-routes-fail-closed.test.ts`). Accepted: a name silently taken off by a guessed code costs a re-sign-up, never a disclosure |
+| T20 | A scheduled function deleted records on no stated lifetime: the sweep emptied `contacts` weekly because the feature had gone | — | **Happened 2026-09-27 00:00 UTC.** Reversed: `HELD_STORES` in `netlify/functions/sweep.ts`, held by three suites (`docs/DECISIONS.md` decision 21) |
 
 ## Findings O1–O11
 
@@ -411,6 +419,7 @@ counter lets the call through, except on the guide.
 | `safety-probe` / `safety` | `POST /safety`: every valid attempt / a live pair | 600 / 30 |
 | `progress` / `progress-forget` | `POST` / `DELETE /progress` | 1000 / 600 |
 | `health` | `POST /health` | 60 |
+| `introduce` / `introduce-forget` | `POST` / `DELETE /introduce` | 60 / 600 |
 | `guide` | `POST /guide`, the day first; **fails closed** | 300, and 400 a day |
 
 ## Not built, on purpose

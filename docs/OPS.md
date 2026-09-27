@@ -23,7 +23,7 @@ The test for each supplier is: if it disappeared tomorrow, would we still have t
 | Dependency | If it goes | Position |
 |---|---|---|
 | **The hostname** | Nothing: DNS can point at any host | **Owned.** `joinniyyah.com` is registered to the founder and is the site's primary URL. It ranks first because links already sent cannot be corrected. `src/lib/site.ts` and `vite.config.ts` default to it, and `tests/durable.test.ts` refuses a hosting supplier's subdomain as the default |
-| **Netlify Blobs**, seven stores | Every kept map, sheet and report, and the learning record | The data is ours, and `/export` is its copy (Recovery, below). The storage surface is get, set, delete, list and one conditional write, so moving is a few hundred lines |
+| **Netlify Blobs**, eight stores in use and three held | Every kept map, sheet and report, the introduction list, and the learning record | The data is ours, and `/export` is its copy (Recovery, below). The storage surface is get, set, delete, list and one conditional write, so moving is a few hundred lines |
 | **Netlify build and deploy** | The last deploy keeps serving | The build is `npm run build` producing a static `dist`, with handlers written on the web-standard `Request`. The test gate is `verify.yml`, which lives in the repository and leaves with it |
 | **The secrets** | — | The free plan refuses to mark variables secret, so each one is plaintext to the team. Rotation is the control |
 | **Anthropic** | Nothing breaks. The offline voice answers, and no error is shown | The four voices, the prompt and the local answer engine are ours. Replacing the model means rewriting one function |
@@ -124,6 +124,8 @@ Set these in Netlify under Site configuration → Environment variables, unless 
 | `PROGRESS_HOURLY_CAP` | Rung reports | `1000` |
 | `PROGRESS_FORGET_HOURLY_CAP` | Rung records deleted | `600` |
 | `HEALTH_HOURLY_CAP` | Crash beacons from phones (`POST /health`) | `60` |
+| `INTRODUCE_HOURLY_CAP` | Names put down for an introduction (`POST /introduce`) | `60` |
+| `INTRODUCE_FORGET_HOURLY_CAP` | Names taken off (`DELETE /introduce`). A code is the authority, so the delete is metered like every other | `600` |
 
 **Hyphens become underscores.** A bucket name may contain a hyphen (`couple-read`), and a hyphen cannot appear in an environment variable name. `envName()` in `netlify/shared/limit.ts` upper-cases the bucket and turns each hyphen into an underscore, so `couple-read` reads `COUPLE_READ_HOURLY_CAP` and `safety-probe` reads `SAFETY_PROBE_HOURLY_CAP`. `tests/caps-function.test.ts` holds this.
 
@@ -238,7 +240,7 @@ It never counts anything per person: no visits, sessions, screens, time in the a
 
 ## The readouts
 
-The founder reads the service and the learning record through six routes under `/.netlify/functions/`. Every one requires `Authorization: Bearer $FOUNDER_KEY`. Without the key, each answers `401 {"error":"founder_only"}` with `WWW-Authenticate: Bearer` and `Cache-Control: no-store`, and with `FOUNDER_KEY` unset in Netlify each one answers 401 to everyone. None has a cap; the key is what bounds them.
+The founder reads the service, the learning record and the introduction list through seven routes under `/.netlify/functions/`. Every one requires `Authorization: Bearer $FOUNDER_KEY`. Without the key, each answers `401 {"error":"founder_only"}` with `WWW-Authenticate: Bearer` and `Cache-Control: no-store`, and with `FOUNDER_KEY` unset in Netlify each one answers 401 to everyone. None has a cap; the key is what bounds them.
 
 | Route | Returns | Read it |
 |---|---|---|
@@ -248,6 +250,7 @@ The founder reads the service and the learning record through six routes under `
 | `GET /couple` with no `code` | `{pairs, topics}`: how many pairs have answered, and for each of the eleven, counts of each joint state | Monthly |
 | `GET /export` | The backup, version 3, as a download (Recovery, below) | Monthly, or let the artifact job take it |
 | `GET /guide` | `route`, `keyPresent`, `keyLooksValid`, `keyLength`, `model`, `effort`, then one live call's `call`, `ms` and `stopReason`, or its `errorName`, `errorStatus` and `errorMessage`. Spends about a cent | When `claude` is red or amber |
+| `GET /introduce` | `{people, counts, total, skipped}`: every name put down for an introduction, oldest first, whole — `code`, `contact`, `firstName`, `gender`, `scene`, `country`, `reach`, `at` — and the counts by city and side. Sent with `no-store` | Weekly, with `/safety`: someone may be waiting to be asked. The pilot is run from it (`docs/DECISIONS.md` Part 22) |
 
 ```bash
 K="Authorization: Bearer $FOUNDER_KEY"; S=https://joinniyyah.com/.netlify/functions
@@ -256,6 +259,7 @@ curl -s -H "$K" "$S/safety"   | jq .              # weekly: a report is a person
 curl -s -H "$K" "$S/progress" | jq .
 curl -s -H "$K" "$S/couple"   | jq .
 curl -s -H "$K" "$S/guide"    | jq .              # one live call; rarely
+curl -s -H "$K" "$S/introduce" | jq '.counts, .total'   # weekly: names by city and side; `.people` is the list itself
 curl -s -H "$K" "$S/export"   -o "backup-$(date +%F).json"
 # The North Star: followed-through per hundred arrived, by arrival month, the last two months
 curl -s -H "$K" "$S/progress" | jq '.cohorts | to_entries | sort_by(.key) | .[-2:]
@@ -268,6 +272,10 @@ curl -s -H "$K" "$S/progress" | jq '.cohorts | to_entries | sort_by(.key) | .[-2
 - **Members cannot withdraw a report.** Forget me does not remove one, and there is no receipt. A member who asks for one to be dropped writes in. Read the report first, then resolve it as `no-action`.
 - **A report outlives its sheet.** A deleted or expired couple sheet leaves `gone/<code>` behind, and a report can still be made against that code for ninety days (`netlify/shared/sheet.ts`).
 - **Never confirm to anyone whether a person uses Niyyah.** Never send a code or a map to anyone except the member herself, at her request.
+
+**The introduction list.** `GET /introduce` returns every name whole; it is the founder's to read, and nobody else's. An introduction is made by hand from it: two people of opposite sides in one country within both stated reaches, each asked first, by the way they gave, whether they would like to hear about someone, and nothing about either shared before both have said yes (`docs/DECISIONS.md` Part 22). To take a name off at a person's request, `curl -s -X DELETE "$S/introduce?code=<code>"` with the `code` from the list — the same route the person's own screen uses; a 404 means it is already gone. The list is not in `/export`: save it beside the backup, monthly, and treat the file as `docs/PRIVACY.md` treats a backup. Nothing on it counts as a rung; the counts by city are read against the recruitment milestone in `docs/PRODUCT.md` §9.
+
+**The three held stores** — `cohort`, `contacts`, `vouches` — are read and written by nothing, and the sweep never opens them (decision 21). Netlify → Blobs shows them. What becomes of them is the founder's decision, written into `docs/DECISIONS.md` before anything is deleted by hand.
 
 **Before the first link is posted,** remove the founder's own test records so the first arrivals counted are strangers. Run `DELETE /progress?id=<install id>` for each of the founder's devices. The id is `installId()` in `src/lib/progress.ts`, stored in that device's localStorage.
 
@@ -285,7 +293,7 @@ The strongest recovery property is that the app is local-first. A member's answe
 curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://joinniyyah.com/.netlify/functions/export -o "backup-$(date +%F).json"
 ```
 
-Save one every month, somewhere that is not Netlify. It is the only copy of this data outside one vendor. Once the repository is private and `BACKUP_TO_ARTIFACT=true`, the `watch.yml` backup job does this on the 1st of each month as a 35-day artifact. Each run replaces the last (`docs/PRIVACY.md`, R5). The monthly step then becomes checking that the artifact exists.
+Save one every month, somewhere that is not Netlify. It is the only copy of this data outside one vendor. Save `GET /introduce` beside it the same day: the introduction list is not in the export, and it is the one record that can reach a person. Once the repository is private and `BACKUP_TO_ARTIFACT=true`, the `watch.yml` backup job does this on the 1st of each month as a 35-day artifact. Each run replaces the last (`docs/PRIVACY.md`, R5). The monthly step then becomes checking that the artifact exists.
 
 ### The restore
 
@@ -359,6 +367,8 @@ Each scenario gives detection, the first hour, recovery, how much can be lost, w
   | `progress`, `tallies` | The restore: a dry run, then `--write` | Everything since the last backup: at most 35 days |
   | `couples` | Not backed up, by design. A pair sends the eleven again | All sheets |
   | `reports` | Not backed up. **This is the loss that matters beyond data**, because each one is a concern about a real person | All open reports. Know the same day, and ask members to report again |
+  | `introductions` | Not in `/export`. The copy is the `GET /introduce` file saved beside the backup; restore by hand, or ask people to put their names down again | Every name since the last saved list. **This happened once, by our own sweep** (`docs/DECISIONS.md` Part 22): the door's `contacts` store was emptied on 2026-09-27 |
+  | `cohort`, `contacts`, `vouches` | Held stores; nothing writes them. The door's signups before 2026-09-23 also exist as Netlify Form rows (`niyyah-waitlist`), which no code reaches | Whatever the founder had not yet reviewed |
   | `ops`, `limits` | Rebuild themselves | Operational history only |
 
 - **Prevent:** keep Netlify team access to the founder alone, rely on the `data` check, and take the monthly backup.
@@ -422,7 +432,7 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 
 | What | When | Does |
 |---|---|---|
-| The sweep, `netlify/functions/sweep.ts` | `@weekly` on Netlify's scheduler: Sundays, 00:00 UTC | Removes kept maps past their year, and tombstones and once keys past theirs. Retires couple sheets past ninety days, and deletes their `gone/` keys once the reporting window ends. Deletes step counts past their year unless they reached `married`. Rolls back or finishes changes of code abandoned more than two days ago. Deletes ops counts older than 35 days. **Empties the retired `cohort`, `contacts` and `vouches` stores**, which the door and the family vouch left behind on 2026-09-24. Marks `last/sweep` with its error count. It never touches reports, tallies or limits, and a record it cannot read is counted and tried again the next week |
+| The sweep, `netlify/functions/sweep.ts` | `@weekly` on Netlify's scheduler: Sundays, 00:00 UTC | Removes kept maps past their year, and tombstones and once keys past theirs. Retires couple sheets past ninety days, and deletes their `gone/` keys once the reporting window ends. Deletes step counts past their year unless they reached `married`. Rolls back or finishes changes of code abandoned more than two days ago. Deletes ops counts older than 35 days. Marks `last/sweep` with its error count. It never touches reports, tallies or limits, **and never opens `cohort`, `contacts`, `vouches` or `introductions`**: from 2026-09-24 to 2026-09-27 it emptied the first three weekly, and its first run took the door's real signups (`docs/DECISIONS.md` Part 22). A record it cannot read is counted and tried again the next week |
 | `watch.yml` health job | Every 3 hours, on the hour UTC. The 09:00 run is the daily one; Monday's 09:00 run is the weekly one | Reads `/` and `/version.json`, then `/health`. Emails on each check's cadence |
 | `watch.yml` backup job | The 1st of each month, 09:30 UTC, only once `BACKUP_TO_ARTIFACT` is `true` | Saves `/export` as a 35-day artifact |
 | `deployed.yml` | Every push to `main` | Waits for the commit, then smoke-tests it |
@@ -445,7 +455,7 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 
 | When | What |
 |---|---|
-| Weekly | Read `/safety`. Trust promises it |
+| Weekly | Read `/safety`. Trust promises it. Read `/introduce`: someone may be waiting to be asked, and the first introduction is made from it by hand |
 | Monthly | The readouts (`docs/RESEARCH.md`); check the backup artifact or take a backup by hand; run `npm run eval:guide` once, because the model can change under an unchanged prompt |
 | Quarterly | Rotate `ANTHROPIC_API_KEY` and `FOUNDER_KEY`; run the restore drill |
 | Twice a year | The laptop tabletop |

@@ -5,7 +5,8 @@ board audit's numbered decisions with their numbers. Part 2 records the
 subtraction of 2026-09-24. Part 3 is the completion review of the same day,
 with decision 19, the product freeze. Part 4 is the Read, reviewed by an
 outside critic. Part 5 is the commitment audit. Part 6 says where each of the
-58 old docs went.
+58 old docs went. Part 22 is the founder's redirection of 2026-09-27: the
+introduction path restored, and the record-deletion the subtraction caused.
 
 Every old doc's full text is in git at commit `43295a4`:
 `git show 43295a4:docs/NAME.md`.
@@ -35,7 +36,7 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 10 | 2026-09-12 | **Trust says a kept map lives with one vendor** and that the founder's backup does not include it, instead of building an encrypted dump now | The honest sentence costs nothing; the dump waits for records | Stands. The backup still omits kept maps (`netlify/functions/export.ts`). The Trust sentence went with the section on being counted in `0bd7e96` and was put back under "Keeping your map" in part B the same day |
 | 11 | 2026-09-12 | **The learning loop's threshold splits:** a hundred records for weights, `consequence` and anything that changes a reading; twenty for script wording, order and labels | At a hundred records per row the loop turns in years; low-stakes constants can turn in months | Stands. The monthly loop is in `docs/RESEARCH.md` |
 | 12 | 2026-09-12 | **The code stays six characters,** the restore link keeps the code in its URL (the link is the feature), and moving `GET/DELETE /keep` to a header is declined | Six is easy to read on a phone, the read caps were taken to bound enumeration, and the product controls no log that would hold the query string | Superseded in part on 2026-09-23: the caps bound the rate, not the fraction, so codes are minted at eight characters (`netlify/shared/code.ts`, `docs/SECURITY.md` O8). Six-character codes still work; the code stays in the restore link |
-| 13 | 2026-09-12 | **The contact lives exactly as long as the map:** the pool's sweep deletes it with the lapsed entry, and Trust says so | Lapsed contacts, the only personal data the product held, were kept indefinitely | Retired 2026-09-24 with the feature. The sweep empties the `contacts` store (`netlify/functions/sweep.ts`) |
+| 13 | 2026-09-12 | **The contact lives exactly as long as the map:** the pool's sweep deletes it with the lapsed entry, and Trust says so | Lapsed contacts, the only personal data the product held, were kept indefinitely | Retired 2026-09-24 with the feature, and the sweep was made to empty the `contacts` store every week instead. **Reversed 2026-09-27** (Part 22, decision 21): the sweep never opens it; a person's own Forget me removes hers; the rest is held for the founder's decision |
 | 14 | 2026-09-12 | **The keep stays on the Reflection screen,** the moment the map completes | `Reflection.tsx` already offered it there, and `kept / mapped` (whether people trust the server with a map) is read from the first ten before anything moves | Stands (`KeepMap` on Reflection) |
 | 15 | 2026-09-12 | **The guide gets one bit:** `facts.asked = ['guide']`, a set like `began`, which the readout crosses with `followed-through` | The guide is the one metered cost and was unmeasurable before an ending; with the bit, A3 reads in weeks, not years | Stands (`src/lib/facts.ts`, `netlify/functions/progress.ts`). A3 is in `docs/RESEARCH.md` |
 | 16 | 2026-09-12 | **The $99 line is sold at the joint view** of the two-sided eleven, never at the stage she declares; `deciding` stays a free word | The joint view is when value has been delivered (both answered blind); `deciding` is a measured word and must not carry a price | Stands as a rule. Nothing is sold: there is no payment code. On 2026-09-24 the line was narrowed to the call alone, once per person for life (`docs/PRODUCT.md`) |
@@ -43,6 +44,11 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 18 | 2026-09-12 | **Somali-first stays.** The brand names the community; the institution rule (nothing that would need renaming for a second community lives outside `src/data`) holds for the brand strings | A second community should be a one-file change, and that day is not now | Stands (`src/data/brand.ts`; `tests/brand.test.ts` holds the manifest to it) |
 | 19 | 2026-09-24 | **The product freeze.** No new feature without observed user evidence, a production failure, a safety or security requirement, or a measurable business requirement (Part 3) | The product is complete enough to learn from, with no members; the completion review found its three blockers where features had been added without anyone watching | Stands |
 | 20 | 2026-09-24 | **Every relationship claim has a class.** Claims about people, relationships and Somali families are classed A–H in `docs/RESEARCH.md`, and the copy says no more than its class allows; the ledger lists each one, and `tests/voice.test.ts` keeps the patterns out | The copy said as fact what the research doc called assumed (the eleven as what breaks marriages), gave frequencies nobody had counted, and read a person's character from one reply | Stands. Man-only lines wait for decision 4; the live prompt waits for its first live eval |
+| 21 | 2026-09-27 | **Retiring a feature never deletes what people gave it.** A record goes only when a lifetime the product stated has run out, or when its owner asks. The `cohort`, `contacts` and `vouches` stores are held, unread and unwritten, until the founder decides their retention by hand (Part 22) | The sweep emptied them weekly from 2026-09-24 because "nothing reads them any more" — and took the only way to reach two women who had asked to be introduced, on no promise made to them | Stands (`netlify/functions/sweep.ts` `HELD_STORES`; Forget me still reaches them, `netlify/functions/keep.ts`) |
+| 22 | 2026-09-27 | **The introduction path is the product's first door.** Removing the signup route, the introduction capability, or materially changing who Niyyah is for or what the signup promises needs the founder's explicit approval, written into this file before the change. A subtraction audit, a reviewer or a working session cannot make that call | The 2026-09-24 subtraction removed the door on "there are no members", which was wrong about two real women, and nothing required the founder to be asked | Stands. Extends decision 19: a deletion of this kind is no longer "not a feature" |
+| 23 | 2026-09-27 | **The smallest signup.** Six fields — a way to reach her, an optional first name, woman or man, city and country, how far she would go, the day — written by `netlify/functions/introduce.ts` under a minted code her phone keeps; "your name is down" only on the server's answer; no count shown, no date promised, no pool claimed; nobody enrolled by using anything else | The old door asked for a kept map first, an age, the hardest part and a ledger, and showed a count that became a scarcity meter; a name and a way to reach her is all a hand-made introduction needs to start | Stands (Part 22) |
+| 24 | 2026-09-27 | **The first introductions are made by hand, with both yeses first.** No browsing, messaging, matching or profile is built until the pilot shows a need. Forty and forty is a recruitment milestone, read by city against location, reach and readiness — not the condition for the first introduction, which is one viable pairing and two yeses (Part 22) | A pool that "opens at forty" waits for a number while two people who could be introduced today are not | Stands |
+| 25 | 2026-09-27 | **Four measures, kept apart:** names on the list; viable pairings; mutually accepted introductions; whether the instruments help (the North Star). A finished questionnaire is never counted as interest in meeting someone | Counting tool use as interest, or interest as an introduction, would make the ladder lie in both directions | Stands (`docs/RESEARCH.md` A10) |
 
 ### The top ten actions
 
@@ -50,10 +56,10 @@ The board audit ranked ten actions by expected impact. State on 2026-09-24:
 
 | # | Action | State |
 |---|---|---|
-| 1 | Post the eleven, the read and the door to ten connectors; log the conversations | Recorded done 2026-09-12. The door part retired 2026-09-24. There were no members on 2026-09-24 |
+| 1 | Post the eleven, the read and the door to ten connectors; log the conversations | Recorded done 2026-09-12. The door part retired 2026-09-24. "There were no members on 2026-09-24" was wrong: two women had signed up through the door (Part 22) |
 | 2 | Give the read-first and eleven-first user a Home | Done (`src/lib/inferStage.ts`) |
 | 3 | Decide the ticket to the door | Decision 3; retired 2026-09-24 with the feature |
-| 4 | Make the customer list exportable | Done; retired 2026-09-24 with the `contacts` store |
+| 4 | Make the customer list exportable | Done; retired 2026-09-24 with the `contacts` store, which the sweep then emptied. The list is `GET /introduce` from 2026-09-27 (Part 22) |
 | 5 | Flip the repository to private | Open (decision 5) |
 | 6 | Truthful shares | Done: the married share claims the eleven only when she did them (`src/lib/ending.test.ts`) |
 | 7 | Bound the guide before the gate comes off | Done: 32 KB body, 6,000-character thread, 2,048 output tokens (`netlify/functions/guide.ts`). The console spend limit is the founder's |
@@ -166,7 +172,10 @@ explained. It shipped as five commits, `0bd7e96` to `d41f879` (PR #69).
 
 - There are no members and no city pool. `netlify/shared/record.ts` notes
   three test rows, all the founder's own. About a third of the product served
-  introductions that do not exist.
+  introductions that do not exist. **Corrected 2026-09-27 (Part 22):** two
+  real women had signed up through the door because they were single and
+  hoped to be introduced. The premise was wrong about them, and the sweep
+  this pass added deleted the store that held the way to reach them.
 - The loop that makes Niyyah different depends on none of it: the read or the
   eleven, then the words, then "did you say it?", then the two-sided eleven,
   then the Ending.
@@ -3937,3 +3946,157 @@ Once that is confirmed, the product can be frozen.
 come, plus tests and docs. The foot-of-the-Guide line is one disclosure
 reusing `HelpLine`, with no new screen, route, store, stored field or flow
 of data.
+
+## Part 22: The introduction path, restored (2026-09-27)
+
+The founder's direction, given on 2026-09-27: Niyyah exists so that serious
+Somali singles meet each other and move toward marriage. The preparation
+instruments, the eleven and the family words belong inside that; they are not
+the whole of it. Two real women signed up to the door's waitlist because they
+are single and hoped Niyyah would help them meet someone serious. That is
+founder-confirmed, and every decision that rested on "there are no members"
+is re-read here against it.
+
+### The outside review's findings, checked
+
+| Finding | Checked against | Result |
+|---|---|---|
+| The product focuses on people already considering someone | `src/components/Welcome.tsx`, `src/data/brand.ts`, `README.md` at `911654a` | True. Both doors said "already talking to someone"; nobody looking had a way in |
+| The read, the eleven, the shared sheet, the family words, the map and the Guide remain useful | The code and its tests | True, and untouched by this Part |
+| The 2026-09-24 subtraction removed the waitlist, pool, matching gate, profiles, sample introductions and family vouch | `0bd7e96`, Part 2 | True |
+| The previous implementation is at `43295a4` | `git show 43295a4` | True: the last commit with the door |
+| Netlify lists `niyyah-waitlist` with five submissions | Netlify's forms API for site `getniyyah` | True: created 2026-08-29, five submissions, the last at 2026-09-22 01:13 UTC. Five rows are not five people: `netlify/shared/record.ts` recorded three test rows of the founder's own (around 2026-09-11), so three tests and two real women is consistent, and unconfirmed until the founder opens the rows |
+| The deployed weekly sweep empties the retired stores | `netlify/functions/sweep.ts` at `911654a`; PR #70 merged 2026-09-24 05:35 UTC; the live deploy's schedule | True. `@weekly` is Sundays 00:00 UTC, and the live deploy registers `sweep @weekly`. **Its first run was 2026-09-27 00:00 UTC**, about five hours before this Part was written |
+| Whether the two women's contact records remain has not been verified | This session had no founder key and its network policy refuses `joinniyyah.com`; the Netlify API exposes no store or log read | Still unverified. The founder can settle it in two places (below) |
+
+### Where the two signups were stored, and what can be recovered
+
+- **Netlify Forms, `niyyah-waitlist`.** Until `d4105ca` (2026-09-23 16:59
+  UTC) every submission carried `contact` (an email or phone), `scene`,
+  `country`, `reach`, `gender`, `hardest_part` and `at`; after it, `scene`
+  and `at` only. All five submissions predate the cut, so every row carries
+  a contact. No code has ever written to, read from or deleted a Netlify
+  Form submission, and the sweep cannot reach one. **This is the surviving
+  copy**: Netlify → Forms → `niyyah-waitlist`, read by the founder alone.
+  Netlify also emailed the founder on each submission, so the inbox may hold
+  a second copy of each row.
+- **The `contacts` store** (2026-09-08, `a787470`, to 2026-09-24) held
+  `{contact, scene, country, at}` under the person's map code for everyone
+  who joined in that window. If the sweep ran at 00:00 UTC today as
+  scheduled, it is empty; if the run failed, `/health`'s `sweep` check says
+  so and the store still holds them. **The founder checks:** Netlify →
+  Functions → `sweep` → Logs, for today's `[niyyah] sweep:` line (a count of
+  `retired` above zero means the store copies went); or Netlify → Blobs →
+  `contacts`.
+- **`cohort`** held a place at the door (city, side, reach, hardest part)
+  and an index, no contact. **`vouches`** held relatives' first names,
+  sentences and phone numbers, from the vouch. Both were emptied by the same
+  pass.
+- **Kept maps** never carried the contact: the client left `waitlist.contact`
+  out of the snapshot and the server deleted it again
+  (`git show 43295a4:src/lib/keep.ts`, `:netlify/functions/keep.ts`). A map
+  holds a first name, a city and the answers, lives a year, and is untouched
+  by the pass. It is the person's; it is not a contact list.
+- **A `reach-<date>/` export** the founder may have taken by hand
+  (`docs/PRIVACY.md` R4, the old monthly hour). Unknown from here.
+- **Not stored anywhere:** which form row is which map code. The code left the
+  form on 2026-09-12, and the form never carried it again.
+
+Nothing personal was read, printed or committed in making this Part; the
+counts and dates above are the form's metadata.
+
+### What changed in the code
+
+- **The sweep leaves the three stores alone** (`netlify/functions/sweep.ts`,
+  `HELD_STORES`). It removes a record only at the end of a lifetime the
+  product stated, or never; `tests/sweep-function.test.ts` and
+  `tests/integrity.test.ts` hold that it does not open them, and
+  `tests/recovery.test.ts` that every fixture row survives a run.
+- **Forget me reaches them again** (`netlify/functions/keep.ts`
+  `forgetLegacy`): a person's own request removes her contact, her door entry
+  and index, and her relative's vouch, as it did before 2026-09-24. Nothing
+  else does.
+- **Two doors on Welcome** (`src/components/Welcome.tsx`): "I'm looking for
+  someone serious" and "I'm already talking to someone", with the situation
+  question and the map as the quieter line under them. The second door is a
+  chooser of three (`src/components/Talking.tsx`): the read, the eleven, the
+  family words. The first is the introduction list.
+- **The introduction list** (`src/components/Looking.tsx`,
+  `netlify/functions/introduce.ts`, the `introductions` store,
+  `src/lib/introduce.ts`; `?looking` opens it). Six fields, the truth about
+  what happens next, a code on her phone to take her name off, a card on
+  Home for someone preparing, a Trust disclosure, Forget me's fourth delete.
+  Restored from the door's parts that this step needed and nothing more:
+  `src/lib/contact.ts` and `src/data/reach.ts` came back from `43295a4`; the
+  count, the short map, the age, the ledger, the hesitation question, the
+  pool readout and the matching gate did not.
+- **The brand's first sentence** names both doors again (`src/data/brand.ts`,
+  the manifest). `public/og.png` still carries the 2026-09-24 line and is
+  re-rendered by hand.
+
+### The pilot: what is proposed, and what waits
+
+**The first introductions are made by hand.** The founder reads
+`GET /introduce`, finds two people of opposite sides in one country within
+each other's stated reach, and gets in touch with each of them first, the way
+they gave, with one question each: would you like to hear about someone?
+Nothing about either reaches the other before both have said yes. Then names
+are exchanged, and both are pointed at the instruments: the read for the
+first weeks, the eleven when it gets serious, the family words after. The
+founder's hours per introduction are written down from the first one; the
+old runbook at `git show 43295a4:docs/LIQUIDITY.md` is the reference, and
+decision 17's hour limit stands.
+
+**Forty and forty, reassessed.** Forty women and forty men was the door's
+opening condition. Read against location, reach and readiness it is not a
+condition at all: forty spread over five countries who would not travel is
+no introduction, and two in one city who would is one. So it is kept as a
+**recruitment milestone for the first city**, and the condition for the first
+introduction is one viable pairing and two yeses. What the milestone is read
+against, by city: names by side; how many would travel within the country;
+how many pairings are viable; how many people the founder has spoken to.
+
+**Held until the pilot shows a need:** browsing, a queue, messaging, a
+profile, photos, any matching by the product, a count on a door, a page of
+its own for `?looking`, a Somali line for the new screens (every Somali
+sentence waits for the founder's approval, `src/data/somali.ts`).
+
+### Four measures, kept apart (decision 25)
+
+| Measure | Where it is read | What it is not |
+|---|---|---|
+| Names on the list | `GET /introduce`: `counts[scene].women`, `.men`, `total`; `reach` per person | Not a rung; nothing in `/progress` moves when a name goes down |
+| Viable pairings | The founder's hand count from the same list: opposite sides, one country, within both reaches. Logged in `docs/RESEARCH.md` A10 with its date | Not computed by the product |
+| Mutually accepted introductions | The founder's log: two yeses, one introduction, the day | Never inferred from anything either person does in the app |
+| Whether the instruments help | The North Star and A1, A3, A4, unchanged (`docs/PRODUCT.md` §3) | A finished map, read or eleven is not interest in meeting someone |
+
+### Corrections to the record
+
+- Part 2, "there are no members": wrong about two women (noted in place).
+- Decision 13's "Now", actions 1 and 4: corrected in place.
+- `docs/RESEARCH.md`: A6 and A7 were retired on the same premise; A10
+  replaces them, conviction 6 is reopened, and the founder's confirmation is
+  the first entry under Feedback that is about someone other than the founder.
+- `docs/PRODUCT.md` §1 said "finding someone, the product cannot do". It can,
+  by hand, and the row says so.
+
+### The founder's part, not done here
+
+1. Open Netlify → Forms → `niyyah-waitlist` and identify the two real rows
+   among the five; then Functions → `sweep` → Logs (or Blobs → `contacts`) to
+   learn whether the store copies survived today's run.
+2. Decide whether, and how, to write to the two women. Nothing has been sent
+   and no draft has been written; both wait for the founder's word.
+3. Decide the retention of the three held stores: which rows are tests;
+   whether the real contacts move onto the introduction list, with each
+   person's consent, or go; then delete by hand.
+4. Read `GET /introduce` weekly with `/safety`, and take the first
+   introduction's hours down.
+5. Re-render `public/og.png` for the new first sentence.
+6. Merging, the production deploy and any outreach: held for review, as asked.
+
+**Decision 19.** Two of the four cases: observed user evidence — the
+founder's confirmation of two real signups, the dated entry in
+`docs/RESEARCH.md` — and a production failure: a scheduled function deleting
+records outside any lifetime the product had stated. Decision 22 now also
+requires the founder's written approval before this door is removed again.

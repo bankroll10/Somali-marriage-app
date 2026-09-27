@@ -18,7 +18,7 @@ every new test a bookkeeping row and guarded nothing a reviewer does not.
 | Functions | `tests/*-function.test.ts` | One real handler over an in-memory Blobs |
 | Invariants | `tests/invariants/` | The seven things this product cannot get wrong, one suite each |
 | Journeys | `tests/journeys/` | The real `<App>`, driven by taps, over the real client and handlers |
-| Screens | `tests/ui/screens.test.tsx` | Twenty screens reached the way a person reaches them, audited as rendered |
+| Screens | `tests/ui/screens.test.tsx` | Every screen a person can reach, reached the way a person reaches them, audited as rendered |
 | Failure | `tests/failure-modes.test.ts`, `tests/ops.test.ts` | Failures caused on purpose: a cut-off body, a store that will not open, two writes at once |
 | Guards | the rest of `tests/` | What no request or rendered screen can reach: a CSS rule, a build setting, a word the product never says |
 
@@ -65,6 +65,8 @@ their neighbours had not hollowed them out.
 | | | The Guide's line reply removed (2026-09-26) | Red (1) |
 | | | "not allowed to refuse him" removed from the force words (2026-09-26) | Red (1) |
 | | | A held-out phrase added to a crisis word list (2026-09-26) | Red (2): the guard, and the gap ledger |
+| Delete means deleted | `delete-means-deleted` | Forget me leaves her name on the introduction list (2026-09-27) | Red |
+| A retired feature is not a lifetime | `sweep-function`, `integrity`, `recovery` | The sweep opens `contacts` again and deletes a key (2026-09-27) | Red (3 suites) |
 
 One mutation that the register alone does not catch, on purpose: the forget
 cascade in `netlify/functions/keep.ts` leaving the couple sheet. Her phone
@@ -112,6 +114,7 @@ What each suite holds beyond its mutation:
 | `eleven-two-phones` | She sends the eleven; he opens only the link her share sheet got. Both see the joint; neither sees the other's note. *He answered* opens the joint. |
 | `forget-offline` | Forget me with the network down. The phone keeps only the pending codes, even after the autosave has had a reason to run, and the next launch finishes it. |
 | `netlify-down` | Every function unreachable from the first tap. A stranger still takes a whole read; a member opens her space and a failed keep loses nothing. |
+| `looking` | The two doors. Through the first, her name goes down only once the server has it, with the six fields and nothing else about her anywhere; with the server gone she is told so and her words stay; she takes it off again; Home shows it. Through the second, each of the three cards lands on its instrument. |
 
 ## Guards: what stays as source text, and why
 

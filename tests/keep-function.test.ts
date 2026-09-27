@@ -197,6 +197,33 @@ describe('keeping a map', () => {
     }
   })
 
+  it('forgetting takes what the door and the vouch left under her code, and nothing under anyone else’s', async () => {
+    // From 2026-09-24 the cascade stopped reaching these three stores and the
+    // sweep emptied them wholesale instead. The sweep no longer touches them
+    // (docs/DECISIONS.md Part 22), so her own Forget me is again what removes
+    // her way of being reached, her place at the door and her relative's vouch.
+    seed('ACDEFG', { identity: { gender: 'woman' } })
+    memStore('contacts').setJSON('ACDEFG', { contact: 'sagal@example.com', scene: 'twin-cities', country: 'us', at: 'd' })
+    memStore('contacts').setJSON('QRTWXY', { contact: 'someone-else@example.com', scene: 'london', country: 'uk', at: 'd' })
+    memStore('cohort').setJSON('us/twin-cities/woman/city/serious/ACDEFG', { at: 'd', ledger: [] })
+    memStore('cohort').set('index/ACDEFG', 'us/twin-cities/woman/city/serious/ACDEFG')
+    memStore('cohort').setJSON('uk/london/man/city/none/QRTWXY', { at: 'd', ledger: [] })
+    memStore('cohort').set('index/QRTWXY', 'uk/london/man/city/none/QRTWXY')
+    memStore('vouches').setJSON('ACDEFG', { relationship: 'father', firstName: 'Cabdi', sentence: 's', phone: '+1 555', at: 'd' })
+    memStore('vouches').set('asked/ACDEFG', 'ACDEFGHJKM')
+    memStore('vouches').set('token/ACDEFGHJKM', 'ACDEFG')
+    memStore('vouches').setJSON('QRTWXY', { relationship: 'mother', firstName: 'Faadumo', sentence: 's', phone: '+44 7', at: 'd' })
+
+    expect((await forget('ACDEFG')).status).toBe(200)
+    expect([...stores.get('contacts')!.keys()]).toEqual(['QRTWXY'])
+    expect([...stores.get('cohort')!.keys()].sort()).toEqual(['index/QRTWXY', 'uk/london/man/city/none/QRTWXY'])
+    expect([...stores.get('vouches')!.keys()]).toEqual(['QRTWXY'])
+    // And a person who was never at the door forgets cleanly: the stores are
+    // opened and nothing is there.
+    seed('HJKMNP', { identity: {} })
+    expect((await forget('HJKMNP')).status).toBe(200)
+  })
+
   it('forgetting needs a code the right shape', async () => {
     expect((await forget('nope')).status).toBe(400)
     expect((await forget('ACDEFGHJKM')).status).toBe(400)

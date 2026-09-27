@@ -19,6 +19,7 @@ const keep = (await import('../netlify/functions/keep')).default
 const couple = (await import('../netlify/functions/couple')).default
 const safety = (await import('../netlify/functions/safety')).default
 const progress = (await import('../netlify/functions/progress')).default
+const introduce = (await import('../netlify/functions/introduce')).default
 
 type Handler = (req: Request) => Promise<Response>
 const post = (handler: Handler, path: string, body: unknown) =>
@@ -71,6 +72,14 @@ const cases: { bucket: string; path: string; handler: Handler; store: string; fi
     first: { id: 'ACDEFG', rungs: ['arrived'] },
     second: { id: 'HJKMNP', rungs: ['arrived'] },
   },
+  {
+    bucket: 'introduce',
+    path: 'introduce',
+    handler: introduce,
+    store: 'introductions',
+    first: { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities' },
+    second: { contact: 'hodan@example.com', gender: 'woman', scene: 'london' },
+  },
 ]
 
 describe('every public write is bounded', () => {
@@ -117,6 +126,16 @@ describe('every public write is bounded', () => {
     const refused = await post(couple, 'couple', { side: 'second', code: other, states: sides })
     expect(refused.status).toBe(503)
     expect(JSON.parse(stores.get('couples')!.get(other)!).second).toBeUndefined()
+  })
+
+  it('taking a name off the introduction list spends its own bucket — it deletes by a code', async () => {
+    vi.stubEnv('INTRODUCE_FORGET_HOURLY_CAP', '1')
+    const { code: a } = await (await post(introduce, 'introduce', { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities' })).json()
+    const { code: b } = await (await post(introduce, 'introduce', { contact: 'hodan@example.com', gender: 'man', scene: 'london' })).json()
+    const off = (code: string) => introduce(new Request(`http://x/.netlify/functions/introduce?code=${code}`, { method: 'DELETE' }))
+    expect((await off(a)).status).toBe(200)
+    expect((await off(b)).status).toBe(503)
+    expect(stores.get('introductions')!.has(b)).toBe(true)
   })
 
   it('forgetting an install is bounded — it was the one public write with no cap', async () => {

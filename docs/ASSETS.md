@@ -44,9 +44,15 @@ page has no URL here. A new asset does not ship without a row.
 | **N3-note-pdf** | N3-note as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-facilitator-note.pdf` | **live and checked** | 2026-09-25 |
 | **N3-so-pdf** | N3-so as a Letter PDF, four pages | `https://joinniyyah.com/niyyah-money-conversation-sheet-so.pdf` | **built, not yet checked** | — |
 | **N3-1page-so-pdf** | N3-1page-so as a Letter PDF, one page | `https://joinniyyah.com/niyyah-money-conversation-sheet-1page-so.pdf` | **built, not yet checked** | — |
+| **N5** | The introduction list — "I'm looking for someone serious", a name put down for an introduction made by hand | `https://joinniyyah.com/?looking` | **built, not yet checked** | — |
 
 N0, the door's tool page (`/tools/door`), was retired with the door on
-2026-09-24; the id is not reused.
+2026-09-24; the id is not reused. N5 (2026-09-27, `docs/DECISIONS.md` Part
+22) is a query link, not a page of its own, so it previews as the homepage
+until the first introductions have been made; a room post carries its kind,
+`?looking&via=group` (or `alumni`, `professional`, `mosque`). It goes in no
+pitch until it is live and checked, and nothing about it promises an
+introduction, a date or a pool.
 
 The `/tools/` pages are rows in `src/data/tools.ts`, written at build time by
 `src/lib/toolPages.ts`; the `/guides/` pages are its `GUIDE.path` and
@@ -59,6 +65,7 @@ static files in `public/`, with plain-text twins (`…-sheet.txt`,
 | N1a / N1b | "I have been talking to someone for months and cannot tell if this is going anywhere." | A Somali adult talking to a specific person | A read of what the other person has done, in bands, with the thinnest ground named | The one question to ask next, word for word, or the guide |
 | N1c | "We are getting serious and I do not know what we have not discussed." | A Somali adult deciding about a specific person | Which of the eleven they have had, and which is open | The one to open this week, or the two-sided sheet sent to the other person |
 | N4 | "How do I say this to my family?" | Someone about to bring the families in | The family conversations, written to be said aloud | Saying one; the app asks later whether they did |
+| N5 | "I am not talking to anyone, and I want to meet someone serious." | A Somali adult who is single | Their name down: a way to reach them, where they are, how far they would go | The founder asks them first, by hand, if someone fits; nothing before both say yes |
 | N2 | "What should a couple talk about before the families get involved?" | A couple, and the coordinator handing it to them | All eleven, each with why it is found out too late, the words, and what to listen for | Read it separately, then together; N1c is linked |
 | N2s | The same, reviewable in two minutes | A reviewer at a mosque, a service or a resource list | Three conversations, with marking space | The full guide |
 | N3 | "What do we each expect about mahr, the wedding, debt and money to relatives?" | Two adults deciding about each other, and whoever hands it over | Twenty questions in four subjects, answered in two columns | Their answers side by side; nothing prescribed or scored |

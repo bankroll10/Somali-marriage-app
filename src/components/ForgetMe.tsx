@@ -5,7 +5,7 @@ import { CONTACT_EMAIL } from '../lib/site'
 import { speak } from '../data/read'
 
 /** Delete everything kept under her codes, then start this phone over. */
-export type Forgot = () => Promise<{ map: boolean; progress: boolean; couple: boolean; code?: string }>
+export type Forgot = () => Promise<{ map: boolean; progress: boolean; couple: boolean; intro: boolean; code?: string }>
 
 /**
  * Forget me.
@@ -37,9 +37,10 @@ export default function ForgetMe({
 <section className={`${className} rounded-card border border-line bg-white/50 p-5`}>
       <h2 className="font-display text-[1.08rem] font-medium text-ink">Forget me</h2>
       <p className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
-        Deletes your kept map, {fix('the eleven you sent {him}')}, and the count of your steps —
-        then clears this phone. If you come back after this, you start as a stranger. A
-        concern you reported stays with the founder until she has read it.
+        Deletes your kept map, {fix('the eleven you sent {him}')}, the count of your steps, and
+        your name on the introduction list if you put it down — then clears this phone. If you
+        come back after this, you start as a stranger. A concern you reported stays with the
+        founder until she has read it.
       </p>
       {/* The two honest limits used to sit in the middle of the paragraph
           above, which is the least likely place a person reads them. They
@@ -77,6 +78,7 @@ export default function ForgetMe({
                     !result.map && 'your kept map',
                     !result.progress && 'the count of your steps',
                     !result.couple && 'the eleven you sent',
+                    !result.intro && 'your name on the introduction list',
                   ].filter((s): s is string => !!s),
                 )
                 setForgetting('idle')

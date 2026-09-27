@@ -51,6 +51,12 @@ const HOOK = [...START, /^I’m not talking to anyone/, /^Continue/]
 
 const VISITS: Record<string, Visit> = {
   welcome: { who: 'stranger', lands: /What’s in your way\?/ },
+  // The two doors (docs/DECISIONS.md Part 22).
+  looking: { who: 'stranger', taps: [/I’m looking for someone serious/], lands: /Put my name down/ },
+  'looking — somewhere else': { who: 'stranger', taps: [/I’m looking for someone serious/, /^Somewhere else$/], lands: /Somewhere else in…/ },
+  'looking — from a link': { who: 'stranger', link: () => instrumentLink('looking', 'group'), lands: /Put my name down/ },
+  talking: { who: 'stranger', taps: [/I’m already talking to someone/], lands: /Where are you with it\?/ },
+  'home — the introduction card': { who: 'member', taps: [/^Looking for someone serious\?/], lands: /Put my name down/ },
   identity: { who: 'stranger', taps: ['Start where you are'], lands: /Let’s start with you/ },
   situation: { who: 'stranger', taps: START, lands: /What’s happening right now\?/ },
   'situation — getting ready': { who: 'stranger', taps: [...START, /^I’m not talking to anyone/], lands: /Get yourself ready first/ },

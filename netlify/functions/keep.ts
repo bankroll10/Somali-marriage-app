@@ -105,6 +105,34 @@ export async function rollBackMove(maps: Store, old: string, to: string) {
   await maps.delete(movingKey(old))
 }
 
+/**
+ * What the door and the family vouch left under her code, taken with the map
+ * when she asks.
+ *
+ * Until 2026-09-24 Forget me deleted these with the map; the subtraction cut
+ * that and left the weekly sweep to empty the three stores wholesale. The
+ * sweep no longer does (netlify/functions/sweep.ts, docs/DECISIONS.md Part
+ * 22), so the person's own request is again the only thing that removes her
+ * way of being reached, her place at the door and her relative's vouch: the
+ * contact under her code; the door entry her index names, and the index; the
+ * vouch, its ask, and the token that pointed at it. Nothing is read out of
+ * any of them. Stores that were never written are empty, and every delete
+ * here lands on a key that may not exist, which Blobs accepts.
+ */
+async function forgetLegacy(code: string): Promise<void> {
+  const vouches = getStore('vouches')
+  const cohort = getStore('cohort')
+  const contacts = getStore('contacts')
+  const token = (await vouches.get(`asked/${code}`, { type: 'text' })) as string | null
+  if (token && (await vouches.get(`token/${token}`, { type: 'text' })) === code) await vouches.delete(`token/${token}`)
+  await vouches.delete(`asked/${code}`)
+  await vouches.delete(code)
+  const member = (await cohort.get(`index/${code}`, { type: 'text' })) as string | null
+  if (member) await cohort.delete(member)
+  await cohort.delete(`index/${code}`)
+  await contacts.delete(code)
+}
+
 /** Normalise what a human typed: case, spaces, and the dash people add. */
 export default async function handler(req: Request) {
   const store = getStore('maps')
@@ -173,6 +201,9 @@ export default async function handler(req: Request) {
       const coupleCode = typeof snapshot.couple?.code === 'string' ? normalise(snapshot.couple.code) : ''
       // Retired, not erased: a report about it can still reach the founder.
       if (CODE.test(coupleCode)) await retire(getStore('couples'), coupleCode)
+      // Her way of being reached, her place at the door, her relative's
+      // vouch — from before 2026-09-24, under this code (docs/PRIVACY.md).
+      await forgetLegacy(code)
       // The first keep's once key, which names this code for a day.
       if (kept?.once) await store.delete(onceKey(kept.once))
       // Reports are not touched here, and cannot be. This cascade used to

@@ -231,6 +231,27 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               </p>
             </Disclose>
 
+            <Disclose summary="Putting your name down for an introduction" hint="A way to reach you, and where you are">
+              <p className="text-[0.88rem] leading-snug text-muted text-pretty">
+                Only if you tap <span className="font-medium text-ink">Put my name down</span> on the looking screen. Nothing
+                else you do here — a map, a read, the eleven — puts you on the list. What goes to our server:
+              </p>
+              <ul className={LIST}>
+                <li>the email or phone number you typed</li>
+                <li>the first name you gave, if you gave one</li>
+                <li>whether you are a woman or a man</li>
+                <li>your city and its country, or the country you named</li>
+                <li>how far you said you would go: your city, or anywhere in your country</li>
+                <li>the day</li>
+              </ul>
+              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+                It is kept under a code this phone made up for itself — not your map code, not the code your steps go
+                under — so nothing joins it to your answers. The founder reads the list, by hand, to make introductions
+                one at a time; no other route returns it, and it is not in the backup. It stays until you take your name
+                off, from that screen or with Forget me below, or ask us to.
+              </p>
+            </Disclose>
+
             <Disclose summary="The Guide" hint="Your message and a summary of your map">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                 Here is exactly what the Guide sends when you ask it something: your message and

@@ -125,6 +125,7 @@ and `tests/tools.test.ts`.
 | `read` | `/tools/is-he-serious`, `/tools/is-she-serious`; `/?read` | the read about that side; the query form asks who |
 | `eleven` | `/tools/before-you-say-yes`; `/?eleven` | Before you say yes |
 | `families` | `/tools/families`; `/?families` | the family words |
+| `looking` | `/?looking` | the introduction list (`src/components/Looking.tsx`). Query-only until the first introductions are made by hand |
 | `couple` | `/?couple=CODE` | his side of the eleven she sent; her own link on her own phone says so (N1) |
 | `map` | `/?map=CODE` | a kept map for herself, asked on `ConfirmRestore` before anything is replaced (`docs/SECURITY.md` O2) |
 

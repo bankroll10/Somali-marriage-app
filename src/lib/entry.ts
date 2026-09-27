@@ -43,13 +43,18 @@
  * no link this product hands out puts a code on one. The query-string forms
  * stay, unchanged, for every link already sitting in someone's messages.
  *
+ * `?looking` (2026-09-27) opens the introduction list — the screen for someone
+ * who is not talking to anyone and wants to be introduced (src/components/
+ * Looking.tsx, docs/DECISIONS.md Part 22). Query-only for now: no page of its
+ * own is written for it until the first introductions have been made by hand.
+ *
  * This is the one place links are recognised, so main.tsx can dispatch without
  * a router and the query string can be cleaned before React reads storage.
  */
 import { TOOLS, toolFor, toolFromPath, toolPath, type ToolSide } from '../data/tools'
 
 export type CodedKind = 'map' | 'couple'
-export type InstrumentKind = 'read' | 'eleven' | 'families'
+export type InstrumentKind = 'read' | 'eleven' | 'families' | 'looking'
 export type EntryKind = CodedKind | InstrumentKind
 
 // The tools table is import-free so the build can load it; this is what keeps
@@ -75,7 +80,7 @@ export interface Entry {
 
 /** Coded kinds first, so a link mangled into two still restores the map. */
 const CODED: CodedKind[] = ['map', 'couple']
-const INSTRUMENTS: InstrumentKind[] = ['read', 'eleven', 'families']
+const INSTRUMENTS: InstrumentKind[] = ['read', 'eleven', 'families', 'looking']
 
 /** Normalise what a human or a messaging app did to a code. */
 export function normaliseCode(raw: string): string {
