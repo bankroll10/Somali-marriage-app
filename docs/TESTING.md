@@ -67,6 +67,9 @@ their neighbours had not hollowed them out.
 | | | A held-out phrase added to a crisis word list (2026-09-26) | Red (2): the guard, and the gap ledger |
 | Delete means deleted | `delete-means-deleted` | Forget me leaves her name on the introduction list (2026-09-27) | Red |
 | A retired feature is not a lifetime | `sweep-function`, `integrity`, `recovery` | The sweep opens `contacts` again and deletes a key (2026-09-27) | Red (3 suites) |
+| A name is kept at most 180 days | `sweep-function`, `journeys/looking` | The sweep skips every introduction whatever its day (2026-09-27) | Red (5: 4 in `sweep-function`, 1 in the journey) |
+| Nothing identifying before two yeses | `voice`, `journeys/looking` | Looking says "nothing about you reaches anyone before you say yes" again (2026-09-27) | Red (3: both voice scans, and the journey) |
+| The old marketplace stays in git | `no-marketplace` | — | Guards file names and identifiers; `deploy-layout` guards the function list |
 
 One mutation that the register alone does not catch, on purpose: the forget
 cascade in `netlify/functions/keep.ts` leaving the couple sheet. Her phone
@@ -114,7 +117,8 @@ What each suite holds beyond its mutation:
 | `eleven-two-phones` | She sends the eleven; he opens only the link her share sheet got. Both see the joint; neither sees the other's note. *He answered* opens the joint. |
 | `forget-offline` | Forget me with the network down. The phone keeps only the pending codes, even after the autosave has had a reason to run, and the next launch finishes it. |
 | `netlify-down` | Every function unreachable from the first tap. A stranger still takes a whole read; a member opens her space and a failed keep loses nothing. |
-| `looking` | The two doors. Through the first, her name goes down only once the server has it, with the six fields and nothing else about her anywhere; with the server gone she is told so and her words stay; she takes it off again; Home shows it. Through the second, each of the three cards lands on its instrument. |
+| `looking` | The two doors. Through the first, her name goes down only once the server has it, with the six fields and nothing else about her anywhere — the POST body is those fields, and no store or phone key but its own holds the code; with the server gone she is told so and her words stay; she takes it off again; Home shows it. The screen says the founder speaks with her first, that a summary may come before anything identifying, and the day her name comes off; from Columbus or the UK it says the name is kept for later, with no date. After 180 days the phone forgets the code and the sweep removes the name. Through the second, each of the three cards lands on its instrument. |
+| `runbook` (`tests/runbook.test.ts`) | The introduction pilot runbook in `docs/OPS.md` still says each thing decision 33 requires before introduction 1, and the eligibility, log, consent, 180-day, milestone, legal and drill rules. The drill itself is the founder's |
 
 ## Guards: what stays as source text, and why
 

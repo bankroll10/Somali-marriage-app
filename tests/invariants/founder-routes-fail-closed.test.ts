@@ -45,7 +45,7 @@ function seed() {
   blobs.put('couples', 'TWXY3478', { creator: 'woman', owner: 'CDEFGHJKMN', first: {}, createdAt: '2026-09-01', expiresAt: '2099-01-01', v: 1 })
   blobs.put('reports', 'TWXY3478-woman-ACDEFGHJKM', { id: 'ACDEFGHJKM', code: 'TWXY3478', side: 'woman', reason: 'threats', details: NEEDLES[1], at: '2026-09-02', v: 1 })
   blobs.put('progress', 'CDEFGHJK', { first: { arrived: '2026-09-01' }, expiresAt: '2099-01-01', v: 1 })
-  blobs.put('introductions', 'QRTWXY34', { contact: NEEDLES[2], gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: '2026-09-01', v: 1 })
+  blobs.put('introductions', 'QRTWXY34', { contact: NEEDLES[2], gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: new Date().toISOString().slice(0, 10), v: 1 })
 }
 
 /** Every way of almost holding the key. */

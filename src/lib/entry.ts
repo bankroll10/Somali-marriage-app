@@ -13,7 +13,7 @@
  * worked for, or a link shared into a community's group rather than sent to
  * one person. Never who sent it. It is the only attribution this product
  * records, and it is validated here so that nothing else can ride along under
- * that name. `group` is the one the first forty are found through — see
+ * that name. `group` is the one the first people are found through — see
  * docs/PRODUCT.md — and it names the kind of room, never the room. Its three
  * siblings — `alumni`, `professional`, `mosque` — name the kind of room more
  * exactly, because the eight-week rule pivots "channel first" and a single

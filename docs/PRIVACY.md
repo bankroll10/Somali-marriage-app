@@ -42,7 +42,7 @@ inferring marriage from silence.
 | **Tier 3 · No code at all** | `tallies` | How pairs come out on the eleven | Founder | Nothing: there is no id |
 | **Tier 3 · No code at all** | `ops` | A number per signal per day: errors by route, caps that refused, the guide's calls and tokens, crashes phones reported; once a day, how many records `maps`, `progress` and `reports` hold. 35 days | Founder, through `/health` | Nothing: no id, city or time; it describes the service |
 | **Tier 4 · Human-read** | `reports` | A safety report: couple code, side, reason id, up to 500 characters of her words | Founder, through `GET /safety` | The couple code only. Never beside a tally, never a signal to `progress` or `couple`, never joined to a map or install id |
-| **Tier 4 · Human-read** | `introductions` | A name put down for an introduction: an email or phone, an optional first name, woman or man, city and country, how far she would go, the day | Founder, through `GET /introduce`, to make introductions by hand | Nothing: its own code, minted on the server and held on her phone; never her map code or install id, never a rung or a fact |
+| **Tier 4 · Human-read** | `introductions` | A name put down for an introduction: an email or phone, an optional first name, woman or man, city and country, how far she would go, the day. At most 180 days | Founder, through `GET /introduce`, to make introductions by hand after speaking with each person | Nothing: its own code, minted on the server and held on her phone; never her map code or install id, never a rung or a fact |
 
 The kept map is Tier 1 by her choice, under a code registered to nobody;
 `KeptSnapshot` (`src/lib/keep.ts`) and `keep.ts` keep the guide out of it.
@@ -78,7 +78,10 @@ somewhere else; how far she would go (`city` or `country`); the day. Nothing
 from her map, a read or the eleven, and no age. It is the one record besides a
 safety report that can reach a person, and it exists so that a person can be
 reached — by the founder, by hand, with a question, never by anything
-automatic (`docs/DECISIONS.md` Part 22).
+automatic (`docs/DECISIONS.md` Part 22). It says who to call, never who fits:
+the founder speaks with each person before anyone is considered for them
+(decision 29), and what that conversation leaves behind is the pilot log
+below. It is kept at most 180 days (decision 32).
 
 **Country is no longer on the progress record**: a quasi-identifier nothing
 read. It picks her help line on the phone (`src/data/help.ts`, re-checked
@@ -120,7 +123,7 @@ Plaintext `localStorage`, this browser only; every key is in `LOCAL_KEYS`,
 | `coachThreads` (in it) | Guide conversations, both sides' words | **Last 40 per voice** (R6); the guide reads 10 | Forget me; Start over |
 | `niyyah.keep.code.v1`, `.rev.v1`, `.once.v1` | Her map code; the revision last seen; a first keep's key until its code comes back | Until forget | Forget me; Start over (code, revision) |
 | `niyyah.install.v1`, `niyyah.via.v1` | The random id her steps go under, not her map code; one word for the link that first brought her | From the first report / `?via=` link | Forget me |
-| `niyyah.intro.v1` | The code her name on the introduction list is under, and the day. Never the contact | From "Put my name down" | Take my name off; Forget me |
+| `niyyah.intro.v1` | The code her name on the introduction list is under, and the day. Never the contact | From "Put my name down" until its 180th day, when the phone forgets it | Take my name off; Forget me; its day |
 | `niyyah.draft.v1`; `niyyah.entry.v1` | A half-finished read or eleven, as ids; a `?couple=` link part-way through | 30 days; 24 hours | Finishing or leaving; Start over; Forget me |
 | `niyyah.forget.pending.v1` | Only the codes a failed Forget me still has to delete | Until they land | Itself |
 | `niyyah.events.v1`, `.reports.v1`, `.waitlist.queue.v1` | Nothing writes them: an old event diary (C6), old report receipts, a door ping | Older phones | Forget me |
@@ -167,7 +170,7 @@ names and errors, never a body. Fonts are self-hosted (`src/index.css`).
 | `tallies` | `joint` | `{pairs, topics}` | The second side's answer | Kept | — (no code) | — |
 | `limits` | `<bucket>-<h\|d>-<stamp>` | A counter, no identity | Every capped route | One period | The next period's first write | — |
 | `ops` | `day/…`, `sizes/…`, `last/…` | Numbers | Routes; `/health`; export; sweep | 35 days; `last/…` is overwritten | Sweep | — |
-| `introductions` | `<code>` | `contact`, `firstName?`, `gender`, `scene`, `country`, `reach`, `at` | introduce `POST` | Until its owner takes it off, or asks the founder to | `DELETE /introduce?code=`; Forget me; the founder, by hand. **Never the sweep** | ✓ |
+| `introductions` | `<code>` | `contact`, `firstName?`, `gender`, `scene`, `country`, `reach`, `at` | introduce `POST` | **At most 180 days** from `at` (decision 32); sooner if its owner takes it off, or asks the founder to. Never renewed | `DELETE /introduce?code=`; Forget me; the founder, by hand; the sweep, at the last weekly run before its 180th day | ✓ |
 | `cohort`, `contacts`, `vouches` | any | The door's entries and index; ways to reach people who joined the door 2026-09-08 to 2026-09-24; relatives' names and phones from the vouch | Nothing since 2026-09-24 | **Held** until the founder decides their retention by hand (`docs/DECISIONS.md` decision 21). From 2026-09-24 to 2026-09-27 the sweep emptied them weekly; its first run was 2026-09-27 00:00 UTC | A person's own Forget me (`DELETE /keep?code=`); the founder, by hand. Never the sweep | — |
 
 `gone/<code>` stores its window's end as a full timestamp: the one stored
@@ -213,13 +216,47 @@ rolled back if no tombstone yet, else finished; (2) maps, tombstones and once
 keys past `expiresAt`, only if unchanged since read (`deleteIfUnchanged`);
 (3) couple sheets past 90 days, retired, and ended `gone/` windows; (4) step
 counts past their year, unless `married`; (5) `ops` counts past 35 days. It
-answers `{swept: {maps, couples, progress, journals, errors}, at}`, never
-touches reports, tallies or limits, and needs no key. **It never opens
-`cohort`, `contacts`, `vouches` or `introductions`** (`HELD_STORES`): from
-2026-09-24 to 2026-09-27 it emptied the first three every week on the ground
-that the door had gone, and took the only way to reach two women who had
-asked to be introduced. A retired feature is not a lifetime
-(`docs/DECISIONS.md` decision 21).
+answers `{swept: {maps, couples, progress, journals, introductions, errors}, at}`, never
+touches reports, tallies or limits, and needs no key. (6) Names on the
+introduction list at the last weekly run before their 180th day, and any it
+cannot date (decision 32): a name is never held past the day Trust names.
+**It never opens `cohort`, `contacts` or `vouches`** (`HELD_STORES`): from
+2026-09-24 to 2026-09-27 it emptied them every week on the ground that the
+door had gone, and took the only way to reach two women who had asked to be
+introduced. A retired feature is not a lifetime (`docs/DECISIONS.md`
+decision 21).
+
+## The founder's pilot log, outside the app (decision 31)
+
+The introduction pilot is run by hand (`docs/OPS.md`, the runbook), and its
+one record beyond the list is a log the founder keeps outside the app,
+access-controlled, **keyed by the Niyyah code from the list and by nothing
+else**. It holds:
+
+| Field | What |
+|---|---|
+| `identity_checked` | yes/no, and the day the founder checked who the person is |
+| `reference_checked` | yes/no, and the day the founder spoke with one person who knows them |
+| `eligibility` | eligible, not yet, or outside the current pilot, and the day |
+| `summary` | The one short description of the person, **approved by them word for word, and non-identifying**: no name, workplace, family name, or anything a relative would recognise |
+| Proposals | The other code, the days each was asked, each answer, the introduction's day, the founder's minutes, the outcome |
+
+It never holds a reference's name, number or words (discarded after the
+check); free-text notes about the person beyond the approved summary;
+anything from their map, a read, the eleven or the Guide; the contact (that
+stays on the list); or any join to an install id, map code or couple code.
+
+**The consent invariant** (decision 29): before either person says yes, each
+may be shown the other's approved summary and nothing else. **Nothing that
+identifies either person** — a name, a way to reach them — goes to the other
+until both have said yes, each on their own. A no is never attributed to the
+other person.
+
+**Its lifetime:** a row lives while its code is on `GET /introduce`. When the
+code leaves — taken off, Forget me, or its 180 days — the founder deletes the
+row at the next weekly reconciliation; in proposal rows the code is struck
+out, and the days, minutes and outcome stay, so the pilot's measures can be
+read without anyone in them.
 
 ## Integrity: every write over more than one key
 
@@ -342,7 +379,7 @@ protects against a leaked key, not against the founder, who holds the stores.
 | `GET /couple` (no code) | `pairs`; `topics[topic][joint]`, joint one of `both-agree`, `both-settled`, `both-not-talked`, `one-thinks-talked`, `differ-somewhere`, `unknown-somewhere` | `tallies/joint`, added to when the second side answers. Not floored: no pair, code or side. From 2026-09-24 a side may say `settled` ("we see it differently, and we've worked out how"): a pair who both say so count as `both-settled`, where before that day they could only say `differ` and counted as `differ-somewhere`; tallies either side of the date are not comparable on those two joints (docs/DECISIONS.md Part 8) | Which conversations couples here most often miss |
 | `GET /safety` | `reports[]` open, oldest first, each `{id, code, side, reason, details, at}`; `resolved.byReason`, `resolved.byOutcome` | `reports` and its stubs; outcomes `spoke-to-them`, `told-the-family`, `not-enough`, `no-action` | A person may be waiting. Never cached; `/health` sees only counts |
 | `GET /export` | `at`, `version` (3), `progress` (install id → record), `joint`, `omitted`, `skipped` | Every progress record in its year or married; the joint tally | The learning record survives one vendor. Never a map, sheet, report, `ops`, or the introduction list |
-| `GET /introduce` | `people[]` whole, oldest first, each `{code, contact, firstName?, gender, scene, country, reach, at}`; `counts[scene].{women, men}`; `total`; `skipped` | `introductions` | The founder makes introductions by hand from it, and reads recruitment by city against it (`docs/DECISIONS.md` decision 25). Never cached; not in the backup, so the founder saves it beside the backup (`docs/OPS.md`) |
+| `GET /introduce` | `people[]` whole, oldest first, each `{code, contact, firstName?, gender, scene, country, reach, at, until}`; `counts[scene].{women, men}`; `total`; `skipped`; `lapsed` (names past `until` a sweep has not yet removed, never shown) | `introductions` | The founder speaks with each person from it and makes introductions by hand (`docs/OPS.md`, the runbook). Never cached; no count from it is shown to anyone (decision 27); not in the backup, so the founder saves it beside the backup, and deletes a saved copy older than 180 days (`docs/OPS.md`) |
 
 ## Linkability and honest limits
 
@@ -368,7 +405,9 @@ protects against a leaked key, not against the founder, who holds the stores.
   so by key it joins to nothing; by content, a first name and a city are in
   a kept map too, and the founder, who holds every store, could line them up.
   Trust says what is true: the list is read by hand, by the founder, to make
-  introductions.
+  introductions. It is never attached to the install id the ladder counts
+  under, and nothing about a name on it becomes a rung or a fact
+  (`tests/journeys/looking.test.tsx` holds both).
 - **Two copies the sweep cannot reach:** Netlify Form rows from before
   2026-09-23 carry a contact (C7), and a `reach-<date>/` export may sit on the
   founder's machine (R4). After 2026-09-27 the form rows are also the
@@ -396,7 +435,7 @@ protects against a leaked key, not against the founder, who holds the stores.
 | R5 | The backup artifact: 90 days of step counts | 35 days (`.github/workflows/watch.yml`) |
 | R6 | Guide threads on the phone, unbounded | Last 40 per voice (`THREAD_LIMIT`) |
 | R7 | Three code comments promising the opposite of the code | Corrected |
-| R8 | The introduction list, kept for ever by default | Accepted for now, and said on Trust: a name stays until its owner takes it off or asks. A lifetime is the founder's to set once the first introductions have been made (`docs/DECISIONS.md` Part 22) |
+| R8 | The introduction list, kept for ever by default | **180 days at most** (`docs/DECISIONS.md` decision 32): the sweep removes a name at the last weekly run before its day, the founder's list stops showing it that day, and the phone forgets its code. Said the same on Looking, Home and Trust; no reminder |
 
 ## Next: encryption, after minimization (P2)
 

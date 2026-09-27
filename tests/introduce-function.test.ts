@@ -10,12 +10,16 @@ import { day } from '../netlify/shared/day'
  * a minted code, and "saved" is said only when they are; anything a client
  * might send beyond them — answers, an age, a map — is never stored; the
  * founder reads the list whole and nobody else does; a name comes off by its
- * code. The weekly sweep never opens the store (tests/sweep-function.test.ts).
+ * code; and no name is shown past its 180 days, which the weekly sweep
+ * enforces (tests/sweep-function.test.ts).
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/memory')).memoryModule)
 
-const { default: handler, INTRODUCTION_KEYS, reachable, countryOf } = await import('../netlify/functions/introduce')
+const { default: handler, INTRODUCTION_KEYS, LIST_DAYS, reachable, removeBy, countryOf } = await import('../netlify/functions/introduce')
+
+/** A day `n` days before today: fixtures stay inside the list's 180 days whenever the suite runs. */
+const ago = (n: number) => day(Date.now() - n * 24 * 60 * 60 * 1000)
 
 const post = (body: unknown) => handler(new Request('http://x/.netlify/functions/introduce', { method: 'POST', body: JSON.stringify(body) }))
 const list = (headers: Record<string, string> = {}) => handler(new Request('http://x/.netlify/functions/introduce', { headers }))
@@ -128,9 +132,9 @@ describe('putting a name down', () => {
 describe('the founder’s list', () => {
   it('returns every name, oldest first, with its code and the counts by city and side — never cached', async () => {
     vi.stubEnv('FOUNDER_KEY', 'k')
-    memStore('introductions').setJSON('AAAAAAAA', { contact: 'b@example.com', gender: 'man', scene: 'london', country: 'uk', reach: 'country', at: '2026-09-20', v: 1 })
-    memStore('introductions').setJSON('CCCCCCCC', { contact: 'a@example.com', firstName: 'Sagal', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: '2026-09-10', v: 1 })
-    memStore('introductions').setJSON('DDDDDDDD', { contact: 'c@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: '2026-09-15', v: 1 })
+    memStore('introductions').setJSON('AAAAAAAA', { contact: 'b@example.com', gender: 'man', scene: 'london', country: 'uk', reach: 'country', at: ago(7), v: 1 })
+    memStore('introductions').setJSON('CCCCCCCC', { contact: 'a@example.com', firstName: 'Sagal', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: ago(17), v: 1 })
+    memStore('introductions').setJSON('DDDDDDDD', { contact: 'c@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: ago(12), v: 1 })
     const res = await list(FOUNDER)
     expect(res.status).toBe(200)
     expect(res.headers.get('cache-control')).toBe('no-store')
@@ -146,14 +150,35 @@ describe('the founder’s list', () => {
     vi.stubEnv('FOUNDER_KEY', 'k')
     memStore('introductions').set('AAAAAAAA', 'not json {')
     memStore('introductions').set('CCCCCCCC', '"a string where a record goes"')
-    memStore('introductions').setJSON('DDDDDDDD', { contact: 'c@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: '2026-09-15', v: 1 })
+    memStore('introductions').setJSON('DDDDDDDD', { contact: 'c@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: ago(12), v: 1 })
     const body = (await (await list(FOUNDER)).json()) as { total: number; skipped: number }
     expect(body).toMatchObject({ total: 1, skipped: 2 })
   })
 
+  // docs/DECISIONS.md decision 32. The sweep removes a name at the last run
+  // before its 180th day; the list stops showing it on that day whatever the
+  // sweep did, so a failed Sunday never puts a lapsed name in front of the
+  // founder.
+  it('shows each name with the day it comes off, and never one past its 180 days', async () => {
+    vi.stubEnv('FOUNDER_KEY', 'k')
+    expect(LIST_DAYS).toBe(180)
+    expect(removeBy('2026-01-01')).toBe('2026-06-30')
+    expect(removeBy('last spring')).toBeNull()
+    memStore('introductions').setJSON('AAAAAAAA', { contact: 'in@example.com', gender: 'man', scene: 'twin-cities', country: 'us', reach: 'city', at: ago(179), v: 1 })
+    memStore('introductions').setJSON('CCCCCCCC', { contact: 'zq.lapsed@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: ago(180), v: 1 })
+    memStore('introductions').setJSON('DDDDDDDD', { contact: 'zq.undated@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', v: 1 })
+    const res = await list(FOUNDER)
+    const body = (await res.json()) as { people: { code: string; until: string }[]; total: number; skipped: number; lapsed: number }
+    expect(body.people).toEqual([expect.objectContaining({ code: 'AAAAAAAA', until: day(Date.now() + 24 * 60 * 60 * 1000) })])
+    expect(body).toMatchObject({ total: 1, lapsed: 1, skipped: 1 })
+    const text = JSON.stringify(body)
+    expect(text).not.toContain('zq.lapsed')
+    expect(text).not.toContain('zq.undated')
+  })
+
   it('answers nobody but the founder, and names nobody in the refusal', async () => {
     vi.stubEnv('FOUNDER_KEY', 'k')
-    memStore('introductions').setJSON('AAAAAAAA', { contact: 'zq.secret@example.com', gender: 'man', scene: 'london', country: 'uk', reach: 'city', at: '2026-09-20', v: 1 })
+    memStore('introductions').setJSON('AAAAAAAA', { contact: 'zq.secret@example.com', gender: 'man', scene: 'london', country: 'uk', reach: 'city', at: ago(7), v: 1 })
     const almost: Record<string, string>[] = [{}, { authorization: 'Bearer not-k' }]
     for (const headers of almost) {
       const res = await list(headers)

@@ -7,8 +7,11 @@ family vouch, Profile, Plus) was removed on 2026-09-24 because there were no
 members; git keeps it (`docs/DECISIONS.md`). That premise was wrong about two
 women who had signed up to be introduced, and on 2026-09-27 the founder put
 the introduction path back as its smallest form: a name put down, and
-introductions made by hand (`docs/DECISIONS.md` Part 22). Removing it again
-needs the founder's written approval (decision 22).
+introductions made by hand (`docs/DECISIONS.md` Part 22). The same day the
+founder ratified the recovery (Part 23): introductions between serious
+Somali singles are a foundational capability (decision 26), rebuilt through
+staged gates, beginning in Minneapolis–St. Paul, as **MEET → KNOW → DECIDE**.
+Removing or materially redefining it needs the founder's explicit approval.
 
 ## 0. What Niyyah is
 
@@ -26,8 +29,12 @@ unknown (`docs/RESEARCH.md`, L5 and open question 6).
 > early.**
 
 Niyyah is two doors. For someone looking: a name put down for an introduction
-made by hand, one at a time, with both people's yes before either hears the
-other's name (§2, the introduction list). For someone already talking to a
+made by hand, beginning in Minneapolis–St. Paul — the founder speaks with each
+person first, each may see a short approved description of the other that
+does not say who they are, and nothing that identifies either crosses until
+both have said yes (§2, the introduction list; `docs/DECISIONS.md` decision
+29). That is MEET; the instruments below are KNOW and DECIDE, for a pair the
+founder introduced as much as for one who met anywhere else. For someone already talking to a
 person: a web app of instruments for that relationship, opened from a bare
 link with no account; what she tells it stays on her phone unless she keeps
 it on our server under a code. Each instrument ends in words
@@ -43,13 +50,14 @@ unserved: a minority on Hinge, wary of the low-trust Muslim apps, judged by the
 aunties. Call her Hodan: 27, a nurse in Columbus, prays, wants children soon,
 has a mother who asks every week. **Women first, and not negotiable**: if she
 feels safe and respected, men follow. **Him**: the serious man, 26–36, arrives
-through her, answering the eleven she sends. He is never charged for reach, and
+through her, answering the eleven she sends — or through the first door,
+putting his own name down. He is never charged for reach, and
 nothing yet tells him why answering serves him (§10, item 5). **Not for** the
 casual dater.
 
 | Stage | The job (Jobs-to-be-Done; HYPOTHESIS until R1's sessions) | Reading |
 |---|---|---|
-| Preparing | Handle family pressure; know what I want; find anyone serious | The map answers the weakest job; finding someone is the introduction list, by hand (§2, `docs/DECISIONS.md` Part 22) |
+| Preparing | Handle family pressure; know what I want; find anyone serious | The map answers the weakest job; finding someone is the introduction list and the founder's screening, by hand (§2, `docs/DECISIONS.md` Part 23) |
 | Talking | Know whether he is serious before investing more; the next thing to ask | The read: the sharpest job in the product |
 | Deciding | Have the eleven conversations before the families lock the outcome | The eleven, the two-sided sheet, the printed guide; the nikah coordinator is a second customer |
 | Married | Pass on what worked without it sounding like advice | Mostly the company's job, and labelled so |
@@ -94,7 +102,7 @@ you say them?; where did you land; the two of you, blind; the Ending.
 | The guide: the moment, in the right voice | Words, and a follow-up | `src/lib/coach.ts`, `netlify/functions/guide.ts` |
 | The follow-up: "did you say it?" | The record of what happened | `src/lib/followup.ts` |
 | The Ending: married, and leaving | Her record, one share, Forget me | `src/components/Ending.tsx` |
-| The introduction list: a name put down for an introduction made by hand | Six fields under a code her phone keeps; "your name is down" on the server's answer only; a way to take it off | `src/components/Looking.tsx`, `netlify/functions/introduce.ts`; `/?looking` |
+| The introduction list: a name put down for an introduction made by hand | Six fields under a code her phone keeps — who to call, never who fits; "your name is down" on the server's answer only; kept at most 180 days; a way to take it off. Minneapolis–St. Paul first; a name from elsewhere is kept for later, and told so | `src/components/Looking.tsx`, `netlify/functions/introduce.ts`; `/?looking`; the runbook in `docs/OPS.md` |
 
 Beside them: Report a concern (`netlify/functions/safety.ts`, read weekly by
 the founder) and a help line picked by her country. None of it is a feed, a
@@ -213,11 +221,13 @@ The words can be copied in a month; the mechanism costs a copier these:
 | The man answers on his own phone, blind, with no account | He is not a customer; there is no growth case |
 | It asks whether the conversation happened | They measure sessions, likes and matches |
 | The Ending: delete the app, with Forget me beside it | Subscription revenue needs the member to stay |
-| Introductions are made by hand, one at a time, with both yeses before a name is shared; nothing is browsed | A marketplace's inventory is its product, and has to be shown |
+| Introductions are made by hand, one at a time, after the founder has spoken with each person, and nothing that identifies either is shared before both yeses; nothing is browsed | A marketplace's inventory is its product, and has to be shown |
 
-Verification stays below table stakes (an 18+ tap; no family check since the
-vouch went): nobody is introduced, so it would hold documents with nothing to
-protect. `src/data/` ships in plaintext and the guide is the most copyable
+Verification is by hand and stays small: an 18+ tap on the screen, then,
+before anyone's first introduction, the founder checks who they are and
+speaks with one person who knows them; only that each check happened, and the
+day, is kept (`docs/DECISIONS.md` decisions 30–31). No documents are asked
+for, and the introduction message says so. `src/data/` ships in plaintext and the guide is the most copyable
 thing here; none of it is defended. **The moat is the monthly loop run against
 the readout** (`docs/RESEARCH.md`): a copier gets the constants as they were on
 the day they copied them. Every user adds ids from closed lists: the grounds,
@@ -363,6 +373,12 @@ them.
 - Deleting what people gave a feature because the feature went. A record goes
   at the end of a stated lifetime, or when its owner asks, and on no other
   day (`docs/DECISIONS.md` decision 21).
+- **The old marketplace, by name** (decision 35): invented candidates, a
+  sample introduction, public counts, cohort progress, weighted fit,
+  compatibility scores, profiles, photos, feeds, swiping, messaging between
+  members, Plus, paid visibility, a token vouch, a Matchmaker Guide voice,
+  automatic proposal selection, simulated gates, scarcity meters. The
+  introduction layer is a person's judgment and two yeses, not these.
 
 ## 7. What an instrument may claim
 
@@ -476,22 +492,22 @@ sent it, never which room; first arrival wins (`netlify/shared/vocab.ts`).
 
 ### The wedge
 
-A channel, not a brand. The first forty are found in the **Twin Cities, aged
+A channel, not a brand. The first people are found in the **Twin Cities, aged
 twenty-five to thirty-four, through the alumni and young-professional networks
 where women and men already mix** (SSA-UMN alumni, the SNABPI Minneapolis
 chapter), with the mosques' young-adult circles second. No copy says "alumni"
 or "professional".
 
-**Forty and forty, reassessed (2026-09-27, `docs/DECISIONS.md` decision 24).**
-It was the door's opening condition. Read against location, reach and
-readiness it is a recruitment milestone for the first city, not the condition
-for the first introduction: forty people across five countries who would not
-travel is no introduction, and two in one city who would is one. The
-condition is one viable pairing — opposite sides, one country, within both
-stated reaches — and two yeses to the founder's first question. The
-milestone is read by city from `GET /introduce`: names by side, how many
-would travel within the country, how many pairings are viable, how many the
-founder has spoken to. The link into a room is `/?looking&via=group` (or
+**Forty and forty, retired (2026-09-27, `docs/DECISIONS.md` decision 27).**
+It was the door's opening condition, invented before any matchmaking evidence
+existed, and it is no longer a gate, a milestone or a target. The only
+milestones: **M0**, one viable pairing between two screened, eligible people,
+two explicit yeses and one real introduction; **M1**, after five, the
+mutual-yes rate, the response rate, the founder's time and whether people were
+still talking or had stopped a few weeks on; **M2**, after twenty, inventory,
+fragmentation, wait times, founder workload, recurring failure reasons, and
+whether any automation has earned the right to exist. No count is shown to
+anyone. The link into a room is `/?looking&via=group` (or
 `alumni`, `professional`, `mosque`), beside the eleven. The metro holds the largest Somali community in North
 America (about 84,000), 25–34 is where family pressure turns weekly, and these
 networks run on group chats. Columbus is second, Toronto third, the UK later.
@@ -534,7 +550,7 @@ below is gated by the same rule.
    - a second phone answers, and the first sees where they stand;
    - the guide gives two live answers;
    - "he threatened me" and "I want to die" on Home each show a help line;
-   - "I'm looking for someone serious" puts a name down, and "Take my name off" takes it off, on a phone with nothing else on it.
+   - "I'm looking for someone serious" puts a name down, and "Take my name off" takes it off, on a phone with nothing else on it; the saved screen names the day it comes off (180 days), and a city other than Minneapolis–St. Paul is told its name is kept for later.
 3. The founder's facts:
    - `VITE_OPERATOR_NAME` is set in Netlify, redeployed, and shown on Trust;
    - a test email to the contact address arrives;
@@ -548,7 +564,7 @@ below is gated by the same rule.
 | **1** | **The five sessions** (R1), on `docs/PROTOCOL.md`'s script, read against §1's jobs | Recruiting only |
 | **2** | **Before strangers arrive**: mail on the domain; the spend limit written into `docs/OPS.md`; `VITE_CONTACT_EMAIL` read by someone | Nothing; none of it retrofits |
 | **3** | **Subtract**: done on 2026-09-24, wider than planned (`docs/DECISIONS.md`), and in one respect wrongly: the door's two real signups. The introduction path came back on 2026-09-27 (Part 22) | Done |
-| **3a** | **The introduction pilot**: read `GET /introduce` weekly; at the first viable pairing, two yeses, one introduction by hand, the hours written down; then both are pointed at the instruments (`docs/DECISIONS.md` Part 22) | The first viable pairing. Nothing else is built for it first |
+| **3a** | **The introduction pilot**, by the runbook in `docs/OPS.md`: the tabletop drill; screening conversations; at the first viable pairing between two eligible people, approved summaries both ways, two yeses, one introduction by hand, the hours written down; then both are pointed at the instruments. What software may follow, and when, is `docs/DECISIONS.md` Part 23's staged gates | The drill. Nothing else is built for it first |
 | **4** | **The situations become the front door**: the four moments and the five hardest parts (`src/data/moments.ts`, `src/data/hook.ts`) move ahead of the map; no new component | Item 1 |
 | **5** | **Ask three men what answering her eleven does for them**, in item 1's sessions | Item 1 |
 | **6** | **Read what comes back**: A1, A3, A4 and the red team's convictions, then the monthly loop (`docs/RESEARCH.md`) | Items 0–1 |
@@ -556,8 +572,9 @@ below is gated by the same rule.
 | **8** | **Your record**, then **real backend** | The first member who asks; a store past ~50,000 keys (`docs/OPS.md`) |
 
 The pool, the matching gate and the sample introduction left with the
-marketplace and stay in git. The introduction list came back on 2026-09-27
-as the smallest thing that keeps the promise two women acted on; the
-introductions themselves are made by hand, and their record is the founder's
-log until the pilot shows a need for more. Live Claude behind the map stays
+marketplace and stay in git, as evidence (decision 35). The introduction list
+came back on 2026-09-27 as the smallest thing that keeps the promise two
+women acted on; the introductions themselves are made by hand, and their
+record is the founder's coded log (decision 31) until a staged gate's evidence
+earns more. Live Claude behind the map stays
 declined (§4).

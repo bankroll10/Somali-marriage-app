@@ -35,7 +35,7 @@ describe('the weekly sweep', () => {
     memStore('maps').setJSON('BCDFGH', { snapshot: {}, createdAt: '2025-01-01', expiresAt: LAPSED })
     await run()
     const again = await run()
-    expect((await again.json()).swept).toEqual({ maps: 0, couples: 0, progress: 0, journals: 0, errors: 0 })
+    expect((await again.json()).swept).toEqual({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, errors: 0 })
   })
 
   // From 2026-09-24 to 2026-09-27 the sweep emptied these three stores every
@@ -55,19 +55,71 @@ describe('the weekly sweep', () => {
     for (const store of ['cohort', 'contacts', 'vouches']) expect([...stores.get(store)!.entries()], store).toEqual(before[store])
   })
 
-  // The introduction list has no lifetime of its own: a name stays until its
-  // owner takes it off (netlify/functions/introduce.ts).
-  it('never touches the introduction list', async () => {
-    memStore('introductions').setJSON('HJKMNPQR', { contact: 'x@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: '2025-01-01', v: 1 })
-    await run()
+  it('names every store it holds off, so a pass over one cannot come back unnoticed', async () => {
+    const { HELD_STORES } = await import('../netlify/functions/sweep')
+    expect([...HELD_STORES].sort()).toEqual(['cohort', 'contacts', 'vouches'])
+  })
+})
+
+// A name on the introduction list is kept at most 180 days (docs/DECISIONS.md
+// decision 32). The sweep runs weekly, so it removes a name at the last run
+// before its 180th day: a name put down on day 0 is kept on a run at day 172,
+// and gone on a run at day 173 — the next run would be day 180.
+describe('the introduction list, 180 days at most', () => {
+  const DAY = 24 * 60 * 60 * 1000
+  const PUT = '2026-01-01'
+  const at = (days: number) => Date.parse(`${PUT}T00:00:00Z`) + days * DAY
+  const name = (when: unknown = PUT) => ({ contact: 'x@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: when, v: 1 })
+
+  it('keeps a name on a run seven or more days before its 180th day', async () => {
+    const { sweepIntroductions } = await import('../netlify/functions/sweep')
+    memStore('introductions').setJSON('HJKMNPQR', name())
+    expect(await sweepIntroductions(memStore('introductions') as never, at(172))).toEqual({ introductions: 0, errors: 0 })
     expect(stores.get('introductions')!.size).toBe(1)
   })
 
-  it('names every store it holds off, so a pass over one cannot come back unnoticed', async () => {
-    const { HELD_STORES } = await import('../netlify/functions/sweep')
-    expect([...HELD_STORES].sort()).toEqual(['cohort', 'contacts', 'introductions', 'vouches'])
+  it('removes it on the last run before its 180th day, so it is never held past the day Trust names', async () => {
+    const { sweepIntroductions } = await import('../netlify/functions/sweep')
+    memStore('introductions').setJSON('HJKMNPQR', name())
+    expect(await sweepIntroductions(memStore('introductions') as never, at(173))).toEqual({ introductions: 1, errors: 0 })
+    expect(stores.get('introductions')!.size).toBe(0)
   })
 
+  it('removes a name nothing can date, or nothing can read', async () => {
+    const { sweepIntroductions } = await import('../netlify/functions/sweep')
+    memStore('introductions').setJSON('ACDEFGHJ', { ...name(), at: undefined })
+    memStore('introductions').setJSON('KMNPQRTW', name('last spring'))
+    memStore('introductions').set('XY347989', 'not json {')
+    memStore('introductions').setJSON('HJKMNPQR', name('2026-09-01'))
+    const out = await sweepIntroductions(memStore('introductions') as never, at(10))
+    expect(out).toEqual({ introductions: 3, errors: 0 })
+    expect([...stores.get('introductions')!.keys()]).toEqual(['HJKMNPQR'])
+  })
+
+  it('a store that does not answer costs that name a week, and nothing else goes', async () => {
+    const { sweepIntroductions } = await import('../netlify/functions/sweep')
+    memStore('introductions').setJSON('ACDEFGHJ', name())
+    memStore('introductions').setJSON('HJKMNPQR', name())
+    const real = memStore('introductions')
+    const flaky = { ...real, list: () => real.list(), delete: (k: string) => real.delete(k), get: async (k: string, o: unknown) => {
+      if (k === 'ACDEFGHJ') throw new Error('blobs down')
+      return (real.get as (k: string, o: unknown) => unknown)(k, o)
+    } }
+    const out = await sweepIntroductions(flaky as never, at(200))
+    expect(out).toEqual({ introductions: 1, errors: 1 })
+    expect([...stores.get('introductions')!.keys()]).toEqual(['ACDEFGHJ'])
+  })
+
+  it('runs as part of the weekly sweep, and says how many it took', async () => {
+    memStore('introductions').setJSON('HJKMNPQR', name('2025-01-01'))
+    memStore('introductions').setJSON('ACDEFGHJ', name('2099-01-01'))
+    const res = await run()
+    expect((await res.json()).swept).toMatchObject({ introductions: 1, errors: 0 })
+    expect([...stores.get('introductions')!.keys()]).toEqual(['ACDEFGHJ'])
+  })
+})
+
+describe('the weekly sweep, continued', () => {
   it('takes a couple sheet past its ninety days, and leaves one inside them', async () => {
     memStore('couples').setJSON('ACDEFG', { creator: 'woman', first: {}, createdAt: 'd', expiresAt: LIVE })
     memStore('couples').setJSON('HJKMNP', { creator: 'woman', first: {}, createdAt: 'd', expiresAt: LAPSED })

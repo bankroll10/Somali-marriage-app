@@ -6,12 +6,12 @@ import { day } from '../../netlify/shared/day'
 import { Phone, onPhone, reload } from '../support/device'
 import { mount, type Mounted } from '../support/render'
 import { residue } from '../support/residue'
-import { blobs, serve, type Served } from '../support/server'
+import { blobs, call, serve, type Served } from '../support/server'
 
 vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsModule)
 
 /**
- * JOURNEY — the two doors (docs/DECISIONS.md Part 22).
+ * JOURNEY — the two doors (docs/DECISIONS.md Parts 22 and 23).
  *
  * A stranger on Welcome is looking for someone serious. She walks through the
  * first door, puts her name down, and is told it is down only once the
@@ -21,7 +21,16 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
  * truth and her words stay in the form. She can take her name off from the
  * same screen. And the second door lands on each of the three instruments
  * built for someone already talking to a person.
+ *
+ * And what the screen promises is what the founder ratified (Part 23):
+ * introductions beginning in Minneapolis–St. Paul, and a name from elsewhere
+ * told it is kept for later; the founder speaks with her first; a short,
+ * approved, non-identifying description may be shown before either says yes,
+ * and nothing that identifies either crosses until both have; a name kept at
+ * most 180 days, after which the phone forgets it and the sweep removes it.
  */
+
+const DAY = 24 * 60 * 60 * 1000
 
 const CONTACT = 'zq.sagal.looking@example.test'
 const INTRO_KEY = 'niyyah.intro.v1'
@@ -87,8 +96,77 @@ describe('looking for someone', () => {
     expect(identity()).toMatchObject({ gender: 'woman', scene: 'twin-cities', firstName: 'Sagal', adult: true })
     // The screen says what happens now, and promises nothing it cannot do.
     const said = m.text()
-    expect(said).toContain('before you say yes')
+    expect(said).toContain('speaks with you first')
+    expect(said).toContain('does not say who they are')
+    expect(said).toContain('Nothing that identifies either of you')
+    expect(said).toContain('never that the other person said no')
+    expect(said).toContain(`until ${day(Date.now() + 180 * DAY)} at the latest`)
     expect(said).not.toMatch(/we will (write|find)|you will hear|opens on|your city opens/i)
+    // The consent promise the founder corrected (decision 29): not "nothing
+    // about them reaches you", which a non-identifying summary would break.
+    expect(said).not.toMatch(/nothing about (you|them)[^.]*reach/i)
+    expect(said).not.toMatch(/\bfits?\b/i)
+    // Minneapolis–St. Paul is where she is: no "for later" note.
+    expect(said).not.toContain('for later')
+    m.unmount()
+  })
+
+  it('sends the six fields and nothing that joins them to anything else of hers', async () => {
+    const phone = onPhone(new Phone('hers'))
+    const bodies: string[] = []
+    const real = globalThis.fetch
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes('/introduce') && typeof init?.body === 'string') bodies.push(init.body)
+      return real(input, init)
+    }) as typeof fetch
+    const m = await mount(<App />)
+    await fillIn(m)
+    await m.press(/^Put my name down/)
+    await m.until(() => m.text().includes('Your name is down.'), 'saved')
+    expect(bodies).toHaveLength(1)
+    expect(Object.keys(JSON.parse(bodies[0])).sort()).toEqual(['contact', 'firstName', 'gender', 'reach', 'scene'])
+    // Not the install id the ladder counts under, not a map code (decision 31).
+    const code = blobs.keys('introductions')[0]
+    for (const k of [...phone.storage.keys()].filter((k) => k !== INTRO_KEY)) {
+      expect(phone.storage.get(k) ?? '', k).not.toContain(code)
+    }
+    for (const k of blobs.keys('progress')) expect(JSON.stringify(blobs.read('progress', k))).not.toContain(code)
+    m.unmount()
+  })
+
+  it('from anywhere but Minneapolis–St. Paul, she is told her name is kept for later, with no date', async () => {
+    onPhone(new Phone('hers'))
+    const m = await mount(<App />)
+    await m.press(/I’m looking for someone serious/)
+    expect(m.text()).toContain('Introductions are beginning in Minneapolis–St. Paul.')
+    await m.press(/^Columbus/)
+    expect(m.text()).toContain('From Columbus you can leave your name for later: nobody there is being introduced yet, and there is no date for it.')
+    await m.press(/^Somewhere else$/)
+    await m.press(/^United Kingdom$/)
+    expect(m.text()).toContain('From the UK you can leave your name for later')
+    await m.press(/^I am a man/)
+    await m.type('Email or phone', '+44 20 7946 0000')
+    await m.press(/I confirm I am 18/)
+    await m.press(/^Put my name down/)
+    await m.until(() => m.text().includes('Your name is down.'), 'saved')
+    expect(m.text()).toContain('Your name is down for later: nobody in the UK is being introduced yet, and there is no date for it.')
+    expect(m.text()).not.toMatch(/\b(soon|next month|this year|opening)\b/i)
+    m.unmount()
+  })
+
+  it('after 180 days her phone forgets the name, Home asks again, and the sweep has removed it', async () => {
+    const phone = onPhone(new Phone('hers'))
+    const put = day(Date.now() - 181 * DAY)
+    blobs.put('introductions', 'HJKMNPQR', { contact: CONTACT, gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: put, v: 1 })
+    phone.storage.set(INTRO_KEY, JSON.stringify({ code: 'HJKMNPQR', at: put }))
+    seedDemo()
+    const m = await mount(<App />)
+    expect(m.text()).toContain('Looking for someone serious?')
+    expect(m.text()).not.toContain('Your name is down for an introduction')
+    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    const res = await call('sweep', 'POST', 'sweep')
+    expect(((await res.json()) as { swept: { introductions: number } }).swept.introductions).toBe(1)
+    expect(blobs.keys('introductions')).toEqual([])
     m.unmount()
   })
 
@@ -122,6 +200,13 @@ describe('looking for someone', () => {
     expect(blobs.keys('introductions')).toEqual([])
     expect(phone.storage.has(INTRO_KEY)).toBe(false)
     expect(residue([CONTACT], [phone])).toEqual([])
+    // And put down again in the same visit, the screen says so — found in the
+    // phone-width walk of 2026-09-27, where it saved and still showed the form.
+    await m.type('Email or phone', CONTACT)
+    await m.press(/^Put my name down/)
+    await m.until(() => m.text().includes('Your name is down.'), 'saved again')
+    expect(m.text()).not.toContain('Your name is off the list')
+    expect(blobs.keys('introductions')).toHaveLength(1)
     m.unmount()
   })
 
@@ -134,7 +219,7 @@ describe('looking for someone', () => {
     expect(home.text()).toContain('Put my name down')
     home.unmount()
     reload()
-    phone.storage.set(INTRO_KEY, JSON.stringify({ code: 'HJKMNPQR', at: '2026-09-27' }))
+    phone.storage.set(INTRO_KEY, JSON.stringify({ code: 'HJKMNPQR', at: day() }))
     const again = await mount(<App />)
     expect(again.text()).toContain('Your name is down for an introduction')
     expect(again.text()).not.toContain('Looking for someone serious?')

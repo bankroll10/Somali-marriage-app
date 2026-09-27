@@ -105,7 +105,7 @@ export default function Welcome({
                       {
                         eyebrow: 'Looking for someone',
                         title: 'I’m looking for someone serious.',
-                        desc: 'Put your name down for an introduction, made by hand.',
+                        desc: 'Put your name down for an introduction, made by hand. Beginning in Minneapolis–St. Paul.',
                         go: onLooking,
                       },
                       {
@@ -211,7 +211,7 @@ export default function Welcome({
             style={{ animationDelay: '220ms' }}
           >
             {[
-              'Introductions are made by hand, one at a time, and only after both people have said yes. There is nothing to browse.',
+              'Introductions are made by hand, one at a time, and nobody learns who the other is until both have said yes. There is nothing to browse.',
               'The rest works on the relationship you already have — however you met, with no account. Send them the same eleven questions; you both see only where the two of you stand.',
               'A few days later, we ask whether the conversation happened. When you marry, we let you go.',
             ].map((line) => (

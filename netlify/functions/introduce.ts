@@ -13,13 +13,12 @@ import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/voca
  *
  * Niyyah was started so that serious Somali singles could meet each other and
  * move toward marriage. Two women signed up for exactly that through the old
- * door; the door was deleted on 2026-09-24 as "a 40/40 goal with nobody in
- * it", and the weekly sweep then took the only way to reach them
- * (docs/DECISIONS.md Part 22). This is the smallest thing that keeps the
- * promise those two women acted on: one route that writes down who wants an
- * introduction and how to reach them, so that the founder can make
- * introductions by hand — one at a time, with both people's yes before either
- * hears the other's name (docs/PRODUCT.md, "The introduction pilot").
+ * door; the door was deleted on 2026-09-24 as a goal with nobody in it, and
+ * the weekly sweep then took the only way to reach them (docs/DECISIONS.md
+ * Part 22). Introductions between serious Somali singles are a foundational
+ * capability of Niyyah (decision 26), restored one staged gate at a time
+ * (Part 23). This is the gate before the first introduction: one route that
+ * writes down who wants an introduction and how to reach them.
  *
  * What is written, and why only this:
  *
@@ -28,11 +27,14 @@ import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/voca
  *  - **Her first name**, if she gives one, so the founder's first message is
  *    addressed to a person. Optional.
  *  - **Woman or man; her city, and its country** (or the country she names,
- *    when she is somewhere else); **how far she would go**. Whether two people
- *    could be introduced at all is a question of these four and nothing else
- *    the product could ask; the rest is the founder's conversation with each
- *    of them, by hand, before any introduction.
+ *    when she is somewhere else); **how far she would go**.
  *  - **The day.**
+ *
+ * These say who to call, not who fits. Whether two people could be
+ * introduced is decided by the founder, by hand, after a screening
+ * conversation with each of them (decision 29); nothing here matches anyone.
+ * Introductions are beginning in Minneapolis–St. Paul (decision 28); a name
+ * from anywhere else is accepted and kept for later, and the screen says so.
  *
  * What is refused, by shape: her map, her answers, her read, anything from the
  * eleven, her age, a photo, a sentence about what she wants. The list is not a
@@ -42,13 +44,17 @@ import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/voca
  * else opens it.
  *
  * Nobody is enrolled by using anything else. A finished read, eleven or map
- * is not interest in meeting someone (docs/DECISIONS.md Part 22): the only way
- * onto this list is this POST, from the screen that says what it is for.
+ * is not interest in meeting someone (decision 25): the only way onto this
+ * list is this POST, from the screen that says what it is for.
+ *
+ * **A name is kept at most 180 days** (decision 32). The weekly sweep removes
+ * it at the last run before its `until` (netlify/functions/sweep.ts), and the
+ * founder's list stops showing it on that day even if a sweep failed. Someone
+ * who still wants an introduction puts their name down again; nothing reminds
+ * anyone. Sooner if she takes it off, or the founder does at her request.
  *
  * Tier 4, like a safety report (docs/PRIVACY.md): the founder reads the list
- * whole, behind the key, and no other route returns a record. The weekly
- * sweep never opens this store (netlify/functions/sweep.ts): a name stays
- * until its owner takes it off, or the founder does at her request.
+ * whole, behind the key, and no other route returns a record.
  */
 
 /** A contact, a name, a side, a city, a country and a reach is the largest thing anyone can send. */
@@ -64,6 +70,21 @@ const MAX_NAME = 40
 const DEFAULT_HOURLY_CAP = 60
 /** Names taken off in one hour, from everyone: the read-cap shape from keep.ts, since this deletes by a guessed code. */
 const DEFAULT_FORGET_CAP = 600
+
+/** How long a name stays on the list, at most, from the day it was put down (decision 32). */
+export const LIST_DAYS = 180
+
+const DAY = 24 * 60 * 60 * 1000
+
+/**
+ * The day a name put down on `at` comes off: `at` plus 180 days. Null when
+ * `at` is not a day this route could have written.
+ */
+export function removeBy(at: unknown): string | null {
+  if (typeof at !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(at)) return null
+  const ms = Date.parse(`${at}T00:00:00Z`)
+  return Number.isNaN(ms) ? null : day(ms + LIST_DAYS * DAY)
+}
 
 export interface Introduction {
   contact: string
@@ -108,29 +129,36 @@ export default async function handler(req: Request) {
     if (!isFounder(req)) return notFounder()
     try {
       const { blobs } = await store.list()
-      const people: (Introduction & { code: string })[] = []
+      const today = day()
+      const people: (Introduction & { code: string; until: string })[] = []
       let skipped = 0
+      // Past its 180 days and still here only because a sweep has not run:
+      // counted, never shown (decision 32).
+      let lapsed = 0
       for (const { key } of blobs) {
         // One record that cannot be read costs that record, never the list.
         try {
           const record = (await store.get(key, { type: 'json' })) as Introduction | null
-          if (record && typeof record.contact === 'string') people.push({ ...record, code: key })
-          else skipped += 1
+          const until = removeBy(record?.at)
+          if (!record || typeof record.contact !== 'string' || !until) skipped += 1
+          else if (today >= until) lapsed += 1
+          else people.push({ ...record, code: key, until })
         } catch {
           skipped += 1
         }
       }
       people.sort((a, b) => (a.at < b.at ? -1 : a.at > b.at ? 1 : 0))
-      // By city and side: the recruitment numbers docs/PRODUCT.md's milestone
-      // is read against. Not floored — the records are returned whole above,
-      // and this is the founder's own list.
+      // By city and side, for the founder's own reading of where names are.
+      // Not floored — the records are returned whole above, and this is the
+      // founder's own list. Never shown to anyone else: there is no public
+      // count (decision 27).
       const counts: Record<string, { women: number; men: number }> = {}
       for (const p of people) {
         const c = (counts[p.scene] ??= { women: 0, men: 0 })
         c[p.gender === 'woman' ? 'women' : 'men'] += 1
       }
       // Never cached: every row is a way to reach a real person.
-      return Response.json({ people, counts, total: people.length, skipped }, { headers: { 'Cache-Control': 'no-store' } })
+      return Response.json({ people, counts, total: people.length, skipped, lapsed }, { headers: { 'Cache-Control': 'no-store' } })
     } catch (err) {
       await failed('introduce', 'list failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })

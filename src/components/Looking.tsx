@@ -5,7 +5,7 @@ import { getScene, scenes } from '../data/scenes'
 import { countries, getCountry } from '../data/countries'
 import { reachOptions, type Reach } from '../data/reach'
 import { contactProblem, looksReachable } from '../lib/contact'
-import { registerInterest, withdrawInterest, type IntroState } from '../lib/introduce'
+import { PILOT_SCENE, registerInterest, untilOf, withdrawInterest, type IntroState } from '../lib/introduce'
 import type { Why } from '../lib/net'
 import { CONTACT_EMAIL } from '../lib/site'
 import { ArrowRight, BackButton, Button, CheckIcon, Logo, Spinner, TextButton, fieldClass } from './ui'
@@ -34,17 +34,26 @@ interface Props {
  * serious; the door was deleted on 2026-09-24 as a goal with nobody in it
  * (docs/DECISIONS.md Part 22). This is the smallest screen that keeps the
  * promise they acted on: a name put down, a way to reach her, and the truth
- * about what happens next — introductions made by hand, one at a time, only
- * when two people fit what each said and both have said yes first.
+ * about what happens next (docs/DECISIONS.md Part 23):
+ *
+ *  - the founder speaks with her first, before anyone is considered for her —
+ *    six fields say who to call, never who fits (decision 29);
+ *  - before either says yes, each may be shown a short description of the
+ *    other that its subject approved and that does not say who they are;
+ *    nothing that identifies either crosses until both have said yes, and a
+ *    no is never pinned on the other person;
+ *  - introductions are beginning in Minneapolis–St. Paul; a name from
+ *    anywhere else is taken and kept for later, and the screen says so
+ *    rather than letting her believe she is in an active pool (decision 28);
+ *  - a name is kept at most 180 days, then removed, with no reminder
+ *    (decision 32).
  *
  * What it says is bounded by what exists. There is no pool to show and no
  * date to promise, so neither is said; the count is not shown, because a
  * number on a door became a scarcity meter last time and this list is not a
  * queue. "Your name is down" appears on the server's answer and on nothing
- * else (src/lib/introduce.ts). What is collected is exactly what the founder
- * needs to reach someone and tell whether two people could be introduced at
- * all; nothing from the map, the read or the eleven is sent, and nobody who
- * uses those is put on this list by using them.
+ * else (src/lib/introduce.ts). Nothing from the map, the read or the eleven is
+ * sent, and nobody who uses those is put on this list by using them.
  */
 const chip = (on: boolean) =>
   `rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition-all ${
@@ -68,6 +77,13 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
   const other = scene === 'other'
   const country = other ? namedCountry : (getScene(scene)?.country ?? '')
   const within = getCountry(country)?.within ?? 'your country'
+  const pilot = getScene(PILOT_SCENE)?.label ?? 'Minneapolis–St. Paul'
+  /** Where she is, when it is not where introductions are beginning. Null in the pilot city, or before she has said. */
+  const elsewhere = (sc: string | undefined, named: string | undefined) =>
+    !sc || sc === PILOT_SCENE ? null : sc === 'other' ? (named ? (getCountry(named)?.within ?? 'where you are') : null) : (getScene(sc)?.label ?? null)
+  const away = elsewhere(scene, other ? country : undefined)
+  const awaySaved = elsewhere(identity.scene, identity.country)
+  const until = intro ? untilOf(intro.at) : null
 
   const contactHint = contactTouched && contact.trim() ? contactProblem(contact) : null
   const reachable = looksReachable(contact)
@@ -92,6 +108,9 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
       return
     }
     setState('idle')
+    // A name taken off and put down again in the same visit: the saved panel,
+    // not the form with "your name is off the list" still above it.
+    setOff('idle')
     // What she told this form, kept for the rest of the app: her side, her
     // city and that she is an adult — the same things Identity and Situation
     // ask, so a map or a read after this does not ask them again.
@@ -142,19 +161,36 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
               Your name is down.
             </h1>
             <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
-              Since {intro.at}. Introductions are made by hand, one at a time, by the person who runs Niyyah.
+              Since {intro.at}{until ? `, until ${until} at the latest` : ''}. Then it comes off the list; if you still want
+              an introduction, put it down again. There is no reminder.
             </p>
+
+            {awaySaved && (
+              <p role="status" className="animate-rise mt-5 rounded-2xl border border-gold/40 bg-gold/[0.09] px-4 py-3 text-[0.92rem] leading-snug text-ink-soft text-pretty">
+                Introductions are beginning in {pilot}. Your name is down for later: nobody in {awaySaved} is being
+                introduced yet, and there is no date for it.
+              </p>
+            )}
 
             <div className="animate-rise mt-7 rounded-card border border-forest/25 bg-forest/[0.06] p-6">
               <h2 className="font-display text-[1.15rem] font-medium text-ink">What happens now</h2>
-              <p className="mt-2 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
-                The list is read by hand. If someone on it fits what you each said — where you are, and how far you would
-                go — the founder gets in touch with you first, the way you gave, and asks. Nothing about you reaches anyone
-                before you say yes, and nothing about them reaches you before they do.
-              </p>
+              <ol className="mt-2 list-decimal space-y-2 pl-5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty marker:text-forest">
+                <li>
+                  The founder reads the list by hand, and speaks with you first, the way you gave: who you are, what you
+                  are looking for, and one person who knows you. Nobody is considered for you before that.
+                </li>
+                <li>
+                  If there is someone to consider, you are shown a short description of them that they approved and that
+                  does not say who they are, and they are shown the same of you. Each of you answers yes or no on your own.
+                </li>
+                <li>
+                  Nothing that identifies either of you — a name, a way to reach you — goes to the other until you have both
+                  said yes. If it does not go ahead, you are told only that it went no further, never that the other person
+                  said no.
+                </li>
+              </ol>
               <p className="mt-2.5 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
-                If nobody fits yet, nothing happens, and your name stays down until you take it off. There is no list to
-                browse, and no date is promised.
+                If there is nobody to consider yet, nothing happens. There is no list to browse, and no date is promised.
               </p>
             </div>
 
@@ -209,14 +245,13 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
               I’m looking for someone serious.
             </h1>
             <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-              Niyyah began so that serious Somali singles could meet each other. Put your name down, and the person who
-              runs it makes introductions by hand — one at a time, only when two people fit what each said, and only after
-              both have said yes.
+              Niyyah began so that serious Somali singles could meet each other. Introductions are beginning in {pilot}.
+              Put your name down, and the founder — who makes every introduction by hand, one at a time — speaks with you
+              first, before anyone is considered for you. Nobody learns who the other is until both have said yes.
             </p>
             <p className="animate-rise mt-3 text-[0.95rem] leading-relaxed text-muted text-pretty">
-              What this is not, yet: a list to browse, or a date. Who has put their name down, and where, decides when the
-              first introductions can be made. A name on the list is not an introduction, and not a promise of
-              one.
+              What this is not: a list to browse, a match made by software, or a date. A name on the list is not an
+              introduction, and not a promise of one.
             </p>
 
             <form onSubmit={submit} className="mt-8 space-y-6">
@@ -271,6 +306,12 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                       ))}
                     </div>
                   </div>
+                )}
+                {away && (
+                  <p role="status" className="mt-3 rounded-2xl border border-gold/40 bg-gold/[0.09] px-4 py-3 text-[0.88rem] leading-snug text-ink-soft text-pretty">
+                    Introductions are beginning in {pilot}. From {away} you can leave your name for later: nobody there is
+                    being introduced yet, and there is no date for it.
+                  </p>
                 )}
               </div>
 
@@ -385,8 +426,9 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
               <p className="text-[0.82rem] leading-relaxed text-muted text-pretty">
                 What goes, exactly: a way to reach you, your first name if you gave it, whether you are a woman or a man,
                 your city and its country, and how far you would go. It goes to our server under a code this phone keeps,
-                so you can take your name off from here, and Forget me takes it off with everything else. The founder reads
-                the list; nothing else does, and nothing from your map, a read or the eleven is attached to it.{' '}
+                so you can take your name off from here, and Forget me takes it off with everything else. It is kept for up
+                to 180 days, then removed. The founder reads the list; nothing else does, and nothing from your map, a read
+                or the eleven is attached to it.{' '}
                 <TextButton type="button" onClick={onTrust} className="text-[0.82rem] font-medium text-forest underline">
                   What leaves your phone
                 </TextButton>

@@ -19,12 +19,35 @@ import { send, whyOf, type Why } from './net'
  * "You're on the list" is shown on a 200 with that code, and on nothing else:
  * a hung request, a 503 or a refused body leaves her told the truth, that it
  * did not go through, with her words still in the form.
+ *
+ * A name is kept at most 180 days (docs/DECISIONS.md decision 32). The server
+ * removes it; this phone forgets the code on the same day, so no screen says
+ * "your name is down" about a name that is gone. Nothing reminds her: if she
+ * still wants an introduction she puts it down again.
  */
 
 const ENDPOINT = '/.netlify/functions/introduce'
 
 /** Its own key, apart from the map code and the install id. Cleared by Forget me. */
 const KEY = 'niyyah.intro.v1'
+
+/** How long a name stays on the list, at most. The server's twin is LIST_DAYS in netlify/functions/introduce.ts. */
+export const LIST_DAYS = 180
+
+/**
+ * Where introductions are beginning (docs/DECISIONS.md decision 28). A name
+ * from anywhere else is taken and kept for later, and the screen says so.
+ */
+export const PILOT_SCENE = 'twin-cities'
+
+const DAY_MS = 24 * 60 * 60 * 1000
+
+/** The day a name put down on `at` comes off the list. Null when `at` is not a day. */
+export function untilOf(at: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(at)) return null
+  const ms = Date.parse(`${at}T00:00:00Z`)
+  return Number.isNaN(ms) ? null : new Date(ms + LIST_DAYS * DAY_MS).toISOString().slice(0, 10)
+}
 
 export interface InterestInput {
   contact: string
@@ -44,12 +67,23 @@ export interface IntroState {
 
 export type Registered = { ok: true; code: string } | { ok: false; why: Why }
 
-export function rememberedIntro(): IntroState | null {
+/**
+ * The name this phone put down, while it is still on the list. On and after
+ * its 180th day the code is forgotten here too — the server has removed the
+ * name, or will at its next sweep, and the founder's list no longer shows it.
+ */
+export function rememberedIntro(now = Date.now()): IntroState | null {
   try {
     const raw = localStorage.getItem(KEY)
     if (!raw) return null
     const p = JSON.parse(raw) as Partial<IntroState>
-    return typeof p.code === 'string' && isCode(p.code) && typeof p.at === 'string' ? { code: p.code, at: p.at } : null
+    if (typeof p.code !== 'string' || !isCode(p.code) || typeof p.at !== 'string') return null
+    const until = untilOf(p.at)
+    if (!until || new Date(now).toISOString().slice(0, 10) >= until) {
+      forgetIntro()
+      return null
+    }
+    return { code: p.code, at: p.at }
   } catch {
     return null
   }

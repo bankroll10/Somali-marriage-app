@@ -76,6 +76,17 @@ const PROMISES: [RegExp, string][] = [
   [/\btell you when your (city|pool) opens\b/i, 'no outbound channel exists'],
   [/\band blocking\b|report-and-block/i, 'there is no blocking of any kind here'],
   [/powered by ai/i, 'the model adds a sentence; it is never the reason'],
+  // docs/DECISIONS.md Part 23, the introduction layer as ratified. Six fields
+  // say who to call, never who fits; the founder decides, after speaking
+  // with each person (decision 29). A short approved description may be shown
+  // before either says yes, so the promise is about what identifies them,
+  // not "nothing about" them. A name is kept at most 180 days (decision 32).
+  // Forty and forty is retired as gate, milestone and target (decision 27).
+  [/\bif someone (on it |on the list )?fits\b|\btwo people fit\b|\bwhen (you|they) fit\b/i, 'software does not know who fits; the founder decides after screening (decision 29)'],
+  [/\bnothing about (you|them|either)[^.]{0,60}\breach/i, 'a non-identifying summary may be shown first; say what identifies (decision 29)'],
+  [/\buntil you take (it|your name) off\b|\bstays? (down|on the list) until\b/i, 'a name is kept at most 180 days (decision 32)'],
+  [/\b(forty|40) (women|men|each|a side)\b/i, 'forty and forty is retired (decision 27)'],
+  [/\b(we|the app|software|niyyah) (will |can )?match(es)? you\b/i, 'nothing here matches anyone (decision 29)'],
 ]
 
 const RULES = [...BANNED, ...OVERCLAIMS, ...PROMISES]

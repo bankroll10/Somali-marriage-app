@@ -15,6 +15,8 @@ import { stages } from '../src/data/stages'
 import { scenes } from '../src/data/scenes'
 import { COUNTRY_IDS } from '../src/data/countries'
 import { REACH_IDS } from '../src/data/reach'
+import { LIST_DAYS as CLIENT_LIST_DAYS, PILOT_SCENE, untilOf } from '../src/lib/introduce'
+import { LIST_DAYS, removeBy } from '../netlify/functions/introduce'
 import { hookOptions } from '../src/data/hook'
 import { SAFETY_OUTCOMES, SAFETY_REASONS } from '../src/data/safety'
 import { ALPHABET as CLIENT_ALPHABET, CODE_LENGTH as CLIENT_CODE_LENGTH } from '../src/lib/code'
@@ -150,5 +152,15 @@ describe('every word the server accepts is a word the app uses', () => {
 
   it('the four questionnaires a person can begin', () => {
     expect(sorted(vocab.INSTRUMENTS)).toEqual(sorted(INSTRUMENT_IDS))
+  })
+
+  // docs/DECISIONS.md decisions 28 and 32: the day the phone forgets its code
+  // is the day the server stops showing the name, and the city the screen
+  // names as where introductions begin is one the server takes.
+  it('how long a name stays on the introduction list, and where introductions begin', () => {
+    expect(CLIENT_LIST_DAYS).toBe(LIST_DAYS)
+    for (const at of ['2026-01-01', '2026-09-27', '2028-02-29']) expect(untilOf(at), at).toBe(removeBy(at))
+    expect(vocab.SCENES.has(PILOT_SCENE)).toBe(true)
+    expect(vocab.SCENE_COUNTRY[PILOT_SCENE]).toBe('us')
   })
 })

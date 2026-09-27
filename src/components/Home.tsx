@@ -4,7 +4,7 @@ import type { FollowUpAsk, Landed } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
-import type { IntroState } from '../lib/introduce'
+import { untilOf, type IntroState } from '../lib/introduce'
 import { SinceLastTime } from './home/FollowUp'
 import StageBand from './home/StageBand'
 import { CONTACT_EMAIL, GUIDE_SOURCE } from '../lib/site'
@@ -288,8 +288,8 @@ export default function Home({
               </span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
                 {intro
-                  ? 'Made by hand, one at a time, with your yes first. Open it to see what happens next, or to take your name off.'
-                  : 'Put your name down for an introduction made by hand — a way to reach you and where you are, nothing from your map.'}
+                  ? `Until ${untilOf(intro.at) ?? 'its 180th day'}. The founder speaks with you first; introductions are made by hand, one at a time. Open it to see what happens next, or to take your name off.`
+                  : 'Put your name down for an introduction made by hand, beginning in Minneapolis–St. Paul — a way to reach you and where you are, nothing from your map.'}
               </span>
             </span>
             <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${intro ? 'text-forest' : 'text-gold-ink'}`} />

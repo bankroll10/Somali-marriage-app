@@ -4,6 +4,7 @@ import { day } from '../shared/day'
 import { isGone, retire } from '../shared/sheet'
 import { DAY_MS, deleteIfUnchanged, ended, isBookkeeping, isMoving, lapsed, type Journal } from '../shared/integrity'
 import { finishMove, rollBackMove } from './keep'
+import { removeBy } from './introduce'
 
 /**
  * The weekly sweep — what makes every stated lifetime true without a person
@@ -17,6 +18,10 @@ import { finishMove, rollBackMove } from './keep'
  *    kept by rule (netlify/functions/progress.ts).
  *  - **A change of code abandoned part-way** is rolled back or finished
  *    (docs/PRIVACY.md).
+ *  - **A name on the introduction list** past its 180 days — removed at the
+ *    last weekly run before its day, so that no name is kept longer than
+ *    Trust says (docs/DECISIONS.md decision 32). A name is never renewed or
+ *    reminded about; its owner puts it down again if she still wants it.
  *
  * **What it leaves alone, by decision.** From 2026-09-24 to 2026-09-27 this
  * also emptied the `cohort`, `contacts` and `vouches` stores every week,
@@ -28,9 +33,7 @@ import { finishMove, rollBackMove } from './keep'
  * when the person asked (Forget me, netlify/functions/keep.ts). Retiring a
  * feature is neither. Those three stores are not written, not read by any
  * route, and not touched here; what becomes of them is the founder's
- * decision, recorded before anything is deleted. The same rule holds for
- * `introductions` (netlify/functions/introduce.ts): a name on the list stays
- * until its owner takes it off.
+ * decision, recorded before anything is deleted.
  *
  * Reports, tallies and limits are never touched: a report waits for the
  * founder, and the other two carry nobody. It is idempotent — a second run
@@ -54,19 +57,25 @@ export interface Swept {
   progress: number
   /** Changes of code abandoned part-way: rolled back, or finished. */
   journals: number
+  /** Names on the introduction list at the end of their 180 days, or with no day to count from. */
+  introductions: number
   /** Records that could not be read or removed this week. Everything else still went; these are tried again. */
   errors: number
 }
 
-const empty = (): Swept => ({ maps: 0, couples: 0, progress: 0, journals: 0, errors: 0 })
+const empty = (): Swept => ({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, errors: 0 })
 
 /**
- * Stores the sweep never opens. The first three belonged to the door and the
- * vouch (docs/DECISIONS.md Part 22); the fourth is the introduction list,
- * which has no lifetime of its own. Named so the test can hold the line, and
- * so nobody re-adds a pass over them without meeting this list.
+ * Stores the sweep never opens: the door's and the vouch's, held until the
+ * founder decides their retention (docs/DECISIONS.md decision 21). Named so
+ * the test can hold the line, and so nobody re-adds a pass over them without
+ * meeting this list. The introduction list is not one of them: it has a
+ * lifetime of its own (decision 32), kept below.
  */
-export const HELD_STORES = ['cohort', 'contacts', 'vouches', 'introductions'] as const
+export const HELD_STORES = ['cohort', 'contacts', 'vouches'] as const
+
+/** The sweep runs weekly; a name whose day falls before the next run goes on this one. */
+const SWEEP_EVERY_MS = 7 * DAY_MS
 
 /** A move still in flight is left alone for this long — a move takes seconds, and the sweep runs at midnight. */
 const JOURNAL_GRACE_MS = 2 * DAY_MS
@@ -147,11 +156,48 @@ export async function sweepExpired(couples: Store, progress: Store, now = Date.n
   return out
 }
 
+/**
+ * The introduction list: a name goes at the last weekly run before its 180th
+ * day, so it is never held past the day Trust names. A record that reads but
+ * carries no day this route could have written cannot be shown to be inside
+ * its lifetime, and goes too. One that cannot be read at all — the store did
+ * not answer — is an error, tried again next week; one that reads as
+ * something other than JSON is removed, since nothing can ever read it.
+ */
+export async function sweepIntroductions(introductions: Store, now = Date.now()) {
+  const out = { introductions: 0, errors: 0 }
+  const cutoff = day(now + SWEEP_EVERY_MS)
+  for (const { key } of (await introductions.list()).blobs) {
+    await each(out, async () => {
+      const raw = (await introductions.get(key, { type: 'text' })) as string | null
+      if (raw === null) return
+      let at: unknown
+      try {
+        at = (JSON.parse(raw) as { at?: unknown } | null)?.at
+      } catch {
+        at = undefined
+      }
+      const until = removeBy(at)
+      if (until && until > cutoff) return
+      await introductions.delete(key)
+      out.introductions += 1
+    })
+  }
+  return out
+}
+
 /** The whole sweep, every store it may touch, as the schedule runs it. */
 export async function sweep(now = Date.now()): Promise<Swept> {
   const swept = await sweepLapsed(getStore('maps'), now)
   const rest = await sweepExpired(getStore('couples'), getStore('progress'), now)
-  return { ...swept, couples: rest.couples, progress: rest.progress, errors: swept.errors + rest.errors }
+  const names = await sweepIntroductions(getStore('introductions'), now)
+  return {
+    ...swept,
+    couples: rest.couples,
+    progress: rest.progress,
+    introductions: names.introductions,
+    errors: swept.errors + rest.errors + names.errors,
+  }
 }
 
 export default async function handler(_req: Request) {
@@ -169,7 +215,7 @@ export default async function handler(_req: Request) {
     // So /health can tell a sweep that ran from one that stopped (docs/OPS.md).
     await mark('sweep', { errors: swept.errors })
     console.log(
-      `[niyyah] sweep: ${swept.maps} maps, ${swept.couples} couples, ${swept.progress} step counts, ${swept.journals} moves, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
+      `[niyyah] sweep: ${swept.maps} maps, ${swept.couples} couples, ${swept.progress} step counts, ${swept.journals} moves, ${swept.introductions} names past 180 days, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
     )
     return Response.json({ swept, at: day() })
   } catch (err) {
