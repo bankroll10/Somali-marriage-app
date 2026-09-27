@@ -78,3 +78,26 @@ describe('the guide past its budget', () => {
     m.unmount()
   })
 })
+
+describe('the line at the foot of the guide', () => {
+  // Part 21: the thread's help lines need a word or a shape the voice knows,
+  // and held-out messages show it will not know every one. This one is there
+  // whatever she wrote, and past the budget too.
+  const unplaced = 'I keep thinking everyone would be fine if I just wasn’t around anymore.'
+
+  it('is there under a message no list recognises, and opens to the emergency and crisis lines', async () => {
+    const m = await mount(<Locked ask={unplaced} onSpend={() => {}} />)
+    await m.until(() => m.text().includes(unplaced), 'her message')
+    const floor = m.container.querySelector('details') as HTMLDetailsElement
+    expect(floor.textContent).toBe('Not safe, or not okay?')
+    floor.open = true
+    floor.dispatchEvent(new Event('toggle'))
+    await m.until(() => /crisis line/i.test(floor.textContent ?? ''), 'the crisis line')
+    // No country on this phone: the numbers for the places the diaspora lives.
+    expect(floor.textContent).toContain('If you are in danger now, call your local emergency number')
+    expect(floor.textContent).toMatch(/A crisis line, where there is one: 988/)
+    expect(fetchSpy).not.toHaveBeenCalled()
+    m.unmount()
+  })
+})
+

@@ -65,4 +65,15 @@ export const PAIRS: Pair[] = [
     a: { message: 'We have never met, and she asked me to send money for her ticket.', owes: 'escalates' },
     b: { message: 'She sends money home every month. How do we talk about it before we marry?', owes: 'ordinary' },
   },
+  // Part 21: the shapes the safety floor learned, each with the twin it must leave alone.
+  {
+    fact: 'his hands on her, or theirs on each other',
+    a: { message: 'He got physical with me when I told him no.', owes: 'escalates' },
+    b: { message: 'We got physical before the nikah and I regret it.', owes: 'ordinary' },
+  },
+  {
+    fact: 'a consequence aimed at her, or a feeling of his',
+    a: { message: 'If I end it he says he will ruin me with everyone we know.', owes: 'escalates' },
+    b: { message: 'If I end it he says he will be heartbroken.', owes: 'ordinary' },
+  },
 ]

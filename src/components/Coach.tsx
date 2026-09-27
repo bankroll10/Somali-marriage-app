@@ -110,6 +110,8 @@ export default function Coach({
   const [closers, setClosers] = useState<Closer[]>([])
   // The words she has just committed to, so the chips can turn into the fact.
   const [committed, setCommitted] = useState(false)
+  // The foot-of-the-Guide help lines, rendered only once she opens them.
+  const [floorOpen, setFloorOpen] = useState(false)
   // Her last message, so a commitment can be filed under what she asked.
   const lastAsked = useRef('')
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -603,6 +605,22 @@ export default function Coach({
       </div>
 
       <div className="flex-none border-t border-line/70 bg-cream/90 backdrop-blur-md">
+        {/* The floor that does not depend on reading her message right
+            (docs/DECISIONS.md Part 21). The help lines in the thread render
+            when a word or a shape is recognised, and no list recognises every
+            way of saying it; this is here whatever she wrote, whichever voice
+            answered, and past the budget too. */}
+        <details className="mx-auto max-w-xl px-5 pt-2" onToggle={(e) => setFloorOpen(e.currentTarget.open)}>
+          <summary className="flex min-h-[2.75rem] cursor-pointer list-none items-center text-[0.82rem] text-muted underline-offset-2 hover:underline marker:content-none [&::-webkit-details-marker]:hidden">
+            Not safe, or not okay?
+          </summary>
+          {floorOpen && (
+            <div className="space-y-1.5 pb-1">
+              <HelpLine urgent />
+              <HelpLine kind="crisis" lineOnly />
+            </div>
+          )}
+        </details>
         {locked ? (
           <div className="mx-auto max-w-xl px-5 pt-4 pb-safe-bar text-center">
             <p className="text-[0.85rem] text-muted text-pretty">
@@ -615,7 +633,7 @@ export default function Coach({
             e.preventDefault()
             send(input)
           }}
-          className="mx-auto flex max-w-xl items-end gap-2.5 px-5 pt-4 pb-safe-bar"
+          className="mx-auto flex max-w-xl items-end gap-2.5 px-5 pt-1 pb-safe-bar"
         >
           <textarea
             aria-label={`Tell your ${activeMode.label.toLowerCase()} what's going on`}
