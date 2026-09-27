@@ -461,6 +461,16 @@ name the L-id under "Bears on".
 - **False in fact.** Anything about the aroos, mahr, qabiil, going back, or a
   second wife that the person says is simply not how it works.
 
+**What to put in front of them.** Every piece of relationship content has an
+entry in `tests/judgment/content.lock.json`, and every entry says
+`somaliReview: 'pending'` until a session has read it. A change to a line puts
+it back to pending. So the queue for these sessions is that file, filtered to
+`pending`, and the scripts first: `tests/judgment/scripts.ts` lists each one
+with who it is said to. After a session, set the lines it covered to `done`
+by hand, in the same commit as the note. A line a session failed is not
+`done`: it is rewritten, and the rewrite goes back to pending
+(`docs/GUIDE-EVAL.md`, "Relationship judgment").
+
 ## WHAT COUNTS AS REAL VALUE
 
 Evidence that something changed in the person, not that they enjoyed the

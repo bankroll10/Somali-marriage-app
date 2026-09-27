@@ -113,6 +113,11 @@ Nothing here decides what you do next. It only makes sure you are not the only o
 const CRISIS_WORDS = [
   'kill myself', 'killing myself', 'suicide', 'suicidal', 'end my life', 'ending my life', 'end it all',
   'want to die', 'wanna die', 'better off dead', 'no reason to live', 'not want to live', "don't want to live",
+  // Passive ideation, as screening instruments word it: a wish not to be
+  // alive, said without a plan (docs/DECISIONS.md Part 19).
+  'wish i was dead', 'wish i were dead', "wish i wasn't alive", "don't want to be alive", 'dont want to be alive',
+  "don't want to wake up", 'dont want to wake up', 'no point in living', 'no point living', 'take my own life',
+  'better off without me',
   'hurt myself', 'hurting myself', 'harm myself', 'harming myself', 'self harm', 'self-harm', 'cut myself', 'cutting myself',
 ]
 
@@ -227,6 +232,29 @@ const DIFFERENCE_WORDS = [
   'meet him halfway', 'meet her halfway', 'halfway', 'incompatible', 'not compatible', 'we are different on', "we're different on",
   'we worked out', 'keep reopening',
 ]
+/** "We see money sent home differently": the thing named between the words. */
+const DIFFERENCE_RE = /\bsee (\w+ ){1,5}differently\b/
+
+/**
+ * She has named a line: a difference that is not hers to negotiate. The
+ * difference answer's words ask what each could live with, which is right
+ * for a difference still open and wrong for this one: the Eleven hands her
+ * SAY_THE_LINE here, and the Guide used to hand her a middle (docs/DECISIONS.md
+ * Part 19, found by tests/judgment/pairs.ts). Said about the difference, not
+ * a question: "is that a dealbreaker in Islam?" asks for a ruling.
+ */
+const LINE_WORDS = [
+  'a line for me', 'is my line', 'my red line', 'non-negotiable for me', 'a non-negotiable for me', 'one of my non-negotiables',
+  "i won't compromise on", 'i wont compromise on', "i can't compromise on", 'i cant compromise on',
+]
+
+export const LINE_REPLY = `A line is not a position to bargain over, and nothing here will ask you to find a middle on it. Being asked to meet halfway does not make it smaller, and it does not make you unreasonable.
+
+What is left is whether they have heard it plainly, from you, once, and whether their answer is final too. If it is, you have both learned it before the families are involved. If they ask you to give it up again, you do not owe that conversation twice.
+
+Try: "I want to say this plainly, so it isn't left open between us. This one is a line for me. I'm not asking you to meet me halfway on it. I'd rather know now whether your answer is final too."
+
+Say it once, and listen for a plain answer.`
 
 export const DIFFERENCE_REPLY = `Not agreeing is not a verdict on the two of you. Some differences get settled once. Some you live alongside, with an arrangement you both keep. And some are a line for one of you. Only you can say which this one is.
 
@@ -621,7 +649,7 @@ const THANKS_WORDS = [
 export const CLOSE_REPLY = `Then go and say it. I'm glad it helped. You don't need to come back here first; the next step is yours.`
 export const STOP_REPLY = `Then we stop here. Nothing needs deciding tonight; it will still be there tomorrow, and so will you.`
 
-const DEFERENCE = `For the ruling itself, take it to a scholar or imam you trust. A guide can share principles; a ruling is theirs to give.`
+export const DEFERENCE = `For the ruling itself, take it to a scholar or imam you trust. A guide can share principles; a ruling is theirs to give.`
 
 /** The guide's own words that point at real-world help — the numbers belong under them. */
 const HELP_WORDS = ['emergency', 'helpline', 'in danger', 'real-world help']
@@ -917,8 +945,10 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
       ? fixed(WENT_DIFFERENTLY_REPLY)
       : PROCESS_WORDS.some((w) => hasWords(m, w))
         ? fixed(PROCESS_REPLY)
-        : DIFFERENCE_WORDS.some((w) => hasWords(m, w))
-          ? fixed(DIFFERENCE_REPLY)
+        : LINE_WORDS.some((w) => hasWords(m, w))
+          ? fixed(LINE_REPLY)
+          : DIFFERENCE_WORDS.some((w) => hasWords(m, w)) || DIFFERENCE_RE.test(m)
+            ? fixed(DIFFERENCE_REPLY)
           : decisionReply(message, m, ctx) ?? voiceReply(message, ctx, modeId)
   // Principles, never rulings, and the ruling's owner named. "Too far in" is
   // years spent, not a question about how far is too far.

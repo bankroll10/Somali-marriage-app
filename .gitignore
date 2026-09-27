@@ -48,3 +48,4 @@ dist-ssr
 
 # The Guide’s live evaluation reports — the baseline is committed, runs are not (docs/GUIDE-EVAL.md).
 tests/guide-eval/results/
+tests/judgment/results/

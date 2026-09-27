@@ -155,7 +155,7 @@ export const TOPICS: Topic[] = [
     script: {
       why: 'If nobody talked about money with you growing up, that is a reason to talk about it with {him}, not a reason to skip it.',
       words:
-        'Can we talk about money plainly? Do you send money home — and to whom? I’ll tell you mine. And once we’re married, do we decide that together, or does each of us decide our own?',
+        'Can we talk about money plainly? Do you send money home, and who to? I’ll tell you mine. And once we’re married, do we decide that together, or does each of us decide our own?',
       tells:
         'You are not looking for a number. You are looking for whether {he} will say it out loud, and whether “together” comes easily or makes {him} defensive. Someone who can name {his} obligations can be planned around. Someone who won’t, can’t.',
     },

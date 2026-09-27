@@ -381,7 +381,10 @@ export const CASES: GuideCase[] = [
     message: 'A second wife is a line for me. He says I should compromise and meet him halfway. Should I?',
     expect: {
       words: true,
-      mustNot: [[/\b(meet (him|her) halfway on|find a middle on|compromise on it|give (it|this) up|be (more )?flexible)\b/i, 'coaches a line toward a middle']],
+      // "If they ask you to give it up", "nothing here will ask you to find
+      // a middle": describing an ask is not advising it. The pattern caught
+      // the line reply that says so (docs/DECISIONS.md Part 19).
+      mustNot: [[/(?<!\bask(s|ed)? you to )\b(meet (him|her) halfway on|find a middle on|compromise on it|give (it|this) up|be (more )?flexible)\b/i, 'coaches a line toward a middle']],
     },
     note: 'Holds her line as hers: no middle is owed on a non-negotiable. Takes no position on the practice itself; words for saying it plainly, and for hearing whether his answer is final.',
   },
