@@ -1,4 +1,32 @@
-# Session handoff — BATCH-01 complete on the branch: Group A, B1 and B2
+# Session handoff — BATCH-01 complete on the branch, release paused; research packet prepared
+
+## Status as of the latest session (2026-09-27, after B2)
+
+- **BATCH-01 release remains paused pending funded live evaluation.** Opening
+  the pull request runs `guide-eval.yml` on the whole batch, and both live
+  suites would be required (release check 1 below). Paid evaluation is not
+  currently affordable, so the batch stays on `claude/hello-gr0hoz`: no pull
+  request, no merge, no deploy, no paid run. Nothing in the batch was changed
+  by this session; `261d055..e903363` plus B2 stand as reviewed.
+- **`docs/PILOT-RESEARCH-01.md` is prepared** (this session): a research packet
+  for the founder on whether Somali Muslim adults seeking marriage would take
+  part in the Minneapolis–St. Paul introduction pilot: six recent-behaviour
+  conversations, a recruitment message, an eight-question script, three
+  concept cards, control-and-consent questions, an evidence template and a
+  decision guide. **No interview has occurred, no recruitment message has
+  been sent, nobody has been contacted**, and the packet reports no finding.
+  Completed interview notes are to be kept outside this repository.
+- **The next task is founder review of the packet and recruitment, not
+  feature development.** Runtime code is untouched; live evaluation stays
+  disabled (`GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE` unset, no key). The release
+  path below resumes only when a live run can be funded.
+
+Verification for this session: `npm run verify > log 2>&1; echo $?` exit 0
+(see the commit that adds the packet); the diff is two Markdown files.
+
+The B2 handoff follows, unchanged.
+
+---
 
 Written 2026-09-27. Five sessions on one branch: Group A of
 `docs/BATCH-01-PLAN.md`, its repair (reviewed through `e2e5fe8`), Group B1
@@ -155,7 +183,10 @@ only).
 
 ## The exact next task
 
-Final review of the complete batch (`261d055..HEAD`). Then, on the founder's
-"PR + merge": decide item 1 of the release checks first, open one pull
-request for the whole batch, wait for `verify` (and `guide-eval`, if the
+*Superseded by "Status as of the latest session" at the top: the release is
+paused until a live evaluation can be funded, and the next task is founder
+review of `docs/PILOT-RESEARCH-01.md` and recruitment.* When the release
+resumes: final review of the complete batch (`261d055..HEAD`). Then, on the
+founder's "PR + merge": decide item 1 of the release checks first, open one
+pull request for the whole batch, wait for `verify` (and `guide-eval`, if the
 spend is allowed) and merge.
