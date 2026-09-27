@@ -1,34 +1,35 @@
-# The Guide against the live model, before a change to how it speaks merges.
+# The Guide and relationship judgment against the live model, with an
+# outcome that is written down (docs/GUIDE-EVAL.md, "Outcomes").
 #
-# The offline half of the Guide's evaluation runs inside `npm run verify` on
-# every pull request and needs no key (tests/guide-eval.test.ts). This is the
-# other half: every case sent to the model exactly as a member's message is,
-# graded by the same rules, scored by a judge, and compared with the committed
-# baseline (docs/GUIDE-EVAL.md). It costs about $4 a run, so it runs when the
-# prompt, the guide, the offline voice or the suite itself changes — and by
-# hand. The relationship-judgment half (tests/judgment-live.test.ts) runs in
-# the same job: it also triggers on any change to relationship content — the
-# Read, the Eleven, the scripts — so a changed line meets the judge before it
-# merges.
+# The offline half of the evaluation runs inside `npm run verify` on every
+# pull request and needs no key (tests/guide-eval.test.ts, tests/judgment/*).
+# This is the paid half: the Guide eval (tests/guide-eval-live.test.ts, about
+# $4 a run) and relationship judgment (tests/judgment-live.test.ts). It runs
+# on every pull request so that a check exists for every one, and decides
+# from the diff which suites the change requires (tests/eval/outcome.ts,
+# REQUIRES): a change to nothing a suite measures is `not-required` and costs
+# nothing; a change to the prompt, the Guide, the offline voice, the cases or
+# the harnesses runs the suite, and the check passes only on
+# `evaluated-pass` — every case answered by the live model, every one
+# judged, every gate clean. No key, no credit, a stopped run or a partial
+# one is not a pass, and the last step says so rather than warning and
+# exiting 0 as this workflow did until 2026-09-27.
 #
-# Without an ANTHROPIC_API_KEY repository secret it warns and passes: the
-# offline suite is the gate that always bites, and this one bites the day the
-# secret is added (docs/OPS.md).
+# Each suite writes its own outcome file; the last step reads both, always
+# runs, and fails closed on anything missing, malformed or contradictory.
+# Whether a red check blocks a merge is decided by branch protection, not
+# here (docs/GUIDE-EVAL.md, "What a red check means").
 name: guide-eval
 
 on:
   workflow_dispatch:
+    inputs:
+      suites:
+        description: Which suites this run must complete. A run by hand has no diff to read, so it is required for what you ask.
+        type: choice
+        options: [both, guide, judgment]
+        default: both
   pull_request:
-    paths:
-      - netlify/shared/prompt.ts
-      - netlify/functions/guide.ts
-      - src/lib/coach.ts
-      - src/data/**
-      - src/lib/read.ts
-      - src/lib/beforeYes.ts
-      - src/lib/couple.ts
-      - tests/guide-eval/**
-      - tests/judgment/**
 
 concurrency:
   group: guide-eval-${{ github.ref }}
@@ -41,7 +42,7 @@ permissions:
 jobs:
   live:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
 
@@ -50,61 +51,73 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - run: npm ci
+      # Which suites this change requires, from the files it touches. A
+      # manual run has no pull request: it is required for the suites asked.
+      # The step writes `not-required` for the rest, so the last step finds
+      # a file for every suite. Runs before `npm ci`: tests/eval/check.ts
+      # has no dependencies.
+      - name: Decide which suites this change requires
+        id: which
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          SUITES: ${{ github.event.inputs.suites }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            git fetch --no-tags --depth=1 origin "$BASE_SHA"
+            git diff --name-only "$BASE_SHA" HEAD > changed.txt
+            node --experimental-strip-types --disable-warning=ExperimentalWarning tests/eval/check.ts applicability \
+              --event pull_request --changed changed.txt --github-output "$GITHUB_OUTPUT"
+          else
+            node --experimental-strip-types --disable-warning=ExperimentalWarning tests/eval/check.ts applicability \
+              --event dispatch --suites "${SUITES:-both}" --github-output "$GITHUB_OUTPUT"
+          fi
 
-      - name: Evaluate the live guide
+      - name: Install
+        id: install
+        if: steps.which.outputs.guide == 'required' || steps.which.outputs.judgment == 'required'
+        run: npm ci
+
+      # Without the secret the suite records not-evaluated and fails: a live
+      # run was required and did not happen. The session owns retries, stops
+      # on a fatal authentication or billing failure, and keeps what it
+      # completed (tests/eval/session.ts).
+      - name: Evaluate the live Guide
+        if: steps.which.outputs.guide == 'required'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo "::warning::No ANTHROPIC_API_KEY secret, so the live Guide was not evaluated. The offline suite still ran in verify. docs/GUIDE-EVAL.md"
-            exit 0
-          fi
-          # An account with no credit is the same state as no key: nothing
-          # was evaluated, and the offline suite still ran in verify. It
-          # warns and passes rather than turn every guide PR red while the
-          # eval is parked (docs/GUIDE-EVAL.md). Any other failure fails.
-          set -o pipefail
-          if ! npm run eval:guide 2>&1 | tee eval.log; then
-            if grep -q "credit balance is too low" eval.log; then
-              echo "::warning::The Anthropic account behind ANTHROPIC_API_KEY has no credit, so the live Guide was not evaluated. The offline suite still ran in verify. docs/GUIDE-EVAL.md"
-              exit 0
-            fi
-            exit 1
-          fi
+        run: npm run eval:guide
 
+      # Runs after the Guide suite whatever it did. It reads the Guide's
+      # outcome first: a fatal stop there (the key refused, no credit) means
+      # this suite sends nothing and records not-evaluated.
       - name: Judge relationship judgment
+        if: ${{ !cancelled() && steps.install.outcome == 'success' && steps.which.outputs.judgment == 'required' }}
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: |
-          if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo "::warning::No ANTHROPIC_API_KEY secret, so relationship judgment was not judged live. The offline harness still ran in verify. docs/GUIDE-EVAL.md"
-            exit 0
-          fi
-          set -o pipefail
-          if ! npm run eval:judgment 2>&1 | tee judgment.log; then
-            if grep -q "credit balance is too low" judgment.log; then
-              echo "::warning::The Anthropic account behind ANTHROPIC_API_KEY has no credit, so relationship judgment was not judged live. docs/GUIDE-EVAL.md"
-              exit 0
-            fi
-            exit 1
-          fi
+          EVAL_UPSTREAM_OUTCOME: tests/guide-eval/results/outcome.json
+        run: npm run eval:judgment
 
-      # The same report, in the log, for a reader that cannot fetch artifacts:
-      # a cloud session's network policy can refuse the artifact store while
-      # the log stays readable. Gzipped and base64'd, one marked line per
-      # chunk; reassemble with `grep GUIDE_EVAL_REPORT | cut -d' ' -f3 | tr -d '\n' | base64 -d | gunzip`.
+      # The outcomes and the reports, in the log, for a reader that cannot
+      # fetch artifacts: a cloud session's network policy can refuse the
+      # artifact store while the log stays readable. Outcomes are printed
+      # plain; reports gzipped and base64'd, one marked line per chunk;
+      # reassemble with `grep GUIDE_EVAL_REPORT | cut -d' ' -f3 | tr -d '\n' | base64 -d | gunzip`.
       # The cases are written for the suite; no member's words are in it.
-      - name: Print the report into the log
+      - name: Print the outcomes and reports into the log
         if: always()
         run: |
+          for f in tests/guide-eval/results/outcome.json tests/judgment/results/outcome.json; do
+            [ -f "$f" ] || { echo "$f: not written"; continue; }
+            echo "== $f"; cat "$f"; echo
+          done
           for f in tests/guide-eval/results/live-*.json tests/judgment/results/live-*.json; do
             [ -f "$f" ] || continue
             gzip -c "$f" | base64 -w 0 | fold -w 3000 | sed "s|^|GUIDE_EVAL_REPORT $(basename "$f") |"
             echo
           done
 
-      # The report a person reads, with every answer that lost points quoted.
+      # The reports a person reads, with every answer that lost points quoted.
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -114,3 +127,14 @@ jobs:
             tests/judgment/results/
           retention-days: 14
           if-no-files-found: ignore
+
+      # Always runs, last. Reads both outcome files against what the first
+      # step required, and fails unless every required suite is
+      # evaluated-pass and nothing is missing, malformed or contradictory
+      # (tests/eval/outcome.ts `verdict`). A suite that was not required
+      # and still shows evaluated-fail fails it too.
+      - name: The outcome
+        if: always()
+        run: |
+          node --experimental-strip-types --disable-warning=ExperimentalWarning tests/eval/check.ts verdict \
+            --guide "${{ steps.which.outputs.guide }}" --judgment "${{ steps.which.outputs.judgment }}"

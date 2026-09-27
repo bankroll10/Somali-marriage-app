@@ -199,7 +199,10 @@ control that *is* on screen, so a copy change reads as one.
 - **Netlify Blobs' own consistency.** The doubles are strongly consistent.
   The platform's eventual consistency is named in `docs/PRIVACY.md`.
 - **The live model.** The guide is graded offline on every PR, and live on
-  demand with `npm run eval:guide` and `npm run eval:judgment`
-  (`docs/GUIDE-EVAL.md`).
+  demand with `npm run eval:guide` and `npm run eval:judgment`, or in
+  `guide-eval.yml` when a PR touches what a suite measures. A live run ends
+  in one of four written outcomes, and only `evaluated-pass` is a pass; the
+  harness, the session and the outcome logic are themselves tested here
+  with stand-in clients and no key (`docs/GUIDE-EVAL.md`, "Outcomes").
 - **Screens no test taps its way to:** the ended flow, ReportConcern and the
   intake's chapter insight.

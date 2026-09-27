@@ -57,7 +57,7 @@ The suite measures three targets:
 |---|---|---|---|
 | **Prompt contract**: the prompt carries every rule each case depends on, and nothing a member types into their map can forge a line of it | `tests/guide-eval.test.ts` | every `npm run verify`, every PR | no |
 | **Offline voice**: every case answered, graded, and held to a committed baseline | `tests/guide-eval.test.ts` | every `npm run verify`, every PR | no |
-| **Live guide**: every case sent exactly as a member's message is (`guideRequest`), graded, and scored by a judge | `tests/guide-eval-live.test.ts` | `npm run eval:guide`, and `.github/workflows/guide-eval.yml` on PRs that touch the guide | yes |
+| **Live guide**: every case sent exactly as a member's message is (`guideRequest`), graded, and scored by a judge | `tests/guide-eval-live.test.ts` | `npm run eval:guide`, and `.github/workflows/guide-eval.yml` on every PR, run only when the PR touches what it measures ("Outcomes" below) | yes |
 
 ## The cases: 89, in 23 categories
 
@@ -172,16 +172,131 @@ each fail at least one test when removed.
   score drops by more than 0.25;
 - against the same baseline, a rule-graded mean drops by more than 0.05.
 
-The first run with no baseline writes one. Later ones are compared, and
-`UPDATE_GUIDE_BASELINE=1` moves it on purpose.
+The first run **that passes** writes the baseline; later ones are compared,
+and `UPDATE_GUIDE_BASELINE=1` moves it on purpose, again only from a run that
+passed. An incomplete or failing run can neither create nor move it (2026-09-27;
+before that the first run wrote one whatever it had done).
 
-Each run writes `tests/guide-eval/results/live-<time>.md`, which is gitignored
-and uploaded as a CI artifact. It holds the dimension table, the per-category
-table, and every answer that lost points, quoted with the reasons.
+Each run writes `tests/guide-eval/results/live-<time>.md` and `.json`, which
+are gitignored and uploaded as a CI artifact, and `outcome.json` beside them
+("Outcomes" below). The report holds the dimension table, the per-category
+table, every answer that lost points quoted with the reasons, and every
+request that failed.
 
-Where the model declines or returns nothing, the harness grades the offline
-voice for that case, exactly as production falls back, and the report names
-it.
+Where the model declines (`stop_reason: refusal`), the harness grades the
+offline voice for that case, exactly as production falls back, and the report
+names it (`declined`). Where live inference fails — the request errors after
+its retries, or returns no text — the offline voice is graded too, because
+that is what a member would get, but the case is `unavailable`: nothing was
+measured about the model, and the run cannot pass on it.
+
+## Outcomes (2026-09-27)
+
+Until this date a live run had no outcome of its own. `guide-eval.yml` grepped
+the log for "credit balance is too low" and exited 0; run 36301150451's two
+live steps both failed on that error, the job read `success`, and nothing was
+written (`docs/BATCH-01-PLAN.md`, finding 5). The offline suite in `verify`
+was never affected and still gates every PR on its own; what follows is only
+about the paid half.
+
+**Four outcomes, one per suite, in separate files.** Every run of either
+live suite ends in exactly one of these, written to
+`tests/guide-eval/results/outcome.json` or `tests/judgment/results/outcome.json`
+(`tests/eval/outcome.ts`):
+
+| Outcome | Means |
+|---|---|
+| `evaluated-pass` | The intended case set was nonempty; every case was answered by the live model (text, or a decline); every case was judged; every gate passed |
+| `evaluated-fail` | The model was reached and the run cannot pass: a gate failed, or the run is incomplete — a case `unavailable`, a case unjudged, a stop before the end, a case never started, an empty case set |
+| `not-evaluated` | No request to the model succeeded: no key, or a fatal authentication or billing failure before the first answer |
+| `not-required` | The change under review touches nothing the suite measures, so it was not run |
+
+The file records the intended and started cases, the completed rows, the
+answered and declined counts, the `unavailable` count, the judged count,
+every request sent and every one that returned, the stop and its cause if
+the run stopped, every error (case, stage, kind, status, message with
+anything key-shaped redacted, attempt), the gate failures, and the path of
+the full report. It holds no key and no member's words: the cases are
+written for the suite. A file that states an outcome its own numbers do not
+earn is a contradiction and is refused (`validateOutcome`).
+
+**The session.** Every request goes through `tests/eval/session.ts`, with
+the SDK's own retries turned off so every request is counted once:
+
+- 401/403 (`auth`), 402 or the API's 400 "credit balance is too low"
+  (`billing`) and 404 (`model`) are **fatal**: the session stops, no worker
+  sends another request, the requests already in flight finish and are
+  recorded as what they were (answered, or failed), and the cases that were
+  never picked up are counted as never started — not as failures;
+- 408/409/429/5xx/529 and a lost connection are **transient**: retried up to
+  three attempts with backoff, each attempt recorded; a case still failing
+  is `unavailable`, and the run goes on so that one bad minute does not
+  spend the whole run for nothing;
+- any other 4xx is recorded against its case, not retried, not fatal.
+
+A decline is the model's own answer and counts as coverage; an
+`unavailable` case never does. Relationship judgment calibrates its judge
+first and stops there if it misses more than two lines: nothing it said
+afterwards would be trusted. The second suite in a job reads the first's
+outcome (`EVAL_UPSTREAM_OUTCOME`) and sends nothing after a fatal auth or
+billing stop.
+
+**Which changes require which suite.** `REQUIRES` in `tests/eval/outcome.ts`
+is the rule; `tests/eval/outcome.test.ts` walks each live suite's real
+import graph and fails if a file it reaches is neither required nor named,
+with a reason, as imported-but-not-measured (`NOT_MEASURED`: the handler's
+caps, counters, founder check and logging, which `guideRequest` never
+reads).
+
+| Changed path | Guide | Judgment |
+|---|---|---|
+| `.github/workflows/guide-eval.yml`, `package.json`, `tests/eval/` | required | required |
+| `netlify/functions/guide.ts`, `netlify/shared/prompt.ts`, `netlify/shared/vocab.ts` | required | required |
+| `src/lib/coach.ts`, `src/data/coach.ts`, `tests/voice-rules.ts` | required | required |
+| `tests/guide-eval/cases.ts`, `graders.ts`, `judge.ts` | required | required |
+| `tests/guide-eval-live.test.ts`; the rest of `tests/guide-eval/` | required | — |
+| `tests/judgment-live.test.ts`; `tests/judgment/` | — | required |
+| `src/data/read.ts`, `beforeYes.ts`, `eleven.ts`, `families.ts` | — | required |
+| anything else | not-required | not-required |
+
+Dropped from the old trigger list, because neither live suite imports them:
+the rest of `src/data/**`, `src/lib/read.ts`, `src/lib/beforeYes.ts`,
+`src/lib/couple.ts`. The offline lock (`tests/judgment/lock.test.ts`, in
+`verify`) is what watches those. `package-lock.json` is not a trigger either,
+so an SDK bump made in the lockfile alone does not require a run; the range
+in `package.json` does.
+
+**The workflow.** It runs on every pull request, so a check exists for every
+one; the first step classifies the diff against the PR's base and writes
+`not-required` for the suites it does not need, and `npm ci` and the suites
+run only when one is required. A manual run (`workflow_dispatch`) has no
+pull request behind it and no diff to read: it is required for the suites
+the person asked for (`suites`: both, guide or judgment). The last step
+always runs, reads both files against what the first step decided, and
+fails unless every required suite is `evaluated-pass` and nothing is
+missing, malformed or contradictory. A suite that was not required but ran
+and is `evaluated-fail` fails it too; `not-evaluated` on a suite that was
+not required is printed and does not fail.
+
+**What a red check means.** A failed `guide-eval / live` check is a red
+mark on the PR. It **blocks merging only if branch protection on `main`
+lists that check as required**, which is founder input still open
+(`docs/BATCH-01-PLAN.md` §7) and was not changed by this work. Until it is
+set, a red check is information, and the merge is a decision. The offline
+suite in `verify` is unaffected either way.
+
+**Deterministic, without a key.** `tests/eval/outcome.test.ts`,
+`session.test.ts` and `workflow.test.ts`, and the end-to-end blocks in both
+live test files, drive the whole path with stand-in clients that throw the
+SDK's own error classes: a complete passing and failing run, missing
+credentials, billing and authentication failure before the first case, a
+failure after partial completion, a transient server error and a lost
+connection, a judge call that fails, missing judging, infrastructure
+fallback, an empty case set, a fatal stop carried from the earlier suite,
+missing and malformed and contradictory files, and the
+required-versus-not-required classification for pull requests and manual
+runs. `check.ts` is also run under plain Node, as the workflow runs it. The
+quality thresholds above did not change.
 
 ## What the first run found, and what changed
 
@@ -248,7 +363,11 @@ ratchet will show it.
   about 108 calls (a guide call and a judge call per case), four at a time,
   roughly $4. The report states the tokens and the cost.
 - **In CI:** add `ANTHROPIC_API_KEY` as a repository secret (`docs/OPS.md`).
-  Until then the workflow warns and passes.
+  Until then a PR that requires a suite gets `not-evaluated` and a red check;
+  a PR that touches nothing the suites measure gets `not-required` and a green
+  one ("Outcomes" above).
+- **Run one suite by hand:** Actions → guide-eval → Run workflow, and pick
+  `guide`, `judgment` or `both`. That run is required for what you picked.
 - **Add a case:** append it to `cases.ts` in its category's run. Fill
   `expect` only with what is true of this message, write its `note`, then
   record its baseline on purpose. If it needs a new check, add the check, a
@@ -318,13 +437,15 @@ Neither has been fixed. Both are prompt changes, and the prompt does not
 change without a before-and-after run.
 
 **Parked, not dropped.** Nothing members use depends on this eval: it
-measures the Guide, it does not run it. While there is no credit,
-`guide-eval.yml` treats "credit balance is too low" as it treats a missing
-key: it warns and passes, and the offline suite still gates every PR. When
-credit returns, the next run by hand writes the report to the log. That run
-records the first live baseline, quotes the two findings in full, and only
-then proposes the prompt fixes. Until then the live prompt does not change;
-the offline voice, copy and everything else keep moving.
+measures the Guide, it does not run it. While there is no credit, a PR that
+touches the Guide gets `not-evaluated` and a red `guide-eval` check that says
+so (until 2026-09-27 the workflow read "credit balance is too low" in its log
+and passed; "Outcomes" above); the offline suite still gates every PR. When
+credit returns, the next run by hand writes the report and the outcome to the
+log. That run, if it is `evaluated-pass`, records the first live baseline,
+quotes the two findings in full, and only then proposes the prompt fixes.
+Until then the live prompt does not change; the offline voice, copy and
+everything else keep moving.
 
 ## What the reasoning audit changed (2026-09-26)
 
@@ -478,10 +599,15 @@ what the engines decide, not what they say:
   message. It also judges every script the lock says has not been judged
   since it last changed.
 - Gates: any hard property violated fails. A soft hold rate that falls more
-  than 0.05 against the last run fails.
+  than 0.05 against `tests/judgment/baseline.live.json` fails. That baseline
+  is written by the first run that passes and moved by
+  `UPDATE_JUDGMENT_BASELINE=1`, again only from a pass (until 2026-09-27 it
+  was read and never written). `UPDATE_JUDGMENT_LOCK=1` marks the judged
+  scripts in the lock, only from a pass.
 - The stand-in tests pin the evidence rule, the gates and the calibration
-  wiring offline. `npm run eval:judgment` spends credit; `guide-eval.yml`
-  runs it beside the Guide eval, on the same terms.
+  wiring offline, and drive the suite end to end through every outcome
+  ("Outcomes" above). `npm run eval:judgment` spends credit; `guide-eval.yml`
+  runs it after the Guide eval, when the change requires it.
 
 **Nothing changes silently** (`lock.ts`, `content.lock.json`).
 - **What is fingerprinted:**
@@ -493,8 +619,11 @@ what the engines decide, not what they say:
   tests/judgment/lock.test.ts` is run. That marks the changed entries
   `judged: false` and `somaliReview: 'pending'`, so the diff is the review
   queue.
-- **The trigger paths.** `guide-eval.yml` now also triggers on `src/data/**`,
-  the Read, Eleven and couple engines, and `tests/judgment/**`.
+- **The trigger paths.** From 2026-09-27 the workflow runs on every PR and
+  decides inside which suites the change requires; relationship judgment is
+  required by `tests/judgment/**` and the script sources in `src/data/`
+  ("Outcomes" above). The Read, Eleven and couple engines are watched by the
+  lock in `verify`, not by a paid run.
 
 **The harness is tested** (`mutations.test.ts`). Each check is shown to fail
 on a seeded regression:
@@ -525,9 +654,10 @@ The engine mutations applied by hand are in `docs/TESTING.md`'s register.
 `tests/guide-eval.test.ts` (prompt contract, offline voice, ratchet) ·
 `tests/guide-eval-graders.test.ts` (the graders, pinned) ·
 `tests/guide-eval-live.test.ts` (the harness with a stand-in; the live run) ·
+`tests/eval/{outcome,session,artifacts,check,stand-in}.ts`, `{outcome,session,workflow}.test.ts` (the four outcomes, the session, applicability, the workflow's two commands) ·
 `tests/voice-rules.ts` (shared with `tests/voice.test.ts`) ·
 `.github/workflows/guide-eval.yml` · `guideRequest` in `netlify/functions/guide.ts` ·
 `localReply`, `needsCrisisLine`, `CRISIS_REPLY`, `HARM_REPLY` in `src/lib/coach.ts` ·
 crisis lines in `src/data/help.ts` · `HelpLine` `kind="crisis"` ·
 relationship judgment: `tests/judgment/{properties,scripts,calibration,guide-map,heldout,pairs,invariants,judge,lock}.ts`,
-`content.lock.json`, `{read,eleven,scripts,guide,lock,mutations}.test.ts` · `tests/judgment-live.test.ts`.
+`content.lock.json`, `{read,eleven,scripts,guide,lock,mutations}.test.ts` · `tests/judgment/live.ts` · `tests/judgment-live.test.ts`.

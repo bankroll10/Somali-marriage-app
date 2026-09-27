@@ -148,7 +148,8 @@ export interface JudgedText {
   kind: 'guide' | 'held-out' | 'script' | 'calibration'
   properties: PropertyId[]
   text: string
-  source?: 'live' | 'offline-fallback'
+  /** Who answered a Guide text: the model; the offline voice because it declined; or nobody, because live inference failed (not judged, not coverage). */
+  source?: 'live' | 'offline-fallback' | 'unavailable'
   judgement: PropertyJudgement | null
 }
 

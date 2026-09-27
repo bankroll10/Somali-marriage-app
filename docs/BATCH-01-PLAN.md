@@ -193,12 +193,25 @@ Commit order, each leaving `npm run verify` green:
   `/?looking` lands on the form; every pinned link still opens the same thing;
   no banned phrase (`tests/voice.test.ts`).
 
-## 4. Group B — deferred, not started
+## 4. Group B
 
-- Evaluation outcomes: separate offline verification from live evaluation;
-  required vs not-required live runs; stop on fatal auth or billing errors,
-  keep partial results, always write a structured outcome; pass only on full
-  coverage including judging; no log grep; deterministic stand-ins.
+**B1 — evaluation outcomes: built 2026-09-27** (`docs/GUIDE-EVAL.md`,
+"Outcomes"; `docs/SESSION-HANDOFF.md`). Offline verification stays
+independent of paid evaluation; each live suite writes its own structured
+outcome (`evaluated-pass`, `evaluated-fail`, `not-evaluated`, `not-required`)
+to its own file; a pass needs a nonempty case set, every case answered by
+the live model, every case judged and every gate clean; a decline is the
+model's answer and infrastructure fallback is not coverage; a fatal auth or
+billing failure stops the session and keeps what was done; the workflow runs
+on every PR, classifies the diff by the suites' real import graphs, and ends
+on a fail-closed verdict; the log-grep/exit-0 workaround is gone; no
+threshold changed; no baseline is written from anything but a pass. Whether
+a red check blocks a merge is branch protection's setting, unchanged and
+still open (§7). Deterministic stand-ins cover every case named in the
+review; no paid run was made.
+
+**B2 — deferred, not started:**
+
 - Operational and documentary accuracy: reword `docs/SECURITY.md` T20,
   `docs/PRIVACY.md` R4 and C7, `docs/OPS.md` ("Deleted data") to unverified;
   the five form rows as observed submissions; no health counts for the held
@@ -221,7 +234,7 @@ Commit order, each leaving `npm run verify` green:
   address on reload and navigation.
 - No paid evaluation runs. Nothing is deployed. Pushing this branch builds
   nothing on Netlify (only `main` deploys) and triggers `guide-eval.yml`
-  only on a pull request touching its paths, which this batch does not open.
+  only on a pull request or by hand; this batch opens none and runs none.
 
 ## 6. Repair of 2026-09-27 (before Group B)
 
