@@ -41,6 +41,8 @@ const Families = lazy(() => import('./components/Families'))
 const Couple = lazy(() => import('./components/Couple'))
 const Ending = lazy(() => import('./components/Ending'))
 const Ended = lazy(() => import('./components/Ended'))
+const Looking = lazy(() => import('./components/Looking'))
+const Talking = lazy(() => import('./components/Talking'))
 
 export default function App({ entry = null }: { entry?: Entry | null }) {
   const n = useNiyyah(entry)
@@ -127,7 +129,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
   const welcome = (
     <Welcome
       onBegin={n.startFresh}
-      onRead={() => n.setScreen('read')}
+      onLooking={() => n.setScreen('looking')}
+      onTalking={() => n.setScreen('talking')}
       hasProgress={n.hasProgress}
       // A Home is progress too. Someone who took a read or the eleven from a
       // link has one and no map; Back from "Now the other half of it" landed
@@ -148,6 +151,32 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
   switch (n.screen) {
     case 'welcome':
       return welcome
+
+    case 'looking':
+      return (
+        <Looking
+          identity={n.identity}
+          intro={n.intro}
+          onRegistered={n.setIntro}
+          onWithdrawn={() => n.setIntro(null)}
+          onIdentity={(patch) => n.setIdentity((prev) => ({ ...prev, ...patch }))}
+          onTalking={() => n.setScreen('talking')}
+          onMap={n.beginMap}
+          onTrust={() => n.openTrust('looking')}
+          onBack={backHome}
+        />
+      )
+
+    case 'talking':
+      return (
+        <Talking
+          onRead={() => n.setScreen('read')}
+          onBeforeYes={() => n.openBeforeYes()}
+          onFamilies={() => n.setScreen('families')}
+          onLooking={() => n.setScreen('looking')}
+          onBack={backHome}
+        />
+      )
 
     case 'identity':
       return (
@@ -232,6 +261,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           coupleSecond={n.couple?.side === 'second'}
           onOpenFamilies={() => n.setScreen('families')}
           onOpenEnding={() => n.setScreen('ending')}
+          onOpenLooking={() => n.setScreen('looking')}
+          intro={n.intro}
           onRestart={n.startFresh}
           followUpAsk={n.followUpAsk}
           onAnswerFollowUp={n.answerFollowUp}

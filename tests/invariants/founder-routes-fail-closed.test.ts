@@ -31,19 +31,21 @@ const ROWS: Row[] = [
   { fn: 'export', method: 'GET', path: 'export' },
   { fn: 'guide', method: 'GET', path: 'guide' },
   { fn: 'health', method: 'GET', path: 'health' },
+  { fn: 'introduce', method: 'GET', path: 'introduce' },
   { fn: 'progress', method: 'GET', path: 'progress' },
   { fn: 'safety', method: 'GET', path: 'safety' },
   { fn: 'safety', method: 'DELETE', path: 'safety?code=TWXY3478&side=woman&id=ACDEFGHJKM&outcome=no-action' },
 ]
 
 /** Things only a member wrote. Any of them in a refused reply is a leak. */
-const NEEDLES = ['Zqfounderleakname', 'Zq her own words about him']
+const NEEDLES = ['Zqfounderleakname', 'Zq her own words about him', 'zq.leak@example.test']
 
 function seed() {
   blobs.put('maps', 'HJKMNPQR', { snapshot: { identity: { firstName: NEEDLES[0] }, stage: 'preparing', answers: {} }, createdAt: '2026-09-01', expiresAt: '2099-01-01', v: 1 })
   blobs.put('couples', 'TWXY3478', { creator: 'woman', owner: 'CDEFGHJKMN', first: {}, createdAt: '2026-09-01', expiresAt: '2099-01-01', v: 1 })
   blobs.put('reports', 'TWXY3478-woman-ACDEFGHJKM', { id: 'ACDEFGHJKM', code: 'TWXY3478', side: 'woman', reason: 'threats', details: NEEDLES[1], at: '2026-09-02', v: 1 })
   blobs.put('progress', 'CDEFGHJK', { first: { arrived: '2026-09-01' }, expiresAt: '2099-01-01', v: 1 })
+  blobs.put('introductions', 'QRTWXY34', { contact: NEEDLES[2], gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: new Date().toISOString().slice(0, 10), v: 1 })
 }
 
 /** Every way of almost holding the key. */

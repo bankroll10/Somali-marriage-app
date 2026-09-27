@@ -231,6 +231,40 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               </p>
             </Disclose>
 
+            <Disclose summary="Putting your name down for an introduction" hint="A way to reach you, and where you are">
+              <p className="text-[0.88rem] leading-snug text-muted text-pretty">
+                Only if you tap <span className="font-medium text-ink">Put my name down</span> on the looking screen. Nothing
+                else you do here — a map, a read, the eleven — puts you on the list. What goes to our server:
+              </p>
+              <ul className={LIST}>
+                <li>the email or phone number you typed</li>
+                <li>the first name you gave, if you gave one</li>
+                <li>whether you are a woman or a man</li>
+                <li>your city and its country, or the country you named</li>
+                <li>how far you said you would go: your city, or anywhere in your country</li>
+                <li>the day</li>
+              </ul>
+              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+                It is kept under a code this phone made up for itself — not your map code, not the code your steps go
+                under — so nothing joins it to your answers. The founder reads the list, by hand, to make introductions
+                one at a time; no other route returns it, and it is not in the backup. It is kept for up to 180 days from
+                the day you put it down, then removed — sooner if you take your name off, from that screen or with Forget
+                me below, or ask us to. If you still want an introduction after that, you put it down again; there is no
+                reminder.
+              </p>
+              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+                <span className="font-medium text-ink">If the founder speaks with you.</span> Before anyone is considered for
+                you, the founder talks with you and with one person who knows you. What is kept, under your code and
+                nowhere in this app: that who you are was checked and the day, that the person who knows you was spoken to
+                and the day, whether you can be introduced now, and one short description of you that you approve and that
+                does not say who you are. Not the other person’s name or number, and no other notes about you.
+              </p>
+              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+                That description is the only thing about you anyone else sees before you have both said yes. Your name and
+                how to reach you go to one other person only after you and they have each said yes.
+              </p>
+            </Disclose>
+
             <Disclose summary="The Guide" hint="Your message and a summary of your map">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                 Here is exactly what the Guide sends when you ask it something: your message and
@@ -284,7 +318,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
             Every member is held to the same standard. Wherever we know who
             you’ve been in touch with — right now, that means after the eleven —
             you can report a concern about them, in your own words if you need
-            to.
+            to. If the founder introduced you to someone, write to{' '}
+            <a href={`mailto:${CONTACT_EMAIL}`} className="font-medium text-cream underline">
+              {CONTACT_EMAIL}
+            </a>{' '}
+            about them at any time; it is read the same way.
           </p>
           {/* The mechanism, and its honest limit — 182 words that a person
               reading a promise does not have to read to trust it, and must be
@@ -317,10 +355,12 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               mark on a person, because nobody here has an account to mark.
             </p>
             <p className="mt-2.5 text-[0.95rem] leading-relaxed text-cream/90 text-pretty">
-              There are no accounts here, so nobody can be thrown off a list
-              that doesn’t exist; whoever answered your eleven left no account
-              behind either. The weight sits with the founder, who reads every
-              one.
+              There are no accounts here to close; whoever answered your eleven
+              left no account behind either. What the founder can do is stop
+              introducing someone: after a report about a person Niyyah
+              introduced you to, they are not introduced to anyone again while
+              it is looked into, and not at all if it is borne out. The weight
+              sits with the founder, who reads every one.
             </p>
           </Disclose>
         </section>

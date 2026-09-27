@@ -158,7 +158,7 @@ describe('corruption: a record that is not what it should be', () => {
 
   it.each(GARBAGE)('no route crashes on a record that reads as %s', async (junk) => {
     const { code } = await member()
-    for (const store of ['maps', 'progress', 'couples', 'reports', 'tallies']) {
+    for (const store of ['maps', 'progress', 'couples', 'reports', 'tallies', 'introductions']) {
       blobs.put(store, code, junk)
       blobs.put(store, 'joint', junk)
     }
@@ -171,6 +171,7 @@ describe('corruption: a record that is not what it should be', () => {
       ['couple', 'GET', 'couple', undefined, FOUNDER],
       ['safety', 'GET', 'safety', undefined, FOUNDER],
       ['health', 'GET', 'health', undefined, FOUNDER],
+      ['introduce', 'GET', 'introduce', undefined, FOUNDER],
       ['sweep', 'POST', 'sweep'],
     ]
     for (const [fn, method, path, body, headers] of requests) {
@@ -190,7 +191,8 @@ describe('a broken migration: every record shape ever written, read by the code 
   // timestamps to the millisecond. A change that cannot read one of these
   // fails here first (docs/OPS.md, "A broken migration";
   // docs/PRIVACY.md). The door's and the vouch's records are still here:
-  // they are on the server, and the sweep has to empty them.
+  // they are on the server, held until the founder decides their retention
+  // (docs/DECISIONS.md Part 22), and every route has to read past them.
   for (const version of ['v0', 'v1']) {
     it(`reads ${version} without a crash on any route`, async () => {
       const corpus = JSON.parse(readFileSync(`tests/fixtures/records/${version}.json`, 'utf8')) as Record<string, Record<string, unknown>>
@@ -208,6 +210,7 @@ describe('a broken migration: every record shape ever written, read by the code 
         ['couple', 'GET', 'couple', undefined, FOUNDER],
         ['safety', 'GET', 'safety', undefined, FOUNDER],
         ['health', 'GET', 'health', undefined, FOUNDER],
+        ['introduce', 'GET', 'introduce', undefined, FOUNDER],
         ['sweep', 'POST', 'sweep'],
       ]
       for (const [fn, method, path, body, headers] of requests) {
@@ -215,8 +218,9 @@ describe('a broken migration: every record shape ever written, read by the code 
         const text = await res.text()
         expect(res.status, `${version}: ${method} ${path} → ${text.slice(0, 120)}`).toBeLessThan(500)
       }
-      // The sweep above emptied what the door and the vouch left.
-      for (const retired of ['cohort', 'contacts', 'vouches']) expect(blobs.keys(retired), `${version}: ${retired}`).toEqual([])
+      // The sweep above left what the door and the vouch left: every key,
+      // as seeded. A retired feature is not a lifetime.
+      for (const held of ['cohort', 'contacts', 'vouches']) expect(blobs.keys(held), `${version}: ${held}`).toEqual(Object.keys(corpus[held]).sort())
       // And a kept map of either version restores whole.
       const restored = (await (await call('keep', 'GET', `keep?code=${maps[0]}`)).json()) as { snapshot?: { identity?: { firstName?: string } } }
       expect(restored.snapshot?.identity?.firstName).toBe('Fixture')

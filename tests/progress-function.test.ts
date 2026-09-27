@@ -252,7 +252,7 @@ describe('the readout', () => {
   })
 
   it('a link shared into a community group is its own source, and says nothing about which group', async () => {
-    // The first forty are found through alumni and professional group chats
+    // The first people are found through alumni and professional group chats
     // (docs/PRODUCT.md). Their arrivals get a row of their own so the founder can
     // read that channel against one-to-one sends — and the row is a kind of
     // room, never a room: no group name, no id, nothing but `group`.

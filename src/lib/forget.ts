@@ -1,16 +1,18 @@
 import { rememberedCode } from './keep'
 import { rememberedInstallId } from './progress'
+import { rememberedIntro } from './introduce'
 import { clearProgress, loadProgress } from './storage'
 import { send } from './net'
 
 /**
  * Forget me.
  *
- * One action, three deletes and a clean phone. Her kept map and everything
+ * One action, four deletes and a clean phone. Her kept map and everything
  * chained to it go by her map code; the count of her steps goes by her install
- * code; the eleven she sent him goes by its own couple code; then every key
- * this app ever wrote to this phone is removed. What is left is what was never
- * hers to begin with: a tally with no code in it.
+ * code; the eleven she sent him goes by its own couple code; her name on the
+ * introduction list goes by the code that list handed this phone; then every
+ * key this app ever wrote to this phone is removed. What is left is what was
+ * never hers to begin with: a tally with no code in it.
  *
  * The couple code is deleted on its own because the map cascade could not
  * reach it. `createCouple` needs no map code, and the cascade in
@@ -18,7 +20,9 @@ import { send } from './net'
  * a woman who sent him the eleven, kept nothing, and tapped this was told it
  * was done while both sheets sat on the server for the rest of the ninety
  * days. Trust says "deletes ... the eleven you sent him" without a condition,
- * and now that is true of her too (docs/DECISIONS.md).
+ * and now that is true of her too (docs/DECISIONS.md). The introduction code
+ * is the same shape: its own key, its own delete, joined to nothing else
+ * (src/lib/introduce.ts).
  *
  * Each server call is best-effort and reported honestly — a 404 means it was
  * already gone, which is the same as done. The local wipe happens whatever
@@ -38,6 +42,7 @@ import { send } from './net'
 const KEEP = '/.netlify/functions/keep'
 const PROGRESS = '/.netlify/functions/progress'
 const COUPLE = '/.netlify/functions/couple'
+const INTRODUCE = '/.netlify/functions/introduce'
 
 /** A forget that has not reached the server yet: only the codes it still needs. */
 const PENDING_KEY = 'niyyah.forget.pending.v1'
@@ -46,6 +51,7 @@ interface Pending {
   code?: string
   id?: string
   pair?: string
+  intro?: string
 }
 
 /** Every key this app writes. Kept in one place so nothing is left behind. */
@@ -57,6 +63,9 @@ export const LOCAL_KEYS = [
   'niyyah.keep.once.v1',
   'niyyah.install.v1',
   'niyyah.via.v1',
+  // Her name on the introduction list: the code it is under, and the day
+  // (src/lib/introduce.ts). Never the contact.
+  'niyyah.intro.v1',
   // A place at the door not yet sent, from before 2026-09-24, when the door
   // was removed. Nothing writes it now; it held a way to reach her.
   'niyyah.waitlist.queue.v1',
@@ -85,16 +94,20 @@ export interface Forgotten {
   progress: boolean
   /** The eleven she sent him — or true when she never sent one. */
   couple: boolean
+  /** Her name on the introduction list — or true when she never put it down. */
+  intro: boolean
   /** The map code still held on the server when `map` is false, to show her. */
   code?: string
 }
+
+const some = (p: Pending) => !!(p.code || p.id || p.pair || p.intro)
 
 /** The forget still waiting for the server, if any. */
 export function pendingForget(): Pending | null {
   try {
     const raw = localStorage.getItem(PENDING_KEY)
     const p = raw ? (JSON.parse(raw) as Pending) : null
-    return p && (p.code || p.id || p.pair) ? p : null
+    return p && some(p) ? p : null
   } catch {
     return null
   }
@@ -102,22 +115,33 @@ export function pendingForget(): Pending | null {
 
 function savePending(p: Pending) {
   try {
-    if (p.code || p.id || p.pair) localStorage.setItem(PENDING_KEY, JSON.stringify(p))
+    if (some(p)) localStorage.setItem(PENDING_KEY, JSON.stringify(p))
     else localStorage.removeItem(PENDING_KEY)
   } catch {
     /* storage refused; Trust still names the code on screen */
   }
 }
 
+type Landed = { map: boolean; progress: boolean; couple: boolean; intro: boolean }
+
 /** Send one set of codes' deletes, and say which landed. */
-async function deleteAll(p: Pending): Promise<{ map: boolean; progress: boolean; couple: boolean }> {
-  const [map, progress, couple] = await Promise.all([
+async function deleteAll(p: Pending): Promise<Landed> {
+  const [map, progress, couple, intro] = await Promise.all([
     p.code ? del(`${KEEP}?code=${encodeURIComponent(p.code)}`) : Promise.resolve(true),
     p.id ? del(`${PROGRESS}?id=${encodeURIComponent(p.id)}`) : Promise.resolve(true),
     p.pair ? del(`${COUPLE}?code=${encodeURIComponent(p.pair)}`) : Promise.resolve(true),
+    p.intro ? del(`${INTRODUCE}?code=${encodeURIComponent(p.intro)}`) : Promise.resolve(true),
   ])
-  return { map, progress, couple }
+  return { map, progress, couple, intro }
 }
+
+/** The codes a set of deletes did not land, and nothing else. */
+const left = (p: Pending, done: Landed): Pending => ({
+  ...(done.map || !p.code ? {} : { code: p.code }),
+  ...(done.progress || !p.id ? {} : { id: p.id }),
+  ...(done.couple || !p.pair ? {} : { pair: p.pair }),
+  ...(done.intro || !p.intro ? {} : { intro: p.intro }),
+})
 
 /**
  * Send a pending forget again. Called on every launch and before every Forget
@@ -127,13 +151,8 @@ export async function retryPendingForget(): Promise<boolean> {
   const pending = pendingForget()
   if (!pending) return true
   const done = await deleteAll(pending)
-  const left: Pending = {
-    ...(done.map ? {} : { code: pending.code }),
-    ...(done.progress ? {} : { id: pending.id }),
-    ...(done.couple ? {} : { pair: pending.pair }),
-  }
-  savePending(left)
-  return done.map && done.progress && done.couple
+  savePending(left(pending, done))
+  return done.map && done.progress && done.couple && done.intro
 }
 
 export async function forgetMe(): Promise<Forgotten> {
@@ -141,7 +160,8 @@ export async function forgetMe(): Promise<Forgotten> {
   await retryPendingForget()
   const code = rememberedCode() ?? undefined
   const id = rememberedInstallId() ?? undefined
-  // Read before the phone is wiped. A 404 from any of the three means it was
+  const intro = rememberedIntro()?.code
+  // Read before the phone is wiped. A 404 from any of the four means it was
   // already gone — the map cascade may well have taken the couple with it —
   // which is the same as done.
   const pair = loadProgress()?.couple?.code
@@ -152,22 +172,18 @@ export async function forgetMe(): Promise<Forgotten> {
   // any sent message it is not taken back by clearing a phone: it stays until
   // she has read it, and then only the kind of harm and what was done remain
   // (netlify/functions/safety.ts). Trust says so.
-  const done = await deleteAll({ code, id, pair })
+  const asked: Pending = { code, id, pair, intro }
+  const done = await deleteAll(asked)
   clearEverything()
   // What did not land is kept — its codes only — to be sent again.
-  const still = pendingForget() ?? {}
-  savePending({
-    ...still,
-    ...(done.map || !code ? {} : { code }),
-    ...(done.progress || !id ? {} : { id }),
-    ...(done.couple || !pair ? {} : { pair }),
-  })
-  const left = pendingForget()
+  savePending({ ...(pendingForget() ?? {}), ...left(asked, done) })
+  const still = pendingForget()
   return {
-    map: done.map && !left?.code,
-    progress: done.progress && !left?.id,
-    couple: done.couple && !left?.pair,
-    ...(left?.code ? { code: left.code } : {}),
+    map: done.map && !still?.code,
+    progress: done.progress && !still?.id,
+    couple: done.couple && !still?.pair,
+    intro: done.intro && !still?.intro,
+    ...(still?.code ? { code: still.code } : {}),
   }
 }
 

@@ -2,6 +2,7 @@ import fc from 'fast-check'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { answerCouple, createCouple } from '../../src/lib/couple'
 import { forgetMe, retryPendingForget } from '../../src/lib/forget'
+import { registerInterest } from '../../src/lib/introduce'
 import { keepMap } from '../../src/lib/keep'
 import { installId, reportRungs, resetReported } from '../../src/lib/progress'
 import { sendReport } from '../../src/lib/safety'
@@ -33,6 +34,7 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 
 const NAME = 'Zqhodanforget'
 const OWN_WORDS = 'Zq learning to listen before I answer'
+const CONTACT = 'zq.hodan.forget@example.test'
 
 let served: Served
 let her: Phone
@@ -47,6 +49,8 @@ async function aWholeLife() {
   const install = installId()!
   resetReported()
   await reportRungs(['arrived', 'mapped', 'kept'], 'twin-cities')
+  // And her name on the introduction list, the one record that carries a way to reach her.
+  expect((await registerInterest({ contact: CONTACT, firstName: NAME, gender: 'woman', scene: 'twin-cities' })).ok).toBe(true)
 
   const [hers, his] = fc.sample(sheet, 2)
   const pair = (await createCouple(hers, 'woman'))!.code
@@ -75,12 +79,14 @@ describe('after Forget me', () => {
   it('nothing of hers is anywhere — only what is named above remains', async () => {
     const { code, install, pair } = await aWholeLife()
     // Before: she is everywhere, so the search below is not vacuous.
-    expect(residue([code, NAME, OWN_WORDS, install], [her]).length).toBeGreaterThan(3)
+    expect(residue([code, NAME, OWN_WORDS, install, CONTACT], [her]).length).toBeGreaterThan(4)
+    expect(blobs.keys('introductions')).toHaveLength(1)
 
     const done = await forgetMe()
-    expect(done).toMatchObject({ map: true, progress: true, couple: true })
+    expect(done).toMatchObject({ map: true, progress: true, couple: true, intro: true })
 
-    expect(residue([code, NAME, OWN_WORDS, install], [her]).filter((l) => !allowed(code)(l))).toEqual([])
+    expect(residue([code, NAME, OWN_WORDS, install, CONTACT], [her]).filter((l) => !allowed(code)(l))).toEqual([])
+    expect(blobs.keys('introductions')).toEqual([])
     expect(her.keys()).toEqual([])
     // The sheet leaves a date, and nothing either of them said.
     expect(blobs.keys('couples')).toEqual([`gone/${pair}`])
@@ -100,7 +106,7 @@ describe('after Forget me', () => {
 
     served.down(false)
     expect(await retryPendingForget()).toBe(true)
-    expect(residue([code, NAME, OWN_WORDS, install], [her]).filter((l) => !allowed(code)(l))).toEqual([])
+    expect(residue([code, NAME, OWN_WORDS, install, CONTACT], [her]).filter((l) => !allowed(code)(l))).toEqual([])
     expect(her.keys()).toEqual([])
   })
 })

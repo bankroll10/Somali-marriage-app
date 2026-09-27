@@ -218,18 +218,23 @@ describe('the weekly sweep', () => {
     expect(mapCodes()).toEqual(['ACDEFGHJ'])
   })
 
-  it('empties what the door and the vouch left behind — a way to reach someone, a relative’s name and phone', async () => {
-    // Removed on 2026-09-24 (docs/DECISIONS.md). Nothing reads these stores
-    // any more, so nothing in them is kept.
+  it('leaves what the door and the vouch left behind — a way to reach someone, a relative’s name and phone — untouched', async () => {
+    // Removed on 2026-09-24; the sweep then emptied these stores weekly, and
+    // took the only way to reach two women who had asked to be introduced
+    // (docs/DECISIONS.md Part 22). Only a person's own Forget me removes them
+    // now (netlify/functions/keep.ts); the sweep never opens the stores.
     blobs.put('contacts', HER, { contact: 'hodan@example.com', scene: 'twin-cities', country: 'us', at: '2026-01-01' })
     blobs.put('cohort', `us/twin-cities/woman/city/serious/${HER}`, { at: '2026-09-03', ledger: [], v: 1 })
     blobs.put('cohort', `index/${HER}`, `us/twin-cities/woman/city/serious/${HER}`)
     blobs.put('vouches', HER, { relationship: 'father', firstName: 'Abdi', sentence: 's', phone: '07000', at: '2026-09-02' })
     blobs.put('vouches', `token/${TOKEN}`, HER)
+    blobs.log.length = 0
     const swept = await sweep(Date.now())
-    expect(swept.retired).toBe(5)
-    for (const store of ['contacts', 'cohort', 'vouches']) expect(blobs.keys(store), store).toEqual([])
-    expect((await sweep(Date.now())).retired).toBe(0)
+    expect(swept).not.toHaveProperty('retired')
+    expect(blobs.keys('contacts')).toEqual([HER])
+    expect(blobs.keys('cohort')).toHaveLength(2)
+    expect(blobs.keys('vouches')).toHaveLength(2)
+    expect(blobs.log.filter((c) => ['contacts', 'cohort', 'vouches'].includes(c.store))).toEqual([])
   })
 
   it('never deletes a map renewed between reading it as lapsed and deleting it', async () => {

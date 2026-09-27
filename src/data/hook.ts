@@ -56,7 +56,7 @@ That’s why Niyyah starts with where you are, not with a profile. Your map will
     insight: (name) =>
       `${name ? `${name}, y` : 'Y'}ou’re not imagining it — the usual apps mix you into a crowd that isn’t looking for what you’re looking for, then make you sift by hand. The problem isn’t you. It’s the room.
 
-Niyyah doesn’t introduce anyone. It makes the next person you meet, wherever you meet them, someone you find out about early: what they have shown you, and the conversations to have before anyone says yes. First we build your map, so you know what you are looking for.`,
+Niyyah makes introductions by hand, beginning in Minneapolis–St. Paul, and nobody learns who the other is until both have said yes. Whoever you meet, and wherever, it helps you find out about them early: what they have shown you, and the conversations to have before anyone says yes. First we build your map, so you know what you are looking for.`,
   },
   {
     // The list's own test. Without this, a skip and "none of these fit" both

@@ -13,14 +13,20 @@ The marketplace was deleted (`docs/DECISIONS.md`). Rows, threats and cases
 about what went are cut to one line, so their ids still resolve.
 - **The family vouch, the door, the waitlist and contacts are gone,** with
   their routes and caps (`vouch-read`, `vouch-ask`, `door`,
-  `door-city-<scene>`). The sweep empties the `cohort`, `contacts` and
-  `vouches` stores, so relatives' phone numbers do not outlive the feature.
+  `door-city-<scene>`). The sweep was made to empty the `cohort`, `contacts`
+  and `vouches` stores. **Reversed 2026-09-27** (`docs/DECISIONS.md` Part 22,
+  decision 21): the sweep never opens them; a person's own Forget me removes
+  hers; the rest is held for the founder's decision. The introduction list
+  came back as `POST`/`DELETE`/`GET /introduce` (below).
 - **Reports have no withdrawal route and no receipt.** Filing answers
   `{received: true}`. Only the founder resolves a report, legacy six-character
   report ids included. Forget me clears old receipts (`niyyah.reports.v1`).
 - **A couple sheet made before owner keys cannot be changed at all.** Its
   fallback, claiming the creator's gender, was the O6 hole.
-- **No introductions, no `never-introduce`.** The founder's outcomes are
+- **No introduction has been made yet; the do-not-pair record is kept by
+  hand** in the founder's pilot log, under the runbook in `docs/OPS.md`
+  (`docs/DECISIONS.md` decision 33). Nothing in software enforces it until
+  Part 23's 6–20 gate. The founder's report outcomes are
   `spoke-to-them`, `told-the-family`, `not-enough`, `no-action`.
   **`told-the-family` is the reporter's own family, at the reporter's request,
   after the founder has spoken to the reporter.** No family is contacted on
@@ -76,14 +82,14 @@ had no mechanism. First pass 2026-09-08; rows 17–21 from the board audit.
 | 10 | Parse the body, then measure it | `keep.ts` parsed any size before refusing it | `readJson` measures first (`netlify/shared/body.ts`) |
 | 11 | `analytics.ts` signposted PostHog | — | `analytics.ts` deleted 2026-09-24 |
 | 12 | Door entries never re-checked | — | The door went 2026-09-24 |
-| 13 | No introductions record | — | No introductions exist; went 2026-09-24 |
+| 13 | No introductions record | — | The list came back 2026-09-27 (`netlify/functions/introduce.ts`); the record of introductions is the founder's coded pilot log, outside the app (decision 31) |
 | 14 | No schema version on any record | `export.ts` versioned the wrapper and nothing inside it, exactly backwards | Every member record carries `v`, stamped last (`netlify/shared/record.ts`), since 2026-09-11; the backup wrapper is version 3 |
 | 15 | Vouch token of eight, no `onlyIfNew` | — | The vouch went 2026-09-24; report ids and owner keys are ten, report ids written `onlyIfNew` |
 | 16 | The man answering the eleven has no identity | Unidentifiable and unblockable by construction | **Live Easy**, on purpose: the scarce side arrives through her, and anonymity is what makes that work |
 | 17 | `POST /keep` with a supplied code wrote whatever the body carried | A code created on demand; a guessed code overwrote a stranger's map | Nothing under the code is a 404; something under it is written at the etag read, and never over a revision the phone has not seen |
 | 18 | Key layouts carry no version | A positional parse breaks silently | **Live Easy, with a rule:** a reader of keys reads the value's `v`; a key change is a named migration |
 | 19 | `couple side=second` and `DELETE /progress` uncapped | A guessed couple code froze her sheet and polluted the joint tally | Their own buckets, at the read-cap shape |
-| 20 | The `never-introduce` stub named nobody | — | The outcome went with introductions 2026-09-24 |
+| 20 | The `never-introduce` stub named nobody | — | Now a do-not-pair line in the founder's pilot log, by code, by hand (`docs/OPS.md` runbook); software only at Part 23's 6–20 gate |
 | 21 | Every readout but `/safety` failed open | `/export` returns whole progress records | `isFounder` fails closed everywhere (`netlify/shared/founder.ts`) |
 
 The restore link keeps the code in its URL because the link is the feature; a
@@ -109,6 +115,9 @@ ease, each 1–3. Routes are `/.netlify/functions/<name>`, same-origin, no CORS.
 | `POST` / `DELETE /progress` | install-id holder | 1000/h, 4 kB / 600/h | nothing; no route returns one record |
 | `POST /guide` | anyone | 400/day, 300/h, 32 kB, **fails closed** | a streamed reply; the system prompt is the server's |
 | `POST /health` | anyone | 60/h, 256 bytes | a crash or chunk count |
+| `POST /introduce` | anyone | `introduce` 60/h, 2 kB | `{saved: true, code}`: a minted code, never the record |
+| `DELETE /introduce?code=` | code holder | `introduce-forget` 600/h | `{removed: true}`, or 404; nothing is read back |
+| `GET /introduce` | founder | bearer, **fails closed** | every name on the list, whole, `no-store` |
 | `GET /health`, `/couple` (no code), `/guide`, `/export`, `/progress`; `GET`/`DELETE /safety` | founder | bearer, constant-time, **fails closed** | counts (split cells floored at five), the report queue, the backup |
 | `sweep` | the scheduler | weekly | not reachable over HTTP |
 
@@ -136,6 +145,9 @@ Forget me; and `localStorage`, everything she wrote, in plaintext.
 | T13 | Possession is authority: answer first, delete the pair, report as either side | — | **By design** (row 16); rewriting *her* side was not, and is fixed (O6) |
 | T14 | A guessed install id can add rungs to, or change the city and side on, a step count; `keep` accepted `[A-Z0-9]{6}`; the 18+ gate was client-only | 2 | P2. Alphabet closed (O8); age went 2026-09-24 |
 | T15 | No per-actor record, so a false report looks like a true one | — | **By design:** a person reads every report |
+| T19 | The introduction list holds a way to reach a person under a minted code. A guessed code takes a name off; nothing reads one back to a code holder, and the founder's read is bearer-gated | 3 | Built 2026-09-27: eight-character codes, `introduce-forget` 600/h, `GET` fails closed (`tests/invariants/founder-routes-fail-closed.test.ts`). Accepted: a name silently taken off by a guessed code costs a re-sign-up, never a disclosure A name is kept at most 180 days, removed by the sweep and hidden from `GET` on its day (decision 32; `tests/sweep-function.test.ts`) |
+| T20 | A scheduled function deleted records on no stated lifetime: the sweep emptied `contacts` weekly because the feature had gone | — | **Happened 2026-09-27 00:00 UTC.** Resolved: `HELD_STORES` in `netlify/functions/sweep.ts`, held by three suites (`docs/DECISIONS.md` decision 21). The sweep now removes only on a stated lifetime: the introduction list's 180 days is written on Trust before it is enforced |
+| T21 | **Niyyah introduces two strangers.** New risks: someone not who they say, married or engaged while saying otherwise, under 18, harvesting contacts, a scam, family coercion to say yes, harassment after a no or after meeting, recognition in a small community, a first meeting that is unsafe | — | **Built as a written human process before introduction 1** (decision 33; `docs/OPS.md`, the runbook; `tests/runbook.test.ts`): screening with identity and one reference checked, the reference's details discarded; the pilot limited to unmarried, unengaged adults in Minneapolis–St. Paul (decision 30); non-identifying approved summaries first and nothing identifying before two separate yeses (decision 29); first-meeting safety words; a monitored report channel; incident record; do-not-pair; pause rules; the reporter told what was done. **C** anything the person does outside the app; identity beyond a conversation and a reference. An in-app report route for introduced pairs waits for the safety analysis to find the human route insufficient |
 
 ## Findings O1–O11
 
@@ -260,7 +272,9 @@ health run. **R** the help line. **C** coercion inside a family.
 ### The other cases
 
 - **Catfishing, a married man posing as single:** nothing on Niyyah can be
-  faked, and the eleven goes to someone she knows. The read's caution names
+  faked, and the eleven goes to someone she knows. **Except an introduction
+  the founder makes (T21):** there the founder checks identity and one
+  reference, and asks, in writing, whether each is married now or engaged. The read's caution names
   the pattern: nobody in his life knows she exists (`src/lib/read.ts`). **D**
   that caution, `already-married`. **C** identity and marital status, by choice.
 - **Blackmail:** the prompt treats pictures or messages held over her as a
@@ -269,7 +283,10 @@ health run. **R** the help line. **C** coercion inside a family.
 - **Screenshots:** the joint names nobody and states no belief. Answering "we
   agree" everywhere reveals the other's state per topic, a fact about a
   conversation both were in; accepted.
-- **Ban evasion:** nothing to ban (row 8), and no discovery surface.
+- **Ban evasion:** nothing to ban in the app (row 8), and no discovery
+  surface. In the pilot, what can be withheld is introductions: a do-not-pair
+  record by code, and screening and a reference to slow a return under a new
+  contact (T21).
 - **Malicious family:** answers on her phone are plaintext. The guide names
   force or pressure to marry as a safety matter and argues no fiqh.
 - **False reports:** either holder files as either side (T13), and a false
@@ -297,8 +314,10 @@ already sent.
 "I'm her brother; what's her number?" "Niyyah support: send your code." The
 founder holds every map and is the target. The Keep card: "Niyyah will never
 ask you for it." **The founder's rules:** never confirm to anyone whether a
-person uses Niyyah; never send a code or a map to anyone but the member, at her
-request, from the address she gave. **C** a caller who reaches her.
+person uses Niyyah without that person's own yes; never send a code or a map to anyone but the member, at her
+request, from the address she gave. Confirming that someone uses Niyyah
+needs that person's own yes to that disclosure; in the pilot, the only such
+yes is the one each gives to an introduction. **C** a caller who reaches her.
 
 ### Sabotage: a link that wiped a phone
 
@@ -411,6 +430,7 @@ counter lets the call through, except on the guide.
 | `safety-probe` / `safety` | `POST /safety`: every valid attempt / a live pair | 600 / 30 |
 | `progress` / `progress-forget` | `POST` / `DELETE /progress` | 1000 / 600 |
 | `health` | `POST /health` | 60 |
+| `introduce` / `introduce-forget` | `POST` / `DELETE /introduce` | 60 / 600 |
 | `guide` | `POST /guide`, the day first; **fails closed** | 300, and 400 a day |
 
 ## Not built, on purpose
@@ -453,3 +473,15 @@ function tests (T4), `tests/service-worker.test.ts` (T3),
 mutation-tested when built. **When a length changes, grep; do not trust the
 suite:** after codes went to eight the suite was green, but one client still
 took only the old token length, because each side's tests mocked the other.
+
+## Legal review required before
+
+- charging for matchmaking;
+- cross-border matchmaking;
+- material changes to identity verification or to the handling of sensitive
+  data.
+
+The free Minneapolis–St. Paul introduction pilot proceeds as a product test,
+subject to the founder obtaining professional advice where required
+(`docs/DECISIONS.md` decision 34). Nothing in this document says whether any
+particular legal regime applies.

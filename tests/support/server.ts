@@ -2,6 +2,7 @@ import couple from '../../netlify/functions/couple'
 import exportFn from '../../netlify/functions/export'
 import guide from '../../netlify/functions/guide'
 import health from '../../netlify/functions/health'
+import introduce from '../../netlify/functions/introduce'
 import keep from '../../netlify/functions/keep'
 import progress from '../../netlify/functions/progress'
 import safety from '../../netlify/functions/safety'
@@ -30,6 +31,7 @@ export const HANDLERS: Record<string, Handler> = {
   // The guide takes Netlify's context as well; nothing here reads it.
   guide: (req) => guide(req, {} as never),
   health,
+  introduce,
   keep,
   progress,
   safety,

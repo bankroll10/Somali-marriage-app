@@ -23,7 +23,7 @@ The test for each supplier is: if it disappeared tomorrow, would we still have t
 | Dependency | If it goes | Position |
 |---|---|---|
 | **The hostname** | Nothing: DNS can point at any host | **Owned.** `joinniyyah.com` is registered to the founder and is the site's primary URL. It ranks first because links already sent cannot be corrected. `src/lib/site.ts` and `vite.config.ts` default to it, and `tests/durable.test.ts` refuses a hosting supplier's subdomain as the default |
-| **Netlify Blobs**, seven stores | Every kept map, sheet and report, and the learning record | The data is ours, and `/export` is its copy (Recovery, below). The storage surface is get, set, delete, list and one conditional write, so moving is a few hundred lines |
+| **Netlify Blobs**, eight stores in use and three held | Every kept map, sheet and report, the introduction list, and the learning record | The data is ours, and `/export` is its copy (Recovery, below). The storage surface is get, set, delete, list and one conditional write, so moving is a few hundred lines |
 | **Netlify build and deploy** | The last deploy keeps serving | The build is `npm run build` producing a static `dist`, with handlers written on the web-standard `Request`. The test gate is `verify.yml`, which lives in the repository and leaves with it |
 | **The secrets** | — | The free plan refuses to mark variables secret, so each one is plaintext to the team. Rotation is the control |
 | **Anthropic** | Nothing breaks. The offline voice answers, and no error is shown | The four voices, the prompt and the local answer engine are ours. Replacing the model means rewriting one function |
@@ -124,6 +124,8 @@ Set these in Netlify under Site configuration → Environment variables, unless 
 | `PROGRESS_HOURLY_CAP` | Rung reports | `1000` |
 | `PROGRESS_FORGET_HOURLY_CAP` | Rung records deleted | `600` |
 | `HEALTH_HOURLY_CAP` | Crash beacons from phones (`POST /health`) | `60` |
+| `INTRODUCE_HOURLY_CAP` | Names put down for an introduction (`POST /introduce`) | `60` |
+| `INTRODUCE_FORGET_HOURLY_CAP` | Names taken off (`DELETE /introduce`). A code is the authority, so the delete is metered like every other | `600` |
 
 **Hyphens become underscores.** A bucket name may contain a hyphen (`couple-read`), and a hyphen cannot appear in an environment variable name. `envName()` in `netlify/shared/limit.ts` upper-cases the bucket and turns each hyphen into an underscore, so `couple-read` reads `COUPLE_READ_HOURLY_CAP` and `safety-probe` reads `SAFETY_PROBE_HOURLY_CAP`. `tests/caps-function.test.ts` holds this.
 
@@ -238,7 +240,7 @@ It never counts anything per person: no visits, sessions, screens, time in the a
 
 ## The readouts
 
-The founder reads the service and the learning record through six routes under `/.netlify/functions/`. Every one requires `Authorization: Bearer $FOUNDER_KEY`. Without the key, each answers `401 {"error":"founder_only"}` with `WWW-Authenticate: Bearer` and `Cache-Control: no-store`, and with `FOUNDER_KEY` unset in Netlify each one answers 401 to everyone. None has a cap; the key is what bounds them.
+The founder reads the service, the learning record and the introduction list through seven routes under `/.netlify/functions/`. Every one requires `Authorization: Bearer $FOUNDER_KEY`. Without the key, each answers `401 {"error":"founder_only"}` with `WWW-Authenticate: Bearer` and `Cache-Control: no-store`, and with `FOUNDER_KEY` unset in Netlify each one answers 401 to everyone. None has a cap; the key is what bounds them.
 
 | Route | Returns | Read it |
 |---|---|---|
@@ -248,6 +250,7 @@ The founder reads the service and the learning record through six routes under `
 | `GET /couple` with no `code` | `{pairs, topics}`: how many pairs have answered, and for each of the eleven, counts of each joint state | Monthly |
 | `GET /export` | The backup, version 3, as a download (Recovery, below) | Monthly, or let the artifact job take it |
 | `GET /guide` | `route`, `keyPresent`, `keyLooksValid`, `keyLength`, `model`, `effort`, then one live call's `call`, `ms` and `stopReason`, or its `errorName`, `errorStatus` and `errorMessage`. Spends about a cent | When `claude` is red or amber |
+| `GET /introduce` | `{people, counts, total, skipped, lapsed}`: every name put down for an introduction and still inside its 180 days, oldest first, whole — `code`, `contact`, `firstName`, `gender`, `scene`, `country`, `reach`, `at`, `until` — and the counts by city and side. `lapsed` counts names past their day that a sweep has not yet removed; they are never shown. Sent with `no-store` | Weekly, with `/safety`: someone may be waiting to be spoken with. The pilot is run from it (the runbook below) |
 
 ```bash
 K="Authorization: Bearer $FOUNDER_KEY"; S=https://joinniyyah.com/.netlify/functions
@@ -256,6 +259,7 @@ curl -s -H "$K" "$S/safety"   | jq .              # weekly: a report is a person
 curl -s -H "$K" "$S/progress" | jq .
 curl -s -H "$K" "$S/couple"   | jq .
 curl -s -H "$K" "$S/guide"    | jq .              # one live call; rarely
+curl -s -H "$K" "$S/introduce" | jq '.counts, .total, .lapsed'   # weekly: names by city and side; `.people` is the list itself
 curl -s -H "$K" "$S/export"   -o "backup-$(date +%F).json"
 # The North Star: followed-through per hundred arrived, by arrival month, the last two months
 curl -s -H "$K" "$S/progress" | jq '.cohorts | to_entries | sort_by(.key) | .[-2:]
@@ -267,11 +271,104 @@ curl -s -H "$K" "$S/progress" | jq '.cohorts | to_entries | sort_by(.key) | .[-2
 **Rules around the queue** (`docs/SECURITY.md` has the reasoning):
 - **Members cannot withdraw a report.** Forget me does not remove one, and there is no receipt. A member who asks for one to be dropped writes in. Read the report first, then resolve it as `no-action`.
 - **A report outlives its sheet.** A deleted or expired couple sheet leaves `gone/<code>` behind, and a report can still be made against that code for ninety days (`netlify/shared/sheet.ts`).
-- **Never confirm to anyone whether a person uses Niyyah.** Never send a code or a map to anyone except the member herself, at her request.
+- **Never confirm to anyone whether a person uses Niyyah** without that person's own yes to that disclosure — in the pilot, the two yeses of an introduction and nothing else. Never send a code or a map to anyone except the member herself, at her request.
+
+**The introduction list.** `GET /introduce` returns every name whole; it is the founder's to read, and nobody else's. The list says who to call, never who fits: every introduction is made by hand under the runbook below, after a screening conversation with each person, with a non-identifying summary before either says yes and nothing identifying until both have (`docs/DECISIONS.md` Part 23). A name is kept at most 180 days; `until` is its day. To take a name off at a person's request, `curl -s -X DELETE "$S/introduce?code=<code>"` with the `code` from the list — the same route the person's own screen uses; a 404 means it is already gone. The list is not in `/export`: save it beside the backup, monthly, and treat the file as `docs/PRIVACY.md` treats a backup — including its 180 days: a saved list older than that is deleted. Nothing on it counts as a rung, and no count from it is shown to anyone (decision 27).
+
+**The three held stores** — `cohort`, `contacts`, `vouches` — are read and written by nothing, and the sweep never opens them (decision 21). Netlify → Blobs shows them. What becomes of them is the founder's decision, written into `docs/DECISIONS.md` before anything is deleted by hand.
 
 **Before the first link is posted,** remove the founder's own test records so the first arrivals counted are strangers. Run `DELETE /progress?id=<install id>` for each of the founder's devices. The id is `installId()` in `src/lib/progress.ts`, stored in that device's localStorage.
 
 **Public routes need no key.** Keeping a map, reporting a rung, answering the eleven, filing a report and the crash beacon are each bounded by an hourly cap instead (Deploy, above).
+
+## The introduction pilot runbook
+
+The first twenty introductions are run by hand, from `GET /introduce`, with no software beyond the list itself (`docs/DECISIONS.md` decisions 26–35, Part 23). This section is the process. `tests/runbook.test.ts` holds that it keeps saying each part, and **the founder runs one tabletop drill of it before introduction 1** — a made-up pair, walked from name down to a report and a do-not-pair — and writes the drill's date and anything it changed into `docs/DECISIONS.md` Part 23.
+
+### Who the first twenty are for (decision 30)
+
+- 18 or older, and serious about marriage.
+- In Minneapolis–St. Paul, where introductions are beginning. A name from anywhere else stays on the list, is kept for later, and is not screened yet; the screen has told them so, with no date.
+- Never married, divorced or widowed. Having children does not make anyone ineligible.
+- **Outside the pilot:** anyone currently engaged, and — for the first twenty only — anyone currently married. The married rule is an operational pilot constraint, recorded to revisit after the pilot; it is not a religious conclusion or a permanent product rule, and nobody is told otherwise.
+
+### The screening conversation
+
+Before anyone is considered for anyone, the founder speaks with the person, by the way they gave:
+
+1. Who they are, so the founder knows the person introduced is the person who put the name down (`identity_checked`).
+2. What they are looking for, in their own words, and whether they are married now or engaged.
+3. **One reference:** a person who knows them, spoken with by the founder. The reference's name, number and anything they said are discarded after the check; only `reference_checked` and its day are kept. No vouch link, no token, no form.
+4. The summary: a short description of them, written with them, that does not say who they are — no name, no workplace, no family name, nothing a cousin would recognise — and that they approve word for word. It is the only thing about them anyone sees before two yeses.
+5. The outcome, told to them: eligible, not yet (and why, kindly), or outside the current pilot.
+
+### The operator log (decision 31)
+
+Kept by the founder outside the app, access-controlled, keyed by the Niyyah code from the list and by nothing else:
+
+| Field | Kept |
+|---|---|
+| `code` | The code from `GET /introduce`. Never the install id, never a map or couple code |
+| `identity_checked` | yes/no, and the day |
+| `reference_checked` | yes/no, and the day |
+| `eligibility` | eligible, not yet, or outside the current pilot, and the day |
+| `summary` | The one person-approved, non-identifying summary |
+| Proposals | For each: the other code, the day each was asked, each answer, the day of the introduction, the founder's minutes, and the outcome |
+
+**Never in the log:** the reference's details, free-text notes about the person beyond the approved summary, anything from their map, read, eleven or Guide, and the contact (that stays on the list). **Reconciliation, weekly:** a code no longer on `GET /introduce` — taken off, Forget me, or past its 180 days — has its row deleted; in proposal rows its code is struck out and the outcome, days and minutes stay, so M1 and M2 can still be read.
+
+### Proposing, and the two yeses (decision 29)
+
+1. Two eligible people, opposite sides, each within the other's stated reach and what each told the founder, neither with an open introduction, not related, not on each other's do-not-pair record.
+2. Each is asked separately, by the way they gave: *"Would you like to hear about someone?"* — then shown the other's approved, non-identifying summary, and asked again whether they are married now or engaged. Each answers yes or no on their own. Fourteen days without an answer is a no.
+3. **Nothing identifying — a name, a way to reach them, a photo, a workplace — crosses until both have said yes.** If either says no, or the answer does not come, each is told only that it went no further. A no is never attributed to the other person.
+4. After two yeses, each is sent the other's first name and the way to reach them that the other chose (directly, or through a wali or family, if that is how they asked for it), in the introduction message below.
+5. One open introduction per person at a time.
+
+### The introduction message
+
+It carries, for both: the other's first name and chosen route; what the founder checked (identity and one reference — and that no documents were checked); the report channel; and the **first meeting** words: meet somewhere public, tell someone you trust where you are and who with, or bring a wali or family member; your own way there and back; no money asked or lent; you can stop at any point and do not owe anyone a reason. Then the instruments for what comes next: the read for the first weeks, the eleven when it gets serious, the family words after.
+
+### The report channel, incidents and do-not-pair
+
+- **The report channel** is the contact address on Trust (`CONTACT_EMAIL`), read by the founder at least every two days while any introduction is open. Every introduction message names it. Trust says the same. An in-app route for introduced pairs is built only if the safety analysis finds this one insufficient (decision 33).
+- **The incident record:** each concern is written into the log the day it arrives — the codes involved, the kind of harm in `src/data/safety.ts`'s words, what was done, and the day each person was told. Not the reporter's words beyond what the action needs.
+- **The do-not-pair record:** a line in the log, by code, of two people never to be introduced to each other, or of one person not to be introduced to anyone. The founder hears the other side before a permanent do-not-pair, unless doing so would put the reporter at risk.
+
+### What pauses introductions
+
+- **Any report of threats, sexual harm, harassment or coercion pauses all new introductions** until it is resolved and written into the incident record.
+- A report about a person pauses that person's introductions at once, while it is looked into; if it is borne out, they go on the do-not-pair record for everyone.
+- More than about two hours of founder time per introduction, sustained, pauses new proposals until the process changes.
+- The first five proposals ending in no mutual yes pauses recruitment until screening and proposing are looked at again.
+
+### After harassment or coercion
+
+The reporter's safety first: point to the help lines in `src/data/help.ts` and, where there is danger, to emergency services. Never tell the reported person who reported them or what was said. Stop every introduction involving the reported person. Coercion includes a family pushing someone to say yes: a person's own yes, given alone, is the only yes that counts, and "not now" needs no reason. Nobody's family is contacted on the other side's word; if the reporter asks, the founder helps them tell their own.
+
+### Withdrawal
+
+Anyone can stop at any stage: "Take my name off" on the looking screen, Forget me on Trust, or asking the founder, who deletes it with the `DELETE` above. An open proposal is closed as "went no further" for the other person. The log row is deleted at the next reconciliation.
+
+### Telling people what was done
+
+A person who reported is told what action was taken, where it is safe to do so — "they will not be introduced to anyone again", "we spoke with them" — the day it happens, by the way they gave. A person told "it went no further" is told nothing more. A person paused or placed on do-not-pair is told that their introductions have stopped, and not by whom.
+
+### M0, M1, M2 (decision 27)
+
+- **M0:** one viable pairing gives two explicit yeses and one real introduction.
+- **M1**, after five: the mutual-yes rate, the response rate, the founder's time per introduction, and how many were still talking or had stopped a few weeks on.
+- **M2**, after twenty: inventory, fragmentation, wait times, founder workload, the reasons introductions keep failing, and whether any automation has earned the right to exist.
+
+Each is written into `docs/RESEARCH.md` (A10). No count from the list is ever shown to anyone.
+
+### Legal review required before
+
+- charging for matchmaking;
+- cross-border matchmaking;
+- material changes to identity verification or to how sensitive data is handled.
+
+The free Minneapolis–St. Paul pilot proceeds as a product test, subject to the founder obtaining professional advice where required (decision 34). Nothing in these docs says whether any particular legal regime applies.
 
 ## Recovery
 
@@ -285,7 +382,7 @@ The strongest recovery property is that the app is local-first. A member's answe
 curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://joinniyyah.com/.netlify/functions/export -o "backup-$(date +%F).json"
 ```
 
-Save one every month, somewhere that is not Netlify. It is the only copy of this data outside one vendor. Once the repository is private and `BACKUP_TO_ARTIFACT=true`, the `watch.yml` backup job does this on the 1st of each month as a 35-day artifact. Each run replaces the last (`docs/PRIVACY.md`, R5). The monthly step then becomes checking that the artifact exists.
+Save one every month, somewhere that is not Netlify. It is the only copy of this data outside one vendor. Save `GET /introduce` beside it the same day: the introduction list is not in the export, and it is the one record that can reach a person. Once the repository is private and `BACKUP_TO_ARTIFACT=true`, the `watch.yml` backup job does this on the 1st of each month as a 35-day artifact. Each run replaces the last (`docs/PRIVACY.md`, R5). The monthly step then becomes checking that the artifact exists.
 
 ### The restore
 
@@ -359,6 +456,8 @@ Each scenario gives detection, the first hour, recovery, how much can be lost, w
   | `progress`, `tallies` | The restore: a dry run, then `--write` | Everything since the last backup: at most 35 days |
   | `couples` | Not backed up, by design. A pair sends the eleven again | All sheets |
   | `reports` | Not backed up. **This is the loss that matters beyond data**, because each one is a concern about a real person | All open reports. Know the same day, and ask members to report again |
+  | `introductions` | Not in `/export`. The copy is the `GET /introduce` file saved beside the backup; restore by hand, or ask people to put their names down again | Every name since the last saved list. **This happened once, by our own sweep** (`docs/DECISIONS.md` Part 22): the door's `contacts` store was emptied on 2026-09-27 |
+  | `cohort`, `contacts`, `vouches` | Held stores; nothing writes them. The door's signups before 2026-09-23 also exist as Netlify Form rows (`niyyah-waitlist`), which no code reaches | Whatever the founder had not yet reviewed |
   | `ops`, `limits` | Rebuild themselves | Operational history only |
 
 - **Prevent:** keep Netlify team access to the founder alone, rely on the `data` check, and take the monthly backup.
@@ -422,7 +521,7 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 
 | What | When | Does |
 |---|---|---|
-| The sweep, `netlify/functions/sweep.ts` | `@weekly` on Netlify's scheduler: Sundays, 00:00 UTC | Removes kept maps past their year, and tombstones and once keys past theirs. Retires couple sheets past ninety days, and deletes their `gone/` keys once the reporting window ends. Deletes step counts past their year unless they reached `married`. Rolls back or finishes changes of code abandoned more than two days ago. Deletes ops counts older than 35 days. **Empties the retired `cohort`, `contacts` and `vouches` stores**, which the door and the family vouch left behind on 2026-09-24. Marks `last/sweep` with its error count. It never touches reports, tallies or limits, and a record it cannot read is counted and tried again the next week |
+| The sweep, `netlify/functions/sweep.ts` | `@weekly` on Netlify's scheduler: Sundays, 00:00 UTC | Removes kept maps past their year, and tombstones and once keys past theirs. Retires couple sheets past ninety days, and deletes their `gone/` keys once the reporting window ends. Deletes step counts past their year unless they reached `married`. Rolls back or finishes changes of code abandoned more than two days ago. Deletes ops counts older than 35 days. Marks `last/sweep` with its error count. It never touches reports, tallies or limits, **and never opens `cohort`, `contacts` or `vouches`**: from 2026-09-24 to 2026-09-27 it emptied them weekly, and its first run took the door's real signups (`docs/DECISIONS.md` Part 22). Removes a name on the introduction list at the last run before its 180th day, and any it cannot date (decision 32). A record it cannot read is counted and tried again the next week |
 | `watch.yml` health job | Every 3 hours, on the hour UTC. The 09:00 run is the daily one; Monday's 09:00 run is the weekly one | Reads `/` and `/version.json`, then `/health`. Emails on each check's cadence |
 | `watch.yml` backup job | The 1st of each month, 09:30 UTC, only once `BACKUP_TO_ARTIFACT` is `true` | Saves `/export` as a 35-day artifact |
 | `deployed.yml` | Every push to `main` | Waits for the commit, then smoke-tests it |
@@ -436,6 +535,8 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 | A couple sheet | Ninety days. After that, `gone/<code>` keeps the code reportable for ninety more days |
 | A progress record | A year, refreshed on every report. Kept for good once it reaches `married`. A `/progress` read also deletes expired records as it walks past them |
 | An open report | Until the founder resolves it. The resolved stub has no expiry |
+| A name on the introduction list | At most 180 days from the day it was put down, then removed; sooner if its owner takes it off. Never renewed or reminded about |
+| A row in the founder's pilot log | Until its code leaves the list; deleted at the next weekly reconciliation |
 | The joint tally | Kept. It holds no one |
 | Ops counts and store sizes | 35 days |
 | The backup artifact | 35 days; each run replaces the last |
@@ -445,7 +546,8 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 
 | When | What |
 |---|---|
-| Weekly | Read `/safety`. Trust promises it |
+| Weekly | Read `/safety`. Trust promises it. Read `/introduce`: someone may be waiting to be spoken with (the runbook, above). Reconcile the pilot log against it |
+| Every two days, while an introduction is open | Read the report channel |
 | Monthly | The readouts (`docs/RESEARCH.md`); check the backup artifact or take a backup by hand; run `npm run eval:guide` once, because the model can change under an unchanged prompt |
 | Quarterly | Rotate `ANTHROPIC_API_KEY` and `FOUNDER_KEY`; run the restore drill |
 | Twice a year | The laptop tabletop |

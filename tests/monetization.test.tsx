@@ -34,7 +34,7 @@ describe('what she is promised', () => {
         onGuideOnDevice={() => {}}
         countMe
         onCountMe={() => {}}
-        onForget={async () => ({ map: true, progress: true, couple: true })}
+        onForget={async () => ({ map: true, progress: true, couple: true, intro: true })}
         onBack={() => {}}
       />,
     )
@@ -61,7 +61,7 @@ describe('what she is promised', () => {
       '2026-09-24',
     )
     screen = await mount(
-      <Ending identity={{ firstName: 'Hodan', gender: 'woman', adult: true }} ending={ending} didEleven={false} saved={null} onSave={() => {}} onForget={async () => ({ map: true, progress: true, couple: true })} onBack={() => {}} />,
+      <Ending identity={{ firstName: 'Hodan', gender: 'woman', adult: true }} ending={ending} didEleven={false} saved={null} onSave={() => {}} onForget={async () => ({ map: true, progress: true, couple: true, intro: true })} onBack={() => {}} />,
     )
     const text = screen.text()
     // The one screen a marriage is reported from. The moment reporting it

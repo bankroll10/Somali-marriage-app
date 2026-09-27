@@ -5,7 +5,11 @@ board audit's numbered decisions with their numbers. Part 2 records the
 subtraction of 2026-09-24. Part 3 is the completion review of the same day,
 with decision 19, the product freeze. Part 4 is the Read, reviewed by an
 outside critic. Part 5 is the commitment audit. Part 6 says where each of the
-58 old docs went.
+58 old docs went. Part 22 is the founder's redirection of 2026-09-27: the
+introduction path restored, and the record-deletion the subtraction caused.
+Part 23 is the matchmaking recovery the founder ratified the same day:
+MEET → KNOW → DECIDE, decisions 26–35, and the staged gates introductions
+are rebuilt through.
 
 Every old doc's full text is in git at commit `43295a4`:
 `git show 43295a4:docs/NAME.md`.
@@ -35,14 +39,29 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 10 | 2026-09-12 | **Trust says a kept map lives with one vendor** and that the founder's backup does not include it, instead of building an encrypted dump now | The honest sentence costs nothing; the dump waits for records | Stands. The backup still omits kept maps (`netlify/functions/export.ts`). The Trust sentence went with the section on being counted in `0bd7e96` and was put back under "Keeping your map" in part B the same day |
 | 11 | 2026-09-12 | **The learning loop's threshold splits:** a hundred records for weights, `consequence` and anything that changes a reading; twenty for script wording, order and labels | At a hundred records per row the loop turns in years; low-stakes constants can turn in months | Stands. The monthly loop is in `docs/RESEARCH.md` |
 | 12 | 2026-09-12 | **The code stays six characters,** the restore link keeps the code in its URL (the link is the feature), and moving `GET/DELETE /keep` to a header is declined | Six is easy to read on a phone, the read caps were taken to bound enumeration, and the product controls no log that would hold the query string | Superseded in part on 2026-09-23: the caps bound the rate, not the fraction, so codes are minted at eight characters (`netlify/shared/code.ts`, `docs/SECURITY.md` O8). Six-character codes still work; the code stays in the restore link |
-| 13 | 2026-09-12 | **The contact lives exactly as long as the map:** the pool's sweep deletes it with the lapsed entry, and Trust says so | Lapsed contacts, the only personal data the product held, were kept indefinitely | Retired 2026-09-24 with the feature. The sweep empties the `contacts` store (`netlify/functions/sweep.ts`) |
+| 13 | 2026-09-12 | **The contact lives exactly as long as the map:** the pool's sweep deletes it with the lapsed entry, and Trust says so | Lapsed contacts, the only personal data the product held, were kept indefinitely | Retired 2026-09-24 with the feature, and the sweep was made to empty the `contacts` store every week instead. **Reversed 2026-09-27** (Part 22, decision 21): the sweep never opens it; a person's own Forget me removes hers; the rest is held for the founder's decision |
 | 14 | 2026-09-12 | **The keep stays on the Reflection screen,** the moment the map completes | `Reflection.tsx` already offered it there, and `kept / mapped` (whether people trust the server with a map) is read from the first ten before anything moves | Stands (`KeepMap` on Reflection) |
 | 15 | 2026-09-12 | **The guide gets one bit:** `facts.asked = ['guide']`, a set like `began`, which the readout crosses with `followed-through` | The guide is the one metered cost and was unmeasurable before an ending; with the bit, A3 reads in weeks, not years | Stands (`src/lib/facts.ts`, `netlify/functions/progress.ts`). A3 is in `docs/RESEARCH.md` |
 | 16 | 2026-09-12 | **The $99 line is sold at the joint view** of the two-sided eleven, never at the stage she declares; `deciding` stays a free word | The joint view is when value has been delivered (both answered blind); `deciding` is a measured word and must not carry a price | Stands as a rule. Nothing is sold: there is no payment code. On 2026-09-24 the line was narrowed to the call alone, once per person for life (`docs/PRODUCT.md`) |
 | 17 | 2026-09-12 | **The by-hand introduction is a one-page runbook,** with an hour-per-introduction limit that changes the target or the window if exceeded, and a timed pool-opened test mail | The first pool would be run by hand and no page said how | Retired 2026-09-24 with the feature. The runbook is at `git show 43295a4:docs/LIQUIDITY.md` |
 | 18 | 2026-09-12 | **Somali-first stays.** The brand names the community; the institution rule (nothing that would need renaming for a second community lives outside `src/data`) holds for the brand strings | A second community should be a one-file change, and that day is not now | Stands (`src/data/brand.ts`; `tests/brand.test.ts` holds the manifest to it) |
-| 19 | 2026-09-24 | **The product freeze.** No new feature without observed user evidence, a production failure, a safety or security requirement, or a measurable business requirement (Part 3) | The product is complete enough to learn from, with no members; the completion review found its three blockers where features had been added without anyone watching | Stands |
+| 19 | 2026-09-24 | **The product freeze.** No new feature without observed user evidence, a production failure, a safety or security requirement, or a measurable business requirement (Part 3) | The product is complete enough to learn from, with no members; the completion review found its three blockers where features had been added without anyone watching. ("With no members" was wrong about two real signups; Part 22) | Stands. Narrowed for introductions only by decision 26; binding for every other feature |
 | 20 | 2026-09-24 | **Every relationship claim has a class.** Claims about people, relationships and Somali families are classed A–H in `docs/RESEARCH.md`, and the copy says no more than its class allows; the ledger lists each one, and `tests/voice.test.ts` keeps the patterns out | The copy said as fact what the research doc called assumed (the eleven as what breaks marriages), gave frequencies nobody had counted, and read a person's character from one reply | Stands. Man-only lines wait for decision 4; the live prompt waits for its first live eval |
+| 21 | 2026-09-27 | **Retiring a feature never deletes what people gave it.** A record goes only when a lifetime the product stated has run out, or when its owner asks. The `cohort`, `contacts` and `vouches` stores are held, unread and unwritten, until the founder decides their retention by hand (Part 22) | The sweep emptied them weekly from 2026-09-24 because "nothing reads them any more" — and took the only way to reach two women who had asked to be introduced, on no promise made to them | Stands (`netlify/functions/sweep.ts` `HELD_STORES` is `cohort`, `contacts`, `vouches`; `introductions` has its own lifetime, decision 32; Forget me still reaches all three, `netlify/functions/keep.ts`) |
+| 22 | 2026-09-27 | **The introduction path is the product's first door.** Removing the signup route, the introduction capability, or materially changing who Niyyah is for or what the signup promises needs the founder's explicit approval, written into this file before the change. A subtraction audit, a reviewer or a working session cannot make that call | The 2026-09-24 subtraction removed the door on "there are no members", which was wrong about two real women, and nothing required the founder to be asked | Stands. Extends decision 19: a deletion of this kind is no longer "not a feature" |
+| 23 | 2026-09-27 | **The smallest signup.** Six fields — a way to reach her, an optional first name, woman or man, city and country, how far she would go, the day — written by `netlify/functions/introduce.ts` under a minted code her phone keeps; "your name is down" only on the server's answer; no count shown, no date promised, no pool claimed; nobody enrolled by using anything else | The old door asked for a kept map first, an age, the hardest part and a ledger, and showed a count that became a scarcity meter; a name and a way to reach her is all a hand-made introduction needs to start | Stands, with decisions 28, 29 and 32: introductions beginning in Minneapolis–St. Paul, the founder speaks with each person first, and a name kept at most 180 days |
+| 24 | 2026-09-27 | **The first introductions are made by hand, with both yeses first.** No browsing, messaging, matching or profile is built until the pilot shows a need. The condition for the first introduction is one viable pairing and two yeses (Part 22) | A pool that "opens at forty" waits for a number while two people who could be introduced today are not | Stands, amended: forty and forty is retired entirely (decision 27); what may be built, and when, is Part 23's staged gates (decision 26) |
+| 25 | 2026-09-27 | **Four measures, kept apart:** names on the list; viable pairings; mutually accepted introductions; whether the instruments help (the North Star). A finished questionnaire is never counted as interest in meeting someone | Counting tool use as interest, or interest as an introduction, would make the ladder lie in both directions | Stands (`docs/RESEARCH.md` A10) |
+| 26 | 2026-09-27 | **Introductions between serious Somali singles are an established foundational capability of Niyyah.** They are not a feature asking decision 19 for entry; they are rebuilt only through four staged gates — before introduction 1, introductions 1–5, 6–20, after 20 — each listed in Part 23 with what it may build and what evidence opens the next. Removing or materially redefining the capability needs the founder's explicit approval | The founder's mission: Niyyah was made so serious Somali singles could meet each other. The freeze was adopted the day the introduction path was deleted, and read as forbidding its return | Stands. Narrow by design: it names this one capability, adds no case to decision 19, and creates no route by which another "mission capability" could bypass the freeze |
+| 27 | 2026-09-27 | **Forty and forty is retired** — not a gate, not a milestone, not a target. The only milestones: **M0**, one viable pairing, two explicit yeses and one real introduction; **M1**, after five, the mutual-yes rate, response rate, founder time and early continuing or stopped outcomes; **M2**, after twenty, inventory, fragmentation, wait times, founder workload, recurring failure reasons, and whether any automation has earned the right to exist. No public liquidity count | Forty was invented before any matchmaking evidence existed, and every number around it (ATOMIC, LIQUIDITY) was assumed | Stands (`docs/OPS.md` runbook; `docs/RESEARCH.md` A10; `tests/voice.test.ts`) |
+| 28 | 2026-09-27 | **Minneapolis–St. Paul first, truthfully.** The list takes a name from anywhere, because where demand is is worth seeing; the screen says introductions are beginning in Minneapolis–St. Paul, and someone elsewhere is told their name is kept for later and that nobody there is being introduced yet. No expansion date | Letting someone in London believe they had joined an active pool would be the old door's promise again | Stands (`src/components/Looking.tsx`; `tests/journeys/looking.test.tsx`) |
+| 29 | 2026-09-27 | **Screening before matchmaking, and the consent invariant.** Name down → the founder's screening conversation → eligible, not yet, or outside the current pilot → the founder considers a possible introduction → each is shown a non-identifying summary its subject approved → a separate yes or no from each → identifying information only after two yeses. No "no" is attributed to the other person. The product says the founder makes introductions by hand; it never implies software matches people or that six fields show who fits | The first copy said "nothing about them reaches you before they do", which a summary shown first would break, and "if someone on it fits what you each said", which implied the list could tell | Stands (Looking, Trust, `docs/PRIVACY.md`, `docs/SECURITY.md`; `tests/voice.test.ts`) |
+| 30 | 2026-09-27 | **Pilot eligibility, first twenty introductions only:** 18 or older; serious about marriage; in the active Minneapolis–St. Paul pilot; never married, divorced or widowed; having children excludes nobody. Currently engaged people are outside the pilot, and so — for the first twenty only — are currently married people. One human reference check before a person's first identifying introduction, its details discarded after. No vouch feature, no token vouch | The safety bar is higher when Niyyah introduces two strangers than when it helps a pair who chose each other | Stands. **The married rule is an operational pilot constraint, not a religious conclusion or a permanent rule; revisit it after the pilot** |
+| 31 | 2026-09-27 | **Screening stays private.** The operator log is kept by the founder outside the app, keyed by Niyyah code, and holds only `identity_checked` and `reference_checked` (yes/no and the day), eligibility and its day, the one person-approved non-identifying summary, and proposal outcomes. Never: a reference's details, free-text notes beyond the summary, Map, Read, Eleven or Guide data, or any join between the introduction code and the install id | The first study kept "screening facts" in a log beside a contact, which contradicted the privacy rules every other store keeps | Stands (`docs/OPS.md` runbook; `docs/PRIVACY.md`) |
+| 32 | 2026-09-27 | **A name is kept at most 180 days.** The sweep removes it at the last weekly run before its 180th day; the founder's list stops showing it that day; the phone forgets its code that day. Someone who still wants an introduction puts their name down again. No renewal, reminder or re-engagement | "Stays until you take it off" kept a way to reach a person indefinitely (PRIVACY R8). A privacy requirement, so the sweep enforces it now | Stands (`netlify/functions/introduce.ts` `LIST_DAYS`, `netlify/functions/sweep.ts` `sweepIntroductions`; Trust, Looking and Home say the same) |
+| 33 | 2026-09-27 | **Safety exists before introduction 1, as a written human process.** The runbook defines the monitored report channel, the manual do-not-pair record, incident recording, what pauses introductions, what happens after harassment or coercion, first-meeting safety language, how withdrawal works, and how a person is told what action was taken. The founder runs one tabletop drill before introduction 1 | Introducing strangers creates risks helping a known pair does not. A human route suffices if it is explicit and tested; an in-app report route for introduced pairs is built only if the safety analysis finds it insufficient | Stands (`docs/OPS.md`, "The introduction pilot runbook"; `tests/runbook.test.ts`) |
+| 34 | 2026-09-27 | **Legal review is required before** charging for matchmaking, cross-border matchmaking, or material changes to identity verification or the handling of sensitive data. The free Minneapolis–St. Paul pilot proceeds as a product test, subject to the founder obtaining professional advice where required | A model's reading of marriage-broker or data law is not advice, and must not become product fact | Stands. No doc states that any regime does or does not apply |
+| 35 | 2026-09-27 | **The old marketplace is evidence, not code; the relationship product stays.** Never restored: candidates, the sample introduction, public counts, cohort progress, weighted fit, compatibility scores, profiles, photos, feeds, swiping, member messaging, Plus, paid visibility, the token vouch, the Matchmaker Guide voice, automatic proposal selection, atomic-sim gates, scarcity meters. Kept, as KNOW and DECIDE downstream of MEET: Read, Map, Guide, Before You Say Yes, the two-sided eleven, family tools, follow-through, Ending and Ended, Trust, Forget me, and the judgment, religious-scope, Somali-claim and decision-quality safeguards | The subtraction removed the door with the machinery; the recovery must not bring the machinery back with the door | Stands (`tests/invariants/no-marketplace.test.ts`; `git show 43295a4` for the evidence) |
 
 ### The top ten actions
 
@@ -50,10 +69,10 @@ The board audit ranked ten actions by expected impact. State on 2026-09-24:
 
 | # | Action | State |
 |---|---|---|
-| 1 | Post the eleven, the read and the door to ten connectors; log the conversations | Recorded done 2026-09-12. The door part retired 2026-09-24. There were no members on 2026-09-24 |
+| 1 | Post the eleven, the read and the door to ten connectors; log the conversations | Recorded done 2026-09-12. The door part retired 2026-09-24. "There were no members on 2026-09-24" was wrong: two women had signed up through the door (Part 22) |
 | 2 | Give the read-first and eleven-first user a Home | Done (`src/lib/inferStage.ts`) |
 | 3 | Decide the ticket to the door | Decision 3; retired 2026-09-24 with the feature |
-| 4 | Make the customer list exportable | Done; retired 2026-09-24 with the `contacts` store |
+| 4 | Make the customer list exportable | Done; retired 2026-09-24 with the `contacts` store, which the sweep then emptied. The list is `GET /introduce` from 2026-09-27 (Part 22) |
 | 5 | Flip the repository to private | Open (decision 5) |
 | 6 | Truthful shares | Done: the married share claims the eleven only when she did them (`src/lib/ending.test.ts`) |
 | 7 | Bound the guide before the gate comes off | Done: 32 KB body, 6,000-character thread, 2,048 output tokens (`netlify/functions/guide.ts`). The console spend limit is the founder's |
@@ -166,7 +185,10 @@ explained. It shipped as five commits, `0bd7e96` to `d41f879` (PR #69).
 
 - There are no members and no city pool. `netlify/shared/record.ts` notes
   three test rows, all the founder's own. About a third of the product served
-  introductions that do not exist.
+  introductions that do not exist. **Corrected 2026-09-27 (Part 22):** two
+  real women had signed up through the door because they were single and
+  hoped to be introduced. The premise was wrong about them, and the sweep
+  this pass added deleted the store that held the way to reach them.
 - The loop that makes Niyyah different depends on none of it: the read or the
   eleven, then the words, then "did you say it?", then the two-sided eleven,
   then the Ending.
@@ -3937,3 +3959,271 @@ Once that is confirmed, the product can be frozen.
 come, plus tests and docs. The foot-of-the-Guide line is one disclosure
 reusing `HelpLine`, with no new screen, route, store, stored field or flow
 of data.
+
+## Part 22: The introduction path, restored (2026-09-27)
+
+The founder's direction, given on 2026-09-27: Niyyah exists so that serious
+Somali singles meet each other and move toward marriage. The preparation
+instruments, the eleven and the family words belong inside that; they are not
+the whole of it. Two real women signed up to the door's waitlist because they
+are single and hoped Niyyah would help them meet someone serious. That is
+founder-confirmed, and every decision that rested on "there are no members"
+is re-read here against it.
+
+### The outside review's findings, checked
+
+| Finding | Checked against | Result |
+|---|---|---|
+| The product focuses on people already considering someone | `src/components/Welcome.tsx`, `src/data/brand.ts`, `README.md` at `911654a` | True. Both doors said "already talking to someone"; nobody looking had a way in |
+| The read, the eleven, the shared sheet, the family words, the map and the Guide remain useful | The code and its tests | True, and untouched by this Part |
+| The 2026-09-24 subtraction removed the waitlist, pool, matching gate, profiles, sample introductions and family vouch | `0bd7e96`, Part 2 | True |
+| The previous implementation is at `43295a4` | `git show 43295a4` | True: the last commit with the door |
+| Netlify lists `niyyah-waitlist` with five submissions | Netlify's forms API for site `getniyyah` | True: created 2026-08-29, five submissions, the last at 2026-09-22 01:13 UTC. Five rows are not five people: `netlify/shared/record.ts` recorded three test rows of the founder's own (around 2026-09-11), so three tests and two real women is consistent, and unconfirmed until the founder opens the rows |
+| The deployed weekly sweep empties the retired stores | `netlify/functions/sweep.ts` at `911654a`; PR #70 merged 2026-09-24 05:35 UTC; the live deploy's schedule | True. `@weekly` is Sundays 00:00 UTC, and the live deploy registers `sweep @weekly`. **Its first run was 2026-09-27 00:00 UTC**, about five hours before this Part was written |
+| Whether the two women's contact records remain has not been verified | This session had no founder key and its network policy refuses `joinniyyah.com`; the Netlify API exposes no store or log read | Still unverified. The founder can settle it in two places (below) |
+
+### Where the two signups were stored, and what can be recovered
+
+- **Netlify Forms, `niyyah-waitlist`.** Until `d4105ca` (2026-09-23 16:59
+  UTC) every submission carried `contact` (an email or phone), `scene`,
+  `country`, `reach`, `gender`, `hardest_part` and `at`; after it, `scene`
+  and `at` only. All five submissions predate the cut, so every row carries
+  a contact. No code has ever written to, read from or deleted a Netlify
+  Form submission, and the sweep cannot reach one. **This is the surviving
+  copy**: Netlify → Forms → `niyyah-waitlist`, read by the founder alone.
+  Netlify also emailed the founder on each submission, so the inbox may hold
+  a second copy of each row.
+- **The `contacts` store** (2026-09-08, `a787470`, to 2026-09-24) held
+  `{contact, scene, country, at}` under the person's map code for everyone
+  who joined in that window. If the sweep ran at 00:00 UTC today as
+  scheduled, it is empty; if the run failed, `/health`'s `sweep` check says
+  so and the store still holds them. **The founder checks:** Netlify →
+  Functions → `sweep` → Logs, for today's `[niyyah] sweep:` line (a count of
+  `retired` above zero means the store copies went); or Netlify → Blobs →
+  `contacts`.
+- **`cohort`** held a place at the door (city, side, reach, hardest part)
+  and an index, no contact. **`vouches`** held relatives' first names,
+  sentences and phone numbers, from the vouch. Both were emptied by the same
+  pass.
+- **Kept maps** never carried the contact: the client left `waitlist.contact`
+  out of the snapshot and the server deleted it again
+  (`git show 43295a4:src/lib/keep.ts`, `:netlify/functions/keep.ts`). A map
+  holds a first name, a city and the answers, lives a year, and is untouched
+  by the pass. It is the person's; it is not a contact list.
+- **A `reach-<date>/` export** the founder may have taken by hand
+  (`docs/PRIVACY.md` R4, the old monthly hour). Unknown from here.
+- **Not stored anywhere:** which form row is which map code. The code left the
+  form on 2026-09-12, and the form never carried it again.
+
+Nothing personal was read, printed or committed in making this Part; the
+counts and dates above are the form's metadata.
+
+### What changed in the code
+
+- **The sweep leaves the three stores alone** (`netlify/functions/sweep.ts`,
+  `HELD_STORES`). It removes a record only at the end of a lifetime the
+  product stated, or never; `tests/sweep-function.test.ts` and
+  `tests/integrity.test.ts` hold that it does not open them, and
+  `tests/recovery.test.ts` that every fixture row survives a run.
+- **Forget me reaches them again** (`netlify/functions/keep.ts`
+  `forgetLegacy`): a person's own request removes her contact, her door entry
+  and index, and her relative's vouch, as it did before 2026-09-24. Nothing
+  else does.
+- **Two doors on Welcome** (`src/components/Welcome.tsx`): "I'm looking for
+  someone serious" and "I'm already talking to someone", with the situation
+  question and the map as the quieter line under them. The second door is a
+  chooser of three (`src/components/Talking.tsx`): the read, the eleven, the
+  family words. The first is the introduction list.
+- **The introduction list** (`src/components/Looking.tsx`,
+  `netlify/functions/introduce.ts`, the `introductions` store,
+  `src/lib/introduce.ts`; `?looking` opens it). Six fields, the truth about
+  what happens next, a code on her phone to take her name off, a card on
+  Home for someone preparing, a Trust disclosure, Forget me's fourth delete.
+  Restored from the door's parts that this step needed and nothing more:
+  `src/lib/contact.ts` and `src/data/reach.ts` came back from `43295a4`; the
+  count, the short map, the age, the ledger, the hesitation question, the
+  pool readout and the matching gate did not.
+- **The brand's first sentence** names both doors again (`src/data/brand.ts`,
+  the manifest). `public/og.png` still carries the 2026-09-24 line and is
+  re-rendered by hand.
+
+### The pilot: what is proposed, and what waits
+
+**The first introductions are made by hand.** The founder reads
+`GET /introduce`, finds two people of opposite sides in one country within
+each other's stated reach, and gets in touch with each of them first, the way
+they gave, with one question each: would you like to hear about someone?
+Nothing that identifies either reaches the other before both have said yes;
+before that, each may be shown a short summary of the other that its subject
+approved and that does not say who they are (decision 29, Part 23). Then names
+are exchanged, and both are pointed at the instruments: the read for the
+first weeks, the eleven when it gets serious, the family words after. The
+founder's hours per introduction are written down from the first one; the
+old runbook at `git show 43295a4:docs/LIQUIDITY.md` is the reference, and
+decision 17's hour limit stands. _Superseded in its detail by Part 23: the
+founder speaks with each person before any pairing is considered, and the
+process is the runbook in `docs/OPS.md`._
+
+**Forty and forty, reassessed.** _Superseded by decision 27: forty and forty
+is retired entirely — not a condition, not a milestone, not a target. What
+follows is kept as the record of this Part as written._ Forty women and forty men was the door's
+opening condition. Read against location, reach and readiness it is not a
+condition at all: forty spread over five countries who would not travel is
+no introduction, and two in one city who would is one. So it is kept as a
+**recruitment milestone for the first city**, and the condition for the first
+introduction is one viable pairing and two yeses. What the milestone is read
+against, by city: names by side; how many would travel within the country;
+how many pairings are viable; how many people the founder has spoken to.
+
+**Held until the pilot shows a need:** browsing, a queue, messaging, a
+profile, photos, any matching by the product, a count on a door, a page of
+its own for `?looking`, a Somali line for the new screens (every Somali
+sentence waits for the founder's approval, `src/data/somali.ts`). _Each is now
+placed at one of Part 23's staged gates, or on decision 35's never list._
+
+### Four measures, kept apart (decision 25)
+
+| Measure | Where it is read | What it is not |
+|---|---|---|
+| Names on the list | `GET /introduce`: `counts[scene].women`, `.men`, `total`; `reach` per person | Not a rung; nothing in `/progress` moves when a name goes down |
+| Viable pairings | The founder's hand count among people already screened and eligible (decision 29), from the pilot log. Logged in `docs/RESEARCH.md` A10 with its date | Not computed by the product, and never read off the list's six fields |
+| Mutually accepted introductions | The founder's log: two yeses, one introduction, the day | Never inferred from anything either person does in the app |
+| Whether the instruments help | The North Star and A1, A3, A4, unchanged (`docs/PRODUCT.md` §3) | A finished map, read or eleven is not interest in meeting someone |
+
+### Corrections to the record
+
+- Part 2, "there are no members": wrong about two women (noted in place).
+- Decision 13's "Now", actions 1 and 4: corrected in place.
+- `docs/RESEARCH.md`: A6 and A7 were retired on the same premise; A10
+  replaces them, conviction 6 is reopened, and the founder's confirmation is
+  the first entry under Feedback that is about someone other than the founder.
+- `docs/PRODUCT.md` §1 said "finding someone, the product cannot do". It can,
+  by hand, and the row says so.
+
+### The founder's part, not done here
+
+1. Open Netlify → Forms → `niyyah-waitlist` and identify the two real rows
+   among the five; then Functions → `sweep` → Logs (or Blobs → `contacts`) to
+   learn whether the store copies survived today's run.
+2. Decide whether, and how, to write to the two women. Nothing has been sent
+   and no draft has been written; both wait for the founder's word.
+3. Decide the retention of the three held stores: which rows are tests;
+   whether the real contacts move onto the introduction list, with each
+   person's consent, or go; then delete by hand.
+4. Read `GET /introduce` weekly with `/safety`, and take the first
+   introduction's hours down.
+5. Re-render `public/og.png` for the new first sentence.
+6. Merging, the production deploy and any outreach: held for review, as asked.
+
+**Decision 19.** Two of the four cases: observed user evidence — the
+founder's confirmation of two real signups, the dated entry in
+`docs/RESEARCH.md` — and a production failure: a scheduled function deleting
+records outside any lifetime the product had stated. Decision 22 now also
+requires the founder's written approval before this door is removed again.
+
+
+## Part 23: The matchmaking recovery, ratified (2026-09-27)
+
+The founder asked for an architectural recovery study before any more code:
+read current main, read the pre-subtraction version at `43295a4` as
+evidence rather than specification, and design the smallest credible
+matchmaking layer. The study was written, the founder ratified its
+architecture the same day, and corrected five things in it. This Part is the
+record; decisions 26–35 are its rows.
+
+### The mission
+
+Niyyah helps serious Somali singles meet other serious Somali singles for
+marriage, beginning in the Twin Cities, and then helps them understand the
+relationship, have the conversations that matter, involve family
+appropriately, and decide deliberately. The relationship-decision system —
+the read, the map, Before You Say Yes and the two-sided eleven, the family
+words, the Guide, follow-through, the Ending — is kept whole. The 2026-09-24
+subtraction solved a real problem, speculative complexity with no liquidity,
+and overreached by letting "there is no marketplace yet" become
+"introductions are not part of Niyyah".
+
+### The architecture: MEET → KNOW → DECIDE
+
+- **MEET**: the first door. Name down, the founder's screening conversation,
+  eligible or not yet, a possible introduction considered by the founder,
+  non-identifying approved summaries both ways, two separate yeses, and only
+  then an identifying introduction. Human-run.
+- **KNOW**: the read for the first weeks, the map, the Guide, the word to a
+  wali.
+- **DECIDE**: the two-sided eleven, Before You Say Yes, the family words,
+  follow-through, the Ending or Ended.
+
+The second door ("I'm already talking to someone") enters KNOW or DECIDE
+directly. Nobody moves from KNOW or DECIDE back into MEET except by their own
+choice; nobody who uses the instruments is enrolled in MEET by using them.
+
+### What the founder corrected in the study
+
+1. Decision 26 had created a generic exemption for any "founder-named mission
+   capability". It now names introductions only, and the freeze binds
+   everything else.
+2. The study kept forty and forty as a recruitment milestone. It is retired
+   entirely (decision 27).
+3. The screen promised nothing about the other person before their yes, while
+   the process shows a summary first. The invariant is about what
+   **identifies** (decision 29).
+4. The study's screening log kept facts beside the contact and a reference's
+   details. The log keeps two checks, eligibility, one approved summary and
+   outcomes, keyed by code (decision 31).
+5. The study stated what particular laws did or did not cover. It now records
+   only when legal review is required (decision 34).
+
+### The staged gates (decision 26)
+
+| Gate | May build | Opens the next gate |
+|---|---|---|
+| **Before introduction 1** | This PR: the two doors, the list, withdrawal, Forget me, 180 days, the truthful copy, the runbook. Nothing else in software. Then, by hand: the tabletop drill, recruiting, screening | M0: one viable pairing, two yeses, one introduction |
+| **Introductions 1–5** | Only when the pilot log shows the need: an `introduced` answer on the Ending; a family script for a pair who were introduced; the read's calibration for introduced pairs (Part 4, finding 9); an in-app report route for introduced pairs, only if decision 33's review finds the human route insufficient | M1 written into `docs/RESEARCH.md` A10 |
+| **Introductions 6–20** | Only what the log proves costly by hand: a founder-set status on list records; a coded consent link (read the approved summary, answer yes / no / not now; contacts released only after two yeses); a never-introduce lookup | M2 written, with a review of every decision in this Part |
+| **After 20** | An advisory pairing helper that applies stated constraints only and never introduces anyone; any second city, co-matchmaker, member-facing surface or money — each with its own written case, and legal review where decision 34 requires it | — |
+
+### What this PR deliberately does not build
+
+Screening fields in the app, proposal management, matching logic, summaries
+in software, consent links, the release of introductions, automated
+follow-ups, matching statuses, never-introduce software, pairing helpers; the
+Ending's `introduced` answer, an introduced-pair family script, and the
+read's calibration; `/health` watching the `introductions` store; the Guide
+prompt's lines about looking (`netlify/shared/prompt.ts`); `docs/PROTOCOL.md`'s
+"no marketplace" lines; `public/og.png`. The retention of the three held
+stores remains the founder's decision, and nothing in them is touched.
+Nobody has been contacted.
+
+### What changed in the code
+
+- `netlify/functions/introduce.ts`: `LIST_DAYS = 180` and `removeBy`; the
+  founder's list shows each name's `until`, hides any past it, and counts
+  them as `lapsed`.
+- `netlify/functions/sweep.ts`: `introductions` leaves `HELD_STORES`;
+  `sweepIntroductions` removes a name at the last weekly run before its 180th
+  day, and any it cannot date.
+- `src/lib/introduce.ts`: the client twins `LIST_DAYS`, `untilOf` and
+  `PILOT_SCENE`; the phone forgets a code on its day.
+- Copy — Looking, Welcome, Home, Trust, and the hook's "Niyyah doesn't
+  introduce anyone", which was untrue beside the first door.
+- A bug from `d7b08e4`, found in the phone-width walk: a name taken off and
+  put down again in the same visit saved, but the screen still showed the
+  form under "your name is off the list". Fixed, with a journey test that
+  fails without the fix.
+- Tests: the sweep's 180 days; the list's `until` and `lapsed`; the two
+  constants pinned client to server; the journey's screening, consent,
+  pilot-city and 180-day promises; the voice patterns; the runbook; and the
+  old marketplace staying in git.
+
+**Verified** 2026-09-27: `npm run verify` and `npm run build` exit 0; a
+Chromium walk at 390×844 over the production build, with the real
+`introduce`, `keep`, `progress` and `couple` handlers on a local Netlify Blobs
+server and example data only, passed 32 checks — registration, withdrawal,
+Forget me, the sweep at day 172 and after day 180, the phone after day 180,
+Columbus and the UK told "for later", and Welcome. Two recorded mutations go
+red (`docs/TESTING.md`).
+
+**Decision 19.** This PR rests on decision 26 at its first gate, on the
+privacy and safety requirements of decisions 31–33 (the 180-day lifetime, the
+runbook), and on fixing claims that were untrue.

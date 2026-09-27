@@ -23,6 +23,7 @@ const POSTS: [string, string, unknown][] = [
   ['progress', 'progress', { id: 'ACDEFGHJKM', rungs: ['arrived'] }],
   ['safety', 'safety', { code: 'CDFGHJKM', side: 'woman', reason: 'pressure' }],
   ['guide', 'guide', { messages: [{ role: 'user', content: 'salaam' }] }],
+  ['introduce', 'introduce', { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities' }],
 ]
 
 /** A body the platform started to deliver and then lost. */

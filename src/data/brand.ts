@@ -24,7 +24,10 @@
  * also claim — Somali, serious, faithful, done in the open — and the card
  * promised "find someone serious", a marketplace the product does not yet
  * have. They now say what someone gets on the first visit, which is also the
- * thing a copy of our homepage would not give them.
+ * thing a copy of our homepage would not give them. On 2026-09-27 the two
+ * doors came back to the first sentence (docs/DECISIONS.md Part 22): a name
+ * put down for an introduction made by hand, and the instruments for someone
+ * already talking to one. Neither promises an introduction, a date or a pool.
  *
  * "Powered by AI" is gone from all three surfaces that still carried it after
  * docs/PRODUCT.md recorded it removed — the model may add a sentence, never
@@ -42,11 +45,11 @@ export const TITLE = `${NAME} — marriage for the Somali diaspora, done in the 
 
 /** The meta description and the manifest's description. */
 export const DESCRIPTION =
-  'For someone you are already talking to: what they have shown you, the conversations to have before you marry, and the words for them. For the Somali diaspora. No account.'
+  'Looking for someone serious, or already talking to one? Put your name down for an introduction made by hand; or read what they have shown you, the conversations to have before you marry, and the words for them. For the Somali diaspora. No account.'
 
 /** What the social card says when a link is pasted into a chat. */
 export const TAGLINE =
-  'Already talking to someone? What they have shown you, the conversation to have next, and the words for it.'
+  'Looking for someone serious, or already talking to one? A name put down for an introduction made by hand; what they have shown you; the conversation to have next.'
 
 /** The social card's alt text. */
 export const OG_ALT = `${NAME} — built for the Somali diaspora. What’s in your way?`

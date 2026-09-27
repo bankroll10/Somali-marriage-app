@@ -6,9 +6,12 @@ import RestoreMap from './RestoreMap'
 import { EYEBROW } from '../data/brand'
 
 interface Props {
+  /** Not sure which door: the situation question, then the map. */
   onBegin: () => void
-  /** The other door: she already has someone, and needs tonight solved first. */
-  onRead: () => void
+  /** The first door: not talking to anyone, and wants to be introduced (src/components/Looking.tsx). */
+  onLooking: () => void
+  /** The second door: already talking to someone (src/components/Talking.tsx). */
+  onTalking: () => void
   hasProgress: boolean
   completed: boolean
   onResume: () => void
@@ -26,7 +29,8 @@ interface Props {
 
 export default function Welcome({
   onBegin,
-  onRead,
+  onLooking,
+  onTalking,
   hasProgress,
   completed,
   onResume,
@@ -73,11 +77,80 @@ export default function Welcome({
             className="animate-rise mt-6 max-w-lg text-[1.05rem] leading-relaxed text-cream/75 text-pretty"
             style={{ animationDelay: '80ms' }}
           >
-            Say what’s happening — getting ready, talking to someone, deciding
-            with the families — and we start there. A read on what they have shown you.
-            The eleven conversations to have before the families do. Or two minutes on
-            where you stand, and one thing to do about it.
+            Two doors. If you are looking for someone serious, put your name down for an
+            introduction made by hand. If you are already talking to someone, a read on what
+            they have shown you, the eleven conversations to have before the families do, and
+            the words for the families.
           </p>
+
+          {/* The two doors (docs/DECISIONS.md Part 22). Until 2026-09-27 the
+              first button was "Start where you are", which led to a question
+              about her situation and then the map, and the only other way in
+              was the read. Someone who was looking for someone had no door at
+              all — the one the two women who signed up had walked through was
+              deleted on 2026-09-24. Now the two situations are the two
+              buttons, in the words a person would use, and the map's path is
+              the quieter line under them. */}
+          <div className="animate-rise mt-8" style={{ animationDelay: '160ms' }}>
+            {completed ? (
+              <Button variant="onDark" onClick={onEnter} className="group">
+                Enter Niyyah
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </Button>
+            ) : (
+              <>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {(
+                    [
+                      {
+                        eyebrow: 'Looking for someone',
+                        title: 'I’m looking for someone serious.',
+                        desc: 'Put your name down for an introduction, made by hand. Beginning in Minneapolis–St. Paul.',
+                        go: onLooking,
+                      },
+                      {
+                        eyebrow: 'Already talking to someone',
+                        title: 'I’m already talking to someone.',
+                        desc: 'A read on what they have shown you, the eleven conversations, the words for the families.',
+                        go: onTalking,
+                      },
+                    ] as { eyebrow: string; title: string; desc: string; go: () => void }[]
+                  ).map((door) => (
+                    <button
+                      key={door.title}
+                      onClick={door.go}
+                      className="group flex w-full flex-col items-start rounded-card border border-cream/30 bg-cream/[0.07] p-5 text-left transition hover:-translate-y-0.5 hover:bg-cream/[0.14]"
+                    >
+                      <span className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">{door.eyebrow}</span>
+                      <span className="mt-2 font-display text-[1.2rem] font-medium leading-snug text-cream text-balance">{door.title}</span>
+                      <span className="mt-1.5 text-[0.88rem] leading-snug text-cream/65 text-pretty">{door.desc}</span>
+                      <span className="mt-3 inline-flex items-center gap-1.5 text-[0.85rem] font-medium text-cream">
+                        Go
+                        <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
+                  <button
+                    onClick={onBegin}
+                    className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-cream/70 underline-offset-4 transition hover:text-cream hover:underline"
+                  >
+                    Not sure? Start where you are
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                  {hasProgress && (
+                    <button
+                      onClick={onResume}
+                      className="self-start text-sm font-medium text-cream/70 underline-offset-4 transition hover:text-cream hover:underline"
+                    >
+                      Pick up where you left off
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
 
           {/* The lead used to promise the map — "thirteen questions, about two
               minutes… the one place you're thinnest" — while the flow behind the
@@ -138,8 +211,8 @@ export default function Welcome({
             style={{ animationDelay: '220ms' }}
           >
             {[
-              'It works on the relationship you already have — however you met, with no account.',
-              'Send them the same eleven questions. Each of you answers on your own phone; you both see only where the two of you stand.',
+              'Introductions are made by hand, one at a time, and nobody learns who the other is until both have said yes. There is nothing to browse.',
+              'The rest works on the relationship you already have — however you met, with no account. Send them the same eleven questions; you both see only where the two of you stand.',
               'A few days later, we ask whether the conversation happened. When you marry, we let you go.',
             ].map((line) => (
               <li key={line} className="flex gap-3 text-[0.93rem] leading-snug text-cream/70 text-pretty">
@@ -149,42 +222,6 @@ export default function Welcome({
             ))}
           </ul>
 
-          <div
-            className="animate-rise mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
-            style={{ animationDelay: '160ms' }}
-          >
-            {completed ? (
-              <Button variant="onDark" onClick={onEnter} className="group">
-                Enter Niyyah
-                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-              </Button>
-            ) : (
-              <>
-                <Button variant="onDark" onClick={onBegin} className="group">
-                  Start where you are
-                  <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                </Button>
-                {/* The second door, beside the first. It was a card below the
-                    fold — the one thing aimed at the highest-pain job, for the
-                    person who already has someone (docs/PRODUCT.md). */}
-                <button
-                  onClick={onRead}
-                  className="group inline-flex items-center justify-center gap-2 rounded-full border border-cream/30 px-5 py-3 text-[0.95rem] font-medium text-cream transition hover:bg-cream/10"
-                >
-                  Talking to someone? Get a read.
-                  <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                </button>
-                {hasProgress && (
-                  <button
-                    onClick={onResume}
-                    className="text-sm font-medium text-cream/70 underline-offset-4 transition hover:text-cream hover:underline"
-                  >
-                    Pick up where you left off
-                  </button>
-                )}
-              </>
-            )}
-          </div>
           {/* What is true, in one line. */}
           <p
             className="animate-fade mt-5 text-xs text-cream/60"
@@ -192,9 +229,6 @@ export default function Welcome({
           >
             Private to you · No account · Free
           </p>
-          {/* The second door used to be a card here, below the fold, for the
-              person in the most pain — already talking to someone. It is now
-              the button beside "Start where you are". */}
           {/* Quiet on purpose: someone arriving for the first time should meet
               the question this app exists to answer, not a login. */}
           <RestoreMap />

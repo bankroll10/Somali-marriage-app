@@ -1,8 +1,9 @@
 # Niyyah
 
-**For the person you are already talking to: what they have done, the
-conversation to have next, and the words for it — then it asks whether you had
-it. For the Somali diaspora.**
+**Two doors, for the Somali diaspora. Looking for someone serious: put your
+name down for an introduction made by hand, beginning in Minneapolis–St. Paul. Already talking to someone: what
+they have done, the conversation to have next, and the words for it — then it
+asks whether you had it.**
 
 Dating apps answer **"who is available?"** Niyyah starts with the questions
 to answer before a marriage:
@@ -18,6 +19,14 @@ her go, and offers to take everything off our server (`docs/PRODUCT.md`).
 
 ## What's built
 
+- **The introduction list** — "I'm looking for someone serious": a way to
+  reach you, your first name if you give it, woman or man, city and country,
+  how far you would go. The founder speaks with each person first;
+  introductions are made by hand, one at a time, and nothing that identifies
+  either person is shared until both have said yes. Beginning in
+  Minneapolis–St. Paul; a name from elsewhere is kept for later. A name is
+  kept at most 180 days. Nothing is browsed and no date is promised. At
+  `/?looking` (`docs/DECISIONS.md` Parts 22 and 23).
 - **The read** — twelve questions about what he has done: told anyone, named
   marriage, moved toward family, followed through, handled hard things.
   Evidence in words, never a score on a person, and the one question to ask
@@ -55,9 +64,10 @@ her go, and offers to take everything off our server (`docs/PRODUCT.md`).
 
 No feed, no deck, no swipe. No score on a person, hers included. No daily
 check-in, streak or comeback nudge. No visible reply counter and no paid tier.
-No introductions: there is no pool of members, so nothing is built for one
-(`docs/DECISIONS.md` has what was removed on 2026-09-24, and where git keeps
-it).
+No browsing, messaging, profiles or matching by the product: introductions are
+made by hand, under the runbook in `docs/OPS.md`, and software for them is
+built only through staged gates (`docs/DECISIONS.md` Part 23; Part 2 has what
+was removed on 2026-09-24, and where git keeps it as evidence, decision 35).
 
 ## Layout
 
@@ -66,7 +76,7 @@ src/data/        What the product says: questions, scripts, voices, stages, tool
 src/lib/         Engines and clients: read, beforeYes, couple, followup, keep, forget, progress, coach
 src/hooks/       useNiyyah — state, actions, persistence
 src/components/  One file per screen; home/ holds Home's cards
-netlify/functions/  guide · keep · couple · progress · safety · export · health · sweep
+netlify/functions/  guide · keep · couple · progress · safety · introduce · export · health · sweep
 netlify/shared/  founder key, closed vocabularies, caps, the k-floor, the guide's prompt
 netlify/edge-functions/gate.ts  The close switch (dormant)
 tests/           Invariants, journeys, screens, functions (docs/TESTING.md)
