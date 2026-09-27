@@ -1,24 +1,33 @@
-# Did the deploy land? (docs/OPS.md)
+# Did the deploy land, and is what landed answering? (docs/OPS.md)
 #
-# Netlify builds main on its own, and a build that fails — verify red, a
-# broken bundle, a Netlify outage — leaves the last good deploy live and
-# says so only in Netlify's own dashboard. This asks the site. Every build
-# writes /version.json with the commit it was built from (vite.config.ts);
-# after a push to main, this waits up to fifteen minutes for the live site
-# to say that commit. If it never does, the job fails, and GitHub emails the
-# founder with both commits — the one that is live and the one that is not.
-# No Netlify token: the site is asked the same way a visitor would ask it.
+# Post-publication monitoring, not a gate. Netlify builds main on its own
+# and publishes the result before this runs; nothing here can stop a broken
+# release from going live — `npm run verify` inside the Netlify build is the
+# only gate, and this is the alarm for what gets through it. A build that
+# fails — verify red, a broken bundle, a Netlify outage — leaves the last
+# good deploy live and says so only in Netlify's own dashboard. This asks the
+# site. Every build writes /version.json with the commit it was built from
+# (vite.config.ts); after a push to main, this waits up to fifteen minutes
+# for the live site to say that commit. If it never does, the job fails, and
+# GitHub emails the founder with both commits — the one that is live and the
+# one that is not. No Netlify token and no founder key: the site is asked
+# the same way a visitor would ask it.
 #
 # Landing is not working. Once the commit is live, a smoke test asks three
 # things a broken deploy would get wrong: does the page carry the app, does
 # the function runtime answer (an unauthenticated /health is a 401, not a
 # 404 or a 500), and can a public route read storage (a restore of a code
 # nobody holds answers "not found" — a 404 it could only give after asking
-# the store; a store that cannot answer is a 503), and does the
-# introduction list's strong-consistency read work (taking an unused code
-# off answers 200, never 503). A
-# failure names the rollback — Netlify → Deploys → the last green deploy →
-# Publish deploy (docs/OPS.md, "Rolling back"; docs/OPS.md).
+# the store; a store that cannot answer is a 503). Every request here is a
+# read: this job never writes to, marks or deletes anything in production.
+# (Until 2026-09-27 it also sent DELETE /introduce?code=AAAAAAAA as a
+# strong-consistency probe; that is a code a person could hold, and a
+# withdrawal marker under it is a write. Removed.) The introduction list's
+# strong-consistency read is checked instead by /health's `introductions`
+# check, which needs the founder key and so runs in watch.yml, within three
+# hours of any deploy, and by hand at any time (docs/OPS.md, "Did a
+# deployment fail?"). A failure names the rollback — Netlify → Deploys → the
+# last green deploy → Publish deploy (docs/OPS.md, "Rolling back").
 name: deployed
 
 on:
@@ -61,21 +70,13 @@ jobs:
               if [ "$fn" != "401" ]; then broken="$broken /health without a key answered $fn, not 401 (functions are not answering as built);"; fi
               kept=$(curl -sS -o kept.json -w '%{http_code}' "$SITE/.netlify/functions/keep?code=AAAAAAAA" || echo 000)
               if [ "$kept" != "404" ] || ! jq -e '.error == "not_found"' kept.json > /dev/null 2>&1; then broken="$broken a restore of an unused code answered $kept (storage or the keep route is broken);"; fi
-              # The introduction list reads its store with strong consistency
-              # (netlify/functions/introduce.ts); the SDK refuses a strong read
-              # when the platform context lacks its uncached URL, and every
-              # request there would answer 503. Taking off a code nobody holds
-              # exercises exactly that read: 200 {removed: false}, and a marker
-              # under AAAAAAAA that the sweep removes in two days.
-              off=$(curl -sS -o off.json -w '%{http_code}' -X DELETE "$SITE/.netlify/functions/introduce?code=AAAAAAAA" || echo 000)
-              if [ "$off" != "200" ] || ! jq -e '.removed == false' off.json > /dev/null 2>&1; then broken="$broken taking an unused code off the introduction list answered $off (the strong-consistency read or the introduce route is broken; docs/BATCH-01-PLAN.md D7);"; fi
-              rm -f page.html kept.json off.json
+              rm -f page.html kept.json
               if [ -n "$broken" ]; then
                 echo "::error::$WANT is live and broken:$broken Roll back: Netlify → Deploys → the last green deploy → Publish deploy. docs/OPS.md, 'Rolling back'."
                 echo "**Live, and broken:**$broken Roll back — docs/OPS.md, “Rolling back”." >> "$GITHUB_STEP_SUMMARY"
                 exit 1
               fi
-              echo "The page, the functions and storage all answer." >> "$GITHUB_STEP_SUMMARY"
+              echo "The page, the functions and storage all answer. The introduction list's strong read is checked by /health (the watch run, within three hours)." >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             sleep 30

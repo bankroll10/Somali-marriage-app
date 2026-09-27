@@ -295,7 +295,9 @@ export default function Home({
                   : pastScheduled(intro)
                     ? 'The day scheduled for its removal has passed. Open it to take the name off, or to put it down again.'
                     : intro.confirmed
-                      ? `Saved ${intro.at}; scheduled to be removed on ${scheduledRemoval(intro)}. The founder speaks with you first; introductions are made by hand, one at a time. Open it to see what happens next, or to take your name off.`
+                      ? `Saved ${intro.at}; scheduled to be removed on ${scheduledRemoval(intro)}. The founder speaks with you first; introductions are made by hand, one at a time. Open it to see what happens next, or to take your name off.${
+                          intro.kept ? '' : ' This browser is not saving, so this page is the only place that holds the code: open it to read the code before you close the page.'
+                        }`
                       : `A code from around ${intro.at}, by this phone’s own record. Open it to see what happens next, or to take your name off.`}
               </span>
             </span>

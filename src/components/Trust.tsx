@@ -255,9 +255,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 an introduction after that, you put it down again; there is no reminder.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                <span className="font-medium text-ink">Taking it off.</span> Leaves a marker under your code for two days —
-                the day, and nothing about you — so a request still on its way from your phone cannot land after you asked.
-                The same request sent twice, because an answer was lost, is saved once.
+                <span className="font-medium text-ink">Taking it off.</span> Leaves a marker under your code — the day, and
+                nothing about you — so a request still on its way from your phone cannot land after you asked. The marker
+                is kept at least two days and removed by the weekly run after that, so between two and eight days; while it
+                stands, nothing can be saved under that code, and the founder’s list never shows what is under it. The same
+                request sent twice, because an answer was lost, is saved once.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 <span className="font-medium text-ink">If the founder speaks with you.</span> Before anyone is considered for

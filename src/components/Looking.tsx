@@ -89,8 +89,6 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
   const [entry, setEntry] = useState<'closed' | 'open' | 'checking' | 'not-a-code' | 'failed' | Withdrawn>('closed')
   /** After "again": the request was saved earlier, and this is the same one. */
   const [again, setAgain] = useState(false)
-  /** The saved receipt's code could not be held on this phone: shown once. */
-  const [unkept, setUnkept] = useState(false)
 
   const other = scene === 'other'
   const country = other ? namedCountry : (getScene(scene)?.country ?? '')
@@ -128,7 +126,6 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
     setState('idle')
     setAttempt(null)
     setAgain(result.again)
-    setUnkept(!result.kept)
     // A name taken off and put down again in the same visit: the saved panel,
     // not the form with "your name is off the list" still above it.
     setOff('idle')
@@ -189,17 +186,18 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
     unreachable:
       'We could not tell whether that reached us. Nothing is lost here: press the button again and the same request goes under the same code, so it is never saved twice.',
     garbled: 'Something came back wrong from our side, so nothing is confirmed. Press the button again: the same request goes under the same code, so it is never saved twice.',
-    refused: `We cannot take names just now — that is us, not you. Try again later, or write to ${CONTACT_EMAIL} and it goes on by hand.`,
+    refused: `Our side could not finish that — that is us, not you. If it did reach us, pressing the button again sends the same request under the same code, so it is never saved twice. Or write to ${CONTACT_EMAIL} and it goes on by hand.`,
     'not-a-code': 'Something in the form did not fit. Check the email or number, and the city.',
     taken: 'An earlier try went through with what you had typed then, under a code this phone holds. Your changes were not saved over it.',
-    withdrawn: 'That earlier request was taken off before it could be saved. Press the button again to send this one.',
+    withdrawn:
+      'That code was taken off before this request was answered, so the request stands as taken off: it is not on the list the founder reads, and the weekly run clears anything left under the code. Press the button again to send this one under a fresh code.',
     'not-found': 'That did not go through. Try again in a moment.',
     expired: 'That did not go through. Try again in a moment.',
   }
 
   const withdrawnLine: Record<Withdrawn, string> = {
     removed: 'Your name is off the list. Nothing about you is held there now.',
-    nothing: 'Nothing was under that code any more, and nothing can be put under it now.',
+    nothing: 'Nothing was under that code any more. It is marked as taken off, so a request still on its way under it is refused for the next days.',
     failed: 'We could not reach the list just now — that is us, not you. Nothing has changed; try again in a moment.',
   }
 
@@ -266,7 +264,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
           <Receipt
             intro={intro}
             again={again}
-            unkept={unkept}
+            unkept={!intro.kept}
             awaySaved={awaySaved}
             pilot={pilot}
             off={off}
@@ -612,8 +610,9 @@ function Receipt({ intro, again, unkept, awaySaved, pilot, off, onTakeOff, onMap
 
       {unkept && (
         <p role="status" className="animate-rise mt-5 rounded-2xl border border-clay/40 bg-clay/[0.07] px-4 py-3 text-[0.92rem] leading-snug text-ink-soft text-pretty">
-          This browser is not saving anything, so once you leave this screen the only record on your side is gone. Your code is{' '}
-          <Code code={intro.code} />. Keep it: it takes the name off later, here or on another phone.
+          This browser is not saving anything, so once this page is closed or reloaded the only record on your side is gone.
+          Until then, Take my name off here and Forget me on Trust still work. Your code is <Code code={intro.code} />. Keep
+          it: it takes the name off later, here or on another phone.
         </p>
       )}
 

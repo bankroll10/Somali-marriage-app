@@ -6,19 +6,22 @@ import { overHourlyCap, rateLimited } from '../shared/limit'
 import { failed, lastRun, note, probe, readDays, recordSizes, sizesBefore, type Sizes } from '../shared/ops'
 import { isBookkeeping } from '../shared/integrity'
 import { CRASH_EVENTS, URGENT_REASONS } from '../shared/vocab'
+import { CODE } from '../shared/code'
 
 /**
  * How the service is, in one read — the founder's smoke alarm (docs/OPS.md).
  *
- * `GET`, behind the founder key, answers the nine questions a founder running
- * this alone needs answered quickly: is storage answering, are functions
- * failing, is Claude failing, is spend abnormal, are caps refusing, are safety
- * reports waiting, did the backup happen, is the sweep running, is the app
- * crashing on phones. (Is the app up, and did the deploy land, are answered
- * from outside — .github/workflows/watch.yml and deployed.yml — because a
+ * `GET`, behind the founder key, answers the questions a founder running
+ * this alone needs answered quickly: is storage answering, can the
+ * introduction list be read for its latest state, are functions failing, is
+ * Claude failing, is spend abnormal, are caps refusing, are safety reports
+ * waiting, did the backup happen, is the sweep running, is the app crashing
+ * on phones. (Is the app up, and did the deploy land, are answered from
+ * outside — .github/workflows/watch.yml and deployed.yml — because a
  * function cannot see its own site go down.) It costs nothing: no call to
- * Claude, only counts. `.github/workflows/watch.yml` reads it every three
- * hours and renders it as the dashboard.
+ * Claude, only counts and one read of a key that cannot exist.
+ * `.github/workflows/watch.yml` reads it every three hours and renders it as
+ * the dashboard.
  *
  * Every number here is about the service. Nothing is about a person: no
  * code, id, city, report text or time finer than a day is read into the
@@ -240,6 +243,53 @@ export async function clockChecks(today: string): Promise<Check[]> {
 }
 
 /**
+ * A key the introduction list can never hold: not a code (the alphabet has
+ * no `-`), not under the marker prefix. A HEAD of it is the cheapest read
+ * there is, and it changes nothing.
+ */
+const INTRODUCTIONS_PROBE_KEY = 'health-probe'
+
+/**
+ * Can the introduction list be read for its latest state? The route opens
+ * its store with `consistency: 'strong'` (netlify/functions/introduce.ts),
+ * and the SDK refuses every strong read — with `BlobsConsistencyError` —
+ * when the platform context lacks its uncached URL, so a deploy where that
+ * is missing answers 503 on every request to /introduce while the rest of
+ * the site looks fine. This asks the same store, the same way, for a key
+ * that cannot exist: a `null` is the answer that proves the path; a throw
+ * is the failure, with the SDK's own name for it. Nothing is written,
+ * marked or deleted — the check that did this until 2026-09-27 sent a
+ * production `DELETE` under a code a person could hold, and is gone.
+ */
+export async function introductionsCheck(): Promise<Check> {
+  const question = 'Can the introduction list be read for its latest state?'
+  if (CODE.test(INTRODUCTIONS_PROBE_KEY)) throw new Error('the probe key must never be a code')
+  const started = Date.now()
+  try {
+    const found = await getStore({ name: 'introductions', consistency: 'strong' }).getMetadata(INTRODUCTIONS_PROBE_KEY)
+    const ms = Date.now() - started
+    if (found) {
+      return { id: 'introductions', question, state: 'warn', cadence: 'now', summary: `Something is stored under the probe key ${INTRODUCTIONS_PROBE_KEY} on the introduction list; nothing should be. Delete it by hand.`, numbers: { ms } }
+    }
+    return { id: 'introductions', question, state: ms > 2000 ? 'warn' : 'ok', cadence: 'now', summary: `The introduction list answered a strong-consistency read in ${ms} ms.`, numbers: { ms } }
+  } catch (err) {
+    await failed('health', 'introductions strong read failed', err)
+    const name = err instanceof Error ? err.name : 'Error'
+    return {
+      id: 'introductions',
+      question,
+      state: 'fail',
+      cadence: 'now',
+      summary:
+        name === 'BlobsConsistencyError'
+          ? 'The store refuses strong-consistency reads: the function’s Blobs context has no uncached URL, so every request to /introduce answers 503. Roll back (docs/OPS.md, “Rolling back”) and ask Netlify support about NETLIFY_BLOBS_CONTEXT.'
+          : `The introduction list did not answer a strong-consistency read (${name}). Names cannot be put down or taken off until it does.`,
+      numbers: { error: name },
+    }
+  }
+}
+
+/**
  * How many records each store holds right now — the population, never a
  * record. Maps without the bookkeeping beside them.
  */
@@ -324,6 +374,9 @@ export default async function handler(req: Request) {
     await failed('health', 'storage probe failed', err)
     checks.push({ id: 'storage', question: 'Are storage calls failing?', state: 'fail', cadence: 'now', summary: 'Storage did not answer a write, a read and a delete.', numbers: {} })
   }
+
+  // The introduction list, read the way its route reads it. Its own try/catch.
+  checks.push(await introductionsCheck())
 
   let days: Days = {}
   try {

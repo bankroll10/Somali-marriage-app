@@ -1,8 +1,11 @@
-# Session handoff — BATCH-01, Group A
+# Session handoff — BATCH-01, Group A and its repair
 
-Written 2026-09-27 at the end of the session that built Group A of
-`docs/BATCH-01-PLAN.md`. Read that file for the plan and the findings; this
-one says what was done, what was checked, and what is left.
+Written 2026-09-27. Two sessions on one branch: the one that built Group A
+of `docs/BATCH-01-PLAN.md` (commits up to `3b987ee`), and the one that
+repaired it after an independent review reproduced two failures against
+`3b987ee`. Read the plan for the findings and the decisions; this file says
+what was done, what was checked, and what is left. **Group B has not been
+started.** The next task is review of the repair, not Group B.
 
 ## Commits
 
@@ -11,26 +14,91 @@ one says what was done, what was checked, and what is left.
 | Base (branch head at the start, tree-identical to `origin/main` `cdcd187`) | `261d055` |
 | The consolidated plan, `docs/BATCH-01-PLAN.md` | `344fc99` |
 | Group A: signup reliability, recovery, dates, adult gate, copy, address | `ed5c53e` |
-| This handoff | the commit after `ed5c53e` (see `git log`) |
+| Group A handoff | `3b987ee` |
+| The repair (this session; see `git log` for the hash) | after `3b987ee` |
 
 Branch: `claude/hello-gr0hoz`, pushed. **No pull request was opened, nothing
-was merged, nothing was deployed.** Netlify builds `main` only; `verify.yml`
-runs on pull requests and on pushes to `main`; `guide-eval.yml` runs on pull
-requests that touch its paths. A push to this branch therefore triggers no
-build, no deploy and no paid evaluation.
+was merged, nothing was deployed, no paid evaluation ran, no outreach was
+sent.** Netlify builds `main` only; `verify.yml` runs on pull requests and on
+pushes to `main`; `guide-eval.yml` runs on pull requests that touch its
+paths. A push to this branch therefore triggers no build, no deploy and no
+paid evaluation.
 
-## Completed
+## The repair (2026-09-27, after `3b987ee`)
+
+Four items from the review, each with the failure as reproduced, the cause,
+the fix, and the regression that now fails without it. `docs/BATCH-01-PLAN.md`
+§6 has the same in a table; `docs/DECISIONS.md` Part 24, "Repair", records
+the decisions.
+
+1. **Signup with denied browser storage lost the receipt.** Reproduced: with
+   `getItem` answering null and `setItem` throwing, `registerInterest`
+   succeeded and the server held the record; `forgetMe` in the same session
+   returned `intro: true` and the record stayed. Cause: `rememberIntro`
+   swallowed the throw and `forgetPending` then cleared the page's only copy
+   of the code, so `rememberedIntro` (which read only `localStorage`) had
+   nothing to give Forget me. Fix (`src/lib/introduce.ts`, `forget.ts`,
+   `Looking.tsx`, `Home.tsx`): the page keeps the receipt in memory with
+   `kept: false` when storage refuses it; `rememberedIntro` falls back to
+   it; `withdrawInterest`, `clearEverything` and a reload clear it; the
+   receipt and Home's card say that a reload is the limit and show the
+   code. Regressions: `src/lib/introduce.test.ts` (the exact reproduction,
+   asserting the server record is gone) and `tests/journeys/looking.test.tsx`
+   ("a browser that cannot hold the receipt…": signup, Back, through the
+   door again, Trust, Forget me through the screen, the record gone).
+2. **A withdrawal followed by a late write whose cleanup failed was undone.**
+   Reproduced: a `DELETE` interleaved just before the request's `setJSON`,
+   then the request's own `delete` of the record failing; the POST answered
+   503, marker and record both stayed, the founder's `GET` showed the
+   person, and the sweep would have removed the marker after two days and
+   the record after 180. Fix (`netlify/functions/introduce.ts`, `sweep.ts`):
+   the marker is the authority. `GET` excludes and counts (`withdrawn`) any
+   record under a marker; a POST that finds a marker answers 410 and tries
+   the delete again, and still answers 410 (counted in `fail.introduce`) if
+   that fails; `DELETE` rewrites the marker's day on every withdrawal; the
+   sweep deletes any record under a marker first, on any run, and the marker
+   only after, only once at least two days old, and only if unchanged since
+   read (`deleteIfUnchanged`), so a repeated withdrawal is never undone by an
+   older marker's clock and a failed record delete keeps the marker as
+   evidence. `Swept` gained `withdrawn`. Regressions:
+   `tests/introduce-residue.test.ts` (the sequence; the founder's list; a
+   later sweep repairing; a retry refused; a failed delete while processing
+   markers; a marker never removed before its record; repeated withdrawal
+   near cleanup; a withdrawal racing the sweep's read).
+3. **The production `DELETE` in `deployed.yml` is removed.** `AAAAAAAA` is a
+   valid code a person could hold, and the probe wrote a withdrawal marker
+   in production on every deploy. Replaced by `/health`'s `introductions`
+   check: a strong-consistency HEAD of `health-probe` (not a code shape) on
+   the `introductions` store, behind the founder key, read by `watch.yml`
+   within three hours and by hand at any time; it fails by the SDK's own
+   name (`BlobsConsistencyError`) when the platform context lacks the
+   uncached URL. `tests/blobs-consistency.test.ts` runs the installed
+   `@netlify/blobs` against its own `BlobsServer` to pin that a strong read
+   is served with an uncached URL and refused by name without one.
+   `tests/deploy-layout.test.ts` now fails if any `curl` in `deployed.yml` or
+   `watch.yml` is anything but a read. `deployed.yml` and `docs/OPS.md`
+   describe the workflow as post-publication monitoring: Netlify has
+   published before it runs, and it cannot stop a broken release.
+4. **Retention and claims corrected.** A marker is kept at least two days
+   (`WITHDRAWN_DAYS`) and removed by the first weekly sweep after that: two
+   to eight days in practice, longer if a run fails or a record is still
+   under it. "Nothing can be put under this code now" and "for two days" are
+   gone from `Looking.tsx`, `Trust.tsx`, `introduce.ts`, `sweep.ts`,
+   `PRIVACY`, `OPS`, `SECURITY`; the wording for a refused late request no
+   longer claims the record is physically gone. A 503 on the POST is now
+   `unsure` on the phone, since the write may have landed, and the pending
+   code is kept for the retry.
+
+## Completed in Group A (unchanged by the repair)
 
 - **Server** (`netlify/functions/introduce.ts`, `sweep.ts`): the phone's code
   is accepted and written `onlyIfNew`; the same request is answered
   `again: true` with the record's original `at` and `removeOn`; a different
   request under an existing code is refused (409), never written over;
-  `DELETE` writes `withdrawn/<code>` (a day, nobody) before deleting, and a
-  late POST that finds the marker refuses (410) and removes what it wrote;
   `adult: true` required and stored, a body without it fails closed;
   `removeOn` is the Sunday on or before `at + 180 d`, used by the founder's
   list and the sweep; the `introductions` store is opened
-  `consistency: 'strong'`; markers are swept after two days.
+  `consistency: 'strong'`.
 - **Client** (`src/lib/introduce.ts`, `forget.ts`): the pending attempt
   (`niyyah.intro.pending.v1`: code and day, never the contact; a page mirror
   when storage refuses); the receipt with server dates; legacy receipts kept
@@ -44,55 +112,44 @@ build, no deploy and no paid evaluation.
   request was saved on…", "scheduled to be removed on…"); the
   past-scheduled state that keeps the code; taking a name off by a typed
   code; `/?looking` held in the bar, `via` never re-added.
-- **Deploy smoke** (`deployed.yml`): takes an unused code off the list, which
-  is the strong-consistency read; a 503 there means the platform context
-  lacks the uncached URL the SDK needs.
 - **Docs**: `PRIVACY`, `OPS` (including "Updating an installed app"),
   `PRODUCT`, `SECURITY`, `DECISIONS` (36–38, Part 24), `TESTING`, `README`.
 
-## Verification, as it actually ran
+## Verification, as it actually ran (repair session)
 
 | Check | Result |
 |---|---|
-| `npm run verify` (typecheck, lint, 102 test files) | exit 0; 1397 passed, 2 skipped (the two live suites, no key) |
+| `npm run verify > log 2>&1; echo $?` (typecheck, lint, 105 test files) | exit 0; 1417 passed, 2 skipped (the two live suites, no key). Three new files: `tests/introduce-residue.test.ts`, `tests/blobs-consistency.test.ts`, `src/lib/introduce.test.ts` |
 | `npm run build` | exit 0 |
-| Chromium walk, 390×844, production build, real handlers, local `BlobsServer` with `edgeURL` = `uncachedEdgeURL`, synthetic data, isolated contexts | 23 of 23 checks passed: disclosures in order before the button; no horizontal overflow on the form, the receipt, the code field and Home; every input labelled; the checkbox toggles by keyboard; receipt with two dates and no "is down"; founder list shows one person with `removeOn` and `adult`; take-off empties the list; `/?looking` on the screen, `/` after Back, `/?looking` on a reload with `via` dropped; a code typed on another phone takes the name off and the same code again finds nothing; a browser that refuses storage is shown the code, the retry is saved once, and the receipt shows the code; Home shows the receipt |
-| Strong read against a real Blobs endpoint | The local `BlobsServer` answered the strong-path `DELETE` with `{removed: false}`. Production's context is not verifiable from this session; the deploy smoke test now checks it on the first deploy of `main` |
-
-Tests added or rewritten: `tests/introduce-race.test.ts` (six interleavings
-and the strong-open check), `tests/introduce-function.test.ts`,
-`tests/sweep-function.test.ts`, `tests/vocab-sync.test.ts`,
-`tests/journeys/looking.test.tsx` (lost answer, retry dates, edited input,
-storage denial and recovery, two tabs, delayed request vs Forget me and vs a
-typed-code withdrawal, legacy receipt, past-scheduled and the sweep, Home,
-the address), `src/lib/forget.test.ts`, `src/lib/links.test.ts`,
-`tests/service-worker.test.ts`, the fixtures in `caps-function`,
-`record-version` and `delete-means-deleted`. Test support gained
-`server.lose()`, `server.hold()`, `Phone.refuse()`, `blobs.opened`, and an
-`nth` for `blobs.before()`.
+| Chromium, 390×844, production build, real handlers, local `BlobsServer` with `edgeURL` = `uncachedEdgeURL`, synthetic data, isolated contexts | 11 of 11: with `setItem` refusing `niyyah.intro*`, the receipt shows the code and names the limit ("closed or reloaded"), nothing is in storage, no horizontal overflow, the founder list holds one; Back and through the door again shows the receipt; Trust → Forget me → "Yes, delete everything" empties the founder list and the code then finds nothing; a typed code on another phone takes a name off and the same code again gives the bounded wording, no overflow; `/health` with the key reports the `introductions` strong read ok |
+| Strong read against a real Blobs endpoint | `tests/blobs-consistency.test.ts`, against the package's own server, in every `verify`. Production's context is still not verifiable from a session; `/health`'s `introductions` check is what reads it |
 
 ## Limitations that remain
 
-- **Production strong reads are unverified until the next deploy of `main`.**
-  The SDK throws `BlobsConsistencyError` if the function's
-  `NETLIFY_BLOBS_CONTEXT` has no `uncachedEdgeURL`; the route would then
-  answer 503 on every request. The smoke test in `deployed.yml` fails the
-  deploy check if so; the rollback is in `docs/OPS.md`.
+- **Production strong reads are unverified from a session.** The
+  `introductions` check on `/health` reads them; `watch.yml` runs it every
+  three hours, and the founder can run it by hand with the key after a
+  deploy of `main`. A red check means every request to `/introduce` is a
+  503; the rollback is in `docs/OPS.md`.
+- **A refused browser loses the receipt on reload.** The page holds it until
+  then; the screen shows the code and says so. There is no way around this
+  without storage, and no claim is made otherwise.
 - **Cross-tab guarantee is bounded.** Two tabs share the pending code and the
   receipt through `localStorage`; when storage is refused, the guarantee
   holds within one page only, and two tabs can make two records.
+- **Code reuse is prevented for the marker's days, not for ever.** After the
+  marker is swept, a request under the same code would be a new record;
+  the phone forgets a withdrawn pending code on 410, so this needs a person
+  to send the same code again days later.
 - **An old cached page** sends no `adult` and is refused with a sentence it
   already had ("Something in the form did not fit"); it cannot be told more.
   The fix is to reopen the app (`docs/OPS.md`, "Updating an installed app").
 - **A guessed-code DELETE writes a marker** (a day, nobody), bounded by the
-  forget cap and swept after two days.
+  forget cap and swept with the rest.
 - **The phone's clock** decides only when the receipt says the scheduled day
   has passed; the code is kept until the person or Forget me clears it.
 - `VITE_OPERATOR_NAME` is unset in production as far as this session can
   tell, so Looking and Trust say "its founder".
-- The first walk screenshot was taken during the entry animation and is
-  blank; the later screenshots show the screens. Screenshots are in the
-  session scratchpad, not committed.
 
 ## Deferred: Group B (not started)
 
@@ -109,13 +166,12 @@ word). `docs/BATCH-01-PLAN.md` §4.
 The held stores (the 2026-09-27 sweep log, the Blobs listing, which form rows
 are tests); `VITE_OPERATOR_NAME`; whether the eval and production Anthropic
 keys share an account; whether `guide-eval` is a required check; the
-`CLAUDE.md` outreach wording. `docs/BATCH-01-PLAN.md` §6.
+`CLAUDE.md` outreach wording. `docs/BATCH-01-PLAN.md` §7.
 
 ## The exact next task
 
-Group B of `docs/BATCH-01-PLAN.md`, starting with the evaluation outcomes
+Review of this repair. Then, if accepted, Group B of
+`docs/BATCH-01-PLAN.md`, starting with the evaluation outcomes
 (`tests/guide-eval/live.ts`, `tests/guide-eval-live.test.ts`,
 `tests/judgment-live.test.ts`, `.github/workflows/guide-eval.yml`), using
-deterministic stand-in clients and no paid run. Then the documentary
-corrections, then the outreach ledger once the founder has answered on the
-`CLAUDE.md` wording.
+deterministic stand-in clients and no paid run.

@@ -58,13 +58,23 @@ import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/voca
  * code that exists is refused (409), never written over: the person is asked
  * on the screen what she wants done.
  *
- * **Withdrawal is durable.** `DELETE` writes `withdrawn/<code>` — a day and
- * nothing else — before it deletes the record, and a POST that finds the
- * marker refuses (410) and removes anything it wrote. So a delayed request
- * cannot land after Forget me or "Take my name off" has been answered. The
- * markers live two days (WITHDRAWN_DAYS), long past anything in flight, and
- * the sweep removes them. A guessed-code DELETE writes one too; that is
- * bounded by the forget cap and swept, and it carries nobody.
+ * **Withdrawal is durable, and the marker is the authority.** `DELETE` writes
+ * `withdrawn/<code>` — a day and nothing else — before it deletes the record,
+ * and a POST that finds the marker refuses (410) and removes anything it
+ * wrote. So a delayed request cannot land after Forget me or "Take my name
+ * off" has been answered. A delete can fail after the marker is there — the
+ * withdrawal's own, or the late request's cleanup — and then a record sits
+ * under a marked code. That record is withdrawn all the same: the founder's
+ * list neither shows nor counts it, a retry under the code is refused and
+ * tries the delete again, and the sweep deletes it on any run and only then
+ * the marker. A marker is kept at least WITHDRAWN_DAYS and removed by the
+ * first weekly sweep after that, so in practice between two and eight days,
+ * longer if a run fails or the record under it could not be deleted; every
+ * withdrawal rewrites the day, so a fresh one never rides on an old marker's
+ * clock. Within that window nothing can be saved under the code; after it a
+ * code could in principle be reused, which is why no screen says "never". A
+ * guessed-code DELETE writes a marker too; that is bounded by the forget cap
+ * and swept, and it carries nobody.
  *
  * **Reads are strong.** The store is opened with `consistency: 'strong'`:
  * the conflict read after a refused conditional write, the marker checks and
@@ -101,7 +111,12 @@ const DEFAULT_FORGET_CAP = 600
 /** How long a name stays on the list, at most, from the day it was put down (decision 32). */
 export const LIST_DAYS = 180
 
-/** How long a withdrawal marker is kept: longer than any request could still be in flight. */
+/**
+ * The least time a withdrawal marker is kept: longer than any request could
+ * still be in flight. The weekly sweep removes it on the first run after
+ * that, so the real retention is two to eight days, and longer if a run fails
+ * or the record under it could not be deleted (netlify/functions/sweep.ts).
+ */
 export const WITHDRAWN_DAYS = 2
 
 /** The prefix of a withdrawal marker. Keys under it carry a day and nobody. */
@@ -177,6 +192,25 @@ export function sameRequest(a: Introduction, b: Introduction): boolean {
 const receipt = (code: string, at: string, again = false) =>
   Response.json({ saved: true, code, at, removeOn: removeOn(at), ...(again ? { again: true } : {}) })
 
+type Store = ReturnType<typeof getStore>
+
+/**
+ * A request under a code that carries a withdrawal marker: refused, and
+ * whatever sits under the code — this request's own write, or one an earlier
+ * cleanup could not remove — is deleted if it can be. When that delete fails
+ * the answer is still 410: the marker stands, the founder's list already
+ * leaves the record out, and the sweep finishes it. The failure is counted
+ * so /health sees it.
+ */
+async function withdrawn(store: Store, code: string): Promise<Response> {
+  try {
+    await store.delete(code)
+  } catch (err) {
+    await failed('introduce', 'a withdrawn record could not be removed; the sweep will', err)
+  }
+  return Response.json({ error: 'withdrawn' }, { status: 410 })
+}
+
 export default async function handler(req: Request) {
   const store = getStore({ name: 'introductions', consistency: 'strong' })
 
@@ -191,8 +225,16 @@ export default async function handler(req: Request) {
       // Past its day and still here only because a sweep has not run:
       // counted, never shown (decision 32).
       let lapsed = 0
+      // Under a withdrawal marker and still here only because a delete
+      // failed: taken off, whatever the store holds. Counted, never shown.
+      const marked = new Set(blobs.filter(({ key }) => key.startsWith(WITHDRAWN)).map(({ key }) => key.slice(WITHDRAWN.length)))
+      let withdrawn = 0
       for (const { key } of blobs) {
         if (key.startsWith(WITHDRAWN)) continue
+        if (marked.has(key)) {
+          withdrawn += 1
+          continue
+        }
         // One record that cannot be read costs that record, never the list.
         try {
           const record = (await store.get(key, { type: 'json' })) as Introduction | null
@@ -215,7 +257,7 @@ export default async function handler(req: Request) {
         c[p.gender === 'woman' ? 'women' : 'men'] += 1
       }
       // Never cached: every row is a way to reach a real person.
-      return Response.json({ people, counts, total: people.length, skipped, lapsed }, { headers: { 'Cache-Control': 'no-store' } })
+      return Response.json({ people, counts, total: people.length, skipped, lapsed, withdrawn }, { headers: { 'Cache-Control': 'no-store' } })
     } catch (err) {
       await failed('introduce', 'list failed', err)
       return Response.json({ error: 'unavailable' }, { status: 503 })
@@ -229,12 +271,18 @@ export default async function handler(req: Request) {
     if (await overHourlyCap('introduce-forget', DEFAULT_FORGET_CAP)) return rateLimited()
     try {
       // The marker first, so a request still in flight under this code finds
-      // it and refuses (below). Then the record, if there is one.
-      await store.setJSON(`${WITHDRAWN}${code}`, { at: day() }, { onlyIfNew: true })
+      // it and refuses (below). Written over, not `onlyIfNew`: this
+      // withdrawal's day, so the sweep's clock starts again and an older
+      // marker's age cannot take it away while this one is still what stops
+      // a request in flight. Then the record, if there is one; if that
+      // delete fails the marker stays, the list leaves the record out, and
+      // the sweep or the next withdrawal deletes it.
+      await store.setJSON(`${WITHDRAWN}${code}`, { at: day() })
       const had = !!(await store.getMetadata(code))
       if (had) await store.delete(code)
       // `removed: false` is not an error: nothing was under the code, and
-      // nothing can be put under it now. An older client reads a 200 as gone.
+      // for the marker's days nothing can be put under it. An older client
+      // reads a 200 as gone.
       return Response.json({ removed: had })
     } catch (err) {
       await failed('introduce', 'remove failed', err)
@@ -288,24 +336,22 @@ export default async function handler(req: Request) {
     if (held) {
       const marker = `${WITHDRAWN}${held}`
       // Already taken off under this code — by her, or by Forget me — before
-      // this request arrived: nothing is written, and the screen is told.
-      if (await store.get(marker)) return Response.json({ error: 'withdrawn' }, { status: 410 })
+      // this request arrived: nothing is written, the screen is told, and
+      // anything an earlier cleanup left under the code is tried again.
+      if (await store.get(marker)) return withdrawn(store, held)
       const { modified } = await store.setJSON(held, stamp(record), { onlyIfNew: true })
       if (!modified) {
         // Something is under the code. Hers, sent again — or someone else's,
         // or hers with different details. Read back, never written over.
         const existing = (await store.get(held, { type: 'json' })) as Introduction | null
-        if (await store.get(marker)) return Response.json({ error: 'withdrawn' }, { status: 410 })
+        if (await store.get(marker)) return withdrawn(store, held)
         if (!existing) return Response.json({ error: 'withdrawn' }, { status: 410 })
         if (!sameRequest(existing, record)) return Response.json({ error: 'taken' }, { status: 409 })
         return receipt(held, existing.at, true)
       }
       // Written — unless a withdrawal landed between the check above and the
       // write, in which case the marker is there now and this record goes.
-      if (await store.get(marker)) {
-        await store.delete(held)
-        return Response.json({ error: 'withdrawn' }, { status: 410 })
-      }
+      if (await store.get(marker)) return withdrawn(store, held)
       return receipt(held, record.at)
     }
     // No code from the phone (a client from before 2026-09-27's batch): onto

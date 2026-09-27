@@ -22,8 +22,10 @@ import { WITHDRAWN, WITHDRAWN_DAYS, removeOn } from './introduce'
  *    or before its 180th day, which is the day the screen and the founder's
  *    list name (`removeOn`, netlify/functions/introduce.ts; docs/DECISIONS.md
  *    decision 32). A name is never renewed or reminded about; its owner puts
- *    it down again if she still wants it. The withdrawal markers that route
- *    writes go after two days.
+ *    it down again if she still wants it. A record left under a withdrawal
+ *    marker because a delete failed goes on any run; the marker goes only
+ *    after it, and only once its two days are up — so at the first Sunday
+ *    at least two days on, between two and eight days after the withdrawal.
  *
  * **What it leaves alone, by decision.** From 2026-09-24 to 2026-09-27 this
  * also emptied the `cohort`, `contacts` and `vouches` stores every week,
@@ -61,13 +63,15 @@ export interface Swept {
   journals: number
   /** Names on the introduction list on or past their scheduled day, or with no day to count from. */
   introductions: number
-  /** Withdrawal markers on the introduction list older than their two days. */
+  /** Names still under a withdrawal marker because a delete failed: taken off now. */
+  withdrawn: number
+  /** Withdrawal markers on the introduction list at least two days old, with nothing left under them. */
   markers: number
   /** Records that could not be read or removed this week. Everything else still went; these are tried again. */
   errors: number
 }
 
-const empty = (): Swept => ({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, markers: 0, errors: 0 })
+const empty = (): Swept => ({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, withdrawn: 0, markers: 0, errors: 0 })
 
 /**
  * Stores the sweep never opens: the door's and the vouch's, held until the
@@ -165,36 +169,68 @@ export async function sweepExpired(couples: Store, progress: Store, now = Date.n
  * route could have written cannot be shown to be inside its lifetime, and
  * goes too. One that cannot be read at all — the store did not answer — is an
  * error, tried again next week; one that reads as something other than JSON
- * is removed, since nothing can ever read it. A withdrawal marker
- * (`withdrawn/<code>`, a day and nobody) goes once its two days are up.
+ * is removed, since nothing can ever read it.
+ *
+ * **A withdrawal marker is the authority** (`withdrawn/<code>`, a day and
+ * nobody; netlify/functions/introduce.ts). A record still under a marked code
+ * is there because a delete failed after the withdrawal was answered; it is
+ * deleted on any run, whatever its own day. The marker goes only after that
+ * record is gone, and only once it is at least WITHDRAWN_DAYS old — so a
+ * failed delete keeps the marker, and with it the evidence that the record
+ * must go, for the next run. The marker is deleted only if it is still the
+ * version that was read (`deleteIfUnchanged`): a withdrawal repeated in the
+ * meantime rewrote its day, and that fresh marker is what stops a request
+ * still in flight, so an older read may not take it. A marker whose day is
+ * missing or unreadable goes as soon as nothing is under it.
  */
 export async function sweepIntroductions(introductions: Store, now = Date.now()) {
-  const out = { introductions: 0, markers: 0, errors: 0 }
+  const out = { introductions: 0, withdrawn: 0, markers: 0, errors: 0 }
   const today = day(now)
   const markersBefore = day(now - WITHDRAWN_DAYS * DAY_MS)
-  for (const { key } of (await introductions.list()).blobs) {
+  const keys = (await introductions.list()).blobs.map((b) => b.key)
+  const present = new Set(keys)
+  const marked = new Set(keys.filter((k) => k.startsWith(WITHDRAWN)).map((k) => k.slice(WITHDRAWN.length)))
+
+  // Names on their day — those not under a marker; the marked ones go below.
+  for (const key of keys) {
+    if (key.startsWith(WITHDRAWN) || marked.has(key)) continue
     await each(out, async () => {
       const raw = (await introductions.get(key, { type: 'text' })) as string | null
       if (raw === null) return
-      let at: unknown
-      try {
-        at = (JSON.parse(raw) as { at?: unknown } | null)?.at
-      } catch {
-        at = undefined
-      }
-      if (key.startsWith(WITHDRAWN)) {
-        if (typeof at === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(at) && at > markersBefore) return
-        await introductions.delete(key)
-        out.markers += 1
-        return
-      }
-      const goes = removeOn(at)
+      const goes = removeOn(dayIn(raw))
       if (goes && goes > today) return
       await introductions.delete(key)
       out.introductions += 1
     })
   }
+
+  // Markers: first whatever is left under the code, then — only if that is
+  // gone and the days are up — the marker itself.
+  for (const key of keys) {
+    if (!key.startsWith(WITHDRAWN)) continue
+    const code = key.slice(WITHDRAWN.length)
+    await each(out, async () => {
+      if (present.has(code)) {
+        await introductions.delete(code)
+        out.withdrawn += 1
+      }
+      const read = (await introductions.getWithMetadata(key, { type: 'text' })) as { data: string; etag?: string } | null
+      if (!read) return
+      const at = dayIn(read.data)
+      if (typeof at === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(at) && at > markersBefore) return
+      if (await deleteIfUnchanged(introductions, key, read.etag)) out.markers += 1
+    })
+  }
   return out
+}
+
+/** The `at` inside a stored record's text, or undefined when there is none to read. */
+function dayIn(raw: string): unknown {
+  try {
+    return (JSON.parse(raw) as { at?: unknown } | null)?.at
+  } catch {
+    return undefined
+  }
 }
 
 /** The whole sweep, every store it may touch, as the schedule runs it. */
@@ -207,6 +243,7 @@ export async function sweep(now = Date.now()): Promise<Swept> {
     couples: rest.couples,
     progress: rest.progress,
     introductions: names.introductions,
+    withdrawn: names.withdrawn,
     markers: names.markers,
     errors: swept.errors + rest.errors + names.errors,
   }
@@ -227,7 +264,7 @@ export default async function handler(_req: Request) {
     // So /health can tell a sweep that ran from one that stopped (docs/OPS.md).
     await mark('sweep', { errors: swept.errors })
     console.log(
-      `[niyyah] sweep: ${swept.maps} maps, ${swept.couples} couples, ${swept.progress} step counts, ${swept.journals} moves, ${swept.introductions} names on their day, ${swept.markers} withdrawal markers, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
+      `[niyyah] sweep: ${swept.maps} maps, ${swept.couples} couples, ${swept.progress} step counts, ${swept.journals} moves, ${swept.introductions} names on their day, ${swept.withdrawn} names left under a withdrawal, ${swept.markers} withdrawal markers, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
     )
     return Response.json({ swept, at: day() })
   } catch (err) {

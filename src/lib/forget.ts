@@ -1,6 +1,6 @@
 import { rememberedCode } from './keep'
 import { rememberedInstallId } from './progress'
-import { pendingIntro, rememberedIntro } from './introduce'
+import { forgetIntro, forgetPending, pendingIntro, rememberedIntro } from './introduce'
 import { clearProgress, loadProgress } from './storage'
 import { send } from './net'
 
@@ -169,6 +169,9 @@ export async function forgetMe(): Promise<Forgotten> {
   await retryPendingForget()
   const code = rememberedCode() ?? undefined
   const id = rememberedInstallId() ?? undefined
+  // The receipt this phone holds — in storage, or, when storage refused it,
+  // in this page's memory (src/lib/introduce.ts): either way the code is
+  // sent, so a name saved in a browser that is not saving still comes off.
   const intro = rememberedIntro()?.code
   const waiting = pendingIntro()?.code
   const introPending = waiting && waiting !== intro ? waiting : undefined
@@ -215,4 +218,9 @@ export function clearEverything(): void {
       /* storage refused; there is nothing more to do than try */
     }
   }
+  // And the page's own copies of the introduction receipt and the pending
+  // attempt, which a phone whose storage refused is holding in memory
+  // (src/lib/introduce.ts). Read above, before the deletes; cleared here.
+  forgetIntro()
+  forgetPending()
 }

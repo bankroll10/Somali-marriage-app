@@ -26,7 +26,7 @@ every new test a bookkeeping row and guarded nothing a reviewer does not.
 
 | Helper | What it gives a test |
 |---|---|
-| `blobs.ts` | An in-memory Netlify Blobs with real etags, `onlyIfNew` and `onlyIfMatch`, and ways to break it: `failOn` makes a chosen call throw, `before` runs a competing request at an exact point (the nth matching call, if asked), `failOpen` makes a store fail to open. Its op log lets a test assert what a route *read*; `opened` records the options each store was opened with, so a test can hold that a route asked for strong reads. |
+| `blobs.ts` | An in-memory Netlify Blobs with real etags, `onlyIfNew` and `onlyIfMatch`, and ways to break it: `failOn` makes a chosen call throw (with an error of the test's choosing, so a named SDK error can be staged), `before` runs a competing request at an exact point (the nth matching call, if asked), `failOpen` makes a store fail to open. Its op log lets a test assert what a route *read* and in what order it *deleted*; `opened` records the options each store was opened with, so a test can hold that a route asked for strong reads. It is a double: `tests/blobs-consistency.test.ts` runs the installed SDK against its own local server for the two facts a double cannot prove. |
 | `memory.ts` | The plain double: each store a Map of key to the raw string, for the function tests that seed and read values directly. Nine files each had their own copy until 2026-09-24. |
 | `server.ts` | Netlify in a box. `serve()` puts the real handlers behind the global `fetch`; `down()` takes the network away; `lose()` runs the handler and loses the answer — a timeout after the write landed; `hold()` keeps a request in flight until released; `call()` makes one request. |
 | `device.ts` | A phone: its own `localStorage`, `onPhone(p)` to switch phones, `refuse(keys)` to make it a browser that is not saving those keys, `reload()`, and `shareSheet()` to see what a share button handed over. |
@@ -74,6 +74,10 @@ their neighbours had not hollowed them out.
 | A late request never lands after a withdrawal | `introduce-race`, `journeys/looking` | The POST skips its second look at the marker (2026-09-27) | Red (3) |
 | One removal day for phone, list and sweep | `sweep-function`, `vocab-sync`, `introduce-function` | The sweep looks a week ahead again (2026-09-27) | Red (4) |
 | The affirmation is required on the wire | `introduce-function`, `caps-function`, `journeys/looking` | `adult` accepted when absent (2026-09-27) | Red (3) |
+| The withdrawal marker is the authority | `introduce-residue`, `introduce-function` | The founder's `GET` shows a record under a marker again; the sweep removes a marker before the record under it (2026-09-27) | Red (5) |
+| A receipt the browser refuses is still the page's | `lib/introduce`, `journeys/looking` | `rememberIntro` drops the receipt on a `setItem` throw, so Forget me finds no code (2026-09-27) | Red (3) |
+| No workflow writes to production | `deploy-layout`, `ops` | A `-X DELETE` returns to `deployed.yml`; `/health` writes or deletes on the introduction list (2026-09-27) | Red (1 each) |
+| The SDK refuses strong reads by name without an uncached URL | `blobs-consistency` | — | Runs the installed `@netlify/blobs` against its own `BlobsServer`; not a double |
 
 One mutation that the register alone does not catch, on purpose: the forget
 cascade in `netlify/functions/keep.ts` leaving the couple sheet. Her phone

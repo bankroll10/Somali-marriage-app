@@ -115,6 +115,23 @@ describe('Netlify deploy directories hold only deployable code', () => {
     expect(readFileSync(join(process.cwd(), 'vite.config.ts'), 'utf8')).toMatch(/fileName: 'version\.json'[\s\S]*COMMIT_REF/)
   })
 
+  it('and asks only: no workflow writes to, marks or deletes anything in production', () => {
+    // Until 2026-09-27 deployed.yml sent DELETE /introduce?code=AAAAAAAA as a
+    // strong-consistency probe — a code a person could hold, and a
+    // withdrawal marker written in production on every deploy. Every curl in
+    // the two monitoring workflows is a GET now; the strong read is /health's
+    // `introductions` check, behind the founder key (tests/ops.test.ts).
+    for (const file of ['deployed.yml', 'watch.yml']) {
+      const yml = readFileSync(join(process.cwd(), `.github/workflows/${file}`), 'utf8')
+      const code = yml.split('\n').filter((l) => !l.trim().startsWith('#'))
+      const curls = code.filter((l) => /curl\s/.test(l))
+      expect(curls.length, file).toBeGreaterThan(0)
+      for (const line of curls) expect(line, `${file}: ${line.trim()}`).not.toMatch(/-X\s*(DELETE|POST|PUT|PATCH)|--request|--data|-d\s/)
+      // The comments may recall the removed probe; the steps may not send it.
+      expect(code.join('\n')).not.toMatch(/introduce\?code=/)
+    }
+  })
+
   it('the gate is still where netlify.toml expects it', () => {
     // A guard that passes because the file was deleted would be worse than none.
     expect(existsSync(join(process.cwd(), 'netlify/edge-functions/gate.ts'))).toBe(true)

@@ -4277,3 +4277,47 @@ so an old page meets the adult gate's refusal until it is reopened.
 record, and the phone said "nothing is saved"), and case 3, a privacy and
 safety requirement (decision 32's stated lifetime made true on one day; the
 affirmation required where it is claimed).
+
+### Repair, later on 2026-09-27
+
+An independent review of `3b987ee` reproduced two failures with the test
+helpers above, and named two claims that were not true. Fixed on the same
+branch before Group B; `docs/BATCH-01-PLAN.md` §6 and
+`docs/SESSION-HANDOFF.md` carry the detail.
+
+- **A receipt the browser refused was dropped.** With `setItem` throwing, the
+  request saved, `rememberIntro` swallowed the throw, `forgetPending` cleared
+  the page's copy, and Forget me — finding no code — reported the name gone
+  while the record stayed. `src/lib/introduce.ts` now keeps the receipt in
+  the page when storage refuses it (`kept: false`), `rememberedIntro` answers
+  from there, `clearEverything` clears it, and the screen says a reload is
+  the limit. `src/lib/introduce.test.ts`, `tests/journeys/looking.test.tsx`.
+- **The marker was not the authority.** A withdrawal that landed just before
+  a late request's write, followed by a failed cleanup delete, left the
+  record and the marker together: the route answered 503, the founder's
+  `GET` showed the person, and the sweep took the marker after two days and
+  the record after 180. Now `GET` excludes and counts (`withdrawn`) any record
+  under a marker; a request that finds a marker answers 410 and tries the
+  delete again, whether or not it succeeds; `DELETE` rewrites the marker's
+  day; the sweep deletes the record under a marker first, on any run, and
+  the marker only after, only once two days old and only if unchanged since
+  read (`deleteIfUnchanged`), so a repeated withdrawal is never undone by an
+  older marker's clock. `tests/introduce-residue.test.ts`.
+- **The production `DELETE` in `deployed.yml` is removed.** `AAAAAAAA` is a
+  code a person could hold, and a marker written on every deploy was a
+  production write from a workflow. The strong-consistency read is now
+  `/health`'s `introductions` check — a HEAD of a key that cannot be a code,
+  behind the founder key, read by `watch.yml` — and
+  `tests/blobs-consistency.test.ts` runs the installed SDK against its own
+  `BlobsServer` to pin that a strong read is refused by name without an
+  uncached URL. `deployed.yml` is described as what it is: monitoring after
+  publication, not a gate.
+- **Retention said truthfully.** A marker is kept at least two days and
+  removed by the first weekly sweep after that — two to eight days, longer on
+  a failed run — not "two days". "Nothing can be put under this code now" is
+  gone from the screen and the code: reuse is prevented for the marker's
+  days, not for ever.
+
+**Decision 19.** Case 2 (a withdrawal acknowledged and then undone by a
+failed delete; a receipt lost with the record kept) and case 4 (a
+production write by a monitoring workflow).

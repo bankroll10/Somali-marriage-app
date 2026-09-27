@@ -5,6 +5,7 @@ import { seedDemo } from '../../src/lib/demo'
 import { entryFromUrl } from '../../src/lib/entry'
 import { forgetMe } from '../../src/lib/forget'
 import { formatCode } from '../../src/lib/code'
+import { rememberedIntro } from '../../src/lib/introduce'
 import { day } from '../../netlify/shared/day'
 import { removeOn } from '../../netlify/functions/introduce'
 import { Phone, onPhone, reload } from '../support/device'
@@ -308,6 +309,38 @@ describe('looking for someone', () => {
     other.unmount()
   })
 
+  it('a browser that cannot hold the receipt: the page still does, Home shows it, and Forget me takes the name off', async () => {
+    // Reproduced by the review of 2026-09-27: with `setItem` throwing, the
+    // request saved, the receipt was dropped, and Forget me — finding no code
+    // on the phone — reported the name gone while the record stayed.
+    const phone = onPhone(new Phone('private'))
+    phone.refuse(/^niyyah\.intro/)
+    const m = await mount(<App />)
+    await fillIn(m)
+    await m.press(/^Put my name down/)
+    await saved(m)
+    const code = records()[0]
+    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    expect(m.text()).toContain('This browser is not saving anything')
+    expect(m.text()).toContain(formatCode(code))
+    // Away from the screen and back through the door: the page still holds it.
+    await m.press(/^Back/)
+    await m.until(() => m.text().includes('I’m already talking to someone.'), 'back on Welcome')
+    expect(m.text()).not.toContain(formatCode(code))
+    await m.press(/I’m looking for someone serious/)
+    await m.until(() => m.text().includes(`Your request was saved on ${day()}.`), 'the receipt again')
+    expect(m.text()).toContain(formatCode(code))
+    expect(rememberedIntro()).toMatchObject({ code, kept: false })
+    // Forget me, through Trust: the code the page holds is sent, and the record goes.
+    await m.press(/^What we hold, exactly/)
+    await m.press(/^Forget me$/)
+    await m.press('Yes, delete everything')
+    await m.until(() => records().length === 0, 'the record is deleted')
+    expect(markers()).toEqual([`withdrawn/${code}`])
+    expect(residue([CONTACT], [phone])).toEqual([])
+    m.unmount()
+  })
+
   it('two tabs on one phone send the same request: one record, one day, both told', async () => {
     const phone = onPhone(new Phone('hers'))
     const a = await mount(<App />)
@@ -346,7 +379,7 @@ describe('looking for someone', () => {
     expect(markers()).toEqual([`withdrawn/${pending.code}`])
     // The request lands now — and finds the marker.
     release()
-    await m.until(() => m.text().includes('taken off before it could be saved'), 'the late request was refused')
+    await m.until(() => m.text().includes('taken off before this request was answered'), 'the late request was refused')
     expect(records()).toEqual([])
     expect(markers()).toEqual([`withdrawn/${pending.code}`])
     expect(residue([CONTACT], [phone])).toEqual([])
@@ -362,7 +395,7 @@ describe('looking for someone', () => {
     const pending = JSON.parse(phone.storage.get(PENDING_KEY)!) as { code: string }
     await call('introduce', 'DELETE', `introduce?code=${pending.code}`)
     release()
-    await m.until(() => m.text().includes('taken off before it could be saved'), 'refused')
+    await m.until(() => m.text().includes('taken off before this request was answered'), 'refused')
     expect(records()).toEqual([])
     expect(phone.storage.has(PENDING_KEY)).toBe(false)
     m.unmount()

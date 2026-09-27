@@ -85,7 +85,7 @@ Every workflow's token can read the repository and do nothing else (`docs/SECURI
 | File | Runs | Does |
 |---|---|---|
 | `verify.yml` | Every PR, and every push to `main` | `npm ci`, `npm run verify` and `npm run build` on Node 22 |
-| `deployed.yml` | Every push to `main`, or by hand | Waits up to 15 minutes for `/version.json` to report the pushed commit, then smoke-tests it (below). A newer push cancels the older wait |
+| `deployed.yml` | Every push to `main`, or by hand | Post-publication monitoring: waits up to 15 minutes for `/version.json` to report the pushed commit, then asks the live site three read-only questions (below). It runs after Netlify has published and cannot stop a broken release; `npm run verify` inside the Netlify build is the gate. A newer push cancels the older wait |
 | `watch.yml` | Every 3 hours; the 1st of each month at 09:30 UTC; or by hand | The health job and the monthly backup (both below) |
 | `guide-eval.yml` | PRs touching `netlify/shared/prompt.ts`, `netlify/functions/guide.ts`, `src/lib/coach.ts`, `src/data/coach.ts` or `tests/guide-eval/**`; or by hand | Evaluates the live guide, at about $4 a run. Without an `ANTHROPIC_API_KEY` repository secret, or when its account has no credit, it warns and passes. The offline eval gates every PR inside `verify` (`docs/GUIDE-EVAL.md`) |
 
@@ -183,7 +183,7 @@ This is a smoke alarm: quiet while things are fine, and loud only when they are 
 
    | Cadence | When a red check emails you | Checks |
    |---|---|---|
-   | `now` | The next run | `storage`, `functions`, `claude`, `cost`, `limits`, `client`, `data`, and the app being down |
+   | `now` | The next run | `storage`, `introductions`, `functions`, `claude`, `cost`, `limits`, `client`, `data`, and the app being down |
    | `daily` | The 09:00 UTC run | `safety-urgent` |
    | `weekly` | Monday's 09:00 UTC run | `safety`, `backup`, `sweep` |
 
@@ -222,7 +222,9 @@ Two checks count open reports and never read what they say. **`safety-urgent`** 
 
 ### 8. Did a deployment fail?
 
-`deployed.yml` is red when the live site still reports an older commit after 15 minutes, or reports the new one and fails the smoke test. The failed job names both commits. **Do this:** open Netlify → Deploys → the failed deploy → its log. `npm run verify` runs first, so a failing test fails the deploy exactly as it fails CI. The last good deploy stays live meanwhile, so the site is stale, not down. If the new commit is live and broken, follow "Rolling back" above.
+`deployed.yml` is red when the live site still reports an older commit after 15 minutes, or reports the new one and fails its three read-only checks (the page carries the app; `/health` without a key is a 401; a restore of an unused code is a 404). It is monitoring after the fact: Netlify has already published by the time it runs, so it cannot stop a broken release, only report one. It writes nothing to production — until 2026-09-27 it also sent `DELETE /introduce?code=AAAAAAAA` as a strong-consistency probe, a code a person could hold and a marker written in production; that is removed. The failed job names both commits. **Do this:** open Netlify → Deploys → the failed deploy → its log. `npm run verify` runs first, so a failing test fails the deploy exactly as it fails CI. The last good deploy stays live meanwhile, so the site is stale, not down. If the new commit is live and broken, follow "Rolling back" above.
+
+**The introduction list's strong read** is not in `deployed.yml`, because checking it without writing needs the founder key. `/health`'s `introductions` check reads the `introductions` store with `consistency: 'strong'` for a key that cannot exist (`health-probe`, not a code shape): a `null` proves the path, and the SDK's `BlobsConsistencyError` — the function's Blobs context has no uncached URL, so every request to `/introduce` answers 503 — fails the check by name (`tests/blobs-consistency.test.ts` pins that the installed SDK behaves this way). The watch run reads it within three hours of any deploy; after a deploy that touches `netlify/functions/introduce.ts`, read it by hand: `curl -s -H "Authorization: Bearer $FOUNDER_KEY" https://joinniyyah.com/.netlify/functions/health | jq '.checks[] | select(.id == "introductions")'`. Red means roll back.
 
 ### 9. Did a backup fail?
 
@@ -277,7 +279,7 @@ curl -s -H "$K" "$S/progress" | jq '.cohorts | to_entries | sort_by(.key) | .[-2
 - **A report outlives its sheet.** A deleted or expired couple sheet leaves `gone/<code>` behind, and a report can still be made against that code for ninety days (`netlify/shared/sheet.ts`).
 - **Never confirm to anyone whether a person uses Niyyah** without that person's own yes to that disclosure — in the pilot, the two yeses of an introduction and nothing else. Never send a code or a map to anyone except the member herself, at her request.
 
-**The introduction list.** `GET /introduce` returns every name whole; it is the founder's to read, and nobody else's. The list says who to call, never who fits: every introduction is made by hand under the runbook below, after a screening conversation with each person, with a non-identifying summary before either says yes and nothing identifying until both have (`docs/DECISIONS.md` Part 23). A name is scheduled to go on `removeOn`, the Sunday on or before its 180th day, which is the day the person's own receipt shows; the list hides a name from that day whatever the sweep did. To take a name off at a person's request, `curl -s -X DELETE "$S/introduce?code=<code>"` with the `code` from the list — the same route the person's own screen uses. It answers `{removed: true}` when a record went and `{removed: false}` when nothing was under the code; either way it leaves `withdrawn/<code>` for two days, so a request still on its way from that phone cannot land afterwards. A code is the person's withdrawal secret: never read one aloud to anyone but its owner, and never write one into a log or a message. The list is not in `/export`: save it beside the backup, monthly, and treat the file as `docs/PRIVACY.md` treats a backup — including its 180 days: a saved list older than that is deleted. Nothing on it counts as a rung, and no count from it is shown to anyone (decision 27).
+**The introduction list.** `GET /introduce` returns every name whole; it is the founder's to read, and nobody else's. The list says who to call, never who fits: every introduction is made by hand under the runbook below, after a screening conversation with each person, with a non-identifying summary before either says yes and nothing identifying until both have (`docs/DECISIONS.md` Part 23). A name is scheduled to go on `removeOn`, the Sunday on or before its 180th day, which is the day the person's own receipt shows; the list hides a name from that day whatever the sweep did. To take a name off at a person's request, `curl -s -X DELETE "$S/introduce?code=<code>"` with the `code` from the list — the same route the person's own screen uses. It answers `{removed: true}` when a record went and `{removed: false}` when nothing was under the code; either way it leaves `withdrawn/<code>` — kept at least two days and removed by the weekly sweep after that, two to eight days in practice — so a request still on its way from that phone cannot land afterwards. The marker is the authority: if the record's delete fails after the marker is written (the route answers 503; retry the `DELETE`), the record is excluded from `GET` and from the counts (`withdrawn` in the reply says how many), and the sweep deletes it on its next run before it removes the marker. A code is the person's withdrawal secret: never read one aloud to anyone but its owner, and never write one into a log or a message. The list is not in `/export`: save it beside the backup, monthly, and treat the file as `docs/PRIVACY.md` treats a backup — including its 180 days: a saved list older than that is deleted. Nothing on it counts as a rung, and no count from it is shown to anyone (decision 27).
 
 **The three held stores** — `cohort`, `contacts`, `vouches` — are read and written by nothing, and the sweep never opens them (decision 21). Netlify → Blobs shows them. What becomes of them is the founder's decision, written into `docs/DECISIONS.md` before anything is deleted by hand.
 
@@ -446,7 +448,7 @@ Each scenario gives detection, the first hour, recovery, how much can be lost, w
 - **First hour:** roll back first and investigate second ("Rolling back", above).
 - **Recover:** fix on a branch, merge, start auto publishing again, and confirm `deployed.yml` is green.
 - **Loss:** none from the rollback itself, because records are readable in both directions. A deploy that *wrote* wrongly may need a targeted repair; the ops counts say when the failures began.
-- **Prevent:** `npm run verify` gates every build, and the post-deploy smoke test catches what gets through.
+- **Prevent:** `npm run verify` gates every build. `deployed.yml` and the watch run's `/health` read are monitoring after publication: they catch what gets through, they do not stop it.
 
 ### 6. Deleted data
 
@@ -525,10 +527,10 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 
 | What | When | Does |
 |---|---|---|
-| The sweep, `netlify/functions/sweep.ts` | `@weekly` on Netlify's scheduler: Sundays, 00:00 UTC | Removes kept maps past their year, and tombstones and once keys past theirs. Retires couple sheets past ninety days, and deletes their `gone/` keys once the reporting window ends. Deletes step counts past their year unless they reached `married`. Rolls back or finishes changes of code abandoned more than two days ago. Deletes ops counts older than 35 days. Marks `last/sweep` with its error count. It never touches reports, tallies or limits, **and never opens `cohort`, `contacts` or `vouches`**: from 2026-09-24 to 2026-09-27 it emptied them weekly, and its first run took the door's real signups (`docs/DECISIONS.md` Part 22). Removes a name on the introduction list on its `removeOn` — the Sunday on or before its 180th day, the day the receipt and the founder's list name — and any it cannot date (decision 32; `docs/BATCH-01-PLAN.md` D3), and `withdrawn/` markers older than two days. A record it cannot read is counted and tried again the next week |
+| The sweep, `netlify/functions/sweep.ts` | `@weekly` on Netlify's scheduler: Sundays, 00:00 UTC | Removes kept maps past their year, and tombstones and once keys past theirs. Retires couple sheets past ninety days, and deletes their `gone/` keys once the reporting window ends. Deletes step counts past their year unless they reached `married`. Rolls back or finishes changes of code abandoned more than two days ago. Deletes ops counts older than 35 days. Marks `last/sweep` with its error count. It never touches reports, tallies or limits, **and never opens `cohort`, `contacts` or `vouches`**: from 2026-09-24 to 2026-09-27 it emptied them weekly, and its first run took the door's real signups (`docs/DECISIONS.md` Part 22). Removes a name on the introduction list on its `removeOn` — the Sunday on or before its 180th day, the day the receipt and the founder's list name — and any it cannot date (decision 32; `docs/BATCH-01-PLAN.md` D3). For each `withdrawn/` marker it first deletes any record still under the code, then the marker, only once it is at least two days old and unchanged since read. A record it cannot read or delete is counted and tried again the next week, and its marker stays with it |
 | `watch.yml` health job | Every 3 hours, on the hour UTC. The 09:00 run is the daily one; Monday's 09:00 run is the weekly one | Reads `/` and `/version.json`, then `/health`. Emails on each check's cadence |
 | `watch.yml` backup job | The 1st of each month, 09:30 UTC, only once `BACKUP_TO_ARTIFACT` is `true` | Saves `/export` as a 35-day artifact |
-| `deployed.yml` | Every push to `main` | Waits for the commit, then smoke-tests it |
+| `deployed.yml` | Every push to `main` | Waits for the commit, then asks the live site three read-only questions; monitoring after publication, not a gate |
 | The limiter | The first call of each new hour or day | Resets the count and deletes the bucket's older keys |
 
 ### How long things are kept
@@ -540,7 +542,7 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 | A progress record | A year, refreshed on every report. Kept for good once it reaches `married`. A `/progress` read also deletes expired records as it walks past them |
 | An open report | Until the founder resolves it. The resolved stub has no expiry |
 | A name on the introduction list | Scheduled to go on the Sunday on or before its 180th day (`removeOn`), the day the person's receipt names; sooner if its owner takes it off. Never renewed or reminded about; a retry of the same request returns the original day |
-| A withdrawal marker on the introduction list (`withdrawn/<code>`, a day and nobody) | Two days |
+| A withdrawal marker on the introduction list (`withdrawn/<code>`, a day and nobody) | At least two days, then until the first weekly sweep: two to eight days; longer if a run fails or a record is still under it |
 | A row in the founder's pilot log | Until its code leaves the list; deleted at the next weekly reconciliation |
 | The joint tally | Kept. It holds no one |
 | Ops counts and store sizes | 35 days |

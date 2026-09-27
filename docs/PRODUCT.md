@@ -543,7 +543,7 @@ would otherwise be lost", is now case 4. Every PR names its case. The list
 below is gated by the same rule.
 
 **Definition of done for this version.** It is ready for real use when:
-1. The three blockers of the completion review are merged (`docs/DECISIONS.md`, Part 3). `npm run verify` and `npm run build` pass, and the deploy smoke check is green.
+1. The three blockers of the completion review are merged (`docs/DECISIONS.md`, Part 3). `npm run verify` and `npm run build` pass, and the post-publication check (`deployed.yml`) is green.
 2. On a real iPhone, in Safari and as an installed app:
    - a tool link, then the read, then "Now the other half of it", then Back, lands on "Enter Niyyah";
    - "Ask him" opens the share sheet on the first tap;

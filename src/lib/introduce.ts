@@ -24,6 +24,15 @@ import { send, whyOf, type Why } from './net'
  * exists is refused by the server (409), and the screen asks her what she
  * wants done; nothing is ever written over.
  *
+ * **The receipt has the same fallback.** When storage refuses the receipt
+ * too, the page keeps it in memory, and `rememberedIntro` answers from there:
+ * so Home shows the card, "Take my name off" works, and Forget me on Trust
+ * sends the code — all within the page. Until 2026-09-27 the receipt was
+ * dropped on the floor when `setItem` threw, and Forget me, finding no code,
+ * reported the name gone while the record stayed. What a reload clears is
+ * still cleared: the screen shows the code once and says to keep it, and
+ * that is the honest limit of a browser that is not saving.
+ *
  * **The receipt is the server's** (D4). "Saved" is shown on a 200 that carries
  * the code and the server's two days — the day it wrote, and the Sunday it
  * has scheduled the removal for — and on nothing else. A receipt written by
@@ -86,6 +95,8 @@ export interface IntroState {
   removeOn?: string
   /** True when `at` and `removeOn` are the server's own answer. */
   confirmed: boolean
+  /** True when this phone's storage holds it; false when only this page does, and a reload loses it. */
+  kept: boolean
 }
 
 /** The day a request is scheduled to go: the server's, or the twin's reading of the phone's day. */
@@ -108,31 +119,44 @@ export interface PendingIntro {
 
 /** The page's own copy of the pending attempt, for a phone whose storage refuses to hold one. */
 let mirror: PendingIntro | null = null
+/** The page's own copy of the receipt, for the same phone. Never the contact; cleared by a reload. */
+let receiptMirror: IntroState | null = null
 
+/** The receipt: this phone's storage first, else the page's own copy. */
 export function rememberedIntro(): IntroState | null {
   try {
     const raw = localStorage.getItem(KEY)
-    if (!raw) return null
-    const p = JSON.parse(raw) as { code?: unknown; at?: unknown; removeOn?: unknown }
-    if (typeof p.code !== 'string' || !isCode(p.code) || typeof p.at !== 'string') return null
-    const removeOn = typeof p.removeOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.removeOn) ? p.removeOn : undefined
-    return { code: p.code, at: p.at, ...(removeOn ? { removeOn } : {}), confirmed: !!removeOn }
+    if (raw) {
+      const p = JSON.parse(raw) as { code?: unknown; at?: unknown; removeOn?: unknown }
+      if (typeof p.code === 'string' && isCode(p.code) && typeof p.at === 'string') {
+        const removeOn = typeof p.removeOn === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(p.removeOn) ? p.removeOn : undefined
+        return { code: p.code, at: p.at, ...(removeOn ? { removeOn } : {}), confirmed: !!removeOn, kept: true }
+      }
+    }
   } catch {
-    return null
+    /* storage refused — the page's own copy, below */
   }
+  return receiptMirror
 }
 
-/** Write the receipt. True when this phone's storage took it. */
-function rememberIntro(state: IntroState): boolean {
+/**
+ * Write the receipt. True when this phone's storage took it; false when only
+ * this page holds it, in which case the state returned by `rememberedIntro`
+ * says `kept: false` and the screen shows the code.
+ */
+function rememberIntro(state: Omit<IntroState, 'kept'>): boolean {
   try {
     localStorage.setItem(KEY, JSON.stringify({ code: state.code, at: state.at, removeOn: state.removeOn }))
+    receiptMirror = null
     return true
   } catch {
+    receiptMirror = { ...state, kept: false }
     return false
   }
 }
 
 export function forgetIntro(): void {
+  receiptMirror = null
   try {
     localStorage.removeItem(KEY)
   } catch {
@@ -174,9 +198,10 @@ export function forgetPending(): void {
   }
 }
 
-/** For a test that reloads the page: what a reload clears. */
+/** For a test that reloads the page: what a reload clears — both of the page's own copies. */
 export function resetIntroMirror(): void {
   mirror = null
+  receiptMirror = null
 }
 
 export type Registered =
@@ -189,7 +214,7 @@ export type Registered =
       code: string
       /** Whether this phone's storage holds the pending attempt. */
       kept: boolean
-      /** True when the request may have landed: no answer, or an answer that could not be read. */
+      /** True when the request may have landed: no answer, an answer that could not be read, or a server error after the write may have happened. */
       unsure: boolean
     }
 
@@ -224,17 +249,21 @@ export async function registerInterest(input: InterestInput): Promise<Registered
   const failed = (why: Why | 'withdrawn', unsure: boolean): Registered => ({ ok: false, why, code, kept: pending.kept, unsure })
   if (!res) return failed('unreachable', true)
   if (res.status === 410) {
-    // Taken off — by her, or by Forget me — before this arrived. The code is
-    // spent; the next tap goes under a fresh one.
+    // Taken off — by her, or by Forget me — before this was answered. The
+    // code is spent; the next tap goes under a fresh one. Whether anything
+    // is still physically under it is the server's and the sweep's business,
+    // never a claim this phone makes.
     forgetPending()
     return failed('withdrawn', false)
   }
-  if (!res.ok) return failed(await whyOf(res), false)
+  // A server error can come after the write landed, so the pending code is
+  // kept and the attempt is unsure; a refusal of the body (4xx) is not.
+  if (!res.ok) return failed(await whyOf(res), res.status >= 500)
   try {
     const body = (await res.json()) as { saved?: unknown; code?: unknown; at?: unknown; removeOn?: unknown; again?: unknown }
     if (body.saved !== true || body.code !== code || typeof body.at !== 'string' || typeof body.removeOn !== 'string') return failed('garbled', true)
-    const state: IntroState = { code, at: body.at, removeOn: body.removeOn, confirmed: true }
-    const kept = rememberIntro(state)
+    const kept = rememberIntro({ code, at: body.at, removeOn: body.removeOn, confirmed: true })
+    const state: IntroState = { code, at: body.at, removeOn: body.removeOn, confirmed: true, kept }
     forgetPending()
     return { ok: true, state, again: body.again === true, kept }
   } catch {
@@ -246,11 +275,12 @@ export type Withdrawn = 'removed' | 'nothing' | 'failed'
 
 /**
  * Take a name off by its code. `removed` when a record went; `nothing` when
- * none was under the code — and none can be put under it now, the server
- * having marked it; `failed` when the server could not be reached or would
- * not answer, in which case the code is kept so she can try again or Forget
- * me can finish it. On `removed` or `nothing` this phone forgets the code,
- * as a receipt and as a pending attempt.
+ * none was under the code — the server has marked it either way, so for the
+ * marker's days (two at least, until the weekly run after) a request still
+ * on its way under it is refused; `failed` when the server could not be
+ * reached or would not answer, in which case the code is kept so she can try
+ * again or Forget me can finish it. On `removed` or `nothing` this phone
+ * forgets the code, as a receipt and as a pending attempt.
  */
 export async function withdrawInterest(code: string): Promise<Withdrawn> {
   const res = await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`, { method: 'DELETE' })

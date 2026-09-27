@@ -70,11 +70,20 @@ Evidence kinds: **code** (read in the tree), **observed** (a tool answered),
   codes, or two phones, are two records; when browser storage is refused the
   guarantee holds within one page only. The contact is never indexed and
   never written to the browser; the pending record is `{code, at}` alone.
-- **D2. Withdrawal is durable.** `DELETE ?code=` writes `withdrawn/<code>`
-  (a day, nothing else) before deleting the record, and a POST that finds
-  that marker refuses `410 withdrawn` and removes anything it wrote. So a
-  delayed signup can never land after a withdrawal or Forget me. Markers
-  live two days and are removed by the sweep.
+- **D2. Withdrawal is durable, and the marker is the authority.** `DELETE
+  ?code=` writes `withdrawn/<code>` (the day of the latest withdrawal,
+  nothing else; rewritten on every withdrawal) before deleting the record.
+  A POST that finds the marker answers `410 withdrawn` and deletes whatever
+  is under the code if it can; if it cannot, the answer is still 410 and
+  the failure is counted. A record under a marked code — left by a delete
+  that failed after the withdrawal was answered — is excluded from the
+  founder's `GET` and its counts (reported as `withdrawn`), refused on
+  retry, and deleted by the sweep on any run before the marker. The marker
+  is kept **at least two days** (`WITHDRAWN_DAYS`) and removed by the first
+  weekly sweep after that, once nothing is under it and only if no
+  withdrawal rewrote it since it was read: two to eight days in practice,
+  longer if a run fails. Reuse of a code is prevented for the marker's
+  days, not for ever; no copy says "never". (Repaired 2026-09-27, §6.)
 - **D3. One removal day.** `removeOn(at)` is the Sunday 00:00 UTC on or
   before `at + 180 days` — the day the weekly sweep runs. The server, the
   founder's list and the sweep use it; the phone shows the server's copy.
@@ -107,6 +116,18 @@ Evidence kinds: **code** (read in the tree), **observed** (a tool answered),
   check depend on the latest state, so none of them uses the eventual path.
   The in-memory test stores model conditional writes; they do not prove
   production consistency, which is why the mode is set explicitly.
+  `tests/blobs-consistency.test.ts` runs the installed SDK against its own
+  `BlobsServer`: a strong read is served with an uncached URL and refused by
+  name (`BlobsConsistencyError`) without one. Production's context is read
+  by `/health`'s `introductions` check (a HEAD of a key that cannot be a
+  code, behind the founder key), never by a workflow write (§6).
+- **D8. A receipt the browser refuses is still the page's.** When
+  `localStorage` refuses the receipt, `src/lib/introduce.ts` keeps it in
+  memory with `kept: false`; `rememberedIntro` answers from there, so Home,
+  "Take my name off" and Forget me work within the page; `clearEverything`
+  and a reload clear it. The screen shows the code once and says a reload
+  is the limit. No contact is ever in the page copy. (Repaired 2026-09-27,
+  §7.)
 
 ## 3. Group A — built in this batch
 
@@ -115,8 +136,9 @@ Commit order, each leaving `npm run verify` green:
 1. **Server.** `netlify/functions/introduce.ts`: `removeOn`; optional client
    `code`; `adult` required and stored; `withdrawn/` markers; strong reads;
    `at` and `removeOn` in every save. `netlify/functions/sweep.ts`: removes a
-   name on and after `removeOn`, markers after two days. Tests:
-   `introduce-function`, `sweep-function`, `vocab-sync`.
+   name on and after `removeOn`; records under a marker on any run, then the
+   marker once at least two days old (D2). Tests: `introduce-function`,
+   `sweep-function`, `vocab-sync`, `introduce-residue`.
 2. **Client library.** `src/lib/introduce.ts`: pending code held before the
    request (storage best-effort, module mirror for the session), receipt with
    server dates, legacy receipt kept apart, `withdrawInterest` reporting
@@ -148,7 +170,16 @@ Commit order, each leaving `npm run verify` green:
 - **P3 withdrawal:** two concurrent POSTs under one code leave one record and
   both answers carry the same dates; a DELETE that runs before a delayed POST
   lands leaves no record afterwards; Forget me with a pending code leaves
-  nothing under it.
+  nothing under it; a record left under a marker by a failed delete is off
+  the founder's list and counts, refused on retry, and removed by the sweep
+  before the marker; a failed sweep delete keeps the marker; a repeated
+  withdrawal refreshes the marker and is never undone by an older read.
+- **P8 refused storage:** with `setItem` throwing, a saved request's receipt
+  is held by the page; Forget me in the same session removes the server
+  record; a reload loses the page copy and the screen has said so.
+- **P9 no production writes from monitoring:** every `curl` in
+  `deployed.yml` and `watch.yml` is a read; `/health` reads the introduction
+  list strong for a key that cannot be a code and writes nothing.
 - **P4 adult:** a body without `adult: true` stores nothing (legacy shape
   included); `DELETE` works for records with and without `adult`.
 - **P5 copy and address:** the disclosures appear before the button in order;
@@ -186,7 +217,25 @@ Commit order, each leaving `npm run verify` green:
   nothing on Netlify (only `main` deploys) and triggers `guide-eval.yml`
   only on a pull request touching its paths, which this batch does not open.
 
-## 6. Founder input still open
+## 6. Repair of 2026-09-27 (before Group B)
+
+An independent review of `3b987ee` reproduced two failures with
+`tests/support/blobs.ts` and a refusing `localStorage`, and named two
+untrue claims. All four are fixed on the branch; Group B is still not
+started.
+
+| # | Reproduced | Cause | Fix | Regression |
+|---|---|---|---|---|
+| 1 | Storage refused; `registerInterest` saved; `forgetMe` returned `intro: true`; the record stayed | `rememberIntro` swallowed the `setItem` throw and `forgetPending` cleared the page's copy, so nothing held the code | D8: the page keeps the receipt (`kept: false`); `rememberedIntro` falls back to it; `clearEverything` and a reload clear it; the screen names the limit | `src/lib/introduce.test.ts`; `tests/journeys/looking.test.tsx` ("a browser that cannot hold the receipt…") — the server record is asserted gone |
+| 2 | `DELETE` just before the request's `setJSON`, then the request's cleanup `delete` fails: 503, marker and record both stay, `GET` showed the person, the sweep kept the record 180 days | The marker was a race guard, not an authority: `GET` skipped only marker keys; the sweep judged records by their own `at` and removed markers first | D2 as repaired: `GET` excludes and counts records under a marker; the request answers 410 and retries the delete; `DELETE` rewrites the marker's day; the sweep deletes the record first and the marker after, only if unchanged | `tests/introduce-residue.test.ts` (the sequence, the later sweep, a failed delete while processing markers, repeated withdrawal near cleanup, a withdrawal racing the sweep's read) |
+| 3 | `deployed.yml` sent `DELETE /introduce?code=AAAAAAAA` to production | A valid, unreserved code shape; a marker written on every deploy | Removed. `/health` `introductions` check (strong HEAD of `health-probe`, founder-keyed, read by `watch.yml`); `tests/blobs-consistency.test.ts` pins the SDK; `deployed.yml` described as post-publication monitoring | `tests/deploy-layout.test.ts` (no `-X DELETE/POST/PUT` in either workflow); `tests/ops.test.ts` (the check reads one key and writes nothing; fails by name) |
+| 4 | "Markers live two days"; "nothing can be put under this code now" | The sweep is weekly; reuse is prevented only while the marker stands | Retention stated as at least two days, removed by the first weekly sweep after (two to eight days; longer on failure); absolute wording removed from `Looking.tsx`, `Trust.tsx`, `introduce.ts`, `PRIVACY`, `OPS`, `SECURITY` | — (copy; `tests/voice.test.ts` unchanged) |
+
+Remaining limitation: production's Blobs context is still unverified from a
+session; the `introductions` health check is the read that verifies it, on
+the first `watch.yml` run after a deploy of `main`, or by hand with the key.
+
+## 7. Founder input still open
 
 1. The held stores: the 2026-09-27 sweep log, the Blobs listing, which form
    rows are tests. Nothing here decides their retention (decision 21).

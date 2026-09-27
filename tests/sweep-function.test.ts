@@ -35,7 +35,7 @@ describe('the weekly sweep', () => {
     memStore('maps').setJSON('BCDFGH', { snapshot: {}, createdAt: '2025-01-01', expiresAt: LAPSED })
     await run()
     const again = await run()
-    expect((await again.json()).swept).toEqual({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, markers: 0, errors: 0 })
+    expect((await again.json()).swept).toEqual({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, withdrawn: 0, markers: 0, errors: 0 })
   })
 
   // From 2026-09-24 to 2026-09-27 the sweep emptied these three stores every
@@ -78,21 +78,21 @@ describe('the introduction list, on its scheduled day', () => {
     const { removeOn } = await import('../netlify/functions/introduce')
     expect(removeOn(PUT)).toBe(GOES)
     memStore('introductions').setJSON('HJKMNPQR', name())
-    expect(await sweepIntroductions(memStore('introductions') as never, at('2026-06-27'))).toEqual({ introductions: 0, markers: 0, errors: 0 })
+    expect(await sweepIntroductions(memStore('introductions') as never, at('2026-06-27'))).toEqual({ introductions: 0, withdrawn: 0, markers: 0, errors: 0 })
     expect(stores.get('introductions')!.size).toBe(1)
   })
 
   it('removes it on that Sunday — the day the screen and the founder’s list name', async () => {
     const { sweepIntroductions } = await import('../netlify/functions/sweep')
     memStore('introductions').setJSON('HJKMNPQR', name())
-    expect(await sweepIntroductions(memStore('introductions') as never, at(GOES))).toEqual({ introductions: 1, markers: 0, errors: 0 })
+    expect(await sweepIntroductions(memStore('introductions') as never, at(GOES))).toEqual({ introductions: 1, withdrawn: 0, markers: 0, errors: 0 })
     expect(stores.get('introductions')!.size).toBe(0)
   })
 
   it('and on any later run, if that Sunday’s failed', async () => {
     const { sweepIntroductions } = await import('../netlify/functions/sweep')
     memStore('introductions').setJSON('HJKMNPQR', name())
-    expect(await sweepIntroductions(memStore('introductions') as never, at('2026-07-05'))).toEqual({ introductions: 1, markers: 0, errors: 0 })
+    expect(await sweepIntroductions(memStore('introductions') as never, at('2026-07-05'))).toEqual({ introductions: 1, withdrawn: 0, markers: 0, errors: 0 })
   })
 
   it('removes a name nothing can date, or nothing can read', async () => {
@@ -102,7 +102,7 @@ describe('the introduction list, on its scheduled day', () => {
     memStore('introductions').set('XY347989', 'not json {')
     memStore('introductions').setJSON('HJKMNPQR', name('2026-09-01'))
     const out = await sweepIntroductions(memStore('introductions') as never, at('2026-09-10'))
-    expect(out).toEqual({ introductions: 3, markers: 0, errors: 0 })
+    expect(out).toEqual({ introductions: 3, withdrawn: 0, markers: 0, errors: 0 })
     expect([...stores.get('introductions')!.keys()]).toEqual(['HJKMNPQR'])
   })
 
@@ -114,7 +114,7 @@ describe('the introduction list, on its scheduled day', () => {
     memStore('introductions').setJSON('withdrawn/KMNPQRTW', { at: '2026-09-07' })
     memStore('introductions').setJSON('withdrawn/QRTWXY34', {})
     const out = await sweepIntroductions(memStore('introductions') as never, now)
-    expect(out).toEqual({ introductions: 0, markers: 3, errors: 0 })
+    expect(out).toEqual({ introductions: 0, withdrawn: 0, markers: 3, errors: 0 })
     expect([...stores.get('introductions')!.keys()]).toEqual(['withdrawn/ACDEFGHJ'])
   })
 
@@ -128,7 +128,7 @@ describe('the introduction list, on its scheduled day', () => {
       return (real.get as (k: string, o: unknown) => unknown)(k, o)
     } }
     const out = await sweepIntroductions(flaky as never, at('2026-07-19'))
-    expect(out).toEqual({ introductions: 1, markers: 0, errors: 1 })
+    expect(out).toEqual({ introductions: 1, withdrawn: 0, markers: 0, errors: 1 })
     expect([...stores.get('introductions')!.keys()]).toEqual(['ACDEFGHJ'])
   })
 
@@ -136,7 +136,7 @@ describe('the introduction list, on its scheduled day', () => {
     memStore('introductions').setJSON('HJKMNPQR', name('2025-01-01'))
     memStore('introductions').setJSON('ACDEFGHJ', name('2099-01-01'))
     const res = await run()
-    expect((await res.json()).swept).toMatchObject({ introductions: 1, markers: 0, errors: 0 })
+    expect((await res.json()).swept).toMatchObject({ introductions: 1, withdrawn: 0, markers: 0, errors: 0 })
     expect([...stores.get('introductions')!.keys()]).toEqual(['ACDEFGHJ'])
   })
 })

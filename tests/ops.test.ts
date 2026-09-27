@@ -100,7 +100,7 @@ describe('a quiet day reads as a quiet day', () => {
     const h = await health()
     expect(h.status).toBe('ok')
     expect(h.checks.map((c) => c.id).sort()).toEqual(
-      ['backup', 'claude', 'client', 'cost', 'data', 'functions', 'limits', 'safety', 'safety-urgent', 'storage', 'sweep'].sort(),
+      ['backup', 'claude', 'client', 'cost', 'data', 'functions', 'introductions', 'limits', 'safety', 'safety-urgent', 'storage', 'sweep'].sort(),
     )
     for (const c of h.checks) expect(c.summary.length, c.id).toBeGreaterThan(10)
   })
@@ -136,6 +136,37 @@ describe('are functions — and storage — failing?', () => {
     const h = await health()
     expect(h.checks.find((c) => c.id === 'storage')).toMatchObject({ state: 'fail', cadence: 'now' })
     expect(h.status).toBe('fail')
+  })
+
+  it('reads the introduction list for its latest state without writing, marking or deleting anything', async () => {
+    // The check that did this until 2026-09-27 sent a production DELETE under
+    // a code a person could hold. This one is a HEAD of a key that cannot be
+    // a code, on the store opened the way the route opens it.
+    blobs.put('introductions', 'HJKMNPQR', { contact: 'zq.health@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', adult: true, at: TODAY(), v: 1 })
+    const before = blobs.keys('introductions')
+    const c = await check('introductions')
+    expect(c).toMatchObject({ state: 'ok', cadence: 'now' })
+    expect(c.summary).toContain('strong-consistency read')
+    expect(blobs.opened.get('introductions')).toEqual({ consistency: 'strong' })
+    expect(blobs.keys('introductions')).toEqual(before)
+    const calls = blobs.log.filter((l) => l.store === 'introductions')
+    expect(calls).toEqual([{ store: 'introductions', op: 'getMetadata', key: 'health-probe' }])
+    expect(/^[ACDEFGHJKMNPQRTWXY34789]{8}$/.test('health-probe')).toBe(false)
+  })
+
+  it('says so, by the SDK’s own name, when the store refuses strong reads — the deploy where every /introduce request is a 503', async () => {
+    const refusal = new Error('no uncachedEdgeURL')
+    refusal.name = 'BlobsConsistencyError'
+    blobs.failOn({ store: 'introductions', op: 'getMetadata', error: refusal })
+    const h = await health()
+    const c = h.checks.find((x) => x.id === 'introductions')!
+    expect(c).toMatchObject({ state: 'fail', cadence: 'now', numbers: { error: 'BlobsConsistencyError' } })
+    expect(c.summary).toContain('every request to /introduce answers 503')
+    expect(c.summary).toContain('Rolling back')
+    expect(h.status).toBe('fail')
+    // Any other failure is named too, and still fails.
+    blobs.failOn({ store: 'introductions', op: 'getMetadata', error: new TypeError('fetch failed') })
+    expect(await check('introductions')).toMatchObject({ state: 'fail', numbers: { error: 'TypeError' } })
   })
 
   it('answers even when the counts cannot be read at all', async () => {
