@@ -116,15 +116,22 @@ export function entryFromUrl(search: string, pathname = '/'): Entry | null {
   return null
 }
 
+/** The introduction list's address: a query on the root, the link docs/ASSETS.md hands out (N5). */
+export const LOOKING_HREF = '/?looking'
+
 /**
- * The path the address bar should show for a screen, or nothing.
+ * The address the bar should show for a screen, or nothing.
  *
- * `'/'` when a screen that is not a tool is shown while the bar still says a
- * tool — never otherwise, so a screen change elsewhere in the app does not
- * touch history at all. `undefined` for the read before the reader is known:
- * the bar is left alone until the chooser answers, rather than guessing.
+ * A tool's path for a tool; `'/?looking'` for the introduction list, so the
+ * address a person copies from that screen opens that screen, and a reload
+ * lands on it (docs/BATCH-01-PLAN.md D6) — the query names the screen and
+ * carries no code, and `via` is never put back. `'/'` when a screen that is
+ * neither is shown while the bar still says one — never otherwise, so a
+ * screen change elsewhere in the app does not touch history at all.
+ * `undefined` for the read before the reader is known: the bar is left alone
+ * until the chooser answers, rather than guessing.
  */
-export function pathFor(screen: string, reader: ToolSide | undefined, current: string): string | undefined {
+export function pathFor(screen: string, reader: ToolSide | undefined, current: string, search = ''): string | undefined {
   if (screen === 'read' || screen === 'beforeYes') {
     const tool = toolFor(screen === 'read' ? 'read' : 'eleven', reader)
     return tool ? toolPath(tool.slug) : undefined
@@ -135,7 +142,14 @@ export function pathFor(screen: string, reader: ToolSide | undefined, current: s
     const tool = TOOLS.find((t) => t.kind === screen)
     return tool ? toolPath(tool.slug) : undefined
   }
-  return toolFromPath(current) ? '/' : undefined
+  if (screen === 'looking') return LOOKING_HREF
+  let saysLooking = false
+  try {
+    saysLooking = new URLSearchParams(search).has('looking')
+  } catch {
+    saysLooking = false
+  }
+  return toolFromPath(current) || saysLooking ? '/' : undefined
 }
 
 /**

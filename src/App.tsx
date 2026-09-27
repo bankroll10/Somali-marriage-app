@@ -72,21 +72,22 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
   const screenRef = useRef<HTMLDivElement>(null)
   useFocusHeading(screenRef, n.screen)
 
-  // The address bar follows the two tools that have an address of their own
-  // (src/data/tools.ts), and nothing else. Always replaceState, never push: no
-  // history is manufactured, so Back behaves as it always has, and an eleven-
-  // question flow cannot be half-lost to a Back tap — the in-app Back is the
-  // navigation inside a tool. What this buys is that a reload inside the read
-  // lands on the read, and the bar holds the blank tool's link rather than the
-  // homepage when someone copies it. `pathFor` returns nothing for every screen
-  // change that is not into or out of a tool.
+  // The address bar follows the tools that have an address of their own
+  // (src/data/tools.ts) and the introduction list (`/?looking`), and nothing
+  // else. Always replaceState, never push: no history is manufactured, so
+  // Back behaves as it always has, and an eleven-question flow cannot be
+  // half-lost to a Back tap — the in-app Back is the navigation inside a
+  // tool. What this buys is that a reload inside the read lands on the read,
+  // and the bar holds the blank tool's link — or the list's — rather than the
+  // homepage when someone copies it. `pathFor` returns nothing for every
+  // screen change that is not into or out of one of these.
   useEffect(() => {
     // On a preset route (/tools/is-he-serious) the reader is only guessed until
     // the read begins, so the path is rebuilt from the guess too — otherwise a
     // trip to Trust and back from the intro would leave the address at '/'.
     const reader = n.identity.gender ?? (n.entryAbout ? READER_OF[n.entryAbout] : undefined)
-    const path = pathFor(n.screen, reader, window.location.pathname)
-    if (path && window.location.pathname !== path) window.history.replaceState({}, '', path)
+    const path = pathFor(n.screen, reader, window.location.pathname, window.location.search)
+    if (path && window.location.pathname + window.location.search !== path) window.history.replaceState({}, '', path)
   }, [n.screen, n.identity.gender, n.entryAbout])
 
   // Keyed by screen so every navigation gets one soft, uniform fade-in.

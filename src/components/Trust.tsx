@@ -242,15 +242,22 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>whether you are a woman or a man</li>
                 <li>your city and its country, or the country you named</li>
                 <li>how far you said you would go: your city, or anywhere in your country</li>
+                <li>that you confirmed you are 18 or older — a yes, never an age</li>
                 <li>the day</li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                It is kept under a code this phone made up for itself — not your map code, not the code your steps go
+                It is kept under a code this phone made up for it — not your map code, not the code your steps go
                 under — so nothing joins it to your answers. The founder reads the list, by hand, to make introductions
-                one at a time; no other route returns it, and it is not in the backup. It is kept for up to 180 days from
-                the day you put it down, then removed — sooner if you take your name off, from that screen or with Forget
-                me below, or ask us to. If you still want an introduction after that, you put it down again; there is no
-                reminder.
+                one at a time; no other route returns it, and it is not in the backup. It is scheduled to be removed on
+                the Sunday on or before its 180th day — the day the screen shows you once it is saved, in UTC — or sooner
+                if you take your name off, from that screen or with Forget me below, or ask us to. Scheduled is a plan:
+                the weekly run does the removing, and if a Sunday’s run fails, it goes the Sunday after. If you still want
+                an introduction after that, you put it down again; there is no reminder.
+              </p>
+              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+                <span className="font-medium text-ink">Taking it off.</span> Leaves a marker under your code for two days —
+                the day, and nothing about you — so a request still on its way from your phone cannot land after you asked.
+                The same request sent twice, because an answer was lost, is saved once.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
                 <span className="font-medium text-ink">If the founder speaks with you.</span> Before anyone is considered for

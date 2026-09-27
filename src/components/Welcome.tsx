@@ -105,7 +105,7 @@ export default function Welcome({
                       {
                         eyebrow: 'Looking for someone',
                         title: 'I’m looking for someone serious.',
-                        desc: 'Put your name down for an introduction, made by hand. Beginning in Minneapolis–St. Paul.',
+                        desc: 'Put your name down for an introduction made by hand. The founder speaks with you first. Beginning in Minneapolis–St. Paul.',
                         go: onLooking,
                       },
                       {

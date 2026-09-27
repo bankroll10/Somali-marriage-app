@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { resetIntroMirror } from '../../src/lib/introduce'
 import { reloaded } from '../../src/lib/storage'
 
 /**
@@ -12,8 +13,15 @@ import { reloaded } from '../../src/lib/storage'
 export class Phone {
   readonly storage = new Map<string, string>()
   readonly name: string
+  /** Keys this phone's storage refuses to write — private browsing, or a full disk, for the keys that match. */
+  refusing: RegExp | null = null
   constructor(name: string) {
     this.name = name
+  }
+
+  /** Make every write to a matching key throw, as a browser that is not saving does. */
+  refuse(keys: RegExp | null): void {
+    this.refusing = keys
   }
 
   /** What this phone holds, as keys. */
@@ -22,10 +30,14 @@ export class Phone {
   }
 }
 
-function storageOf(m: Map<string, string>): Storage {
+function storageOf(phone: Phone): Storage {
+  const m = phone.storage
   return {
     getItem: (k: string) => m.get(k) ?? null,
-    setItem: (k: string, v: string) => void m.set(k, String(v)),
+    setItem: (k: string, v: string) => {
+      if (phone.refusing?.test(k)) throw new DOMException('QuotaExceededError', 'QuotaExceededError')
+      m.set(k, String(v))
+    },
     removeItem: (k: string) => void m.delete(k),
     clear: () => m.clear(),
     key: (i: number) => [...m.keys()][i] ?? null,
@@ -37,7 +49,7 @@ function storageOf(m: Map<string, string>): Storage {
 
 /** Make `phone` the one the app code reads and writes. */
 export function onPhone(phone: Phone): Phone {
-  vi.stubGlobal('localStorage', storageOf(phone.storage))
+  vi.stubGlobal('localStorage', storageOf(phone))
   return phone
 }
 
@@ -48,6 +60,7 @@ export function onPhone(phone: Phone): Phone {
  */
 export function reload(): void {
   reloaded()
+  resetIntroMirror()
 }
 
 /**

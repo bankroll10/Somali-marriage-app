@@ -62,6 +62,9 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 33 | 2026-09-27 | **Safety exists before introduction 1, as a written human process.** The runbook defines the monitored report channel, the manual do-not-pair record, incident recording, what pauses introductions, what happens after harassment or coercion, first-meeting safety language, how withdrawal works, and how a person is told what action was taken. The founder runs one tabletop drill before introduction 1 | Introducing strangers creates risks helping a known pair does not. A human route suffices if it is explicit and tested; an in-app report route for introduced pairs is built only if the safety analysis finds it insufficient | Stands (`docs/OPS.md`, "The introduction pilot runbook"; `tests/runbook.test.ts`) |
 | 34 | 2026-09-27 | **Legal review is required before** charging for matchmaking, cross-border matchmaking, or material changes to identity verification or the handling of sensitive data. The free Minneapolis–St. Paul pilot proceeds as a product test, subject to the founder obtaining professional advice where required | A model's reading of marriage-broker or data law is not advice, and must not become product fact | Stands. No doc states that any regime does or does not apply |
 | 35 | 2026-09-27 | **The old marketplace is evidence, not code; the relationship product stays.** Never restored: candidates, the sample introduction, public counts, cohort progress, weighted fit, compatibility scores, profiles, photos, feeds, swiping, member messaging, Plus, paid visibility, the token vouch, the Matchmaker Guide voice, automatic proposal selection, atomic-sim gates, scarcity meters. Kept, as KNOW and DECIDE downstream of MEET: Read, Map, Guide, Before You Say Yes, the two-sided eleven, family tools, follow-through, Ending and Ended, Trust, Forget me, and the judgment, religious-scope, Somali-claim and decision-quality safeguards | The subtraction removed the door with the machinery; the recovery must not bring the machinery back with the door | Stands (`tests/invariants/no-marketplace.test.ts`; `git show 43295a4` for the evidence) |
+| 36 | 2026-09-27 | **One record per retained code; withdrawal is durable.** The phone mints the introduction code before the request and sends it; the server writes only if the key is new, answers the same request again with the record's own dates, and refuses a different one (409), never writing over. `DELETE` leaves `withdrawn/<code>` (a day, nobody) for two days, and a late request that finds it removes itself (410). The `introductions` store is read with strong consistency | A lost answer after a landed write said "nothing is saved" and the retry wrote a second record the phone could never take off; a request still in flight could land after Forget me (`docs/BATCH-01-PLAN.md` §1.1, D1, D2, D7) | Stands (`netlify/functions/introduce.ts`, `src/lib/introduce.ts`; `tests/introduce-race.test.ts`, `tests/journeys/looking.test.tsx`) |
+| 37 | 2026-09-27 | **One removal day, from the server.** A name goes on `removeOn`, the Sunday on or before its 180th day — the day the weekly sweep runs. The founder's list hides it from that day, the sweep deletes it on that day or the next run, and the phone shows the server's own `at` and `removeOn` on a receipt ("Your request was saved on…", "scheduled to be removed on…"), never "your name is down". A receipt from before the server gave dates is shown as the phone's own record; a code is never discarded on the device clock alone | The sweep took a name up to seven days before the phone stopped saying it was down, and the phone's day was its own clock's (§1.2, D3, D4) | Stands (`removeOn` in `netlify/functions/introduce.ts`, `removeOnOf` in `src/lib/introduce.ts`, pinned equal by `tests/vocab-sync.test.ts`) |
+| 38 | 2026-09-27 | **The 18+ affirmation travels with the request and is required.** `adult: true`, one boolean, stored; never an age, a birth date or a document. A body without it fails closed, an old cached page's included, until that page is reopened (`docs/OPS.md`, "Updating an installed app"). The screen says, before the button, who runs this, who the current pilot is for (the marital line as a pilot rule), the consented reference conversation, the approved summary and the release rule, and the scheduled removal; `/?looking` stays in the bar | The gate was client-only (§1.3, D5, D6) | Stands (`tests/introduce-function.test.ts`, `tests/journeys/looking.test.tsx`, `tests/service-worker.test.ts`) |
 
 ### The top ten actions
 
@@ -4227,3 +4230,50 @@ red (`docs/TESTING.md`).
 **Decision 19.** This PR rests on decision 26 at its first gate, on the
 privacy and safety requirements of decisions 31–33 (the 180-day lifetime, the
 runbook), and on fixing claims that were untrue.
+
+
+## Part 24: The introduction path made truthful, end to end (2026-09-27)
+
+An external review of `main` at `cdcd187` raised seven issues against the
+path restored in Parts 22 and 23. `docs/BATCH-01-PLAN.md` is the record of
+the findings and the operative plan; decisions 36–38 are its rows. This Part
+is Group A of that batch: signup reliability and recovery, authoritative
+dates, the adult gate, truthful public copy and the stable address. Group B
+(the evaluation outcomes, the operational and documentary corrections, the
+outreach ledger) is deferred and not started.
+
+### What changed in the code
+
+- `netlify/functions/introduce.ts`: the phone's code is accepted and written
+  `onlyIfNew`; the same request is answered `again` with the record's own
+  `at` and `removeOn`; a different one is refused; `withdrawn/<code>`
+  markers; `adult: true` required and stored; `removeOn` is the Sunday on or
+  before the 180th day; the store is opened `consistency: 'strong'`.
+- `netlify/functions/sweep.ts`: a name goes on and after `removeOn`; markers
+  after two days; `markers` in the count.
+- `src/lib/introduce.ts`: the pending attempt (`niyyah.intro.pending.v1`, a
+  code and a day, never the contact; a page mirror when storage refuses),
+  the receipt with server dates, legacy receipts kept apart, withdrawal as
+  removed / nothing / failed. `src/lib/forget.ts`: the pending code deleted
+  too, and carried in the pending forget.
+- `src/components/Looking.tsx`: the disclosures before the button; the
+  unsure panel; the "earlier try went through" choice; the code shown when
+  the browser cannot hold it; the receipt; the past-scheduled state; taking a
+  name off by a typed code. `Home.tsx`, `Welcome.tsx`, `Trust.tsx` copy.
+  `src/lib/entry.ts` and `App.tsx`: `/?looking` in the bar.
+- `.github/workflows/deployed.yml`: the smoke test takes an unused code off
+  the introduction list, which is the strong-consistency read.
+- Tests: `tests/introduce-race.test.ts` (the interleavings), the rewritten
+  `tests/journeys/looking.test.tsx`, and the rows in `docs/TESTING.md`.
+
+### What this Part deliberately does not do
+
+No status route; no page of its own for `/looking`; nothing in the three
+held stores; no health counts for them; no paid evaluation; no change to
+`CLAUDE.md`. The service worker still cannot tell an open old page anything,
+so an old page meets the adult gate's refusal until it is reopened.
+
+**Decision 19.** Case 2, a production failure (a lost answer wrote a second
+record, and the phone said "nothing is saved"), and case 3, a privacy and
+safety requirement (decision 32's stated lifetime made true on one day; the
+affirmation required where it is claimed).

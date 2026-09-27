@@ -24,9 +24,10 @@ her go, and offers to take everything off our server (`docs/PRODUCT.md`).
   how far you would go. The founder speaks with each person first;
   introductions are made by hand, one at a time, and nothing that identifies
   either person is shared until both have said yes. Beginning in
-  Minneapolis–St. Paul; a name from elsewhere is kept for later. A name is
-  kept at most 180 days. Nothing is browsed and no date is promised. At
-  `/?looking` (`docs/DECISIONS.md` Parts 22 and 23).
+  Minneapolis–St. Paul; a name from elsewhere is kept for later. A request is
+  scheduled to go on the Sunday on or before its 180th day, and the receipt
+  names that day. Nothing is browsed and no date is promised. At `/?looking`
+  (`docs/DECISIONS.md` Parts 22 and 23; `docs/BATCH-01-PLAN.md`).
 - **The read** — twelve questions about what he has done: told anyone, named
   marriage, moved toward family, followed through, handled hard things.
   Evidence in words, never a score on a person, and the one question to ask

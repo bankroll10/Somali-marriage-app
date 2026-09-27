@@ -51,12 +51,15 @@ export class Blobs {
   private clock = 0
   /** Stores that cannot even be opened — `getStore` itself throws. */
   private unopenable = new Set<string>()
+  /** The options each store was opened with — so a test can hold that a route asked for the latest state. */
+  readonly opened = new Map<string, Record<string, unknown>>()
 
   reset() {
     this.stores.clear()
     this.rules = []
     this.log.length = 0
     this.unopenable.clear()
+    this.opened.clear()
   }
 
   /** Make opening a store throw, as Blobs does when its context is missing or the platform is down. */
@@ -75,9 +78,9 @@ export class Blobs {
     this.rules.push({ ...r, seen: 0, once: true, spent: false, error: r.error ?? new Error(`injected ${r.op} failure`) })
   }
 
-  /** Run a competing request just before a chosen call. */
-  before(op: Op, key: string, fn: () => unknown | Promise<unknown>, store?: string) {
-    this.rules.push({ op, key, store, fn, seen: 0, once: true, spent: false })
+  /** Run a competing request just before a chosen call — the `nth` matching one, counting from 1. */
+  before(op: Op, key: string, fn: () => unknown | Promise<unknown>, store?: string, nth?: number) {
+    this.rules.push({ op, key, store, fn, nth, seen: 0, once: true, spent: false })
   }
 
   private async hit(store: string, op: Op, key: string) {
@@ -166,5 +169,12 @@ export const blobs = new Blobs()
 
 /** For `vi.mock('@netlify/blobs', () => blobsModule)`. */
 export const blobsModule = {
-  getStore: (arg: string | { name: string }) => blobs.store(typeof arg === 'string' ? arg : arg.name),
+  getStore: (arg: string | { name: string; [option: string]: unknown }) => {
+    if (typeof arg !== 'string') {
+      const { name, ...options } = arg
+      blobs.opened.set(name, options)
+      return blobs.store(name)
+    }
+    return blobs.store(arg)
+  },
 }

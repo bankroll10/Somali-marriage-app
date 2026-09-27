@@ -50,22 +50,38 @@ export interface Served {
   requests: string[]
   /** Take the server away (true), or only for paths matching a pattern; `false` brings it back. */
   down(on: boolean | RegExp): void
+  /**
+   * Lose the answer: the handler runs and writes whatever it writes, and the
+   * phone hears nothing — a timeout after the write landed. `false` stops it.
+   */
+  lose(on: RegExp | false): void
+  /**
+   * Hold matching requests before the handler runs, until the returned
+   * function is called — a request still in flight while the phone does
+   * something else.
+   */
+  hold(on: RegExp, method?: string): () => void
 }
 
 /** Put the real handlers behind `fetch`. Returns a handle to watch or break it. */
 export function serve(): Served {
   process.env.FOUNDER_KEY = FOUNDER_KEY
   let outage: boolean | RegExp = false
+  let lost: RegExp | false = false
+  let holding: { on: RegExp; method: string; until: Promise<void> } | null = null
   const requests: string[] = []
   const fetcher = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, ORIGIN)
     const method = (init?.method ?? (input instanceof Request ? input.method : 'GET')).toUpperCase()
     requests.push(`${method} ${url.pathname}${url.search}`)
     if (outage === true || (outage instanceof RegExp && outage.test(url.pathname))) throw new TypeError('Failed to fetch')
+    if (holding && holding.method === method && holding.on.test(url.pathname)) await holding.until
     const name = url.pathname.match(/^\/\.netlify\/functions\/([a-z]+)$/)?.[1]
     if (name && HANDLERS[name]) {
       const req = new Request(url, { method, headers: init?.headers, body: init?.body, signal: init?.signal })
-      return HANDLERS[name](req)
+      const res = await HANDLERS[name](req)
+      if (lost && lost.test(url.pathname)) throw new TypeError('Failed to fetch')
+      return res
     }
     return new Response('not found', { status: 404 })
   }
@@ -74,6 +90,20 @@ export function serve(): Served {
     requests,
     down(on) {
       outage = on
+    },
+    lose(on) {
+      lost = on
+    },
+    hold(on, method = 'POST') {
+      let release = () => {}
+      const until = new Promise<void>((r) => {
+        release = r
+      })
+      holding = { on, method, until }
+      return () => {
+        holding = null
+        release()
+      }
     },
   }
 }

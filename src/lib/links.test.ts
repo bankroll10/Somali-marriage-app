@@ -58,6 +58,20 @@ describe('the links this product hands out', () => {
       expect(pathFor('coach', undefined, '/')).toBeUndefined()
     })
 
+    it('the introduction list keeps its address while it is open, and gives it back on leaving', () => {
+      // docs/BATCH-01-PLAN.md D6: the address a person copies from the screen
+      // opens the screen; `via` is never put back into it.
+      expect(pathFor('looking', undefined, '/', '')).toBe('/?looking')
+      expect(pathFor('looking', 'woman', '/', '?via=group')).toBe('/?looking')
+      expect(pathFor('home', undefined, '/', '?looking')).toBe('/')
+      expect(pathFor('welcome', undefined, '/', '?looking')).toBe('/')
+      expect(pathFor('trust', undefined, '/', '?looking')).toBe('/')
+      expect(pathFor('home', undefined, '/', '')).toBeUndefined()
+      const u = new URL(instrumentLink('looking', 'group'))
+      expect(entryFromUrl(u.search, u.pathname)).toEqual({ kind: 'looking', via: 'group' })
+      expect(entryFromUrl('?looking', '/')).toEqual({ kind: 'looking' })
+    })
+
     it('the family words have one slug, and no chooser to wait on', () => {
       expect(toolLink('families', 'family')).toBe(`${SITE_URL}/tools/families?via=family`)
       const families = new URL(toolLink('families', 'family'))

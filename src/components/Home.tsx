@@ -4,7 +4,7 @@ import type { FollowUpAsk, Landed } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
-import { untilOf, type IntroState } from '../lib/introduce'
+import { pastScheduled, scheduledRemoval, type IntroState } from '../lib/introduce'
 import { SinceLastTime } from './home/FollowUp'
 import StageBand from './home/StageBand'
 import { CONTACT_EMAIL, GUIDE_SOURCE } from '../lib/site'
@@ -55,7 +55,7 @@ interface Props {
   onOpenEnding: () => void
   /** The introduction list, for someone not talking to anyone (src/components/Looking.tsx). */
   onOpenLooking: () => void
-  /** Her name is down, since when. Null until she puts it down there herself. */
+  /** The receipt this phone holds for a request: its code and the server's two days. Null until she puts one down herself. */
   intro: IntroState | null
   onRestart: () => void
   /** The one open thing to ask her about — usually null. See lib/followup.ts. */
@@ -271,7 +271,10 @@ export default function Home({
             (docs/DECISIONS.md Part 22). Only while she is preparing: someone
             talking to a person, deciding or married is not offered an
             introduction. Never entered by anything but her own tap on the
-            screen it opens; a finished map is not interest in meeting someone. */}
+            screen it opens; a finished map is not interest in meeting someone.
+            With a receipt, the card says what the receipt says — a request
+            saved on a day, scheduled to go on a day — never that a name "is
+            down": a phone holds a receipt, not a view of the list. */}
         {stage === 'preparing' && (
           <button
             onClick={onOpenLooking}
@@ -284,12 +287,16 @@ export default function Home({
             </GlyphTile>
             <span className="flex-1">
               <span className="font-display text-[1.2rem] font-medium text-ink">
-                {intro ? 'Your name is down for an introduction' : 'Looking for someone serious?'}
+                {intro ? 'Your request for an introduction' : 'Looking for someone serious?'}
               </span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                {intro
-                  ? `Until ${untilOf(intro.at) ?? 'its 180th day'}. The founder speaks with you first; introductions are made by hand, one at a time. Open it to see what happens next, or to take your name off.`
-                  : 'Put your name down for an introduction made by hand, beginning in Minneapolis–St. Paul — a way to reach you and where you are, nothing from your map.'}
+                {!intro
+                  ? 'Put your name down for an introduction made by hand, beginning in Minneapolis–St. Paul, for adults serious about marriage — a way to reach you and where you are, nothing from your map.'
+                  : pastScheduled(intro)
+                    ? 'The day scheduled for its removal has passed. Open it to take the name off, or to put it down again.'
+                    : intro.confirmed
+                      ? `Saved ${intro.at}; scheduled to be removed on ${scheduledRemoval(intro)}. The founder speaks with you first; introductions are made by hand, one at a time. Open it to see what happens next, or to take your name off.`
+                      : `A code from around ${intro.at}, by this phone’s own record. Open it to see what happens next, or to take your name off.`}
               </span>
             </span>
             <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${intro ? 'text-forest' : 'text-gold-ink'}`} />

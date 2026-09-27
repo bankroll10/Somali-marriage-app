@@ -15,8 +15,8 @@ import { stages } from '../src/data/stages'
 import { scenes } from '../src/data/scenes'
 import { COUNTRY_IDS } from '../src/data/countries'
 import { REACH_IDS } from '../src/data/reach'
-import { LIST_DAYS as CLIENT_LIST_DAYS, PILOT_SCENE, untilOf } from '../src/lib/introduce'
-import { LIST_DAYS, removeBy } from '../netlify/functions/introduce'
+import { LIST_DAYS as CLIENT_LIST_DAYS, PILOT_SCENE, removeOnOf } from '../src/lib/introduce'
+import { LIST_DAYS, removeOn } from '../netlify/functions/introduce'
 import { hookOptions } from '../src/data/hook'
 import { SAFETY_OUTCOMES, SAFETY_REASONS } from '../src/data/safety'
 import { ALPHABET as CLIENT_ALPHABET, CODE_LENGTH as CLIENT_CODE_LENGTH } from '../src/lib/code'
@@ -154,12 +154,19 @@ describe('every word the server accepts is a word the app uses', () => {
     expect(sorted(vocab.INSTRUMENTS)).toEqual(sorted(INSTRUMENT_IDS))
   })
 
-  // docs/DECISIONS.md decisions 28 and 32: the day the phone forgets its code
-  // is the day the server stops showing the name, and the city the screen
-  // names as where introductions begin is one the server takes.
+  // docs/DECISIONS.md decisions 28 and 32: the phone shows the server's own
+  // day, but the twin here is what a phone from before it had one falls back
+  // to — so it must be the same Sunday the server and the sweep name — and
+  // the city the screen names as where introductions begin is one the server
+  // takes.
   it('how long a name stays on the introduction list, and where introductions begin', () => {
     expect(CLIENT_LIST_DAYS).toBe(LIST_DAYS)
-    for (const at of ['2026-01-01', '2026-09-27', '2028-02-29']) expect(untilOf(at), at).toBe(removeBy(at))
+    const DAY = 24 * 60 * 60 * 1000
+    for (let i = 0; i < 400; i += 1) {
+      const at = new Date(Date.parse('2026-01-01T00:00:00Z') + i * DAY).toISOString().slice(0, 10)
+      expect(removeOnOf(at), at).toBe(removeOn(at))
+    }
+    expect(removeOnOf('2026-01-01')).toBe('2026-06-28')
     expect(vocab.SCENES.has(PILOT_SCENE)).toBe(true)
     expect(vocab.SCENE_COUNTRY[PILOT_SCENE]).toBe('us')
   })

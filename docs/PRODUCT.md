@@ -102,7 +102,7 @@ you say them?; where did you land; the two of you, blind; the Ending.
 | The guide: the moment, in the right voice | Words, and a follow-up | `src/lib/coach.ts`, `netlify/functions/guide.ts` |
 | The follow-up: "did you say it?" | The record of what happened | `src/lib/followup.ts` |
 | The Ending: married, and leaving | Her record, one share, Forget me | `src/components/Ending.tsx` |
-| The introduction list: a name put down for an introduction made by hand | Six fields under a code her phone keeps — who to call, never who fits; "your name is down" on the server's answer only; kept at most 180 days; a way to take it off. Minneapolis–St. Paul first; a name from elsewhere is kept for later, and told so | `src/components/Looking.tsx`, `netlify/functions/introduce.ts`; `/?looking`; the runbook in `docs/OPS.md` |
+| The introduction list: a name put down for an introduction made by hand | The fields the screen names, plus the 18+ affirmation, under a code her phone minted and keeps — who to call, never who fits; a receipt ("Your request was saved on {day}", scheduled to go on a named Sunday) from the server's answer only; the same request never saved twice; a way to take it off, from any phone, by its code. Minneapolis–St. Paul first; a name from elsewhere is kept for later, and told so | `src/components/Looking.tsx`, `netlify/functions/introduce.ts`; `/?looking`; the runbook in `docs/OPS.md`; `docs/BATCH-01-PLAN.md` |
 
 Beside them: Report a concern (`netlify/functions/safety.ts`, read weekly by
 the founder) and a help line picked by her country. None of it is a feed, a
@@ -223,7 +223,7 @@ The words can be copied in a month; the mechanism costs a copier these:
 | The Ending: delete the app, with Forget me beside it | Subscription revenue needs the member to stay |
 | Introductions are made by hand, one at a time, after the founder has spoken with each person, and nothing that identifies either is shared before both yeses; nothing is browsed | A marketplace's inventory is its product, and has to be shown |
 
-Verification is by hand and stays small: an 18+ tap on the screen, then,
+Verification is by hand and stays small: an 18+ tap on the screen, sent with the request and required by the server as one boolean (never an age), then,
 before anyone's first introduction, the founder checks who they are and
 speaks with one person who knows them; only that each check happened, and the
 day, is kept (`docs/DECISIONS.md` decisions 30–31). No documents are asked

@@ -80,7 +80,7 @@ describe('every record about a member carries its version', () => {
   })
 
   it('a name on the introduction list', async () => {
-    const { code } = (await (await post(introduce, 'introduce', { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities' })).json()) as { code: string }
+    const { code } = (await (await post(introduce, 'introduce', { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities', adult: true })).json()) as { code: string }
     expect(blob('introductions', code).v).toBe(RECORD_VERSION)
   })
 

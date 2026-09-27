@@ -158,6 +158,33 @@ describe('forget me', () => {
     expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intro: 'QRTWXY34' })
   })
 
+  it('takes off an attempt to put her name down that was never answered, under the code it went out with', async () => {
+    // The pending attempt (src/lib/introduce.ts): its code is sent as a
+    // delete too, so the server marks it and a request still on its way
+    // cannot land after Forget me (docs/BATCH-01-PLAN.md D2).
+    store.set('niyyah.intake.v1', '{"answers":{}}')
+    store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27', removeOn: '2027-03-21' }))
+    store.set('niyyah.intro.pending.v1', JSON.stringify({ code: 'HJKMNPQR', at: '2026-09-27' }))
+    const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"removed":false}', { status: 200 }))
+    vi.stubGlobal('fetch', spy)
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
+    expect(spy.mock.calls.map((c) => [c[0], c[1]?.method]).sort()).toEqual([
+      ['/.netlify/functions/introduce?code=HJKMNPQR', 'DELETE'],
+      ['/.netlify/functions/introduce?code=QRTWXY34', 'DELETE'],
+    ])
+    expect(store.size).toBe(0)
+    // Offline, both codes are kept to send again, and named as still held.
+    store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27', removeOn: '2027-03-21' }))
+    store.set('niyyah.intro.pending.v1', JSON.stringify({ code: 'HJKMNPQR', at: '2026-09-27' }))
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false })
+    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intro: 'QRTWXY34', introPending: 'HJKMNPQR' })
+    // The next launch finishes it.
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"removed":true}', { status: 200 })))
+    expect(await retryPendingForget()).toBe(true)
+    expect(store.size).toBe(0)
+  })
+
   it('names every key the app writes', () => {
     // The list itself; tests/forget-keys.test.ts is what proves it is complete, by
     // reading src/ for every key the app actually writes. A hand-written list
@@ -170,6 +197,7 @@ describe('forget me', () => {
         'niyyah.events.v1',
         'niyyah.install.v1',
         'niyyah.intake.v1',
+        'niyyah.intro.pending.v1',
         'niyyah.intro.v1',
         'niyyah.keep.code.v1',
         'niyyah.keep.once.v1',

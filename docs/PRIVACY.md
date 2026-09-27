@@ -42,7 +42,7 @@ inferring marriage from silence.
 | **Tier 3 · No code at all** | `tallies` | How pairs come out on the eleven | Founder | Nothing: there is no id |
 | **Tier 3 · No code at all** | `ops` | A number per signal per day: errors by route, caps that refused, the guide's calls and tokens, crashes phones reported; once a day, how many records `maps`, `progress` and `reports` hold. 35 days | Founder, through `/health` | Nothing: no id, city or time; it describes the service |
 | **Tier 4 · Human-read** | `reports` | A safety report: couple code, side, reason id, up to 500 characters of her words | Founder, through `GET /safety` | The couple code only. Never beside a tally, never a signal to `progress` or `couple`, never joined to a map or install id |
-| **Tier 4 · Human-read** | `introductions` | A name put down for an introduction: an email or phone, an optional first name, woman or man, city and country, how far she would go, the day. At most 180 days | Founder, through `GET /introduce`, to make introductions by hand after speaking with each person | Nothing: its own code, minted on the server and held on her phone; never her map code or install id, never a rung or a fact |
+| **Tier 4 · Human-read** | `introductions` | A name put down for an introduction: an email or phone, an optional first name, woman or man, city and country, how far she would go, that she confirmed she is 18 or older (a yes, never an age), the day. Scheduled to go on the Sunday on or before its 180th day | Founder, through `GET /introduce`, to make introductions by hand after speaking with each person | Nothing: its own code, minted on her phone before the request and held there as the receipt; never her map code or install id, never a rung or a fact |
 
 The kept map is Tier 1 by her choice, under a code registered to nobody;
 `KeptSnapshot` (`src/lib/keep.ts`) and `keep.ts` keep the guide out of it.
@@ -170,7 +170,8 @@ names and errors, never a body. Fonts are self-hosted (`src/index.css`).
 | `tallies` | `joint` | `{pairs, topics}` | The second side's answer | Kept | — (no code) | — |
 | `limits` | `<bucket>-<h\|d>-<stamp>` | A counter, no identity | Every capped route | One period | The next period's first write | — |
 | `ops` | `day/…`, `sizes/…`, `last/…` | Numbers | Routes; `/health`; export; sweep | 35 days; `last/…` is overwritten | Sweep | — |
-| `introductions` | `<code>` | `contact`, `firstName?`, `gender`, `scene`, `country`, `reach`, `at` | introduce `POST` | **At most 180 days** from `at` (decision 32); sooner if its owner takes it off, or asks the founder to. Never renewed | `DELETE /introduce?code=`; Forget me; the founder, by hand; the sweep, at the last weekly run before its 180th day | ✓ |
+| `introductions` | `<code>` | `contact`, `firstName?`, `gender`, `scene`, `country`, `reach`, `adult` (true; absent on records from before 2026-09-27's batch), `at` | introduce `POST`, under the code the phone minted (or one minted here for an older client). The same request under the same code is answered, never written twice; a different one under a code that exists is refused, never written over | **Scheduled to go on `removeOn`: the Sunday on or before `at` + 180 days** (decision 32; `docs/BATCH-01-PLAN.md` D3), the day the phone's receipt and the founder's list name; sooner if its owner takes it off, or asks the founder to. Never renewed — a retry returns the original `at` | `DELETE /introduce?code=`; Forget me; the founder, by hand; the sweep, on `removeOn` and any later run | ✓ |
+| `introductions` | `withdrawn/<code>` | `{at}`: the day, nobody | introduce `DELETE`, before it deletes the record | Two days | The sweep | — |
 | `cohort`, `contacts`, `vouches` | any | The door's entries and index; ways to reach people who joined the door 2026-09-08 to 2026-09-24; relatives' names and phones from the vouch | Nothing since 2026-09-24 | **Held** until the founder decides their retention by hand (`docs/DECISIONS.md` decision 21). From 2026-09-24 to 2026-09-27 the sweep emptied them weekly; its first run was 2026-09-27 00:00 UTC | A person's own Forget me (`DELETE /keep?code=`); the founder, by hand. Never the sweep | — |
 
 `gone/<code>` stores its window's end as a full timestamp: the one stored
@@ -181,10 +182,11 @@ moment finer than a day, on a key that says nothing about either person.
 ### Forget me
 
 **On the phone (`src/lib/forget.ts`).** Any pending forget goes first. Then
-four deletes in parallel: the map by her code, the step count by her install
+the deletes in parallel: the map by her code, the step count by her install
 id, the eleven by the couple code on the phone (she may have sent it without
-keeping a map), her name on the introduction list by the code that list
-handed the phone; a 404 counts as done. Then every key in `LOCAL_KEYS` goes. If
+keeping a map), her name on the introduction list by the code on its receipt,
+and an attempt to put it down that was never answered, by the code that
+attempt went out with; a 404, or a delete that found nothing, counts as done. Then every key in `LOCAL_KEYS` goes. If
 a delete failed, **one key is kept**, `niyyah.forget.pending.v1`, holding only
 the codes still to delete: sent on every launch and before the next Forget
 me, while the screen shows her the map code so she can write in. Before this,
@@ -206,7 +208,9 @@ new code. `mintFree` treats a tombstoned code, or a couple code with a
 `tests/invariants/delete-means-deleted.test.ts`: the tombstone; her report,
 since a withdrawal under someone's eye is the case this exists for
 (`docs/SECURITY.md` O1); the joint tally, with no code (Trust: "The one thing
-it cannot reach"); the sheet's `gone/` window, a date.
+it cannot reach"); the sheet's `gone/` window, a date; and, for two days, the
+introduction list's `withdrawn/<code>` marker, a day under her code, which is
+what stops a request still on its way from landing after she asked.
 
 ### The weekly sweep (`netlify/functions/sweep.ts`, `@weekly`)
 
@@ -216,10 +220,13 @@ rolled back if no tombstone yet, else finished; (2) maps, tombstones and once
 keys past `expiresAt`, only if unchanged since read (`deleteIfUnchanged`);
 (3) couple sheets past 90 days, retired, and ended `gone/` windows; (4) step
 counts past their year, unless `married`; (5) `ops` counts past 35 days. It
-answers `{swept: {maps, couples, progress, journals, introductions, errors}, at}`, never
+answers `{swept: {maps, couples, progress, journals, introductions, markers, errors}, at}`, never
 touches reports, tallies or limits, and needs no key. (6) Names on the
-introduction list at the last weekly run before their 180th day, and any it
-cannot date (decision 32): a name is never held past the day Trust names.
+introduction list on or after their `removeOn` — the Sunday on or before
+their 180th day, the day the receipt and the founder's list name — and any
+it cannot date (decision 32); and `withdrawn/` markers older than two days.
+A name is never held past the day the receipt names by design; a failed
+Sunday is caught by `/health` and the name goes the Sunday after.
 **It never opens `cohort`, `contacts` or `vouches`** (`HELD_STORES`): from
 2026-09-24 to 2026-09-27 it emptied them every week on the ground that the
 door had gone, and took the only way to reach two women who had asked to be
@@ -379,7 +386,7 @@ protects against a leaked key, not against the founder, who holds the stores.
 | `GET /couple` (no code) | `pairs`; `topics[topic][joint]`, joint one of `both-agree`, `both-settled`, `both-not-talked`, `one-thinks-talked`, `differ-somewhere`, `unknown-somewhere` | `tallies/joint`, added to when the second side answers. Not floored: no pair, code or side. From 2026-09-24 a side may say `settled` ("we see it differently, and we've worked out how"): a pair who both say so count as `both-settled`, where before that day they could only say `differ` and counted as `differ-somewhere`; tallies either side of the date are not comparable on those two joints (docs/DECISIONS.md Part 8) | Which conversations couples here most often miss |
 | `GET /safety` | `reports[]` open, oldest first, each `{id, code, side, reason, details, at}`; `resolved.byReason`, `resolved.byOutcome` | `reports` and its stubs; outcomes `spoke-to-them`, `told-the-family`, `not-enough`, `no-action` | A person may be waiting. Never cached; `/health` sees only counts |
 | `GET /export` | `at`, `version` (3), `progress` (install id → record), `joint`, `omitted`, `skipped` | Every progress record in its year or married; the joint tally | The learning record survives one vendor. Never a map, sheet, report, `ops`, or the introduction list |
-| `GET /introduce` | `people[]` whole, oldest first, each `{code, contact, firstName?, gender, scene, country, reach, at, until}`; `counts[scene].{women, men}`; `total`; `skipped`; `lapsed` (names past `until` a sweep has not yet removed, never shown) | `introductions` | The founder speaks with each person from it and makes introductions by hand (`docs/OPS.md`, the runbook). Never cached; no count from it is shown to anyone (decision 27); not in the backup, so the founder saves it beside the backup, and deletes a saved copy older than 180 days (`docs/OPS.md`) |
+| `GET /introduce` | `people[]` whole, oldest first, each `{code, contact, firstName?, gender, scene, country, reach, adult?, at, removeOn}`; `counts[scene].{women, men}`; `total`; `skipped`; `lapsed` (names on or past `removeOn` a sweep has not yet removed, never shown) | `introductions` | The founder speaks with each person from it and makes introductions by hand (`docs/OPS.md`, the runbook). Never cached; no count from it is shown to anyone (decision 27); not in the backup, so the founder saves it beside the backup, and deletes a saved copy older than 180 days (`docs/OPS.md`) |
 
 ## Linkability and honest limits
 

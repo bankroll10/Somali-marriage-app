@@ -14,7 +14,9 @@
 # the function runtime answer (an unauthenticated /health is a 401, not a
 # 404 or a 500), and can a public route read storage (a restore of a code
 # nobody holds answers "not found" — a 404 it could only give after asking
-# the store; a store that cannot answer is a 503). A
+# the store; a store that cannot answer is a 503), and does the
+# introduction list's strong-consistency read work (taking an unused code
+# off answers 200, never 503). A
 # failure names the rollback — Netlify → Deploys → the last green deploy →
 # Publish deploy (docs/OPS.md, "Rolling back"; docs/OPS.md).
 name: deployed
@@ -59,7 +61,15 @@ jobs:
               if [ "$fn" != "401" ]; then broken="$broken /health without a key answered $fn, not 401 (functions are not answering as built);"; fi
               kept=$(curl -sS -o kept.json -w '%{http_code}' "$SITE/.netlify/functions/keep?code=AAAAAAAA" || echo 000)
               if [ "$kept" != "404" ] || ! jq -e '.error == "not_found"' kept.json > /dev/null 2>&1; then broken="$broken a restore of an unused code answered $kept (storage or the keep route is broken);"; fi
-              rm -f page.html kept.json
+              # The introduction list reads its store with strong consistency
+              # (netlify/functions/introduce.ts); the SDK refuses a strong read
+              # when the platform context lacks its uncached URL, and every
+              # request there would answer 503. Taking off a code nobody holds
+              # exercises exactly that read: 200 {removed: false}, and a marker
+              # under AAAAAAAA that the sweep removes in two days.
+              off=$(curl -sS -o off.json -w '%{http_code}' -X DELETE "$SITE/.netlify/functions/introduce?code=AAAAAAAA" || echo 000)
+              if [ "$off" != "200" ] || ! jq -e '.removed == false' off.json > /dev/null 2>&1; then broken="$broken taking an unused code off the introduction list answered $off (the strong-consistency read or the introduce route is broken; docs/BATCH-01-PLAN.md D7);"; fi
+              rm -f page.html kept.json off.json
               if [ -n "$broken" ]; then
                 echo "::error::$WANT is live and broken:$broken Roll back: Netlify → Deploys → the last green deploy → Publish deploy. docs/OPS.md, 'Rolling back'."
                 echo "**Live, and broken:**$broken Roll back — docs/OPS.md, “Rolling back”." >> "$GITHUB_STEP_SUMMARY"

@@ -68,6 +68,29 @@ describe('what the build is wired to do', () => {
   })
 })
 
+describe('how a new build reaches an installed app', () => {
+  // The path docs/OPS.md ("Updating an installed app") describes, held here so
+  // the words stay true: the worker takes over at once (skipWaiting, claim)
+  // and fetches the network first, so the next open or reload while online
+  // runs the new build — but nothing here reloads a page that is already
+  // open, and nothing could tell its old JavaScript what a new server wants.
+  const js = serviceWorkerJs('abc123')
+
+  it('takes over at once, without waiting for old tabs to close', () => {
+    expect(js).toContain('self.skipWaiting()')
+    expect(js).toContain('self.clients.claim()')
+  })
+
+  it('never reloads an open page on its own, and sends it nothing', () => {
+    expect(js).not.toMatch(/postMessage|location\.reload|navigate\(/)
+  })
+
+  it('serves the shell network-first, so an online reload is the new build', () => {
+    const fetchHandler = js.slice(js.indexOf("addEventListener('fetch'"))
+    expect(fetchHandler.indexOf('fetch(request)')).toBeLessThan(fetchHandler.indexOf('caches.match(key)'))
+  })
+})
+
 describe('what serves it', () => {
   it('main.tsx registers it in production only, after load', () => {
     const main = readFileSync('src/main.tsx', 'utf8')

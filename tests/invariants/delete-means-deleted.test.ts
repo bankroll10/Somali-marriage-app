@@ -69,6 +69,14 @@ function allowed(code: string) {
   return (line: string) => line.startsWith(`maps:ended/${code} `)
 }
 
+/** The introduction list after her forget: one withdrawal marker under her code, holding a day and nobody. */
+function onlyAMarker() {
+  const keys = blobs.keys('introductions')
+  expect(keys).toHaveLength(1)
+  expect(keys[0]).toMatch(/^withdrawn\/[ACDEFGHJKMNPQRTWXY34789]{8}$/)
+  expect(Object.keys(blobs.read('introductions', keys[0]) as object)).toEqual(['at'])
+}
+
 beforeEach(() => {
   blobs.reset()
   served = serve()
@@ -86,7 +94,10 @@ describe('after Forget me', () => {
     expect(done).toMatchObject({ map: true, progress: true, couple: true, intro: true })
 
     expect(residue([code, NAME, OWN_WORDS, install, CONTACT], [her]).filter((l) => !allowed(code)(l))).toEqual([])
-    expect(blobs.keys('introductions')).toEqual([])
+    // The list keeps a marker under her code for two days — a day, and
+    // nothing about her — so a request still on its way cannot land after
+    // this (netlify/functions/introduce.ts).
+    onlyAMarker()
     expect(her.keys()).toEqual([])
     // The sheet leaves a date, and nothing either of them said.
     expect(blobs.keys('couples')).toEqual([`gone/${pair}`])
@@ -107,6 +118,7 @@ describe('after Forget me', () => {
     served.down(false)
     expect(await retryPendingForget()).toBe(true)
     expect(residue([code, NAME, OWN_WORDS, install, CONTACT], [her]).filter((l) => !allowed(code)(l))).toEqual([])
+    onlyAMarker()
     expect(her.keys()).toEqual([])
   })
 })

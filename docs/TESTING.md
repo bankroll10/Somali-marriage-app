@@ -26,10 +26,10 @@ every new test a bookkeeping row and guarded nothing a reviewer does not.
 
 | Helper | What it gives a test |
 |---|---|
-| `blobs.ts` | An in-memory Netlify Blobs with real etags, `onlyIfNew` and `onlyIfMatch`, and ways to break it: `failOn` makes a chosen call throw, `before` runs a competing request at an exact point, `failOpen` makes a store fail to open. Its op log lets a test assert what a route *read*. |
+| `blobs.ts` | An in-memory Netlify Blobs with real etags, `onlyIfNew` and `onlyIfMatch`, and ways to break it: `failOn` makes a chosen call throw, `before` runs a competing request at an exact point (the nth matching call, if asked), `failOpen` makes a store fail to open. Its op log lets a test assert what a route *read*; `opened` records the options each store was opened with, so a test can hold that a route asked for strong reads. |
 | `memory.ts` | The plain double: each store a Map of key to the raw string, for the function tests that seed and read values directly. Nine files each had their own copy until 2026-09-24. |
-| `server.ts` | Netlify in a box. `serve()` puts the real handlers behind the global `fetch`; `down()` takes the network away; `call()` makes one request. |
-| `device.ts` | A phone: its own `localStorage`, `onPhone(p)` to switch phones, `reload()`, and `shareSheet()` to see what a share button handed over. |
+| `server.ts` | Netlify in a box. `serve()` puts the real handlers behind the global `fetch`; `down()` takes the network away; `lose()` runs the handler and loses the answer — a timeout after the write landed; `hold()` keeps a request in flight until released; `call()` makes one request. |
+| `device.ts` | A phone: its own `localStorage`, `onPhone(p)` to switch phones, `refuse(keys)` to make it a browser that is not saving those keys, `reload()`, and `shareSheet()` to see what a share button handed over. |
 | `arbitrary.ts` | fast-check inputs built from the product's own lists, so a new option is generated the day it ships. |
 | `residue.ts` | Every store and every phone, searched for anything of hers. |
 | `a11y.ts` | An audit of rendered markup: names, labels, resolving ARIA references, unique ids, one `main`, a heading. |
@@ -70,6 +70,10 @@ their neighbours had not hollowed them out.
 | A name is kept at most 180 days | `sweep-function`, `journeys/looking` | The sweep skips every introduction whatever its day (2026-09-27) | Red (5: 4 in `sweep-function`, 1 in the journey) |
 | Nothing identifying before two yeses | `voice`, `journeys/looking` | Looking says "nothing about you reaches anyone before you say yes" again (2026-09-27) | Red (3: both voice scans, and the journey) |
 | The old marketplace stays in git | `no-marketplace` | — | Guards file names and identifiers; `deploy-layout` guards the function list |
+| One record per retained code | `introduce-function`, `introduce-race`, `journeys/looking` | A retry under the same code mints a new one (2026-09-27) | Red (5) |
+| A late request never lands after a withdrawal | `introduce-race`, `journeys/looking` | The POST skips its second look at the marker (2026-09-27) | Red (3) |
+| One removal day for phone, list and sweep | `sweep-function`, `vocab-sync`, `introduce-function` | The sweep looks a week ahead again (2026-09-27) | Red (4) |
+| The affirmation is required on the wire | `introduce-function`, `caps-function`, `journeys/looking` | `adult` accepted when absent (2026-09-27) | Red (3) |
 
 One mutation that the register alone does not catch, on purpose: the forget
 cascade in `netlify/functions/keep.ts` leaving the couple sheet. Her phone
@@ -117,7 +121,7 @@ What each suite holds beyond its mutation:
 | `eleven-two-phones` | She sends the eleven; he opens only the link her share sheet got. Both see the joint; neither sees the other's note. *He answered* opens the joint. |
 | `forget-offline` | Forget me with the network down. The phone keeps only the pending codes, even after the autosave has had a reason to run, and the next launch finishes it. |
 | `netlify-down` | Every function unreachable from the first tap. A stranger still takes a whole read; a member opens her space and a failed keep loses nothing. |
-| `looking` | The two doors. Through the first, her name goes down only once the server has it, with the six fields and nothing else about her anywhere — the POST body is those fields, and no store or phone key but its own holds the code; with the server gone she is told so and her words stay; she takes it off again; Home shows it. The screen says the founder speaks with her first, that a summary may come before anything identifying, and the day her name comes off; from Columbus or the UK it says the name is kept for later, with no date. After 180 days the phone forgets the code and the sweep removes the name. Through the second, each of the three cards lands on its instrument. |
+| `looking` | The two doors. Through the first, the disclosures come before the button in order (the operator, the pilot's rule, the conversation first, the approved description and the release rule, the scheduled removal); she is handed a receipt only once the server has it, with the named fields and the affirmation under the code her phone minted, and nothing else about her anywhere. An answer lost after the write: she is told it is unsure, the same request goes again under the same code, and it is saved once. Changed her mind after that: the earlier record is never written over, and she chooses. A browser that cannot hold the code: she is shown it, and it takes the name off from any phone. Two tabs on one phone: one record. A request still in flight when she taps Forget me, or takes the name off by its code: it cannot land afterwards. A receipt from before the server gave dates is the phone's own record; past the scheduled day the code is kept and the truth said, and the sweep removes the record. Home shows the receipt. The bar holds `/?looking`. Through the second, each of the three cards lands on its instrument. |
 | `runbook` (`tests/runbook.test.ts`) | The introduction pilot runbook in `docs/OPS.md` still says each thing decision 33 requires before introduction 1, and the eligibility, log, consent, 180-day, milestone, legal and drill rules. The drill itself is the founder's |
 
 ## Guards: what stays as source text, and why
