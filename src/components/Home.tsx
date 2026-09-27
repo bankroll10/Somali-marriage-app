@@ -164,7 +164,7 @@ export default function Home({
             <p className="mt-3 text-[0.95rem] leading-relaxed text-cream/75 text-pretty">
               Nothing here will try to keep you. There is no map to raise and nothing to pay for.
               Two things stay, because the in-law conversations do not end at the
-              nikah and the first year asks more than anyone says: the words for two families, and the
+              nikah and the first year has questions of its own: the words for two families, and the
               guide, in the voice built for repair.
             </p>
             <div className="mt-5 flex flex-wrap gap-2.5">
@@ -279,7 +279,7 @@ export default function Home({
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
                 {hasRead
                   ? 'Open it again, or take it fresh — things change, and so does what they’ve shown you.'
- : 'Ninety seconds on what they’ve done, and the one question to ask them next.'}
+ : 'Ninety seconds on what they’ve shown you, and the one question to ask them next.'}
               </span>
             </span>
             <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />

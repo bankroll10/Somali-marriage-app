@@ -131,15 +131,15 @@ const STATE_RANK: Record<DimensionState, number> = { 'not-yet': 0, partly: 1, sh
 /** Why a gap in this dimension matters. The sentence that turns a score into a reason. */
 const WHY_IT_MATTERS: Record<ReadDimension, string> = {
   public:
-    'A person who intends to marry you lets you exist in their life. Being kept off to one side is something to ask about, not wait out.',
+    'Being part of someone’s life is something you can see, not just hear about, and it costs them something. Being kept off to one side is something to ask about, not wait out.',
   intent:
-    'Wanting to be married and intending to marry you are different things, and only one of them has a date attached.',
+    'Wanting to be married and intending to marry you are different things, and it is the second that can be given a when.',
   family:
     'Asking how is the step before the step. A vague answer here is an answer.',
   consistency:
     'Words are cheap and everyone has good ones. What you are looking for is whether the behaviour underneath them is steady.',
   pressure:
-    'How someone treats you when you are inconvenient is the part of them you most need to see before anything is decided.',
+    'How someone treats you when you are inconvenient is one of the clearest things you can see before anything is decided.',
 }
 
 const DURATION_NOTE: Record<string, string> = {
@@ -277,8 +277,14 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
           ? 'when you raise something difficult you come away feeling like the problem'
           : answers.hard === 'careful'
             ? 'you are careful about what you raise, because of how {he} reacts'
-            : 'there is no one in {his} life who knows you exist'
-      }. Kept quiet, and left doubting yourself, is the shape that leaves someone with nobody to compare notes with. We cannot tell you what {he} intends, and we are not going to guess at {his} character from a few questions. We can tell you that this particular combination is not a question for an app.`),
+            : 'as far as you know, there is no one in {his} life who knows you exist'
+      }. ${
+        answers.hard === 'blames'
+          ? 'Kept quiet, and left doubting yourself,'
+          : answers.hard === 'careful'
+            ? 'Kept quiet, and careful what you say,'
+            : 'Kept quiet, with nobody in {his} life knowing you,'
+      } is the shape that leaves someone with nobody to compare notes with. We cannot tell you what {he} intends, and we are not going to guess at {his} character from a few questions. We can tell you that this particular combination is not a question for an app.`),
       shown,
       missing,
       dimensions,
@@ -307,7 +313,7 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
     return {
       band: 'early',
       headline: 'It is too early for this to tell you much.',
-      summary: fix(`${durationNote} That is not a failing — it means the honest answer is that {he} has not had time to show you anything yet, and anyone who tells you otherwise this early is guessing. What you can do now is know exactly what you are watching for, so that in a month you are reading behaviour instead of re-reading messages.`),
+      summary: fix(`${durationNote} That is not a failing — it means the honest answer is that {he} has not had long to show you much yet, and anyone who tells you otherwise this early is guessing. What you can do now is know exactly what you are watching for, so that in a month you are reading behaviour instead of re-reading messages.`),
       shown,
       missing,
       dimensions,
@@ -351,11 +357,11 @@ export function buildRead(answers: ReadAnswers, gender: Gender = 'woman'): ReadR
       strongest.length ? '. ' : ''
     }Those are real, and they count. ${
       weakest.length
-        ? `The thinnest part is that ${weakest[0]} — worth closing, not worth panicking about.`
+        ? `The thinnest part is that ${weakest[0]}. That is the one to raise.`
         : `There is no obvious gap in what you have told us.`
     } This is a summary of your own answers — not a verdict on {him}, and not a prediction. The useful thing now is not more watching. It is one clear conversation, so that what you both assume is said out loud.`
   } else if (band === 'mixed') {
-    headline = `Real signals — and one gap that is doing a lot of work.`
+    headline = `Real signals — and a gap worth asking about.`
     summary = `${durationNote} ${
       strongest.length
         ? `${sentence(join(strongest))}. That is real, and it counts. `

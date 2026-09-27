@@ -170,7 +170,7 @@ export default function Ending({ identity, ending, didEleven, saved, onSave, onF
             You can say this now in a way you never could before.
           </p>
           <p className="mt-2.5 text-[0.95rem] leading-relaxed text-muted text-pretty">
-            While you were looking, forwarding anything about it meant admitting you were looking. That
+            While you were looking, forwarding anything about it could read as admitting you were looking. That
             is over.{' '}
             {didEleven
               ? '“Before we said yes, we had these eleven conversations”'

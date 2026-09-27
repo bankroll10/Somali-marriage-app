@@ -47,6 +47,17 @@ const OVERCLAIMS: [RegExp, string][] = [
   [/\byear (two|three|ten)\b/i, 'a date on a future nobody can see (L12)'],
   [/keeps you married|strongest marriages/i, 'similarity as the outcome, against the evidence (L13)'],
   [/marriages? (break|breaks) on\b/i, 'the eleven as what breaks marriages: class F (L5)'],
+  // docs/DECISIONS.md Part 18: the counts about us the patterns above missed.
+  [/\b(is|are) (rarely|common|usually)\b/i, 'a count we do not have (L9)'],
+  [/\bone of the few\b/i, 'a count we do not have (L9)'],
+  // docs/DECISIONS.md Part 20: claim calibration. Each came back after an
+  // earlier Part removed it, or was never caught.
+  [/\bdone\b[^.]{0,12}\b(not|rather than) what (he|she|they|\{he\}) (says?|said)\b|\bbehaviou?r, not promises\b/i, 'five of the twelve answers are things said; "what they have shown you" (Part 4, Part 20)'],
+  [/not worth panicking/i, 'minimises the ground she named as thinnest (Part 20)'],
+  [/conversations? you were not going to have/i, 'a counterfactual nobody can know (Part 20)'],
+  [/\bthe one that matters\b/i, 'one of eleven ranked as the only one that matters (Part 20)'],
+  [/\bany answer is fine\b/i, 'said on a weighted question (Part 20)'],
+  [/\bonce, and only then\b|counts or learns from/i, 'a promise the code does not keep (Part 20)'],
 ]
 
 /**
@@ -74,11 +85,9 @@ const ALLOWED: [RegExp, string][] = [
   [/Actually, it’s something else/, 'a button in the person’s own voice, correcting us'],
   [/navigator\.platform|process\.platform/, 'code, not copy'],
   [/^\s*\/\\b\(/, 'a routing regex reads what she typed; it is not something we say'],
-  // Man-only lines wait for ten men (decision 4); each is ledgered with its
-  // rewrite in docs/RESEARCH.md ("Deferred, by name").
-  [/the answer that comes back in year two/, 'decision 4: a man-only variant, deferred (L12)'],
-  [/the one that becomes a fight in year two — and the same is true of hers/, 'decision 4: a man-only variant, deferred (L12)'],
-  [/Asked for their part, most parents give it/, 'decision 4: a man-only script, deferred (L9)'],
+  // The man-only lines that waited here for ten men were calibrated on the
+  // founder's delegation (docs/DECISIONS.md Part 18, "Decided"); nothing is
+  // exempt any more.
 ]
 
 /** Comment lines, including the continuation lines of a block comment, which carry no marker of their own. */

@@ -45,7 +45,7 @@ export function Generating() {
         <p key={stage} className="animate-fade font-display text-2xl font-medium tracking-tight">
           {GENERATING_STAGES[stage]}
         </p>
-        <p className="mt-3 text-sm text-cream/60">Taking a moment to consider what you’ve shared.</p>
+        <p className="mt-3 text-sm text-cream/60">Drawing your map from what you shared.</p>
       </div>
     </div>
   )
@@ -173,7 +173,7 @@ export default function ReflectionView({
               </p>
               {!hasChanges ? (
                 <p className="mt-2.5 text-[1rem] leading-snug text-cream/85 text-pretty">
-                  You answered the same way. That is not nothing — it means the ground has held.
+                  You answered the same way. That is not nothing — your answers have held.
                 </p>
               ) : (
                 <ul className="mt-3 space-y-3">

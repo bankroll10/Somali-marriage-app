@@ -70,22 +70,22 @@ export const TOOLS: Tool[] = [
     slug: 'is-he-serious',
     kind: 'read',
     about: 'man',
- title: 'Is he serious? — a ninety-second read on what he has done',
+ title: 'Is he serious? — a ninety-second read on what he has shown you',
     description:
-      'Twelve questions about behaviour, not promises — who knows you exist, what happens when you don’t message first, how he handles a hard conversation. One read, and the one question worth asking him next. No account. Nothing about him is asked by name.',
+      'Twelve questions about what he has done and said — who knows you exist, what happens when you don’t message first, how he handles a hard conversation. One read, and the one question worth asking him next. No account. Nothing about him is asked by name.',
     share:
- 'Talking to someone? This reads what he’s done — not what he says — in ninety seconds, and gives you the one question to ask him next. Built for us. No account.',
+ 'Talking to someone? This reads what he has shown you, in ninety seconds, and gives you the one question to ask him next. Built for us. No account.',
     via: 'words',
   },
   {
     slug: 'is-she-serious',
     kind: 'read',
     about: 'woman',
- title: 'Is she serious? — a ninety-second read on what she has done',
+ title: 'Is she serious? — a ninety-second read on what she has shown you',
     description:
-      'Twelve questions about behaviour, not promises — who knows you exist, what happens when you don’t message first, how she handles a hard conversation. One read, and the one question worth asking her next. No account. Nothing about her is asked by name.',
+      'Twelve questions about what she has done and said — who knows you exist, what happens when you don’t message first, how she handles a hard conversation. One read, and the one question worth asking her next. No account. Nothing about her is asked by name.',
     share:
- 'Talking to someone? This reads what she’s done — not what she says — in ninety seconds, and gives you the one question to ask her next. Built for us. No account.',
+ 'Talking to someone? This reads what she has shown you, in ninety seconds, and gives you the one question to ask her next. Built for us. No account.',
     via: 'words',
   },
   {
@@ -93,9 +93,9 @@ export const TOOLS: Tool[] = [
     kind: 'eleven',
     title: 'Before you say yes — the eleven conversations to have first',
     description:
-      'The eleven conversations to have before the families are involved — where you’d live, money sent home, hooyo in the house, a second wife. Two minutes to see which you two have had, and the words to open the one that matters. No account.',
+      'The eleven conversations to have before the families are involved — where you’d live, money sent home, hooyo in the house, a second wife. Two minutes to see which you two have had, and the words to open the one to start with. No account.',
     share:
-      'Before you say yes — the eleven conversations to have before the families do: where you’d live, money home, a second wife. This asks which ones you two have had, and gives you the words to open the one that matters. Two minutes. No account.',
+      'Before you say yes — the eleven conversations to have before the families do: where you’d live, money home, a second wife. This asks which ones you two have had, and gives you the words to open the one to start with. Two minutes. No account.',
     via: 'eleven',
   },
   {

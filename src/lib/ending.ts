@@ -105,7 +105,7 @@ export function buildEnding(i: EndingInput, today: string): Ending {
   // done" about himself (docs/DESIGN.md).
   if (i.read) {
     lines.push({
-      text: speak(i.gender)('You took a read on what {he} had done, rather than what {he} said.'),
+      text: speak(i.gender)('You took a read on what {he} had shown you.'),
       at: day(i.read.at),
     })
   }
@@ -160,9 +160,9 @@ export function buildEnding(i: EndingInput, today: string): Ending {
  */
 export function endingHeadline(ending: Ending): string {
   const n = ending.conversations.length
-  if (n === 0) return 'You chose someone, and you did it in the open.'
-  if (n === 1) return 'You had one conversation you were not going to have.'
-  return `You had ${words(n)} conversations you were not going to have.`
+  if (n === 0) return 'You chose someone.'
+  if (n === 1) return 'You had one of the hard conversations.'
+  return `You had ${words(n)} of the hard conversations.`
 }
 
 /** Something she can send: the words, and the link they carry. */
@@ -190,7 +190,7 @@ export interface MarriedDid {
 export function marriedShare(advice?: string, did: MarriedDid = { eleven: false }): Share {
   const line = advice?.trim()
   const lead = did.eleven
-    ? 'Before we said yes, we went through eleven conversations — where we’d live, money home, all of it. I wish someone had handed me that list earlier.'
+    ? 'Before we said yes, I had the eleven conversations in front of me — where we’d live, money home, a second wife. I wish someone had handed me that list earlier.'
     : 'There are eleven conversations to have before the families do — where you’d live, money home, a second wife. I wish someone had handed me that list before we said yes.'
   return {
     text: [lead, line ? `\n${line}` : '', '\nIt is free, and there is no account.'].join(''),

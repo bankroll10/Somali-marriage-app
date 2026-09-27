@@ -77,7 +77,7 @@ export default function ReportConcern({ code, side }: Props) {
         className="mt-3 max-h-40 w-full resize-none rounded-xl border border-line bg-white p-3 text-[1rem] text-ink placeholder:text-muted"
       />
       <p className="mt-2 text-[0.78rem] leading-relaxed text-muted text-pretty">
-        This reaches the founder only — not the other person, and not anything the app counts or learns from.
+        This reaches the founder only, never the other person. Once it is resolved, only the kind of concern is kept, as a count.
         It is read within the week, so it is not an emergency line.
       </p>
       {/* The report used to be the only thing on this screen, on a list whose

@@ -42,7 +42,7 @@ export const stages: StageDef[] = [
     id: 'preparing',
     label: 'Preparing',
     situation: 'I’m not talking to anyone — I want to get ready',
-    arrival: 'Then this is about you before it’s about anyone else. Two minutes, and you’ll know where you stand.',
+    arrival: 'Then this is about you before it’s about anyone else. Two minutes on where you stand.',
     focus:
  'Becoming clear about what you need — and becoming someone worth choosing. Everything after this is easier when this part is honest.',
     mode: 'brother',
@@ -56,7 +56,7 @@ export const stages: StageDef[] = [
     id: 'talking',
     label: 'Getting to know someone',
     situation: 'I’m talking to someone, and I can’t tell what it means yet',
-    arrival: 'Then the question isn’t whether you’re ready. It’s whether {he} is.',
+    arrival: 'Now there’s a second question: whether {he} is.',
     focus:
       'Watch behaviour, not words — consistency, family, follow-through. And bring your people in early, while it’s still easy to walk away.',
     mode: 'auntie',

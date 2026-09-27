@@ -64,6 +64,13 @@ const men: Moment[] = [
     target: 'read',
   },
   {
+    label: 'My family is pushing',
+    prompt: 'My family is pushing me to marry and I don’t know how to handle it.',
+    // The same chip the women have (Part 18, decided): pressure has one
+    // answer in every voice, and his family asks him too.
+    mode: 'brother',
+  },
+  {
     label: 'Saying my intention',
     prompt: 'How do I say my intention for marriage clearly without it being awkward?',
     mode: 'brother',

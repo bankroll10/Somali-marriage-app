@@ -158,7 +158,7 @@ function lineFor(topic: Topic, kind: Joint): string {
     case 'both-settled':
       return `You both say you see ${t} differently, and have worked out how to live with it.`
     case 'both-not-talked':
-      return `Neither of you has raised ${t}.`
+      return `Neither of you says you’ve talked about ${t} yet.`
     case 'one-thinks-talked':
       return `One of you thinks you’ve had this conversation about ${t}. The other doesn’t.`
     case 'differ-somewhere':
@@ -209,7 +209,7 @@ export function coupleReading(jointMap: Record<string, Joint>, gender: Gender = 
       // the old line said the other person forgot (docs/DECISIONS.md Part 16).
       ? 'On at least one of these, one of you says you’ve talked about it and the other says you haven’t.'
       : counts['differ-somewhere'] > 0
-        ? 'You’ve had the conversations. Not all of them landed the same way.'
+        ? 'Where you’ve both talked, not all of it landed the same way.'
         : 'Nothing you have both talked about is still open. Some things are still unopened between you.'
 
   return {

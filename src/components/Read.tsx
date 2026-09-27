@@ -174,9 +174,8 @@ export default function Read({
             </div>
           )}
           <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
- Twelve questions about what {they} {has} <em>done</em> — not
-            how you feel, and not what {they} {has}
-            promised. At the end you get a read and the one question worth
+ Twelve questions about what {they} {has} <em>shown</em> you —
+            done and said, as you have seen it. At the end you get a read and the one question worth
             asking {whom} next, word for word.
           </p>
           {guessed && (
@@ -491,14 +490,14 @@ function Result({
       </div>
 
       {result.shown.length > 0 && (
- <Panel title={`What ${subject === 'him' ? 'he' : 'she'} has done`}>
+ <Panel title={`What you’ve seen ${subject} do`}>
           {result.shown.slice(0, 5).map((n) => (
             <Line key={n} text={n} tone="forest" />
           ))}
         </Panel>
       )}
       {result.missing.length > 0 && (
-        <Panel title="What is not there">
+        <Panel title="What you haven’t seen yet">
           {result.missing.slice(0, 5).map((n) => (
             <Line key={n} text={n} tone="clay" />
           ))}

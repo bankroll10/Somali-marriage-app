@@ -125,7 +125,7 @@ export const chapters: Chapter[] = [
           {
             id: 'pressure',
             label: 'My family and community expect it of me',
-            hint: 'Common, and worth naming honestly.',
+            hint: 'Worth naming honestly.',
             tags: ['Family-aware'],
             weight: 0.4,
           },
@@ -169,7 +169,7 @@ export const chapters: Chapter[] = [
     kicker: '02 · Family & Life',
     title: 'The life you want',
     intro:
-      'For us, marriage is rarely two people alone — it is families, roots, and a horizon meeting. Alignment is not about being identical. It is about walking toward the same horizon, with the same people in the story.',
+      'For us, marriage is families, roots, and a horizon meeting — not two people alone. Alignment is not about being identical. It is about walking toward the same horizon, with the same people in the story.',
     questions: [
       {
         id: 'family-role',
@@ -220,7 +220,7 @@ export const chapters: Chapter[] = [
         type: 'multi',
         dimension: 'character',
         prompt: 'What are your non-negotiables — the things that would end it, however good the rest was?',
-        helper: 'Choose up to three. Knowing these protects your time and heart.',
+        helper: 'Choose up to three. Knowing these can protect your time and heart.',
         max: 3,
         options: [
           { id: 'honesty', label: 'Honesty — no lies, no games', tags: ['Honesty'] },
@@ -250,7 +250,7 @@ export const chapters: Chapter[] = [
         options: [
           { id: 'talk', label: 'I talk it through, even when it’s hard', tags: ['Communicative'], weight: 1 },
           { id: 'space', label: 'I need space first, then I come back to it', tags: ['Reflective'], weight: 0.8 },
-          { id: 'avoid', label: 'I tend to avoid it and hope it passes', tags: ['Conflict-avoidant'], weight: 0.45 },
+          { id: 'avoid', label: 'I tend to avoid it and hope it passes', tags: ['Lets things pass'], weight: 0.45 },
           { id: 'heated', label: 'I get heated, then we work it out', tags: ['Passionate'], weight: 0.55 },
         ],
       },
@@ -259,7 +259,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'emotional',
         prompt: 'Is something from the past still with you?',
-        helper: 'Any answer is fine. Better said now than found out later.',
+        helper: 'Say what is true, not what sounds best. Better said now than found out later.',
         options: [
           { id: 'healed', label: 'It’s behind me, and I’m at peace with it', tags: ['At peace'], weight: 1 },
           { id: 'healing', label: 'It’s still with me, and I know it', tags: ['Self-aware'], weight: 0.8 },
@@ -272,7 +272,7 @@ export const chapters: Chapter[] = [
         type: 'single',
         dimension: 'emotional',
         prompt: 'When someone you care about goes quiet, what do you do?',
-        helper: 'It helps to know which way you lean.',
+        helper: 'It helps to know what you tend to do.',
         options: [
           { id: 'secure', label: 'I stay steady and wait', tags: ['Steady'], weight: 1 },
           { id: 'anxious', label: 'I worry, reread, and want to hear from them', tags: ['Worries first'], weight: 0.65 },
@@ -327,13 +327,13 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
       const p = answers['practice']
       const intention =
         tl === 'within-1' || tl === '1-2'
-          ? 'Your intention already has shape — you know why you’re here and roughly when. Say it early; nobody has to guess.'
+          ? 'Your intention already has shape — you know roughly when. Say it early; nobody has to guess.'
           : tl === 'exploring'
             ? 'You’re exploring seriously, not drifting — that honesty is the right foundation.'
             : 'You’re giving yourself room on the timeline. The pace can stay yours.'
       const faith =
         p === 'devout' || p === 'consistent'
-          ? 'And faith isn’t a checkbox for you — it’s the frame. Someone walking at a pace beside yours is worth asking about early.'
+          ? 'And faith is part of your days, not just your identity. Someone walking at a pace beside yours is worth asking about early.'
           : p === 'returning'
             ? 'And you named where you really are with your deen — returning, and honest about it. The right person meets you there.'
             : 'And you were honest about where faith sits for you right now. Say it early; that clarity protects you from a mismatch.'
@@ -344,7 +344,7 @@ export function chapterInsight(chapterId: string, answers: Record<string, unknow
       const kids = answers['children']
       const family =
         f === 'central' || f === 'guided'
-          ? 'You want your people in the story. That isn’t old-fashioned — it’s protection. Look for someone who honours family too.'
+          ? 'You want your people in the story. That isn’t old-fashioned — it can be protection. Look for someone who honours family too.'
           : 'You lead your own decisions with family respected, not ruling. Knowing that now means you can say it before it is tested.'
       const vision =
         kids === 'want'

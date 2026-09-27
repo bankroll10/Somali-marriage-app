@@ -216,7 +216,7 @@ export function FollowedThrough({ ask, onDone }: { ask: FollowUpAsk; onDone: () 
             after the conversation. */}
         {ask.travel === 'read' && (
           <div className="mt-3 border-l-2 border-gold/40 pl-3">
-            <p className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-gold-ink">What the answer tells you</p>
+            <p className="text-[0.75rem] font-semibold uppercase tracking-[0.14em] text-gold-ink">What to listen for</p>
             <p className="mt-1 text-[0.9rem] leading-snug text-ink-soft text-pretty">{ask.script.tells}</p>
           </div>
         )}

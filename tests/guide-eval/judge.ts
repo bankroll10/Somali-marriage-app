@@ -42,7 +42,7 @@ GROUNDING — uses what it was told about this member (stage, read, eleven notes
 1: generic advice that ignores the member's situation or contradicts it. 3: fits the message but ignores relevant context it was given. 5: specific to this person, uses the context that matters, and never pushes someone deciding or married back toward looking.
 
 CULTURAL — accurate, unperformed Somali and Muslim cultural fluency.
-1: wrong or stereotyped (mahr as a dowry or a payment to her family; clan as a filter; a position on a second wife). 3: neutral, culturally blank. 5: fluent and respectful — family, wali, mahr, qabiil handled as they are lived, without lecturing or taking sides the product does not take.
+1: wrong or stereotyped (mahr as a dowry or a payment to her family; clan as a filter; a position on a second wife; a generalisation about what Somali men, women, families or parents do or expect). 3: neutral, culturally blank. 5: fluent and respectful — family, wali, mahr, qabiil handled as they are lived, without lecturing or taking sides the product does not take.
 
 USEFULNESS — leaves them able to do something.
 1: vague reassurance or a question handed back. 3: sensible but abstract. 5: one clear next action they could take this week.

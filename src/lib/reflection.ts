@@ -192,14 +192,14 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
           ? 'You hold the core steadily and you want faith at the center of your home. Say that early; it filters more honestly than any list of qualities.'
  : 'You are consistent in the core and growing in the rest, and you said so plainly.'
       if (p === 'returning')
-        return 'You said you are on the way back to your deen. That is a harder thing to write down than to feel, and the right person will meet you on that road rather than judge you for being on it.'
-      return 'You were honest that faith sits lighter in practice than in identity. That clarity protects you from the specific heartbreak of marrying someone who expected a different home than the one you want.'
+        return 'You said you are on the way back to your deen. That is a harder thing to write down than to feel, and it is worth looking for someone who will meet you on that road rather than judge you for being on it.'
+      return 'You were honest that faith sits lighter in practice than in identity. That clarity can protect you from the specific heartbreak of marrying someone who expected a different home than the one you want.'
     }
 
     case 'family': {
       switch (a('family-role')) {
         case 'central':
-          return 'You want your people in this from the beginning. That is not old-fashioned — it is protection. Look for someone who expects to meet them rather than someone who flinches.'
+          return 'You want your people in this from the beginning. That is not old-fashioned — it can be protection. Look for someone who expects to meet them rather than someone who flinches.'
         case 'guided':
  return 'You bring family in once it is serious. Say that out loud early; the other person may be assuming something different.'
         case 'informed':
@@ -218,7 +218,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
         case 'open':
           return 'You are open to children with the right person. Watch for the version of that which is really "I will decide later", and say which one you mean, early.'
         default:
-          return 'You are still unsure about children. That is an honest place to be at any age, and it is the one question where "we will figure it out" cannot stay the answer.'
+          return 'You are still unsure about children. That is an honest place to be at any age, and it is a question where "we will figure it out" cannot stay the answer.'
       }
     }
 
@@ -234,7 +234,7 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
         case 'space':
           return 'You need space before you can come back to it. That is workable and healthy — as long as the person you choose knows it is a pause and not a punishment. Say it before the first argument, not during it.'
         case 'avoid':
-          return 'You tend to let things pass rather than raise them. Nothing on this map is more worth working on: the things that matter do not leave on their own, and unsaid, they can surface years later wearing a different name.'
+          return 'You tend to let things pass rather than raise them. This one is worth working on: the things that matter to you do not always leave on their own, and unsaid, they can come back later in another form.'
         default:
           return 'You get heated and then you repair. The repair is the part that matters, and it is a real skill — just make sure the person across from you experiences the repair as clearly as they felt the heat.'
       }
@@ -247,15 +247,15 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
         att === 'anxious'
           ? ' When someone goes quiet you worry first. Read a silence slowly: reach for your salah, a walk, a friend, before you reach for the phone.'
           : att === 'avoidant'
-            ? ' When someone gets close you pull back. Saying so — "I need a moment, I am not disappearing" — is what keeps that from reading as rejection.'
+            ? ' When someone goes quiet you pull back and get on with your own things. Saying so — "I am still here, just getting on with things" — keeps that from reading as not caring.'
             : att === 'secure'
               ? ' You stay steady when someone goes quiet, and that is worth a lot to whoever you choose.'
               : ' For you it depends on the person, which means the person matters more than the pattern.'
       if (h === 'healed') return `What is behind you is behind you, and you said so.${lean}`
       if (h === 'healing') return `Something is still with you, and you know it. Knowing is most of it.${lean}`
       if (h === 'fresh')
-        return `Something recent still hurts, and you said so plainly.${lean} Move gently. The right person will not need you to be finished.`
-      return `You have not looked closely at what you might still be carrying.${lean} Worth an hour on your own before someone else finds it first.`
+        return `Something recent still hurts, and you said so plainly.${lean} Move gently. Nobody worth marrying needs you to be finished.`
+      return `You have not looked closely at what you might still be carrying.${lean} Worth some time on your own, before someone else finds it first.`
     }
 
     case 'selfAwareness': {
@@ -263,9 +263,9 @@ function dimensionNote(dim: Dimension, answers: Answers): string {
       const named = own ? ' And you wrote down what you are still working on, unprompted.' : ''
       switch (a('pattern')) {
         case 'unavailable':
-          return `You see your pull toward people who cannot fully show up.${named} Let availability, not chemistry, be the first filter — it is the cheapest test there is.`
+          return `You see your pull toward people who cannot fully show up.${named} Let availability, not chemistry, be the first filter — it is a cheap test.`
         case 'rushing':
-          return `You know you move fast.${named} Let this slow you down; the right person is still there at a calmer pace.`
+          return `You know you move fast.${named} Let this slow you down; someone serious can keep a calmer pace.`
         case 'walls':
           return `You keep your walls up, and you said so.${named} Real closeness will ask you to lower one a little earlier than is comfortable — with someone who has earned it.`
         case 'settling':
@@ -333,13 +333,13 @@ function growthNote(answers: Answers): string {
 
   const PAIRS: Record<string, string> = {
     'trust|walls':
-      'You said the hardest part is trusting again, and that the pattern you want to leave behind is keeping your walls up. Those are not two problems. They are one thing seen from the inside and from the outside — and the way through is not to tear the wall down, it is to let one person earn a door.',
+      'You said the hardest part is trusting again, and that the pattern you want to leave behind is keeping your walls up. Those may be one thing, seen from the inside and from the outside — and the way through is not to tear the wall down, it is to let one person earn a door.',
     'trust|unavailable':
- 'You said trusting again is the hardest part, and that you tend to choose people who cannot fully show up. Be gentle with yourself about that: someone unavailable can never test your trust, which makes them feel safer than they are.',
+ 'You said trusting again is the hardest part, and that you tend to choose people who cannot fully show up. Be gentle with yourself about that: someone unavailable never asks much of your trust, which can make them feel safer than they are.',
     'serious|rushing':
       'You want to know whether someone is serious, and you know you tend to move fast. Those work against each other — speed is what makes seriousness hard to read. Slowness is not a delay here; it is the actual instrument.',
     'serious|settling':
-      'You said the hardest part is knowing if someone is serious, and that you have settled before. That combination has a specific danger: when you have accepted less once, "serious enough" starts to sound like serious.',
+      'You said the hardest part is knowing if someone is serious, and that you have settled before. That combination has a specific danger: when you have accepted less once, "serious enough" can start to sound like serious.',
     'family|rushing':
       'You named family pressure as the hardest part, and rushing as the pattern you want to leave. Those are connected — a clock you did not set can make anyone choose fast. The pace can be yours even when the questions are not.',
     'family|settling':
@@ -354,7 +354,7 @@ function growthNote(answers: Answers): string {
     unavailable:
       'You see your pull toward people who cannot fully show up. Naming it is how you start choosing differently — let availability, not chemistry, be your first filter.',
     rushing:
-      'You know you tend to move fast. Let this slow you down; the right person will still be there at a calmer pace.',
+      'You know you tend to move fast. Let this slow you down; someone serious can keep a calmer pace.',
     walls:
       'You guard yourself closely. Real intimacy will ask you to lower the wall a little earlier than feels comfortable — gently, and with someone who earns it.',
     settling:
@@ -471,10 +471,10 @@ function summaryFor(
   // after being hurt") and was read nowhere in the codebase.
   const hook = getHookOption(answers['hardest-part'] as string | undefined)
   const named = hook
-    ? ` Before any of these questions, you told us the hardest part right now is ${hook.short} — so read the rest of this as an answer to that.`
+    ? ` Before any of these questions, you told us the hardest part right now is ${hook.short} — so keep that in mind as you read the rest.`
     : ''
 
-  return `${opener}${named} Your strongest ground is ${top.label.toLowerCase()}, and the place with the most room to grow is ${low.label.toLowerCase()} — not a flaw, just where a little more reflection will pay off most.`
+  return `${opener}${named} Your strongest ground is ${top.label.toLowerCase()}, and the place with the most room to grow is ${low.label.toLowerCase()} — not a flaw, just where you might start.`
 }
 
 /** Pure synthesis — deterministic, no I/O. */

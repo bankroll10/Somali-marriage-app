@@ -6,7 +6,10 @@
 # graded by the same rules, scored by a judge, and compared with the committed
 # baseline (docs/GUIDE-EVAL.md). It costs about $4 a run, so it runs when the
 # prompt, the guide, the offline voice or the suite itself changes — and by
-# hand.
+# hand. The relationship-judgment half (tests/judgment-live.test.ts) runs in
+# the same job: it also triggers on any change to relationship content — the
+# Read, the Eleven, the scripts — so a changed line meets the judge before it
+# merges.
 #
 # Without an ANTHROPIC_API_KEY repository secret it warns and passes: the
 # offline suite is the gate that always bites, and this one bites the day the
@@ -20,8 +23,12 @@ on:
       - netlify/shared/prompt.ts
       - netlify/functions/guide.ts
       - src/lib/coach.ts
-      - src/data/coach.ts
+      - src/data/**
+      - src/lib/read.ts
+      - src/lib/beforeYes.ts
+      - src/lib/couple.ts
       - tests/guide-eval/**
+      - tests/judgment/**
 
 concurrency:
   group: guide-eval-${{ github.ref }}
@@ -66,6 +73,23 @@ jobs:
             exit 1
           fi
 
+      - name: Judge relationship judgment
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::warning::No ANTHROPIC_API_KEY secret, so relationship judgment was not judged live. The offline harness still ran in verify. docs/GUIDE-EVAL.md"
+            exit 0
+          fi
+          set -o pipefail
+          if ! npm run eval:judgment 2>&1 | tee judgment.log; then
+            if grep -q "credit balance is too low" judgment.log; then
+              echo "::warning::The Anthropic account behind ANTHROPIC_API_KEY has no credit, so relationship judgment was not judged live. docs/GUIDE-EVAL.md"
+              exit 0
+            fi
+            exit 1
+          fi
+
       # The same report, in the log, for a reader that cannot fetch artifacts:
       # a cloud session's network policy can refuse the artifact store while
       # the log stays readable. Gzipped and base64'd, one marked line per
@@ -74,7 +98,7 @@ jobs:
       - name: Print the report into the log
         if: always()
         run: |
-          for f in tests/guide-eval/results/live-*.json; do
+          for f in tests/guide-eval/results/live-*.json tests/judgment/results/live-*.json; do
             [ -f "$f" ] || continue
             gzip -c "$f" | base64 -w 0 | fold -w 3000 | sed "s|^|GUIDE_EVAL_REPORT $(basename "$f") |"
             echo
@@ -85,6 +109,8 @@ jobs:
         if: always()
         with:
           name: guide-eval
-          path: tests/guide-eval/results/
+          path: |
+            tests/guide-eval/results/
+            tests/judgment/results/
           retention-days: 14
           if-no-files-found: ignore

@@ -101,7 +101,7 @@ export const FORCED_REPLY = `Being made to marry is not a family disagreement to
 
 Tell one person outside the household today — an aunt, a teacher, a friend's mother, an imam you trust — exactly what has been said, and when. Not for advice yet. So that someone who is not deciding this knows.
 
-If you are being taken somewhere, or you are in danger now, call the emergency number below. The helpline is free, and you do not have to give your name.
+If you are being taken somewhere, or you are in danger now, call the emergency number below. If a helpline shows below, it is free, and you do not have to give your name.
 
 Nothing here decides what you do next. It only makes sure you are not the only one who knows.`
 
@@ -113,6 +113,11 @@ Nothing here decides what you do next. It only makes sure you are not the only o
 const CRISIS_WORDS = [
   'kill myself', 'killing myself', 'suicide', 'suicidal', 'end my life', 'ending my life', 'end it all',
   'want to die', 'wanna die', 'better off dead', 'no reason to live', 'not want to live', "don't want to live",
+  // Passive ideation, as screening instruments word it: a wish not to be
+  // alive, said without a plan (docs/DECISIONS.md Part 19).
+  'wish i was dead', 'wish i were dead', "wish i wasn't alive", "don't want to be alive", 'dont want to be alive',
+  "don't want to wake up", 'dont want to wake up', 'no point in living', 'no point living', 'take my own life',
+  'better off without me',
   'hurt myself', 'hurting myself', 'harm myself', 'harming myself', 'self harm', 'self-harm', 'cut myself', 'cutting myself',
 ]
 
@@ -128,7 +133,7 @@ export function needsCrisisLine(message: string, from: 'user' | 'coach' = 'user'
 /** The offline answer to any of those. No numbers: HelpLine puts the checked crisis line beneath it. */
 export const CRISIS_REPLY = `I am really glad you told me. What you are feeling matters more than anything about a courtship, and you do not have to carry it alone.
 
-If you might act on these thoughts, call your emergency number now. If you can, reach the crisis line below — it is free, and they are there for exactly this.
+If you might act on these thoughts, call your emergency number now. If you can, reach the crisis line below; they are there for exactly this.
 
 Then tell one person who loves you — a sister, a brother, a friend, your mother — what you told me, today. You deserve someone with you tonight.`
 
@@ -227,6 +232,29 @@ const DIFFERENCE_WORDS = [
   'meet him halfway', 'meet her halfway', 'halfway', 'incompatible', 'not compatible', 'we are different on', "we're different on",
   'we worked out', 'keep reopening',
 ]
+/** "We see money sent home differently": the thing named between the words. */
+const DIFFERENCE_RE = /\bsee (\w+ ){1,5}differently\b/
+
+/**
+ * She has named a line: a difference that is not hers to negotiate. The
+ * difference answer's words ask what each could live with, which is right
+ * for a difference still open and wrong for this one: the Eleven hands her
+ * SAY_THE_LINE here, and the Guide used to hand her a middle (docs/DECISIONS.md
+ * Part 19, found by tests/judgment/pairs.ts). Said about the difference, not
+ * a question: "is that a dealbreaker in Islam?" asks for a ruling.
+ */
+const LINE_WORDS = [
+  'a line for me', 'is my line', 'my red line', 'non-negotiable for me', 'a non-negotiable for me', 'one of my non-negotiables',
+  "i won't compromise on", 'i wont compromise on', "i can't compromise on", 'i cant compromise on',
+]
+
+export const LINE_REPLY = `A line is not a position to bargain over, and nothing here will ask you to find a middle on it. Being asked to meet halfway does not make it smaller, and it does not make you unreasonable.
+
+What is left is whether they have heard it plainly, from you, once, and whether their answer is final too. If it is, you have both learned it plainly. If they ask you to give it up again, you do not owe that conversation twice.
+
+Try: "I want to say this plainly, so it isn't left open between us. This one is a line for me. I'm not asking you to meet me halfway on it. I'd rather know now whether your answer is final too."
+
+Say it once, and listen for a plain answer.`
 
 export const DIFFERENCE_REPLY = `Not agreeing is not a verdict on the two of you. Some differences get settled once. Some you live alongside, with an arrangement you both keep. And some are a line for one of you. Only you can say which this one is.
 
@@ -301,11 +329,11 @@ export const PRESSURE_REPLY = `The questions can be love that has not learned to
 
 You can honour your family and the decision can still be yours. The pace is yours even when the questions are not.
 
-• Ask plainly for what you need — time, or to be asked differently. Parents asked for a part can often give it.
+• Ask plainly for what you need — time, or to be asked differently. Parents asked for a part can give it.
 • If it is a particular person they want, your consent is yours to give. Saying so once, calmly, is not disrespect.
 • If it has gone past questions — if you are being made to, or afraid to say no — that is not pressure to manage. Tell one person you trust today; in danger, the emergency number is below.
 
-Try: "I know you want this for me, and I want it too. Please trust me to choose who, and when. Can we agree you'll ask me once a month, and I'll tell you where I am?"
+Try: "I know you want this for me. Please trust me to choose who, and when. Can I be the one to come to you with where I am, instead of being asked?"
 
 Say it to the one who asks most, this week.`
 
@@ -401,7 +429,7 @@ export function intentReply(ctx: CoachContext): string {
 
 • What have you seen yourself? Not what you were told, and not only how it felt.
 • What do you hope, or fear, it means? Keep that separate.
-• What haven't you asked ${him}? Most of what we guess about someone, we could ask.
+• What haven't you asked ${him}? Much of what we guess about someone, we could ask.
 
 Niyyah's read asks about what ${he} has done, not what ${he} feels, if you want to set it down.
 
@@ -526,7 +554,7 @@ const CLOCK_RE = /\b(almost|nearly|turning|about to turn|over|past|already) (2[5
 
 export function clockReply(ctx: CoachContext): string {
   const nobody = (who: string) =>
-    `The clock is real, and so is the worry that the room is small. Nobody can promise you ${who}, and I won't pretend to.`
+    `The clock you feel is real, and so is the worry that the room is small. Nobody can promise you ${who}, and I won't pretend to.`
   if (ctx.stage === 'preparing' || ctx.stage === 'married') {
     const nn = ownNonNegotiables(ctx)
     const list = nn.length
@@ -621,7 +649,7 @@ const THANKS_WORDS = [
 export const CLOSE_REPLY = `Then go and say it. I'm glad it helped. You don't need to come back here first; the next step is yours.`
 export const STOP_REPLY = `Then we stop here. Nothing needs deciding tonight; it will still be there tomorrow, and so will you.`
 
-const DEFERENCE = `For the ruling itself, take it to a scholar or imam you trust. A guide can share principles; a ruling is theirs to give.`
+export const DEFERENCE = `For the ruling itself, take it to a scholar or imam you trust. A guide can share principles; a ruling is theirs to give.`
 
 /** The guide's own words that point at real-world help — the numbers belong under them. */
 const HELP_WORDS = ['emergency', 'helpline', 'in danger', 'real-world help']
@@ -649,7 +677,7 @@ If someone is holding pictures or messages over you: do not pay, do not send mor
 
 If someone checks your phone, keeps your money, decides who you see, shouts at you, or you are careful what you raise because of how they react: that is not a disagreement to work out. Tell that one person, as it is.
 
-The helpline below is free, and you do not have to give your name.`
+If a helpline shows below, it is free, and you do not have to give your name.`
 
 function scoreIntent(intent: CoachIntent, message: string): number {
   const m = normalize(message)
@@ -917,8 +945,10 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
       ? fixed(WENT_DIFFERENTLY_REPLY)
       : PROCESS_WORDS.some((w) => hasWords(m, w))
         ? fixed(PROCESS_REPLY)
-        : DIFFERENCE_WORDS.some((w) => hasWords(m, w))
-          ? fixed(DIFFERENCE_REPLY)
+        : LINE_WORDS.some((w) => hasWords(m, w))
+          ? fixed(LINE_REPLY)
+          : DIFFERENCE_WORDS.some((w) => hasWords(m, w)) || DIFFERENCE_RE.test(m)
+            ? fixed(DIFFERENCE_REPLY)
           : decisionReply(message, m, ctx) ?? voiceReply(message, ctx, modeId)
   // Principles, never rulings, and the ruling's owner named. "Too far in" is
   // years spent, not a question about how far is too far.

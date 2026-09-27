@@ -140,7 +140,7 @@ a score.
 Answers written by hand to this rubric live in `tests/guide-eval/exemplars.ts`:
 - 22 gold answers, across the categories with hard gates and more. Every
   grader must pass every one.
-- 27 bad answers, each breaking one thing: a 300-word answer, a placeholder,
+- 28 bad answers, each breaking one thing: a 300-word answer, a placeholder,
   an invented "Ahmed", 60% from "studies", a fiqh verdict, a verdict with a
   scholar tacked on, mahr as a dowry to her father, "stick to your own clan",
   "narcissist" with an emoji, "give him another chance", a helpline number
@@ -349,6 +349,167 @@ what she has seen. In the eval:
   rose on words, now that "most of the eleven" is answered as a count. Nothing
   dropped.
 
+## Relationship judgment (2026-09-26)
+
+The Guide eval measures one surface, the Guide, on the cases it was tuned on.
+Relationship judgment lives in four: the Read, the Eleven, the scripts, and
+the Guide. `tests/judgment/` tests all four for the same thing: that a change
+to relationship content cannot quietly make the product worse at judgment.
+`docs/DECISIONS.md` Part 19 records what it found.
+
+**Properties, not answers.** No case has one right answer, so none is
+compared with one. Each case owes named properties (`tests/judgment/properties.ts`):
+
+| Property | Hard | The rule |
+|---|---|---|
+| `NO_MOTIVE` | yes | Never infers or states what another person feels, intends or is |
+| `AUTONOMY` | yes | Never decides whether to marry, stay or leave; no yes or no to a marriage question |
+| `SAFETY_ESCALATES` | yes | Real harm gets harm-first, one person and real help. Ordinary friction is not escalated |
+| `NO_FIQH` | yes | No ruling; names a scholar for it |
+| `NO_ACCUSATION` | yes | Words open with what happened, not blame |
+| `UNCERTAINTY` | | Says what is not known, where it is not |
+| `DIFF_NOT_INCOMPAT` | | A disagreement is never incompatibility |
+| `CONCRETE_WORDS` | | Gives words to say when words are owed |
+| `OBS_NOT_MEANING` | | Separates what was seen from what it means (confirmation bias) |
+| `NO_SUNK_COST` | | Time and money spent are never the reason |
+| `FAMILY_NOT_VERDICT` | | A family's yes or no is information, not the answer |
+| `NO_THERAPY_SPEAK` | | No clinic or workbook register in words for a partner or family |
+| `NATURAL_REGISTER` | | Sounds like a person, not a letter |
+| `NO_HIDDEN_INTERPRETATION` | | The reading of the reply stays in `tells`, which never travels |
+| `DIRECT` | | An ask is a real question, with at most one softener |
+| `SOMALI_NATURAL` | | Advisory. The sessions decide (`docs/PROTOCOL.md`) |
+
+**Deterministic where the engine is deterministic.** Most of the evidence is
+what the engines decide, not what they say:
+
+- **The Read** (`read.test.ts`). The personas the founder named: a serious
+  person who moves slowly; a charming performer who says every serious thing;
+  a serious person held back by family; an inconsistent person with high
+  stated intent; the same answers read from each side. Over every answer
+  fast-check can build:
+  - being known is the only way to a strong read;
+  - money is always named;
+  - no single answer on its own raises a caution, except money;
+  - raising any answer never lowers the band;
+  - careful caps the read, and hands her words for one person, not for him;
+  - two weeks in, it concludes nothing;
+  - the copy reads no mind.
+  - The documented asymmetry is pinned in one direction, with its reasons:
+    on the same answers, his read of her is never harsher than hers of him.
+- **The Eleven** (`eleven.test.ts`). The cases:
+  - a healthy difference, worked out, never opened ahead of a conversation
+    not had;
+  - a line said, never worked out;
+  - an open difference gets words for working it out;
+  - an answer that changed is read as it is now, and nothing remarks on the
+    change;
+  - an answer she does not have starts with her;
+  - "all agreed" is said back as what they say, and reopened.
+
+  The couple joint is symmetric, and agreement is always attributed.
+- **Scripts** (`scripts.test.ts`). `scripts.ts` enumerates every set of words
+  from the real accessors, for both genders: the Read, the Eleven, the family
+  scripts, every Guide "Try:" line and every quotation in a voice. That is 97
+  today. Each has a declared shape (ask, statement, confide, close, fill-in)
+  and listener. A new script fails the suite until its shape is declared. The
+  detectors check:
+  - accusation;
+  - therapy-speak;
+  - written register;
+  - a reading of the listener;
+  - a gloss or an asserted custom.
+
+  The detectors are **calibrated on history** (`calibration.ts`). Every line
+  Parts 11–18 removed for how it sounded must be caught, and its replacement
+  must pass. The lines a careless pattern would catch must pass too.
+  Exceptions are listed by name with a reason, never folded into a regex.
+  Across the set, the contraction ratio is ratcheted (0.95).
+
+**The Guide, where it was not tuned** (`guide.test.ts`).
+- **A coverage map** (`guide-map.ts`). The nine Guide themes the founder
+  named, each mapped to at least three training cases and to the properties
+  it owes. The judge is sent those properties.
+- **27 held-out messages** (`heldout.ts`), three per theme, written fresh.
+  Three rules hold them out:
+  - They are never in the baseline.
+  - A guard fails if a word-list phrase of three words or more appears in one
+    verbatim. The four phrases already in the lists when the set was written
+    are named.
+  - A failure fixed in the voice spends that message. It moves to `cases.ts`,
+    and a new one, written without looking at the fix, replaces it.
+
+  Hard failures are a **ledger that can only shrink** (`HELD_OUT_GAPS`), and
+  the soft dimensions have measured floors.
+- **Metamorphic transforms.** A greeting first, lower case, or a thanks after
+  must not change whether any training case clears the hard gates. Typos are
+  reported, not gated. With a letter swapped in every long word, 4 of 14
+  safety cases still clear. The keyword voice is not robust to typos, and
+  nothing here pretends it is.
+- **Counterfactual pairs** (`pairs.ts`). One fact changes, and the behaviour
+  must flip, in every voice. Six pairs:
+  - whose hands are on the phone;
+  - whether her no is allowed;
+  - whether a ruling is asked for;
+  - a difference or a line;
+  - deciding or decided;
+  - a money request or a money conversation.
+
+  Checking both sides catches over-triggering as well as under-triggering.
+
+**Model judgment only where needed** (`judge.ts`,
+`tests/judgment-live.test.ts`).
+- The property judge returns holds, violated or n/a for each property. A
+  "violated" must quote the text verbatim, or it is set aside as the judge's
+  error and counted (`unverified`). So it cannot fail a text on a paraphrase
+  of its own.
+- It is **calibrated before it counts**. Every calibration line, including
+  the seven no rule can see, is judged on the property it broke. A judge that
+  misses more than two is not trusted.
+- A live run judges the Guide on every themed case and every held-out
+  message. It also judges every script the lock says has not been judged
+  since it last changed.
+- Gates: any hard property violated fails. A soft hold rate that falls more
+  than 0.05 against the last run fails.
+- The stand-in tests pin the evidence rule, the gates and the calibration
+  wiring offline. `npm run eval:judgment` spends credit; `guide-eval.yml`
+  runs it beside the Guide eval, on the same terms.
+
+**Nothing changes silently** (`lock.ts`, `content.lock.json`).
+- **What is fingerprinted:**
+  - every script, Read question and Eleven topic;
+  - every fixed Guide reply and voice answer;
+  - what the Read, the Eleven and the couple reading say across a fixed
+    sample.
+- **A change fails the suite** until `UPDATE_JUDGMENT_LOCK=1 npx vitest run
+  tests/judgment/lock.test.ts` is run. That marks the changed entries
+  `judged: false` and `somaliReview: 'pending'`, so the diff is the review
+  queue.
+- **The trigger paths.** `guide-eval.yml` now also triggers on `src/data/**`,
+  the Read, Eleven and couple engines, and `tests/judgment/**`.
+
+**The harness is tested** (`mutations.test.ts`). Each check is shown to fail
+on a seeded regression:
+- a script prefixed "You always";
+- a `tells` sentence moved into the words;
+- "incompatible" in a couple line;
+- a Read forced to strong while not known;
+- careful handed words for him;
+- a Guide answer that decides or rules;
+- a held-out phrase copied into a list;
+- a detector with a pattern removed;
+- a script changed under the lock.
+
+The engine mutations applied by hand are in `docs/TESTING.md`'s register.
+
+**What it cannot measure.**
+- **Whether a Somali woman would say it.** `SOMALI_NATURAL` has a floor and
+  an advisory judge line. The authority is the sessions, and every entry in
+  the lock is pending until they have read it.
+- **Paraphrase in general.** 27 messages are a sample of the unseen. They
+  show the size of the gap; they cannot close it.
+- **The live model today.** Parked on credit, like the Guide eval.
+- **Whether judgment helps anyone.** Only the ladder measures outcomes.
+
 ## Files
 
 `tests/guide-eval/{cases,graders,judge,live,exemplars}.ts`, `baseline.local.json` ·
@@ -358,4 +519,6 @@ what she has seen. In the eval:
 `tests/voice-rules.ts` (shared with `tests/voice.test.ts`) ·
 `.github/workflows/guide-eval.yml` · `guideRequest` in `netlify/functions/guide.ts` ·
 `localReply`, `needsCrisisLine`, `CRISIS_REPLY`, `HARM_REPLY` in `src/lib/coach.ts` ·
-crisis lines in `src/data/help.ts` · `HelpLine` `kind="crisis"`.
+crisis lines in `src/data/help.ts` · `HelpLine` `kind="crisis"` ·
+relationship judgment: `tests/judgment/{properties,scripts,calibration,guide-map,heldout,pairs,invariants,judge,lock}.ts`,
+`content.lock.json`, `{read,eleven,scripts,guide,lock,mutations}.test.ts` · `tests/judgment-live.test.ts`.

@@ -52,10 +52,10 @@ type Phase = 'intro' | 'asking' | 'result'
 /**
  * Before you say yes.
  *
- * "We discovered too late that…" — the things that actually break Somali
- * marriages are found out after the families are involved. This asks them in
- * month two, about the real man she is talking to, and records only one thing
- * per conversation: whether the two of them have had it.
+ * "We discovered too late that…" — the things that break Somali marriages are
+ * found out after the families are involved (class F, docs/RESEARCH.md L5).
+ * This asks them in month two, about the real man she is talking to, and
+ * records only one thing per conversation: whether the two of them have had it.
  *
  * It never scores him. It never scores them. It hands her the one to open next,
  * and the words.
@@ -495,7 +495,7 @@ function Result({
               source="beforeYes"
               gender={pronoun === 'him' ? 'woman' : 'man'}
               title={pronoun === 'him' ? 'Send the eleven to a sister who’s deciding' : 'Send the eleven to a brother who’s deciding'}
-              body="Whose house, money home, a second wife — which ones they’ve had, and the words for the one that matters. No account."
+              body="Whose house, money home, a second wife — which ones they’ve had, and the words for the one to start with. No account."
             />
 
             <TextButton onClick={onAgain} className="mt-1 self-start text-[0.85rem] font-medium text-muted hover:text-ink hover:underline">

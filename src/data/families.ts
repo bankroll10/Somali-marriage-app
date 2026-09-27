@@ -56,11 +56,11 @@ const SCRIPTS: FamilyScript[] = [
     stages: ['talking', 'deciding'],
     for: 'man',
     script: {
-      why: 'They will find out. Better from you, with the whole picture, than from a cousin with none of it.',
+      why: 'Assume they will find out. Better from you, with the whole picture, than from a cousin with none of it.',
       words:
         'Hooyo, Aabo — I want to tell you about someone, and I want you to hear it from me first. I met her online. I know that isn’t how you would have chosen. I’m serious, I want to do this properly, and I want to approach her family the right way. I’d like your help with that.',
       tells:
-        'Say “I’d like your help” and mean it. Asked for their part, most parents give it. Presented with a decision, most look for the flaw in it.',
+        'Say “I’d like your help” and mean it. Asked for their part, parents can give it. Presented with a decision, they may look for the flaw in it.',
     },
   },
   {
@@ -87,7 +87,7 @@ const SCRIPTS: FamilyScript[] = [
       words:
         'I think we’ve talked long enough to know what this is. I’d like you to send your people to my family. I’m not asking you to name a day — just to take that step. If it feels too soon, tell me honestly, and tell me when would feel right.',
       tells:
-        'Listen for “when” and “who should I bring”. “Let’s not rush” has just told you his timeline is not yours. Give him the second question — “when would feel right” — so that his answer has to have a month in it.',
+        'Listen for “when” and “who should I bring”. “Let’s not rush” tells you his pace is not yours, for now. Give him the second question — “when would feel right” — so that his answer has to have a month in it.',
     },
   },
   {
@@ -97,7 +97,7 @@ const SCRIPTS: FamilyScript[] = [
     stages: ['talking', 'deciding'],
     for: 'man',
     script: {
-      why: 'This is the step that turns talking into an intention, and it is the one thing no message can do for you. It costs you something to stand in front of her father or her brother and say it out loud. That is exactly why it counts — and why every month you wait, she is the one carrying the question.',
+      why: 'This is the step that turns talking into an intention, and it is the one thing no message can do for you. It costs you something to stand in front of her father or her brother and say it out loud. That is exactly why it counts.',
       words:
         'Assalaamu alaykum. My name is ———. I have been speaking with your daughter, and she told me you are the one I should come to. I did not want it to go further without doing that. My intention is marriage, and I want to do this the way you would want it done. If you will allow it, I would like my family to come and sit with yours.',
       tells:
@@ -110,11 +110,11 @@ const SCRIPTS: FamilyScript[] = [
     when: 'Before the families set it for you.',
     stages: ['deciding'],
     script: {
-      why: 'If you don’t discuss these between you first, they will be decided in a room you’re not in. Having your own answer before the families meet is the difference between being consulted and being informed.',
+      why: 'If you don’t discuss these between you first, they can be decided in a room you’re not in. Having your own answer before the families meet is the difference between being consulted and being informed.',
       words:
         'Before our families sit down, I want us to have our own answers. What do you think is right for the mahr — and where do you see us living in the first year? I’d rather we walk in knowing where we each stand than find out at the table.',
       tells:
-        'You are listening for whether {he} sees this as “ours to decide first”. If {he} defers everything to the elders now, you have seen how decisions would be made. Say whether that works for you.',
+        'You are listening for whether {he} sees this as “ours to decide first”. If {he} defers everything to the elders, ask whether that is how {he} wants it to stay. Say whether that works for you.',
     },
   },
   // The two below were promised before they existed: "words for two families
@@ -128,7 +128,7 @@ const SCRIPTS: FamilyScript[] = [
     script: {
       why: 'The meeting between the families is where a great deal gets decided quickly, by people who love you and are not you. If your own family walks in knowing what the two of you have already agreed, and what you want left to you, you are part of the room instead of the subject of it.',
       words:
-        'Before our families sit down together, I want to tell you what the two of us have already talked about, so nothing surprises you in the room. We have agreed on ———. Where we see it differently, we have worked out ———. The one thing I would like to decide myself, with {him}, is ———. I trust you with the rest. Please ask me before you agree to anything that changes where we live or how we live.',
+        'Before our families sit down together, I want to tell you what the two of us have already talked about, so nothing surprises you in the room. We’ve agreed on ———. Where we see it differently, we’ve worked out ———. The one thing I’d like to decide myself, with {him}, is ———. I trust you with the rest. Please ask me before you agree to anything that changes where we live or how we live.',
       tells:
         'Listen for whether they repeat back what you said. A parent who asks what you agreed has heard you. If the answer is “leave it to us”, name the one thing that is yours, once — and tell {him} which it is, so the two of you say the same thing in the room.',
     },
@@ -139,7 +139,7 @@ const SCRIPTS: FamilyScript[] = [
     when: 'When you know — and before you spend another month pretending you don’t.',
     stages: ['talking', 'deciding'],
     script: {
-      why: 'Ending something that was meant for marriage and did not become one has no ceremony, so it is easy to go quiet instead, and then the other person spends months reading silence. You can do better than that, and it costs one hard message.',
+      why: 'Ending something that was meant for marriage and did not become one has no ceremony, so it is easy to go quiet instead, and then the other person is left reading silence. You can do better than that, and it costs one hard message.',
       words:
         'I’ve thought about this carefully, and I don’t think we’re right for each other. I don’t want to just go quiet on you — you deserve to hear it plainly. I’ve valued getting to know you. I’ll make dua for you.',
       tells:

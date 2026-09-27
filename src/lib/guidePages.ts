@@ -200,13 +200,13 @@ function about(host: string, guide: Guide, sample = false): string {
   if (sample) {
     return [
       '<div class="about">',
-      `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora, built by a Somali. Free, needs no account, and nothing you read or decide here is recorded. The <a href="${toolPath(guide.toolSlug)}" data-app>interactive version</a> keeps your answers on your own phone unless you choose to send the two-sided sheet to your partner; the app also has a guide that uses an AI model; this page does not. The eleven include qabiil and a second wife, named as such — we take no position on any of them.</p>`,
+      `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora. Free, needs no account, and nothing you read or decide here is recorded. The <a href="${toolPath(guide.toolSlug)}" data-app>interactive version</a> keeps your answers on your own phone unless you choose to send the two-sided sheet to your partner; the app also has a guide that uses an AI model; this page does not. The eleven include qabiil and a second wife, named as such — we take no position on any of them.</p>`,
       '</div>',
     ].join('\n').replace('joinniyyah.com', host)
   }
   return [
     '<div class="about">',
-    `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora, built by a Somali. This guide is free, needs no account, and nothing you read or decide here is recorded — opening this page counts nothing, anywhere.</p>`,
+    `<p><strong>Made by Niyyah</strong>, a marriage product for the Somali diaspora. This guide is free, needs no account, and nothing you read or decide here is recorded — opening this page counts nothing, anywhere.</p>`,
     `<p>There is also an <a href="${toolPath(guide.toolSlug)}" data-app>interactive version</a> at joinniyyah.com that asks which of the eleven you two have had and hands you the one to open first. It keeps your answers on your own phone unless you choose to send the two-sided sheet to your partner, who answers on theirs. The app also has a guide that uses an AI model; this page does not.</p>`,
  `<p>The eleven include qabiil and a second wife, named as such. We take no position on any of them. Every conversation ends in words you can say.</p>`,
     '</div>',
@@ -218,13 +218,13 @@ function preface(sample: boolean): string {
   if (sample) {
     return [
       '<div class="preface">',
-      '<p>The apps ask who is available. These ask what the two of you have said — where you’ll live, money sent home, who is in the house. Found out after the families are involved, any of them is harder to say no to. These are three of the eleven, asked early. Read them separately first, then together; the words are for either of you to say.</p>',
+      '<p>The apps ask who is available. These ask what the two of you have said — where you’ll live, money sent home, who is in the house. Found out after the families are involved, any of them can be harder to say no to. These are three of the eleven, asked early. Read them separately first, then together; the words are for either of you to say.</p>',
       '</div>',
     ].join('\n')
   }
   return [
     '<div class="preface">',
- '<p>The apps ask who is available. These ask what the two of you have said: where you’ll live and whether a mother is in the house, money sent home, whether she keeps working, what “practising” means on a Tuesday, qabiil at somebody’s table, a second wife. Found out after the families are involved, any of them is harder to say no to.</p>',
+ '<p>The apps ask who is available. These ask what the two of you have said: where you’ll live and whether a mother is in the house, money sent home, whether she keeps working, what “practising” means on a Tuesday, qabiil at somebody’s table, a second wife. Found out after the families are involved, any of them can be harder to say no to.</p>',
     '<p>This is the list, asked early. Read it separately first, then together. For each one: why to ask it early, the words to open it — for either of you to say — and what to listen for in the answer. Nothing here scores anyone. It only asks whether the two of you have had the conversation.</p>',
     '</div>',
   ].join('\n')

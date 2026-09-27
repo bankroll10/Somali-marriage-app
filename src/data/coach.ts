@@ -116,18 +116,18 @@ const fit: GuidanceMode['intents'] = [
     respond: (ctx) =>
       `Your map says what you are looking for: ${readMap(ctx)}. No map can tell you who will fit. It tells you what to ask about first.
 
-Don’t shop for a feeling. When you meet someone, ask yourself less “do I feel butterflies?” and more “do we want the same life, and is this someone I respect?” Ask it early, and ask it again once you know them.`,
+Don’t shop for a feeling. When you meet someone, ask yourself less “do I feel butterflies?” and more “do we want a life we could both live, and is this someone I respect?” Ask it early, and ask it again once you know them.`,
   },
   {
     keywords: ['look for first', 'prioritise', 'prioritize', 'what matters', 'most important', 'first thing'],
     respond: () =>
-      `An order worth holding to:
-• **Character & deen** first. Honesty, kindness, God-consciousness. Non-negotiable.
-• **Direction & alignment** second. Same horizon on faith, family, children, where you’ll live.
-• **Emotional availability** third. Can they show up, communicate, repair?
-• **Attraction** fourth — it matters, and it is easy to mistake for more than it is.
+      `One order worth considering:
+• **Character & deen.** Honesty, kindness, God-consciousness.
+• **Where you each stand** on faith, family, children and where you’d live — and whether the differences are ones you could live with.
+• **How they show up.** Can they talk things through, and repair?
+• **Attraction** — it matters, and it is easy to mistake for more than it is.
 
-Put the top first, and test attraction against it rather than the other way round.`,
+If your own non-negotiables say otherwise, they come first. Either way, test attraction against them rather than the other way round.`,
   },
   {
     keywords: ['green flag', 'green flags', 'good sign', 'good signs', 'what to seek'],
@@ -135,7 +135,7 @@ Put the top first, and test attraction against it rather than the other way roun
       `The green flags worth chasing are quiet, not flashy:
 • They’re consistent — the same person on a good day and a bad one.
 • They move toward clarity: comfortable talking future, family, intention.
-• They treat the powerless well — their parents, staff, strangers.
+• They treat people who can do nothing for them well — staff, strangers, the elderly.
 • They can disagree without cruelty, and apologise without ego.
 • Their words and actions match over time.
 
@@ -173,7 +173,7 @@ I love you too much to let you waste your time or your heart. Tell me what’s h
     {
       keywords: ['serious', 'passing time', 'entertaining', 'playing', 'wasting', 'intentions', 'just talking'],
       respond: () =>
-        `My dear, late-night texting and intention are not the same thing, and only one of them is something you can see. I can’t see inside him, and neither can you from here.
+        `My dear, how often he messages and what he intends are not the same thing, and only one of them is something you can see. I can’t see inside him, and neither can you from here.
 
 Watch his feet, not his mouth — does he show up consistently? Has he moved toward your people? If everything stays vague and “fun,” walaal, that is a question he has not answered yet, not an answer. Ask him plainly. Asking is not too much.`,
     },
@@ -182,14 +182,14 @@ Watch his feet, not his mouth — does he show up consistently? Has he moved tow
       respond: () =>
         `Hmm. Let your auntie be honest with you: texting only after midnight is not courting, whatever it feels like at midnight. What you have seen is when he writes, not why.
 
-You are not a secret. You are not a midnight habit. Ask him for the daytime things — a call at noon, a plan to meet your family, marriage said out loud — and watch what he does with the asking.`,
+Ask him for the daytime things — a call at noon, a plan to meet your family, marriage said out loud — and watch what he does with the asking.`,
     },
     {
       keywords: ['family', 'wali', 'parents', 'mother', 'father', 'brother', 'scare him', 'tell my'],
       respond: () =>
         `That instinct is worth trusting. Family is part of how you do this, and that is yours to say.
 
-Bring them in gently, once it’s real: “For me, if this is serious, it goes to my family — that’s how I do things.” Then listen to what he says back. If he pulls back at that, you have heard it plainly, and early — which is what you asked for. Your people protect you. Let them.`,
+Bring them in gently, once it’s real: “For me, if this is serious, it goes to my family — that’s how I do things.” Then listen to what he says back. If he pulls back at that, you have heard it plainly, and early — which is what you asked for. If your people are on your side, let them protect you.`,
     },
     {
       keywords: ['settling', 'too picky', 'standards', 'unrealistic', 'expecting too much', 'should i lower'],
@@ -197,10 +197,10 @@ Bring them in gently, once it’s real: “For me, if this is serious, it goes t
         const nn = ownNonNegotiables(ctx)
         const yours = nn.length
           ? `You already told me your non-negotiables: ${nn.join(', ')}. Those are yours; hold what you see against them.`
-          : `Standards are about *character* — honesty, kindness, deen, how he treats his mother. Hold those like iron; never lower them.`
+          : `Standards are what you would not bend on. If you have not named yours yet, start with character — honesty, kindness, deen — and hold those.`
         return `Listen to me. There is a difference between standards and a wish-list. ${yours}
 
-The wish-list — the height, the salary, the perfect family — soften that. No one is complete. The question is never “is he perfect?” It is “is he good, and is he good *for me*?” Don’t settle on character. Don’t crucify a good man for not being a fantasy.`
+A wish-list is what you would like, and it is yours too — height, salary and a family’s name are allowed to matter. Just know which is which, so a wish never quietly becomes a wall. No one is complete. The question is never “is he perfect?” It is “is he good, and is he good *for me*?” Don’t settle on character. Don’t crucify a good man for not being a fantasy.`
       },
     },
     ...fit,
@@ -234,22 +234,22 @@ I’m not here to hype you up — I’m here to keep you honest and effective. Y
       respond: () =>
         `Stop flirting in circles. State your intention clearly and respectfully — that’s strength.
 
-Try: “I want to be upfront — I’m looking for marriage, and I’d like to get to know you for that. Is that what you want too?” That one sentence gets you an answer, and it is a respectful way to ask for one. Vagueness is a coward’s game, akhi. You’re not that.`,
+Try: “I want to be upfront — I’m looking for marriage, and I’d like to get to know you for that. Is that what you want too?” That one sentence asks for an answer, and it is a respectful way to ask for one. Vagueness is a coward’s game, akhi. You’re not that.`,
     },
     {
       keywords: ['intention', 'desperate', 'awkward', 'too strong', 'scare her', 'come on strong'],
       respond: () =>
         `Intention and desperation are not the same thing. Desperation rushes *her*. Intention is just clear about *you*.
 
-Say what you’re about — “I’m serious, and I’m taking my time to do it right” — then give her room to breathe. Don’t blow up her phone. Consistency over three weeks beats intensity on day two. A man who knows what he’s building doesn’t grovel; he invites.`,
+Say what you’re about — “I’m serious, and I’m taking my time to do it right” — then give her room to breathe. Don’t blow up her phone. Steady for weeks beats intense for a day. A man who knows what he’s building doesn’t grovel; he invites.`,
     },
     {
       keywords: ['her father', 'her brother', 'her wali', 'guardian', 'her family', 'her dad', 'parents'],
       respond: () =>
-        `This is where you become a man in their eyes. Come correct.
+        `This is where they see who you are. Come correct.
 
 • Lead with honour: “I’ve come to you because I’m serious about her for marriage, and I want to do this the right way.”
-• Be ready to speak plainly — your deen, your work, how you’ll provide and protect.
+• Be ready to speak plainly — your deen, your work, how you picture providing.
 • Ask him: “What matters most to you in the man who marries her?” Respect goes a long way.
 • Hide nothing you’d regret later. Honesty now is the foundation of everything.
 
@@ -268,7 +268,7 @@ You’re not asking to date her. You’re declaring serious, honourable intent. 
             : ''
         return `Then lead.${tlLine} Leading isn’t pushing — it’s giving clarity at every step so nobody’s guessing.
 
-• Get aligned on the big things first: deen, family, kids, where you’d live.
+• Get clear on the big things first: where you each stand on deen, family, kids, where you’d live.
 • Bring the families in once it’s real — don’t let it float for months.
 • Name it out loud: “I see this going to marriage. I want to involve our families and take the next step.”
 • When you’re sure, act on it: set the meeting, talk to the wali. Drifting is what you’re avoiding, and deciding, either way, is how you beat it.`
@@ -294,7 +294,7 @@ const therapist: GuidanceMode = {
 Here you can slow down and look at what is going on in you — the overthinking, the spirals, the pulling away — without being judged for it. What’s going on?`,
   starters: [
     { label: 'I can’t stop overthinking his replies', prompt: 'I can’t stop overthinking every reply he sends. Help me.' },
-    { label: 'I think I’m anxiously attached', prompt: 'I think I have anxious attachment. What does that mean for me?' },
+    { label: 'I keep needing reassurance', prompt: 'I keep needing reassurance. What can I do about it?' },
  { label: 'Why do I pull away when I like someone?', prompt: 'Why do I pull away or go cold when I like someone?' },
     { label: 'Help me calm a spiral', prompt: 'I’m spiralling right now. Help me calm down.' },
   ],
@@ -312,16 +312,16 @@ Try separating *fact* from *story*. On one side: what happened (“he replied af
         const lean = ctx.answers['attachment'] === 'anxious'
         const intro = lean
           ? `You told your map that when someone goes quiet, you worry and reread. That isn’t a flaw — it is a pattern, and a pattern can be worked with.`
-          : `An anxious lean means closeness can trigger a fear of losing it — so you seek reassurance, and silence feels like danger.`
+          : `Some people find closeness brings a fear of losing it, so a silence starts to feel like danger. If that is you, it is a pattern, not a flaw, and a pattern can be worked with.`
         return `${intro}
 
-The aim is not to stop feeling anxious. It is to not *act* from it. When the wave comes: name it (“this is the fear, not the truth”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. With practice, a silence can stop feeling like danger.`
+The aim is not to stop feeling anxious. It is to not *act* from it. When the wave comes: name it (“this is the fear talking”), let it pass, and wait before responding. Reach for steadiness — your salah, a walk, a friend — instead of his phone. With practice, a silence can stop feeling like danger.`
       },
     },
     {
       keywords: ['pull away', 'pull back', 'go cold', 'avoidant', 'distance', 'shut down', 'walls', 'guarded', 'independent'],
       respond: () =>
-        `Pulling away is protection, not cruelty. When someone gets close, part of you braces for being hurt or crowded, so you make distance to feel safe again.
+        `Pulling away can be protection, not cruelty. When someone gets close, part of you may brace for being hurt or crowded, and distance feels safer.
 
 The skill is to *notice the urge before you act on it*. When you feel the wall going up, try naming it instead of vanishing: “I need a bit of time to myself — I’ll come back to you.” That one sentence keeps the connection alive while you breathe. The right person can hold your need for space without taking it as rejection — but they can only do that if you tell them, rather than disappear.`,
     },
@@ -397,16 +397,16 @@ A blessed marriage tends to be marked by: choosing for deen and character first 
     {
       keywords: ['family', 'wali', 'guardian', 'parents', 'involve', 'her father', 'permission'],
       respond: () =>
-        `Family and the wali aren’t bureaucracy — they’re a mercy and a protection, especially for the woman. A marriage built in the open, with families honoured, starts on solid ground.
+        `Family and the wali aren’t bureaucracy — they’re meant as a mercy and a protection, especially for the woman. A marriage built in the open, with families honoured, starts with support around it.
 
-For a sister, the wali has a real place in her nikah; exactly what, and what makes a nikah valid, is where the schools differ, and a question for a scholar you trust. For a brother, approaching the family with respect is how you prove your seriousness. Bring them in as soon as it’s real. What’s done in the light, with the people who love you, starts on firmer ground than anything done in secret.`,
+For a sister, the wali has a real place in her nikah; exactly what, and what makes a nikah valid, is where the schools differ, and a question for a scholar you trust. For a brother, approaching the family with respect is how you prove your seriousness. Bring them in as soon as it’s real.`,
     },
     {
       keywords: ['respect', 'character', 'how he treats', 'kindness', 'red flag', 'akhlaq'],
       respond: () =>
         `In our deen, character — akhlaq — is the truest measure. As the hadith says, “The most complete of believers in faith are the best of them in character, and the best of you are those best to their wives.”
 
-So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth fade; taqwa and good character are what you’ll lean on for a lifetime.`,
+So look past charm to how they treat people: their parents, the waiter, those who can do nothing for them. Watch for honesty, gentleness, and God-consciousness in private, not just performance in public. Beauty and wealth are allowed to matter; the hadith asks you to put deen first among them.`,
     },
   ],
   fallback: () =>

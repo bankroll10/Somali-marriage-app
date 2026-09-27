@@ -52,7 +52,7 @@ export interface Topic {
   prompt: string
   /** 0–1. How much rides on this one. Decides which gap gets the words. */
   consequence: number
-  /** Why this one is found out too late, specifically in our families. */
+  /** Why this one is found out too late, specifically in our families (class F, docs/RESEARCH.md L5). */
   why: string
   script: ElevenScript
   yourSide?: YourSide
@@ -70,7 +70,7 @@ export const TOPICS: Topic[] = [
     // — the less common direction here. His people's house is the question
     // his side carries (docs/DECISIONS.md Part 10).
     man: { prompt: 'Where you’d live — which city, and whether with your mother, near her, or on your own.' },
-    why: 'This is rarely decided by two people alone, and it is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and find out only once the lease is signed that they pictured different homes.',
+    why: 'Whether this is decided by the two of you, or with a family in the room, is easy to assume rather than ask. One of you pictures a house with family in it; the other pictures a front door of your own. Two people can agree on everything else and find out only once the lease is signed that they pictured different homes.',
     script: {
       why: 'Where you live decides who is in your home every day, and it is easy not to ask until the lease is signed.',
       words:
@@ -102,7 +102,7 @@ export const TOPICS: Topic[] = [
         words:
           'I want to ask about my family and our home, so nothing surprises you later. Would you be alright with someone from my side living with us one day? And how much hosting feels right to you — I’d rather we plan for it than have you come to resent it.',
         tells:
-          'Listen for whether she has pictured it, or only agreed to it. A quick yes with nothing behind it is the answer that comes back in year two. Answer the same questions yourself, out loud, before you leave the subject.',
+          'Listen for whether she has pictured it, or only agreed to it. A quick yes with nothing behind it is the answer that comes back later. Answer the same questions yourself, out loud, before you leave the subject.',
       },
     },
     script: {
@@ -151,13 +151,13 @@ export const TOPICS: Topic[] = [
     label: 'Money sent home',
     prompt: 'Money — who pays for what, and what either of you sends home to family.',
     consequence: 0.85,
-    why: 'Money sent home is easy to leave unsaid until after the wedding. It is not about generosity. It is two families’ expectations landing on one income, unspoken.',
+    why: 'Money sent home is easy to leave unsaid until after the wedding. It is not about generosity. It can be two families’ expectations landing on one income, unspoken.',
     script: {
       why: 'If nobody talked about money with you growing up, that is a reason to talk about it with {him}, not a reason to skip it.',
       words:
-        'Can we talk about money plainly? Do you send money home — and to whom? I’ll tell you mine. And once we’re married, do we decide that together, or does each of us decide our own?',
+        'Can we talk about money plainly? Do you send money home, and who to? I’ll tell you mine. And once we’re married, do we decide that together, or does each of us decide our own?',
       tells:
-        'You are not looking for a number. You are looking for whether {he} will say it out loud, and whether “together” comes easily or makes {him} defensive. Someone who can name {his} obligations can be planned around. Someone who won’t, can’t.',
+        'You are not looking for a number. You are looking for whether {he} will say it out loud, and whether “together” comes easily or makes {him} defensive. Someone who can name {his} obligations can be planned around. Someone who won’t has not given you anything to plan around yet.',
     },
     yourSide: {
       question: 'money-home',
@@ -172,13 +172,13 @@ export const TOPICS: Topic[] = [
   {
     id: 'children',
     label: 'Children',
-    prompt: 'Children — how many, how soon, and whether they’d speak Somali at home and go to dugsi.',
+    prompt: 'Children — whether you want them, how many, how soon, and whether they’d speak Somali at home and go to dugsi.',
     consequence: 0.9,
-    why: '“Inshallah, when Allah wills” covers a wide range of very different lives. How soon, how many, Somali in the house, dugsi on Saturdays — these are decisions, and they get made whether or not you make them together.',
+    why: '“Inshallah, when Allah wills”, said on its own, covers a wide range of very different lives. How soon, how many, Somali in the house, dugsi on Saturdays — these are decisions, and they get made whether or not you make them together.',
     script: {
-      why: 'Vagueness here is not romance. It is a decision being left to whoever pushes hardest later.',
+      why: 'Vagueness here is not romance. It can leave the decision to whoever pushes hardest later.',
       words:
- 'When you think about children — how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right — and I’ll tell you mine.',
+ 'When you think about children — do you want them, how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right — and I’ll tell you mine.',
       tells: 'Listen for whether {he} has pictures or only phrases. Pictures can be talked about. Phrases cannot.',
     },
     yourSide: {
@@ -200,7 +200,7 @@ export const TOPICS: Topic[] = [
     man: {
       prompt: 'Deen, day to day — prayer at home, what “practising” means on an ordinary Tuesday, and what you each expect of the other.',
       script: {
-        why: 'An expectation you assumed she would know is the one that becomes a fight in year two — and the same is true of hers.',
+        why: 'An expectation you assumed she would know is the one that becomes a fight later — and the same is true of hers.',
         words:
           'We both say deen matters. Can I ask what that looks like for you on a normal day — prayer, and what you’d want in the house and not in it? And I’ll say what I’d expect, including anything I might have assumed you’d know.',
         tells: 'Say your half first, and say it plainly. Then note whether her answer is specific, and whether it is about the two of you rather than a list for you.',
@@ -215,10 +215,10 @@ export const TOPICS: Topic[] = [
     yourSide: {
       question: 'practice',
       lines: {
-        devout: 'You described your own practice to your map as devout.',
-        consistent: 'You described your own practice to your map as consistent.',
+        devout: 'You told your map your practice shapes your daily life.',
+        consistent: 'You told your map you are consistent in the core, growing in the rest.',
         returning: 'You told your map you are returning to your practice.',
-        cultural: 'You told your map the faith is home for you, and the practice is uneven.',
+        cultural: 'You told your map you are Muslim by identity, lighter in practice.',
       },
     },
   },
@@ -241,11 +241,11 @@ export const TOPICS: Topic[] = [
     label: 'Qabiil',
     prompt: 'Qabiil — whether either of your families will make it a question, and what the two of you have said to each other about it.',
     consequence: 0.7,
-    why: '“It doesn’t matter to me” can be true of both of you and still not settle it. The question was never only about you two. It is whether either family will raise it — and whether {he} will stand next to you when they do.',
+    why: '“It doesn’t matter to me” can be true of both of you and still not settle it. The question was never only about you two. It is whether either family will raise it — and whether {he} will stand next to you if they do.',
     script: {
       why: 'You are not asking whether it matters to {him}. You are asking what happens if it matters to someone at {his} table.',
       words:
-        'Can I ask something we’re not supposed to ask? Will qabiil come up — from your side, or mine? I’m not asking whether it matters to you. I’m asking what we’d do if it matters to someone in your family, or in mine.',
+        'Can I ask something people don’t usually ask? Will qabiil come up — from your side, or mine? I’m not asking whether it matters to you. I’m asking what we’d do if it matters to someone in your family, or in mine.',
       tells:
         '“It doesn’t matter to me” is the beginning. What you want to hear is what {he} would do if it mattered to {his} uncle. If {he} has no answer yet, that is the answer for now: ask {him} to think about it, and ask again.',
     },
@@ -268,11 +268,11 @@ export const TOPICS: Topic[] = [
     label: 'A second wife',
     prompt: 'A second wife — what {he} believes about it for {his} own life, and what {he} has said to you plainly.',
     consequence: 0.9,
-    why: 'It is easy not to ask, because asking feels like an accusation. It isn’t. It is one of the few questions where the answer shapes the rest of a life, and where “it is permitted” and “I would” are very different sentences.',
+    why: 'It is easy not to ask, because asking feels like an accusation. It isn’t. It is a question whose answer shapes the rest of a life, and where “it is permitted” and “I would” are very different sentences.',
     man: {
       prompt: 'A second wife — what you believe about it for your own life, and whether you have said it to her plainly.',
       script: {
-        why: 'She is more afraid to ask this than you are to answer it. Say it before she has to.',
+        why: 'Say it before she has to ask.',
         words:
           'I want to say something plainly, so you never have to ask it. Here is what I believe about a second wife — not what is permitted, but what I want for my own life. I’d rather you hear it from me now than wonder.',
         tells:
@@ -317,7 +317,7 @@ export const TOPICS: Topic[] = [
  * Handing her a question for {him} would make {his} answer hers by default.
  */
 export const OWN_ANSWER_FIRST: ElevenScript = {
-  why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is the most fixable state on this list.',
+  why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is one you can fix on your own.',
   words:
  'I haven’t worked out where I stand on this yet, and I want to before we talk about it properly. Can we come back to it in a week? I’ll tell you plainly then, and I’ll want the same from you.',
   tells:

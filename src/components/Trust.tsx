@@ -92,7 +92,7 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <p className="text-[0.88rem] leading-snug text-muted text-pretty">
                   The step, the date, and for a few steps how it came out, in a word from a list we
                   wrote — under a random code that is not your map code. No answer in your words, and
-                  no name. It is how we find out whether any of this helps. Turn it off and nothing
+                  no name. It is how we find out whether any of this gets used. Turn it off and nothing
                   is sent.
                 </p>
               </>

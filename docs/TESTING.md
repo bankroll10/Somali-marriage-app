@@ -57,6 +57,14 @@ their neighbours had not hollowed them out.
 | Links open the right instrument | `links-open-the-right-thing` | `read` links open the eleven | Red (5) |
 | Both sides stay semantically correct | `both-sides` | `speak()` gives a man the woman's voice | Red (5) |
 | The loop closes | `the-loop-closes` | A man's read follow-up takes her script (2026-09-24) | Red (1) |
+| Relationship judgment | `tests/judgment/` | Careful no longer caps the read at mixed (2026-09-26) | Red (2) |
+| | | The money caution waits until after the early band (2026-09-26) | Red (2) |
+| | | Strong no longer needs being known (2026-09-26) | Green at first: sampling rarely reached it. An enumeration was added; Red (1) |
+| | | A worked-out difference ranks with an open one (settled 0.9) (2026-09-26) | Red (4) |
+| | | "I don't know my own answer" gets the topic's question for him (2026-09-26) | Red (2) |
+| | | The Guide's line reply removed (2026-09-26) | Red (1) |
+| | | "not allowed to refuse him" removed from the force words (2026-09-26) | Red (1) |
+| | | A held-out phrase added to a crisis word list (2026-09-26) | Red (2): the guard, and the gap ledger |
 
 One mutation that the register alone does not catch, on purpose: the forget
 cascade in `netlify/functions/keep.ts` leaving the couple sheet. Her phone
@@ -88,6 +96,12 @@ What each suite holds beyond its mutation:
   reach every band of the read live in `src/lib/read.test.ts`.
 - **`the-loop-closes`.** Words, then "did you say them?" days later, on the
   right side, for both phones of a pair, and Forget me on the Ending.
+- **Relationship judgment** (`tests/judgment/`, `docs/GUIDE-EVAL.md`).
+  Properties, not answers, over the Read, the Eleven, every script and the
+  Guide: personas and fast-check properties for the engines; calibrated
+  detectors for the words; held-out messages, transforms and counterfactual
+  pairs for the Guide; a content lock. Its own seeded regressions are
+  `mutations.test.ts`, which runs every time.
 
 ## The journeys
 
@@ -169,6 +183,7 @@ control that *is* on screen, so a copy change reads as one.
 - **Netlify Blobs' own consistency.** The doubles are strongly consistent.
   The platform's eventual consistency is named in `docs/PRIVACY.md`.
 - **The live model.** The guide is graded offline on every PR, and live on
-  demand with `npm run eval:guide` (`docs/GUIDE-EVAL.md`).
+  demand with `npm run eval:guide` and `npm run eval:judgment`
+  (`docs/GUIDE-EVAL.md`).
 - **Screens no test taps its way to:** the ended flow, ReportConcern and the
   intake's chapter insight.

@@ -42,7 +42,7 @@ export const TITLE = `${NAME} — marriage for the Somali diaspora, done in the 
 
 /** The meta description and the manifest's description. */
 export const DESCRIPTION =
-  'For someone you are already talking to: what they have done, the conversations to have before you marry, and the words for them. For the Somali diaspora. No account.'
+  'For someone you are already talking to: what they have shown you, the conversations to have before you marry, and the words for them. For the Somali diaspora. No account.'
 
 /** What the social card says when a link is pasted into a chat. */
 export const TAGLINE =
