@@ -97,6 +97,14 @@ export interface Tally {
   requests: number
   /** Requests that returned a response. */
   succeeded: number
+  /**
+   * Responses, by the suite's own arithmetic. `needed` is what a full pass of
+   * this run takes (the Guide suite: a guide answer and a judge score per
+   * case; relationship judgment: two per calibration pair, two per Guide
+   * text, one per script). `accounted` is what the recorded rows show. A
+   * pass needs them equal, and neither can exceed `succeeded`.
+   */
+  responses: { needed: number; accounted: number }
   stopped: Stop | null
 }
 
@@ -118,11 +126,18 @@ export interface Outcome {
   run: Tally | null
   gates: Gates | null
   errors: RecordedError[]
-  /** Where the full report (every answer, every grade) was written; null when there is none. */
+  /**
+   * The full report's file name — `live-<time>.json` — inside the suite's
+   * results directory, never a path; null when no run was made. An
+   * evaluated-pass must have one, and ./artifacts.ts recounts it before the
+   * outcome is believed.
+   */
   report: string | null
 }
 
-export const emptyTally = (expected: number): Tally => ({
+export const REPORT_NAME = /^live-[0-9A-Za-z-]+\.json$/
+
+export const emptyTally = (expected: number, needed = 0): Tally => ({
   expected,
   started: 0,
   completed: 0,
@@ -132,6 +147,7 @@ export const emptyTally = (expected: number): Tally => ({
   judged: 0,
   requests: 0,
   succeeded: 0,
+  responses: { needed, accounted: 0 },
   stopped: null,
 })
 
@@ -141,9 +157,43 @@ export const CALIBRATION_MISSES_ALLOWED = 2
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
 
 /**
+ * Every condition a pass requires, stated positively. Anything not on this
+ * list is not a pass, however it came about: a tally the failure branches
+ * below do not describe still fails here, naming the fields that disagree.
+ */
+export function incompleteness(run: Tally): string[] {
+  const out: string[] = []
+  if (run.stopped) out.push(`stopped after ${run.completed} of ${run.expected} (${run.stopped.kind}: ${run.stopped.message})`)
+  const notStarted = run.expected - run.started
+  if (notStarted > 0 && !run.stopped) out.push(`${plural(notStarted, 'case')} never started`)
+  if (run.started > run.completed) out.push(`${plural(run.started - run.completed, 'case')} started and never recorded`)
+  if (run.unavailable > 0) out.push(`${plural(run.unavailable, 'case')} fell back to the offline voice because live inference was unavailable`)
+  const unanswered = run.completed - run.answered - run.unavailable
+  if (unanswered > 0) out.push(`${plural(unanswered, 'case')} not answered by the live model`)
+  const unjudged = run.completed - run.judged
+  if (unjudged > 0) out.push(`${plural(unjudged, 'case')} not judged`)
+  const r = run.responses
+  if (!r || !isInt(r.needed) || !isInt(r.accounted)) out.push('responses are not accounted for')
+  else {
+    if (r.accounted < r.needed) out.push(`${r.accounted} of the ${r.needed} responses a full run takes are accounted for`)
+    if (r.accounted > run.succeeded) out.push(`${r.accounted} responses are accounted for but only ${run.succeeded} requests succeeded`)
+    if (r.needed < run.expected) out.push(`${r.needed} responses cannot cover ${run.expected} cases`)
+  }
+  // The positive statement, so that no arithmetic slip above lets a tally through.
+  const mismatched = (['started', 'completed', 'answered', 'judged'] as const).filter((k) => run[k] !== run.expected)
+  if (!out.length && (mismatched.length || run.unavailable !== 0 || run.stopped || !r || r.accounted !== r.needed || r.accounted > run.succeeded)) {
+    out.push(`the numbers do not describe a complete run (${mismatched.map((k) => `${k} ${run[k]} ≠ expected ${run.expected}`).join(', ') || 'coverage and responses disagree'})`)
+  }
+  return out
+}
+
+/**
  * The outcome a run's numbers and gates earn. Pure: the same tally always
  * gives the same answer, which is how ./check.ts detects a file that
- * contradicts itself.
+ * contradicts itself. A pass requires a nonempty case set; started,
+ * completed, answered and judged all equal to expected; no case
+ * unavailable; no stop; every response a full run takes accounted for and
+ * no more than succeeded; and every gate clean.
  */
 export function decide(run: Tally, gates: Gates, errors: RecordedError[] = []): { outcome: OutcomeKind; reason: string } {
   if (run.expected === 0) return { outcome: 'evaluated-fail', reason: 'the intended case set is empty, so nothing could be evaluated; that is a defect in the suite, not a pass' }
@@ -153,14 +203,7 @@ export function decide(run: Tally, gates: Gates, errors: RecordedError[] = []): 
     return { outcome: 'not-evaluated', reason: `no case was answered by the live model (${why})` }
   }
 
-  const incomplete: string[] = []
-  if (run.stopped) incomplete.push(`stopped after ${run.completed} of ${run.expected} (${run.stopped.kind}: ${run.stopped.message})`)
-  const notStarted = run.expected - run.started
-  if (notStarted > 0 && !run.stopped) incomplete.push(`${plural(notStarted, 'case')} never started`)
-  if (run.started > run.completed) incomplete.push(`${plural(run.started - run.completed, 'case')} started and never recorded`)
-  if (run.unavailable > 0) incomplete.push(`${plural(run.unavailable, 'case')} fell back to the offline voice because live inference was unavailable`)
-  const unjudged = run.completed - run.judged
-  if (unjudged > 0) incomplete.push(`${plural(unjudged, 'case')} not judged`)
+  const incomplete = incompleteness(run)
   if (incomplete.length) return { outcome: 'evaluated-fail', reason: `incomplete — ${incomplete.join('; ')}` }
 
   if (gates.calibrationMisses.length > CALIBRATION_MISSES_ALLOWED) {
@@ -182,8 +225,8 @@ export function notRequired(suite: Suite, at: string, reason: string): Outcome {
 }
 
 /** The suite was due and could not send a request: no key, or a fatal stop carried from the suite before it. */
-export function notEvaluated(suite: Suite, at: string, expected: number, stop: Stop): Outcome {
-  const run = { ...emptyTally(expected), stopped: stop }
+export function notEvaluated(suite: Suite, at: string, expected: number, needed: number, stop: Stop): Outcome {
+  const run = { ...emptyTally(expected, needed), stopped: stop }
   return outcomeOf(suite, at, run, { regressions: [], calibrationMisses: [] }, [], null)
 }
 
@@ -197,6 +240,92 @@ export function fatalUpstream(upstream: Outcome | null | undefined): Stop | null
 
 const isInt = (v: unknown): v is number => typeof v === 'number' && Number.isInteger(v) && v >= 0
 const isRecord = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v)
+
+// ── The report, recounted ────────────────────────────────────────────────────
+
+/**
+ * A run's numbers, counted from its report's rows rather than taken on
+ * trust. The harnesses use this to write the tally in the first place
+ * (tests/guide-eval/live.ts, tests/judgment/live.ts), and ./artifacts.ts
+ * uses it again when the file is read, so an outcome whose report does not
+ * add up to it is refused. Duck-typed on the report shapes, and throws on a
+ * report that is not one.
+ *
+ * The Guide suite: every case owes a guide answer and a judge score. A case
+ * `answered` (text or decline) accounts for one response; a judge score
+ * for one more. Relationship judgment: a Guide text (themed case or
+ * held-out message) likewise; a calibration pair accounts for two judge
+ * responses once both lines are judged; a script for one.
+ */
+export function recount(suite: Suite, report: unknown): Tally {
+  if (!isRecord(report)) throw new Error('report is not an object')
+  const counts = (['expected', 'started', 'requests', 'succeeded'] as const).map((k) => {
+    if (!isInt(report[k])) throw new Error(`report.${k} is not a count`)
+    return report[k]
+  })
+  const [expected, started, requests, succeeded] = counts
+  const stopped = report.stopped === null || report.stopped === undefined ? null : (report.stopped as Stop)
+  if (stopped !== null && (!isRecord(stopped) || typeof stopped.kind !== 'string')) throw new Error('report.stopped is malformed')
+  const base = { expected, started, requests, succeeded, stopped }
+
+  if (suite === 'guide') {
+    if (!Array.isArray(report.cases)) throw new Error('report.cases is not an array')
+    const rows = report.cases as { source?: unknown; judge?: unknown }[]
+    for (const [i, r] of rows.entries()) {
+      if (!isRecord(r) || !['live', 'declined', 'unavailable'].includes(r.source as string) || !('judge' in r)) throw new Error(`report.cases[${i}] is malformed`)
+    }
+    const answered = rows.filter((r) => r.source !== 'unavailable').length
+    const judged = rows.filter((r) => r.judge !== null && r.judge !== undefined).length
+    return {
+      ...base,
+      completed: rows.length,
+      answered,
+      declined: rows.filter((r) => r.source === 'declined').length,
+      unavailable: rows.filter((r) => r.source === 'unavailable').length,
+      judged,
+      responses: { needed: 2 * expected, accounted: answered + judged },
+    }
+  }
+
+  const intended = report.intended
+  if (!isRecord(intended) || !isInt(intended.pairs) || !isInt(intended.guide) || !isInt(intended.scripts)) throw new Error('report.intended is malformed')
+  if (intended.pairs + intended.guide + intended.scripts !== expected) throw new Error('report.intended does not add up to report.expected')
+  if (!Array.isArray(report.results)) throw new Error('report.results is not an array')
+  const rows = report.results as { kind?: unknown; source?: unknown; judgement?: unknown }[]
+  for (const [i, r] of rows.entries()) {
+    if (!isRecord(r) || !['calibration', 'guide', 'held-out', 'script'].includes(r.kind as string) || !('judgement' in r)) throw new Error(`report.results[${i}] is malformed`)
+  }
+  const judgedRow = (r: { judgement?: unknown }) => r.judgement !== null && r.judgement !== undefined
+  const guide = rows.filter((r) => r.kind === 'guide' || r.kind === 'held-out')
+  const pairs = rows.filter((r) => r.kind === 'calibration')
+  const scripts = rows.filter((r) => r.kind === 'script')
+  const guideAnswered = guide.filter((r) => r.source !== 'unavailable').length
+  const judgeOnlyJudged = [...pairs, ...scripts].filter(judgedRow).length
+  return {
+    ...base,
+    completed: rows.length,
+    answered: guideAnswered + judgeOnlyJudged,
+    declined: guide.filter((r) => r.source === 'offline-fallback').length,
+    unavailable: guide.filter((r) => r.source === 'unavailable').length,
+    judged: rows.filter(judgedRow).length,
+    responses: {
+      needed: 2 * intended.pairs + 2 * intended.guide + intended.scripts,
+      accounted: guideAnswered + guide.filter(judgedRow).length + 2 * pairs.filter(judgedRow).length + scripts.filter(judgedRow).length,
+    },
+  }
+}
+
+/** Field by field, so a report that has drifted from its outcome is named by the field. */
+export function tallyDifferences(recorded: Tally, recounted: Tally): string[] {
+  const out: string[] = []
+  for (const k of ['expected', 'started', 'completed', 'answered', 'declined', 'unavailable', 'judged', 'requests', 'succeeded'] as const) {
+    if (recorded[k] !== recounted[k]) out.push(`${k} ${recorded[k]} in the outcome, ${recounted[k]} in the report`)
+  }
+  if (recorded.responses.needed !== recounted.responses.needed) out.push(`responses.needed ${recorded.responses.needed} in the outcome, ${recounted.responses.needed} in the report`)
+  if (recorded.responses.accounted !== recounted.responses.accounted) out.push(`responses.accounted ${recorded.responses.accounted} in the outcome, ${recounted.responses.accounted} in the report`)
+  if ((recorded.stopped?.kind ?? null) !== (recounted.stopped?.kind ?? null)) out.push('the stop differs between the outcome and the report')
+  return out
+}
 
 /**
  * Read an outcome file's contents strictly. Throws, naming the field, on
@@ -218,14 +347,15 @@ export function validateOutcome(raw: unknown, suite: Suite): Outcome {
     if (!(['auth', 'billing', 'model', 'transient', 'other', 'not-sent'] as ErrorKind[]).includes(e.kind as ErrorKind)) throw new Error(`outcome.errors[${i}].kind is ${JSON.stringify(e.kind)}`)
     if (e.status !== null && !isInt(e.status)) throw new Error(`outcome.errors[${i}].status is malformed`)
   }
-  if (raw.report !== null && typeof raw.report !== 'string') throw new Error('outcome.report is neither a path nor null')
+  if (raw.report !== null && (typeof raw.report !== 'string' || !REPORT_NAME.test(raw.report))) throw new Error('outcome.report is neither a report file name (live-<time>.json) nor null')
   const errors = raw.errors as RecordedError[]
   const outcome = raw.outcome as OutcomeKind
 
   if (outcome === 'not-required') {
     if (raw.run !== null || raw.gates !== null) throw new Error('a not-required outcome records a run; it cannot have one')
     if (errors.length) throw new Error('a not-required outcome records errors; it cannot have any')
-    return { version: 1, suite, at: raw.at, outcome, reason: raw.reason, run: null, gates: null, errors: [], report: raw.report as string | null }
+    if (raw.report !== null) throw new Error('a not-required outcome names a report; nothing ran')
+    return { version: 1, suite, at: raw.at, outcome, reason: raw.reason, run: null, gates: null, errors: [], report: null }
   }
 
   const run = raw.run
@@ -233,6 +363,7 @@ export function validateOutcome(raw: unknown, suite: Suite): Outcome {
   for (const k of ['expected', 'started', 'completed', 'answered', 'declined', 'unavailable', 'judged', 'requests', 'succeeded'] as const) {
     if (!isInt(run[k])) throw new Error(`outcome.run.${k} is not a count`)
   }
+  if (!isRecord(run.responses) || !isInt(run.responses.needed) || !isInt(run.responses.accounted)) throw new Error('outcome.run.responses is not a pair of counts')
   const t = run as unknown as Tally
   if (t.started > t.expected) throw new Error('outcome.run.started exceeds expected')
   if (t.completed > t.started) throw new Error('outcome.run.completed exceeds started')
@@ -240,6 +371,10 @@ export function validateOutcome(raw: unknown, suite: Suite): Outcome {
   if (t.declined > t.answered) throw new Error('outcome.run.declined exceeds answered')
   if (t.judged > t.completed) throw new Error('outcome.run.judged exceeds completed')
   if (t.succeeded > t.requests) throw new Error('outcome.run.succeeded exceeds requests')
+  if (t.responses.accounted > t.succeeded) throw new Error('outcome.run.responses.accounted exceeds succeeded')
+  if (t.responses.accounted > t.responses.needed) throw new Error('outcome.run.responses.accounted exceeds needed')
+  if (t.answered > t.succeeded) throw new Error('outcome.run.answered exceeds succeeded: an answer is a response')
+  if (t.judged > t.succeeded) throw new Error('outcome.run.judged exceeds succeeded: a judgement is a response')
   if (run.stopped !== null) {
     if (!isRecord(run.stopped) || typeof run.stopped.kind !== 'string' || typeof run.stopped.message !== 'string' || !isInt(run.stopped.requests)) {
       throw new Error('outcome.run.stopped is malformed')
@@ -254,6 +389,8 @@ export function validateOutcome(raw: unknown, suite: Suite): Outcome {
   if (earned.outcome !== outcome) {
     throw new Error(`outcome says ${outcome} but its own numbers earn ${earned.outcome} (${earned.reason})`)
   }
+  if (outcome === 'evaluated-pass' && raw.report === null) throw new Error('an evaluated-pass names no report; a pass without its evidence is not believed')
+  if (raw.report !== null && t.started === 0) throw new Error('outcome names a report although no case was started')
   return { version: 1, suite, at: raw.at, outcome, reason: raw.reason, run: t, gates: g, errors, report: raw.report as string | null }
 }
 
@@ -269,6 +406,7 @@ export interface PathRule {
 const BOTH: PathRule[] = [
   { path: '.github/workflows/guide-eval.yml', why: 'the workflow that runs the suites' },
   { path: 'package.json', why: 'the eval scripts and the SDK version range' },
+  { path: 'package-lock.json', why: 'the SDK version npm ci actually installs' },
   { path: 'tests/eval/', why: 'the outcome, session and applicability layer both suites run through' },
   { path: 'netlify/functions/guide.ts', why: 'guideRequest: the model, the limits and the message shape the Guide is sent' },
   { path: 'netlify/shared/prompt.ts', why: 'the system prompt' },
@@ -413,6 +551,7 @@ export function verdict(required: Record<Suite, Applicability | null>, outcomes:
     }
     if (need.required) {
       if (got.outcome !== 'evaluated-pass') failures.push(`${suite} was required (${need.reason}) and is ${got.outcome}: ${got.reason}`)
+      else if (!got.report) failures.push(`${suite} claims evaluated-pass with no report behind it`)
     } else {
       if (got.outcome === 'evaluated-fail') failures.push(`${suite} was not required and ran anyway, and failed: ${got.reason}`)
       if (got.outcome === 'not-evaluated') lines.push(`${suite}: not required, and not evaluated (${got.reason}) — nothing here is claimed either way`)

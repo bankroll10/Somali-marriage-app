@@ -2,9 +2,12 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import {
   ARTIFACT,
+  RESULTS,
   SUITES,
   applicability,
   notRequired,
+  recount,
+  tallyDifferences,
   validateOutcome,
   verdict,
   type Applicability,
@@ -29,7 +32,13 @@ export function writeOutcome(root: string, outcome: Outcome): string {
   return path
 }
 
-/** A suite's outcome, validated; an Error (never a throw) when the file is missing or unusable, so the verdict can name it. */
+/**
+ * A suite's outcome, validated and — when it names a report — held to that
+ * report: the file must exist inside the suite's own results directory, be
+ * JSON, be this suite's, carry the outcome's time, and recount to the same
+ * numbers row by row. An Error (never a throw) when anything is missing or
+ * unusable, so the verdict can name it.
+ */
 export function readOutcome(root: string, suite: Suite): Outcome | Error {
   const path = join(root, ARTIFACT[suite])
   if (!existsSync(path)) return new Error(`${ARTIFACT[suite]} was not written`)
@@ -39,11 +48,34 @@ export function readOutcome(root: string, suite: Suite): Outcome | Error {
   } catch (err) {
     return new Error(`${ARTIFACT[suite]} is not JSON (${(err as Error).message})`)
   }
+  let outcome: Outcome
   try {
-    return validateOutcome(raw, suite)
+    outcome = validateOutcome(raw, suite)
   } catch (err) {
     return new Error(`${ARTIFACT[suite]}: ${(err as Error).message}`)
   }
+  if (outcome.report === null) return outcome
+  const where = `${RESULTS[suite]}/${outcome.report}`
+  const reportPath = join(root, RESULTS[suite], outcome.report)
+  if (!existsSync(reportPath)) return new Error(`${ARTIFACT[suite]} names ${where}, which was not written`)
+  let report: unknown
+  try {
+    report = JSON.parse(readFileSync(reportPath, 'utf8'))
+  } catch (err) {
+    return new Error(`${where} is not JSON (${(err as Error).message})`)
+  }
+  const r = report as { suite?: unknown; at?: unknown }
+  if (r.suite !== suite) return new Error(`${where} belongs to ${JSON.stringify(r.suite)}, not to the ${suite} suite`)
+  if (r.at !== outcome.at) return new Error(`${where} is from ${JSON.stringify(r.at)}, not from this outcome's run (${outcome.at})`)
+  let recounted
+  try {
+    recounted = recount(suite, report)
+  } catch (err) {
+    return new Error(`${where}: ${(err as Error).message}`)
+  }
+  const differences = tallyDifferences(outcome.run!, recounted)
+  if (differences.length) return new Error(`${where} does not support the outcome: ${differences.join('; ')}`)
+  return outcome
 }
 
 /**

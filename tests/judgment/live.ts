@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { guideRequest } from '../../netlify/functions/guide'
 import { localReply } from '../../src/lib/coach'
 import type { CoachContext } from '../../src/data/coach'
-import { CALIBRATION_MISSES_ALLOWED, OUTCOME_FILE, fatalUpstream, notEvaluated, outcomeOf, type Outcome, type RecordedError, type Stop, type Tally } from '../eval/outcome'
+import { CALIBRATION_MISSES_ALLOWED, OUTCOME_FILE, fatalUpstream, notEvaluated, outcomeOf, recount, type Outcome, type RecordedError, type Stop, type Tally } from '../eval/outcome'
 import { SessionError, openSession, pool, type Client, type SessionOptions } from '../eval/session'
 import type { GuideCase } from '../guide-eval/cases'
 import { JUDGE_MODEL } from '../guide-eval/judge'
@@ -43,8 +43,11 @@ export interface JudgmentInput {
 }
 
 export interface JudgmentReport {
+  suite: 'judgment'
   at: string
   judgeModel: string
+  /** What the run set out to judge, by kind: the response arithmetic differs (two per pair and per Guide text, one per script). */
+  intended: { pairs: number; guide: number; scripts: number }
   expected: number
   started: number
   /** Calibration lines the judge got wrong. */
@@ -153,8 +156,10 @@ export async function runJudgment(client: Client, input: JudgmentInput, width = 
   rows.push(...scriptRows.filter((r): r is JudgmentRow => r !== undefined))
 
   return {
+    suite: 'judgment',
     at: new Date().toISOString(),
     judgeModel: JUDGE_MODEL,
+    intended: { pairs: input.calibration.length, guide: guideItems.length, scripts: input.scripts.length },
     expected: input.calibration.length + guideItems.length + input.scripts.length,
     started: calibrationStarted + guideStarted + scriptsStarted,
     misses,
@@ -167,23 +172,8 @@ export async function runJudgment(client: Client, input: JudgmentInput, width = 
   }
 }
 
-/** The report's numbers, in the shape the outcome is decided from. A judge-only text counts as answered when its verdict came back. */
-export function tallyOf(r: JudgmentReport): Tally {
-  const guide = r.results.filter((x) => x.kind === 'guide' || x.kind === 'held-out')
-  const judgeOnly = r.results.filter((x) => x.kind === 'script' || x.kind === 'calibration')
-  return {
-    expected: r.expected,
-    started: r.started,
-    completed: r.results.length,
-    answered: guide.filter((x) => x.source !== 'unavailable').length + judgeOnly.filter((x) => x.judgement !== null).length,
-    declined: guide.filter((x) => x.source === 'offline-fallback').length,
-    unavailable: guide.filter((x) => x.source === 'unavailable').length,
-    judged: r.results.filter((x) => x.judgement !== null).length,
-    requests: r.requests,
-    succeeded: r.succeeded,
-    stopped: r.stopped,
-  }
-}
+/** The report's numbers, counted from its rows by the same arithmetic the check applies when it reads the file back (tests/eval/outcome.ts `recount`). */
+export const tallyOf = (r: JudgmentReport): Tally => recount('judgment', r)
 
 /** The texts a baseline compares: the Guide's answers and the scripts, never the calibration lines. */
 export const judgedTexts = (r: JudgmentReport): JudgedText[] => r.results.filter((x) => x.kind !== 'calibration')
@@ -216,6 +206,8 @@ export async function judgmentSuite(o: JudgmentSuiteOptions): Promise<JudgmentSu
   mkdirSync(o.results, { recursive: true })
   const at = (o.now ?? (() => new Date))().toISOString()
   const expected = o.input.calibration.length + o.input.cases.length + o.input.heldOut.length + o.input.scripts.length
+  /** Two judge responses per calibration pair, a guide answer and a judgement per Guide text, one judgement per script. */
+  const needed = 2 * o.input.calibration.length + 2 * (o.input.cases.length + o.input.heldOut.length) + o.input.scripts.length
   const write = (path: string, text: string) => {
     writeFileSync(path, text)
     return path
@@ -227,10 +219,10 @@ export async function judgmentSuite(o: JudgmentSuiteOptions): Promise<JudgmentSu
 
   const carried = fatalUpstream(o.upstream)
   if (carried) {
-    return finish(notEvaluated('judgment', at, expected, { kind: carried.kind, message: `an earlier suite in this run stopped on ${carried.kind} (${carried.message}); no request was sent`, requests: 0 }), null, [], [])
+    return finish(notEvaluated('judgment', at, expected, needed, { kind: carried.kind, message: `an earlier suite in this run stopped on ${carried.kind} (${carried.message}); no request was sent`, requests: 0 }), null, [], [])
   }
   if (!o.client) {
-    return finish(notEvaluated('judgment', at, expected, { kind: 'credentials', message: 'ANTHROPIC_API_KEY is not set; no request was sent', requests: 0 }), null, [], [])
+    return finish(notEvaluated('judgment', at, expected, needed, { kind: 'credentials', message: 'ANTHROPIC_API_KEY is not set; no request was sent', requests: 0 }), null, [], [])
   }
 
   const report = await runJudgment(o.client, o.input, o.width ?? 4, o.session)
@@ -238,9 +230,9 @@ export async function judgmentSuite(o: JudgmentSuiteOptions): Promise<JudgmentSu
   const texts = judgedTexts(report)
   const found = propertyRegressions(texts, baseline?.filter((x) => x.kind !== 'calibration'))
   const stamp = report.at.replace(/[:.]/g, '-')
-  const reportPath = join(o.results, `live-${stamp}.json`)
-  const outcome = outcomeOf('judgment', at, tallyOf(report), { regressions: found, calibrationMisses: report.misses }, report.errors, reportPath)
-  const files = [write(reportPath, `${JSON.stringify(report, null, 2)}\n`)]
+  const reportName = `live-${stamp}.json`
+  const outcome = outcomeOf('judgment', report.at, tallyOf(report), { regressions: found, calibrationMisses: report.misses }, report.errors, reportName)
+  const files = [write(join(o.results, reportName), `${JSON.stringify(report, null, 2)}\n`)]
   if (outcome.outcome === 'evaluated-pass') {
     if (o.update || !baseline) files.push(write(o.baseline, `${JSON.stringify({ at: report.at, results: texts }, null, 2)}\n`))
     if (o.lock?.update) {

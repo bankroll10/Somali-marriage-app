@@ -4,7 +4,7 @@ import type Anthropic from '@anthropic-ai/sdk'
 import { guideRequest } from '../../netlify/functions/guide'
 import { localReply } from '../../src/lib/coach'
 import type { CoachContext } from '../../src/data/coach'
-import { OUTCOME_FILE, fatalUpstream, notEvaluated, outcomeOf, type Outcome, type RecordedError, type Stop, type Tally } from '../eval/outcome'
+import { OUTCOME_FILE, fatalUpstream, notEvaluated, outcomeOf, recount, type Outcome, type RecordedError, type Stop, type Tally } from '../eval/outcome'
 import { SessionError, openSession, pool, type Client, type SessionOptions } from '../eval/session'
 import type { GuideCase } from './cases'
 import { DIMENSIONS, type Dimension, type Grade, gradeAll, hardFailures } from './graders'
@@ -45,6 +45,7 @@ export interface CaseResult {
 }
 
 export interface Report {
+  suite: 'guide'
   at: string
   judgeModel: string
   /** Cases the run set out to evaluate. */
@@ -131,6 +132,7 @@ export async function runLive(client: Client, cases: GuideCase[], width = 4, opt
 
   cost.dollars = Math.round(((cost.inputTokens * PRICE.input + cost.outputTokens * PRICE.output) / 1e6) * 100) / 100
   return {
+    suite: 'guide',
     at: new Date().toISOString(),
     judgeModel: JUDGE_MODEL,
     expected: cases.length,
@@ -144,21 +146,8 @@ export async function runLive(client: Client, cases: GuideCase[], width = 4, opt
   }
 }
 
-/** The report's numbers, in the shape the outcome is decided from. */
-export function tallyOf(r: Report): Tally {
-  return {
-    expected: r.expected,
-    started: r.started,
-    completed: r.cases.length,
-    answered: r.cases.filter((c) => c.source !== 'unavailable').length,
-    declined: r.cases.filter((c) => c.source === 'declined').length,
-    unavailable: r.cases.filter((c) => c.source === 'unavailable').length,
-    judged: r.cases.filter((c) => c.judge !== null).length,
-    requests: r.requests,
-    succeeded: r.succeeded,
-    stopped: r.stopped,
-  }
-}
+/** The report's numbers, counted from its rows by the same arithmetic the check applies when it reads the file back (tests/eval/outcome.ts `recount`). */
+export const tallyOf = (r: Report): Tally => recount('guide', r)
 
 const mean = (xs: number[]) => (xs.length ? Math.round((xs.reduce((a, b) => a + b, 0) / xs.length) * 100) / 100 : null)
 
@@ -281,6 +270,8 @@ export interface GuideSuiteResult {
 export async function guideSuite(o: GuideSuiteOptions): Promise<GuideSuiteResult> {
   mkdirSync(o.results, { recursive: true })
   const at = (o.now ?? (() => new Date))().toISOString()
+  /** A guide answer and a judge score per case. */
+  const needed = 2 * o.cases.length
   const outcomePath = join(o.results, OUTCOME_FILE)
   const write = (path: string, text: string) => {
     writeFileSync(path, text)
@@ -293,19 +284,20 @@ export async function guideSuite(o: GuideSuiteOptions): Promise<GuideSuiteResult
 
   const carried = fatalUpstream(o.upstream)
   if (carried) {
-    return finish(notEvaluated('guide', at, o.cases.length, { kind: carried.kind, message: `an earlier suite in this run stopped on ${carried.kind} (${carried.message}); no request was sent`, requests: 0 }), null, [], [])
+    return finish(notEvaluated('guide', at, o.cases.length, needed, { kind: carried.kind, message: `an earlier suite in this run stopped on ${carried.kind} (${carried.message}); no request was sent`, requests: 0 }), null, [], [])
   }
   if (!o.client) {
-    return finish(notEvaluated('guide', at, o.cases.length, { kind: 'credentials', message: 'ANTHROPIC_API_KEY is not set; no request was sent', requests: 0 }), null, [], [])
+    return finish(notEvaluated('guide', at, o.cases.length, needed, { kind: 'credentials', message: 'ANTHROPIC_API_KEY is not set; no request was sent', requests: 0 }), null, [], [])
   }
 
   const report = await runLive(o.client, o.cases, o.width ?? 4, o.session)
   const baseline = existsSync(o.baseline) ? (JSON.parse(readFileSync(o.baseline, 'utf8')) as Report) : undefined
   const found = regressions(report, baseline)
   const stamp = report.at.replace(/[:.]/g, '-')
-  const reportPath = join(o.results, `live-${stamp}.json`)
-  const outcome = outcomeOf('guide', at, tallyOf(report), { regressions: found, calibrationMisses: [] }, report.errors, reportPath)
-  const files = [write(reportPath, `${JSON.stringify(report, null, 2)}\n`), write(join(o.results, `live-${stamp}.md`), markdown(report, found, outcome))]
+  const reportName = `live-${stamp}.json`
+  // The outcome carries the report's own time and its file name, never a path: the check resolves it inside this suite's results directory and recounts it.
+  const outcome = outcomeOf('guide', report.at, tallyOf(report), { regressions: found, calibrationMisses: [] }, report.errors, reportName)
+  const files = [write(join(o.results, reportName), `${JSON.stringify(report, null, 2)}\n`), write(join(o.results, `live-${stamp}.md`), markdown(report, found, outcome))]
   if (outcome.outcome === 'evaluated-pass' && (o.update || !baseline)) files.push(write(o.baseline, `${JSON.stringify(report, null, 2)}\n`))
   return finish(outcome, report, found, files)
 }

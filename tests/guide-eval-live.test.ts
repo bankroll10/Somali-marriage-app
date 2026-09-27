@@ -1,4 +1,4 @@
-import { existsSync, mkdtempSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -6,8 +6,8 @@ import Anthropic from '@anthropic-ai/sdk'
 import { describe, expect, it } from 'vitest'
 import { guideRequest } from '../netlify/functions/guide'
 import { localReply } from '../src/lib/coach'
-import { readUpstreamOutcome } from './eval/artifacts'
-import { validateOutcome } from './eval/outcome'
+import { readOutcome, readUpstreamOutcome } from './eval/artifacts'
+import { RESULTS, validateOutcome } from './eval/outcome'
 import { authError, billingError, connectionError, failAll, failOn, serverError, standInClient, type Params } from './eval/stand-in'
 import { CASES } from './guide-eval/cases'
 import { GOLD } from './guide-eval/exemplars'
@@ -127,6 +127,24 @@ describe('the Guide suite, end to end, earns one outcome per way a run can go', 
     expect(outcomeFile(results)).toEqual(outcome)
   })
 
+  it('a real run, read back the way the workflow reads it: the outcome is held to its report, and a report that no longer adds up is refused', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'niyyah-guide-root-'))
+    const results = join(root, RESULTS.guide)
+    const { outcome } = await run({ stand: standIn(), results })
+    expect(outcome.outcome).toBe('evaluated-pass')
+    expect(readOutcome(root, 'guide')).toEqual(outcome)
+    const reportPath = join(results, outcome.report!)
+    const report = JSON.parse(readFileSync(reportPath, 'utf8')) as Report
+    writeFileSync(reportPath, JSON.stringify({ ...report, cases: report.cases.slice(1) }))
+    expect((readOutcome(root, 'guide') as Error).message).toMatch(/does not support the outcome: completed 6 in the outcome, 5 in the report/)
+    writeFileSync(reportPath, '')
+    expect((readOutcome(root, 'guide') as Error).message).toMatch(/is not JSON/)
+    // A partial run's outcome is held to its partial report just the same.
+    const partial = await run({ stand: standIn({ fail: failOn(9, billingError, 99) }), results })
+    expect(partial.outcome.outcome).toBe('evaluated-fail')
+    expect(readOutcome(root, 'guide')).toEqual(partial.outcome)
+  })
+
   it('a complete failing run: evaluated-fail on the quality gates, the report kept, and no baseline written or moved', async () => {
     const results = dir()
     const first = await run({ stand: standIn(), results })
@@ -198,7 +216,8 @@ describe('the Guide suite, end to end, earns one outcome per way a run can go', 
     expect(outcome.run).toMatchObject({ expected: 6, started: 5, completed: 5, answered: 4, unavailable: 1, judged: 4, requests: 9, succeeded: 8 })
     expect(report!.cases).toHaveLength(5)
     expect(report!.cases[4]).toMatchObject({ id: FEW[4].id, source: 'unavailable', judge: null })
-    expect(existsSync(outcome.report!)).toBe(true)
+    expect(outcome.report).toMatch(/^live-.*\.json$/)
+    expect(existsSync(join(results, outcome.report!))).toBe(true)
     expect(existsSync(join(results, 'baseline.live.json'))).toBe(false)
   })
 

@@ -206,19 +206,43 @@ live suite ends in exactly one of these, written to
 
 | Outcome | Means |
 |---|---|
-| `evaluated-pass` | The intended case set was nonempty; every case was answered by the live model (text, or a decline); every case was judged; every gate passed |
+| `evaluated-pass` | The intended case set was nonempty; started, completed, answered and judged all equal the intended count; no case `unavailable`; no stop; every response a full run takes is accounted for by the rows and none is claimed beyond the requests that returned; every gate passed; and a report is named that recounts to the same numbers |
 | `evaluated-fail` | The model was reached and the run cannot pass: a gate failed, or the run is incomplete — a case `unavailable`, a case unjudged, a stop before the end, a case never started, an empty case set |
 | `not-evaluated` | No request to the model succeeded: no key, or a fatal authentication or billing failure before the first answer |
 | `not-required` | The change under review touches nothing the suite measures, so it was not run |
 
 The file records the intended and started cases, the completed rows, the
 answered and declined counts, the `unavailable` count, the judged count,
-every request sent and every one that returned, the stop and its cause if
-the run stopped, every error (case, stage, kind, status, message with
-anything key-shaped redacted, attempt), the gate failures, and the path of
-the full report. It holds no key and no member's words: the cases are
-written for the suite. A file that states an outcome its own numbers do not
-earn is a contradiction and is refused (`validateOutcome`).
+every request sent and every one that returned, the responses a full run
+takes and the responses the rows account for, the stop and its cause if the
+run stopped, every error (case, stage, kind, status, message with anything
+key-shaped redacted, attempt), the gate failures, and the file name of the
+full report. It holds no key and no member's words: the cases are written
+for the suite. A file that states an outcome its own numbers do not earn is
+a contradiction and is refused (`validateOutcome`); the pass conditions are
+stated positively in `decide`, so a tally no failure branch describes still
+fails.
+
+**Responses, by each suite's own arithmetic.** The Guide suite takes a guide
+answer and a judge score per case. Relationship judgment takes two judge
+responses per calibration pair, a guide answer and a judgement per Guide
+text, and one judgement per script; a calibration pair or a script that is
+judged counts as answered, since the judge is the only model it reaches. The
+tally's `responses.needed` is what the intended set takes; `accounted` is
+what the rows show; a pass needs them equal, and neither can exceed the
+requests that returned.
+
+**The report behind the outcome.** An `evaluated-pass` must name its report,
+`live-<time>.json`, by file name only, inside the suite's own results
+directory. When the check reads an outcome that names a report
+(`readOutcome` in `tests/eval/artifacts.ts`), the report must exist there, be
+JSON, be this suite's, carry the outcome's time, and recount row by row
+(`recount`) to the tally the outcome recorded; any difference is named and
+the outcome is refused. `not-required` names no report; `not-evaluated`
+names none because nothing was started; an `evaluated-fail` names its
+partial report and is held to it the same way. (Added in the repair of
+2026-09-27, after review reproduced a pass with `report: null` and a tally
+with ten cases judged on one response.)
 
 **The session.** Every request goes through `tests/eval/session.ts`, with
 the SDK's own retries turned off so every request is counted once:
@@ -250,7 +274,7 @@ reads).
 
 | Changed path | Guide | Judgment |
 |---|---|---|
-| `.github/workflows/guide-eval.yml`, `package.json`, `tests/eval/` | required | required |
+| `.github/workflows/guide-eval.yml`, `package.json`, `package-lock.json`, `tests/eval/` | required | required |
 | `netlify/functions/guide.ts`, `netlify/shared/prompt.ts`, `netlify/shared/vocab.ts` | required | required |
 | `src/lib/coach.ts`, `src/data/coach.ts`, `tests/voice-rules.ts` | required | required |
 | `tests/guide-eval/cases.ts`, `graders.ts`, `judge.ts` | required | required |
@@ -262,9 +286,10 @@ reads).
 Dropped from the old trigger list, because neither live suite imports them:
 the rest of `src/data/**`, `src/lib/read.ts`, `src/lib/beforeYes.ts`,
 `src/lib/couple.ts`. The offline lock (`tests/judgment/lock.test.ts`, in
-`verify`) is what watches those. `package-lock.json` is not a trigger either,
-so an SDK bump made in the lockfile alone does not require a run; the range
-in `package.json` does.
+`verify`) is what watches those. `package-lock.json` requires both suites,
+conservatively: a lockfile-only change can change the SDK `npm ci`
+installs, and telling an SDK bump from any other bump would need a diff
+reader this project does not have.
 
 **The workflow.** It runs on every pull request, so a check exists for every
 one; the first step classifies the diff against the PR's base and writes
@@ -293,7 +318,9 @@ credentials, billing and authentication failure before the first case, a
 failure after partial completion, a transient server error and a lost
 connection, a judge call that fails, missing judging, infrastructure
 fallback, an empty case set, a fatal stop carried from the earlier suite,
-missing and malformed and contradictory files, and the
+missing and malformed and contradictory files, a pass with no report and
+with a missing, unreadable, mismatched or drifted report, the review's
+exact ten-judged-on-one-response tally, and the
 required-versus-not-required classification for pull requests and manual
 runs. `check.ts` is also run under plain Node, as the workflow runs it. The
 quality thresholds above did not change.

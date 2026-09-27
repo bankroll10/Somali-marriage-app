@@ -220,13 +220,15 @@ describe('the judgment suite, end to end, earns one outcome per way a run can go
   it('a billing failure after calibration: evaluated-fail with the partial results kept', async () => {
     // Request 7 is the first Guide call.
     let n = 0
+    const results = dir()
     const stand = standIn(SHARP, () => (++n >= 7 ? billingError() : undefined))
-    const { outcome, report } = await run({ stand })
+    const { outcome, report } = await run({ stand, results })
     expect(outcome.outcome).toBe('evaluated-fail')
     expect(outcome.reason).toMatch(/stopped after 4 of 10 \(billing/)
     expect(outcome.run).toMatchObject({ started: 4, completed: 4, answered: 3, unavailable: 1, judged: 3, requests: 7, succeeded: 6 })
     expect(report!.results[3]).toMatchObject({ kind: 'guide', source: 'unavailable', judgement: null })
-    expect(existsSync(outcome.report!)).toBe(true)
+    expect(outcome.report).toMatch(/^live-.*\.json$/)
+    expect(existsSync(join(results, outcome.report!))).toBe(true)
   })
 
   it('a transient error is retried and does not stop a run that then passes', async () => {
@@ -269,7 +271,7 @@ describe('the judgment suite, end to end, earns one outcome per way a run can go
   it('a fatal stop carried from the Guide suite: not-evaluated and nothing sent', async () => {
     const guide = { version: 1 as const, suite: 'guide' as const, at: new Date().toISOString(), outcome: 'not-evaluated' as const, reason: 'x', run: null, gates: null, errors: [], report: null }
     const stand = standIn(SHARP)
-    const { outcome } = await run({ stand, upstream: { ...guide, run: { expected: 1, started: 1, completed: 1, answered: 0, declined: 0, unavailable: 1, judged: 0, requests: 1, succeeded: 0, stopped: { kind: 'billing', message: 'no credit', requests: 1 } } } })
+    const { outcome } = await run({ stand, upstream: { ...guide, run: { expected: 1, started: 1, completed: 1, answered: 0, declined: 0, unavailable: 1, judged: 0, requests: 1, succeeded: 0, responses: { needed: 2, accounted: 0 }, stopped: { kind: 'billing', message: 'no credit', requests: 1 } } } })
     expect(outcome.outcome).toBe('not-evaluated')
     expect(outcome.reason).toMatch(/earlier suite in this run stopped on billing/)
     expect(stand.calls).toHaveLength(0)

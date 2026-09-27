@@ -32,7 +32,8 @@ import {
  */
 
 const NONE: Gates = { regressions: [], calibrationMisses: [] }
-const full = (n: number, over: Partial<Tally> = {}): Tally => ({ expected: n, started: n, completed: n, answered: n, declined: 0, unavailable: 0, judged: n, requests: 2 * n, succeeded: 2 * n, stopped: null, ...over })
+/** A complete Guide-suite run of n cases: a guide answer and a judge score each. */
+const full = (n: number, over: Partial<Tally> = {}): Tally => ({ expected: n, started: n, completed: n, answered: n, declined: 0, unavailable: 0, judged: n, requests: 2 * n, succeeded: 2 * n, responses: { needed: 2 * n, accounted: 2 * n }, stopped: null, ...over })
 
 describe('what a run earns', () => {
   it('passes only a complete run with every gate clean', () => {
@@ -75,17 +76,56 @@ describe('what a run earns', () => {
   it('incompleteness outranks a clean gate: a partial run with no regressions still fails', () => {
     expect(decide(full(10, { started: 9, completed: 9, answered: 9, judged: 9 }), NONE).outcome).toBe('evaluated-fail')
   })
+
+  it('regression (review of 551b62e): ten cases judged, none answered, one response — never a pass', () => {
+    // The exact tally the review reproduced. It has no response accounting at all, and its
+    // numbers cannot describe a run: nothing was answered, yet everything was judged on one response.
+    const repro = { expected: 10, started: 10, completed: 10, answered: 0, declined: 0, unavailable: 0, judged: 10, requests: 1, succeeded: 1, stopped: null } as unknown as Tally
+    const d = decide(repro, NONE)
+    expect(d.outcome).toBe('evaluated-fail')
+    expect(d.reason).toMatch(/10 cases not answered by the live model/)
+    expect(d.reason).toMatch(/responses are not accounted for/)
+    const file = { ...outcomeOf('guide', '2026-09-27T12:00:00.000Z', full(10), NONE, [], 'live-x.json'), run: repro }
+    expect(() => validateOutcome(JSON.parse(JSON.stringify(file)), 'guide')).toThrow(/responses is not a pair of counts/)
+    // With responses filled in to match the claim, the arithmetic still refuses it.
+    const claimed = { ...repro, responses: { needed: 20, accounted: 20 } }
+    expect(() => validateOutcome(JSON.parse(JSON.stringify({ ...file, run: claimed })), 'guide')).toThrow(/responses.accounted exceeds succeeded/)
+    const modest = { ...repro, responses: { needed: 20, accounted: 1 } }
+    expect(() => validateOutcome(JSON.parse(JSON.stringify({ ...file, run: modest })), 'guide')).toThrow(/judged exceeds succeeded/)
+    expect(decide(claimed, NONE).outcome).toBe('evaluated-fail')
+    expect(decide(modest, NONE).outcome).toBe('evaluated-fail')
+  })
+
+  it('every pass condition is stated positively: change any one field of a complete run and it is no longer a pass', () => {
+    const base = full(4)
+    const variants: Partial<Tally>[] = [
+      { started: 3 },
+      { completed: 3 },
+      { answered: 3 },
+      { judged: 3 },
+      { unavailable: 1 },
+      { stopped: { kind: 'billing', message: 'x', requests: 8 } },
+      { responses: { needed: 8, accounted: 7 } },
+      { responses: { needed: 9, accounted: 8 } },
+      { succeeded: 7 },
+      { expected: 5 },
+    ]
+    expect(decide(base, NONE).outcome).toBe('evaluated-pass')
+    for (const v of variants) expect(decide({ ...base, ...v }, NONE).outcome, JSON.stringify(v)).toBe('evaluated-fail')
+    // A run whose responses cover fewer cases than it has cannot pass either.
+    expect(decide({ ...base, responses: { needed: 3, accounted: 3 } }, NONE).reason).toMatch(/3 responses cannot cover 4 cases/)
+  })
 })
 
 describe('the outcome file', () => {
   const at = '2026-09-27T12:00:00.000Z'
-  const pass = outcomeOf('guide', at, full(4), NONE, [], 'tests/guide-eval/results/live-x.json')
+  const pass = outcomeOf('guide', at, full(4), NONE, [], 'live-x.json')
 
   it('round-trips through JSON as itself', () => {
     expect(validateOutcome(JSON.parse(JSON.stringify(pass)), 'guide')).toEqual(pass)
     const nr = notRequired('judgment', at, 'nothing changed')
     expect(validateOutcome(JSON.parse(JSON.stringify(nr)), 'judgment')).toEqual(nr)
-    const ne = notEvaluated('guide', at, 4, { kind: 'credentials', message: 'no key', requests: 0 })
+    const ne = notEvaluated('guide', at, 4, 8, { kind: 'credentials', message: 'no key', requests: 0 })
     expect(validateOutcome(JSON.parse(JSON.stringify(ne)), 'guide')).toEqual(ne)
   })
 
@@ -111,6 +151,10 @@ describe('the outcome file', () => {
     expect(bad((o) => (o.errors = [{ item: 'a', stage: 'model', kind: 'auth', status: 401, message: 'm', attempt: 1 }]))).toThrow(/stage/)
     expect(bad((o) => (o.errors = [{ item: 'a', stage: 'guide', kind: 'oops', status: 401, message: 'm', attempt: 1 }]))).toThrow(/kind/)
     expect(bad((o) => (o.report = 7))).toThrow(/report/)
+    expect(bad((o) => (o.report = 'tests/guide-eval/results/live-x.json'))).toThrow(/neither a report file name/)
+    expect(bad((o) => (o.report = '../live-x.json'))).toThrow(/neither a report file name/)
+    expect(bad((o) => (o.report = null))).toThrow(/an evaluated-pass names no report/)
+    expect(bad((o) => ((o.run as Record<string, unknown>).responses = { needed: 8 }))).toThrow(/responses is not a pair of counts/)
     expect(bad((o) => ((o.run as Record<string, unknown>).stopped = 'billing'))).toThrow(/stopped is malformed/)
   })
 
@@ -122,6 +166,9 @@ describe('the outcome file', () => {
     expect(tally({ declined: 5 })).toThrow(/declined exceeds answered/)
     expect(tally({ judged: 5 })).toThrow(/judged exceeds completed/)
     expect(tally({ succeeded: 9 })).toThrow(/succeeded exceeds requests/)
+    expect(tally({ responses: { needed: 8, accounted: 9 } })).toThrow(/accounted exceeds succeeded/)
+    expect(tally({ responses: { needed: 7, accounted: 8 } })).toThrow(/accounted exceeds needed/)
+    expect(tally({ succeeded: 3, requests: 8 })).toThrow(/accounted exceeds succeeded/)
   })
 
   it('refuses a file that contradicts its own numbers', () => {
@@ -132,7 +179,11 @@ describe('the outcome file', () => {
     expect(claim('evaluated-pass', {}, { regressions: ['hard gate — x'], calibrationMisses: [] })).toThrow(/earn evaluated-fail/)
     expect(claim('evaluated-fail')).toThrow(/says evaluated-fail but its own numbers earn evaluated-pass/)
     expect(claim('not-evaluated')).toThrow(/earn evaluated-pass/)
-    expect(claim('evaluated-pass', { ...emptyTally(4), stopped: { kind: 'billing', message: 'x', requests: 1 } })).toThrow(/earn not-evaluated/)
+    expect(claim('evaluated-pass', { ...emptyTally(4, 8), stopped: { kind: 'billing', message: 'x', requests: 1 } })).toThrow(/earn not-evaluated/)
+    expect(claim('evaluated-pass', { responses: { needed: 8, accounted: 7 } })).toThrow(/earn evaluated-fail \(incomplete — 7 of the 8 responses/)
+    // A report cannot be named by a run that started nothing; a not-required outcome cannot name one at all.
+    expect(() => validateOutcome({ ...notEvaluated('guide', at, 4, 8, { kind: 'credentials', message: 'x', requests: 0 }), report: 'live-x.json' }, 'guide')).toThrow(/although no case was started/)
+    expect(() => validateOutcome({ ...notRequired('guide', at, 'x'), report: 'live-x.json' }, 'guide')).toThrow(/names a report; nothing ran/)
     // A not-required file cannot carry a run, gates or errors.
     expect(() => validateOutcome({ ...notRequired('guide', at, 'x'), run: pass.run }, 'guide')).toThrow(/not-required outcome records a run/)
     expect(() => validateOutcome({ ...notRequired('guide', at, 'x'), errors: pass.errors.concat([{ item: 'a', stage: 'guide', kind: 'auth', status: 401, message: 'm', attempt: 1 }]) }, 'guide')).toThrow(/records errors/)
@@ -189,7 +240,7 @@ describe('which changes require which suite', () => {
   }
 
   it('the workflow, the eval scripts, the live test files and the outcome layer require both suites', () => {
-    for (const path of ['.github/workflows/guide-eval.yml', 'package.json', 'tests/eval/outcome.ts', 'tests/eval/check.ts']) {
+    for (const path of ['.github/workflows/guide-eval.yml', 'package.json', 'package-lock.json', 'tests/eval/outcome.ts', 'tests/eval/check.ts']) {
       const a = applicability({ kind: 'pull_request', changed: [path] })
       expect(a.guide.required, path).toBe(true)
       expect(a.judgment.required, path).toBe(true)
@@ -209,8 +260,8 @@ describe('which changes require which suite', () => {
   })
 
   it('an unrelated change requires neither, and says so', () => {
-    const a = applicability({ kind: 'pull_request', changed: ['src/screens/Looking.tsx', 'docs/OPS.md', 'netlify/functions/introduce.ts', 'netlify/shared/limit.ts', 'package-lock.json'] })
-    expect(a.guide).toEqual({ required: false, reason: 'none of the 5 changed files is one the guide suite measures' })
+    const a = applicability({ kind: 'pull_request', changed: ['src/screens/Looking.tsx', 'docs/OPS.md', 'netlify/functions/introduce.ts', 'netlify/shared/limit.ts'] })
+    expect(a.guide).toEqual({ required: false, reason: 'none of the 4 changed files is one the guide suite measures' })
     expect(a.judgment.required).toBe(false)
     expect(applicability({ kind: 'pull_request', changed: [] }).guide.required).toBe(false)
   })
@@ -237,9 +288,9 @@ describe('which changes require which suite', () => {
 
 describe('the verdict', () => {
   const at = '2026-09-27T12:00:00.000Z'
-  const pass = (s: Suite) => outcomeOf(s, at, full(4), NONE, [], null)
-  const fail = (s: Suite) => outcomeOf(s, at, full(4), { regressions: ['hard gate — x'], calibrationMisses: [] }, [], null)
-  const none = (s: Suite) => notEvaluated(s, at, 4, { kind: 'credentials', message: 'no key', requests: 0 })
+  const pass = (s: Suite) => outcomeOf(s, at, full(4), NONE, [], 'live-x.json')
+  const fail = (s: Suite) => outcomeOf(s, at, full(4), { regressions: ['hard gate — x'], calibrationMisses: [] }, [], 'live-x.json')
+  const none = (s: Suite) => notEvaluated(s, at, 4, 8, { kind: 'credentials', message: 'no key', requests: 0 })
   const nr = (s: Suite) => notRequired(s, at, 'unrelated')
   const req = { required: true, reason: 'touches the prompt' }
   const not = { required: false, reason: 'unrelated' }
@@ -250,6 +301,12 @@ describe('the verdict', () => {
     const v = verdict({ guide: not, judgment: not }, { guide: nr('guide'), judgment: nr('judgment') })
     expect(v.ok).toBe(true)
     expect(v.lines[0]).toBe('guide: not-required — unrelated')
+  })
+
+  it('a required pass with no report behind it fails the check', () => {
+    const v = verdict({ guide: req, judgment: not }, { guide: { ...pass('guide'), report: null }, judgment: nr('judgment') })
+    expect(v.ok).toBe(false)
+    expect(v.failures[0]).toMatch(/claims evaluated-pass with no report behind it/)
   })
 
   it('a required suite that is anything but evaluated-pass fails the check', () => {

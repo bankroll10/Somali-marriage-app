@@ -1,11 +1,11 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { classify, readOutcome, readUpstreamOutcome, writeOutcome } from './artifacts'
 import { applicabilityCommand, verdictCommand } from './check'
-import { ARTIFACT, notEvaluated, notRequired, outcomeOf, type Suite, type Tally } from './outcome'
+import { ARTIFACT, RESULTS, notEvaluated, notRequired, outcomeOf, type Outcome, type Suite, type Tally } from './outcome'
 
 /**
  * The workflow's side of the outcome (docs/GUIDE-EVAL.md, "Outcomes"): the
@@ -16,14 +16,29 @@ import { ARTIFACT, notEvaluated, notRequired, outcomeOf, type Suite, type Tally 
  */
 
 const at = '2026-09-27T12:00:00.000Z'
-const full = (n: number): Tally => ({ expected: n, started: n, completed: n, answered: n, declined: 0, unavailable: 0, judged: n, requests: 2 * n, succeeded: 2 * n, stopped: null })
-const pass = (s: Suite) => outcomeOf(s, at, full(3), { regressions: [], calibrationMisses: [] }, [], null)
+const full = (n: number): Tally => ({ expected: n, started: n, completed: n, answered: n, declined: 0, unavailable: 0, judged: n, requests: 2 * n, succeeded: 2 * n, responses: { needed: 2 * n, accounted: 2 * n }, stopped: null })
+const pass = (s: Suite) => outcomeOf(s, at, full(3), { regressions: [], calibrationMisses: [] }, [], 'live-x.json')
+
+/** A report that supports `outcome` row for row, written where the check looks for it. Guide texts only, so both suites take two responses per row. */
+function writeReport(root: string, outcome: Outcome, over: Record<string, unknown> = {}): string {
+  const run = outcome.run!
+  const rows = Array.from({ length: run.completed }, () => (outcome.suite === 'guide' ? { source: 'live', judge: {} } : { kind: 'guide', source: 'live', judgement: {} }))
+  const report =
+    outcome.suite === 'guide'
+      ? { suite: 'guide', at: outcome.at, expected: run.expected, started: run.started, requests: run.requests, succeeded: run.succeeded, stopped: run.stopped, cases: rows, ...over }
+      : { suite: 'judgment', at: outcome.at, intended: { pairs: 0, guide: run.expected, scripts: 0 }, expected: run.expected, started: run.started, requests: run.requests, succeeded: run.succeeded, stopped: run.stopped, results: rows, ...over }
+  const path = join(root, RESULTS[outcome.suite], outcome.report!)
+  mkdirSync(dirname(path), { recursive: true })
+  writeFileSync(path, JSON.stringify(report))
+  return path
+}
 const root = () => mkdtempSync(join(tmpdir(), 'niyyah-eval-root-'))
 
 describe('the outcome files on disk', () => {
   it('writes each suite to its own path and reads it back validated', () => {
     const r = root()
     expect(writeOutcome(r, pass('guide'))).toBe(join(r, ARTIFACT.guide))
+    writeReport(r, pass('guide'))
     expect(writeOutcome(r, notRequired('judgment', at, 'x'))).toBe(join(r, ARTIFACT.judgment))
     expect(readOutcome(r, 'guide')).toEqual(pass('guide'))
     expect(readOutcome(r, 'judgment')).toMatchObject({ outcome: 'not-required' })
@@ -34,6 +49,7 @@ describe('the outcome files on disk', () => {
     expect(readOutcome(r, 'guide')).toBeInstanceOf(Error)
     expect((readOutcome(r, 'guide') as Error).message).toMatch(/was not written/)
     writeOutcome(r, pass('guide'))
+    writeReport(r, pass('guide'))
     writeFileSync(join(r, ARTIFACT.guide), '{not json')
     expect((readOutcome(r, 'guide') as Error).message).toMatch(/is not JSON/)
     writeFileSync(join(r, ARTIFACT.guide), JSON.stringify({ ...pass('guide'), outcome: 'evaluated-fail' }))
@@ -42,11 +58,49 @@ describe('the outcome files on disk', () => {
     expect((readOutcome(r, 'guide') as Error).message).toMatch(/suite is "judgment"/)
   })
 
+  it('a pass is believed only with its report behind it: missing, unreadable, another suite’s, another run’s or a report that does not add up is refused', () => {
+    const r = root()
+    writeOutcome(r, pass('guide'))
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/names tests\/guide-eval\/results\/live-x.json, which was not written/)
+    const path = writeReport(r, pass('guide'))
+    expect(readOutcome(r, 'guide')).toEqual(pass('guide'))
+    writeFileSync(path, '{')
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/live-x.json is not JSON/)
+    writeReport(r, pass('guide'), { suite: 'judgment' })
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/belongs to "judgment", not to the guide suite/)
+    writeReport(r, pass('guide'), { at: '2026-09-26T12:00:00.000Z' })
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/not from this outcome's run/)
+    writeReport(r, pass('guide'), { cases: [{ source: 'live', judge: {} }, { source: 'live', judge: {} }, { source: 'live', judge: null }] })
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/does not support the outcome: judged 3 in the outcome, 2 in the report; responses.accounted 6 in the outcome, 5 in the report/)
+    writeReport(r, pass('guide'), { cases: [{ source: 'live', judge: {} }] })
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/completed 3 in the outcome, 1 in the report/)
+    writeReport(r, pass('guide'), { cases: 'none' })
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/report.cases is not an array/)
+    writeReport(r, pass('guide'), { succeeded: 5 })
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/succeeded 6 in the outcome, 5 in the report/)
+    // A pass whose file says report: null is refused before the report is even looked for.
+    writeFileSync(join(r, ARTIFACT.guide), JSON.stringify({ ...pass('guide'), report: null }))
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/names no report/)
+    // A report name that is a path is refused: reports live in the suite's results directory and nowhere else.
+    writeFileSync(join(r, ARTIFACT.guide), JSON.stringify({ ...pass('guide'), report: '../../../etc/passwd' }))
+    expect((readOutcome(r, 'guide') as Error).message).toMatch(/neither a report file name/)
+    // The judgment suite's report is recounted by its own arithmetic.
+    writeOutcome(r, pass('judgment'))
+    writeReport(r, pass('judgment'))
+    expect(readOutcome(r, 'judgment')).toEqual(pass('judgment'))
+    writeReport(r, pass('judgment'), { intended: { pairs: 0, guide: 2, scripts: 1 } })
+    expect((readOutcome(r, 'judgment') as Error).message).toMatch(/responses.needed 6 in the outcome, 5 in the report/)
+    writeReport(r, pass('judgment'), { results: [{ kind: 'calibration', judgement: {} }, { kind: 'guide', source: 'live', judgement: {} }, { kind: 'script', judgement: {} }] })
+    expect((readOutcome(r, 'judgment') as Error).message).toMatch(/responses.accounted 6 in the outcome, 5 in the report/)
+    unlinkSync(join(r, RESULTS.judgment, 'live-x.json'))
+    expect((readOutcome(r, 'judgment') as Error).message).toMatch(/was not written/)
+  })
+
   it('an upstream outcome is read only when it is whole; anything else is treated as none', () => {
     const r = root()
     expect(readUpstreamOutcome(undefined)).toBeNull()
     expect(readUpstreamOutcome(join(r, 'nothing.json'))).toBeNull()
-    const path = writeOutcome(r, notEvaluated('guide', at, 3, { kind: 'billing', message: 'credit', requests: 1 }))
+    const path = writeOutcome(r, notEvaluated('guide', at, 3, 6, { kind: 'billing', message: 'credit', requests: 1 }))
     expect(readUpstreamOutcome(path)).toMatchObject({ run: { stopped: { kind: 'billing' } } })
     writeFileSync(path, '{}')
     expect(readUpstreamOutcome(path)).toBeNull()
@@ -91,6 +145,7 @@ describe('the two commands the workflow runs', () => {
   it('verdict passes only when every required suite passed, and prints what each did', () => {
     const r = root()
     writeOutcome(r, pass('guide'))
+    writeReport(r, pass('guide'))
     writeOutcome(r, notRequired('judgment', at, 'unrelated'))
     const ok = verdictCommand(['--guide', 'required', '--judgment', 'not-required'], r)
     expect(ok.exit).toBe(0)

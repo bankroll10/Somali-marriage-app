@@ -208,7 +208,13 @@ on a fail-closed verdict; the log-grep/exit-0 workaround is gone; no
 threshold changed; no baseline is written from anything but a pass. Whether
 a red check blocks a merge is branch protection's setting, unchanged and
 still open (§7). Deterministic stand-ins cover every case named in the
-review; no paid run was made.
+review; no paid run was made. **Repaired 2026-09-27** after an independent
+review of `551b62e` reproduced two gaps: a tally with ten cases judged on
+one response earned a pass, and a pass with no report was accepted. The
+pass conditions are now stated positively with per-suite response
+arithmetic, a pass must name a report that recounts to its numbers, and
+`package-lock.json` requires both suites (`docs/GUIDE-EVAL.md`,
+"Outcomes"; `docs/SESSION-HANDOFF.md`).
 
 **B2 — deferred, not started:**
 
