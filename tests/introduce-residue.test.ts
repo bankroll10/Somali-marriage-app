@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { blobs, call, FOUNDER, FOUNDER_KEY } from './support/server'
 import { day } from '../netlify/shared/day'
+import { markerKey } from '../netlify/functions/introduce'
 
 /**
  * A withdrawal that wins, and a record that is left behind anyway
@@ -15,20 +16,30 @@ import { day } from '../netlify/shared/day'
  * undone. The marker is the authority now: a record under a marked code is
  * not on the founder's list and not in the counts; the sweep deletes it on any
  * run and only then the marker; a cleanup that fails keeps the marker, so the
- * evidence for the next attempt stays; and a marker refreshed by a new
- * withdrawal is never removed on the strength of an older read.
+ * evidence for the next attempt stays.
+ *
+ * And the marker itself cannot be undone by cleanup. Blobs has no conditional
+ * delete, so the first repair's "read the marker, then delete it if unchanged"
+ * was two calls with a gap, and a withdrawal in that gap lost its marker to
+ * the sweep (the review's reproduction, kept below as the last interleaving).
+ * Markers are now one immutable key per code per day; an old key's removal
+ * cannot touch a fresh withdrawal's, whatever the interleaving.
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/blobs')).blobsModule)
 
 const CODE = 'HJKMNPQR'
-const MARKER = `withdrawn/${CODE}`
+/** Today's marker for the code — what a withdrawal made now writes. */
+const MARKER = markerKey(CODE, day())
+/** An old marker for the same code, from a withdrawal weeks ago. */
+const OLD = markerKey(CODE, '2026-09-01')
 const OK = { code: CODE, contact: 'zq.residue@example.com', gender: 'woman', scene: 'twin-cities', adult: true }
 const put = () => call('introduce', 'POST', 'introduce', OK)
 const off = (code = CODE) => call('introduce', 'DELETE', `introduce?code=${code}`)
 const list = async () => (await (await call('introduce', 'GET', 'introduce', undefined, FOUNDER)).json()) as { people: { code: string }[]; counts: Record<string, unknown>; total: number; withdrawn: number }
 const DAY = 24 * 60 * 60 * 1000
 const at = (d: string) => Date.parse(`${d}T00:00:00Z`)
+const record = () => ({ contact: 'zq.residue@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', adult: true, at: '2026-09-01', v: 1 })
 
 beforeEach(() => {
   blobs.reset()
@@ -46,8 +57,7 @@ describe('a late write whose cleanup fails, after the withdrawal was answered', 
     // delete of what it wrote then fails.
     blobs.before('setJSON', CODE, () => off(), 'introductions')
     blobs.failOn({ store: 'introductions', op: 'delete', key: CODE })
-    const res = await put()
-    return res
+    return put()
   }
 
   it('answers withdrawn, not a server error, and leaves the marker beside the record it could not remove', async () => {
@@ -69,10 +79,11 @@ describe('a late write whose cleanup fails, after the withdrawal was answered', 
 
   it('a later sweep deletes the record on any run, and the marker only once it is gone and its days are up', async () => {
     await reproduce()
-    // The same night: the record goes, the fresh marker stays.
+    // The same night: the record goes, today's marker stays.
     expect(await sweepAt(Date.now())).toEqual({ introductions: 0, withdrawn: 1, markers: 0, errors: 0 })
     expect(blobs.keys('introductions')).toEqual([MARKER])
-    // A run past the marker's days takes the marker.
+    // Two days on the marker is still not two full days old; three days on it is.
+    expect(await sweepAt(Date.now() + 2 * DAY)).toEqual({ introductions: 0, withdrawn: 0, markers: 0, errors: 0 })
     expect(await sweepAt(Date.now() + 3 * DAY)).toEqual({ introductions: 0, withdrawn: 0, markers: 1, errors: 0 })
     expect(blobs.keys('introductions')).toEqual([])
   })
@@ -83,51 +94,88 @@ describe('a late write whose cleanup fails, after the withdrawal was answered', 
     expect(res.status).toBe(410)
     // The retry's own attempt to clear the residue succeeded this time.
     expect(blobs.keys('introductions')).toEqual([MARKER])
+    // The check is a list by the code's marker prefix, on the store opened strong.
+    expect(blobs.log.filter((c) => c.op === 'list').map((c) => c.key)).toContain(`withdrawn/${CODE}/`)
+    expect(blobs.opened.get('introductions')).toEqual({ consistency: 'strong' })
   })
 })
 
 describe('the sweep processing markers', () => {
   it('a record it cannot delete keeps its marker, so the next run finds the evidence', async () => {
-    blobs.put('introductions', MARKER, { at: '2026-09-01' })
-    blobs.put('introductions', CODE, { contact: 'zq.residue@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', adult: true, at: '2026-09-01', v: 1 })
+    blobs.put('introductions', OLD, { at: '2026-09-01' })
+    blobs.put('introductions', CODE, record())
     blobs.failOn({ store: 'introductions', op: 'delete', key: CODE })
     expect(await sweepAt(at('2026-09-13'))).toEqual({ introductions: 0, withdrawn: 0, markers: 0, errors: 1 })
-    expect(blobs.keys('introductions')).toEqual([CODE, MARKER])
+    expect(blobs.keys('introductions')).toEqual([CODE, OLD])
     // Next week, both go — record first.
     blobs.log.length = 0
     expect(await sweepAt(at('2026-09-20'))).toEqual({ introductions: 0, withdrawn: 1, markers: 1, errors: 0 })
     expect(blobs.keys('introductions')).toEqual([])
-    const order = blobs.log.filter((c) => c.op === 'delete').map((c) => c.key)
-    expect(order).toEqual([CODE, MARKER])
+    expect(blobs.log.filter((c) => c.op === 'delete').map((c) => c.key)).toEqual([CODE, OLD])
   })
 
   it('a marker whose record is still there is never removed first, however old it is', async () => {
-    blobs.put('introductions', MARKER, { at: '2026-01-01' })
-    blobs.put('introductions', CODE, { contact: 'zq.residue@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', adult: true, at: '2026-09-01', v: 1 })
-    // Only the record's delete fails; the marker's would succeed if tried.
+    blobs.put('introductions', markerKey(CODE, '2026-01-01'), { at: '2026-01-01' })
+    blobs.put('introductions', CODE, record())
     blobs.failOn({ store: 'introductions', op: 'delete', key: CODE })
     await sweepAt(at('2026-09-13'))
-    expect(blobs.keys('introductions')).toEqual([CODE, MARKER])
-    expect(blobs.log.filter((c) => c.op === 'delete' && c.key === MARKER)).toEqual([])
+    expect(blobs.keys('introductions')).toEqual([CODE, markerKey(CODE, '2026-01-01')])
+    expect(blobs.log.filter((c) => c.op === 'delete' && c.key !== CODE)).toEqual([])
   })
 
-  it('a withdrawal repeated near cleanup refreshes the marker’s day, and the sweep keeps it', async () => {
-    blobs.put('introductions', MARKER, { at: '2026-09-01' })
+  it('a code withdrawn on two days carries two markers; the record goes once, and each marker goes on its own day', async () => {
+    blobs.put('introductions', OLD, { at: '2026-09-01' })
+    blobs.put('introductions', CODE, record())
+    expect(await (await off()).json()).toEqual({ removed: true })
+    expect(blobs.keys('introductions')).toEqual([OLD, MARKER])
+    expect(await sweepAt(Date.now())).toEqual({ introductions: 0, withdrawn: 0, markers: 1, errors: 0 })
+    expect(blobs.keys('introductions')).toEqual([MARKER])
+    // And a request under the code is refused while any marker stands.
+    expect((await put()).status).toBe(410)
+  })
+
+  it('a withdrawal repeated on the same day is one marker, left as it was', async () => {
     expect(await (await off()).json()).toEqual({ removed: false })
-    expect(blobs.read('introductions', MARKER)).toEqual({ at: day() })
-    expect(await sweepAt(Date.now())).toEqual({ introductions: 0, withdrawn: 0, markers: 0, errors: 0 })
+    expect(await (await off()).json()).toEqual({ removed: false })
     expect(blobs.keys('introductions')).toEqual([MARKER])
+    expect(blobs.read('introductions', MARKER)).toEqual({ at: day() })
   })
 
-  it('a withdrawal that lands while the sweep is deciding about an old marker wins: the marker read as old is not the one deleted', async () => {
-    blobs.put('introductions', MARKER, { at: '2026-09-01' })
-    // The sweep has read the marker as old; the withdrawal rewrites it just
-    // before the sweep checks the version it is about to delete.
-    blobs.before('getMetadata', MARKER, () => off(), 'introductions')
-    expect(await sweepAt(at('2026-09-13'))).toEqual({ introductions: 0, withdrawn: 0, markers: 0, errors: 0 })
+  it('a withdrawal that lands before the sweep reads: the old marker goes, the fresh one stays, the request is refused', async () => {
+    blobs.put('introductions', OLD, { at: '2026-09-01' })
+    blobs.before('list', '', () => off(), 'introductions')
+    expect(await sweepAt(Date.now())).toEqual({ introductions: 0, withdrawn: 0, markers: 1, errors: 0 })
     expect(blobs.keys('introductions')).toEqual([MARKER])
-    // And a request under that code, arriving now, is refused.
     expect((await put()).status).toBe(410)
     expect(blobs.keys('introductions')).toEqual([MARKER])
+  })
+
+  it('a withdrawal that lands immediately before the sweep’s delete of an old marker is not undone by it', async () => {
+    // The review's reproduction against 5dedfe3: the sweep had read the one
+    // marker as old, the withdrawal rewrote it, and the unconditional delete
+    // took the fresh marker; the request then answered 200. Now the fresh
+    // withdrawal is its own key.
+    blobs.put('introductions', OLD, { at: '2026-09-01' })
+    blobs.before(
+      'delete',
+      OLD,
+      async () => {
+        const response = await off()
+        expect(response.status).toBe(200)
+      },
+      'introductions',
+    )
+    expect(await sweepAt(Date.now())).toEqual({ introductions: 0, withdrawn: 0, markers: 1, errors: 0 })
+    expect(blobs.keys('introductions')).toEqual([MARKER])
+    const response = await put()
+    expect(response.status).toBe(410)
+    expect(blobs.keys('introductions')).toEqual([MARKER])
+  })
+
+  it('a marker whose key carries no day is from no version of this route, and goes once nothing is under its code', async () => {
+    blobs.put('introductions', 'withdrawn/QRTWXY34', { at: '2026-09-01' })
+    blobs.put('introductions', 'withdrawn/ACDEFGHJ/last-spring', {})
+    expect(await sweepAt(Date.now())).toEqual({ introductions: 0, withdrawn: 0, markers: 2, errors: 0 })
+    expect(blobs.keys('introductions')).toEqual([])
   })
 })

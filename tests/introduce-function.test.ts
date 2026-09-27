@@ -102,7 +102,7 @@ describe('putting a name down', () => {
     const res = await post({ ...OK, code: CODE })
     expect(res.status).toBe(410)
     expect((await res.json()).error).toBe('withdrawn')
-    expect(keys()).toEqual([`withdrawn/${CODE}`])
+    expect(keys()).toEqual([`withdrawn/${CODE}/${day()}`])
   })
 
   it('a code of the wrong shape is refused before anything is read', async () => {
@@ -240,7 +240,7 @@ describe('the founder’s list', () => {
     // A record from before the affirmation was sent: still a person, still shown.
     memStore('introductions').setJSON('DDDDDDDD', { contact: 'c@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: ago(12), v: 1 })
     // A withdrawal marker is not a person.
-    memStore('introductions').setJSON('withdrawn/EEEEEEEE', { at: day() })
+    memStore('introductions').setJSON(`withdrawn/EEEEEEEE/${day()}`, { at: day() })
     const res = await list(FOUNDER)
     expect(res.status).toBe(200)
     expect(res.headers.get('cache-control')).toBe('no-store')
@@ -299,8 +299,8 @@ describe('taking a name off', () => {
     const first = await off(code)
     expect(first.status).toBe(200)
     expect(await first.json()).toEqual({ removed: true })
-    expect(keys()).toEqual([`withdrawn/${CODE}`])
-    expect(stored(`withdrawn/${CODE}`)).toEqual({ at: day() })
+    expect(keys()).toEqual([`withdrawn/${CODE}/${day()}`])
+    expect(stored(`withdrawn/${CODE}/${day()}`)).toEqual({ at: day() })
     const again = await off(code)
     expect(again.status).toBe(200)
     expect(await again.json()).toEqual({ removed: false })
@@ -309,7 +309,7 @@ describe('taking a name off', () => {
   it('works for a record written before the affirmation was stored', async () => {
     memStore('introductions').setJSON('AAAAAAAA', { contact: 'old@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: ago(3), v: 1 })
     expect(await (await off('AAAAAAAA')).json()).toEqual({ removed: true })
-    expect(keys()).toEqual(['withdrawn/AAAAAAAA'])
+    expect(keys()).toEqual([`withdrawn/AAAAAAAA/${day()}`])
   })
 
   it('needs a code the right shape, and takes nothing else', async () => {

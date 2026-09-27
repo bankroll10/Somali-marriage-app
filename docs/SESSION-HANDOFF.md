@@ -15,7 +15,8 @@ started.** The next task is review of the repair, not Group B.
 | The consolidated plan, `docs/BATCH-01-PLAN.md` | `344fc99` |
 | Group A: signup reliability, recovery, dates, adult gate, copy, address | `ed5c53e` |
 | Group A handoff | `3b987ee` |
-| The repair (this session; see `git log` for the hash) | after `3b987ee` |
+| The repair, first pass (marker authority, refused receipt, no production write) | `5dedfe3` |
+| The repair, second pass (immutable dated marker keys) | the commit after `5dedfe3` (see `git log`) |
 
 Branch: `claude/hello-gr0hoz`, pushed. **No pull request was opened, nothing
 was merged, nothing was deployed, no paid evaluation ran, no outreach was
@@ -55,16 +56,32 @@ the decisions.
    the marker is the authority. `GET` excludes and counts (`withdrawn`) any
    record under a marker; a POST that finds a marker answers 410 and tries
    the delete again, and still answers 410 (counted in `fail.introduce`) if
-   that fails; `DELETE` rewrites the marker's day on every withdrawal; the
-   sweep deletes any record under a marker first, on any run, and the marker
-   only after, only once at least two days old, and only if unchanged since
-   read (`deleteIfUnchanged`), so a repeated withdrawal is never undone by an
-   older marker's clock and a failed record delete keeps the marker as
-   evidence. `Swept` gained `withdrawn`. Regressions:
-   `tests/introduce-residue.test.ts` (the sequence; the founder's list; a
-   later sweep repairing; a retry refused; a failed delete while processing
-   markers; a marker never removed before its record; repeated withdrawal
-   near cleanup; a withdrawal racing the sweep's read).
+   that fails; the sweep deletes any record under a marker first, on any
+   run, and the marker only after; a failed record delete keeps the marker
+   as evidence. `Swept` gained `withdrawn`.
+   **Second pass (commit after `5dedfe3`).** The first pass kept one marker
+   key per code, rewrote its day on each withdrawal, and removed it by
+   reading it and then calling `deleteIfUnchanged` — a `getMetadata` and an
+   unconditional `delete`, because Netlify Blobs has no conditional delete
+   (`delete(key)` takes no version; verified in the installed
+   `@netlify/blobs` 11.0.3). The review reproduced a withdrawal landing
+   between those two calls: the sweep deleted the fresh marker and a request
+   under the code then answered 200. Markers are now
+   `withdrawn/<code>/<day>`, one immutable key per code per day, written
+   `onlyIfNew`, never rewritten; the sweep removes a marker only by the day
+   in its own key, so removing an old one cannot touch a withdrawal that
+   landed meanwhile, at any point in the run; the POST's check is a `list`
+   by the code's prefix on the strong store (the SDK's `list` inherits the
+   store's consistency). "At least two days" is now literal: a key's day
+   must be strictly more than `WITHDRAWN_DAYS` behind the run's day.
+   Regressions: `tests/introduce-residue.test.ts` (the sequence; the
+   founder's list; a later sweep repairing; a retry refused; a failed delete
+   while processing markers; a marker never removed before its record; two
+   markers under one code; a same-day repeat; a withdrawal landing before
+   the sweep's list; the review's interleaving, a withdrawal landing
+   immediately before the sweep's delete of an old marker; undated marker
+   keys). `tests/introduce-race.test.ts` hooks the list read instead of a
+   get.
 3. **The production `DELETE` in `deployed.yml` is removed.** `AAAAAAAA` is a
    valid code a person could hold, and the probe wrote a withdrawal marker
    in production on every deploy. Replaced by `/health`'s `introductions`
@@ -119,9 +136,10 @@ the decisions.
 
 | Check | Result |
 |---|---|
-| `npm run verify > log 2>&1; echo $?` (typecheck, lint, 105 test files) | exit 0; 1417 passed, 2 skipped (the two live suites, no key). Three new files: `tests/introduce-residue.test.ts`, `tests/blobs-consistency.test.ts`, `src/lib/introduce.test.ts` |
-| `npm run build` | exit 0 |
-| Chromium, 390×844, production build, real handlers, local `BlobsServer` with `edgeURL` = `uncachedEdgeURL`, synthetic data, isolated contexts | 11 of 11: with `setItem` refusing `niyyah.intro*`, the receipt shows the code and names the limit ("closed or reloaded"), nothing is in storage, no horizontal overflow, the founder list holds one; Back and through the door again shows the receipt; Trust → Forget me → "Yes, delete everything" empties the founder list and the code then finds nothing; a typed code on another phone takes a name off and the same code again gives the bounded wording, no overflow; `/health` with the key reports the `introductions` strong read ok |
+| `npm run verify > log 2>&1; echo $?` (typecheck, lint, 105 test files) | First pass: exit 0; 1417 passed, 2 skipped. Second pass: exit 0; 1420 passed, 2 skipped (the two live suites, no key). Three new files: `tests/introduce-residue.test.ts`, `tests/blobs-consistency.test.ts`, `src/lib/introduce.test.ts` |
+| `npm run build` | exit 0, both passes |
+| Immutable marker keys against the real Blobs server | The second pass's walk wrote `withdrawn/<code>/<day>` keys through the installed SDK to the package's own `BlobsServer`; nested keys are accepted and listed by prefix |
+| Chromium, 390×844, production build, real handlers, local `BlobsServer` with `edgeURL` = `uncachedEdgeURL`, synthetic data, isolated contexts | 11 of 11 on both passes: with `setItem` refusing `niyyah.intro*`, the receipt shows the code and names the limit ("closed or reloaded"), nothing is in storage, no horizontal overflow, the founder list holds one; Back and through the door again shows the receipt; Trust → Forget me → "Yes, delete everything" empties the founder list and the code then finds nothing; a typed code on another phone takes a name off and the same code again gives the bounded wording, no overflow; `/health` with the key reports the `introductions` strong read ok |
 | Strong read against a real Blobs endpoint | `tests/blobs-consistency.test.ts`, against the package's own server, in every `verify`. Production's context is still not verifiable from a session; `/health`'s `introductions` check is what reads it |
 
 ## Limitations that remain
@@ -138,9 +156,13 @@ the decisions.
   receipt through `localStorage`; when storage is refused, the guarantee
   holds within one page only, and two tabs can make two records.
 - **Code reuse is prevented for the marker's days, not for ever.** After the
-  marker is swept, a request under the same code would be a new record;
-  the phone forgets a withdrawn pending code on 410, so this needs a person
-  to send the same code again days later.
+  last marker under a code is swept, a request under the same code would be
+  a new record; the phone forgets a withdrawn pending code on 410, so this
+  needs a person to send the same code again days later.
+- **`deleteIfUnchanged` is not atomic** and is not described as such: a
+  `getMetadata` then an unconditional `delete`, with the gap its own comment
+  names. The maps sweep still uses it and accepts that gap for lapsed maps.
+  The introduction list no longer uses it anywhere.
 - **An old cached page** sends no `adult` and is refused with a sentence it
   already had ("Something in the form did not fit"); it cannot be told more.
   The fix is to reopen the app (`docs/OPS.md`, "Updating an installed app").

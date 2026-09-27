@@ -75,6 +75,7 @@ their neighbours had not hollowed them out.
 | One removal day for phone, list and sweep | `sweep-function`, `vocab-sync`, `introduce-function` | The sweep looks a week ahead again (2026-09-27) | Red (4) |
 | The affirmation is required on the wire | `introduce-function`, `caps-function`, `journeys/looking` | `adult` accepted when absent (2026-09-27) | Red (3) |
 | The withdrawal marker is the authority | `introduce-residue`, `introduce-function` | The founder's `GET` shows a record under a marker again; the sweep removes a marker before the record under it (2026-09-27) | Red (5) |
+| Cleaning an old marker cannot undo a fresh withdrawal | `introduce-residue`, `introduce-race` | Markers back to one rewritten key per code, removed by read-then-delete (2026-09-27, the review's interleaving: a withdrawal immediately before the sweep's delete) | Red (2) |
 | A receipt the browser refuses is still the page's | `lib/introduce`, `journeys/looking` | `rememberIntro` drops the receipt on a `setItem` throw, so Forget me finds no code (2026-09-27) | Red (3) |
 | No workflow writes to production | `deploy-layout`, `ops` | A `-X DELETE` returns to `deployed.yml`; `/health` writes or deletes on the introduction list (2026-09-27) | Red (1 each) |
 | The SDK refuses strong reads by name without an uncached URL | `blobs-consistency` | — | Runs the installed `@netlify/blobs` against its own `BlobsServer`; not a double |

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { blobs, serve, type Served } from '../../tests/support/server'
 import { pendingIntro, registerInterest, rememberedIntro, resetIntroMirror, withdrawInterest } from './introduce'
 import { forgetMe } from './forget'
+import { day } from '../../netlify/shared/day'
 
 /**
  * The client half of the introduction path, against the real handler over
@@ -55,7 +56,7 @@ describe('a browser that refuses to store the receipt', () => {
     const done = await forgetMe()
     expect(done.intro).toBe(true)
     expect(records()).toEqual([])
-    expect(blobs.keys('introductions')).toEqual([`withdrawn/${result.state.code}`])
+    expect(blobs.keys('introductions')).toEqual([`withdrawn/${result.state.code}/${day()}`])
     expect(rememberedIntro()).toBeNull()
   })
 
@@ -92,7 +93,7 @@ describe('a browser that refuses to store the receipt', () => {
 describe('a server error after the request was sent', () => {
   it('is unsure — the write may have landed — and the pending code is kept for the retry', async () => {
     refusingStorage()
-    blobs.failOn({ store: 'introductions', op: 'get', prefix: 'withdrawn/' })
+    blobs.failOn({ store: 'introductions', op: 'list', prefix: 'withdrawn/' })
     const result = await registerInterest(INPUT)
     expect(result.ok).toBe(false)
     if (result.ok) return

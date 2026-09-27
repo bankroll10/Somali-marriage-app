@@ -73,7 +73,7 @@ function allowed(code: string) {
 function onlyAMarker() {
   const keys = blobs.keys('introductions')
   expect(keys).toHaveLength(1)
-  expect(keys[0]).toMatch(/^withdrawn\/[ACDEFGHJKMNPQRTWXY34789]{8}$/)
+  expect(keys[0]).toMatch(/^withdrawn\/[ACDEFGHJKMNPQRTWXY34789]{8}\/\d{4}-\d{2}-\d{2}$/)
   expect(Object.keys(blobs.read('introductions', keys[0]) as object)).toEqual(['at'])
 }
 

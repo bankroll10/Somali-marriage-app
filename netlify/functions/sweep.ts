@@ -4,7 +4,7 @@ import { day } from '../shared/day'
 import { isGone, retire } from '../shared/sheet'
 import { DAY_MS, deleteIfUnchanged, ended, isBookkeeping, isMoving, lapsed, type Journal } from '../shared/integrity'
 import { finishMove, rollBackMove } from './keep'
-import { WITHDRAWN, WITHDRAWN_DAYS, removeOn } from './introduce'
+import { WITHDRAWN, WITHDRAWN_DAYS, markerCode, markerDay, removeOn } from './introduce'
 
 /**
  * The weekly sweep — what makes every stated lifetime true without a person
@@ -65,7 +65,7 @@ export interface Swept {
   introductions: number
   /** Names still under a withdrawal marker because a delete failed: taken off now. */
   withdrawn: number
-  /** Withdrawal markers on the introduction list at least two days old, with nothing left under them. */
+  /** Withdrawal markers on the introduction list whose own day is at least two full days behind, with nothing left under their code. */
   markers: number
   /** Records that could not be read or removed this week. Everything else still went; these are tried again. */
   errors: number
@@ -171,25 +171,32 @@ export async function sweepExpired(couples: Store, progress: Store, now = Date.n
  * error, tried again next week; one that reads as something other than JSON
  * is removed, since nothing can ever read it.
  *
- * **A withdrawal marker is the authority** (`withdrawn/<code>`, a day and
- * nobody; netlify/functions/introduce.ts). A record still under a marked code
- * is there because a delete failed after the withdrawal was answered; it is
- * deleted on any run, whatever its own day. The marker goes only after that
- * record is gone, and only once it is at least WITHDRAWN_DAYS old — so a
- * failed delete keeps the marker, and with it the evidence that the record
- * must go, for the next run. The marker is deleted only if it is still the
- * version that was read (`deleteIfUnchanged`): a withdrawal repeated in the
- * meantime rewrote its day, and that fresh marker is what stops a request
- * still in flight, so an older read may not take it. A marker whose day is
- * missing or unreadable goes as soon as nothing is under it.
+ * **A withdrawal marker is the authority** (`withdrawn/<code>/<day>`, a day
+ * and nobody; netlify/functions/introduce.ts). A record still under a marked
+ * code is there because a delete failed after the withdrawal was answered;
+ * it is deleted on any run, whatever its own day. The marker goes only after
+ * that record is gone, and only once the day in its own key is at least
+ * WITHDRAWN_DAYS behind this run's — so a failed delete keeps the marker,
+ * and with it the evidence that the record must go, for the next run.
+ *
+ * Blobs has no conditional delete, so this never decides about a marker by
+ * reading it and then deleting it: the day is in the key, the key is never
+ * rewritten, and a withdrawal that lands while this runs writes a key of its
+ * own that no branch here names. Deleting an old marker therefore cannot
+ * take a fresh withdrawal's, whatever the interleaving
+ * (tests/introduce-residue.test.ts). A marker whose key carries no readable
+ * day is from no version of this route and goes as soon as nothing is under
+ * its code.
  */
 export async function sweepIntroductions(introductions: Store, now = Date.now()) {
   const out = { introductions: 0, withdrawn: 0, markers: 0, errors: 0 }
   const today = day(now)
+  // A marker is removable only when its own day is strictly before this: at
+  // least two full days old, whatever the hour it was written.
   const markersBefore = day(now - WITHDRAWN_DAYS * DAY_MS)
   const keys = (await introductions.list()).blobs.map((b) => b.key)
   const present = new Set(keys)
-  const marked = new Set(keys.filter((k) => k.startsWith(WITHDRAWN)).map((k) => k.slice(WITHDRAWN.length)))
+  const marked = new Set(keys.filter((k) => k.startsWith(WITHDRAWN)).map(markerCode))
 
   // Names on their day — those not under a marker; the marked ones go below.
   for (const key of keys) {
@@ -205,20 +212,22 @@ export async function sweepIntroductions(introductions: Store, now = Date.now())
   }
 
   // Markers: first whatever is left under the code, then — only if that is
-  // gone and the days are up — the marker itself.
+  // gone and this key's own day is old enough — the marker itself. One code
+  // may carry several markers (one per day it was withdrawn on); the record
+  // is deleted once, by the first of them.
   for (const key of keys) {
     if (!key.startsWith(WITHDRAWN)) continue
-    const code = key.slice(WITHDRAWN.length)
+    const code = markerCode(key)
     await each(out, async () => {
       if (present.has(code)) {
         await introductions.delete(code)
+        present.delete(code)
         out.withdrawn += 1
       }
-      const read = (await introductions.getWithMetadata(key, { type: 'text' })) as { data: string; etag?: string } | null
-      if (!read) return
-      const at = dayIn(read.data)
-      if (typeof at === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(at) && at > markersBefore) return
-      if (await deleteIfUnchanged(introductions, key, read.etag)) out.markers += 1
+      const at = markerDay(key)
+      if (at && at >= markersBefore) return
+      await introductions.delete(key)
+      out.markers += 1
     })
   }
   return out

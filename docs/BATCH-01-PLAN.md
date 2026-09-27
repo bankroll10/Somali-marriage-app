@@ -71,19 +71,25 @@ Evidence kinds: **code** (read in the tree), **observed** (a tool answered),
   guarantee holds within one page only. The contact is never indexed and
   never written to the browser; the pending record is `{code, at}` alone.
 - **D2. Withdrawal is durable, and the marker is the authority.** `DELETE
-  ?code=` writes `withdrawn/<code>` (the day of the latest withdrawal,
-  nothing else; rewritten on every withdrawal) before deleting the record.
-  A POST that finds the marker answers `410 withdrawn` and deletes whatever
-  is under the code if it can; if it cannot, the answer is still 410 and
-  the failure is counted. A record under a marked code — left by a delete
-  that failed after the withdrawal was answered — is excluded from the
-  founder's `GET` and its counts (reported as `withdrawn`), refused on
-  retry, and deleted by the sweep on any run before the marker. The marker
-  is kept **at least two days** (`WITHDRAWN_DAYS`) and removed by the first
-  weekly sweep after that, once nothing is under it and only if no
-  withdrawal rewrote it since it was read: two to eight days in practice,
-  longer if a run fails. Reuse of a code is prevented for the marker's
-  days, not for ever; no copy says "never". (Repaired 2026-09-27, §6.)
+  ?code=` writes `withdrawn/<code>/<day>` — one immutable key per code per
+  day it is withdrawn on, holding that day and nothing else, `onlyIfNew` —
+  before deleting the record. A POST that finds any marker under the code
+  (a `list` by the code's prefix, on the store opened strong) answers
+  `410 withdrawn` and deletes whatever is under the code if it can; if it
+  cannot, the answer is still 410 and the failure is counted. A record under
+  a marked code — left by a delete that failed after the withdrawal was
+  answered — is excluded from the founder's `GET` and its counts (reported
+  as `withdrawn`), refused on retry, and deleted by the sweep on any run
+  before any marker. A marker is removed by the sweep only once nothing is
+  under its code and the day in its own key is **at least two full days**
+  behind the run's (`WITHDRAWN_DAYS`): two to eight days in practice, longer
+  if a run fails. Netlify Blobs has no conditional delete (`delete(key)`,
+  @netlify/blobs 11.0.3), so no design that reads a marker and then deletes
+  it can be safe against a withdrawal in the gap; the first repair's
+  `deleteIfUnchanged` was exactly that and is not used for markers. With
+  dated immutable keys, a withdrawal that lands during cleanup is a key the
+  cleanup never names. Reuse of a code is prevented while any marker stands,
+  not for ever; no copy says "never". (Repaired 2026-09-27, §6.)
 - **D3. One removal day.** `removeOn(at)` is the Sunday 00:00 UTC on or
   before `at + 180 days` — the day the weekly sweep runs. The server, the
   founder's list and the sweep use it; the phone shows the server's copy.
@@ -227,13 +233,17 @@ started.
 | # | Reproduced | Cause | Fix | Regression |
 |---|---|---|---|---|
 | 1 | Storage refused; `registerInterest` saved; `forgetMe` returned `intro: true`; the record stayed | `rememberIntro` swallowed the `setItem` throw and `forgetPending` cleared the page's copy, so nothing held the code | D8: the page keeps the receipt (`kept: false`); `rememberedIntro` falls back to it; `clearEverything` and a reload clear it; the screen names the limit | `src/lib/introduce.test.ts`; `tests/journeys/looking.test.tsx` ("a browser that cannot hold the receipt…") — the server record is asserted gone |
-| 2 | `DELETE` just before the request's `setJSON`, then the request's cleanup `delete` fails: 503, marker and record both stay, `GET` showed the person, the sweep kept the record 180 days | The marker was a race guard, not an authority: `GET` skipped only marker keys; the sweep judged records by their own `at` and removed markers first | D2 as repaired: `GET` excludes and counts records under a marker; the request answers 410 and retries the delete; `DELETE` rewrites the marker's day; the sweep deletes the record first and the marker after, only if unchanged | `tests/introduce-residue.test.ts` (the sequence, the later sweep, a failed delete while processing markers, repeated withdrawal near cleanup, a withdrawal racing the sweep's read) |
+| 2 | `DELETE` just before the request's `setJSON`, then the request's cleanup `delete` fails: 503, marker and record both stay, `GET` showed the person, the sweep kept the record 180 days | The marker was a race guard, not an authority: `GET` skipped only marker keys; the sweep judged records by their own `at` and removed markers first | D2 as repaired: `GET` excludes and counts records under a marker; the request answers 410 and retries the delete; the sweep deletes the record first and the marker after. First attempt (`5dedfe3`): one key per code, rewritten on each withdrawal, removed by read-then-`deleteIfUnchanged` — the review reproduced a withdrawal landing between that read and the delete, and the sweep took the fresh marker (POST then 200). Second attempt: `withdrawn/<code>/<day>`, immutable, removed only by the day in its own key | `tests/introduce-residue.test.ts` (the sequence, the later sweep, a failed delete while processing markers, two markers under one code, a same-day repeat, a withdrawal landing before the sweep's list, and the review's interleaving: a withdrawal landing immediately before the sweep's delete of an old marker) |
 | 3 | `deployed.yml` sent `DELETE /introduce?code=AAAAAAAA` to production | A valid, unreserved code shape; a marker written on every deploy | Removed. `/health` `introductions` check (strong HEAD of `health-probe`, founder-keyed, read by `watch.yml`); `tests/blobs-consistency.test.ts` pins the SDK; `deployed.yml` described as post-publication monitoring | `tests/deploy-layout.test.ts` (no `-X DELETE/POST/PUT` in either workflow); `tests/ops.test.ts` (the check reads one key and writes nothing; fails by name) |
 | 4 | "Markers live two days"; "nothing can be put under this code now" | The sweep is weekly; reuse is prevented only while the marker stands | Retention stated as at least two days, removed by the first weekly sweep after (two to eight days; longer on failure); absolute wording removed from `Looking.tsx`, `Trust.tsx`, `introduce.ts`, `PRIVACY`, `OPS`, `SECURITY` | — (copy; `tests/voice.test.ts` unchanged) |
 
-Remaining limitation: production's Blobs context is still unverified from a
+Remaining limitations: production's Blobs context is still unverified from a
 session; the `introductions` health check is the read that verifies it, on
 the first `watch.yml` run after a deploy of `main`, or by hand with the key.
+`deleteIfUnchanged` in `netlify/shared/integrity.ts` is still a read followed
+by an unconditional delete, as its own comment says; the maps sweep uses it
+and accepts that gap for lapsed maps. Nothing on the introduction list uses
+it.
 
 ## 7. Founder input still open
 

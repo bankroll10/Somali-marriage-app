@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { blobs, call } from './support/server'
+import { day } from '../netlify/shared/day'
+import { markerKey, markerPrefix } from '../netlify/functions/introduce'
 
 /**
  * A request still in flight, and a withdrawal that overtakes it
@@ -8,17 +10,21 @@ import { blobs, call } from './support/server'
  * The phone's `send` gives up after ten seconds, but the request it sent may
  * still land; a person who taps "Take my name off" or Forget me in that
  * window must not be left with a record on the list and no code for it. The
- * DELETE writes `withdrawn/<code>` before it deletes the record; the POST
- * checks the marker before and after its write. tests/support/blobs.ts runs
- * the competing request at an exact call, so each interleaving is a test,
- * not a thought experiment. Whatever the order, the store ends with the
- * marker and nothing else, and the request is told it was withdrawn.
+ * DELETE writes `withdrawn/<code>/<day>` before it deletes the record; the
+ * POST lists the code's markers before and after its write.
+ * tests/support/blobs.ts runs the competing request at an exact call, so
+ * each interleaving is a test, not a thought experiment. Whatever the order,
+ * the store ends with the marker and nothing else, and the request is told
+ * it was withdrawn. tests/introduce-residue.test.ts takes over where a delete
+ * fails.
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/blobs')).blobsModule)
 
 const CODE = 'HJKMNPQR'
-const MARKER = `withdrawn/${CODE}`
+const MARKER = markerKey(CODE, day())
+/** The POST's marker check is a list by this prefix. */
+const LOOK = markerPrefix(CODE)
 const OK = { code: CODE, contact: 'zq.race@example.com', gender: 'woman', scene: 'twin-cities', adult: true }
 const put = () => call('introduce', 'POST', 'introduce', OK)
 const off = () => call('introduce', 'DELETE', `introduce?code=${CODE}`)
@@ -28,7 +34,7 @@ beforeEach(() => blobs.reset())
 describe('a withdrawal racing a request under the same code', () => {
   it('lands before the record is written: the request finds the marker first and writes nothing', async () => {
     // The marker check reads first; the withdrawal runs just before that read.
-    blobs.before('get', MARKER, () => off(), 'introductions')
+    blobs.before('list', LOOK, () => off(), 'introductions')
     const res = await put()
     expect(res.status).toBe(410)
     expect(blobs.keys('introductions')).toEqual([MARKER])
@@ -43,7 +49,7 @@ describe('a withdrawal racing a request under the same code', () => {
 
   it('lands after the write and before the request’s second look: removed by the withdrawal, and the request says so', async () => {
     // The first marker read is the check before the write; the second is after.
-    blobs.before('get', MARKER, () => off(), 'introductions', 2)
+    blobs.before('list', LOOK, () => off(), 'introductions', 2)
     const res = await put()
     expect(res.status).toBe(410)
     expect(blobs.keys('introductions')).toEqual([MARKER])

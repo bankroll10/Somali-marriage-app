@@ -106,16 +106,19 @@ describe('the introduction list, on its scheduled day', () => {
     expect([...stores.get('introductions')!.keys()]).toEqual(['HJKMNPQR'])
   })
 
-  it('removes a withdrawal marker once its two days are up, and keeps a fresher one', async () => {
+  it('removes a withdrawal marker once its own day is two full days behind, and keeps a fresher one', async () => {
+    // The day is in the key (`withdrawn/<code>/<day>`); a marker two days
+    // old to the day is kept, since it may have been written a minute before
+    // midnight; one without a readable day goes.
     const { sweepIntroductions } = await import('../netlify/functions/sweep')
     const now = at('2026-09-10')
-    memStore('introductions').setJSON('withdrawn/ACDEFGHJ', { at: '2026-09-09' })
-    memStore('introductions').setJSON('withdrawn/HJKMNPQR', { at: '2026-09-08' })
-    memStore('introductions').setJSON('withdrawn/KMNPQRTW', { at: '2026-09-07' })
+    memStore('introductions').setJSON('withdrawn/ACDEFGHJ/2026-09-09', { at: '2026-09-09' })
+    memStore('introductions').setJSON('withdrawn/HJKMNPQR/2026-09-08', { at: '2026-09-08' })
+    memStore('introductions').setJSON('withdrawn/KMNPQRTW/2026-09-07', { at: '2026-09-07' })
     memStore('introductions').setJSON('withdrawn/QRTWXY34', {})
     const out = await sweepIntroductions(memStore('introductions') as never, now)
-    expect(out).toEqual({ introductions: 0, withdrawn: 0, markers: 3, errors: 0 })
-    expect([...stores.get('introductions')!.keys()]).toEqual(['withdrawn/ACDEFGHJ'])
+    expect(out).toEqual({ introductions: 0, withdrawn: 0, markers: 2, errors: 0 })
+    expect([...stores.get('introductions')!.keys()]).toEqual(['withdrawn/ACDEFGHJ/2026-09-09', 'withdrawn/HJKMNPQR/2026-09-08'])
   })
 
   it('a store that does not answer costs that name a week, and nothing else goes', async () => {

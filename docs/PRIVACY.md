@@ -171,7 +171,7 @@ names and errors, never a body. Fonts are self-hosted (`src/index.css`).
 | `limits` | `<bucket>-<h\|d>-<stamp>` | A counter, no identity | Every capped route | One period | The next period's first write | — |
 | `ops` | `day/…`, `sizes/…`, `last/…` | Numbers | Routes; `/health`; export; sweep | 35 days; `last/…` is overwritten | Sweep | — |
 | `introductions` | `<code>` | `contact`, `firstName?`, `gender`, `scene`, `country`, `reach`, `adult` (true; absent on records from before 2026-09-27's batch), `at` | introduce `POST`, under the code the phone minted (or one minted here for an older client). The same request under the same code is answered, never written twice; a different one under a code that exists is refused, never written over | **Scheduled to go on `removeOn`: the Sunday on or before `at` + 180 days** (decision 32; `docs/BATCH-01-PLAN.md` D3), the day the phone's receipt and the founder's list name; sooner if its owner takes it off, or asks the founder to. Never renewed — a retry returns the original `at` | `DELETE /introduce?code=`; Forget me; the founder, by hand; the sweep, on `removeOn` and any later run | ✓ |
-| `introductions` | `withdrawn/<code>` | `{at}`: the day of the latest withdrawal under the code, nobody | introduce `DELETE`, before it deletes the record; rewritten by every withdrawal | **At least two days**, then until the first weekly sweep — two to eight days in practice, longer if a run fails or a record is still under it. While it stands, a record under the code is excluded from the founder's list and counts, refused on retry and deleted by the sweep on any run | The sweep, after the record under it is gone, and only if no withdrawal rewrote it meanwhile | — |
+| `introductions` | `withdrawn/<code>/<day>` | `{at}`: the same day, nobody. One immutable key per code per day it was withdrawn on; never rewritten | introduce `DELETE`, before it deletes the record (`onlyIfNew`; a second withdrawal the same day is the same key) | **At least two full days** by the day in its key, then until the first weekly sweep — two to eight days in practice, longer if a run fails or a record is still under its code. While any marker stands under a code, a record under it is excluded from the founder's list and counts, refused on retry and deleted by the sweep on any run | The sweep, after the record under the code is gone, by the key's own day. Blobs has no conditional delete, so no marker is ever read and then deleted: a fresh withdrawal is a different key, which removing an old one cannot touch | — |
 | `cohort`, `contacts`, `vouches` | any | The door's entries and index; ways to reach people who joined the door 2026-09-08 to 2026-09-24; relatives' names and phones from the vouch | Nothing since 2026-09-24 | **Held** until the founder decides their retention by hand (`docs/DECISIONS.md` decision 21). From 2026-09-24 to 2026-09-27 the sweep emptied them weekly; its first run was 2026-09-27 00:00 UTC | A person's own Forget me (`DELETE /keep?code=`); the founder, by hand. Never the sweep | — |
 
 `gone/<code>` stores its window's end as a full timestamp: the one stored
@@ -210,7 +210,7 @@ since a withdrawal under someone's eye is the case this exists for
 (`docs/SECURITY.md` O1); the joint tally, with no code (Trust: "The one thing
 it cannot reach"); the sheet's `gone/` window, a date; and, for at least two
 days and until the weekly sweep after, the introduction list's
-`withdrawn/<code>` marker, a day under her code, which is what stops a
+`withdrawn/<code>/<day>` marker, a day under her code, which is what stops a
 request still on its way from landing after she asked — and what keeps a
 record a failed delete left under the code off the founder's list until the
 sweep removes it.
@@ -227,12 +227,14 @@ answers `{swept: {maps, couples, progress, journals, introductions, withdrawn, m
 touches reports, tallies or limits, and needs no key. (6) Names on the
 introduction list on or after their `removeOn` — the Sunday on or before
 their 180th day, the day the receipt and the founder's list name — and any
-it cannot date (decision 32); then, for each `withdrawn/` marker, any record
-still under its code (a delete that failed after the withdrawal was
-answered), and only after that the marker itself, once it is at least two
-days old and still the version that was read — a marker rewritten by a new
-withdrawal is left for the next run. A record delete that fails keeps its
-marker, so the next run finds it again.
+it cannot date (decision 32); then, for each `withdrawn/<code>/<day>` marker,
+any record still under its code (a delete that failed after the withdrawal
+was answered), and only after that the marker itself, once the day in its
+own key is at least two full days behind the run's. Blobs has no conditional
+delete, so the sweep never reads a marker and then deletes it: a withdrawal
+that lands while it runs is a key of its own, which nothing in the run
+names. A record delete that fails keeps its marker, so the next run finds it
+again.
 A name is never held past the day the receipt names by design; a failed
 Sunday is caught by `/health` and the name goes the Sunday after.
 **It never opens `cohort`, `contacts` or `vouches`** (`HELD_STORES`): from

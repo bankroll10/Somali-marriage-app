@@ -62,7 +62,7 @@ decision about a feature deleted on 2026-09-24 keeps its number and says so.
 | 33 | 2026-09-27 | **Safety exists before introduction 1, as a written human process.** The runbook defines the monitored report channel, the manual do-not-pair record, incident recording, what pauses introductions, what happens after harassment or coercion, first-meeting safety language, how withdrawal works, and how a person is told what action was taken. The founder runs one tabletop drill before introduction 1 | Introducing strangers creates risks helping a known pair does not. A human route suffices if it is explicit and tested; an in-app report route for introduced pairs is built only if the safety analysis finds it insufficient | Stands (`docs/OPS.md`, "The introduction pilot runbook"; `tests/runbook.test.ts`) |
 | 34 | 2026-09-27 | **Legal review is required before** charging for matchmaking, cross-border matchmaking, or material changes to identity verification or the handling of sensitive data. The free Minneapolis–St. Paul pilot proceeds as a product test, subject to the founder obtaining professional advice where required | A model's reading of marriage-broker or data law is not advice, and must not become product fact | Stands. No doc states that any regime does or does not apply |
 | 35 | 2026-09-27 | **The old marketplace is evidence, not code; the relationship product stays.** Never restored: candidates, the sample introduction, public counts, cohort progress, weighted fit, compatibility scores, profiles, photos, feeds, swiping, member messaging, Plus, paid visibility, the token vouch, the Matchmaker Guide voice, automatic proposal selection, atomic-sim gates, scarcity meters. Kept, as KNOW and DECIDE downstream of MEET: Read, Map, Guide, Before You Say Yes, the two-sided eleven, family tools, follow-through, Ending and Ended, Trust, Forget me, and the judgment, religious-scope, Somali-claim and decision-quality safeguards | The subtraction removed the door with the machinery; the recovery must not bring the machinery back with the door | Stands (`tests/invariants/no-marketplace.test.ts`; `git show 43295a4` for the evidence) |
-| 36 | 2026-09-27 | **One record per retained code; withdrawal is durable.** The phone mints the introduction code before the request and sends it; the server writes only if the key is new, answers the same request again with the record's own dates, and refuses a different one (409), never writing over. `DELETE` leaves `withdrawn/<code>` (a day, nobody) for two days, and a late request that finds it removes itself (410). The `introductions` store is read with strong consistency | A lost answer after a landed write said "nothing is saved" and the retry wrote a second record the phone could never take off; a request still in flight could land after Forget me (`docs/BATCH-01-PLAN.md` §1.1, D1, D2, D7) | Stands (`netlify/functions/introduce.ts`, `src/lib/introduce.ts`; `tests/introduce-race.test.ts`, `tests/journeys/looking.test.tsx`) |
+| 36 | 2026-09-27 | **One record per retained code; withdrawal is durable.** The phone mints the introduction code before the request and sends it; the server writes only if the key is new, answers the same request again with the record's own dates, and refuses a different one (409), never writing over. `DELETE` leaves `withdrawn/<code>/<day>` (a day, nobody; one immutable key per withdrawal per day, kept at least two full days and until the weekly sweep after), and a late request that finds one removes itself (410). The `introductions` store is read with strong consistency | A lost answer after a landed write said "nothing is saved" and the retry wrote a second record the phone could never take off; a request still in flight could land after Forget me (`docs/BATCH-01-PLAN.md` §1.1, D1, D2, D7) | Stands (`netlify/functions/introduce.ts`, `src/lib/introduce.ts`; `tests/introduce-race.test.ts`, `tests/journeys/looking.test.tsx`) |
 | 37 | 2026-09-27 | **One removal day, from the server.** A name goes on `removeOn`, the Sunday on or before its 180th day — the day the weekly sweep runs. The founder's list hides it from that day, the sweep deletes it on that day or the next run, and the phone shows the server's own `at` and `removeOn` on a receipt ("Your request was saved on…", "scheduled to be removed on…"), never "your name is down". A receipt from before the server gave dates is shown as the phone's own record; a code is never discarded on the device clock alone | The sweep took a name up to seven days before the phone stopped saying it was down, and the phone's day was its own clock's (§1.2, D3, D4) | Stands (`removeOn` in `netlify/functions/introduce.ts`, `removeOnOf` in `src/lib/introduce.ts`, pinned equal by `tests/vocab-sync.test.ts`) |
 | 38 | 2026-09-27 | **The 18+ affirmation travels with the request and is required.** `adult: true`, one boolean, stored; never an age, a birth date or a document. A body without it fails closed, an old cached page's included, until that page is reopened (`docs/OPS.md`, "Updating an installed app"). The screen says, before the button, who runs this, who the current pilot is for (the marital line as a pilot rule), the consented reference conversation, the approved summary and the release rule, and the scheduled removal; `/?looking` stays in the bar | The gate was client-only (§1.3, D5, D6) | Stands (`tests/introduce-function.test.ts`, `tests/journeys/looking.test.tsx`, `tests/service-worker.test.ts`) |
 
@@ -4298,11 +4298,25 @@ branch before Group B; `docs/BATCH-01-PLAN.md` §6 and
   `GET` showed the person, and the sweep took the marker after two days and
   the record after 180. Now `GET` excludes and counts (`withdrawn`) any record
   under a marker; a request that finds a marker answers 410 and tries the
-  delete again, whether or not it succeeds; `DELETE` rewrites the marker's
-  day; the sweep deletes the record under a marker first, on any run, and
-  the marker only after, only once two days old and only if unchanged since
-  read (`deleteIfUnchanged`), so a repeated withdrawal is never undone by an
-  older marker's clock. `tests/introduce-residue.test.ts`.
+  delete again, whether or not it succeeds; the sweep deletes the record
+  under a marker first, on any run, and the marker only after.
+  `tests/introduce-residue.test.ts`.
+  - *Second pass, the same day.* The first pass kept one key per code,
+    rewrote its day on each withdrawal, and removed it by reading it and
+    then calling `deleteIfUnchanged` — which is a `getMetadata` followed by
+    an unconditional `delete`, since Netlify Blobs has no conditional delete
+    (`delete(key)`, @netlify/blobs 11.0.3). The review reproduced a
+    withdrawal landing between those two calls: the sweep deleted the fresh
+    marker and a request under the code then saved. Markers are now
+    `withdrawn/<code>/<day>`: one immutable key per code per day, written
+    `onlyIfNew`, never rewritten. The sweep removes a marker only by the day
+    in its own key, so removing an old one cannot touch a withdrawal that
+    landed meanwhile, whatever the interleaving; the POST checks for any
+    marker under the code with a `list` by prefix on the strong store. "At
+    least two days" is now literal: a key's day must be strictly more than
+    `WITHDRAWN_DAYS` behind the run's. `deleteIfUnchanged` is unchanged and
+    is not described as atomic; the maps sweep still uses it and its comment
+    still names the gap.
 - **The production `DELETE` in `deployed.yml` is removed.** `AAAAAAAA` is a
   code a person could hold, and a marker written on every deploy was a
   production write from a workflow. The strong-consistency read is now
