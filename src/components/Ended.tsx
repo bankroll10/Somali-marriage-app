@@ -80,8 +80,8 @@ export default function Ended({ identity, from, saved, onSave, onDone }: Props) 
             What decided it?
           </p>
           <p className="mt-2 text-[0.9rem] leading-relaxed text-muted text-pretty">
-            One tap, or none. Knowing why courtships end here is the only way we can hand the next
-            person the right conversation earlier.
+            One tap, or none. Knowing why courtships end here is how we can hand the next
+            person a better conversation, earlier.
           </p>
           <div role="group" aria-label="What decided it" className="mt-4 flex flex-wrap gap-2">
             {reasons.map((r) => (
@@ -105,8 +105,8 @@ export default function Ended({ identity, from, saved, onSave, onDone }: Props) 
           )}
 
           <p className="mt-5 text-[0.82rem] leading-relaxed text-muted text-pretty">
-            Nothing about {other} is recorded — no name, no number, nothing you wrote. If you are telling
-            us which steps you reach, this reaches us as one of ten words, and never reaches {other}.
+            Nothing that could identify {other} is recorded — no name, no number, nothing you wrote. If you are telling
+            us which steps you reach, this reaches us as a few words from a list we wrote, and never reaches {other}.
           </p>
         </section>
 

@@ -130,7 +130,7 @@ describe('the read: words, then the question, on the reader’s own side', () =>
     const again = await mount(<App />)
     expect(again.text()).toContain('Have you asked it?')
     await again.press('We talked about it')
-    expect(again.text()).toContain('What the answer tells you')
+    expect(again.text()).toContain('What to listen for')
     expect(again.text()).toContain(scriptFor(key, reader).tells)
     await again.until(() => saved(phone).followups[0].outcome === 'asked', 'we talked is recorded')
     expect(audit(again.container), 'the follow-up card').toEqual([])

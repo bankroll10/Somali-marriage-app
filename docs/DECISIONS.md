@@ -3714,3 +3714,132 @@ there is credit.
 - crisis words that missed passive ideation.
 
 No new screen, instrument, route, store, stored field or flow of data.
+
+## Part 20: Claim calibration (2026-09-27)
+
+The founder asked for one pass across everything the earlier audits
+touched: every consequential sentence a member sees, read for whether its
+confidence matches its evidence. The ten problems were:
+- overclaim;
+- unsupported causal claim;
+- motive inference;
+- cultural overgeneralization;
+- fake precision;
+- implied diagnosis;
+- unhelpful hedging;
+- unnatural script;
+- religious overreach;
+- difference treated as incompatibility.
+
+The rules: nothing rewritten for style; nothing made mushy; no disclaimers
+added; earned confidence kept.
+
+**Method.** Three read-only inventories covered:
+- the Read, the Eleven, the couple reading and the map;
+- the Guide and the family scripts;
+- every screen and public page.
+
+Each candidate was checked against Parts 4–19 and the evidence ledger.
+Every candidate was put in one of five classes: KEEP, TIGHTEN (same
+meaning, better calibration), REWRITE (materially misleading), REMOVE
+(unsupported and unnecessary) or RESEARCH. The table was approved before
+anything changed: **ninety rows**, all applied but the three lines deferred
+below, alongside a KEEP list that is the longer one.
+
+**What the pass found that earlier Parts had missed.**
+- **Fixed on paper, still shipping.** Part 12 recorded "You are not a secret.
+  You are not a midnight habit." as gone. L13 recorded the voices' ranking
+  ("Character & deen first… Non-negotiable. … Same horizon on…") and
+  "Beauty and wealth fade" as rewritten. Part 4 called "reads what he's done —
+  not what he says" untrue, and it was on eleven surfaces. All were still in
+  the product. Each is now fixed, and an OVERCLAIMS pattern in
+  `tests/voice.test.ts` stops the family returning.
+- **Untrue by combination.**
+  - With everything else shown and "I end up feeling like the problem", the
+    strong band called that "worth closing, not worth panicking about". It
+    now says "That is the one to raise".
+  - The couple headline said "You've had the conversations" while some were
+    never raised.
+  - The hidden caution said "left doubting yourself" when what she had said
+    was that nobody in his life knew her.
+  - The map read "I pull back and get on with my own things", an answer about
+    silence, as "When someone gets close you pull back", the textbook line
+    for avoidant attachment.
+  - Each is pinned by what reaches it (`tests/claims.test.ts`), not by its
+    wording.
+- **Promises the code does not keep.**
+  - The report screen said a report is "not anything the app counts or
+    learns from". Resolved reports are counted by kind.
+  - The check-back said "once, and only then". "Not yet" is asked once more
+    after a week.
+  - "Nothing here is shared with anyone" appeared with step counting on.
+  - "Free" appeared on crisis lines nobody had checked as free (Denmark's,
+    Finland's and Kenya's are ordinary or mobile numbers, and three have
+    hours). Only the abuse lines, checked in `src/data/help.ts`, still say
+    "now, free".
+  - "No profile exists until you choose": there is no profile.
+  - "Not a match": there is no matching.
+
+**Kept, deliberately.** The confident lines that earn it:
+- "one of the clearest signs" (L4, A);
+- the money caution (L15, A);
+- "'Soon, inshaAllah' with nothing attached is also an answer";
+- "'Wherever you want' … names no city: ask which one";
+- "The joke is the answer";
+- "A line is not a position to bargain over";
+- "Nobody can see inside another person";
+- "A no is an answer, and it is theirs to give";
+- "texting only after midnight is not courting";
+- "Kindness here is clarity, not softness";
+- "It cannot read a heart".
+
+Part 4 and Part 14 disagreed on "it changes because {he} does something, not
+because more time passes". It is kept: time alone does not make someone ask
+about her family.
+
+**Deferred to the live run.** The therapist's tagline ("Attachment, anxiety,
+regulation") and two stage focus lines ("the ones that protect you", "from
+everyone's opinions") are also spoken inside the live prompt
+(`netlify/shared/prompt.ts`, pinned equal by `tests/vocab-sync.test.ts`). The
+prompt changes only with a before-and-after run, so these wait for it with
+the rest of the prompt's queue. The proposed wording is:
+- "Worry, overthinking, pulling away";
+- "can protect you";
+- "from opinions you didn't ask for".
+
+**Research, not resolvable here.**
+- **Men's side.** The Read's `public` reasoning and words for a man, and the
+  Big Brother's register, wait for the ten men (decision 4).
+- **Somali wording.** "Afartan arrimood" on the Somali money sheets reads as
+  "forty", where "the four" was meant. It needs a Somali reader before the
+  sheets are printed again.
+- **Crisis lines.** Whether Sweden's and Australia's crisis lines are free
+  from every phone is unchecked.
+- **Times.** The unmeasured "ninety seconds" and "two minutes" wait for the
+  session timestamps.
+- **L23's basis** said consent was "the position across the schools".
+  Classical *ijbar* makes that more than the row could say. The ledger is
+  reworded. The reply's sentence, which holds as law everywhere listed, is
+  unchanged.
+
+**Found, not claim calibration.** Recorded here, for their own Part:
+- routing that sends ordinary messages to the wrong reply ("convince him to",
+  "loan", "distance", "he got physical");
+- replies not flipped for a man (the therapist's "he", the mahr line, "with
+  your wali");
+- the Reflection's fixed pause;
+- `readSummary`'s labels to the Guide.
+
+**The harness grew.** `tests/judgment/`:
+- **A new property.** `NO_DIAGNOSIS` joins the catalogue, which had no line
+  for implied diagnosis.
+- **Eleven Part 20 lines** join the calibration corpus. Each is marked as a
+  sentence the app says rather than words to say, so the judge is told which,
+  and the speech-register rule does not apply to it.
+- **The content lock** moved 54 entries back to pending, for the judge and
+  the Somali sessions.
+- **Unchanged:** the offline Guide's baseline and the held-out ledger.
+
+**Decision 19.** These are fixes to claims that were untrue or said more than
+their class, plus tests and docs. No new screen, instrument, route, store,
+stored field or flow of data.

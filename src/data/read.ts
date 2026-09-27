@@ -200,7 +200,7 @@ const TEMPLATE: (ReadQuestion & { man?: ManVariant })[] = [
       },
       { id: 'friends', label: 'Close friends', weight: 0.7, note: '{his} close friends know about you' },
       { id: 'one', label: 'One friend, maybe', weight: 0.35, note: 'perhaps one friend knows about you' },
-      { id: 'nobody', label: 'Nobody, as far as I know', weight: 0, note: 'nobody in {his} life knows you exist' },
+      { id: 'nobody', label: 'Nobody, as far as I know', weight: 0, note: 'as far as you know, nobody in {his} life knows you exist' },
     ],
     // Read by a man, "nobody in her life knows you exist" scored her at 0 for
     // the thing his own `family` question tells him is his step: before his
@@ -496,7 +496,7 @@ export interface Script {
 
 export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
   public: {
-    why: 'Everything else can wait. A person who is serious about you lets you exist in their life.',
+    why: 'Everything else can wait. Whether you exist in their life is something you can see, and the first thing to ask about.',
     words:
       'Can I ask you something straight? I’d rather ask than wonder. Does anyone in your life know about me? I’m not asking you to announce it tomorrow — just whether you plan to, and roughly when.',
     tells:
@@ -514,21 +514,21 @@ export const SCRIPTS: Record<ReadDimension | 'early', Script> = {
     words:
       'Have you thought about how you’d approach my family — who you’d speak to first, and when? I’d rather ask than guess.',
     tells:
-      'Listen for a question back — about your father, your brother, what your family would expect. Curiosity about the how is the tell. A compliment about your family is not an answer.',
+      'Listen for a question back — about your father, your brother, what your family would expect. A question back about the how is what you are listening for. A compliment about your family is not an answer.',
   },
   consistency: {
     why: 'You already know the words. What you need to know is whether the behaviour matches them.',
     words:
       'Can I say something? I’ve noticed I’m usually the one who messages first and keeps our plans moving. Does it look that way from your side?',
     tells:
-      'The reply matters less than the fortnight after it. Say it once, then notice who starts things, without arranging a test. What happens on its own is the answer, and it does not require anyone to be honest with you.',
+      'The reply matters less than the weeks after it. Say it once, then notice who starts things, without arranging a test. What happens on its own is the answer, and it does not require anyone to be honest with you.',
   },
   pressure: {
     why: 'How someone handles you at your most inconvenient is one of the clearest signs you can see before a marriage.',
     words:
       'Can I tell you something? When I bring up something that’s bothering me, I often come away feeling like I’m the one who did something wrong. I don’t think you mean it that way. But I want us to be able to talk about hard things without either of us ending up feeling like that.',
     tells:
-      'Someone who can sit inside that without turning it around has just shown you, live, what this list could only ask about. Someone who cannot has shown you that too.',
+      'Whether it gets turned around on you is something you have now seen, not guessed. Note it, and note whether it comes back up.',
   },
   early: {
     why: 'You are early. That is not a problem — it is the best time to ask, before either of you has spent months.',

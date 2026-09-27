@@ -60,7 +60,7 @@ const MATTERED: EndingQuestion = {
   options: [
     { id: 'ready', label: 'The timing — we were both ready' },
     { id: 'family-wish', label: 'Our families wanted it for us' },
- { id: 'shown', label: 'Seeing what {he} had done, not what {he} said' },
+ { id: 'shown', label: 'Seeing what {he} had shown me' },
     { id: 'eleven', label: 'One of the eleven conversations' },
     { id: 'families', label: 'The families meeting properly' },
     { id: 'myself', label: 'Getting clear about myself first' },

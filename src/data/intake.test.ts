@@ -104,7 +104,8 @@ describe('the questions do not mislead her about how they are read (Part 13)', (
   it('never says there is no wrong answer where the answers carry weights', () => {
     for (const q of allQuestions) {
       const weighted = (q.options ?? []).some((o) => typeof o.weight === 'number')
-      if (weighted) expect(q.helper ?? '', q.id).not.toMatch(/no wrong answer/i)
+      // "Any answer is fine" said the same untrue thing in other words (Part 20).
+      if (weighted) expect(q.helper ?? '', q.id).not.toMatch(/no wrong answer|any answer is fine/i)
     }
   })
 

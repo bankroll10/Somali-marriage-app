@@ -189,7 +189,10 @@ export function propertyRegressions(now: JudgedText[], then?: JudgedText[]): str
 export async function calibrate(client: Pick<Anthropic, 'messages'>): Promise<string[]> {
   const misses: string[] = []
   for (const c of CALIBRATION) {
-    const context = 'Words handed to a member to say, word for word, to the person they are thinking of marrying or to their family.'
+    const context =
+      c.said === 'copy'
+        ? 'A sentence the app says to a member about their own situation, their answers, or the person they are thinking of marrying.'
+        : 'Words handed to a member to say, word for word, to the person they are thinking of marrying or to their family.'
     const bad = (await judgeProperties(client, c.bad, context, [c.breaks])).judgement?.verdicts[c.breaks]?.verdict
     const good = (await judgeProperties(client, c.good, context, [c.breaks])).judgement?.verdicts[c.breaks]?.verdict
     if (bad !== 'violated') misses.push(`missed ${c.breaks} in the removed line (${c.from})`)

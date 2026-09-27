@@ -36,7 +36,8 @@ export default function HelpLine({ urgent = false, kind = 'abuse', className = '
       {(urgent || kind === 'crisis') && line && (
         <>
           {' '}
-          To talk to someone now, free: {line.name},{' '}
+          {/* Only the abuse lines were checked as free and round-the-clock (src/data/help.ts); a crisis line may charge, or keep hours. */}
+          {kind === 'crisis' ? 'To talk to someone:' : 'To talk to someone now, free:'} {line.name},{' '}
           <a href={dial(line.number)} className="font-medium text-ink underline underline-offset-2">
             {line.number}
           </a>

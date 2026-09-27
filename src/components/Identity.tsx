@@ -130,7 +130,7 @@ export default function IdentityStep({ identity, onChange, onContinue, onBack }:
             </p>
           </div>
           <p className="animate-fade mt-4 text-xs text-muted" style={{ animationDelay: '240ms' }}>
-            Nothing you share here is visible to anyone — no profile exists until you choose.
+            Nothing you share here is visible to anyone. There is no profile here.
           </p>
         </main>
       </div>

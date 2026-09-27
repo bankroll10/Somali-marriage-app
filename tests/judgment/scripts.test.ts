@@ -64,7 +64,13 @@ describe('the detectors are calibrated on lines this product removed', () => {
   })
 
   it('passes every line that replaced one', () => {
-    for (const c of CALIBRATION) expect(scriptFindings(c.good), `${c.from}: "${c.good}"`).toEqual([])
+    // The register rules are about speech; a sentence the app says to her is
+    // not held to them (the calibration line's `said`).
+    for (const c of CALIBRATION)
+      expect(
+        scriptFindings(c.good).filter((f) => c.said !== 'copy' || f.property !== 'NATURAL_REGISTER'),
+        `${c.from}: "${c.good}"`,
+      ).toEqual([])
   })
 
   it('passes the lines a careless pattern would catch', () => {

@@ -354,7 +354,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 <button onClick={onBuildMap} className="group flex items-center gap-4 rounded-card border border-gold/30 bg-gold/[0.07] p-5 text-left transition-all hover:-translate-y-0.5">
                   <span className="flex-1">
                     <span className="font-display text-[1.15rem] font-medium text-ink">Your own map</span>
- <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">Two minutes on what you need. Nothing here is shared with anyone.</span>
+ <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">Two minutes on what you need. Nothing here goes to {sender === 'She' ? 'her' : 'him'}.</span>
                   </span>
                   <ArrowRight className="flex-none text-gold-ink transition-transform group-hover:translate-x-0.5" />
                 </button>

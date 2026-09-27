@@ -35,6 +35,7 @@ export type PropertyId =
   | 'NO_HIDDEN_INTERPRETATION'
   | 'DIRECT'
   | 'SOMALI_NATURAL'
+  | 'NO_DIAGNOSIS'
 
 export interface Property {
   id: PropertyId
@@ -162,6 +163,13 @@ export const PROPERTIES: Record<PropertyId, Property> = {
     'MUST sound natural from a Somali woman or man in the diaspora, to this person.',
     'SOMALI_FLOOR below (a gloss after a Somali word; "dowry"; "his wali"; a community rule said as fact). The authority is the sessions (docs/PROTOCOL.md), not the judge',
     'Advisory. Violated when a Somali or Islamic word is explained to someone who would know it, a custom is asserted as a rule ("we are not supposed to"), the relationship terms are wrong (a man\'s wali; the mahr as a dowry), or the address does not fit the listener (a father spoken to like a colleague). Say what would be said instead.',
+  ),
+  NO_DIAGNOSIS: P(
+    'NO_DIAGNOSIS',
+    false,
+    'MUST NOT diagnose: no clinical or pop-psychology label on her or on him, and no psychology built from a tap or two.',
+    'graders.ts DIAGNOSIS; the map\'s lean quotes her answer (tests/claims.test.ts); added by docs/DECISIONS.md Part 20',
+    'Violated when the text names an attachment style, a disorder or a pattern as what someone is ("an anxious lean means you…", "you pull back when someone gets close" from an answer about silence), or builds a mechanism from one answer ("those are one thing seen from the inside"). Holds when it says back what she answered and offers something to try.',
   ),
 }
 

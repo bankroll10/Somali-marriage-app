@@ -495,7 +495,7 @@ function Result({
               source="beforeYes"
               gender={pronoun === 'him' ? 'woman' : 'man'}
               title={pronoun === 'him' ? 'Send the eleven to a sister who’s deciding' : 'Send the eleven to a brother who’s deciding'}
-              body="Whose house, money home, a second wife — which ones they’ve had, and the words for the one that matters. No account."
+              body="Whose house, money home, a second wife — which ones they’ve had, and the words for the one to start with. No account."
             />
 
             <TextButton onClick={onAgain} className="mt-1 self-start text-[0.85rem] font-medium text-muted hover:text-ink hover:underline">

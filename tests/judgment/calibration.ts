@@ -22,6 +22,8 @@ export interface Calibration {
   by: 'detector' | 'judge'
   /** The commit or Part that removed it, or "synthetic". */
   from: string
+  /** Words she is handed to say (the default), or a sentence the app says to her. The judge is told which. */
+  said?: 'words' | 'copy'
 }
 
 export const CALIBRATION: Calibration[] = [
@@ -181,6 +183,95 @@ export const CALIBRATION: Calibration[] = [
     breaks: 'NO_HIDDEN_INTERPRETATION',
     by: 'judge',
     from: 'synthetic: a test announced, with no pattern a rule could hold',
+  },
+  // ── Part 20: claim calibration — sentences the app says, not words to say ─
+  {
+    bad: 'The thinnest part is that you come away from hard conversations feeling like the problem — worth closing, not worth panicking about.',
+    good: 'The thinnest part is that you come away from hard conversations feeling like the problem. That is the one to raise.',
+    breaks: 'UNCERTAINTY',
+    by: 'judge',
+    from: 'Part 20 (the Read, strong band)',
+    said: 'copy',
+  },
+  {
+    bad: 'You have been asked to keep this hidden, and there is no one in his life who knows you exist. Kept quiet, and left doubting yourself, is the shape that leaves someone with nobody to compare notes with.',
+    good: 'You have been asked to keep this hidden, and as far as you know, there is no one in his life who knows you exist. Kept quiet, with nobody in his life knowing you, is the shape that leaves someone with nobody to compare notes with.',
+    breaks: 'NO_DIAGNOSIS',
+    by: 'judge',
+    from: 'Part 20 (the Read, hidden caution)',
+    said: 'copy',
+  },
+  {
+    bad: 'Someone who can sit inside that without turning it around has just shown you, live, what this list could only ask about. Someone who cannot has shown you that too.',
+    good: 'Whether it gets turned around on you is something you have now seen, not guessed. Note it, and note whether it comes back up.',
+    breaks: 'OBS_NOT_MEANING',
+    by: 'judge',
+    from: 'Part 20 (the Read, pressure tells; Part 4 flag)',
+    said: 'copy',
+  },
+  {
+    bad: 'You’ve had the conversations. Not all of them landed the same way.',
+    good: 'Where you’ve both talked, not all of it landed the same way.',
+    breaks: 'UNCERTAINTY',
+    by: 'judge',
+    from: 'Part 20 (the couple reading, shown while some were never raised)',
+    said: 'copy',
+  },
+  {
+    bad: 'An anxious lean means closeness can trigger a fear of losing it — so you seek reassurance, and silence feels like danger.',
+    good: 'Some people find closeness brings a fear of losing it, so a silence starts to feel like danger. If that is you, it is a pattern, not a flaw, and a pattern can be worked with.',
+    breaks: 'NO_DIAGNOSIS',
+    by: 'judge',
+    from: 'Part 20 (the therapist, to someone whose map did not say anxious)',
+    said: 'copy',
+  },
+  {
+    bad: 'When someone gets close you pull back.',
+    good: 'When someone goes quiet you pull back and get on with your own things.',
+    breaks: 'NO_DIAGNOSIS',
+    by: 'judge',
+    from: 'Part 20 (the map, misquoting "I pull back and get on with my own things")',
+    said: 'copy',
+  },
+  {
+    bad: 'Hmm. Texting only after midnight is not courting. You are not a secret. You are not a midnight habit.',
+    good: 'Hmm. Texting only after midnight is not courting. Ask him for the daytime things, and watch what he does with the asking.',
+    breaks: 'NO_MOTIVE',
+    by: 'judge',
+    from: 'Part 20 (the auntie; Part 12 recorded it gone)',
+    said: 'copy',
+  },
+  {
+    bad: 'An order worth holding to: Character & deen first. Non-negotiable. Direction & alignment second. Same horizon on faith, family, children, where you’ll live.',
+    good: 'One order worth considering: character and deen; where you each stand on faith, family, children and where you’d live, and whether the differences are ones you could live with. If your own non-negotiables say otherwise, they come first.',
+    breaks: 'AUTONOMY',
+    by: 'judge',
+    from: 'Part 20 (the voices’ shared ranking; L13 recorded it rewritten)',
+    said: 'copy',
+  },
+  {
+    bad: 'What’s done in the light, with the people who love you, starts on firmer ground than anything done in secret.',
+    good: 'Bring them in as soon as it’s real.',
+    breaks: 'SOMALI_NATURAL',
+    by: 'judge',
+    from: 'Part 20 (the Islamic voice; discretion before the families is the custom, L3)',
+    said: 'copy',
+  },
+  {
+    bad: 'Beauty and wealth fade; taqwa and good character are what you’ll lean on for a lifetime.',
+    good: 'Beauty and wealth are allowed to matter; the hadith asks you to put deen first among them.',
+    breaks: 'UNCERTAINTY',
+    by: 'judge',
+    from: 'Part 20 (the Islamic voice; L13)',
+    said: 'copy',
+  },
+  {
+    bad: 'You had two conversations you were not going to have.',
+    good: 'You had two of the hard conversations.',
+    breaks: 'UNCERTAINTY',
+    by: 'judge',
+    from: 'Part 20 (the Ending’s headline, a counterfactual)',
+    said: 'copy',
   },
 ]
 

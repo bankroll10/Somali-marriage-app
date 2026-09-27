@@ -50,7 +50,7 @@ describe('how you chose', () => {
     const text = buildEnding(full, TODAY).lines.map((l) => l.text).join(' ')
     expect(text).toContain('Building your foundation')
     expect(text).toContain('Grounded and ready')
-    expect(text).toMatch(/read on what he had done/)
+    expect(text).toMatch(/read on what he had shown you/)
     expect(text).toMatch(/eleven conversations before you said yes/)
     expect(text).toMatch(/his own phone, and he did/)
   })
@@ -58,7 +58,7 @@ describe('how you chose', () => {
   it('counts only conversations she confirmed she had', () => {
     const e = buildEnding(full, TODAY)
     expect(e.conversations).toHaveLength(2)
-    expect(endingHeadline(e)).toBe('You had two conversations you were not going to have.')
+    expect(endingHeadline(e)).toBe('You had two of the hard conversations.')
     // Anything unresolved, or resolved another way, is not a conversation.
     const notYet = { ...full, followups: [{ ...asked('live', '2026-06-10T10:00:00.000Z'), outcome: 'not-yet' as const }] }
     expect(buildEnding(notYet, TODAY).conversations).toHaveLength(0)
@@ -69,7 +69,7 @@ describe('how you chose', () => {
     expect(e.lines).toEqual([])
     expect(e.began).toBeUndefined()
     expect(e.span).toBeUndefined()
-    expect(endingHeadline(e)).toBe('You chose someone, and you did it in the open.')
+    expect(endingHeadline(e)).toBe('You chose someone.')
   })
 
   it('never puts a digit in front of her', () => {
@@ -105,10 +105,10 @@ describe('the one thing only a married person can send', () => {
     // either — a template testimonial is the one thing that would poison the
     // married referral in a community this tight (docs/DECISIONS.md).
     const without = marriedShare('Ask early.')
-    expect(without.text).not.toMatch(/we went through/)
+    expect(without.text).not.toMatch(/in front of me/)
     expect(without.text).toMatch(/There are eleven conversations/)
     expect(without.text).toContain('Ask early.')
-    expect(marriedShare(undefined, { eleven: true }).text).toMatch(/Before we said yes, we went through eleven conversations/)
+    expect(marriedShare(undefined, { eleven: true }).text).toMatch(/Before we said yes, I had the eleven conversations in front of me/)
   })
 })
 

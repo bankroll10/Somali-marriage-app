@@ -56,7 +56,7 @@ const SCRIPTS: FamilyScript[] = [
     stages: ['talking', 'deciding'],
     for: 'man',
     script: {
-      why: 'They will find out. Better from you, with the whole picture, than from a cousin with none of it.',
+      why: 'Assume they will find out. Better from you, with the whole picture, than from a cousin with none of it.',
       words:
         'Hooyo, Aabo — I want to tell you about someone, and I want you to hear it from me first. I met her online. I know that isn’t how you would have chosen. I’m serious, I want to do this properly, and I want to approach her family the right way. I’d like your help with that.',
       tells:
@@ -87,7 +87,7 @@ const SCRIPTS: FamilyScript[] = [
       words:
         'I think we’ve talked long enough to know what this is. I’d like you to send your people to my family. I’m not asking you to name a day — just to take that step. If it feels too soon, tell me honestly, and tell me when would feel right.',
       tells:
-        'Listen for “when” and “who should I bring”. “Let’s not rush” has just told you his timeline is not yours. Give him the second question — “when would feel right” — so that his answer has to have a month in it.',
+        'Listen for “when” and “who should I bring”. “Let’s not rush” tells you his pace is not yours, for now. Give him the second question — “when would feel right” — so that his answer has to have a month in it.',
     },
   },
   {
@@ -114,7 +114,7 @@ const SCRIPTS: FamilyScript[] = [
       words:
         'Before our families sit down, I want us to have our own answers. What do you think is right for the mahr — and where do you see us living in the first year? I’d rather we walk in knowing where we each stand than find out at the table.',
       tells:
-        'You are listening for whether {he} sees this as “ours to decide first”. If {he} defers everything to the elders now, you have seen how decisions would be made. Say whether that works for you.',
+        'You are listening for whether {he} sees this as “ours to decide first”. If {he} defers everything to the elders, ask whether that is how {he} wants it to stay. Say whether that works for you.',
     },
   },
   // The two below were promised before they existed: "words for two families
@@ -139,7 +139,7 @@ const SCRIPTS: FamilyScript[] = [
     when: 'When you know — and before you spend another month pretending you don’t.',
     stages: ['talking', 'deciding'],
     script: {
-      why: 'Ending something that was meant for marriage and did not become one has no ceremony, so it is easy to go quiet instead, and then the other person spends months reading silence. You can do better than that, and it costs one hard message.',
+      why: 'Ending something that was meant for marriage and did not become one has no ceremony, so it is easy to go quiet instead, and then the other person is left reading silence. You can do better than that, and it costs one hard message.',
       words:
         'I’ve thought about this carefully, and I don’t think we’re right for each other. I don’t want to just go quiet on you — you deserve to hear it plainly. I’ve valued getting to know you. I’ll make dua for you.',
       tells:

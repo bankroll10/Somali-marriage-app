@@ -1,21 +1,21 @@
 {
   "couple says:man": {
-    "sha": "342a2f86de7e5dce",
+    "sha": "6dc19024573bfb2b",
     "judged": false,
     "somaliReview": "pending"
   },
   "couple says:woman": {
-    "sha": "1ea8faff590f7c75",
+    "sha": "a7fae3834d6cbecc",
     "judged": false,
     "somaliReview": "pending"
   },
   "eleven says:man": {
-    "sha": "e7b2cafb1bde711e",
+    "sha": "cd619384d8c6585d",
     "judged": false,
     "somaliReview": "pending"
   },
   "eleven says:woman": {
-    "sha": "487b38944ce02915",
+    "sha": "e40df799cd755de7",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -35,12 +35,12 @@
     "somaliReview": "pending"
   },
   "eleven topic children:man": {
-    "sha": "4ddffc5c2a24f437",
+    "sha": "e7ba8f4f3684789e",
     "judged": false,
     "somaliReview": "pending"
   },
   "eleven topic children:woman": {
-    "sha": "4ddffc5c2a24f437",
+    "sha": "e7ba8f4f3684789e",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -145,7 +145,7 @@
     "somaliReview": "pending"
   },
   "guide CRISIS_REPLY": {
-    "sha": "1ece8618a32bf096",
+    "sha": "56ef3e765db4d205",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -155,7 +155,7 @@
     "somaliReview": "pending"
   },
   "guide FORCED_REPLY": {
-    "sha": "131a3bd61aff86e5",
+    "sha": "6df183d660dad826",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -165,7 +165,7 @@
     "somaliReview": "pending"
   },
   "guide LINE_REPLY": {
-    "sha": "4dd3671a8d7589e9",
+    "sha": "7d527fdae73dff7b",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -180,7 +180,7 @@
     "somaliReview": "pending"
   },
   "guide PRESSURE_REPLY": {
-    "sha": "68b74dff7db399fe",
+    "sha": "4a40a1a6908890ef",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -190,7 +190,7 @@
     "somaliReview": "pending"
   },
   "guide SAFETY_REPLY": {
-    "sha": "efb3da7670117d75",
+    "sha": "b496cdc0c233b7c7",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -210,12 +210,12 @@
     "somaliReview": "pending"
   },
   "guide clockReply:man": {
-    "sha": "5fcc334705348b16",
+    "sha": "5f9e2ac52c2bf0c9",
     "judged": false,
     "somaliReview": "pending"
   },
   "guide clockReply:woman": {
-    "sha": "a16352f86e7bac32",
+    "sha": "f062005fafc7a5a7",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -250,12 +250,12 @@
     "somaliReview": "pending"
   },
   "guide intentReply:man": {
-    "sha": "c0655aa263a56b03",
+    "sha": "4b1b37369d76bfd6",
     "judged": false,
     "somaliReview": "pending"
   },
   "guide intentReply:woman": {
-    "sha": "021017f57b09358b",
+    "sha": "c6530c67c74ba13a",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -340,12 +340,12 @@
     "somaliReview": "pending"
   },
   "read question known:man": {
-    "sha": "4cabb3024b98ddde",
+    "sha": "b13d341f75d5f232",
     "judged": false,
     "somaliReview": "pending"
   },
   "read question known:woman": {
-    "sha": "d156b9ccf98d5d88",
+    "sha": "64800aef7c450920",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -410,32 +410,32 @@
     "somaliReview": "pending"
   },
   "read says caution:man": {
-    "sha": "ec70d96f811be8f7",
+    "sha": "f1184e2932d8004e",
     "judged": false,
     "somaliReview": "pending"
   },
   "read says caution:woman": {
-    "sha": "df63de271b3f5920",
+    "sha": "1b2649419ffd404e",
     "judged": false,
     "somaliReview": "pending"
   },
   "read says early:man": {
-    "sha": "d601018c7db9038f",
+    "sha": "6fec625fce6d089a",
     "judged": false,
     "somaliReview": "pending"
   },
   "read says early:woman": {
-    "sha": "73d891dc92006a93",
+    "sha": "5e87845d16da4a59",
     "judged": false,
     "somaliReview": "pending"
   },
   "read says mixed:man": {
-    "sha": "84da58efc645d91c",
+    "sha": "127d8cdfda31a6db",
     "judged": false,
     "somaliReview": "pending"
   },
   "read says mixed:woman": {
-    "sha": "2ebade58af0873b1",
+    "sha": "b1e8dc2c30de620e",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -450,12 +450,12 @@
     "somaliReview": "pending"
   },
   "read says thin:man": {
-    "sha": "3204f3dc2b8e1ba4",
+    "sha": "4ca0be79e8cbc4b6",
     "judged": false,
     "somaliReview": "pending"
   },
   "read says thin:woman": {
-    "sha": "d4d3c118ffdb0690",
+    "sha": "0a763224b0a8a62a",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -480,12 +480,12 @@
     "somaliReview": "pending"
   },
   "script eleven:children:man": {
-    "sha": "f1d5b518c9353dc2",
+    "sha": "9379c5a1f3707081",
     "judged": false,
     "somaliReview": "pending"
   },
   "script eleven:children:woman": {
-    "sha": "b66c9a2e8ea2ac2a",
+    "sha": "b9b8e901dd645606",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -540,22 +540,22 @@
     "somaliReview": "pending"
   },
   "script eleven:money-home:man": {
-    "sha": "eab39d1ff830b8bf",
+    "sha": "fae1094b7ced5dbf",
     "judged": false,
     "somaliReview": "pending"
   },
   "script eleven:money-home:woman": {
-    "sha": "28f3c0809c7eeead",
+    "sha": "4b28c7854f97c401",
     "judged": false,
     "somaliReview": "pending"
   },
   "script eleven:own-answer-first:man": {
-    "sha": "d68b9136a92a9a51",
+    "sha": "abd82999399c5c6f",
     "judged": false,
     "somaliReview": "pending"
   },
   "script eleven:own-answer-first:woman": {
-    "sha": "011c01ed8956a183",
+    "sha": "e5769a129dea2267",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -615,12 +615,12 @@
     "somaliReview": "pending"
   },
   "script families:end-it-kindly:man": {
-    "sha": "b444b72b9ada2df0",
+    "sha": "ae1403dadfc28108",
     "judged": false,
     "somaliReview": "pending"
   },
   "script families:end-it-kindly:woman": {
-    "sha": "b444b72b9ada2df0",
+    "sha": "ae1403dadfc28108",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -655,22 +655,22 @@
     "somaliReview": "pending"
   },
   "script families:open-mahr-and-living:man": {
-    "sha": "30f819ce0f4babd0",
+    "sha": "88aefcf9778e43e1",
     "judged": false,
     "somaliReview": "pending"
   },
   "script families:open-mahr-and-living:woman": {
-    "sha": "abbef3dd9ef3b522",
+    "sha": "7feec51f797b12a1",
     "judged": false,
     "somaliReview": "pending"
   },
   "script families:send-his-people:woman": {
-    "sha": "5b3ecda8411ddfc7",
+    "sha": "2b3c89526cd51129",
     "judged": false,
     "somaliReview": "pending"
   },
   "script families:tell-family-online:man": {
-    "sha": "c2452dca0e0ccc3a",
+    "sha": "a75e78c9b1536931",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -730,12 +730,12 @@
     "somaliReview": "pending"
   },
   "script guide:PRESSURE_REPLY:man": {
-    "sha": "29b141038ea4c222",
+    "sha": "5b0261c2a0503a4d",
     "judged": false,
     "somaliReview": "pending"
   },
   "script guide:PRESSURE_REPLY:woman": {
-    "sha": "29b141038ea4c222",
+    "sha": "5b0261c2a0503a4d",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -810,12 +810,12 @@
     "somaliReview": "pending"
   },
   "script read:consistency:man": {
-    "sha": "cc0821dd6185c2ff",
+    "sha": "e8f4df00c3976528",
     "judged": false,
     "somaliReview": "pending"
   },
   "script read:consistency:woman": {
-    "sha": "cc0821dd6185c2ff",
+    "sha": "e8f4df00c3976528",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -835,7 +835,7 @@
     "somaliReview": "pending"
   },
   "script read:family:woman": {
-    "sha": "9830a6d277a5458e",
+    "sha": "a4eda0e727011c7a",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -860,22 +860,22 @@
     "somaliReview": "pending"
   },
   "script read:pressure:man": {
-    "sha": "3db5433882c296f7",
+    "sha": "b65318c6b84be027",
     "judged": false,
     "somaliReview": "pending"
   },
   "script read:pressure:woman": {
-    "sha": "3db5433882c296f7",
+    "sha": "b65318c6b84be027",
     "judged": false,
     "somaliReview": "pending"
   },
   "script read:public:man": {
-    "sha": "403dedfd7480c8a7",
+    "sha": "fa057fa6e1847413",
     "judged": false,
     "somaliReview": "pending"
   },
   "script read:public:woman": {
-    "sha": "403dedfd7480c8a7",
+    "sha": "fa057fa6e1847413",
     "judged": false,
     "somaliReview": "pending"
   },
@@ -950,42 +950,42 @@
     "somaliReview": "pending"
   },
   "voice auntie:man": {
-    "sha": "69c338215d2c4c97",
+    "sha": "5a9fb54b1ce6386a",
     "judged": false,
     "somaliReview": "pending"
   },
   "voice auntie:woman": {
-    "sha": "69c338215d2c4c97",
+    "sha": "5a9fb54b1ce6386a",
     "judged": false,
     "somaliReview": "pending"
   },
   "voice brother:man": {
-    "sha": "58d007a1479c248e",
+    "sha": "15f6cb02923e5faa",
     "judged": false,
     "somaliReview": "pending"
   },
   "voice brother:woman": {
-    "sha": "58d007a1479c248e",
+    "sha": "15f6cb02923e5faa",
     "judged": false,
     "somaliReview": "pending"
   },
   "voice islamic:man": {
-    "sha": "078c6223df4e7a4a",
+    "sha": "ea9d29814b38e515",
     "judged": false,
     "somaliReview": "pending"
   },
   "voice islamic:woman": {
-    "sha": "078c6223df4e7a4a",
+    "sha": "ea9d29814b38e515",
     "judged": false,
     "somaliReview": "pending"
   },
   "voice therapist:man": {
-    "sha": "1681d7152f02f252",
+    "sha": "020c2fab7587bb16",
     "judged": false,
     "somaliReview": "pending"
   },
   "voice therapist:woman": {
-    "sha": "1681d7152f02f252",
+    "sha": "020c2fab7587bb16",
     "judged": false,
     "somaliReview": "pending"
   }

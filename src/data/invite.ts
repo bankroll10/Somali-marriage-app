@@ -20,9 +20,9 @@ export type InviteSource = 'read' | 'beforeYes' | 'couple'
 
 const TEXT: Record<InviteSource, string> = {
   read:
- 'Talking to someone? Niyyah reads what {he}’s done — not what {he} says — in ninety seconds, and gives you the one question to ask {him} next. Built for us. No swiping, no account.',
+ 'Talking to someone? Niyyah reads what {he}’s shown you, in ninety seconds, and gives you the one question to ask {him} next. Built for us. No swiping, no account.',
   beforeYes:
-    'Before you say yes — the eleven conversations to have before the families do: whose house, money home, a second wife. Niyyah asks which ones you two have had, and gives you the words to open the one that matters. Built for us. No account.',
+    'Before you say yes — the eleven conversations to have before the families do: whose house, money home, a second wife. Niyyah asks which ones you two have had, and gives you the words to open the one to start with. Built for us. No account.',
   // From a couple who did it together, to a couple who is about to decide.
   couple:
     'Before you say yes — the eleven conversations to have before the families do: where you’d live, money home, a second wife. Niyyah asks each of you, on your own phones, which ones you’ve had; neither sees the other’s answers, only where you stand. Two minutes. No account.',

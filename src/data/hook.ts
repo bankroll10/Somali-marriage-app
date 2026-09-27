@@ -27,9 +27,9 @@ export const hookOptions: HookOption[] = [
  label: 'Knowing if someone is serious',
  short: 'knowing if someone is serious',
     insight: (name, g) =>
-      `${name ? `${name}, this` : 'This'} has a calmer answer than it feels like it does. Seriousness isn’t in the words or the late-night energy; it’s in whether ${person(g)} moves toward clarity, family, and consistency — or away from them.
+      `${name ? `${name}, s` : 'S'}eriousness isn’t in the words or the late-night energy; it’s in whether ${person(g)} moves toward clarity, family, and consistency — or away from them.
 
-Niyyah is built around reading that early, from what they have done. Your guide will look at real situations with you, and the map you’re about to build is what makes that guidance yours.`,
+Niyyah is built around reading that early, from what they have shown you. Your guide will look at real situations with you, and the map you’re about to build is what makes that guidance yours.`,
   },
   {
     id: 'family',
@@ -56,7 +56,7 @@ That’s why Niyyah starts with where you are, not with a profile. Your map will
     insight: (name) =>
       `${name ? `${name}, y` : 'Y'}ou’re not imagining it — the usual apps mix you into a crowd that isn’t looking for what you’re looking for, then make you sift by hand. The problem isn’t you. It’s the room.
 
-Niyyah doesn’t introduce anyone. It makes the next person you meet, wherever you meet them, someone you find out about early: what they have done rather than what they say, and the conversations to have before anyone says yes. First we build your map, so you know what you are looking for.`,
+Niyyah doesn’t introduce anyone. It makes the next person you meet, wherever you meet them, someone you find out about early: what they have shown you, and the conversations to have before anyone says yes. First we build your map, so you know what you are looking for.`,
   },
   {
     // The list's own test. Without this, a skip and "none of these fit" both
@@ -66,7 +66,7 @@ Niyyah doesn’t introduce anyone. It makes the next person you meet, wherever y
     label: 'Something else',
     short: 'something else',
     insight: (name) =>
- `${name ? `${name}, t` : 'T'}hat is allowed. The five above are not everyone’s, and what you carry is what your map should start from — nothing here presumes your problem.
+ `${name ? `${name}, t` : 'T'}hat is allowed. The ones above are not everyone’s, and what you carry is what your map should start from — nothing here presumes your problem.
 
 Your map will show where you stand, in words, and your guide will take the rest in your own.`,
   },
@@ -77,7 +77,7 @@ Your map will show where you stand, in words, and your guide will take the rest 
     insight: (name) =>
  `${name ? `${name}, a` : 'A'}sking that question honestly is already the first step. Readiness isn’t a feeling you wait for — it’s a handful of things you can look at: your intention, your heart’s patterns, what you need, what you won’t compromise.
 
-That is what we do next. Your map will show you where you stand — clearly, kindly, and just for you.`,
+That is what we do next. Your map will show you how you answered, ground by ground — kindly, and just for you.`,
   },
 ]
 

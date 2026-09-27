@@ -157,7 +157,7 @@ export const TOPICS: Topic[] = [
       words:
         'Can we talk about money plainly? Do you send money home, and who to? I’ll tell you mine. And once we’re married, do we decide that together, or does each of us decide our own?',
       tells:
-        'You are not looking for a number. You are looking for whether {he} will say it out loud, and whether “together” comes easily or makes {him} defensive. Someone who can name {his} obligations can be planned around. Someone who won’t, can’t.',
+        'You are not looking for a number. You are looking for whether {he} will say it out loud, and whether “together” comes easily or makes {him} defensive. Someone who can name {his} obligations can be planned around. Someone who won’t has not given you anything to plan around yet.',
     },
     yourSide: {
       question: 'money-home',
@@ -174,9 +174,9 @@ export const TOPICS: Topic[] = [
     label: 'Children',
     prompt: 'Children — whether you want them, how many, how soon, and whether they’d speak Somali at home and go to dugsi.',
     consequence: 0.9,
-    why: '“Inshallah, when Allah wills” covers a wide range of very different lives. How soon, how many, Somali in the house, dugsi on Saturdays — these are decisions, and they get made whether or not you make them together.',
+    why: '“Inshallah, when Allah wills”, said on its own, covers a wide range of very different lives. How soon, how many, Somali in the house, dugsi on Saturdays — these are decisions, and they get made whether or not you make them together.',
     script: {
-      why: 'Vagueness here is not romance. It is a decision being left to whoever pushes hardest later.',
+      why: 'Vagueness here is not romance. It can leave the decision to whoever pushes hardest later.',
       words:
  'When you think about children — do you want them, how many, and how soon after we’re married? And what matters to you about raising them — Somali at home, dugsi, what they’d call your mother? I want to hear what you picture, not what sounds right — and I’ll tell you mine.',
       tells: 'Listen for whether {he} has pictures or only phrases. Pictures can be talked about. Phrases cannot.',
@@ -215,10 +215,10 @@ export const TOPICS: Topic[] = [
     yourSide: {
       question: 'practice',
       lines: {
-        devout: 'You described your own practice to your map as devout.',
-        consistent: 'You described your own practice to your map as consistent.',
+        devout: 'You told your map your practice shapes your daily life.',
+        consistent: 'You told your map you are consistent in the core, growing in the rest.',
         returning: 'You told your map you are returning to your practice.',
-        cultural: 'You told your map the faith is home for you, and the practice is uneven.',
+        cultural: 'You told your map you are Muslim by identity, lighter in practice.',
       },
     },
   },
@@ -317,7 +317,7 @@ export const TOPICS: Topic[] = [
  * Handing her a question for {him} would make {his} answer hers by default.
  */
 export const OWN_ANSWER_FIRST: ElevenScript = {
-  why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is the most fixable state on this list.',
+  why: 'You can’t ask for an answer you don’t have yourself. That is not a failing — it is one you can fix on your own.',
   words:
  'I haven’t worked out where I stand on this yet, and I want to before we talk about it properly. Can we come back to it in a week? I’ll tell you plainly then, and I’ll want the same from you.',
   tells:

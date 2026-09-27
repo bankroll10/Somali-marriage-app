@@ -279,7 +279,7 @@ export default function Home({
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
                 {hasRead
                   ? 'Open it again, or take it fresh — things change, and so does what they’ve shown you.'
- : 'Ninety seconds on what they’ve done, and the one question to ask them next.'}
+ : 'Ninety seconds on what they’ve shown you, and the one question to ask them next.'}
               </span>
             </span>
             <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />

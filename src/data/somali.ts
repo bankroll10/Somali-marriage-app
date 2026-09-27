@@ -39,11 +39,11 @@ export interface SomaliLine {
 }
 
 export const SOMALI: Record<string, SomaliLine> = {
-  'situation.preparing': { somali: 'Marka hore is diyaari.', english: 'Get yourself ready first; the rest follows.', approved: true },
+  'situation.preparing': { somali: 'Marka hore is diyaari.', english: 'Get yourself ready first.', approved: true },
   'situation.talking': { somali: 'Hadalku waa bilow.', english: 'Talking is a beginning, not a promise.', approved: true },
   'situation.deciding': { somali: 'Labada reer ayaa arrinta ku soo biiraya.', english: 'The two families are becoming involved — be ready for them.', approved: true },
   'situation.married': { somali: 'Guurku wuxuu u baahan yahay dadaal.', english: 'Marriage takes effort from both of you.', approved: true },
-  'beforeYes.intro': { somali: 'Wada hadallada muhiimka ah.', english: 'The important conversations, before the families have them for you.', approved: true },
+  'beforeYes.intro': { somali: 'Wada hadallada muhiimka ah.', english: 'The important conversations.', approved: true },
   'families.intro': { somali: 'Erayada aad u baahan tahay.', english: 'The words you will need.', approved: true },
 }
 

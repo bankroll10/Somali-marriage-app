@@ -218,13 +218,13 @@ function preface(sample: boolean): string {
   if (sample) {
     return [
       '<div class="preface">',
-      '<p>The apps ask who is available. These ask what the two of you have said — where you’ll live, money sent home, who is in the house. Found out after the families are involved, any of them is harder to say no to. These are three of the eleven, asked early. Read them separately first, then together; the words are for either of you to say.</p>',
+      '<p>The apps ask who is available. These ask what the two of you have said — where you’ll live, money sent home, who is in the house. Found out after the families are involved, any of them can be harder to say no to. These are three of the eleven, asked early. Read them separately first, then together; the words are for either of you to say.</p>',
       '</div>',
     ].join('\n')
   }
   return [
     '<div class="preface">',
- '<p>The apps ask who is available. These ask what the two of you have said: where you’ll live and whether a mother is in the house, money sent home, whether she keeps working, what “practising” means on a Tuesday, qabiil at somebody’s table, a second wife. Found out after the families are involved, any of them is harder to say no to.</p>',
+ '<p>The apps ask who is available. These ask what the two of you have said: where you’ll live and whether a mother is in the house, money sent home, whether she keeps working, what “practising” means on a Tuesday, qabiil at somebody’s table, a second wife. Found out after the families are involved, any of them can be harder to say no to.</p>',
     '<p>This is the list, asked early. Read it separately first, then together. For each one: why to ask it early, the words to open it — for either of you to say — and what to listen for in the answer. Nothing here scores anyone. It only asks whether the two of you have had the conversation.</p>',
     '</div>',
   ].join('\n')

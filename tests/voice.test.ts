@@ -50,6 +50,14 @@ const OVERCLAIMS: [RegExp, string][] = [
   // docs/DECISIONS.md Part 18: the counts about us the patterns above missed.
   [/\b(is|are) (rarely|common|usually)\b/i, 'a count we do not have (L9)'],
   [/\bone of the few\b/i, 'a count we do not have (L9)'],
+  // docs/DECISIONS.md Part 20: claim calibration. Each came back after an
+  // earlier Part removed it, or was never caught.
+  [/\bdone\b[^.]{0,12}\b(not|rather than) what (he|she|they|\{he\}) (says?|said)\b|\bbehaviou?r, not promises\b/i, 'five of the twelve answers are things said; "what they have shown you" (Part 4, Part 20)'],
+  [/not worth panicking/i, 'minimises the ground she named as thinnest (Part 20)'],
+  [/conversations? you were not going to have/i, 'a counterfactual nobody can know (Part 20)'],
+  [/\bthe one that matters\b/i, 'one of eleven ranked as the only one that matters (Part 20)'],
+  [/\bany answer is fine\b/i, 'said on a weighted question (Part 20)'],
+  [/\bonce, and only then\b|counts or learns from/i, 'a promise the code does not keep (Part 20)'],
 ]
 
 /**

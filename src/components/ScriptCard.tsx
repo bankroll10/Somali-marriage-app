@@ -116,7 +116,7 @@ export default function ScriptCard({ script, title, preface, travel, onTaken }: 
         />
         <div className="mt-6 border-t border-cream/15 pt-5">
           <p className="text-[0.7rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">
-            What the answer tells you
+            What to listen for
           </p>
           <p className="mt-2 text-[0.98rem] leading-relaxed text-cream/85 text-pretty">{script.tells}</p>
         </div>
@@ -137,7 +137,7 @@ export default function ScriptCard({ script, title, preface, travel, onTaken }: 
 export function CheckBack({ what = 'you had it', className = 'mt-3' }: { what?: string; className?: string }) {
   return (
     <p className={`${className} text-[0.85rem] leading-snug text-muted text-pretty`}>
-      In three days, the next time you open Niyyah, it asks whether {what} — once, and only then.
+      In three days, the next time you open Niyyah, it asks whether {what}. Say not yet, and it asks once more a week later, then stops.
     </p>
   )
 }
