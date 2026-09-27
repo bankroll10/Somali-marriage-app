@@ -79,7 +79,33 @@ const SAFETY_WORDS = [
   'my visa depends', 'my papers depend', 'my status depends',
   'tell my family everything', 'tell everyone about', 'expose me', 'ruin my name', 'ruin my reputation',
   'show my family the', 'send the messages to my', 'send them to my father', 'post the photos', 'post my photos', 'post the pictures',
+  // Violence in the words people use for it, not only the blow's name
+  // (docs/DECISIONS.md Part 21). "Physical with me", never "we got physical":
+  // the second is a question about touching, and the Islamic voice answers it.
+  'got physical with me', 'gets physical with me', 'getting physical with me', 'was physical with me',
+  'put his hands on me', 'put her hands on me', 'laid a hand on me', 'laid hands on me', 'raised his hand', 'raised a hand to me',
+  'beat me', 'beats me', 'beaten me', 'punched me', 'strangled me', 'dragged me', 'pinned me', 'threw me', 'spat on me',
+  'violent with me', 'violent towards me', 'abusive', 'abused me', 'abuses me',
 ]
+
+/**
+ * Harm said as a shape rather than a word (docs/DECISIONS.md Part 21). Each
+ * pairs two parts that are ordinary alone and not together, so "if I don't
+ * reply he'll worry" and "she sends money home" stay ordinary
+ * (tests/judgment/pairs.ts).
+ */
+// A condition on her, and a consequence aimed at her: a threat without the word.
+const THREAT_RE =
+  /\b(if|unless) i (don't|dont|do not|won't|wont|will not|refuse|say no|leave|end it)\b[^.?!]{0,80}\b(make sure|ruin|expose|hurt|kill|destroy|shame|nobody|no one)\b/
+// Money asked for, by someone she has never met: the shape romance scams
+// take (docs/RESEARCH.md L15), whatever the money is said to be for.
+const MONEY_RE = /\b(money|bills?|fees|rent|ticket|visa|surgery|operation|pay|cover|lend|transfer)\b/
+const UNMET_RE = /\b(never met|not met|haven't met|havent met|not yet met|only (ever )?(spoken|talked|met|chatted|messaged) online|online only|only online)\b/
+
+/** A threat, force, money before meeting, or control: `SAFETY_REPLY` and the help line. */
+function unsafe(m: string): boolean {
+  return SAFETY_WORDS.some((w) => hasWords(m, w)) || THREAT_RE.test(m) || (MONEY_RE.test(m) && UNMET_RE.test(m))
+}
 
 /**
  * Being made to marry. Force is the safety exception (docs/RESEARCH.md rows
@@ -96,6 +122,19 @@ const FORCE_WORDS = [
   "won't let me refuse", 'wont let me refuse', "won't let me say no", 'wont let me say no',
   'already agreed for me', 'agreed without asking me', 'made me agree',
 ]
+
+// Something of hers held back until she agrees (docs/DECISIONS.md Part 21).
+const HELD_UNTIL_RE =
+  /\b(took|taken|take|takes|keep|keeps|kept|locked|lock|cut|stopped|back|let me (out|leave|go|see))\b[^.?!]{0,60}\b(until|till|unless|once|before) i (agree|say yes|accept|marry)\b/
+// Her say taken from her, about a marriage: "not your decision", told to her.
+const NO_SAY_RE = /\b(not|isn't|isnt|wasn't|wasnt) (my|your) (decision|choice|call)\b|\b(i|you) (have|get|got|had) no say\b|\bnot (up to|for) (me|you) to (decide|choose)\b/
+const TOLD_RE = /\b(told|tell|tells|say|says|said|saying)\b/
+const MARRIAGE_RE = /\b(marry|married|marriage|nikah|husband|engaged|engagement|proposal|rishta|the date|the man)\b/
+
+/** Being made to marry: `FORCED_REPLY`, before any other safety answer. */
+function forced(m: string): boolean {
+  return FORCE_WORDS.some((w) => hasWords(m, w)) || HELD_UNTIL_RE.test(m) || (NO_SAY_RE.test(m) && TOLD_RE.test(m) && MARRIAGE_RE.test(m))
+}
 
 export const FORCED_REPLY = `Being made to marry is not a family disagreement to manage, and it is not yours to carry alone. Your consent is yours to give, and a marriage needs it.
 
@@ -119,7 +158,15 @@ const CRISIS_WORDS = [
   "don't want to wake up", 'dont want to wake up', 'no point in living', 'no point living', 'take my own life',
   'better off without me',
   'hurt myself', 'hurting myself', 'harm myself', 'harming myself', 'self harm', 'self-harm', 'cut myself', 'cutting myself',
+  // Said without the word for it (docs/DECISIONS.md Part 21).
+  'nothing to live for', 'tired of living', 'tired of being alive', "don't want to exist", 'dont want to exist',
+  "don't want to be here anymore", 'dont want to be here anymore', 'give up on life', 'disappear forever',
 ]
+
+// No reason to go on, unless it is going on *with* someone or *like this*: those
+// are about the courtship, and are answered as it.
+const CRISIS_RE =
+  /\b(no|any|a|see (a|any|no)) reason to (keep going|go on|carry on|be here|live)\b(?! with| like)|\bcan't (go on|keep going|carry on)\b(?! with| like)/
 
 /** The guide's own words that send someone to crisis help — the crisis line belongs under them. */
 const CRISIS_HELP_WORDS = ['crisis line', 'ending your life', 'suicide', 'suicidal', 'hurting yourself']
@@ -127,6 +174,7 @@ const CRISIS_HELP_WORDS = ['crisis line', 'ending your life', 'suicide', 'suicid
 /** Whether this message, hers or the guide's, should carry the crisis line beneath it. */
 export function needsCrisisLine(message: string, from: 'user' | 'coach' = 'user'): boolean {
   const m = normalize(message)
+  if (from === 'user' && CRISIS_RE.test(m)) return true
   return (from === 'user' ? CRISIS_WORDS : CRISIS_HELP_WORDS).some((w) => hasWords(m, w))
 }
 
@@ -144,7 +192,9 @@ Then tell one person who loves you — a sister, a brother, a friend, your mothe
  * these the relationship framework, as if they were ordinary questions.
  */
 const HARM_WORDS = [
-  'feel guilty', 'guilty enough', 'make her feel', 'make him feel',
+  // Her guilt is hers to bring; making someone else feel it is the harm
+  // ("I feel guilty" was refused as if she had asked how, Part 21).
+  'him feel guilty', 'her feel guilty', 'them feel guilty', 'guilty enough', 'make her feel', 'make him feel',
   'where she lives', 'where he lives', 'her address', 'his address', 'track her', 'track him', 'follow her', 'follow him',
   'into her instagram', 'into his instagram', 'her instagram account', 'his instagram account', 'her password', 'his password', 'hack',
   'without my wife', 'without my first wife', 'without her knowing', 'without him knowing',
@@ -657,7 +707,8 @@ const HELP_WORDS = ['emergency', 'helpline', 'in danger', 'real-world help']
 /** Whether this message, hers or the guide's, should carry the help line beneath it. */
 export function needsHelpLine(message: string, from: 'user' | 'coach' = 'user'): boolean {
   const m = normalize(message)
-  return (from === 'user' ? [...SAFETY_WORDS, ...FORCE_WORDS] : HELP_WORDS).some((w) => hasWords(m, w))
+  if (from === 'user') return unsafe(m) || forced(m)
+  return HELP_WORDS.some((w) => hasWords(m, w))
 }
 
 /**
@@ -925,7 +976,7 @@ export function localReply(message: string, ctx: CoachContext, modeId: ModeId): 
   if (needsCrisisLine(message)) return { text: CRISIS_REPLY, closers: [], live: false }
   // Being made to marry has its own answer: the people doing it are usually
   // the ones SAFETY_REPLY's "tell a sister, an older woman" would name.
-  if (FORCE_WORDS.some((w) => hasWords(normalize(message), w))) return { text: FORCED_REPLY, closers: closersFor(FORCED_REPLY), live: false }
+  if (forced(normalize(message))) return { text: FORCED_REPLY, closers: closersFor(FORCED_REPLY), live: false }
   if (needsHelpLine(message)) return { text: SAFETY_REPLY, closers: closersFor(SAFETY_REPLY), live: false }
   if (HARM_WORDS.some((w) => hasWords(normalize(message), w))) return { text: HARM_REPLY, closers: closersFor(HARM_REPLY), live: false }
   // A no someone wants a way around: before any voice's words for a father.

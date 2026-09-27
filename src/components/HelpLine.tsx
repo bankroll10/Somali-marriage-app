@@ -10,6 +10,8 @@ interface Props {
    * self-harm (docs/GUIDE-EVAL.md). A crisis always names its line.
    */
   kind?: 'abuse' | 'crisis'
+  /** Only the line, without the emergency sentence: for a second HelpLine under a first. */
+  lineOnly?: boolean
   className?: string
 }
 
@@ -18,21 +20,25 @@ interface Props {
  * from what this phone already holds; the answerer on a couple link has told
  * us nothing, and gets the numbers for the places the diaspora lives.
  */
-export default function HelpLine({ urgent = false, kind = 'abuse', className = '' }: Props) {
+export default function HelpLine({ urgent = false, kind = 'abuse', lineOnly = false, className = '' }: Props) {
   const identity = loadProgress()?.identity
   const help = helpFor(identity ? countryFor(identity) : undefined)
   const line = kind === 'crisis' ? help.crisis : help.line
   return (
     <p className={`text-[0.82rem] leading-relaxed text-ink-soft text-pretty ${className}`}>
-      If you are in danger now, call{' '}
-      {help.emergency ? (
-        <a href={dial(help.emergency)} className="font-medium text-ink underline underline-offset-2">
-          {help.emergency}
-        </a>
-      ) : (
-        <>your local emergency number ({EMERGENCY_ANYWHERE})</>
+      {!lineOnly && (
+        <>
+          If you are in danger now, call{' '}
+          {help.emergency ? (
+            <a href={dial(help.emergency)} className="font-medium text-ink underline underline-offset-2">
+              {help.emergency}
+            </a>
+          ) : (
+            <>your local emergency number ({EMERGENCY_ANYWHERE})</>
+          )}
+          .
+        </>
       )}
-      .
       {(urgent || kind === 'crisis') && line && (
         <>
           {' '}

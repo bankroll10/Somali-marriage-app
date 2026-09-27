@@ -440,19 +440,28 @@ what the engines decide, not what they say:
 
   Hard failures are a **ledger that can only shrink** (`HELD_OUT_GAPS`), and
   the soft dimensions have measured floors.
+
+  Part 21 spent five of the messages. Their replacements, measured before
+  anything else changed, show the limit: the voice had learned the five
+  messages, and it still missed four of the five new ones. A word list closes
+  the phrasings it has seen. So the Guide also carries a line at its foot
+  ("Not safe, or not okay?") that opens the help lines whatever she wrote. No
+  grade here counts that line; the ledger measures the reply.
 - **Metamorphic transforms.** A greeting first, lower case, or a thanks after
   must not change whether any training case clears the hard gates. Typos are
   reported, not gated. With a letter swapped in every long word, 4 of 14
   safety cases still clear. The keyword voice is not robust to typos, and
   nothing here pretends it is.
 - **Counterfactual pairs** (`pairs.ts`). One fact changes, and the behaviour
-  must flip, in every voice. Six pairs:
+  must flip, in every voice. Eight pairs:
   - whose hands are on the phone;
   - whether her no is allowed;
   - whether a ruling is asked for;
   - a difference or a line;
   - deciding or decided;
-  - a money request or a money conversation.
+  - a money request or a money conversation;
+  - his hands on her, or theirs on each other (Part 21);
+  - a consequence aimed at her, or a feeling of his (Part 21).
 
   Checking both sides catches over-triggering as well as under-triggering.
 
