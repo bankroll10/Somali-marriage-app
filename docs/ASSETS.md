@@ -137,6 +137,11 @@ column names the source; a row without one says so rather than guessing.
 | 2026-09-24 | The Rahma Center, Lake Forest CA, premarital counselling (up to six sessions; US Muslim couples; also runs matchmaking, not pitched) | email `counseling@therahmacenter.org` | N3-note, pointing to N3 and N3-1page; PDFs offered | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | historical sent claim; source unverified | Logged as sent 2026-09-24 (`c7d56c7`); the record does not name who reported it. Delivery unconfirmed; no reply |
 | 2026-09-26 | MCC East Bay, Pleasanton CA, nikah services (general Muslim couples; its nikah page already carries a mahr guide and a pre-nikah questionnaire; also runs singles gatherings, not pitched) | email, the centre's business address | N3-note, pointing to N3 and N3-1page; PDFs offered; the Somali version in one clause | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | sent (founder-reported 2026-09-26), awaiting reply | Founder reported the send in the working session of 2026-09-26 (`4e773e7`, which corrected "drafted, not yet sent"); the send date itself was not recorded; delivery unconfirmed |
 | 2026-09-26 | Islamic Center of St. Cloud, MN, premarital counselling alongside nikah services (Somali share unknown) | email, the centre's business address | N2, N2s linked; qabiil, going back and a second wife named (rule 8) | `…/guides/before-you-say-yes?via=mosque` | sent (founder-reported 2026-09-26), awaiting reply | Founder reported the send in the working session of 2026-09-26 (`4e773e7`, which corrected "drafted, not yet sent"); the send date itself was not recorded; delivery unconfirmed |
+| 2026-09-28 | Minnesota Dawah Institute, Marriage Program, Saint Paul | email, the imam's address found on the institute's Facebook page (`xasanjaamici@gmail.com`), not a page-published address; the site's own contact page is a placeholder; a separately verified public listing gives 651-224-6722 to ask who reviews Marriage Program resources | N1c | `…/tools/before-you-say-yes?via=mosque` | drafted | Surfaced 2026-09-28, scored 8/10 (audience 2, need 3, asset 2, route 1): the institute's community-resource page offers premarital counselling, nikah services and continuing marriage support, but does not establish a Somali-specific audience. APPROVAL REQUIRED: whoever reviews Marriage Program resources is not yet identified. Not yet sent, no founder report |
+| 2026-09-28 | Success Leadership Center, Family Counselling and Chaplaincy Program, Minnesota | email `info@successcntr.org`, phone 763-710-5672, from the centre's own contact page | N1c | `…/tools/before-you-say-yes?via=group` | drafted | Surfaced 2026-09-28, scored 9/10 (audience 3, need 3, asset 2, route 1): the centre serves Somali Americans in Minnesota and names culturally appropriate marriage counselling using clinical pastoral and Islamic principles; the proposed surface is adult participants before counselling sessions, kept apart from the centre's youth programming, which includes minors. APPROVAL REQUIRED: resource approval and any commercial-resource restriction are unknown. Not yet sent, no founder report |
+| 2026-09-28 | Islamic Finance Guru, "Muslim wedding cost crisis" and its linked mahr-amount article (islamicfinanceguru.com) | the general contact form at `/contact`; the page's only published emails are for wills (Cur8) and events, not editorial, so not used | N3 | `…/niyyah-money-conversation-sheet.html`, no via (the N3 family carries none) | drafted | Surfaced 2026-09-28, scored 8/10 (audience 2, need 3, asset 2, route 1): co-founder Ibrahim Khan's article (dated 2025-08-01, evergreen) names weddings averaging about £50k, families borrowing, and financial strain as a divorce driver, and links IFG's own mahr-amount piece. UK-centric readership (the site claims 100k+ visitors/month): reflection use, not Twin Cities activation. APPROVAL REQUIRED: IFG's editorial-policy page says it publishes both paid and unpaid contributor content and marks sponsored posts, so a paid slot may be the only route, at an unknown price; there is no submission page. Not yet sent, no founder report |
+| 2026-09-28 | Ihsan Coaching, five-session remote premarital programme (ihsancoaching.com) | email `info@ihsancoaching.com` | N3-note | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | drafted | Surfaced 2026-09-28, scored 7/10 (audience 2, need 2, asset 2, route 1): the programme already hands out a free checklist and names finances among its topics (mahr not named specifically); three named counsellors work in English, Arabic and Urdu, none named as Somali-speaking. Only the shape of a pitch exists — offer N3-note as optional homework, stressing nobody collects it — not composed wording. Not yet sent, no founder report |
+| 2026-09-28 | Islamic Foundation, Greater Chicago, Nikah Services | email `marriage@islamicfoundation.org`, phone (630) 926-0235, addressed to Br. Jawed Aslam, from the service's own page | N3-note (links N3 and N3-so) | `…/niyyah-money-conversation-sheet-facilitator-note.html`, no via | drafted | Surfaced 2026-09-28, scored 8/10 (audience 2, need 3, asset 2, route 1): the nikah service requires a premarital counselling session and a Premarital Questionnaire, and its recommended reading already includes "Mahr – The Marriage Gift," while the page says couples arrange mahr themselves — the same gap N3 answers at Naperville and MCC East Bay. Their fees ($500 admin, $250 suggested honorarium) are theirs, not Niyyah's. US Muslim, not Somali-specific: reflection use, not Minneapolis activation. APPROVAL REQUIRED, not yet asked. Not yet sent, no founder report |
 
 **Rules the ledger has taught**, each a correction made before a row was
 logged:
@@ -171,11 +176,20 @@ logged:
    nobody counts opens of a static page, so the reply goes here and in
    `docs/RESEARCH.md`. A PDF offered in the pitch is rendered on the day it
    is asked for (rule 6).
+10. **A candidate's own score or tag is not this ledger's asset id.** Two of
+    the 2026-09-28 candidates arrived tagged with an outside process's own
+    "N2", a scoring label, not Niyyah's; both pitches in fact link
+    `/tools/before-you-say-yes`, which is N1c here. The id logged is read
+    from the URL, never carried over from wherever a candidate arrived.
 
 A draft that arrives with an opportunity is checked against these rules
 before it is logged. The St. Cloud draft (2026-09-26) needed three: it linked
 the tool rather than the guide (rule 2), carried no via (rule 1), and did not
-name the Somali conversations to a room of unknown make-up (rule 8).
+name the Somali conversations to a room of unknown make-up (rule 8). The five
+candidates brought in 2026-09-28 needed rule 10 and nothing else: each already
+carried a via, or correctly carried none as N3 pitches, and neither N3
+candidate (Ihsan Coaching, Islamic Foundation) addresses a Somali-specific
+room, so rule 8 does not apply.
 
 Masjid Al-Israa is the only 2026-09-17 send with the sample attached; if it
 alone answers, suspect the attachment. The Somali American's newest dated
@@ -204,6 +218,19 @@ Named, not yet approached: the UMN Somali Student Association, the
 MuslimMatters money episode team, Amaliah's relationships section, Somali
 nikah coordinators and marriage educators. Excluded: `r/SomaliRelationships`,
 whose rules prohibit posts that drive traffic.
+
+Screened 2026-09-28, no row logged: **rejected** — My Legal Academy
+(publishes its own revenue-leak calculator and sells an intake CRM, a
+competitor), MCA Bay Area (nikah only; mahr is just a certificate field), the
+Assunnah/uOttawa marriage conference (dated 2022), AMJA's pre-marriage page
+(no curriculum, no date, a phone-only route). **Held**, a route exists but
+is not yet actionable: ABA Law Practice Today (a pitch route is published,
+but its vendor and link rules could not be read by fetch) and the Virginia
+State Bar Trusts & Estates newsletter (invites submissions, but its editor
+contact is phone-only and its latest issue is Spring 2025). **Unassessed**:
+the Islamic Institute of Minnesota, a Twin Cities organisation whose marriage
+and family-counselling pages could not be fetched (an expired TLS
+certificate) — worth a browser check.
 
 ## The money conversation sheets (N3)
 
