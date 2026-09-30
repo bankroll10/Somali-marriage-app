@@ -136,11 +136,13 @@
     border-radius: 0.75rem;
   }
 
-  /* A heading is focused by the app at each screen change so a screen reader
-     hears the new screen (src/hooks/useFocusHeading.ts). It is not a control,
-     so it gets no ring: the browser's default drew a white box round the
-     Welcome headline on first load. */
-  :where(h1, h2)[tabindex='-1']:focus {
+  /* The app focuses a screen's heading when the screen appears so a screen
+     reader hears it (src/hooks/useFocusHeading.ts), which sets tabindex="-1"
+     for the moment. A heading is not a control, so that programmatic focus
+     gets no ring: the browser's default drew a white box round the Welcome
+     headline on first load. Scoped to headings inside a screen's own wrapper,
+     and to :focus on a -1 tabindex only; nothing interactive matches it. */
+  .animate-screen :where(h1, h2)[tabindex='-1']:focus {
     outline: none;
   }
 

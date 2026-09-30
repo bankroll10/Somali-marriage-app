@@ -23,11 +23,21 @@
   stubbed to 503: no horizontal overflow on Welcome, Talking or Looking; Tab
   order is the two cards, "Not sure?", then the restore link, each with a 2px
   ring. Screenshots were inspected, not committed.
+- **Navigation-accessibility repair (same batch, follow-up session):** the
+  keyboard transition that left `document.activeElement` on `BODY` is fixed.
+  Cause: `App` focused the new screen's heading from an effect *outside* the
+  Suspense boundary; on a cold load the lazy chunk was still in flight, so the
+  effect found only the blank fallback and never ran again. Fix: the focusing
+  is now `<FocusHeading/>` *inside* the boundary (`src/hooks/useFocusHeading.ts`),
+  whose mount effect runs when the screen actually appears; no timers, no
+  eager imports, once per screen, and it leaves focus alone if something in the
+  screen already has it. Details and evidence: `docs/DECISIONS.md` Part 25.
+  `tests/ui/focus.test.tsx` holds a destination chunk back and proves focus
+  reaches its heading. **Limitation:** all focus checks are automated (DOM
+  focus in happy-dom and headless Chromium); no screen reader (VoiceOver,
+  TalkBack, NVDA, JAWS) was used, so what they announce is unverified.
 - **Left for later:** `public/og.png` still carries "What's in your way?" (so
-  `OG_ALT` still matches it); the social card needs a new image. On the
-  keyboard path into Identity, `document.activeElement` read `BODY` after
-  Enter rather than the new heading; `useFocusHeading` is unchanged and this
-  was not investigated.
+  `OG_ALT` still matches it); the social card needs a new image.
 - **Release remains paused** exactly as below: no pull request, merge,
   deployment or paid evaluation; both live suites still need funding.
 

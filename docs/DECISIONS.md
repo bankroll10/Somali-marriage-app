@@ -4388,8 +4388,26 @@ What changed, on the first-time visitor's path only:
   the adult affirmation, recovery paths, receipts and withdrawal are
   word-for-word as before.
 - **A focus ring** no longer draws a box round a heading the app focuses at
-  each screen change for screen readers (`src/index.css`); every control keeps
-  its ring.
+  each screen change for screen readers (`src/index.css`, scoped to a screen's
+  own `h1`/`h2` while they carry the hook's temporary `tabindex="-1"`); every
+  control keeps its ring.
+- **Focus now reaches the heading on a cold load (repair, 2026-09-30).**
+  Hypothesis confirmed by reproduction: with a screen's chunk held 1.5 s in a
+  production build (service worker blocked, the request counted), focus stayed
+  on `BODY` after Welcome → Identity, Looking and Talking by keyboard; warm
+  loads were fine. The focusing had been a hook in `App`, outside `Suspense`,
+  keyed on the screen name, so it ran while the fallback was showing, found no
+  heading and never ran again. It is now `<FocusHeading/>`, a sibling of the
+  screen *inside* the boundary: a boundary that suspends on first mount commits
+  nothing until its content is ready, so the mount effect runs when the screen
+  appears. `App` keys the wrapper by screen, so leaving a screen before its
+  chunk lands unmounts it unrun and a late chunk cannot focus an old screen;
+  it runs once per screen, so it cannot take focus back; and it yields when
+  focus is already inside the screen. Scroll-to-top is unchanged (a layout
+  effect in `App`; checked: scrollY 0 on arrival). After the fix, all three
+  screens land on the heading cold and warm, the first Tab reaches a control
+  with a 2px ring, and focus is not moved again. Automated checks only: DOM
+  focus (happy-dom, headless Chromium). No screen reader was used.
 
 Not changed, and recorded so nobody assumes it was: `public/og.png` still
 shows "What's in your way?" as pixels, so `OG_ALT` (which describes that
