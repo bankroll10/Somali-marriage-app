@@ -299,7 +299,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
               <h2 id="looking-before" className="font-display text-[1.15rem] font-medium text-ink">
                 Before you put your name down
               </h2>
-              <dl className="mt-3 space-y-3 text-[0.93rem] leading-relaxed text-ink-soft text-pretty">
+              <dl className="mt-4 space-y-4 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
                 <div>
                   <dt className="font-medium text-ink">Who runs this</dt>
                   <dd>Niyyah is run by {OPERATOR}, who reads the list and makes each introduction by hand, one at a time.</dd>
@@ -336,7 +336,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
               </dl>
             </section>
 
-            <form onSubmit={submit} className="mt-8 space-y-6">
+            <form onSubmit={submit} className="mt-10 space-y-7">
               <div>
                 <p id="looking-gender-label" className={LABEL}>
                   You are
@@ -479,13 +479,13 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                   server keeps (netlify/functions/introduce.ts). A privacy claim
                   is the one thing that must never drift from the code it
                   describes — and it is read before the button, not after. */}
-              <p className="text-[0.82rem] leading-relaxed text-muted text-pretty">
+              <p className="rounded-2xl border border-line bg-white/40 px-4 py-3.5 text-[0.9rem] leading-relaxed text-ink-soft text-pretty">
                 What goes, exactly: a way to reach you, your first name if you gave it, whether you are a woman or a man,
                 your city and its country, how far you would go, and that you confirmed you are {MIN_AGE} or older. It goes
                 to our server under a code this phone made up for it, so you can take your name off from here, and Forget me
                 takes it off with everything else. The founder reads the list; nothing else does, and nothing from your map,
                 a read or the eleven is attached to it.{' '}
-                <TextButton type="button" onClick={onTrust} className="text-[0.82rem] font-medium text-forest underline">
+                <TextButton type="button" onClick={onTrust} className="text-[0.9rem] font-medium text-forest underline">
                   What leaves your phone
                 </TextButton>
               </p>

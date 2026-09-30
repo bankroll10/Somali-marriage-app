@@ -136,6 +136,14 @@
     border-radius: 0.75rem;
   }
 
+  /* A heading is focused by the app at each screen change so a screen reader
+     hears the new screen (src/hooks/useFocusHeading.ts). It is not a control,
+     so it gets no ring: the browser's default drew a white box round the
+     Welcome headline on first load. */
+  :where(h1, h2)[tabindex='-1']:focus {
+    outline: none;
+  }
+
   /* Quiet, universal pressed feedback. */
   :where(button):active {
     transform: scale(0.99);

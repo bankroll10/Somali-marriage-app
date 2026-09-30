@@ -1,28 +1,46 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; research packet prepared
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02A first-screen pass done
 
-## Status as of the latest session (2026-09-27, after B2)
+## Status as of the latest session (2026-09-30, BATCH-02A)
+
+- **Direction changed by the founder:** interviews and recruitment are
+  **deferred** (not completed, not invalidated; `docs/PILOT-RESEARCH-01.md`
+  stays, still no interview held and nobody contacted). Product development
+  continues. This supersedes "the next task is founder review of the packet
+  and recruitment" below. It does not change the matchmaking pilot or
+  authorize a release.
+- **BATCH-02A, a clearer first screen** (`docs/DECISIONS.md` Part 25):
+  Welcome has a marriage-focused headline and one scoping sentence; both doors
+  stay, each naming its action; "two minutes away", "No one else sees it" and
+  "Private to you" are gone, replaced by a sentence the code supports; the
+  Talking chooser no longer needs "the read" or "the eleven" as prior
+  knowledge; Looking changed in size, contrast and spacing only. No storage,
+  consent, sharing, Guide, evaluation or workflow file was touched.
+- **Evidence:** `npm run verify > log 2>&1; echo $?` exit 0 (108 files before,
+  109 with `tests/ui/welcome.test.tsx`; 2 live blocks skipped); `npm run build`
+  exit 0; live evaluation disabled (`GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` unset, no
+  key). Built app inspected in headless Chromium at 390×844, 320 and 1280
+  wide, before and after, on synthetic (empty) state with the functions
+  stubbed to 503: no horizontal overflow on Welcome, Talking or Looking; Tab
+  order is the two cards, "Not sure?", then the restore link, each with a 2px
+  ring. Screenshots were inspected, not committed.
+- **Left for later:** `public/og.png` still carries "What's in your way?" (so
+  `OG_ALT` still matches it); the social card needs a new image. On the
+  keyboard path into Identity, `document.activeElement` read `BODY` after
+  Enter rather than the new heading; `useFocusHeading` is unchanged and this
+  was not investigated.
+- **Release remains paused** exactly as below: no pull request, merge,
+  deployment or paid evaluation; both live suites still need funding.
+
+Earlier status (BATCH-01 paused; packet prepared), now superseded where it
+says recruitment is next:
 
 - **BATCH-01 release remains paused pending funded live evaluation.** Opening
   the pull request runs `guide-eval.yml` on the whole batch, and both live
-  suites would be required (release check 1 below). Paid evaluation is not
-  currently affordable, so the batch stays on `claude/hello-gr0hoz`: no pull
-  request, no merge, no deploy, no paid run. Nothing in the batch was changed
-  by this session; `261d055..e903363` plus B2 stand as reviewed.
-- **`docs/PILOT-RESEARCH-01.md` is prepared** (this session): a research packet
-  for the founder on whether Somali Muslim adults seeking marriage would take
-  part in the Minneapolis–St. Paul introduction pilot: six recent-behaviour
-  conversations, a recruitment message, an eight-question script, three
-  concept cards, control-and-consent questions, an evidence template and a
-  decision guide. **No interview has occurred, no recruitment message has
-  been sent, nobody has been contacted**, and the packet reports no finding.
-  Completed interview notes are to be kept outside this repository.
-- **The next task is founder review of the packet and recruitment, not
-  feature development.** Runtime code is untouched; live evaluation stays
-  disabled (`GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE` unset, no key). The release
-  path below resumes only when a live run can be funded.
-
-Verification for this session: `npm run verify > log 2>&1; echo $?` exit 0
-(see the commit that adds the packet); the diff is two Markdown files.
+  suites would be required (release check 1 below). The batch stays on
+  `claude/hello-gr0hoz`.
+- **`docs/PILOT-RESEARCH-01.md` is prepared**: six recent-behaviour
+  conversations, a recruitment message, a script, concept cards, consent
+  questions, an evidence template and a decision guide. It reports no finding.
 
 The B2 handoff follows, unchanged.
 

@@ -50,7 +50,7 @@ const START = ['Start where you are', /^I am a woman/, /I confirm I am 18/, /^Co
 const HOOK = [...START, /^I’m not talking to anyone/, /^Continue/]
 
 const VISITS: Record<string, Visit> = {
-  welcome: { who: 'stranger', lands: /What’s in your way\?/ },
+  welcome: { who: 'stranger', lands: /Meet someone serious\. Think marriage through\./ },
   // The two doors (docs/DECISIONS.md Part 22).
   looking: { who: 'stranger', taps: [/I’m looking for someone serious/], lands: /Put my name down/ },
   'looking — somewhere else': { who: 'stranger', taps: [/I’m looking for someone serious/, /^Somewhere else$/], lands: /Somewhere else in…/ },

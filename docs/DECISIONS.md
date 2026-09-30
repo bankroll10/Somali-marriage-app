@@ -9,7 +9,7 @@ outside critic. Part 5 is the commitment audit. Part 6 says where each of the
 introduction path restored, and the record-deletion the subtraction caused.
 Part 23 is the matchmaking recovery the founder ratified the same day:
 MEET → KNOW → DECIDE, decisions 26–35, and the staged gates introductions
-are rebuilt through.
+are rebuilt through. Part 25 is the first-screen clarity pass of 2026-09-30.
 
 Every old doc's full text is in git at commit `43295a4`:
 `git show 43295a4:docs/NAME.md`.
@@ -4353,3 +4353,48 @@ branch before Group B; `docs/BATCH-01-PLAN.md` §6 and
 **Decision 19.** Case 2 (a withdrawal acknowledged and then undone by a
 failed delete; a receipt lost with the record kept) and case 4 (a
 production write by a monitoring workflow).
+
+## Part 25: A clearer first screen (2026-09-30, BATCH-02A)
+
+The founder deferred interviews and recruitment and directed that product
+development continue. That supersedes the handoff's "the next task is
+recruitment"; it does not change the matchmaking pilot (decisions 24–35) or
+authorize a release, and the research packet (`docs/PILOT-RESEARCH-01.md`)
+is kept: interviews are **deferred**, not completed and not invalidated.
+
+What changed, on the first-time visitor's path only:
+
+- **The headline says what Niyyah is for:** "Meet someone serious. Think
+  marriage through." replaces "What's in your way?", which described neither
+  door. One supporting sentence scopes it: a founder-led introduction pilot,
+  and tools for people already considering someone for marriage.
+- **Each door says what the tap does:** "See how introductions work" (the
+  card keeps Minneapolis–St. Paul and the founder's first conversation) and
+  "Choose where to start". The routes are unchanged.
+- **Two claims came out because the code does not support them.** "The one
+  thing to say next is two minutes away" described the tools' output and sat
+  on a page whose first door is an introduction pilot; no completion time is
+  claimed now. "No one else sees it — not your family, not anyone you're
+  talking to" and "Private to you" were false of the page as a whole: the
+  eleven is sent to the other person on purpose, and an introduction request
+  is read by the founder (`docs/PRIVACY.md`, "What leaves the phone"). The
+  replacement says only what the code does: free, no account, answers stay on
+  the phone unless the person sends something, with the two commonest
+  examples named. Storage, consent and sharing are untouched.
+- **The Talking chooser** describes its three options without "the read" or
+  "the eleven" as prior knowledge. The eleven is still counted (eleven) and
+  exemplified (where you would live, money sent home, children).
+- **Looking:** size, contrast and spacing only; every approved disclosure,
+  the adult affirmation, recovery paths, receipts and withdrawal are
+  word-for-word as before.
+- **A focus ring** no longer draws a box round a heading the app focuses at
+  each screen change for screen readers (`src/index.css`); every control keeps
+  its ring.
+
+Not changed, and recorded so nobody assumes it was: `public/og.png` still
+shows "What's in your way?" as pixels, so `OG_ALT` (which describes that
+image) and the social card keep the old line until the image is remade. Two
+Welcome bullets went with the "reduce repeated explanations" brief; their
+substance (nothing identifying before both yes; no browsing) is on the
+Looking screen. The follow-up and the Ending behave as before; Welcome just
+no longer describes them in a bullet.
