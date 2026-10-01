@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Gender, Stage } from '../types'
 import { familyScripts } from '../data/families'
 import { somali } from '../data/somali'
@@ -30,6 +30,18 @@ export default function Families({ gender, stage, onTaken, onSetGender, onBack }
   const [open, setOpen] = useState<string | null>(null)
   const [taken, setTaken] = useState<Set<string>>(() => new Set())
   const intro = somali('families.intro')
+  // Choosing a side removes the chooser, and the button that had focus goes
+  // with it. Put focus on the first script, once, and only when the person
+  // chose here — a side already known on arrival leaves focus where the screen
+  // put it (the heading).
+  const chose = useRef(false)
+  const firstScript = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!side || !chose.current) return
+    chose.current = false
+    if (document.activeElement && document.activeElement !== document.body) return
+    firstScript.current?.focus({ preventScroll: true })
+  }, [side])
 
   return (
     <div className="min-h-dvh bg-cream pb-16 pt-safe">
@@ -66,6 +78,7 @@ export default function Families({ gender, stage, onTaken, onSetGender, onBack }
                 <button
                   key={opt.id}
                   onClick={() => {
+                    chose.current = true
                     setSide(opt.id)
                     onSetGender?.(opt.id)
                   }}
@@ -80,11 +93,12 @@ export default function Families({ gender, stage, onTaken, onSetGender, onBack }
         )}
 
         <div className="flex flex-col gap-3">
-          {scripts.map((s) => {
+          {scripts.map((s, i) => {
             const isOpen = open === s.id
             return (
               <div key={s.id} className={`rounded-card border transition-colors ${isOpen ? 'border-forest/40 bg-white/70' : 'border-line bg-white/60'}`}>
                 <button
+                  ref={i === 0 ? firstScript : undefined}
                   onClick={() => {
                     setOpen(isOpen ? null : s.id)
                   }}

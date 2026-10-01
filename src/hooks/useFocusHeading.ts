@@ -25,12 +25,27 @@ import { useEffect, type RefObject } from 'react'
  * person starts to move through the screen — and if focus is already on
  * something inside the screen when it mounts, it leaves it there.
  */
-export function useFocusHeading(within: RefObject<HTMLElement | null>) {
+export interface FocusHeadingOptions {
+  /**
+   * Only when focus has been lost — it is on `<body>` because the control that
+   * had it was just removed. Used for a step inside a screen (the next
+   * question, the result): the tap that answered the last one unmounted the
+   * button that held focus, so focus has to be put somewhere, but a control
+   * that survives the change (the header's Back) is where the person is, and
+   * is left alone.
+   */
+  onlyIfLost?: boolean
+}
+
+export function useFocusHeading(within: RefObject<HTMLElement | null>, options: FocusHeadingOptions = {}) {
+  const { onlyIfLost = false } = options
   useEffect(() => {
     const root = within.current
     if (!root) return
     const now = document.activeElement
-    if (now && now !== document.body && now !== root && root.contains(now)) return
+    if (onlyIfLost) {
+      if (now && now !== document.body) return
+    } else if (now && now !== document.body && now !== root && root.contains(now)) return
     const heading = root.querySelector<HTMLElement>('h1, h2')
     if (!heading) return
     const hadTabIndex = heading.hasAttribute('tabindex')
@@ -40,11 +55,11 @@ export function useFocusHeading(within: RefObject<HTMLElement | null>) {
       const clear = () => heading.removeAttribute('tabindex')
       heading.addEventListener('blur', clear, { once: true })
     }
-  }, [within])
+  }, [within, onlyIfLost])
 }
 
 /** The hook as a component, for placing inside a Suspense boundary beside the screen it serves. */
-export function FocusHeading({ within }: { within: RefObject<HTMLElement | null> }) {
-  useFocusHeading(within)
+export function FocusHeading({ within, ...options }: { within: RefObject<HTMLElement | null> } & FocusHeadingOptions) {
+  useFocusHeading(within, options)
   return null
 }

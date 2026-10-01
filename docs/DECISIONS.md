@@ -4477,3 +4477,79 @@ tells people to pick the nearest city ("Choose your city or area. If it isn’t
 listed, choose Somewhere else."), and the contact helper promises no response
 ("For the founder to contact you about your request."). The recovery card has one
 heading, its own. Still a hypothesis: shorter is not shown to be clearer.
+
+## Part 26: The tools for a relationship that already exists — three repairs (2026-10-01, BATCH-03)
+
+A read-only review walked Talking → the read, Before you say yes and the family
+words in the built app (headless Chromium, 390px and 320px, mouse and keyboard,
+every function stubbed to 503 so no live model could run, synthetic answers
+only, both perspectives). It found five things. The founder authorised the
+first three; the other two are **deferred and unchanged** (see the end). This
+is review evidence from a headless browser, not user research, and no screen
+reader was used: what a screen reader announces is unverified.
+
+**1. The urgent line had no line to show** (`src/components/HelpLine.tsx`).
+`HelpLine` takes her country from a city she has chosen. Someone who comes in
+through a tool never chooses one, so on the read's two cautions the line read
+only "If you are in danger now, call your local emergency number (911 in the US
+and Canada, 999 in the UK, …)" and the free helpline the card was built to
+carry never appeared; with a city set, the same answers showed the National
+Domestic Violence Hotline. Now an **urgent abuse** line with no usable line —
+no country, or a country that has none (Somalia, "somewhere else") — shows a
+visible, labelled country selector beneath the unchanged emergency sentence,
+and picking a country shows that country's emergency number and free line. The
+selector lists only countries that have a line (from `HELP`; the table itself
+is untouched and its yearly re-check stands). The choice is `useState` in the
+component: not written to storage, not put on her identity, not sent; a new
+mount asks again. Not urgent, a crisis line, and a line shown under another one
+do not ask; a phone that knows her country is shown exactly what it was. Seen
+wherever an urgent abuse line is shown: the read's caution, the report screens
+and the guide's safety reply. *Limit:* where the guide shows the abuse line and
+the crisis line together, the picked country updates the first only; the crisis
+line keeps its existing generic fallback.
+
+**2. A caution's card named the wrong recipient** (`src/components/Read.tsx`).
+When she is careful what she raises, the engine's words are `CAREFUL_SCRIPT` —
+for one person who knows her. A caution result carries no `careful` line, so
+the hidden-and-careful and money-and-careful results titled those words "The one
+question to ask next" under "If you do decide to ask him something after it…".
+The card now follows the script: whenever the selected script is
+`CAREFUL_SCRIPT` it is "The words for one person who knows you", prefaced
+"These are not for {him}." Cautions whose words are for the other person keep
+their title and their "the conversation above comes first" preface; an
+ordinary read has none. No engine, no words, no band and no follow-up changed
+(`asksBack` still writes none after a caution). What it does *not* fix: a money
+or hidden-without-careful caution tells her to tell one person and still has no
+words for that, which needs content and is part of the deferred work.
+
+**3. Focus fell to `<body>` inside each tool** (`src/components/FocusStep.tsx`,
+`src/hooks/useFocusHeading.ts`, `Read.tsx`, `BeforeYes.tsx`, `Families.tsx`).
+Part 25 moves focus to a heading when a *screen* appears. The next question and
+the result are not screen changes, so the tap that answered a question removed
+the button that held focus and `document.activeElement` was `BODY` after Start,
+after each of twelve (or eleven) answers and at the result. A `FocusStep` now
+wraps each question and each result, keyed per step; when it mounts it moves
+focus to its heading **only if focus has been lost** (on `<body>`), so it never
+takes focus from a control that survives the change (the header's Back stays
+focused when she goes back a question), never runs on a re-render and never
+touches an answer. The Eleven's "Where does that leave it?" keeps its own focus.
+In the family words, choosing whose words these are puts focus on the first
+script, once, and only when she chose there. Nothing about answers, drafts or
+what is saved changed; `tests/ui/step-focus.test.tsx` walks the read and the
+eleven in the rendered app and checks the answers kept.
+
+**Not touched, by design:** `src/data/*`, `src/lib/read.ts`, `src/lib/beforeYes.ts`
+and every script, question and answer option; storage, consent, sharing, the
+Guide and the evaluation workflow. **Deferred, unchanged, undecided (the
+review's findings 4 and 5):** the family words' entry text ("words to say to
+your own family" while some scripts are for him, and a caution's hand-off into
+scripts that open "I believe he's serious"), and the read's missing "hasn't
+come up yet" answer on the hard-conversation question. The same focus gap exists
+on his side of the two-sided eleven (`Couple.tsx`); it was not in scope.
+
+**Evaluation.** The repository's classifier (`tests/eval/check.ts applicability`,
+`REQUIRES` in `tests/eval/outcome.ts`) was run on this slice's changed files;
+the result is recorded in `docs/SESSION-HANDOFF.md`. A `not-required` for this
+slice does not remove the accumulated branch's own requirements: BATCH-01's
+workflow, harness and lockfile changes still make both live suites required on
+the pull request, they are unfunded, and the release remains paused.

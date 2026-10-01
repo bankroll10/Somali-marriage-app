@@ -1,6 +1,26 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02A first-screen pass done
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done
 
-## Status as of the latest session (2026-09-30, BATCH-02A)
+## Status as of the latest session (2026-10-01, BATCH-03)
+
+- **BATCH-03, the "already talking to someone" tools** (`docs/DECISIONS.md`
+  Part 26). A read-only review (built app, headless Chromium, synthetic answers,
+  live AI off) found five things; the founder authorised three, now built:
+  (1) the urgent abuse line asks where she is when no helpline is known and
+  then shows that country's line (`HelpLine.tsx`, component-local state only);
+  (2) a caution whose words are `CAREFUL_SCRIPT` is titled "The words for one
+  person who knows you" with "These are not for {him}." (`Read.tsx`); (3) focus
+  follows each question and each result inside the read and the eleven, and the
+  family words' side chooser (`FocusStep.tsx`, `useFocusHeading.ts`), only when
+  focus was lost. **Deferred and unchanged:** the family words' entry text and
+  caution hand-off, and the read's missing "hasn't come up yet" answer; the
+  same focus gap on his side of the two-sided eleven. Nothing in `src/data/*`,
+  the engines, storage, consent, sharing or the Guide changed. No screen reader
+  was used; the review is not user research.
+- **Release remains paused.** Evaluation applicability for this slice, from the
+  repository's classifier, is recorded below; it does not remove the branch's
+  existing requirements (both live suites, unfunded).
+
+## Previous status (2026-09-30 to 2026-10-01, BATCH-02A–C)
 
 - **Direction changed by the founder:** interviews and recruitment are
   **deferred** (not completed, not invalidated; `docs/PILOT-RESEARCH-01.md`

@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
 import type { Gender, Identity, ReadRecord } from '../types'
-import { EXAMPLE_ANSWERS, readQuestions, scriptFor } from '../data/read'
+import { CAREFUL_SCRIPT, EXAMPLE_ANSWERS, readQuestions, scriptFor } from '../data/read'
 import { buildRead, type DimensionState, type ReadResult, asksBack, wordsForOthers } from '../lib/read'
 import { GUIDE_SOURCE } from '../lib/site'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import HelpLine from './HelpLine'
+import FocusStep from './FocusStep'
 import { ArrowRight, Button, Disclose, ScreenHeader, TextButton, NotSaving } from './ui'
 
 interface Props {
@@ -294,7 +295,7 @@ export default function Read({
         />
       </div>
 
-      <div key={q.id} className="animate-rise py-8">
+      <FocusStep key={q.id} className="animate-rise py-8">
         <h2 id={`read-q-${q.id}`} className="font-display text-[1.6rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.85rem]">
           {q.prompt}
         </h2>
@@ -337,7 +338,7 @@ export default function Read({
             </button>
           ))}
         </div>
-      </div>
+      </FocusStep>
     </Shell>
   )
 }
@@ -417,8 +418,14 @@ function Result({
   // The other gaps, with their own words. Only the thinnest used to get any —
   // every other "not yet" on the screen was a problem with nothing to say.
   const otherGaps = wordsForOthers(result)
+  // The words are for one person who knows her, not for {him}, whenever the
+  // engine chose CAREFUL_SCRIPT — on a careful result and on a caution that
+  // has her careful what she raises alike. Caution results carry no `careful`
+  // line, so the title used to say "the one question to ask next" over words
+  // that were never for {him}.
+  const forOnePerson = result.script === CAREFUL_SCRIPT
   return (
-    <div className="py-8">
+    <FocusStep className="py-8">
       <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
         What {they} has shown you
       </p>
@@ -531,13 +538,13 @@ function Result({
       {/* The point of the whole instrument. */}
       <ScriptCard
         script={result.script}
-        title={result.careful ? 'The words for one person who knows you' : 'The one question to ask next'}
+        title={forOnePerson ? 'The words for one person who knows you' : 'The one question to ask next'}
         travel="read"
         preface={
-          result.caution
-            ? `The conversation above comes first. If you do decide to ask ${subject} something after it, this is the thing worth asking.`
-            : result.careful
-              ? `These are not for ${subject}.`
+          forOnePerson
+            ? `These are not for ${subject}.`
+            : result.caution
+              ? `The conversation above comes first. If you do decide to ask ${subject} something after it, this is the thing worth asking.`
               : undefined
         }
       />
@@ -662,7 +669,7 @@ function Result({
         This reads what you told us about behaviour over time. It cannot read a
         heart, and it is not a verdict on anyone — including you.
       </p>
-    </div>
+    </FocusStep>
   )
 }
 

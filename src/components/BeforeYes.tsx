@@ -12,6 +12,7 @@ import { withVia } from '../lib/links'
 import { GUIDE_SOURCE, SITE_URL } from '../lib/site'
 import ScriptCard, { CheckBack } from './ScriptCard'
 import HelpLine from './HelpLine'
+import FocusStep from './FocusStep'
 import { familyScriptsLine } from '../data/families'
 import InviteRow from './InviteRow'
 import ReportConcern from './ReportConcern'
@@ -295,7 +296,7 @@ export default function BeforeYes({
       <div className="h-1 w-full overflow-hidden rounded-full bg-sand">
         <div className="h-full rounded-full bg-forest transition-all duration-500" style={{ width: `${((index + 1) / topics.length) * 100}%` }} />
       </div>
-      <div key={t.id} className="animate-rise py-8">
+      <FocusStep key={t.id} className="animate-rise py-8">
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">{t.label}</p>
         <h2 id={`before-yes-q-${t.id}`} className="mt-2 font-display text-[1.5rem] font-medium leading-snug tracking-tight text-ink text-balance sm:text-[1.75rem]">
           Have the two of you talked about this?
@@ -318,7 +319,7 @@ export default function BeforeYes({
           onOutcome={choose}
         />
         <p className="mt-5 text-[0.82rem] leading-relaxed text-muted text-pretty">{t.why}</p>
-      </div>
+      </FocusStep>
     </Shell>
   )
 }
@@ -374,7 +375,7 @@ function Result({
   const together = <Together gender={gender} pronoun={pronoun} picked={sheetOf(picked).answers} couple={couple} onCouple={onCouple} />
 
   return (
-    <div className="py-8">
+    <FocusStep className="py-8">
       {/* What she came for, first, when she came for it. */}
       {jointFirst && <div className="-mt-9 mb-9">{together}</div>}
       <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">The conversations you have had</p>
@@ -509,7 +510,7 @@ function Result({
       <p className="mt-8 text-[0.8rem] leading-relaxed text-muted text-pretty">
         Not a verdict on anyone.
       </p>
-    </div>
+    </FocusStep>
   )
 }
 
