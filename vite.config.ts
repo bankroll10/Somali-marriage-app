@@ -4,7 +4,7 @@ import { join } from 'node:path'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
-import { DESCRIPTION, OG_ALT, TAGLINE, TITLE } from './src/data/brand.js'
+import { DESCRIPTION, OG_ALT, OG_IMAGE, SOCIAL_TITLE, TAGLINE, TITLE } from './src/data/brand.js'
 import { GUIDE, TOOLS, toolPath } from './src/data/tools.js'
 import { sitemapXml, toolPageHtml } from './src/lib/toolPages.js'
 import { guideHtml, sampleHtml } from './src/lib/guidePages.js'
@@ -23,6 +23,8 @@ const BRAND: Record<string, string> = {
   '%BRAND_DESCRIPTION%': DESCRIPTION,
   '%BRAND_TAGLINE%': TAGLINE,
   '%BRAND_OG_ALT%': OG_ALT,
+  '%BRAND_SOCIAL_TITLE%': SOCIAL_TITLE,
+  '%BRAND_OG_IMAGE%': OG_IMAGE,
 }
 
 /**

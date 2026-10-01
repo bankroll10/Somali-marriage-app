@@ -1,3 +1,4 @@
+import { OG_IMAGE } from '../data/brand.js'
 import { ALL_HAD, OWN_ANSWER_FIRST, SAY_THE_LINE, TOPICS, WORK_IT_OUT, type ElevenScript, type Topic } from '../data/eleven.js'
 import { toolPath, type Guide } from '../data/tools.js'
 
@@ -79,11 +80,11 @@ function head(title: string, description: string, url: string, host: string, css
     '<meta property="og:type" content="article" />',
     '<meta property="og:site_name" content="Niyyah" />',
     `<meta property="og:url" content="${url}" />`,
-    `<meta property="og:image" content="https://${host}/og.png" />`,
+    `<meta property="og:image" content="https://${host}/${OG_IMAGE}" />`,
     '<meta name="twitter:card" content="summary_large_image" />',
     `<meta name="twitter:title" content="${t}" />`,
     `<meta name="twitter:description" content="${d}" />`,
-    `<meta name="twitter:image" content="https://${host}/og.png" />`,
+    `<meta name="twitter:image" content="https://${host}/${OG_IMAGE}" />`,
     ...(cssHref ? [`<link rel="stylesheet" href="${esc(cssHref)}" />`] : []),
     `<style>${CSS}</style>`,
     '</head>',

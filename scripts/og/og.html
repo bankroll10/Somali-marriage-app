@@ -1,0 +1,57 @@
+<!doctype html>
+<!--
+  The social card's source: 1200×630, rendered to public/og-pilot.png by
+  `npm run og` (scripts/og/render.mjs). Edit this file, run the command, commit
+  both. The words here are the homepage headline (src/components/Welcome.tsx)
+  and the two paths in src/data/brand.ts; keep OG_ALT there describing exactly
+  what this says. Colours and typefaces are the app's own (src/index.css).
+  No photos, numbers, quotes or promises: the pilot's city and what Niyyah
+  offers, nothing more.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      @font-face { font-family: 'Fraunces'; font-weight: 400 600; src: url('../../src/assets/fonts/fraunces-latin.woff2') format('woff2'); }
+      @font-face { font-family: 'Inter'; font-weight: 400 600; src: url('../../src/assets/fonts/inter-latin.woff2') format('woff2'); }
+      :root { --forest-deep: #16271f; --cream: #f7f2e8; --gold: #c19a4b; --gold-soft: #d9c189; }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { width: 1200px; height: 630px; overflow: hidden; background: var(--forest-deep); }
+      .card {
+        position: relative; width: 1200px; height: 630px; padding: 64px 80px;
+        display: flex; flex-direction: column; justify-content: space-between;
+        color: var(--cream); font-family: 'Inter', sans-serif;
+        background-color: var(--forest-deep);
+        background-image: radial-gradient(circle at 1px 1px, rgba(193, 154, 75, 0.22) 1px, transparent 0);
+        background-size: 22px 22px;
+      }
+      .brand { display: flex; align-items: center; gap: 14px; font-family: 'Fraunces', serif; font-weight: 500; font-size: 40px; letter-spacing: -0.01em; }
+      .brand svg { width: 48px; height: 48px; }
+      h1 { font-family: 'Fraunces', serif; font-weight: 500; font-size: 92px; line-height: 1.04; letter-spacing: -0.02em; }
+      h1 span { display: block; }
+      h1 .second { color: var(--gold-soft); }
+      .support { margin-top: 36px; font-size: 36px; line-height: 1.35; color: rgba(247, 242, 232, 0.86); }
+      .support p + p { margin-top: 6px; }
+      .rule { width: 72px; height: 4px; border-radius: 2px; background: var(--gold); margin-bottom: 28px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="brand">
+        <svg viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <path d="M32 13c-6.5 8.5-12.5 12.8-12.5 21A12.5 12.5 0 0 0 44.5 34c0-8.2-6-12.5-12.5-21Z" stroke="#c19a4b" stroke-width="2.6" stroke-linejoin="round" />
+          <circle cx="32" cy="35" r="4.2" fill="#c19a4b" />
+        </svg>
+        Niyyah
+      </div>
+      <div>
+        <div class="rule"></div>
+        <h1><span>Meet someone serious.</span><span class="second">Think marriage through.</span></h1>
+        <div class="support">
+          <p>Introductions beginning in Minneapolis–St. Paul.</p>
+          <p>Tools for people considering someone for marriage.</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

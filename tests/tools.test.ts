@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { DESCRIPTION, OG_ALT, TAGLINE, TITLE } from '../src/data/brand'
+import { DESCRIPTION, OG_ALT, OG_IMAGE, SOCIAL_TITLE, TAGLINE, TITLE } from '../src/data/brand'
 import { READER_OF, TOOLS, toolFor, toolFromPath, toolPath } from '../src/data/tools'
 import { VIAS } from '../src/lib/entry'
 import { sitemapXml, toolPageHtml } from '../src/lib/toolPages'
@@ -25,6 +25,8 @@ function builtIndex(): string {
     '%BRAND_DESCRIPTION%': DESCRIPTION,
     '%BRAND_TAGLINE%': TAGLINE,
     '%BRAND_OG_ALT%': OG_ALT,
+    '%BRAND_SOCIAL_TITLE%': SOCIAL_TITLE,
+    '%BRAND_OG_IMAGE%': OG_IMAGE,
   }
   return Object.entries(brand).reduce((out, [k, v]) => out.replaceAll(k, v), raw.replaceAll('%SITE_HOST%', HOST))
 }
@@ -105,7 +107,7 @@ describe('the page written for a tool', () => {
       expect(page).not.toContain(`href="https://${HOST}/"`)
       expect(page).not.toContain(`<title>${TITLE}</title>`)
       // Everything else is untouched: the same image, the same app.
-      expect(page).toContain(`https://${HOST}/og.png`)
+      expect(page).toContain(`https://${HOST}/${OG_IMAGE}`)
       expect(page).toContain('<div id="root"></div>')
     })
   }

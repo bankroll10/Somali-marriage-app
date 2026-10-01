@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
 import { TOPICS } from '../src/data/eleven'
+import { OG_IMAGE } from '../src/data/brand'
 import { GUIDE, TOOLS } from '../src/data/tools'
 import { SOMALI } from '../src/data/somali'
 import { SOMALI_INTRO, guideHtml, neutral, sampleHtml } from '../src/lib/guidePages'
@@ -77,7 +78,7 @@ describe('the full guide', () => {
     expect(full).toContain(`<title>${GUIDE.title}</title>`)
     expect(full).toContain(`<link rel="canonical" href="https://${HOST}${GUIDE.path}" />`)
     expect(full).toContain(`<meta property="og:url" content="https://${HOST}${GUIDE.path}" />`)
-    expect(full).toContain(`<meta property="og:image" content="https://${HOST}/og.png" />`)
+    expect(full).toContain(`<meta property="og:image" content="https://${HOST}/${OG_IMAGE}" />`)
     expect(full).toContain('<meta property="og:type" content="article" />')
     // The host is a setting: nothing but the one passed in.
     expect(full).not.toContain('joinniyyah')

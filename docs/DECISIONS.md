@@ -4409,9 +4409,23 @@ What changed, on the first-time visitor's path only:
   with a 2px ring, and focus is not moved again. Automated checks only: DOM
   focus (happy-dom, headless Chromium). No screen reader was used.
 
-Not changed, and recorded so nobody assumes it was: `public/og.png` still
-shows "What's in your way?" as pixels, so `OG_ALT` (which describes that
-image) and the social card keep the old line until the image is remade. Two
+**Resolved 2026-10-01 (BATCH-02B):** the social card is remade and the
+metadata aligned. `public/og.png` (the old headline, and only the tools) is
+deleted; `public/og-pilot.png` (1200×630) replaces it, rendered from the
+editable `scripts/og/og.html` by `npm run og` (headless Chromium, no new
+dependency). The card carries the logo, the homepage headline, "Introductions
+beginning in Minneapolis–St. Paul." and "Tools for people considering someone
+for marriage."; no photo, number, quote or promise. Its filename is
+`OG_IMAGE` in `src/data/brand.ts` and every page (home, tools, guide) reads it
+from there; it is renamed whenever the card changes so the new card has a new
+URL, which does **not** clear any chat app's or crawler's cache of the old
+one. Title, description, `og:`/`twitter:` titles and descriptions, the
+manifest description and `OG_ALT` now say the two paths in the homepage's
+words (`HEADLINE`, `TITLE`, `DESCRIPTION`, `SOCIAL_TITLE`, `TAGLINE`, `OG_ALT`).
+Tool pages keep their own titles, descriptions and canonicals; no route or
+per-route card was added.
+
+Two
 Welcome bullets went with the "reduce repeated explanations" brief; their
 substance (nothing identifying before both yes; no browsing) is on the
 Looking screen. The follow-up and the Ending behave as before; Welcome just

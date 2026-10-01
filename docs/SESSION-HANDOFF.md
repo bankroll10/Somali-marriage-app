@@ -36,8 +36,17 @@
   reaches its heading. **Limitation:** all focus checks are automated (DOM
   focus in happy-dom and headless Chromium); no screen reader (VoiceOver,
   TalkBack, NVDA, JAWS) was used, so what they announce is unverified.
-- **Left for later:** `public/og.png` still carries "What's in your way?" (so
-  `OG_ALT` still matches it); the social card needs a new image.
+- **BATCH-02B, social preview and metadata (2026-10-01):** the stale
+  `public/og.png` is replaced by `public/og-pilot.png`, rendered from
+  `scripts/og/og.html` with `npm run og`; title, descriptions, social titles,
+  manifest and `OG_ALT` align with the homepage (`src/data/brand.ts`,
+  `docs/DECISIONS.md` Part 25). The built HTML (home, a tool page, the guide)
+  was checked: every image URL is `og-pilot.png`, tool titles and canonicals
+  are unchanged. The new filename does not clear third-party preview caches;
+  old shared links may keep showing the old card until those refresh. Card
+  inspected at full size and at 375px wide, no clipping.
+- **Left for later:** nothing from this batch; the card is general, not
+  per-tool or per-route.
 - **Release remains paused** exactly as below: no pull request, merge,
   deployment or paid evaluation; both live suites still need funding.
 
