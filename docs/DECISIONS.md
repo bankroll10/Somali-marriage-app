@@ -5018,11 +5018,10 @@ untouched):
 - **Part 30's arrival rule changes, deliberately.** Part 30 said a failed or unsure submit never
   scrolls or takes focus. The note is at the top and the tap was at the bottom, so the first
   uncertain result, and a newly entered conflict, now use the existing `Arrival` (scroll to the
-  top, heading focus). The same outcome again does not scroll or take focus. Focus left in the
-  form by the tap (on the submit button, or in a field Enter was pressed in) is released in the
-  arrival's layout effect, so the heading can take it: a disabled button cannot be blurred, so
-  this waits for the commit that enables it again, and does not depend on Chromium dropping
-  focus on its own. Focus the person moved elsewhere (the header's Back) is left alone. The two
+  top, heading focus). The same outcome again does not scroll or take focus. Focus is handled by
+  where it actually is (see the follow-up below): lost to `<body>`, the heading takes it; still on
+  the control the tap came from with no move since, it is released so the heading can; moved by
+  the person to anything else, it stays. The two
   BATCH-07A arrivals (saved, then the receipt's name taken off) are as they were; withdrawing
   from the note is a third caller of the same path.
 - **Wording.** The in-form line for a 409 no longer says "under a code this phone holds"
@@ -5067,6 +5066,35 @@ backend). Starting each time from the form scrolled to its bottom, keyboard and 
 
 The button is 44px tall. At 320px the longer states put the button below the first screen; the
 heading and the code, which carry the warning, are in view.
+
+**Follow-up correction, same day (focus during a submission; the recovery button's state).**
+The first version released focus from *any* element inside the form, so a field the person had
+deliberately focused while the request was in flight was blurred and the heading took focus.
+Replaced by tracking the submission's origin: at submit, the control that held focus inside the
+form (the submit button, or the field Enter was pressed in), else the submitter; a `focusin`
+listener, present only while the request is out, records any focus that lands on something else.
+The arrival receives the origin as `release` only if focus never moved, and lets go of it only if
+it is still the active element; otherwise `onlyIfLost` leaves focus alone. So: `<body>`, the
+heading takes it; still on the origin, released; another field, another control or the header's
+Back, kept. The scroll to the top still happens in every case, the BATCH-07A successes are
+untouched, and there is no timer and no change to a shared focus helper. (This does not depend on
+happy-dom: a disabled button cannot be blurred there, so the release waits for the commit that
+enables it.) Second, while a submission is in flight the earlier-try button now exposes
+`aria-disabled="true"` and the matching faded state, as its handler already refused; it keeps its
+words ("Take that try off" or "Take the earlier name off"), because "Taking it off…" belongs to the
+withdrawal, and it is still not `disabled`. The `busy` guard is unchanged. Tests: four delayed-
+response cases in `looking-arrival.test.tsx` (another field then uncertain; another field then
+409; Back then a response; focus lost) plus the origin-released guard; the field cases fail
+against the first version. `looking-pending.test.tsx` asserts the button's state for both
+overlap directions. In Chromium (built app, 390×844 and 320×568, the driver sets no `tabindex`
+and never focuses the heading before reading the result): focus lost, the heading holds focus
+at `scrollY` 0; Enter pressed in a field, the same; another field or Back focused meanwhile, that
+control keeps focus with `scrollY` 0 (uncertain and 409 alike); during a POST the button is
+`aria-disabled` true, not `disabled`, 0.6 opacity, its words unchanged, and tapping it sends no
+DELETE; during a DELETE it reads "Taking it off…", stays focused, and the submit button is
+disabled with no POST. One thing observed and left alone: while a *re*-submission after a
+conflict is in flight the heading briefly reads as the uncertain note, because `state` is
+`sending`; it returns to the conflict wording with the answer.
 
 **Finding F, recorded, not repaired.** `withdrawInterest` reads a 200 and maps a body that
 cannot be read to `nothing`, and on `nothing` it clears the receipt and the pending code. So an

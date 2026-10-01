@@ -247,14 +247,35 @@ describe('an earlier try the phone is still waiting on, after a reload (storage 
     const m = await returnToForm()
     await fill(m, true)
     const release = server.hold(/introduce/, 'POST')
+    const button = control(/^Take that try off/)
+    expect(button.getAttribute('aria-disabled')).toBe('false')
     await m.press(/^Put my name down/)
     expect(m.text()).toContain('Saving…')
+    // Unavailable to a person as well as to its handler: aria-disabled, not `disabled` (it keeps focus),
+    // and still saying what it would do. "Taking it off…" belongs to the withdrawal, not to a submission.
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.hasAttribute('disabled')).toBe(false)
+    expect(button.textContent).toContain('Take that try off')
+    expect(button.textContent).not.toContain('Taking it off')
+    expect(m.container.querySelector('[role="status"]')?.textContent ?? '').toBe('')
     const deletes = count('DELETE')
     await m.press(/^Take that try off/)
     expect(count('DELETE')).toBe(deletes)
     release()
     await m.until(() => m.text().includes('Your request was saved on'), 'the receipt')
     expect(records()).toEqual([code])
+  })
+
+  it('after an uncertain answer the button is available again, with the same words', async () => {
+    await leaveUncertain()
+    const m = await returnToForm()
+    await fill(m, true)
+    server.lose(/introduce/)
+    await m.press(/^Put my name down/)
+    await m.until(() => m.text().includes('could not tell whether that reached us'), 'unsure')
+    const button = control(/^Take that try off/)
+    expect(button.getAttribute('aria-disabled')).toBe('false')
+    expect(button.textContent).toContain('Take that try off')
   })
 
   it('a code typed into "I have a code" that is the pending one takes the note away with it', async () => {

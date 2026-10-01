@@ -160,6 +160,99 @@ describe('the receipt becomes the form after the name is taken off', () => {
   })
 })
 
+describe('focus the person moves during a submission is theirs', () => {
+  // BATCH-07B follow-up. The arrival that brings the note about an earlier try into view
+  // lets go of focus only when it is still on the control the tap came from. Focus lost to
+  // <body> is taken by the heading; focus the person moved elsewhere while the request was
+  // out — another field in the same form, or the header's Back — stays where she put it.
+  // The scroll to the top happens in every case.
+  const note = () => active()?.tagName === 'H2' && /An earlier try may have reached us/.test(active()?.textContent ?? '')
+  const field = (label: string) => screen!.container.querySelector<HTMLElement>(`#${label}`)!
+  const uncertain = (m: Mounted) => m.until(() => m.text().includes('could not tell whether that reached us'), 'the unsure answer')
+
+  it('a field focused while the request is out keeps focus when the answer is uncertain', async () => {
+    const m = await toForm()
+    await fill(m)
+    const release = server.hold(/introduce/)
+    server.lose(/introduce/)
+    const before = scrollTo.mock.calls.length
+    act(() => control(/^Put my name down/).focus())
+    await m.press(/^Put my name down/)
+    expect(m.text()).toContain('Saving…')
+    const other = field('looking-name')
+    act(() => other.focus())
+    release()
+    await uncertain(m)
+    await m.settle()
+    expect(m.text()).toContain('An earlier try may have reached us')
+    expect(active()).toBe(other)
+    expect(scrollTo.mock.calls.slice(before)).toEqual([[0, 0]])
+  })
+
+  it('a field focused while the request is out keeps focus when the answer is a 409', async () => {
+    const m = await toForm()
+    await fill(m)
+    server.lose(/introduce/)
+    await m.press(/^Put my name down/)
+    await uncertain(m)
+    server.lose(false)
+    await m.type('Email or phone', '+1 612 555 0199')
+    const release = server.hold(/introduce/)
+    const before = scrollTo.mock.calls.length
+    act(() => control(/^Put my name down/).focus())
+    await m.press(/^Put my name down/)
+    expect(m.text()).toContain('Saving…')
+    const other = field('looking-name')
+    act(() => other.focus())
+    release()
+    await m.until(() => m.text().includes('An earlier try was saved with different details'), 'the conflict')
+    await m.settle()
+    expect(active()).toBe(other)
+    expect(scrollTo.mock.calls.slice(before)).toEqual([[0, 0]])
+  })
+
+  it('the header’s Back, focused while the request is out, keeps focus', async () => {
+    const m = await toForm()
+    await fill(m)
+    const release = server.hold(/introduce/)
+    server.lose(/introduce/)
+    act(() => control(/^Put my name down/).focus())
+    await m.press(/^Put my name down/)
+    const back = screen!.container.querySelector<HTMLElement>('header button')!
+    act(() => back.focus())
+    release()
+    await uncertain(m)
+    await m.settle()
+    expect(active()).toBe(back)
+  })
+
+  it('focus still on the control the tap came from is released, and the note takes it', async () => {
+    const m = await toForm()
+    await fill(m)
+    const release = server.hold(/introduce/)
+    server.lose(/introduce/)
+    act(() => control(/^Put my name down/).focus())
+    await m.press(/^Put my name down/)
+    release()
+    await uncertain(m)
+    await m.until(note, 'focus on the note')
+  })
+
+  it('focus lost to <body> is taken by the note', async () => {
+    const m = await toForm()
+    await fill(m)
+    // Nothing holds focus: the page heading App focused on arrival is let go of, as a tap elsewhere does.
+    act(() => active()?.blur())
+    expect(active()).toBe(document.body)
+    const release = server.hold(/introduce/)
+    server.lose(/introduce/)
+    await m.press(/^Put my name down/)
+    release()
+    await uncertain(m)
+    await m.until(note, 'focus on the note')
+  })
+})
+
 describe('nothing else triggers it', () => {
   it('first arrival through App is one scroll and one focus, from App alone', async () => {
     screen = await mount(<App />)

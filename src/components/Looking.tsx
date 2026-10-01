@@ -122,11 +122,12 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
    * see Arrival below. Bumped by the form's request saved (form → receipt), the
    * receipt's or the earlier try's name taken off (→ form with its word), and,
    * since BATCH-07B, the first uncertain result and a newly entered conflict
-   * (the note about the earlier try, at the top). Nothing else bumps it. `from`
-   * is the form a failed tap came from, whose focus the arrival releases.
+   * (the note about the earlier try, at the top). Nothing else bumps it. `release`
+   * is the control a failed tap came from, only when focus never left it: the
+   * arrival lets go of it so the heading can take focus.
    */
-  const [arrival, setArrival] = useState<{ n: number; from: HTMLElement | null }>({ n: 0, from: null })
-  const arrive = (from: HTMLElement | null = null) => setArrival((a) => ({ n: a.n + 1, from }))
+  const [arrival, setArrival] = useState<{ n: number; release: HTMLElement | null }>({ n: 0, release: null })
+  const arrive = (release: HTMLElement | null = null) => setArrival((a) => ({ n: a.n + 1, release }))
   const mainRef = useRef<HTMLElement>(null)
 
   const other = scene === 'other'
@@ -163,14 +164,24 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
     e.preventDefault()
     if (!ready || !gender || state === 'sending' || busy.current) return
     busy.current = true
-    // Where the tap came from, read now: the event is gone by the time the answer is.
-    const form = e.currentTarget
+    // The control the tap came from, read now (the event is gone by the time the
+    // answer is): what held focus inside the form, else the button that submitted.
+    // Any focus that lands anywhere else while the request is out is the person's
+    // own move, and is kept (docs/DECISIONS.md Part 31).
+    const at = document.activeElement
+    const submitter = (e.nativeEvent as SubmitEvent).submitter
+    const origin = at instanceof HTMLElement && e.currentTarget.contains(at) ? at : submitter instanceof HTMLElement ? submitter : null
+    let moved = false
+    const onFocusIn = (ev: FocusEvent) => {
+      if (ev.target !== origin) moved = true
+    }
     const hadEarlier = !!pending
     const wasConflict = state === 'taken'
     setState('sending')
     // A stale word about an earlier withdrawal ("your name is off the list",
     // or that it could not be confirmed) is not about this request.
     setOff('idle')
+    document.addEventListener('focusin', onFocusIn)
     try {
       const result = await registerInterest({ contact, firstName, gender, scene, country: other ? country : undefined, reach })
       const held = syncPending()
@@ -180,7 +191,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
         // tap was at the bottom: bring it into view the first time it appears
         // and the first time it turns into a conflict, never for an outcome
         // the person has already been shown (docs/DECISIONS.md Part 31).
-        if (held && (!hadEarlier || (result.why === 'taken' && !wasConflict))) arrive(form)
+        if (held && (!hadEarlier || (result.why === 'taken' && !wasConflict))) arrive(moved ? null : origin)
         return
       }
       setState('idle')
@@ -195,6 +206,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
       onIdentity({ gender, scene, ...(other && country ? { country } : {}), ...(firstName.trim() ? { firstName: firstName.trim() } : {}), adult: true })
       onRegistered(result.state)
     } finally {
+      document.removeEventListener('focusin', onFocusIn)
       busy.current = false
     }
   }
@@ -366,7 +378,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                 arrival and the one an arrival from a submit brings into view.
                 It and the confirmation above never show together: taking the
                 earlier try off clears what this reads. */}
-            {pending && <EarlierTry pending={pending} conflict={state === 'taken'} off={off} onTakeOff={takeOffPending} />}
+            {pending && <EarlierTry pending={pending} conflict={state === 'taken'} off={off} submitting={state === 'sending'} onTakeOff={takeOffPending} />}
             <p className={`animate-fade ${LABEL} text-gold-ink`}>Looking for someone</p>
             <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
               Put your name down for an introduction.
@@ -637,7 +649,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
           </section>
         )}
       </main>
-      {arrival.n > 0 && <Arrival key={arrival.n} within={mainRef} from={arrival.from} />}
+      {arrival.n > 0 && <Arrival key={arrival.n} within={mainRef} release={arrival.release} />}
     </div>
   )
 }
@@ -659,20 +671,20 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
  * person has moved to (the header's Back) keeps it. `FocusHeading` focuses
  * without scrolling, which is why the scroll is its own line.
  *
- * A failed tap in the form (BATCH-07B) is the one case where focus is not yet
- * lost: it is still on the submit button, or on the field Enter was pressed
- * in, and the note it brings into view is at the other end of the page. `from`
- * is that form; focus inside it is released here, in the same layout pass, so
- * the heading can take it. (Chromium drops focus from a disabled button on its
- * own; this does not depend on that, and a disabled button cannot be blurred,
- * which is why it waits for the commit that enables it again.)
+ * A failed tap in the form (BATCH-07B) can leave focus where it was not yet
+ * lost: still on the submit button, or on the field Enter was pressed in, and
+ * the note it brings into view is at the other end of the page. `release` is
+ * that control, passed only when focus never left it while the request was out;
+ * it is released here, in the same layout pass, so the heading can take focus.
+ * Focus the person moved to meanwhile (another field, the header's Back) is
+ * never released, and focus already on <body> needs nothing. (A disabled
+ * button cannot be blurred, so this waits for the commit that enables it.)
  */
-function Arrival({ within, from }: { within: RefObject<HTMLElement | null>; from: HTMLElement | null }) {
+function Arrival({ within, release }: { within: RefObject<HTMLElement | null>; release: HTMLElement | null }) {
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
-    const at = document.activeElement
-    if (from && at instanceof HTMLElement && from.contains(at)) at.blur()
-  }, [from])
+    if (release && document.activeElement === release) release.blur()
+  }, [release])
   return <FocusHeading within={within} onlyIfLost />
 }
 
@@ -697,8 +709,24 @@ function Arrival({ within, from }: { within: RefObject<HTMLElement | null>; from
  * dismiss it: the code is cleared only by the helper, when the server answers
  * `removed` or `nothing`, a request is saved under it, or Forget me runs.
  */
-function EarlierTry({ pending, conflict, off, onTakeOff }: { pending: PendingIntro; conflict: boolean; off: 'idle' | 'removing' | 'failed' | Withdrawn; onTakeOff: () => void }) {
+function EarlierTry({
+  pending,
+  conflict,
+  off,
+  submitting,
+  onTakeOff,
+}: {
+  pending: PendingIntro
+  conflict: boolean
+  off: 'idle' | 'removing' | 'failed' | Withdrawn
+  /** A request is in flight from the form: the button is unavailable, as its handler already is. */
+  submitting: boolean
+  onTakeOff: () => void
+}) {
   const removing = off === 'removing'
+  // Unavailable while either request is out. Its words change only for a withdrawal: during a
+  // submission it keeps saying what it would do, and "Taking it off…" belongs to the DELETE.
+  const unavailable = removing || submitting
   const status = removing ? 'Taking it off…' : off === 'failed' ? 'We could not confirm that it came off. Keep the recovery code and try again.' : ''
   const body = 'text-[0.92rem] leading-snug text-ink-soft text-pretty'
   const held = pending.kept ? (
@@ -737,7 +765,7 @@ function EarlierTry({ pending, conflict, off, onTakeOff }: { pending: PendingInt
       <button
         type="button"
         onClick={onTakeOff}
-        aria-disabled={removing}
+        aria-disabled={unavailable}
         className="mt-3 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-clay/50 bg-white/50 px-5 py-2.5 text-[0.88rem] font-medium text-clay transition hover:bg-clay/10 aria-disabled:cursor-default aria-disabled:opacity-60"
       >
         {removing ? <Spinner /> : null}

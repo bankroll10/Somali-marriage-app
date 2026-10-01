@@ -19,9 +19,29 @@
 - **Deliberate change to BATCH-07A's arrival rule:** the first uncertain result and a newly
   entered conflict now scroll to the top and focus the note's heading (the existing `Arrival`),
   because the note is at the top and the tap was at the bottom. The same outcome again does not.
-  The two 07A successes (saved, then the receipt's name taken off) are unchanged. Focus left in
-  the form by the failed tap is released in the arrival's layout effect so the heading can take
-  it; a disabled button cannot be blurred, so this does not rely on Chromium dropping focus.
+  The two 07A successes (saved, then the receipt's name taken off) are unchanged. Focus is
+  handled by where it actually is: lost to `<body>`, the heading takes it; still on the control
+  the tap came from with no move since, it is released (a `focusin` listener records any other
+  focus while the request is out); moved by the person elsewhere, including another field in the
+  same form, it stays. See the follow-up bullet below.
+- **Follow-up correction (same day, Part 31):** (1) the first version blurred any focus inside
+  the form, taking it from a field the person had focused on purpose while the request was out;
+  now only the submission-origin control, and only if focus never moved, is released. (2) While a
+  submission is in flight the earlier-try button now has `aria-disabled="true"` and the faded
+  state, with its words unchanged (never "Taking it off…" during a POST), still not `disabled`;
+  the `busy` guard is the same. New tests: four delayed-response cases (other field then
+  uncertain; other field then 409; Back; focus lost) and the origin-released guard in
+  `looking-arrival.test.tsx` (the two field cases fail against the first version; the others
+  hold on both), and aria-disabled assertions for both overlap directions in
+  `looking-pending.test.tsx` (one mutation, dropping `|| submitting`, fails). Chromium, built
+  app, 390×844 and 320×568, no `tabindex` or heading focus set by the driver: focus lost and
+  Enter-in-a-field both end with the heading focused at `scrollY` 0; another field or Back keeps
+  focus (uncertain and 409); the button is `aria-disabled` true at 0.6 opacity during a POST and
+  sends no DELETE when tapped. Observed, not changed: during a re-submission after a conflict the
+  note's heading briefly shows the uncertain wording while `state` is `sending`.
+  **Classifier on the follow-up's own diff** (`Looking.tsx`, the two test files, `docs/DECISIONS.md`,
+  this file): guide **not required**, judgment **not required**; the accumulated branch (96 files)
+  still requires both, unchanged. `npm run verify` and `npm run build` exit 0 on the follow-up.
 - **Wording that changed, explicitly:** the 409 line no longer says "a code this phone holds"
   (finding C), and the old memory-only "this is the only record of it" is replaced by the
   note's. One journey assertion and one 07A arrival test were changed for this, not kept green.
@@ -37,7 +57,7 @@
   button 95–115px below the first screen (the first Tab brings it in); the heading and the code
   are in view.
 - **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (119 files, 1624 passed, 2
-  skipped: the live blocks); `npm run build` exit 0; `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` and any
+  skipped: the live blocks; after the same-day follow-up, 1630 passed); `npm run build` exit 0; `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` and any
   API key were unset. **Classifier** (`tests/eval/outcome.ts` `applicability()`, on the actual
   diff: `Looking.tsx`, three test files, `src/lib/introduce.test.ts`, `docs/DECISIONS.md`, this
   file): guide **not required**, judgment **not required**. This is not measured Guide or read
