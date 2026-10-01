@@ -77,7 +77,11 @@ describe('the form becomes the receipt', () => {
     expect(active()?.getAttribute('tabindex')).toBe('-1')
   })
 
-  it('does not scroll or move focus when the request does not save', async () => {
+  // Changed in BATCH-07B (docs/DECISIONS.md Part 31). BATCH-07A held that a failed or unsure
+  // submit never arrives: nothing the person needed was above the window. Now the first
+  // uncertain result puts a note about the earlier try at the top of the page (its code and
+  // its withdrawal), so that one outcome is brought into view; the same outcome again is not.
+  it('is never the receipt when the request does not save; the first uncertain result brings the note about the earlier try into view, once', async () => {
     const m = await toForm()
     await fill(m)
     server.lose(/introduce/)
@@ -85,9 +89,19 @@ describe('the form becomes the receipt', () => {
     act(() => control(/^Put my name down/).focus())
     await m.press(/^Put my name down/)
     await m.until(() => m.text().includes('could not tell whether that reached us'), 'the unsure answer')
-    expect(scrollTo.mock.calls.length).toBe(before)
+    await m.until(() => active()?.tagName === 'H2' && /An earlier try may have reached us/.test(active()?.textContent ?? ''), 'focus on the note about the earlier try')
+    expect(scrollTo.mock.calls.slice(before)).toEqual([[0, 0]])
     expect(onHeading(/Your request was saved on/)).toBe(false)
     expect(m.text()).not.toContain('Your request was saved on')
+    // The same outcome again is already on the page: no second scroll, and focus is not taken back.
+    const after = scrollTo.mock.calls.length
+    const back = screen!.container.querySelector<HTMLElement>('header button')!
+    act(() => back.focus())
+    await m.press(/^Put my name down/)
+    await m.until(() => !m.text().includes('Saving…'), 'the second answer')
+    await m.settle()
+    expect(scrollTo.mock.calls.length).toBe(after)
+    expect(active()).toBe(back)
   })
 
   it('leaves focus where the person put it while the request was in flight', async () => {

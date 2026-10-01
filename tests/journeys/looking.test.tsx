@@ -272,9 +272,12 @@ describe('looking for someone', () => {
     await m.press(/^Put my name down/)
     await m.until(() => m.text().includes('could not tell'), 'unsure')
     const code = records()[0]
-    // Nothing on the phone holds it, so the screen does — once, formatted as a person reads it.
+    // Nothing on the phone holds it, so the screen does — formatted as a person reads it, with what a reload does to it.
+    // (Wording replaced in BATCH-07B: the earlier "this is the only record of it" sat in the form's message and
+    // was hidden on a conflict; the note about the earlier try now carries it in every state.)
     expect(phone.storage.has(PENDING_KEY)).toBe(false)
-    expect(m.text()).toContain('this is the only record of it')
+    expect(m.text()).toContain('This browser could not save the recovery code.')
+    expect(m.text()).toContain('Closing or reloading this page loses the code here.')
     expect(m.text()).toContain(formatCode(code))
     // The page still holds the attempt: the retry goes under the same code.
     server.lose(false)

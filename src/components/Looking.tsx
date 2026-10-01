@@ -6,7 +6,7 @@ import { countries, getCountry } from '../data/countries'
 import { reachOptions, type Reach } from '../data/reach'
 import { CODE_LENGTH, EXAMPLE_CODE, cleanCode, formatCode, isCode } from '../lib/code'
 import { contactProblem, looksReachable } from '../lib/contact'
-import { PILOT_SCENE, pastScheduled, registerInterest, scheduledRemoval, withdrawInterest, type IntroState, type Withdrawn } from '../lib/introduce'
+import { PILOT_SCENE, pastScheduled, pendingIntro, registerInterest, scheduledRemoval, withdrawInterest, type IntroState, type PendingIntro, type Withdrawn } from '../lib/introduce'
 import type { Why } from '../lib/net'
 import { FocusHeading } from '../hooks/useFocusHeading'
 import { CONTACT_EMAIL, OPERATOR } from '../lib/site'
@@ -61,9 +61,15 @@ interface Props {
  * server's answer and nothing else (src/lib/introduce.ts): a phone holds a
  * receipt, not a view of the list. When an answer is lost, the same request
  * goes again under the same code and is never saved twice; when the code
- * cannot be held on this phone it is shown, once, so the name can still be
- * taken off; and a name can be taken off here by its code, whenever the phone
- * that put it down is not the phone in hand.
+ * cannot be held on this phone it is shown, so the name can still be taken
+ * off; and a name can be taken off here by its code, whenever the phone that
+ * put it down is not the phone in hand.
+ *
+ * An attempt whose answer never came is on the page when the person returns:
+ * a note at the top (`EarlierTry`, docs/DECISIONS.md Part 31) says it may have
+ * reached us, shows the code when only this page holds it, and takes it off
+ * directly, with no new submission. `pendingIntro()` owns that record; this
+ * screen only reads it.
  */
 const chip = (on: boolean) =>
   `rounded-full border px-3.5 py-1.5 text-[0.85rem] font-medium transition-all ${
@@ -88,22 +94,39 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
   const [contactTouched, setContactTouched] = useState(false)
   const [adult, setAdult] = useState(!!identity.adult)
   const [state, setState] = useState<'idle' | 'sending' | Why | 'withdrawn'>('idle')
-  /** The last attempt that may have landed: its code, and whether this phone holds it. */
-  const [attempt, setAttempt] = useState<{ code: string; kept: boolean } | null>(null)
-  /** What the receipt's own "Take my name off" is doing, or did. */
+  /**
+   * The attempt this phone is still waiting on, as `pendingIntro()` last said:
+   * its code, the day, and whether this phone's storage holds it. A view for
+   * rendering, never a second record: the lib owns it, and this is read again
+   * after every outcome that can change it (`syncPending`). Read at mount, so
+   * an attempt left by an earlier visit, a reload or a trip to another screen
+   * is on the page when the form is.
+   */
+  const [pending, setPending] = useState<PendingIntro | null>(pendingIntro)
+  /** What "Take my name off" (the receipt's, or the earlier try's) is doing, or did. */
   const [off, setOff] = useState<'idle' | 'removing' | 'failed' | Withdrawn>('idle')
+  /**
+   * Whether a submit or a withdrawal of the earlier try is in flight. A ref, so
+   * the guard holds between two taps in one frame: `aria-disabled` and the
+   * button's own state say so to a person, and this is what stops the request.
+   */
+  const busy = useRef(false)
   /** Taking off by a typed code: the field and its outcome. */
   const [typed, setTyped] = useState('')
   const [entry, setEntry] = useState<'closed' | 'open' | 'checking' | 'not-a-code' | 'failed' | Withdrawn>('closed')
   /** After "again": the request was saved earlier, and this is the same one. */
   const [again, setAgain] = useState(false)
   /**
-   * Counts the two arrivals that replace this screen's whole content in place:
-   * the form's request saved (form → receipt) and the receipt's name taken off
-   * (receipt → form). Neither changes the screen, so App neither scrolls nor
-   * focuses; see Arrival below. Bumped by those two successes and nothing else.
+   * Counts the arrivals that change this screen's content in place, so that
+   * App, which scrolls and focuses only when the screen changes, does neither;
+   * see Arrival below. Bumped by the form's request saved (form → receipt), the
+   * receipt's or the earlier try's name taken off (→ form with its word), and,
+   * since BATCH-07B, the first uncertain result and a newly entered conflict
+   * (the note about the earlier try, at the top). Nothing else bumps it. `from`
+   * is the form a failed tap came from, whose focus the arrival releases.
    */
-  const [arrivals, setArrivals] = useState(0)
+  const [arrival, setArrival] = useState<{ n: number; from: HTMLElement | null }>({ n: 0, from: null })
+  const arrive = (from: HTMLElement | null = null) => setArrival((a) => ({ n: a.n + 1, from }))
   const mainRef = useRef<HTMLElement>(null)
 
   const other = scene === 'other'
@@ -129,29 +152,51 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
   ].filter((m): m is string => !!m)
   const stillNeeded = state === 'sending' || !touched || missing.length === 0 ? null : missing
 
-  async function submit(e: React.FormEvent) {
+  /** Read the pending attempt again, after anything that can have changed it. Returns what it found. */
+  function syncPending(): PendingIntro | null {
+    const now = pendingIntro()
+    setPending(now)
+    return now
+  }
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    if (!ready || !gender || state === 'sending') return
+    if (!ready || !gender || state === 'sending' || busy.current) return
+    busy.current = true
+    // Where the tap came from, read now: the event is gone by the time the answer is.
+    const form = e.currentTarget
+    const hadEarlier = !!pending
+    const wasConflict = state === 'taken'
     setState('sending')
-    const result = await registerInterest({ contact, firstName, gender, scene, country: other ? country : undefined, reach })
-    if (!result.ok) {
-      setState(result.why)
-      setAttempt(result.unsure || result.why === 'taken' ? { code: result.code, kept: result.kept } : null)
-      return
-    }
-    setState('idle')
-    setAttempt(null)
-    setAgain(result.again)
-    // A name taken off and put down again in the same visit: the saved panel,
-    // not the form with "your name is off the list" still above it.
+    // A stale word about an earlier withdrawal ("your name is off the list",
+    // or that it could not be confirmed) is not about this request.
     setOff('idle')
-    setEntry('closed')
-    setArrivals((n) => n + 1)
-    // What she told this form, kept for the rest of the app: her side, her
-    // city and that she is an adult — the same things Identity and Situation
-    // ask, so a map or a read after this does not ask them again.
-    onIdentity({ gender, scene, ...(other && country ? { country } : {}), ...(firstName.trim() ? { firstName: firstName.trim() } : {}), adult: true })
-    onRegistered(result.state)
+    try {
+      const result = await registerInterest({ contact, firstName, gender, scene, country: other ? country : undefined, reach })
+      const held = syncPending()
+      if (!result.ok) {
+        setState(result.why)
+        // The note about the earlier try sits at the top of the page, and this
+        // tap was at the bottom: bring it into view the first time it appears
+        // and the first time it turns into a conflict, never for an outcome
+        // the person has already been shown (docs/DECISIONS.md Part 31).
+        if (held && (!hadEarlier || (result.why === 'taken' && !wasConflict))) arrive(form)
+        return
+      }
+      setState('idle')
+      setAgain(result.again)
+      // A name taken off and put down again in the same visit: the saved panel,
+      // not the form with "your name is off the list" still above it.
+      setEntry('closed')
+      arrive()
+      // What she told this form, kept for the rest of the app: her side, her
+      // city and that she is an adult — the same things Identity and Situation
+      // ask, so a map or a read after this does not ask them again.
+      onIdentity({ gender, scene, ...(other && country ? { country } : {}), ...(firstName.trim() ? { firstName: firstName.trim() } : {}), adult: true })
+      onRegistered(result.state)
+    } finally {
+      busy.current = false
+    }
   }
 
   /** The receipt's own button. */
@@ -163,23 +208,38 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
       setOff('failed')
       return
     }
+    syncPending()
     setOff(gone)
-    setArrivals((n) => n + 1)
+    arrive()
     onWithdrawn()
   }
 
-  /** The earlier attempt that landed with other details: take it off, so the form can go again under a fresh code. */
-  async function takeOffAttempt() {
-    if (!attempt || state === 'sending') return
-    setState('sending')
-    const gone = await withdrawInterest(attempt.code)
-    if (gone === 'failed') {
-      setState('unreachable')
-      return
+  /**
+   * The earlier try's own button: take it off by the code this phone still
+   * holds, with no new submission and without Forget me. Whatever the answer,
+   * the same code is the one asked about; it leaves the phone only when the
+   * server has answered `removed` or `nothing` (withdrawInterest), so a failure
+   * keeps both the code and this button for another go.
+   */
+  async function takeOffPending() {
+    if (!pending || state === 'sending' || busy.current) return
+    busy.current = true
+    setOff('removing')
+    try {
+      const gone = await withdrawInterest(pending.code)
+      if (gone === 'failed') {
+        setOff('failed')
+        return
+      }
+      // Taken off, or nothing under it: the form goes again under a fresh code,
+      // with whatever she has typed. The result is the confirmation above it.
+      setState('idle')
+      syncPending()
+      setOff(gone)
+      arrive()
+    } finally {
+      busy.current = false
     }
-    setState('idle')
-    setAttempt(null)
-    setOff(gone)
   }
 
   /** A code typed in: taken off, or nothing found under it. */
@@ -195,6 +255,8 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
     setEntry(gone)
     if (gone !== 'failed') {
       setTyped('')
+      // The lib clears a pending attempt under the same code; the note about it goes with it.
+      syncPending()
       if (intro && cleanCode(typed) === intro.code) onWithdrawn()
     }
   }
@@ -206,7 +268,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
     garbled: 'Something came back wrong from our side, so nothing is confirmed. Press the button again: the same request goes under the same code, so it is never saved twice.',
     refused: `Our side could not finish that — that is us, not you. If it did reach us, pressing the button again sends the same request under the same code, so it is never saved twice. Or write to ${CONTACT_EMAIL} and it goes on by hand.`,
     'not-a-code': 'Something in the form did not fit. Check the email or number, and the city.',
-    taken: 'An earlier try went through with what you had typed then, under a code this phone holds. Your changes were not saved over it.',
+    taken: 'An earlier try went through with what you had typed then. Your changes were not saved over it. The note at the top of this page says what you can do.',
     withdrawn:
       'That code was taken off before this request was answered, so the request stands as taken off: it is not on the list the founder reads, and the weekly run clears anything left under the code. Press the button again to send this one under a fresh code.',
     'not-found': 'That did not go through. Try again in a moment.',
@@ -300,6 +362,11 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                 {withdrawnLine[off]}
               </p>
             )}
+            {/* First in the screen, so its heading is the one `App` focuses on
+                arrival and the one an arrival from a submit brings into view.
+                It and the confirmation above never show together: taking the
+                earlier try off clears what this reads. */}
+            {pending && <EarlierTry pending={pending} conflict={state === 'taken'} off={off} onTakeOff={takeOffPending} />}
             <p className={`animate-fade ${LABEL} text-gold-ink`}>Looking for someone</p>
             <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
               Put your name down for an introduction.
@@ -532,7 +599,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
               </section>
 
               <div>
-                <Button type="submit" disabled={!ready || state === 'sending'} className="group w-full sm:w-auto">
+                <Button type="submit" disabled={!ready || state === 'sending' || off === 'removing'} className="group w-full sm:w-auto">
                   {state === 'sending' ? (
                     <>
                       <Spinner /> Saving…
@@ -554,27 +621,6 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                 {state !== 'idle' && state !== 'sending' && (
                   <div role="status" className="mt-3 space-y-2 text-[0.88rem] leading-snug text-clay text-pretty">
                     <p>{problem[state]}</p>
-                    {attempt && state === 'taken' && (
-                      <div className="rounded-2xl border border-clay/40 bg-clay/[0.07] px-4 py-3 text-ink-soft">
-                        <p>
-                          To send what is in the form now, take that earlier name off first; then press Put my name down again
-                          and it goes under a fresh code. Or leave the earlier one as it is.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={takeOffAttempt}
-                          className="mt-2 inline-flex items-center gap-2 rounded-full border border-clay/50 px-4 py-2 text-[0.85rem] font-medium text-clay transition hover:bg-clay/10"
-                        >
-                          Take the earlier name off
-                        </button>
-                      </div>
-                    )}
-                    {attempt && state !== 'taken' && !attempt.kept && (
-                      <p className="rounded-2xl border border-clay/40 bg-clay/[0.07] px-4 py-3 text-ink-soft">
-                        This browser is not saving anything, so if that did reach us this is the only record of it: your code
-                        is <Code code={attempt.code} />. Keep it; it takes the name off later, here or on another phone.
-                      </p>
-                    )}
                   </div>
                 )}
               </div>
@@ -591,7 +637,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
           </section>
         )}
       </main>
-      {arrivals > 0 && <Arrival key={arrivals} within={mainRef} />}
+      {arrival.n > 0 && <Arrival key={arrival.n} within={mainRef} from={arrival.from} />}
     </div>
   )
 }
@@ -605,19 +651,106 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
  * above the window, and the button that had focus was gone, so focus sat on
  * `<body>`.
  *
- * Two separate actions, on mount only, and mounted only by those two
- * successes (keyed by their count), so a rerender, a field change, a
+ * Two separate actions, on mount only, and mounted only by the arrivals
+ * counted above (keyed by their count), so a rerender, a field change, a
  * validation message or a retry never reaches them and the first arrival
  * through `App` is untouched. The scroll is instant and runs before paint;
  * focus is the shared heading focus, only if it was lost, so a control the
  * person has moved to (the header's Back) keeps it. `FocusHeading` focuses
  * without scrolling, which is why the scroll is its own line.
+ *
+ * A failed tap in the form (BATCH-07B) is the one case where focus is not yet
+ * lost: it is still on the submit button, or on the field Enter was pressed
+ * in, and the note it brings into view is at the other end of the page. `from`
+ * is that form; focus inside it is released here, in the same layout pass, so
+ * the heading can take it. (Chromium drops focus from a disabled button on its
+ * own; this does not depend on that, and a disabled button cannot be blurred,
+ * which is why it waits for the commit that enables it again.)
  */
-function Arrival({ within }: { within: RefObject<HTMLElement | null> }) {
+function Arrival({ within, from }: { within: RefObject<HTMLElement | null>; from: HTMLElement | null }) {
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
-  }, [])
+    const at = document.activeElement
+    if (from && at instanceof HTMLElement && from.contains(at)) at.blur()
+  }, [from])
   return <FocusHeading within={within} onlyIfLost />
+}
+
+/**
+ * The note about an earlier try (docs/DECISIONS.md Part 31): a request this
+ * phone began sending and never got a confirmed answer to, or one the server
+ * says it saved with other details than the form now holds.
+ *
+ * It says only what is known. An uncertain try "may have reached us": there is
+ * no receipt, so nothing is said about being on the list, being a member or
+ * anyone's turn. A conflict is known to be saved, because the server refused
+ * to write over it. Where the code lives is said exactly: when this browser's
+ * storage holds it, that it keeps the code and the day and nothing she typed;
+ * when only this page holds it, the code itself, once, with what a reload or
+ * Back and return does to it.
+ *
+ * The one control takes the earlier try off by that code, with no new
+ * submission. It is `aria-disabled` while the request runs rather than
+ * `disabled`, so it keeps focus, and the handler (not the attribute) is what
+ * stops a second request. A failure keeps the code, the card and this button;
+ * its words are about the withdrawal, not the submission. There is no way to
+ * dismiss it: the code is cleared only by the helper, when the server answers
+ * `removed` or `nothing`, a request is saved under it, or Forget me runs.
+ */
+function EarlierTry({ pending, conflict, off, onTakeOff }: { pending: PendingIntro; conflict: boolean; off: 'idle' | 'removing' | 'failed' | Withdrawn; onTakeOff: () => void }) {
+  const removing = off === 'removing'
+  const status = removing ? 'Taking it off…' : off === 'failed' ? 'We could not confirm that it came off. Keep the recovery code and try again.' : ''
+  const body = 'text-[0.92rem] leading-snug text-ink-soft text-pretty'
+  const held = pending.kept ? (
+    <p className={`mt-2 ${body}`}>This browser keeps its recovery code and when the attempt began. It does not save your contact or form answers with that record.</p>
+  ) : (
+    <p className={`mt-3 rounded-2xl border border-clay/40 bg-white/60 px-4 py-3 ${body}`}>
+      This browser could not save the recovery code. Your code is <Code code={pending.code} />. Keep a copy so you can take the request off here or on another
+      phone. Closing or reloading this page loses the code here. Going Back and returning within Niyyah keeps it.
+    </p>
+  )
+  return (
+    <section aria-labelledby="looking-earlier" className="mb-6 rounded-card border border-clay/40 bg-clay/[0.07] p-4">
+      <h2 id="looking-earlier" className="font-display text-[1.1rem] font-medium text-ink">
+        {conflict ? 'An earlier try was saved with different details' : 'An earlier try may have reached us'}
+      </h2>
+      {conflict ? (
+        <>
+          <p className={`mt-2 ${body}`}>
+            The details in this form did not replace it. To get its receipt, enter the original details again, including how far you would go. To submit different
+            details, take the earlier request off first.
+          </p>
+          <p className={`mt-2 ${body}`}>You can also leave it unchanged. Its recovery code stays available here.</p>
+        </>
+      ) : (
+        <p className={`mt-2 ${body}`}>
+          This page has a record of a request started around {pending.at}, but no confirmed receipt. We cannot tell whether it was saved.
+        </p>
+      )}
+      {held}
+      {!conflict && (
+        <p className={`mt-2 ${body}`}>
+          To try again, enter the same details below. If the earlier request was saved, you’ll get its receipt without creating another request. You can also take the
+          earlier try off.
+        </p>
+      )}
+      <button
+        type="button"
+        onClick={onTakeOff}
+        aria-disabled={removing}
+        className="mt-3 inline-flex min-h-[44px] items-center gap-2 rounded-full border border-clay/50 bg-white/50 px-5 py-2.5 text-[0.88rem] font-medium text-clay transition hover:bg-clay/10 aria-disabled:cursor-default aria-disabled:opacity-60"
+      >
+        {removing ? <Spinner /> : null}
+        {removing ? 'Taking it off…' : off === 'failed' ? 'Try taking it off again' : conflict ? 'Take the earlier name off' : 'Take that try off'}
+      </button>
+      <p className="mt-2 text-[0.85rem] leading-snug text-muted text-pretty">
+        This takes off any request under that code and prevents an unfinished submission under it from being saved.
+      </p>
+      <p role="status" className={status ? 'mt-2 text-[0.88rem] leading-snug text-clay text-pretty' : undefined}>
+        {status}
+      </p>
+    </section>
+  )
 }
 
 interface ReceiptProps {

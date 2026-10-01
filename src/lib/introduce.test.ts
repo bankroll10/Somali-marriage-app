@@ -90,6 +90,31 @@ describe('a browser that refuses to store the receipt', () => {
   })
 })
 
+describe('a withdrawal that cannot be confirmed', () => {
+  it('keeps the pending code and the record, so the same withdrawal can be tried again', async () => {
+    refusingStorage()
+    server.lose(/introduce/)
+    const lost = await registerInterest(INPUT)
+    expect(lost.ok).toBe(false)
+    const code = pendingIntro()!.code
+    server.lose(false)
+    // No answer at all, then a server that answers with an error: neither is "removed" or "nothing".
+    server.down(/introduce/)
+    expect(await withdrawInterest(code)).toBe('failed')
+    expect(pendingIntro()).toMatchObject({ code, kept: false })
+    expect(records()).toEqual([code])
+    server.down(false)
+    blobs.failOn({ store: 'introductions', op: 'setJSON', key: `withdrawn/${code}/${day()}` })
+    expect(await withdrawInterest(code)).toBe('failed')
+    expect(pendingIntro()?.code).toBe(code)
+    expect(records()).toEqual([code])
+    // Only an answer clears it, and the third try gets one.
+    expect(await withdrawInterest(code)).toBe('removed')
+    expect(pendingIntro()).toBeNull()
+    expect(records()).toEqual([])
+  })
+})
+
 describe('a server error after the request was sent', () => {
   it('is unsure — the write may have landed — and the pending code is kept for the retry', async () => {
     refusingStorage()

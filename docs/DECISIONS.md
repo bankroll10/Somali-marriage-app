@@ -4956,8 +4956,134 @@ announced is unverified; only headless Chromium, the browser stub (not the deplo
 functions) and happy-dom were used; Firefox and Safari were not run. Existing local
 handler tests establish the backend's behavior; the stub does not.
 
+**Update, 2026-10-01 (BATCH-07B, Part 31).** Findings **C, D and E** are repaired in Part 31.
+**B and F stay open.** The sentence above that a failed or unsure submit never arrives no longer
+holds for the first uncertain result and a newly entered conflict; Part 31 says why, and the
+07A successes are unchanged.
+
 **Evaluation.** The repository's classifier was run on this slice's actual diff; the
 result is in `docs/SESSION-HANDOFF.md`. It changes how a screen moves the window and
 focus after two actions, with no wording and no change to the Guide, a read, a script or
 any engine, so no evaluation measures it. The accumulated branch still requires both
 live suites on a pull request; they are unfunded and the release remains paused.
+
+## Part 31: The earlier try on the introduction form (2026-10-01, BATCH-07B)
+
+**Why.** BATCH-07 (Part 30) confirmed three findings about a request whose answer never
+arrived, and left them open: **C**, with browser storage refused, a lost answer and then
+changed details (409) hid the recovery code and said "a code this phone holds"; **D**, after
+an uncertain submission and a reload, `Looking` showed a blank form, although the phone still
+held the pending code (resubmitting reuses it, Forget me sends it) and nothing said so; **E**,
+a failed "Take the earlier name off" showed the submission's "could not tell whether that
+reached us" text and dropped its button, so a retry meant another submission to reach the 409
+again. The founder approved the behavior below and the copy. **B and F stay open** (below).
+
+**What the client knows, and says.** `pendingIntro()` already holds the whole record: the code,
+the day this phone began sending, and whether storage holds it. It does not hold whether the
+request was saved. An uncertain try therefore "may have reached us", with no receipt, no queue
+position and no membership claim. A 409 is different and is said differently: the server
+refused to write over a record that exists, so the earlier try was saved, with other details.
+
+**Repair** (`src/components/Looking.tsx` only; `src/lib/introduce.ts`, `src/lib/forget.ts`,
+`App.tsx`, the focus helpers, the server, request identity, tombstones and retention are
+untouched):
+
+- **One owner.** `pendingIntro()` stays the only pending record. `Looking` keeps a cached view
+  of it (`pending`, read at mount and re-read after every submit outcome, a withdrawal from the
+  note and a typed-code withdrawal, so a typed code equal to the pending one takes the note away
+  with it). The old local `attempt` state is gone. No new store, no new stored field, and no
+  contact, answer or location is written for recovery: the record is `{code, at}` as before.
+- **A note, first in the screen** (`EarlierTry`, in the file beside `Receipt` and `Arrival`),
+  shown while the helper holds a pending attempt. It is the first heading, so `App`'s existing
+  heading focus lands on it when the person arrives or comes back, with no new code. It says
+  whether the browser keeps the recovery code, or could not, in which case it shows the code and
+  says exactly what Back-and-return and a reload do to it. It has no dismiss and no expiry: the
+  code is cleared only where it always was (a saved receipt, a 410, a `removed` or `nothing`
+  withdrawal, Forget me), never by navigation, changed details, an unresolved conflict, a failed
+  withdrawal or age. Leaving a conflict "unchanged" is prose, not a button.
+- **Direct withdrawal and retry.** The note's one button takes the earlier try off by the held
+  code with no submission and no Forget me. While it runs the button stays mounted and focused
+  (`aria-disabled`, not `disabled`) and says "Taking it off…" in one persistent `role="status"`
+  line, with no promised duration. A failure changes only `off`: the code, the note, the conflict
+  context and the button stay, with "We could not confirm that it came off. Keep the recovery
+  code and try again." and "Try taking it off again". The conflict keeps its existing label,
+  "Take the earlier name off".
+- **No overlap, in either direction.** A ref (`busy`) is the guard in both handlers, because
+  `aria-disabled` and styling stop nothing: a submit is refused while a recovery withdrawal runs,
+  and the withdrawal is refused while a submit is in flight. A stale withdrawal confirmation is
+  cleared when a new submit starts.
+- **Retrying needs the details again**, because nothing she typed is kept. The same details
+  under the same code are answered `again` (the receipt, one record); any difference, including
+  how far she would go, is the 409, and the note says so before it happens.
+- **Part 30's arrival rule changes, deliberately.** Part 30 said a failed or unsure submit never
+  scrolls or takes focus. The note is at the top and the tap was at the bottom, so the first
+  uncertain result, and a newly entered conflict, now use the existing `Arrival` (scroll to the
+  top, heading focus). The same outcome again does not scroll or take focus. Focus left in the
+  form by the tap (on the submit button, or in a field Enter was pressed in) is released in the
+  arrival's layout effect, so the heading can take it: a disabled button cannot be blurred, so
+  this waits for the commit that enables it again, and does not depend on Chromium dropping
+  focus on its own. Focus the person moved elsewhere (the header's Back) is left alone. The two
+  BATCH-07A arrivals (saved, then the receipt's name taken off) are as they were; withdrawing
+  from the note is a third caller of the same path.
+- **Wording.** The in-form line for a 409 no longer says "under a code this phone holds"
+  (finding C): "An earlier try went through with what you had typed then. Your changes were not
+  saved over it. The note at the top of this page says what you can do." The old memory-only
+  sentence "this is the only record of it" is replaced by the note's; one journey assertion
+  that pinned it was changed explicitly, and one BATCH-07A arrival test was rewritten for the
+  rule above.
+
+**Evidence.** `tests/ui/looking-pending.test.tsx` (new, 13 tests) and one unit test in
+`src/lib/introduce.test.ts` (a failed withdrawal keeps the pending code). The existing journeys
+already hold, and are not repeated: a lost answer retried under one code and saved once; changed
+details refused with 409 and never written over; Forget me with a request in flight; two tabs.
+Against the previous `Looking.tsx`, 13 tests fail: 11 in the new file, the rewritten arrival test,
+and the journey whose old wording was replaced; the same-details retry and "no note while a
+first request is in flight" hold on both. Four mutations each fail a test: typed-code withdrawal
+not refreshing the note, the recovery handler's guard removed, the submit guard removed, and the
+arrival no longer releasing focus. The pending record is checked to hold exactly `{code, at}`;
+nothing asserts that the rest of the app stores no answers, because other tools have their own
+storage.
+
+**Measured in the built app** (scratch build, headless Chromium 390×844 and 320×568, a local
+in-memory fake of the introduce handler, synthetic data, service workers blocked, storage refusal
+by an init script; this is browser-stub evidence, and the local handler tests establish the
+backend). Starting each time from the form scrolled to its bottom, keyboard and pointer:
+
+| | 390×844 | 320×568 |
+|---|---|---|
+| first uncertain result: `scrollY`, focus | 0, note heading | 0, note heading |
+| return after a reload, storage works: note | 427px tall, heading, text and button in view | 553px tall; heading and text in view, button 2px below the fold (the first Tab scrolls 2px) |
+| memory-only: note, code | 522px, button and code in view | 666px; code in view, button about 115px below (the first Tab brings it in) |
+| conflict, memory-only: note, code | 548px, all in view | 646px; code in view, button about 95px below |
+| after "could not confirm": focus, code | the same button focused, code in view | the same button focused, code in view |
+| withdrawal from the note | one DELETE, no POST; `scrollY` 0, focus on the form heading, confirmation 117px (in view), heading 235px | same |
+| while it runs | button focused, `aria-disabled` true and no `disabled`, second tap and a submit send nothing | same |
+| a retry after a failed withdrawal | no extra POST; same result as above | same |
+| the same conflict again | `scrollY` unchanged, no focus taken | same |
+| Back and return, storage refused | note and code still shown | same |
+| a reload, storage refused | no note; the record is still on the server (the documented limit) | same |
+| first Tab from the note | its button, 2px outline | same |
+| horizontal overflow, every state | 0 | 0 |
+
+The button is 44px tall. At 320px the longer states put the button below the first screen; the
+heading and the code, which carry the warning, are in view.
+
+**Finding F, recorded, not repaired.** `withdrawInterest` reads a 200 and maps a body that
+cannot be read to `nothing`, and on `nothing` it clears the receipt and the pending code. So an
+unreadable 200 does not preserve the pending state, and a 200 alone is not shown here to prove a
+removal or an absence: what the person is then told ("Nothing was under that code any more") is
+the helper's reading, not something the server said. The note inherits this and does not change
+it. **Also open and not touched:** the receipt's own withdrawal failure still says "Nothing has
+changed", the same kind of unverified status claim; **B**, the receipt's "kept for later" notice
+read from the saved profile rather than the request. **Known and not repaired:** after a repeated
+identical outcome, focus is on `BODY` (the submit button is disabled while it sends), and
+withdrawal by a typed code leaves focus on `BODY`.
+
+**Not verified.** No screen reader (VoiceOver, TalkBack, NVDA, JAWS) was used, so the
+announcement of the note's heading and of its status line is unverified; one browser
+(headless Chromium), a browser stub, and happy-dom for focus and `scrollTo` calls; Firefox and
+Safari were not run. Not a usability test.
+
+**Evaluation.** The repository's classifier was run on this slice's actual diff; the result is
+in `docs/SESSION-HANDOFF.md`. No file measured by either live suite changed. The accumulated
+branch still requires both on a pull request; they are unfunded and the release remains paused.

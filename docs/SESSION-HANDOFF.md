@@ -1,6 +1,66 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done
 
-## Status as of the latest session (2026-10-01, BATCH-07 review and BATCH-07A)
+## Status as of the latest session (2026-10-01, BATCH-07B)
+
+- **BATCH-07B (`docs/DECISIONS.md` Part 31), findings C, D and E repaired** in
+  `src/components/Looking.tsx` only. `pendingIntro()` stays the one owner of the pending
+  record (`{code, at}`); `Looking` caches its answer (`pending`, read at mount, re-read after
+  every submit outcome, the note's withdrawal and a typed-code withdrawal) and the old
+  `attempt` state is gone. A note, first in the form's screen, says an earlier try "may have
+  reached us" (no receipt, no queue, no membership claim), or, after a 409, that it "was saved
+  with different details"; says whether the browser keeps the recovery code or could not (then
+  it shows the code and what Back-and-return and a reload do to it); and has one button that
+  takes the earlier try off by the held code with no submission and no Forget me. No dismiss
+  and no expiry: the code is cleared only where it always was (receipt saved, 410, `removed` or
+  `nothing`, Forget me). A failed withdrawal says so in its own words and keeps the code, the
+  note and the same focused button for a direct retry. A `busy` ref makes the guard real in
+  both directions (`aria-disabled` stops nothing). No change to `introduce.ts`, `forget.ts`,
+  `App.tsx`, the focus helpers, the server, request identity, tombstones, retention or policy.
+- **Deliberate change to BATCH-07A's arrival rule:** the first uncertain result and a newly
+  entered conflict now scroll to the top and focus the note's heading (the existing `Arrival`),
+  because the note is at the top and the tap was at the bottom. The same outcome again does not.
+  The two 07A successes (saved, then the receipt's name taken off) are unchanged. Focus left in
+  the form by the failed tap is released in the arrival's layout effect so the heading can take
+  it; a disabled button cannot be blurred, so this does not rely on Chromium dropping focus.
+- **Wording that changed, explicitly:** the 409 line no longer says "a code this phone holds"
+  (finding C), and the old memory-only "this is the only record of it" is replaced by the
+  note's. One journey assertion and one 07A arrival test were changed for this, not kept green.
+- **Evidence:** `tests/ui/looking-pending.test.tsx` (new, 13 tests) and one unit test in
+  `src/lib/introduce.test.ts`. Against the previous `Looking.tsx`, 13 tests fail (11 new, the
+  rewritten arrival test, the journey with the replaced wording); two new tests hold on both.
+  Four mutations each fail a test. Built-app measurements (390×844 and 320×568, keyboard and
+  pointer, a local fake of the handler; browser-stub evidence, not the deployed functions):
+  after the first uncertain result `scrollY` 0 with focus on the note; the withdrawal sends one
+  DELETE and no POST; in progress the button stays focused with `aria-disabled` true; after a
+  failure the same button stays focused and the code stays in view; no horizontal overflow;
+  the button is 44px. At 320 the longer states (memory-only 666px, conflict 646px) put the
+  button 95–115px below the first screen (the first Tab brings it in); the heading and the code
+  are in view.
+- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (119 files, 1624 passed, 2
+  skipped: the live blocks); `npm run build` exit 0; `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` and any
+  API key were unset. **Classifier** (`tests/eval/outcome.ts` `applicability()`, on the actual
+  diff: `Looking.tsx`, three test files, `src/lib/introduce.test.ts`, `docs/DECISIONS.md`, this
+  file): guide **not required**, judgment **not required**. This is not measured Guide or read
+  behavior and does not change the accumulated branch (`261d055..HEAD`, 96 files with this slice),
+  which still requires both live suites (workflow, `package.json`, lockfile, `tests/eval/`); they
+  are unfunded.
+- **Still open, not touched:** **B** (the receipt's "kept for later" notice is read from the saved
+  profile, not the request; a founder decision). **F** (`withdrawInterest` maps a 200 whose body
+  cannot be read to `nothing`, and then clears the receipt and the pending code, so an unreadable
+  200 does not preserve the pending state, and a 200 alone is not shown to prove a removal or an
+  absence; the note inherits this unchanged). **New to record:** the receipt's own withdrawal
+  failure still says "Nothing has changed", an unverified status claim of the same kind as the one
+  the note avoids; deliberately not bundled into this change. Also not repaired: focus on `BODY`
+  after a repeated identical outcome (the disabled submit button) and after a typed-code
+  withdrawal. This does not say the journey is free of defects.
+- **Limitations:** no screen reader (VoiceOver, TalkBack, NVDA, JAWS) was used, so what is
+  announced for the note's heading or its status line is unverified; one browser (headless
+  Chromium) against a stub, happy-dom for DOM focus and `scrollTo` calls; Firefox and Safari not
+  run; not a usability test. **Still unknown:** whether the production sweep ran, whether any real
+  records were deleted, and whether the live evaluation harness passes. No PR, merge, deployment,
+  paid evaluation, outreach or participant-data access; the release remains paused.
+
+## Previous status (2026-10-01, BATCH-07 review and BATCH-07A)
 
 - **BATCH-07, review of the introduction journey** (read-only; Welcome → Looking →
   submission → receipt → recovery → withdrawal; scratch build, headless Chromium at
@@ -52,6 +112,7 @@
   a failed submit (disabled button) and after a typed-code withdrawal. None is called a
   proven regression: no earlier build was run, and the in-place swap is in the base
   `261d055`. This does not say the journey is free of defects.
+  **Update (BATCH-07B, Part 31): C, D and E are repaired; B and F stay open.**
 - **Limitations:** no screen reader (VoiceOver, TalkBack, NVDA, JAWS) was used, so the
   announcement of the new heading focus and of the `role="status"` confirmation is
   unverified; one browser (headless Chromium) against a stub, happy-dom for DOM focus
