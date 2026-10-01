@@ -1,6 +1,56 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done
 
-## Status as of the latest session (2026-10-01, BATCH-04)
+## Status as of the latest session (2026-10-01, BATCH-05)
+
+- **BATCH-05, keyboard focus in the two-person eleven** (`docs/DECISIONS.md`
+  Part 28; BATCH-03's deferred "same gap on his side"). **Reproduced** in the
+  built app (headless Chromium, keyboard only, service workers blocked, backend
+  stubbed, synthetic fixtures; the delayed GET and POST were confirmed
+  intercepted): on `Couple.tsx` every change left focus on `BODY` — the record
+  arriving (intro, dead link, unreachable, already answered), Start, each of
+  the eleven questions, Back, the result, a 409 or 404 on the send, and a send
+  that failed. **Cause:** `App` focuses the heading once, when the screen mounts;
+  Couple mounts in `loading`, which has no heading, and every later phase or
+  question replaces the control that had focus in place. **Repair**
+  (`src/components/Couple.tsx` only): each phase and question is a `FocusStep`
+  (unchanged, Part 26's), so a heading takes lost focus when it appears and a
+  surviving control is left alone; Back moved out of the keyed question step so
+  it is the same button and keeps focus (page height and Back position
+  identical at 390px and 320px); and after a failed send focus returns to the
+  answer he gave, only if focus was lost and he has not moved. No timer, no
+  eager import, no new dependency. `FocusStep.tsx`, `useFocusHeading.ts` and
+  `ElevenChoices.tsx` are untouched. No wording, answer, scoring, comparison,
+  payload, sharing, consent, storage, request, retry, backend or `src/data/*`
+  change.
+- **Evidence:** `tests/ui/couple-focus.test.tsx` (new, 14 tests): 11 fail
+  against the previous `Couple.tsx`, 3 are guards that hold on both. Built-app
+  walk after the repair at 390px and 320px, eight scenarios (full flow with a
+  delayed record and a delayed send, Back with the answer kept, 503 on the send,
+  409, 404, dead link, unreachable, already answered, Back while sending): focus
+  on the right heading each time, Back keeps focus, the first Tab after arrival
+  reaches the first control after the heading (the first answer on a question,
+  "Copy the words" on the result), no horizontal overflow, the same 2px ring on
+  the answers and Back. `npm run verify > log 2>&1; echo $?` exit 0 (116 files,
+  1583 passed, 2 skipped: the live blocks); `npm run build` exit 0;
+  `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` and any API key were unset for every run.
+- **Evaluation applicability for this slice** (the repository's classifier,
+  `tests/eval/check.ts applicability`, on the actual diff: `Couple.tsx`, the new
+  test, `docs/DECISIONS.md`, this file): guide **not required**, judgment **not
+  required**. Run on the accumulated branch (`261d055` through this slice, 91
+  files) it still says **required** for both, from the workflow, `package.json`
+  and `tests/eval/`; the live suites are unfunded and the release remains
+  paused. No PR, merge, deployment, paid evaluation, outreach or
+  participant-data access.
+- **Limitations:** automated DOM focus checks in happy-dom and one browser
+  (headless Chromium); no screen reader (VoiceOver, TalkBack, NVDA, JAWS) was
+  used, so what one announces is unverified, and Firefox and Safari were not run.
+  While the eleventh answer sends, focus is on `BODY` in Chromium (a disabled
+  button cannot keep it); the fix would be `aria-disabled` in the shared
+  `ElevenChoices`, outside this slice. The loading phase has no heading and no
+  live region. A response landing after he stepped Back during the send still
+  shows the result (state flow unchanged). The review is not user research.
+
+## Previous status (2026-10-01, BATCH-04)
 
 - **BATCH-04, the family words' entry and the caution hand-off** (`docs/DECISIONS.md`
   Part 27; BATCH-03's deferred finding 4). A read result with `caution` or

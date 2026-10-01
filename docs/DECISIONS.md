@@ -4555,6 +4555,7 @@ your own family" while some scripts are for him, and a caution's hand-off into
 scripts that open "I believe he's serious"), and the read's missing "hasn't
 come up yet" answer on the hard-conversation question. The same focus gap exists
 on his side of the two-sided eleven (`Couple.tsx`); it was not in scope.
+(Reproduced and repaired afterwards: Part 28.)
 
 **Evaluation.** The repository's classifier (`tests/eval/check.ts applicability`,
 `REQUIRES` in `tests/eval/outcome.ts`) was run on this slice's changed files;
@@ -4629,6 +4630,100 @@ BeforeYes's cards, and Home asks later whether a taken family script was used;
 none is a read result, and none was changed. Ordinary "thin" results still name
 "asking him to send his people" in the disclosure line, as the product's
 unconditional offer: a founder decision, not made here.
+
+**Evaluation.** The repository's classifier was run on this slice's actual diff;
+the result is in `docs/SESSION-HANDOFF.md`. It says nothing about the accumulated
+branch, whose workflow, harness and lockfile changes still require both live suites
+on the pull request. They are unfunded, and the release remains paused.
+
+## Part 28: Keyboard focus on his side of the two-person eleven (2026-10-01, BATCH-05)
+
+BATCH-03's deferred finding: the focus gap Part 26 repaired in the read and the
+one-person eleven also exists in `Couple.tsx`, where he answers on her link.
+Reproduced first, in the built app, before any change.
+
+**How it was reproduced.** The production build served statically; headless
+Chromium at 390px and 320px, driven only by the keyboard (Tab, Enter); service
+workers blocked (`serviceWorkers: 'block'`, so request interception cannot be
+bypassed); every request to `/.netlify/functions/*` fulfilled by a stub, so no
+real backend, no key and no participant data. Fixtures are synthetic: a code
+that exists nowhere, an `open` record, a `joint` made up of topic ids. The delayed
+responses were confirmed intercepted (the stub logs how long it held each: the
+record 1.2s, the eleventh answer 1.5s and 2.5s). Evidence from automated DOM
+focus checks, not user research; no screen reader was used.
+
+**What was found, before.** `Couple.tsx` has seven phases (loading, intro,
+asking, joint, already answered, dead, unreachable). `App` focuses a screen's
+heading once, when the screen mounts. The Couple screen mounts in `loading`,
+which has no heading, so that moment is wasted, and every later change happens
+inside it. Where `document.activeElement` landed (all `BODY`):
+
+| Transition | Before | After |
+|---|---|---|
+| record arrives: intro, dead link, unreachable, already answered (the joint) | `BODY` | that screen's heading |
+| Start → first question | `BODY` | the question heading |
+| each answer → next question (and "we don't agree" → "Where does that leave it?", which already had its own) | `BODY` | the question heading |
+| Back, from the second question on | `BODY` (Back sat inside the keyed step, so it was replaced) | Back, the same button |
+| Back from the first question → intro | `BODY` | the intro heading |
+| the eleventh answer, while it sends | `BODY` (Chromium drops focus from a button the moment it is disabled) | `BODY`, unchanged (see below) |
+| the response: the joint / 409 already answered / 404 dead link | `BODY` | the result heading |
+| a send that does not go | `BODY`, the answers re-enabled | the answer he gave |
+
+Nothing moved the keyboard in any of them, so a keyboard or screen-reader user
+was told nothing had changed on arrival, on all eleven questions and at the
+result. Layout: no horizontal overflow at 390px or 320px, before or after.
+
+**What changed** (`src/components/Couple.tsx`, a new test file, docs).
+1. Each phase, and each question, is a `FocusStep`: the component Part 26 added
+   for the read and the one-person eleven, unchanged. It looks at focus only
+   when it mounts, takes it for the new heading only if focus was lost, and
+   leaves a surviving control alone. It runs in the commit that shows the new
+   content, so a late response can only focus a screen that is in fact showing:
+   no timer, no flag, no cancellation, no eager import. If Couple has gone, there
+   is no step to mount.
+2. Back moved out of the keyed question step into a sibling, so it is one button
+   from question to question and keeps focus when it was the control used.
+   Same markup order; its position and the page height are identical at both
+   widths (measured before and after).
+3. A failed send. The answers are disabled while the eleventh goes, and a
+   browser drops focus from a disabled button; when the send does not land he is
+   still on that question with the keyboard nowhere. A ref records the question
+   the send failed on, and an effect when sending ends puts focus on the answer
+   he gave, only if focus is still lost and he has not moved to another question
+   or control. Component-local; no timer.
+
+**What did not change.** `FocusStep.tsx`, `useFocusHeading.ts` and
+`ElevenChoices.tsx` are untouched, so Read, the one-person eleven and the family
+words are unaffected (their own tests pass unchanged). No question wording,
+answer, scoring, comparison, payload, sharing, consent, storage, request, retry
+or backend code, and nothing in `src/data/*`. The focus ring on controls is the
+same 2px ring, checked on the answer and on Back.
+
+**Tests.** `tests/ui/couple-focus.test.tsx`, 14 tests: every arrival (delayed
+record, dead, unreachable, already answered); each question and the sub-question;
+Back keeping focus on the same element and, from the first question, returning to
+the intro; a delayed eleventh answer (focus untouched while it waits, the result
+heading after); Back during the send; a dead or already-answered link on the
+send; a failed send, with the answer refocused only when focus was lost, left on
+Back when he moved there, and not pulled into a question he had stepped back to;
+a response landing after Couple was unmounted focuses nothing. Run against the
+previous `Couple.tsx`, 11 fail; the other 3 (the unmount, "moved to Back" and "his
+own control" guards) hold on both, as intended. happy-dom keeps focus on a
+disabled button where Chromium drops it, so the failed-send tests do what
+Chromium does before the response lands, and the real behaviour is the built-app
+walk above.
+
+**Not done, and why.** While the eleventh sends, focus is on `BODY` in Chromium;
+it cannot stay on a disabled button, and the fix is `aria-disabled` in the shared
+`ElevenChoices`, which the one-person eleven also uses and which is outside this
+slice. "Sending your answers…" is a `role="status"` that appears with the
+disabled state; whether a screen reader announces it was not tested. Likewise the
+`loading` phase ("One moment.") has no heading to focus and no live region; focus
+stays where it was until the record arrives. A response that lands after he has
+stepped Back during the send still shows the result (the state flow is
+unchanged, since the answers were already sent); focus then goes to the result's
+heading. Firefox and Safari were not run; Safari does not focus a tapped button,
+which the pointer-Back test stands in for.
 
 **Evaluation.** The repository's classifier was run on this slice's actual diff;
 the result is in `docs/SESSION-HANDOFF.md`. It says nothing about the accumulated

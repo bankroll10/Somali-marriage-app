@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Gender } from '../types'
 import { SHEET_OUTCOMES, beforeYesTopics, isDifference, sheetOf } from '../data/beforeYes'
 import ElevenChoices from './ElevenChoices'
+import FocusStep from './FocusStep'
 import { answerCouple, coupleReading, readCoupleDetail, type CoupleView, type Joint } from '../lib/couple'
 import type { Why } from '../lib/net'
 import { answeredOf, clearDraft, loadDraft, resumeIndex, saveDraft } from '../lib/draft'
@@ -65,6 +66,22 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
   const [view, setView] = useState<CoupleView | null>(null)
   // Why the last send did not go — kept apart from the link being dead.
   const [sendFailed, setSendFailed] = useState<Why | null>(null)
+  const asking = useRef<HTMLDivElement>(null)
+  // The question a send failed on. The answers are disabled while it goes, and a
+  // browser drops focus from a control that is disabled; when the send does not
+  // land he is still on that question, with nowhere for the keyboard to be.
+  const failedAt = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (sending || failedAt.current === null) return
+    const at = failedAt.current
+    failedAt.current = null
+    const now = document.activeElement
+    // Only if focus was lost, and he has not moved to another question or control since.
+    if (at !== index || (now && now !== document.body)) return
+    const given = asking.current?.querySelectorAll<HTMLElement>('[role="radio"][aria-checked="true"]')
+    given?.[given.length - 1]?.focus({ preventScroll: true })
+  }, [sending, index])
 
   useEffect(() => {
     let live = true
@@ -124,6 +141,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
         return
       }
       setSendFailed(result)
+      failedAt.current = index
       return
     }
     setSendFailed(null)
@@ -146,7 +164,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
         {phase === 'loading' && <p className="py-16 text-center text-[0.95rem] text-muted">One moment.</p>}
 
         {phase === 'unreachable' && (
-          <div className="py-12">
+          <FocusStep className="py-12">
             <h1 className="font-display text-[1.8rem] font-medium leading-tight tracking-tight text-ink text-balance">
               We couldn’t open this just now.
             </h1>
@@ -163,11 +181,11 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 What Niyyah is
               </TextButton>
             </div>
-          </div>
+          </FocusStep>
         )}
 
         {phase === 'dead' && (
-          <div className="py-12">
+          <FocusStep className="py-12">
             <h1 className="font-display text-[1.8rem] font-medium leading-tight tracking-tight text-ink text-balance">
               This link isn’t working.
             </h1>
@@ -177,14 +195,14 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             <Button onClick={onHome} variant="outline" className="mt-7">
               What Niyyah is
             </Button>
-          </div>
+          </FocusStep>
         )}
 
         {/* Her own link, and he has not answered yet. The joint case needs no
             branch of its own: the server returns it as answered, and the sheet
             below is the same one both of them see. */}
         {yours && phase === 'intro' && (
-          <div className="py-12">
+          <FocusStep className="py-12">
             <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Your link</p>
             <h1 className="animate-rise mt-3 font-display text-[1.8rem] font-medium leading-tight tracking-tight text-ink text-balance">
               This is the link you sent.
@@ -201,11 +219,11 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             <Button onClick={onHome} variant="outline" className="mt-7">
               Back home
             </Button>
-          </div>
+          </FocusStep>
         )}
 
         {!yours && phase === 'intro' && (
-          <div className="py-10">
+          <FocusStep className="py-10">
             <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">About two minutes</p>
             <h1 className="animate-rise mt-4 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance">
               {sender}’s asked you to do this too.
@@ -251,18 +269,21 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 What Niyyah is
               </TextButton>
             </div>
-          </div>
+          </FocusStep>
         )}
 
         {phase === 'asking' && (() => {
           const t = topics[index]
           const chosen = picked[t.id]
           return (
-            <div>
+            <div ref={asking}>
               <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-sand">
                 <div className="h-full rounded-full bg-forest transition-all duration-500" style={{ width: `${((index + 1) / topics.length) * 100}%` }} />
               </div>
-              <div key={t.id} className="animate-rise py-8">
+              {/* Back is outside the step, so it is the same button from one
+                  question to the next and keeps focus when it is the control
+                  that was used (docs/DECISIONS.md Part 28). */}
+              <FocusStep key={t.id} className="animate-rise pt-8">
                 <p className="text-xs font-medium uppercase tracking-[0.2em] text-gold-ink">{t.label}</p>
                 <h2 id={`couple-q-${t.id}`} className="mt-2 font-display text-[1.5rem] font-medium leading-snug tracking-tight text-ink text-balance">
                   Have the two of you talked about this?
@@ -292,10 +313,12 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                     moment.
                   </p>
                 )}
-                {/* Back existed from question two, so tapping Start committed
-                    him to eleven questions with no way back to what the screen
-                    had just told him. Read.tsx steps back to its intro from
-                    question one; this now does the same (docs/DESIGN.md). */}
+              </FocusStep>
+              {/* Back existed from question two, so tapping Start committed
+                  him to eleven questions with no way back to what the screen
+                  had just told him. Read.tsx steps back to its intro from
+                  question one; this now does the same (docs/DESIGN.md). */}
+              <div className="pb-8">
                 <button
                   onClick={() => (index > 0 ? setIndex(index - 1) : setPhase('intro'))}
                   className="mt-5 text-sm font-medium text-muted underline-offset-4 hover:underline"
@@ -311,7 +334,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             second device, or the read failing. This branch rendered nothing at
             all before (docs/DESIGN.md). */}
         {phase === 'answered-already' && view?.status !== 'joint' && (
-          <div className="py-16">
+          <FocusStep className="py-16">
             <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">Already answered</p>
             <h1 className="animate-rise mt-3 font-display text-[1.7rem] font-medium leading-snug tracking-tight text-ink text-balance">
               This one has been answered.
@@ -323,13 +346,13 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
             <Button onClick={onHome} variant="outline" className="mt-7">
               What Niyyah is
             </Button>
-          </div>
+          </FocusStep>
         )}
 
         {(phase === 'joint' || phase === 'answered-already') && view?.status === 'joint' && (() => {
           const r = coupleReading(view.joint, answerFor)
           return (
-            <div className="py-8">
+            <FocusStep className="py-8">
               <p className="animate-fade text-xs font-medium uppercase tracking-[0.24em] text-gold-ink">
                 {phase === 'answered-already' ? 'This one has been answered' : 'Where the two of you stand'}
               </p>
@@ -370,7 +393,7 @@ export default function Couple({ code, yours = false, onAnswered, onBegan, onRea
                 Your answers were sent once, under this code, with no name. {sender} sees only this same list.
               </p>
               <ReportConcern code={code} side={answerFor} />
-            </div>
+            </FocusStep>
           )
         })()}
       </main>
