@@ -1487,6 +1487,9 @@ binding; no new screens. Every possible addition got one class:
     Part 4 warned against an alarm on one tap of her feeling.
   - The words become words for one person who knows her, whatever ground is
     thinnest, and the next step is her own people.
+    *Correction, 2026-10-01 (Part 27):* "her own people" was built as a card
+    leading to the family words. That card was removed from caution and careful
+    results; the words for one person who knows her stay, as written here.
   - The follow-up asks whether she told someone, and the guide is told.
   - With being kept hidden, it is the caution.
   - It caps the band at mixed. The walk on a phone found it still reading "He
@@ -4559,3 +4562,75 @@ the result is recorded in `docs/SESSION-HANDOFF.md`. A `not-required` for this
 slice does not remove the accumulated branch's own requirements: BATCH-01's
 workflow, harness and lockfile changes still make both live suites required on
 the pull request, they are unfunded, and the release remains paused.
+
+## Part 27: Caution and careful results stop offering the family words (2026-10-01, BATCH-04)
+
+The deferred BATCH-03 finding 4, reviewed read-only first: the built app, headless
+Chromium at 390px, synthetic answers, every function stubbed to 503, nine result
+types in both perspectives. Review evidence, not user research; no screen reader
+was used and no participant data was read.
+
+**What was found.** A read result with `caution` or `careful` replaced "Before
+you say yes" with a card, "The words for your family — For telling the people who
+know you. Nothing on this screen is for sending to {him}.", as its one primary
+action. The family words do not know what the result said: they open the same
+way after every read, and what they hold is not only words for one's own family.
+For a woman, three of the seven scripts are addressed to him (asking him to send
+his people, ending it, opening mahr and where to live); for a man, three are for
+her and one is for her family. The first scripts shown after a read lead with a
+wali, hooyo or the other person's family being told the relationship is serious.
+The card's text described neither. It also made this the one place the family
+words were recommended *because of what she told us*, while `src/data/families.ts`
+and the Families screen say every script is offered and none is recommended by
+anything she answered. Part 9's "the next step is her own people" meant the
+person who knows her, which the words card already carries; it had been built as
+a link to Families.
+
+**What changed** (`src/components/Read.tsx`, `src/components/Talking.tsx`, tests).
+1. Caution and careful results no longer offer the family words from the result.
+   The result-specific recommendation of Families is gone; the eleven was already
+   absent there. The caution or careful box with its support line, the words card
+   and its BATCH-03 title and preface, the guide, the map, the invitation to a
+   friend and "Take the read again" are unchanged. Nothing was added in the
+   removed card's place: no script, no guidance. A money or hidden-without-careful
+   caution still has no words of its own for "tell one person"; that remains the
+   content gap Part 26 recorded.
+2. The disclosure's closed hint reads "Your guide, a friend" on those results and
+   "Your guide, your family, a friend" on every other result.
+3. Talking's third card keeps its title, "The families are coming in", and now
+   says "Word-for-word sentences to say aloud — to your own family, to the other
+   person, and for when the families meet." The old line ("your own family about
+   the wali, hooyo and the mahr") was not what the scripts are.
+
+**What did not change.** Ordinary results (strong, mixed, thin, too early) keep the
+eleven as the primary card and the family words, with the same derived line, inside
+"More you can do here". The family words are **not** blocked anywhere: they are
+still reachable from Home, from Talking and from their own address, and offered the
+same way on each. Only the link from a caution or careful result into them is
+removed. `src/data/*`, `Families.tsx`, the engine, every script, the helpline,
+storage, consent, the Guide, the backend and the workflow are untouched.
+
+**Tests.** `tests/ui/families-handoff.test.tsx` walks the nine result types in
+both perspectives through the rendered app: seven guarded types offer neither the
+eleven nor the family words; the two ordinary types keep both; the hint is
+conditional; the words card follows the script (`CAREFUL_SCRIPT` is "The words for
+one person who knows you" with "These are not for {him}."; other scripts keep "The
+one question to ask next" and, after a caution, "The conversation above comes
+first…"). `tests/invariants/the-loop-closes.test.tsx` held "Nothing on this screen
+is for sending to him." on the money caution; it now holds that the family words
+are not offered there. Run against the previous components, 16 of these assertions
+fail.
+
+**Not done, and why.** Labelling each script with who it is for, or making
+Families aware of the result, needs `src/data/families.ts` or new plumbing. Words
+for a confidante on the cautions that have none need `src/data/read.ts` or the
+engine. "The words for your family" is also the title of Home's stage card and of
+BeforeYes's cards, and Home asks later whether a taken family script was used;
+none is a read result, and none was changed. Ordinary "thin" results still name
+"asking him to send his people" in the disclosure line, as the product's
+unconditional offer: a founder decision, not made here.
+
+**Evaluation.** The repository's classifier was run on this slice's actual diff;
+the result is in `docs/SESSION-HANDOFF.md`. It says nothing about the accumulated
+branch, whose workflow, harness and lockfile changes still require both live suites
+on the pull request. They are unfunded, and the release remains paused.

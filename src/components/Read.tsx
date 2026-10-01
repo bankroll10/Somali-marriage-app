@@ -558,23 +558,11 @@ function Result({
       <div className="mt-9 flex flex-col gap-3">
         {/* The natural next thing after being told what {they} has not shown:
             the eleven, and from there the two-sided version {they} answers.
-            Not after a caution: "send nothing more" and "tell one person" were
-            followed by a card inviting her to send {him} something. There the
-            next thing is her own people. */}
-        {result.caution || result.careful ? (
-          <button
-            onClick={onOpenFamilies}
-            className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
-          >
-            <span className="flex-1">
-              <span className="font-display text-[1.15rem] font-medium text-ink">The words for your family</span>
-              <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                For telling the people who know you. Nothing on this screen is for sending to {subject}.
-              </span>
-            </span>
-            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
-          </button>
-        ) : (
+            Caution and careful results do not offer the eleven or Families
+            here. Those destinations include partner-directed conversations and
+            scripts for advancing family involvement. Preserve the result's
+            existing caution, support information and words card. */}
+        {!(result.caution || result.careful) && (
         <button
           onClick={onOpenBeforeYes}
           className="group flex items-center gap-4 rounded-card border border-line bg-white/60 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-forest/40"
@@ -595,7 +583,11 @@ function Result({
 
         {/* The chevron affordance this screen worked out by hand is now
             `<Disclose>` in ui.tsx, used by every screen (docs/DESIGN.md). */}
-        <Disclose summary="More you can do here" hint="Your guide, your family, a friend" divided={false}>
+        <Disclose
+          summary="More you can do here"
+          hint={result.caution || result.careful ? 'Your guide, a friend' : 'Your guide, your family, a friend'}
+          divided={false}
+        >
           <div className="flex flex-col gap-3">
           <button
             onClick={() =>

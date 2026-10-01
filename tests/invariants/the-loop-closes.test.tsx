@@ -141,14 +141,18 @@ describe('the read: words, then the question, on the reader’s own side', () =>
 describe('the read, where it must not push, and where it remembers', () => {
   const first = (reader: Gender): Record<string, string> => Object.fromEntries(readQuestions(reader).map((q) => [q.id, q.options[0].id]))
 
-  it('after a money caution, nothing primary is for sending to him', async () => {
+  it('after a money caution, neither the eleven nor the family words are offered from the result', async () => {
     onPhone(new Phone('hers'))
     const m = await mount(open(toolLink('is-he-serious', 'words')))
     await takeRead(m, 'woman', { ...first('woman'), money: 'yes', duration: 'months-3' })
     expect(m.text()).toContain('Please read this one twice')
     // The eleven — "you can send them to him too" — is not offered here.
     expect(m.has(/^Before you say yes/)).toBe(false)
-    expect(m.text()).toContain('Nothing on this screen is for sending to him.')
+    // Nor are the family words, which include words for him (docs/DECISIONS.md
+    // Part 27). They were the one card here until BATCH-04; the caution, the
+    // support line and the words card are what remain.
+    expect(m.has(/^The words for your family/)).toBe(false)
+    expect(m.text()).not.toContain('Nothing on this screen is for sending to him.')
     m.unmount()
   })
 

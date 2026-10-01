@@ -37,7 +37,7 @@ export default function Talking({ onRead, onBeforeYes, onFamilies, onLooking, on
     },
     {
       title: 'The families are coming in',
-      desc: 'Words to say to your own family about the wali, hooyo and the mahr, written to be said aloud.',
+      desc: 'Word-for-word sentences to say aloud — to your own family, to the other person, and for when the families meet.',
       go: onFamilies,
       glyph: <PeopleGlyph />,
     },

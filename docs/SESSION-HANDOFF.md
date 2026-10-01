@@ -1,6 +1,41 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done
 
-## Status as of the latest session (2026-10-01, BATCH-03)
+## Status as of the latest session (2026-10-01, BATCH-04)
+
+- **BATCH-04, the family words' entry and the caution hand-off** (`docs/DECISIONS.md`
+  Part 27; BATCH-03's deferred finding 4). A read result with `caution` or
+  `careful` no longer offers the family words: the result-specific card is removed
+  (the eleven was already absent there), and the family words are not blocked
+  anywhere else (Home, Talking and their own address are as they were). Reason:
+  they open the same way after every read and include words for the other person
+  and for advancing family involvement. Nothing replaced the card, and no script or
+  guidance was added; the caution or careful box and its support line, the words
+  card with its BATCH-03 title and preface, the guide, the map, the invitation and
+  the retake are unchanged. The disclosure hint is "Your guide, a friend" on those
+  results and unchanged on ordinary ones. Talking's third card keeps its title and
+  now says "Word-for-word sentences to say aloud — to your own family, to the other
+  person, and for when the families meet." Ordinary results are unchanged.
+  Files: `src/components/Read.tsx`, `src/components/Talking.tsx`,
+  `tests/ui/families-handoff.test.tsx` (new), `tests/invariants/the-loop-closes.test.tsx`
+  (one assertion deliberately corrected), `docs/DECISIONS.md`, this file. No
+  `src/data/*`, `Families.tsx`, engine, helpline, storage, backend or workflow
+  change.
+- **Evaluation applicability for this slice** (the repository's classifier, on the
+  actual diff, six files): guide **not required**, judgment **not required**. It
+  would have required the judgment suite had `src/data/families.ts` been touched.
+  This does not change the accumulated branch: `261d055..HEAD` still requires both
+  live suites (workflow, `package.json`, lockfile, `tests/eval/`), they are
+  unfunded, and the release remains paused. No PR, merge, deployment, paid
+  evaluation or outreach.
+- **Limitations:** a headless-browser review, not user research; no screen reader
+  was used, so what one announces is unverified. A money or hidden-without-careful
+  caution still has no words of its own for "tell one person" (content, deferred).
+  Ordinary "thin" results still name "asking him to send his people" in the
+  disclosure line (a founder decision). The same "The words for your family" title
+  remains on Home and BeforeYes, and Home still asks later whether a taken family
+  script was used.
+
+## Previous status (2026-10-01, BATCH-03)
 
 - **BATCH-03, the "already talking to someone" tools** (`docs/DECISIONS.md`
   Part 26). A read-only review (built app, headless Chromium, synthetic answers,
