@@ -52,8 +52,20 @@
   may keep showing content they cached earlier, from either address, until
   those caches refresh. Card inspected at full size and at 375px wide, no
   clipping.
-- **Left for later:** nothing from this batch; the card is general, not
-  per-tool or per-route.
+- **BATCH-02C, introduction signup readability (2026-10-01):** `Looking.tsx`
+  presentation and copy only (`docs/DECISIONS.md` Part 25): short intro with one
+  non-guarantee, five labelled always-visible disclosure rows, a bulleted data
+  block, grouped fields with short help, recovery by code under its own
+  divider. Pilot rules, fields, consent, submission, receipt, withdrawal,
+  routing and focus are untouched. A **usability hypothesis only**: nothing has
+  measured completion or understanding. New `tests/ui/looking-signup.test.tsx`
+  holds disclosure meaning and visibility, no outcome promises, field-for-field
+  data list, no reset on validation, recovery separate from signup; the existing
+  journey tests pass unchanged. Checked in the built app at 390, 320 and desktop
+  with a stubbed backend and synthetic data (no overflow in any state). The
+  page is longer than before (more headings and lists), the price of
+  scannability. Limitation: no screen reader was used.
+- **Left for later:** nothing from this batch beyond the above.
 - **Release remains paused** exactly as below: no pull request, merge,
   deployment or paid evaluation; both live suites still need funding.
 

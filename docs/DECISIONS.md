@@ -4432,3 +4432,32 @@ Welcome bullets went with the "reduce repeated explanations" brief; their
 substance (nothing identifying before both yes; no browsing) is on the
 Looking screen. The follow-up and the Ending behave as before; Welcome just
 no longer describes them in a bullet.
+
+**BATCH-02C, the introduction signup made easier to read (2026-10-01).** A
+*usability hypothesis, not a finding*: a visitor who lands on `/?looking`
+should find the service, who it is for, what happens next and what happens to
+their data faster, and finish the existing form with less hesitation. Nothing
+has measured this; no conversion or user-validation claim is made, and the
+interviews that would test it are still deferred. `src/components/Looking.tsx`,
+presentation and copy only:
+
+- A direct heading and a short introduction that says **once** that a request
+  guarantees no introduction; the list of what the service is not is gone.
+- The material disclosures are five labelled rows, visible above the form and
+  never collapsed or linked away: who runs it (the configured operator or its
+  fallback); who it is for (18+, serious, Minneapolis–St. Paul first, elsewhere
+  kept for later with no date, the first-twenty marital rule); what happens
+  first (the founder's conversation; the reference conversation only if the
+  person agrees, and what the reference says is not kept); before anyone hears
+  about you (the approved non-identifying summary; nothing identifying until
+  both have said yes); how long it stays (scheduled removal, withdraw any time).
+- What is sent is a short labelled block (the six fields as a list, who reads
+  it, what is kept apart from the map, read and eleven, the code and Forget me)
+  with "What leaves your phone" kept. No privacy promise was weakened or widened.
+- The form is grouped ("About you", "How to reach you") with one line of help
+  where it earns it; every field, place, "Somewhere else" and travel reach is
+  unchanged. Recovery by code sits under its own "Already put your name down?"
+  divider, outside the signup form.
+- **Left alone:** the submission state machine, request identity, retries,
+  storage, server dates, the receipt, withdrawal, tombstones, Forget me,
+  routing and the focus repair. No presentation change needed any of them.

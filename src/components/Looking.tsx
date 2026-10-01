@@ -46,6 +46,13 @@ interface Props {
  *  - the day the request is scheduled to be removed, from the server's own
  *    answer once it is saved (decision 32, D3).
  *
+ * Since 2026-10-01 (BATCH-02C, docs/DECISIONS.md Part 25) this is laid out to
+ * be scanned: a short introduction that says once that a request guarantees
+ * nothing, the material disclosures as five labelled rows that stay visible
+ * above the form, fields grouped with a line of help each, and what is sent as
+ * a short list. A presentation change only: the pilot's rules, the fields, the
+ * consent affirmation and every state below the form are as they were.
+ *
  * What it says is bounded by what exists. There is no pool to show and no
  * date to promise, so neither is said; the count is not shown, because a
  * number on a door became a scarcity meter last time and this list is not a
@@ -284,51 +291,55 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
             )}
             <p className={`animate-fade ${LABEL} text-gold-ink`}>Looking for someone</p>
             <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
-              I’m looking for someone serious.
+              Put your name down for an introduction.
             </h1>
             <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
-              Niyyah began so that serious Somali singles could meet each other. Put your name down, and an introduction is
-              considered for you by hand. What this is not: a list to browse, a match made by software, or a date. A name on
-              the list is not an introduction, and not a promise of one.
+              Niyyah began so that serious Somali singles could meet each other. In this pilot the founder reads each
+              request and makes introductions by hand, one at a time. Putting your name down does not guarantee an
+              introduction.
             </p>
 
-            {/* Said before the button, in the order it happens. Every line is
-                a thing that exists (docs/OPS.md, the runbook), and the marital
+            {/* Said before the button, in the order it happens, and always
+                visible: nothing here is behind a disclosure. Every line is a
+                thing that exists (docs/OPS.md, the runbook), and the marital
                 line is the current pilot's rule, said as one. */}
             <section className="animate-rise mt-6 rounded-card border border-forest/25 bg-forest/[0.06] p-5" aria-labelledby="looking-before">
               <h2 id="looking-before" className="font-display text-[1.15rem] font-medium text-ink">
                 Before you put your name down
               </h2>
-              <dl className="mt-4 space-y-4 text-[0.95rem] leading-relaxed text-ink-soft text-pretty">
-                <div>
-                  <dt className="font-medium text-ink">Who runs this</dt>
-                  <dd>Niyyah is run by {OPERATOR}, who reads the list and makes each introduction by hand, one at a time.</dd>
+              <dl className="mt-3 divide-y divide-forest/15 text-[0.95rem] leading-relaxed text-ink-soft">
+                <div className="py-3 first:pt-0">
+                  <dt className="font-medium text-ink">Who runs it</dt>
+                  <dd className="mt-0.5 text-pretty">Niyyah is run by {OPERATOR}, who reads the list and makes each introduction by hand.</dd>
                 </div>
-                <div>
-                  <dt className="font-medium text-ink">Who this pilot is for</dt>
-                  <dd>
-                    {MIN_AGE} or older, and serious about marriage. Introductions are beginning in {pilot}; a name from anywhere
-                    else is kept for later. {PILOT_MARITAL}
+                <div className="py-3">
+                  <dt className="font-medium text-ink">Who it is for</dt>
+                  <dd className="mt-0.5">
+                    <ul className="list-disc space-y-1 pl-5 marker:text-forest">
+                      <li className="text-pretty">{MIN_AGE} or older, and serious about marriage.</li>
+                      <li className="text-pretty">Introductions are beginning in {pilot}. A name from anywhere else is kept for later, with no date.</li>
+                      <li className="text-pretty">{PILOT_MARITAL}</li>
+                    </ul>
                   </dd>
                 </div>
-                <div>
+                <div className="py-3">
                   <dt className="font-medium text-ink">What happens first</dt>
-                  <dd>
+                  <dd className="mt-0.5 text-pretty">
                     A conversation with you, by the email or number you give, before anyone is considered for you. Then, if
                     you agree to it, one conversation with a person who knows you; what they say is not kept.
                   </dd>
                 </div>
-                <div>
+                <div className="py-3">
                   <dt className="font-medium text-ink">Before anyone hears about you</dt>
-                  <dd>
-                    A short description of you that you approve, and that does not say who you are. Nothing that identifies
-                    you — your name, your email or number — goes to a person proposed to you until you and they have both
-                    said yes.
+                  <dd className="mt-0.5 text-pretty">
+                    What a person proposed to you hears about you first is a short description that you approve, and that does
+                    not say who you are. Nothing that identifies you — your name, your email or number — goes to a person proposed to you until
+                    you and they have both said yes.
                   </dd>
                 </div>
-                <div>
-                  <dt className="font-medium text-ink">How long</dt>
-                  <dd>
+                <div className="py-3 last:pb-0">
+                  <dt className="font-medium text-ink">How long it stays</dt>
+                  <dd className="mt-0.5 text-pretty">
                     Your request is scheduled to be removed on the Sunday on or before its 180th day; the exact date is shown
                     once it is saved. Take it off any time.
                   </dd>
@@ -336,7 +347,8 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
               </dl>
             </section>
 
-            <form onSubmit={submit} className="mt-10 space-y-7">
+            <form onSubmit={submit} className="mt-10 space-y-8">
+              <h2 className="font-display text-[1.3rem] font-medium text-ink">About you</h2>
               <div>
                 <p id="looking-gender-label" className={LABEL}>
                   You are
@@ -368,6 +380,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                 <p id="looking-scene-label" className={LABEL}>
                   Where are you?
                 </p>
+                <p className="mt-1.5 text-[0.88rem] leading-snug text-muted text-pretty">Pick the closest. If yours is not listed, choose Somewhere else.</p>
                 <div role="group" aria-labelledby="looking-scene-label" className="mt-3 flex flex-wrap gap-2">
                   {scenes.map((sc) => (
                     <button key={sc.id} type="button" onClick={() => setScene(sc.id)} aria-pressed={scene === sc.id} className={chip(scene === sc.id)}>
@@ -412,6 +425,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                 </div>
               )}
 
+              <h2 className="border-t border-line pt-8 font-display text-[1.3rem] font-medium text-ink">How to reach you</h2>
               <div>
                 <label htmlFor="looking-name" className="block text-sm font-medium text-ink-soft">
                   Your first name <span className="font-normal text-muted">(optional)</span>
@@ -432,6 +446,9 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                 <label htmlFor="looking-contact" className="block text-sm font-medium text-ink-soft">
                   Email or phone
                 </label>
+                <p id="looking-contact-help" className="mt-1 text-[0.88rem] leading-snug text-muted text-pretty">
+                  The founder will use it for the first conversation.
+                </p>
                 <input
                   id="looking-contact"
                   type="text"
@@ -444,7 +461,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
                   onBlur={() => setContactTouched(true)}
-                  aria-describedby={contactHint ? 'looking-contact-hint' : undefined}
+                  aria-describedby={contactHint ? 'looking-contact-help looking-contact-hint' : 'looking-contact-help'}
                   aria-invalid={!!contactHint}
                   enterKeyHint="done"
                   className={`mt-2 w-full bg-white/70 px-4 py-3 text-[1rem] ${fieldClass}`}
@@ -479,16 +496,32 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                   server keeps (netlify/functions/introduce.ts). A privacy claim
                   is the one thing that must never drift from the code it
                   describes — and it is read before the button, not after. */}
-              <p className="rounded-2xl border border-line bg-white/40 px-4 py-3.5 text-[0.9rem] leading-relaxed text-ink-soft text-pretty">
-                What goes, exactly: a way to reach you, your first name if you gave it, whether you are a woman or a man,
-                your city and its country, how far you would go, and that you confirmed you are {MIN_AGE} or older. It goes
-                to our server under a code this phone made up for it, so you can take your name off from here, and Forget me
-                takes it off with everything else. The founder reads the list; nothing else does, and nothing from your map,
-                a read or the eleven is attached to it.{' '}
-                <TextButton type="button" onClick={onTrust} className="text-[0.9rem] font-medium text-forest underline">
+              <section className="rounded-2xl border border-line bg-white/40 px-4 py-4 text-[0.92rem] leading-relaxed text-ink-soft" aria-labelledby="looking-goes">
+                <h2 id="looking-goes" className="font-display text-[1.08rem] font-medium text-ink">
+                  What goes, exactly
+                </h2>
+                <p className="mt-2 font-medium text-ink">Sent when you press the button</p>
+                <ul className="mt-1 list-disc space-y-0.5 pl-5 marker:text-forest">
+                  <li>a way to reach you</li>
+                  <li>your first name, if you gave it</li>
+                  <li>whether you are a woman or a man</li>
+                  <li>your city and its country</li>
+                  <li>how far you would go</li>
+                  <li>that you confirmed you are {MIN_AGE} or older</li>
+                </ul>
+                <p className="mt-3 font-medium text-ink">Who reads it</p>
+                <p className="text-pretty">
+                  The founder reads the list; nothing else does. Nothing from your map, a read or the eleven is attached to it.
+                </p>
+                <p className="mt-3 font-medium text-ink">Taking it back</p>
+                <p className="text-pretty">
+                  It goes to our server under a code this phone made up for it, so you can take your name off from here, and
+                  Forget me takes it off with everything else.
+                </p>
+                <TextButton type="button" onClick={onTrust} className="-ml-2 mt-1 text-[0.92rem] font-medium text-forest underline">
                   What leaves your phone
                 </TextButton>
-              </p>
+              </section>
 
               <div>
                 <Button type="submit" disabled={!ready || state === 'sending'} className="group w-full sm:w-auto">
@@ -539,7 +572,10 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
               </div>
             </form>
 
-            {codeEntry}
+            <div className="mt-14 border-t border-line pt-8 [&>section]:mt-3">
+              <p className={LABEL}>Already put your name down?</p>
+              {codeEntry}
+            </div>
 
             <p className="mt-8 text-[0.92rem] text-muted">
               Already talking to someone?{' '}
