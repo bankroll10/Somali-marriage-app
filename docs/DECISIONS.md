@@ -4410,10 +4410,12 @@ What changed, on the first-time visitor's path only:
   focus (happy-dom, headless Chromium). No screen reader was used.
 
 **Resolved 2026-10-01 (BATCH-02B):** the social card is remade and the
-metadata aligned. `public/og.png` (the old headline, and only the tools) is
-deleted; `public/og-pilot.png` (1200×630) replaces it, rendered from the
+metadata aligned. `public/og-pilot.png` (1200×630) is the new card, rendered from the
 editable `scripts/og/og.html` by `npm run og` (headless Chromium, no new
-dependency). The card carries the logo, the homepage headline, "Introductions
+dependency). The old artwork (the old headline, and only the tools) is gone;
+`public/og.png` stays as a byte-identical copy of the new card, so links that
+already carry that address serve the new image after deployment. One render
+writes both, and a failed render writes neither. The card carries the logo, the homepage headline, "Introductions
 beginning in Minneapolis–St. Paul." and "Tools for people considering someone
 for marriage."; no photo, number, quote or promise. Its filename is
 `OG_IMAGE` in `src/data/brand.ts` and every page (home, tools, guide) reads it

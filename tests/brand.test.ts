@@ -68,7 +68,19 @@ describe('the social card', () => {
     expect(readFileSync('package.json', 'utf8')).toContain('"og": "node scripts/og/render.mjs"')
   })
 
-  it('the retired card is gone, so nothing can still point at the old words', () => {
-    expect(existsSync('public/og.png')).toBe(false)
+  it('keeps public/og.png, the address earlier links carry, as a byte-identical copy of the new card', () => {
+    // Metadata names OG_IMAGE (og-pilot.png); og.png exists so a link that
+    // already points at the old address serves the new card after deployment.
+    // Both are written together by `npm run og` (scripts/og/render.mjs).
+    expect(OG_IMAGE).toBe('og-pilot.png')
+    expect(existsSync('public/og.png')).toBe(true)
+    expect(existsSync('public/og-pilot.png')).toBe(true)
+    expect(readFileSync('public/og.png').equals(readFileSync('public/og-pilot.png'))).toBe(true)
+  })
+
+  it('no page or manifest names og.png: current metadata points at og-pilot.png only', () => {
+    expect(readFileSync('index.html', 'utf8')).not.toMatch(/og\.png/)
+    expect(readFileSync('src/lib/guidePages.ts', 'utf8')).not.toMatch(/og\.png/)
+    expect(readFileSync('public/manifest.webmanifest', 'utf8')).not.toMatch(/og\.png/)
   })
 })

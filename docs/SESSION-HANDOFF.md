@@ -36,15 +36,22 @@
   reaches its heading. **Limitation:** all focus checks are automated (DOM
   focus in happy-dom and headless Chromium); no screen reader (VoiceOver,
   TalkBack, NVDA, JAWS) was used, so what they announce is unverified.
-- **BATCH-02B, social preview and metadata (2026-10-01):** the stale
-  `public/og.png` is replaced by `public/og-pilot.png`, rendered from
-  `scripts/og/og.html` with `npm run og`; title, descriptions, social titles,
-  manifest and `OG_ALT` align with the homepage (`src/data/brand.ts`,
-  `docs/DECISIONS.md` Part 25). The built HTML (home, a tool page, the guide)
-  was checked: every image URL is `og-pilot.png`, tool titles and canonicals
-  are unchanged. The new filename does not clear third-party preview caches;
-  old shared links may keep showing the old card until those refresh. Card
-  inspected at full size and at 375px wide, no clipping.
+- **BATCH-02B, social preview and metadata (2026-10-01):** the stale card is
+  replaced by `public/og-pilot.png`, rendered from `scripts/og/og.html` with
+  `npm run og`; title, descriptions, social titles, manifest and `OG_ALT` align
+  with the homepage (`src/data/brand.ts`, `docs/DECISIONS.md` Part 25). All
+  metadata names `og-pilot.png`. `public/og.png` is kept as a byte-identical
+  copy of the **new** card (never the old artwork), written by the same render;
+  the render is checked (clean exit, new file, 1200×630 PNG) before either file
+  is written, so a failed render cannot copy a stale output, and
+  `tests/brand.test.ts` holds the two files byte-identical. The built HTML
+  (home, a tool page, the guide) was checked: every image URL is
+  `og-pilot.png`, tool titles and canonicals are unchanged. **Limitation:** the
+  new filename does not clear third-party preview caches. After deployment the
+  old address, `/og.png`, serves the updated card, but chat apps and crawlers
+  may keep showing content they cached earlier, from either address, until
+  those caches refresh. Card inspected at full size and at 375px wide, no
+  clipping.
 - **Left for later:** nothing from this batch; the card is general, not
   per-tool or per-route.
 - **Release remains paused** exactly as below: no pull request, merge,
