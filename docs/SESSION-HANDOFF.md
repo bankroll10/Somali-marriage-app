@@ -1,6 +1,66 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done
 
-## Status as of the latest session (2026-10-01, BATCH-06)
+## Status as of the latest session (2026-10-01, BATCH-07 review and BATCH-07A)
+
+- **BATCH-07, review of the introduction journey** (read-only; Welcome → Looking →
+  submission → receipt → recovery → withdrawal; scratch build, headless Chromium at
+  390×844 and 320×568, a local in-memory fake of the handler, synthetic contacts, no
+  deployed store, no participant data). Existing handler and journey tests (8 files, 82
+  tests) passed and are what establish backend behavior; the browser stub does not. Found
+  no defect that stops requesting, recovering or withdrawing. Welcome and `/?looking`
+  arrival, the payload against the "What goes" list, lost-answer retry under one code,
+  Forget me with a receipt or only a pending attempt, withdrawal failure and retry, and
+  the outside-pilot "kept for later" disclosure in the form all behaved; no horizontal
+  overflow at either width in any state measured.
+- **BATCH-07A (`docs/DECISIONS.md` Part 30), finding A repaired:** the receipt and the
+  withdrawal result were not in view and focus sat on `BODY`. Cause: both swaps happen
+  inside the one `looking` screen, so `App`'s scroll and heading focus (on screen
+  change only) never ran. **Repair** (`src/components/Looking.tsx` only): an `Arrival`
+  component mounted only by the two successes (request saved; name taken off from the
+  receipt), doing two separate things on mount: `window.scrollTo(0, 0)` before paint, and
+  the shared `FocusHeading onlyIfLost` after the new content mounts. No timer, no smooth
+  scroll, no second action on first arrival through `App`; shared focus helpers and `App`
+  untouched. No wording, payload, request identity, retry, deletion, retention or policy
+  change.
+- **Evidence:** `tests/ui/looking-arrival.test.tsx` (new, 8 tests; 4 fail against the
+  previous `Looking.tsx`, 4 are guards that hold on both). Built-app measurements, form
+  scrolled to its bottom first, keyboard and pointer identical: after save `scrollY` 0,
+  focus on the receipt heading, headline at 146px and dates at 238px (390) or 278px (320),
+  all in view; after withdrawal `scrollY` 0, focus on the form heading, confirmation at
+  117px and heading at 235px, in view; first Tab reaches a control with a 2px outline;
+  put down again arrives the same way; overflow 0 (before: headline 649px/1,355px and
+  confirmation 678px/1,384px above the view, focus on `BODY`).
+- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (118 files, 1610 passed,
+  2 skipped: the live blocks); `npm run build` exit 0; `GUIDE_EVAL_LIVE`,
+  `JUDGMENT_LIVE` and any API key were unset for every run. **Classifier**
+  (`tests/eval/check.ts applicability`, on the actual diff: `Looking.tsx`, the new test,
+  `docs/DECISIONS.md`, this file): guide **not required**, judgment **not required**.
+  This is not measured Guide or read behavior, and it does not change the accumulated
+  branch, which still requires both live suites (workflow, `package.json`, lockfile,
+  `tests/eval/`); they are unfunded.
+- **Findings from the review that stay open, not touched (conditions in Part 30):**
+  **B** the receipt's "kept for later" notice is read from the saved profile, not from the
+  request (London request loses it after "Not sure? Start where you are"; a Minneapolis
+  request shows it after choosing London in Situation); needs a founder decision (store
+  the city, or change copy). **C** storage refused, then a lost answer, changed details
+  (409): the code panel is hidden and the text says "this phone holds" it; a reload loses
+  the code (the documented limit). **D** a pending attempt is not shown after a reload;
+  resubmitting the same details reuses the code; Forget me sends it; nothing says so.
+  **E** a failed "Take the earlier name off" shows the submission's "could not tell"
+  text and drops its button. **F** source-read only, not reproduced: an unreadable 200 on
+  withdrawal reads as "nothing under that code". Also not repaired: focus on `BODY` after
+  a failed submit (disabled button) and after a typed-code withdrawal. None is called a
+  proven regression: no earlier build was run, and the in-place swap is in the base
+  `261d055`. This does not say the journey is free of defects.
+- **Limitations:** no screen reader (VoiceOver, TalkBack, NVDA, JAWS) was used, so the
+  announcement of the new heading focus and of the `role="status"` confirmation is
+  unverified; one browser (headless Chromium) against a stub, happy-dom for DOM focus
+  and `scrollTo` calls; Firefox and Safari not run. **Still unknown:** whether the
+  production sweep ran, whether any real records were deleted, and whether the live
+  evaluation harness passes. No PR, merge, deployment, paid evaluation, outreach or
+  participant-data access; the release remains paused.
+
+## Previous status (2026-10-01, BATCH-06)
 
 - **BATCH-06, one country question for the Guide's two support lines**
   (`docs/DECISIONS.md` Part 29; resolves the limit Part 26 recorded, which stays

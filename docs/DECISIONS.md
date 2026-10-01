@@ -4854,3 +4854,110 @@ that decide when a line is shown (`src/lib/coach.ts`), and the floor is the part
 classifier was not changed to get that result. It says nothing about the accumulated
 branch, whose workflow, harness and lockfile changes still require both live suites on
 the pull request. They are unfunded, and the release remains paused.
+
+## Part 30: The receipt and the withdrawal arrive in view (2026-10-01, BATCH-07A)
+
+**Why.** BATCH-07 reviewed the introduction journey (Welcome, Looking, submission,
+receipt, recovery, withdrawal) in the built app against a local fake of the handler
+(headless Chromium, 390×844 and 320×568, service workers blocked, synthetic contacts,
+no deployed store). It confirmed one defect that touches every successful request and
+every receipt withdrawal (finding A), and five narrower ones (B to F, below). This
+slice repairs A only. Nothing here changes copy, the payload, the code or request
+identity, retries, deletion, retention dates or the pilot's policy.
+
+**Reproduced (finding A).** Fill the form, scroll to its bottom, tap or press Enter on
+"Put my name down". The form becomes the receipt in place. At 390px the window kept
+the form's offset (`scrollY` 795) and the headline "Your request was saved on …" was
+649px above the viewport, 1,355px at 320px, with the server's dates above it too;
+`document.activeElement` was `BODY`. Then "Take my name off": the receipt becomes the
+form, and "Your name is off the list" sat 678px above the viewport (1,384px at 320px),
+the person left in the middle of a blank form, focus again on `BODY`. Tap and keyboard
+gave the same result.
+
+**Cause.** Both swaps happen inside one screen (`looking`). `App` scrolls to the top
+(`useLayoutEffect` on `n.screen`) and focuses the new screen's heading
+(`<FocusHeading/>`, once, when the screen mounts) only when the screen name changes, so
+neither ran. The button that held focus was replaced by new content, so focus fell to
+`<body>`, and nothing reset the window's offset. `Looking` has never had either
+(`git log -S scrollTo` on the file finds nothing, and the in-place swap is in the base
+`261d055`); this is a previously unrecorded defect, not shown to be a regression from
+BATCH-01 or BATCH-02. No earlier build was run.
+
+**The repair** (`src/components/Looking.tsx` only): a small `Arrival` component,
+mounted only after one of the two successes bumps a counter (`arrivals`, the form's
+`registerInterest` success and the receipt's `withdrawInterest` success, `removed` or
+`nothing`), keyed by that count. Two separate actions, on mount only:
+
+1. **Scroll:** `window.scrollTo(0, 0)` in a `useLayoutEffect`, so the result's beginning
+   is in view before paint. Instant, no smooth scroll. On withdrawal the top of the page
+   holds the confirmation directly above the form heading, so both are in view.
+2. **Focus:** the shared `<FocusHeading onlyIfLost/>` (unchanged), after the new content
+   has mounted. `FocusHeading` focuses with `preventScroll`, which is why the scroll is
+   its own line and a heading-focus wrapper alone would not have fixed it. `onlyIfLost`
+   leaves focus alone when it is on a control that survived (the header's Back), so
+   someone who moved there while the request was in flight keeps it.
+
+It does not run on a rerender, a field change, a validation message, a failed or
+unsure submit, a failed withdrawal or a retry; a retry that succeeds is an arrival of
+its own. `App`'s own arrival on first load is unchanged and not duplicated (the
+component is not mounted then). `FocusStep`, `useFocusHeading` and `App` are untouched.
+
+**Evidence.** `tests/ui/looking-arrival.test.tsx` (new, 8 tests): form → receipt
+(scroll to the top once, focus on the receipt heading, heading not a tab stop);
+receipt → form (scroll, focus on the form heading with the confirmation directly above
+it); focus preserved on Back while the request is in flight; no scroll or focus move on
+an unsure submit, a failed withdrawal, typing and validation on the form, opening the
+code field on the receipt; the first arrival through `App` is one scroll. Against the
+previous `Looking.tsx`, 4 of the 8 fail (the two arrivals, the retry-after-failure
+arrival and the receipt-rerender guard, which fails there because the receipt heading
+never took focus); the other four are guards that hold on both. They check DOM focus
+and calls to `window.scrollTo`; happy-dom does no layout.
+
+**Measured in the rebuilt app** (scratch build, same stub, synthetic data), starting
+with the completed form scrolled to its bottom (`scrollY` 2,056 at 390, 2,910 at 320),
+submitting with Enter on the focused button and with a pointer, then withdrawing the
+same two ways:
+
+| | 390×844 | 320×568 |
+|---|---|---|
+| after save: `scrollY`, focus | 0, `H1` "Your request was saved on …" | 0, same |
+| receipt headline top / dates top (in view) | 146px / 238px (yes) | 146px / 278px (yes) |
+| first Tab after arrival | "Two minutes on where you stand", 2px outline | same |
+| after withdrawal: `scrollY`, focus | 0, `H1` "Put your name down …" | 0, same |
+| confirmation / form heading top (in view) | 117px / 235px (yes) | 117px / 235px (yes) |
+| first Tab after withdrawal | "I am a woman", 2px outline | same |
+| put down again from that form | arrives at the receipt again, `scrollY` 0, focus on its heading | same |
+| horizontal overflow, every state measured | 0 | 0 |
+
+Keyboard and pointer gave identical numbers. Outline widths were read after the 400ms
+transition; read immediately they are mid-animation (0 to 1px).
+
+**Not done.** Findings **B to F are confirmed or labelled and unresolved**, none touched:
+**B** the receipt's "kept for later" notice is read from the saved profile
+(`identity`), not from what was sent, so after "Not sure? Start where you are" a London
+request's receipt loses it, and after choosing London in Situation a Minneapolis
+request's receipt shows it (`Looking.tsx`, `awaySaved`); fixing it means storing the city
+on the phone or changing approved copy, a founder decision. **C** with storage refused,
+after a lost answer and changed details (409), the code panel is hidden and the text says
+"a code this phone holds"; after a reload the code is gone and the record stays (the
+reload limit is the documented D8 one). **D** a pending attempt is not shown on return
+after a reload: the form is blank, resubmitting the same details reuses the pending code
+(confirmed, one record), and Forget me sends it, but nothing tells her so. **E** a
+failed "Take the earlier name off" shows the submission's "could not tell whether that
+reached us" text and drops its button; pressing "Put my name down" brings it back.
+**F** is **source-read only, not reproduced**: `withdrawInterest` maps an unreadable 200
+body to "nothing". Also not repaired: the disabled button during "Saving…" drops focus
+to `BODY` after a failed submit (the mechanism BATCH-05 recorded for the eleven), and
+withdrawal by a typed code leaves focus on `BODY`; and withdrawal by a typed code that
+matches the receipt flips receipt to form without this arrival. This does not say the
+introduction journey is free of defects. **No screen reader** (VoiceOver, TalkBack, NVDA,
+JAWS) was used, so whether the new heading focus or the `role="status"` confirmation is
+announced is unverified; only headless Chromium, the browser stub (not the deployed
+functions) and happy-dom were used; Firefox and Safari were not run. Existing local
+handler tests establish the backend's behavior; the stub does not.
+
+**Evaluation.** The repository's classifier was run on this slice's actual diff; the
+result is in `docs/SESSION-HANDOFF.md`. It changes how a screen moves the window and
+focus after two actions, with no wording and no change to the Guide, a read, a script or
+any engine, so no evaluation measures it. The accumulated branch still requires both
+live suites on a pull request; they are unfunded and the release remains paused.

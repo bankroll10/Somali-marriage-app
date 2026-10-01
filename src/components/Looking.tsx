@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState, type RefObject } from 'react'
 import type { Gender, Identity } from '../types'
 import { MIN_AGE } from '../types'
 import { getScene, scenes } from '../data/scenes'
@@ -8,6 +8,7 @@ import { CODE_LENGTH, EXAMPLE_CODE, cleanCode, formatCode, isCode } from '../lib
 import { contactProblem, looksReachable } from '../lib/contact'
 import { PILOT_SCENE, pastScheduled, registerInterest, scheduledRemoval, withdrawInterest, type IntroState, type Withdrawn } from '../lib/introduce'
 import type { Why } from '../lib/net'
+import { FocusHeading } from '../hooks/useFocusHeading'
 import { CONTACT_EMAIL, OPERATOR } from '../lib/site'
 import { ArrowRight, BackButton, Button, CheckIcon, Logo, Spinner, TextButton, fieldClass } from './ui'
 
@@ -96,6 +97,14 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
   const [entry, setEntry] = useState<'closed' | 'open' | 'checking' | 'not-a-code' | 'failed' | Withdrawn>('closed')
   /** After "again": the request was saved earlier, and this is the same one. */
   const [again, setAgain] = useState(false)
+  /**
+   * Counts the two arrivals that replace this screen's whole content in place:
+   * the form's request saved (form → receipt) and the receipt's name taken off
+   * (receipt → form). Neither changes the screen, so App neither scrolls nor
+   * focuses; see Arrival below. Bumped by those two successes and nothing else.
+   */
+  const [arrivals, setArrivals] = useState(0)
+  const mainRef = useRef<HTMLElement>(null)
 
   const other = scene === 'other'
   const country = other ? namedCountry : (getScene(scene)?.country ?? '')
@@ -137,6 +146,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
     // not the form with "your name is off the list" still above it.
     setOff('idle')
     setEntry('closed')
+    setArrivals((n) => n + 1)
     // What she told this form, kept for the rest of the app: her side, her
     // city and that she is an adult — the same things Identity and Situation
     // ask, so a map or a read after this does not ask them again.
@@ -154,6 +164,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
       return
     }
     setOff(gone)
+    setArrivals((n) => n + 1)
     onWithdrawn()
   }
 
@@ -266,7 +277,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
         </div>
       </header>
 
-      <main className="mx-auto max-w-xl px-6">
+      <main ref={mainRef} className="mx-auto max-w-xl px-6">
         {intro ? (
           <Receipt
             intro={intro}
@@ -580,8 +591,33 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
           </section>
         )}
       </main>
+      {arrivals > 0 && <Arrival key={arrivals} within={mainRef} />}
     </div>
   )
+}
+
+/**
+ * Where the person lands when the form becomes the receipt, or the receipt
+ * becomes the form with its word that the name is off (docs/DECISIONS.md
+ * Part 30). Both happen inside the one `looking` screen, so `App`'s scroll to
+ * the top and its heading focus, which run only when the screen name changes,
+ * did not: the view kept the form's offset, so the new result's beginning was
+ * above the window, and the button that had focus was gone, so focus sat on
+ * `<body>`.
+ *
+ * Two separate actions, on mount only, and mounted only by those two
+ * successes (keyed by their count), so a rerender, a field change, a
+ * validation message or a retry never reaches them and the first arrival
+ * through `App` is untouched. The scroll is instant and runs before paint;
+ * focus is the shared heading focus, only if it was lost, so a control the
+ * person has moved to (the header's Back) keeps it. `FocusHeading` focuses
+ * without scrolling, which is why the scroll is its own line.
+ */
+function Arrival({ within }: { within: RefObject<HTMLElement | null> }) {
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+  return <FocusHeading within={within} onlyIfLost />
 }
 
 interface ReceiptProps {
