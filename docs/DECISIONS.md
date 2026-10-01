@@ -4497,10 +4497,16 @@ carry never appeared; with a city set, the same answers showed the National
 Domestic Violence Hotline. Now an **urgent abuse** line with no usable line —
 no country, or a country that has none (Somalia, "somewhere else") — shows a
 visible, labelled country selector beneath the unchanged emergency sentence,
-and picking a country shows that country's emergency number and free line. The
-selector lists only countries that have a line (from `HELP`; the table itself
-is untouched and its yearly re-check stands). The choice is `useState` in the
-component: not written to storage, not put on her identity, not sent; a new
+and picking a country shows that country's emergency number and free line.
+The selector offers the whole existing country list (`src/data/countries.ts`),
+Somalia and "somewhere else" included, so no one has to pick a country that is
+not theirs; its label ("Choose your country to see available support.") and its
+initial, empty selection promise no service. A country with no listed abuse line
+(Somalia, "somewhere else") keeps the emergency guidance it already had and
+adds "We don’t have a local support line listed for this location."; switching
+to it from a country with a line removes that service and its telephone link.
+`HELP` and every number in it are untouched and its yearly re-check stands. The
+choice is `useState` in the component: not written to storage, not put on her identity, not sent; a new
 mount asks again. Not urgent, a crisis line, and a line shown under another one
 do not ask; a phone that knows her country is shown exactly what it was. Seen
 wherever an urgent abuse line is shown: the read's caution, the report screens

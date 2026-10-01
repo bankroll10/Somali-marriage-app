@@ -16,6 +16,13 @@
   same focus gap on his side of the two-sided eleven. Nothing in `src/data/*`,
   the engines, storage, consent, sharing or the Guide changed. No screen reader
   was used; the review is not user research.
+- **BATCH-03 correction (same day):** the helpline selector now offers every
+  existing country, Somalia and "somewhere else" included, starts empty, is
+  labelled "Choose your country to see available support." and says "We don’t
+  have a local support line listed for this location." where `HELP` lists no
+  abuse line (the prior service and its telephone link are removed when the
+  choice changes). `HELP`, its numbers, focus and script framing are untouched;
+  still component-local, no storage or requests. Checked at 390px and 320px.
 - **Release remains paused.** Evaluation applicability for this slice, from the
   repository's classifier, is recorded below; it does not remove the branch's
   existing requirements (both live suites, unfunded).

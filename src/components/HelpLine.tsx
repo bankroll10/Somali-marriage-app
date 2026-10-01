@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import { CRISIS_ANYWHERE, EMERGENCY_ANYWHERE, HELP, dial, helpFor } from '../data/help'
+import { CRISIS_ANYWHERE, EMERGENCY_ANYWHERE, dial, helpFor } from '../data/help'
 import { countries } from '../data/countries'
 import { countryFor } from '../data/scenes'
 import { loadProgress } from '../lib/storage'
@@ -17,16 +17,15 @@ interface Props {
   className?: string
 }
 
-/** The countries that have a line to show — Somalia and "somewhere else" do not. */
-const WITH_A_LINE = countries.filter((c) => HELP[c.id]?.line)
-
 /**
  * The line for when it cannot wait — see src/data/help.ts. Her country comes
  * from what this phone already holds. Where it holds none, or none with a
- * line, an urgent abuse line asks her where she is, in place, and shows that
- * country's line; the answer lives in this component only — not stored, not
- * sent, not put on her identity (docs/DECISIONS.md Part 26). The answerer on
- * a couple link has told us nothing, and gets the same question.
+ * line, an urgent abuse line asks her where she is, in place, from the whole
+ * country list — Somalia and "somewhere else" included, so she is never made
+ * to pick a country that is not hers — and shows that country's line, or says
+ * plainly that none is listed; the answer lives in this component only: not
+ * stored, not sent, not put on her identity (docs/DECISIONS.md Part 26). The
+ * answerer on a couple link has told us nothing, and gets the same question.
  */
 export default function HelpLine({ urgent = false, kind = 'abuse', lineOnly = false, className = '' }: Props) {
   const identity = loadProgress()?.identity
@@ -66,6 +65,7 @@ export default function HelpLine({ urgent = false, kind = 'abuse', lineOnly = fa
         </>
       )}
       {kind === 'crisis' && !line && <> A crisis line, where there is one: {CRISIS_ANYWHERE}.</>}
+      {asks && picked && !line && <> We don’t have a local support line listed for this location.</>}
     </p>
   )
   if (!asks) return words
@@ -74,7 +74,7 @@ export default function HelpLine({ urgent = false, kind = 'abuse', lineOnly = fa
       {words}
       <div className="mt-2.5">
         <label htmlFor={field} className="block text-[0.82rem] font-medium text-ink">
-          Where are you? We will show a free line to call.
+          Choose your country to see available support.
         </label>
         <select
           id={field}
@@ -83,14 +83,14 @@ export default function HelpLine({ urgent = false, kind = 'abuse', lineOnly = fa
           className="mt-1.5 min-h-11 w-full max-w-xs rounded-xl border border-line bg-white/70 px-3 text-[0.9rem] text-ink"
         >
           <option value="">Choose a country</option>
-          {WITH_A_LINE.map((c) => (
+          {countries.map((c) => (
             <option key={c.id} value={c.id}>
               {c.label}
             </option>
           ))}
         </select>
         <p className="mt-1.5 text-[0.78rem] leading-snug text-muted text-pretty">
-          Only used to show the number. It is not saved and not sent.
+          Only used to show what is listed here. It is not saved and not sent.
         </p>
       </div>
     </div>

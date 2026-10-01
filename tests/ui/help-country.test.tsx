@@ -3,7 +3,6 @@ import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import HelpLine from '../../src/components/HelpLine'
 import { COUNTRY_IDS } from '../../src/data/countries'
-import { HELP } from '../../src/data/help'
 import { Phone, onPhone, reload } from '../support/device'
 import { mount, type Mounted } from '../support/render'
 
@@ -45,16 +44,22 @@ async function choose(value: string) {
 }
 
 describe('HelpLine, urgent, with no country on the phone', () => {
-  it('asks where she is, with a visible label, and lists only countries that have a line', async () => {
+  it('asks, with a visible label and nothing chosen, and offers every country she can name', async () => {
     screen = await mount(<HelpLine urgent />)
     const el = select()!
     expect(el).toBeTruthy()
     const label = screen.container.querySelector(`label[for="${el.id}"]`)
-    expect(label?.textContent).toMatch(/Where are you\?/)
+    expect(label?.textContent).toBe('Choose your country to see available support.')
+    // Nothing is chosen until she chooses.
+    expect(el.value).toBe('')
+    // The whole existing list, Somalia and "somewhere else" included: she is
+    // never made to pick a country that is not hers.
     const offered = [...el.options].map((o) => o.value).filter(Boolean)
-    expect(offered.sort()).toEqual(COUNTRY_IDS.filter((id) => HELP[id].line).sort())
-    expect(offered).not.toContain('so')
-    expect(offered).not.toContain('other')
+    expect(offered.sort()).toEqual([...COUNTRY_IDS].sort())
+    expect(offered).toContain('so')
+    expect(offered).toContain('other')
+    // And the label promises no service: it does not say a line will be shown.
+    expect(screen.text()).not.toMatch(/free line to call/)
   })
 
   it('still says the emergency sentence, unchanged, before she answers', async () => {
@@ -78,11 +83,52 @@ describe('HelpLine, urgent, with no country on the phone', () => {
     expect(screen.text()).toContain('your local emergency number (911 in the US')
   })
 
+  it('supported, then unsupported, then supported: the service and its telephone link go, and come back', async () => {
+    const tels = () => [...screen!.container.querySelectorAll('a')].map((a) => a.getAttribute('href')).filter((h) => h?.startsWith('tel:'))
+    const FALLBACK = 'We don’t have a local support line listed for this location.'
+    screen = await mount(<HelpLine urgent />)
+    expect(screen.text()).not.toContain(FALLBACK)
+
+    await choose('uk')
+    expect(tels()).toEqual(['tel:999', 'tel:08082000247'])
+    expect(screen.text()).toContain('National Domestic Abuse Helpline')
+    expect(screen.text()).not.toContain(FALLBACK)
+
+    // Somalia has no number we could confirm (src/data/help.ts): the previous
+    // service, its number and its link are gone, the fallback is said, and the
+    // emergency guidance is the generic one that was there before she chose.
+    await choose('so')
+    expect(tels()).toEqual([])
+    expect(screen.text()).not.toContain('National Domestic Abuse Helpline')
+    expect(screen.text()).not.toContain('0808 2000 247')
+    expect(screen.text()).not.toMatch(/call 999/)
+    expect(screen.text()).toContain('If you are in danger now, call your local emergency number (911 in the US and Canada, 999 in the UK, 112 across Europe, 000 in Australia).')
+    expect(screen.text()).toContain(FALLBACK)
+    expect(screen.text()).not.toMatch(/To talk to someone now/)
+
+    await choose('other')
+    expect(tels()).toEqual([])
+    expect(screen.text()).toContain(FALLBACK)
+
+    await choose('us')
+    expect(tels()).toEqual(['tel:911', 'tel:18007997233'])
+    expect(screen.text()).toContain('National Domestic Violence Hotline, 1-800-799-7233')
+    expect(screen.text()).not.toContain(FALLBACK)
+    expect(screen.text()).not.toContain('0808 2000 247')
+
+    // Back to nothing chosen: no fallback, no service, the generic sentence.
+    await choose('')
+    expect(tels()).toEqual([])
+    expect(screen.text()).not.toContain(FALLBACK)
+  })
+
   it('keeps the choice in the component: nothing is written to the phone, nothing is sent', async () => {
     screen = await mount(<HelpLine urgent />)
-    const before = phone.keys()
-    await choose('ca')
-    expect(phone.keys()).toEqual(before)
+    // The phone's whole contents, keys and values, before and after.
+    const held = () => JSON.stringify([...phone.storage].sort())
+    const before = held()
+    for (const id of ['ca', 'so', 'other', 'uk']) await choose(id)
+    expect(held()).toBe(before)
     expect(fetches).not.toHaveBeenCalled()
     // A new mount asks again.
     screen.unmount()
@@ -94,6 +140,8 @@ describe('HelpLine, urgent, with no country on the phone', () => {
     progress({ scene: 'other', country: 'so' })
     screen = await mount(<HelpLine urgent />)
     expect(select()).toBeTruthy()
+    // Known to be Somalia, and nothing said yet: no fallback is claimed.
+    expect(screen.text()).not.toContain('We don’t have a local support line listed')
     await choose('ke')
     expect(screen.text()).toContain('National GBV Helpline, 1195')
   })
@@ -110,7 +158,7 @@ describe('HelpLine, everywhere it must stay as it was', () => {
   it('not urgent: the emergency sentence only, no question', async () => {
     screen = await mount(<HelpLine />)
     expect(select()).toBeNull()
-    expect(screen.text()).not.toMatch(/Where are you\?/)
+    expect(screen.text()).not.toMatch(/Choose your country/)
   })
 
   it('a crisis line, and a line shown under another one, never ask', async () => {
