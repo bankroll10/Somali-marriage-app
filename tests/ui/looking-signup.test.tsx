@@ -43,16 +43,18 @@ describe('what must be known before submitting is on the page, in the open', () 
     expect(t).toContain(`Niyyah is run by ${OPERATOR}`)
     // Eligibility: age, seriousness, the city first, elsewhere kept for later without a date, and the first-twenty rule.
     expect(t).toMatch(/18 or older, and serious about marriage/)
-    expect(t).toMatch(/beginning in Minneapolis–St\. Paul\. A name from anywhere else is kept for later, with no date/)
+    expect(t).toMatch(/Introductions are beginning in Minneapolis–St\. Paul; a name from anywhere else is kept for later, with no opening date/)
     expect(t).toMatch(/For the first twenty introductions, nobody currently engaged or married/)
     // The founder's conversation first; the reference conversation only if she agrees, and not kept.
     expect(t).toMatch(/conversation with you, by the email or number you give, before anyone is considered for you/)
     expect(t).toMatch(/if you agree to it, one conversation with a person who knows you; what they say is not kept/)
     // The approved summary, and the release rule: nothing identifying until both have said yes.
-    expect(t).toMatch(/short description that you approve, and that does not say who you are/)
-    expect(t).toMatch(/Nothing that identifies you — your name, your email or number — goes to a person proposed to you until you and they have both said yes/)
+    expect(t).toMatch(/first thing a proposed person hears about you is a short description you approve; it does not say who you are/)
+    expect(t).toMatch(/Nothing that identifies you, such as your name or contact, goes to a person proposed to you until you and they have both said yes/)
     // Scheduled removal, and the right to withdraw.
-    expect(t).toMatch(/scheduled to be removed on the Sunday on or before its 180th day; the exact date is shown once it is saved\. Take it off any time/)
+    expect(t).toMatch(/scheduled to be removed on the Sunday on or before its 180th day; the exact date is shown when it is saved\. Take it off any time/)
+    // Manual facilitation, said once, and one at a time.
+    expect(t).toMatch(/makes every introduction by hand, one at a time/)
   })
 
   it('promises nothing about outcomes: one plain non-guarantee, no response time, no queue, no match', async () => {
@@ -68,28 +70,24 @@ describe('what must be known before submitting is on the page, in the open', () 
     expect(screen!.container.querySelectorAll('[aria-expanded="false"], [title]')).toHaveLength(0)
     // Each disclosure is a labelled row inside the visible block.
     const rows = [...(el('#looking-before')?.parentElement?.querySelectorAll('dt') ?? [])].map((d) => d.textContent)
-    expect(rows).toEqual(['Who runs it', 'Who it is for', 'What happens first', 'Before anyone hears about you', 'How long it stays'])
+    expect(rows.map((r) => r?.trim().replace(/\.$/, ''))).toEqual(['Who runs it', 'Who it is for', 'What happens first', 'Before anyone hears about you', 'How long it stays'])
   })
 })
 
 describe('what is sent, and what the person can do about it', () => {
   it('lists every field, who reads it, what is kept apart, and the way back', async () => {
     const h = await open()
-    const block = el('#looking-goes')?.parentElement
+    const block = el('#looking-goes')?.closest('section')
     expect(block).toBeTruthy()
-    const items = [...block!.querySelectorAll('li')].map((li) => li.textContent)
-    expect(items).toEqual([
-      'a way to reach you',
-      'your first name, if you gave it',
-      'whether you are a woman or a man',
-      'your city and its country',
-      'how far you would go',
-      'that you confirmed you are 18 or older',
-    ])
+    // Every field the request carries is named, once, in the one "Sent" sentence.
+    const sent = flat([...block!.querySelectorAll('li')].find((li) => /^Sent:/.test(li.textContent ?? ''))?.textContent ?? '')
+    for (const field of [/a way to reach you/, /your first name if you gave it/, /whether you are a woman or a man/, /your city and its country/, /how far you would go/, /that you confirmed you are 18 or older/]) {
+      expect(sent).toMatch(field)
+    }
     const text = flat(block!.textContent ?? '')
-    expect(text).toMatch(/The founder reads the list; nothing else does/)
-    expect(text).toMatch(/Nothing from your map, a read or the eleven is attached to it/)
-    expect(text).toMatch(/under a code this phone made up for it, so you can take your name off from here, and Forget me takes it off with everything else/)
+    expect(text).toMatch(/the founder reads the list; nothing else does/)
+    expect(text).toMatch(/Nothing from your map, a read or the eleven is attached/)
+    expect(text).toMatch(/our server under a code this phone made up for it, so you can take your name off from here; Forget me removes it with everything else/)
     // The way to the full account is a real control and goes where it says.
     await screen!.press('What leaves your phone')
     expect(h.onTrust).toHaveBeenCalledTimes(1)
@@ -152,14 +150,14 @@ describe('the form', () => {
 })
 
 describe('recovery by code stays separate from a new signup', () => {
-  it('sits after the signup form, under its own label, outside it', async () => {
+  it('sits after the signup form, outside it, under one heading of its own', async () => {
     await open()
     const have = [...screen!.container.querySelectorAll('button')].find((b) => /^I have a code/.test(b.textContent ?? ''))!
     const signup = el('button[type="submit"]')!.closest('form')!
     expect(have.closest('form')).toBeNull()
     expect(signup.contains(have)).toBe(false)
     expect(signup.compareDocumentPosition(have) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(screen!.text()).toContain('Already put your name down?')
+    expect(flat(screen!.text()).match(/Take a name off with its code/g)).toHaveLength(1)
     // Opening it adds a code field of its own; the signup's fields are untouched.
     await screen!.press(/^I have a code/)
     expect(el('#looking-code')).toBeTruthy()

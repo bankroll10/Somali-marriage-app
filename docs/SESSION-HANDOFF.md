@@ -52,19 +52,19 @@
   may keep showing content they cached earlier, from either address, until
   those caches refresh. Card inspected at full size and at 375px wide, no
   clipping.
-- **BATCH-02C, introduction signup readability (2026-10-01):** `Looking.tsx`
-  presentation and copy only (`docs/DECISIONS.md` Part 25): short intro with one
-  non-guarantee, five labelled always-visible disclosure rows, a bulleted data
-  block, grouped fields with short help, recovery by code under its own
-  divider. Pilot rules, fields, consent, submission, receipt, withdrawal,
-  routing and focus are untouched. A **usability hypothesis only**: nothing has
-  measured completion or understanding. New `tests/ui/looking-signup.test.tsx`
-  holds disclosure meaning and visibility, no outcome promises, field-for-field
-  data list, no reset on validation, recovery separate from signup; the existing
-  journey tests pass unchanged. Checked in the built app at 390, 320 and desktop
-  with a stubbed backend and synthetic data (no overflow in any state). The
-  page is longer than before (more headings and lists), the price of
-  scannability. Limitation: no screen reader was used.
+- **BATCH-02C, introduction signup readability (2026-10-01, revised once):**
+  `Looking.tsx` presentation and copy only (`docs/DECISIONS.md` Part 25): short
+  intro with one non-guarantee, five always-visible disclosure rows with run-in
+  labels, a compact three-line data block, grouped fields with short helper
+  text, recovery by code under its own card heading. Reliability behaviour,
+  pilot rules, fields, consent, receipt, withdrawal, routing and focus are
+  untouched. First version was taller than the baseline; the revision measures
+  2,802px fresh at 390px vs 2,913px before 02C (3,380 vs 3,432 at 320px) and
+  327 prose words vs 344. A **usability hypothesis only**, never validated with
+  users. `tests/ui/looking-signup.test.tsx` holds disclosure meaning and
+  visibility, no outcome promises, the field list, no reset on validation and
+  recovery outside the signup form; the journey tests pass unchanged. No screen
+  reader was used.
 - **Left for later:** nothing from this batch beyond the above.
 - **Release remains paused** exactly as below: no pull request, merge,
   deployment or paid evaluation; both live suites still need funding.

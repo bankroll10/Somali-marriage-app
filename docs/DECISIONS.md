@@ -4461,3 +4461,19 @@ presentation and copy only:
 - **Left alone:** the submission state machine, request identity, retries,
   storage, server dates, the receipt, withdrawal, tombstones, Forget me,
   routing and the focus repair. No presentation change needed any of them.
+
+**BATCH-02C revision, same day.** The first 02C layout made the signup taller
+(3,554px against 2,913px at 390px, a fresh form) without reducing what must be
+read, so it was revised once, copy and spacing only. Measured in the built app
+on identical viewports with both typefaces confirmed loaded, fresh form at
+390px: 2,913px before 02C, 3,554px after it, **2,802px now**; at 320px 3,432 /
+4,148 / **3,380**. Prose words (everything but buttons, inputs, labels and
+headings): 344 / 350 / **327**. The saving is mostly the shorter introduction
+and run-in labels in the disclosure rows; the two group headings and the two
+helper lines the form gained cost some of it back. The disclosure rows lost no
+meaning and the release rule keeps its exact wording ("goes to a person proposed
+to you until you and they have both said yes"). The location helper no longer
+tells people to pick the nearest city ("Choose your city or area. If it isn’t
+listed, choose Somewhere else."), and the contact helper promises no response
+("For the founder to contact you about your request."). The recovery card has one
+heading, its own. Still a hypothesis: shorter is not shown to be clearer.
