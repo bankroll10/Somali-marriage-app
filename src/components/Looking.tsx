@@ -290,7 +290,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
   const withdrawnLine: Record<Withdrawn, string> = {
     removed: 'Your name is off the list. Nothing about you is held there now.',
     nothing: 'Nothing was under that code any more. It is marked as taken off, so a request still on its way under it is refused for the next days.',
-    failed: 'We could not reach the list just now — that is us, not you. Nothing has changed; try again in a moment.',
+    failed: 'We could not confirm that your name came off the list. It may have, or it may not. Try again in a moment: asking again with the same code is safe.',
   }
 
   const codeEntry = (

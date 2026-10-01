@@ -1,6 +1,73 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done (Forget me confirmation is an open release blocker)
 
-## Status as of the latest session (2026-10-01, BATCH-07B)
+## Status as of the latest session (2026-10-01, BATCH-07C)
+
+- **BATCH-07C (`docs/DECISIONS.md` Part 32), finding F and the shared withdrawal failure wording
+  repaired.** `withdrawInterest` (`src/lib/introduce.ts`) now confirms a withdrawal only from a
+  response the protocol gives: **exactly 200 with a JSON object whose `removed` is a boolean** (`true`
+  → `removed`, `false` → `nothing`), or the **legacy 404 with a JSON object whose `error` is
+  `not_found`** (→ `nothing`). Everything else (a body that is cut, empty, HTML, not JSON, an array,
+  `null`, or without a boolean `removed`; another 2xx; a 404 with another body; any other status; no
+  answer) is `failed`, which now means *unconfirmed* and keeps the receipt, the pending record and the
+  page's own copies. Records are cleared only after a recognized answer, and only those holding the
+  code asked about. No new result type. The legacy 404 confirms absence under the legacy contract; it
+  is not evidence that the current handler's withdrawal marker was written, and the current handler
+  never sends it. The server, tombstones, request identity and retention are unchanged.
+- **Wording:** `withdrawnLine.failed` (shared by the receipt and "I have a code") is now "We could
+  not confirm that your name came off the list. It may have, or it may not. Try again in a moment:
+  asking again with the same code is safe." The old "that is us, not you. Nothing has changed" is
+  gone. The note's own wording is unchanged. One existing assertion
+  (`tests/ui/looking-arrival.test.tsx`) was changed for it, not kept green.
+- **Reproduced first** (a scratch test outside the repository, synthetic state, the real handler over
+  the in-memory store): an unreadable or unexpected 200 returned `nothing` and cleared the receipt or
+  pending code in 14 of 14 cases, with the record still on the server when the handler had not run.
+- **Evidence:** `src/lib/introduce.test.ts` (84 new, 90 in the file; 69 fail against the previous
+  helper, 21 are guards), `tests/ui/looking-withdraw.test.tsx` (new, 11 tests, all fail against the
+  previous helper and wording), `tests/support/answers.ts` (new, the shared answers and interceptor).
+  Both situations are covered: the deletion happened and its confirmation was unreadable, and an
+  invalid success-looking answer arrived with nothing deleted; in both the code is kept and a later
+  valid answer resolves it. Storage-refused (page-memory) copies are covered. Eight mutations each
+  fail a test (one, any 2xx instead of exactly 200, survived the first set and led to the 202 case).
+  **Built app** (scratch build, headless Chromium, 390×844 and 320×568, 12 runs: receipt, note and typed
+  code × both situations): the **real handler over an in-memory store** behind a local HTTP server,
+  faults injected on the wire (status then a socket destroyed mid-body after the real handler ran; the
+  app's own HTML as a 200 with the handler not run). No false-claim phrase, the code still in
+  `localStorage`, one DELETE and no POST per tap, no horizontal overflow, and one later real answer
+  resolved each. The previous build fails all 12. This is local-handler evidence in a real browser,
+  **not** the deployed functions.
+- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (120 files, 1725 passed, 2 skipped:
+  the live blocks); `npm run build` exit 0; `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` unset and no API key in
+  the environment. **Classifier** (`tests/eval/check.ts applicability`, on the actual diff: `introduce.ts`,
+  `Looking.tsx`, `introduce.test.ts`, `tests/support/answers.ts`, two UI test files, `DECISIONS.md`,
+  this file): guide **not required**, judgment **not required**. The accumulated branch (`261d055..HEAD`,
+  98 files with this slice) still requires both live suites (workflow, `package.json`, lockfile,
+  `tests/eval/`); they are unfunded. This is not measured Guide or read behavior.
+- **RELEASE BLOCKER, unresolved: Forget me confirms an introduction deletion falsely.** `forgetMe`
+  does not use `withdrawInterest`; `del` in `src/lib/forget.ts` (91–95) counts `res.ok || 404` as
+  landed. *Reproduction* (scratch test, synthetic state, the real handler, the introduction DELETE
+  answered `200 text/html` with the handler not run), for a saved receipt and for a pending-only
+  attempt: `forgetMe().intro` is `true`, the local receipt, pending record and page copies are gone,
+  `pendingForget()` is `null`, and **the record is still in the store**; the app then replaces the
+  page. The affected state is exactly the introduction receipt code and pending-attempt code, the only
+  things that could take the record off from this phone. **Forget me is not a verified fallback for a
+  malformed withdrawal response**, and the receipt's failure line still mentions it ("Forget me on
+  Trust takes it off … the next time it can"), which that finding calls into question; not changed in
+  this slice. The next slice examines a targeted introduction-delete confirmation repair in that path.
+  A broad endpoint audit is **not** authorized.
+- **Still open, not touched:** **B** (the receipt's "kept for later" notice is read from the saved
+  profile, not the request; a founder decision). **Body stall, source-read only, unverified:**
+  `send()` clears its timer when headers arrive, so a body that never finishes may not be bounded; this
+  slice does not change `send` and does not claim to fix request-body timeouts. Focus on `BODY` after
+  the receipt's tap and after a typed-code withdrawal (measured again, unrepaired). **Not claimed:** that
+  deletion confirmation is repaired throughout the app. One helper and one sentence are.
+- **Limitations:** no screen reader was used; one browser (headless Chromium); Firefox and Safari not
+  run; the cut and HTML answers are what a test server made, not what Netlify does. **Still unknown:**
+  whether the production sweep ran, whether any real records were deleted, and whether the live
+  evaluation harness passes. No PR, merge, deployment, paid evaluation, outreach or participant-data
+  access; the release remains paused. Running the classifier rewrites the git-ignored
+  `tests/*/results/outcome.json`; the last write is the accumulated-branch answer.
+
+## Previous status (2026-10-01, BATCH-07B)
 
 - **BATCH-07B (`docs/DECISIONS.md` Part 31), findings C, D and E repaired** in
   `src/components/Looking.tsx` only. `pendingIntro()` stays the one owner of the pending
@@ -64,6 +131,7 @@
   behavior and does not change the accumulated branch (`261d055..HEAD`, 96 files with this slice),
   which still requires both live suites (workflow, `package.json`, lockfile, `tests/eval/`); they
   are unfunded.
+- **Update (BATCH-07C, above): F and the receipt's "Nothing has changed" are repaired.**
 - **Still open, not touched:** **B** (the receipt's "kept for later" notice is read from the saved
   profile, not the request; a founder decision). **F** (`withdrawInterest` maps a 200 whose body
   cannot be read to `nothing`, and then clears the receipt and the pending code, so an unreadable

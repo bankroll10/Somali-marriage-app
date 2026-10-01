@@ -5107,6 +5107,11 @@ read from the saved profile rather than the request. **Known and not repaired:**
 identical outcome, focus is on `BODY` (the submit button is disabled while it sends), and
 withdrawal by a typed code leaves focus on `BODY`.
 
+**Update, 2026-10-01 (BATCH-07C, Part 32).** Finding F, and the receipt's "Nothing has
+changed", are repaired in Part 32 (the helper and the shared failure wording only). The
+Forget me path has its own false confirmation of the same kind, **not repaired**, recorded in
+Part 32 as an unresolved release blocker. **B** stays open.
+
 **Not verified.** No screen reader (VoiceOver, TalkBack, NVDA, JAWS) was used, so the
 announcement of the note's heading and of its status line is unverified; one browser
 (headless Chromium), a browser stub, and happy-dom for focus and `scrollTo` calls; Firefox and
@@ -5115,3 +5120,154 @@ Safari were not run. Not a usability test.
 **Evaluation.** The repository's classifier was run on this slice's actual diff; the result is
 in `docs/SESSION-HANDOFF.md`. No file measured by either live suite changed. The accumulated
 branch still requires both on a pull request; they are unfunded and the release remains paused.
+
+## Part 32: A withdrawal is confirmed only by an answer the protocol gives (2026-10-01, BATCH-07C)
+
+**Why.** Two recorded problems from Parts 30 and 31. **Finding F:** `withdrawInterest` read any
+2xx whose body was not `{removed: true}` as `nothing`, and on `nothing` it cleared the receipt and
+the pending code. And the receipt's own failure line said "Nothing has changed", which nobody
+knows after a DELETE whose answer was lost: the server may have deleted the record. The founder
+approved the contract and the copy below. Nothing here changes the server, tombstones, request
+identity, retention, consent or policy.
+
+**Reproduced, before the repair** (a scratch test outside the repository: synthetic codes and a
+synthetic contact, the real handler over the in-memory store, only the DELETE's answer replaced;
+no deployed store, no real record). Asserting the wanted result, 14 of 14 failed, each returning
+`nothing` and clearing the code, for a saved receipt and for a pending-only attempt:
+
+| The DELETE was answered | The real handler ran | The record after | Cleared before |
+|---|---|---|---|
+| 200, body cut mid-read | yes (record deleted, marker written) | gone | yes |
+| 200, the app's HTML | yes | gone | yes |
+| 200, the app's HTML (Netlify's catch-all, `/* → /index.html 200`) | no | **still there** | yes |
+| 200 `{}`, `{"removed":"yes"}`, `null`, empty | no | **still there** | yes |
+
+So the person was told "Nothing was under that code any more" and lost the only copy of the code
+while the record remained. Where the record was gone, the same words were true only by accident.
+
+**The protocol.** The current handler answers a DELETE with 200 `{removed: true}` (a record went),
+200 `{removed: false}` (none was under the code; the withdrawal marker is written either way), 400
+`bad_code`, 503 `rate_limited` or `unavailable`, and 405. It never answers 404. The legacy handler
+(`261d055`, `d7b08e4`; what `main` serves until this batch ships) answered 200 `{removed: true}`
+and **404 `{error: 'not_found'}`** for a code with nothing under it. Older *clients* read any 200 as
+gone; that is a client habit, not a server shape, and is not kept.
+
+**The contract** (`outcomeOf` in `src/lib/introduce.ts`):
+
+| Response | Outcome | Receipt, pending record, memory copies |
+|---|---|---|
+| No response (offline, timeout) | `failed` | kept |
+| Exactly 200, a JSON object, boolean `removed: true` | `removed` | cleared where the code matches |
+| Exactly 200, a JSON object, boolean `removed: false` | `nothing` | cleared where the code matches |
+| 404, a JSON object, `error === 'not_found'` (legacy) | `nothing` | cleared where the code matches |
+| 200 with a body that is cut, empty, HTML, not JSON, an array, `null`, or has no boolean `removed` | `failed` | kept |
+| Any other 2xx (202, 204 …) | `failed` | kept |
+| 404 with any other body | `failed` | kept |
+| 400, 503, any other status | `failed` | kept |
+
+`failed` is kept and its meaning is now written down: **unconfirmed**, no claim about whether the
+server removed anything. No new result type: all three callers already branch on `failed`, keep
+the code and offer a direct retry. Records are cleared after a recognized answer, and only those
+that hold the code asked about (a receipt for A and a pending attempt for B are independent).
+Asking again with the same code is safe: a second DELETE is answered `removed: false`, which
+clears.
+
+**The legacy 404 is not the current handler's guarantee.** It confirms absence under the legacy
+contract. It is not evidence that the current handler's withdrawal marker was written, and nothing
+here treats it as such. The current handler never sends it.
+
+**The wording.** `withdrawnLine.failed`, shared by the receipt and by "I have a code", was "We could
+not reach the list just now — that is us, not you. Nothing has changed; try again in a moment." It
+is now "We could not confirm that your name came off the list. It may have, or it may not. Try
+again in a moment: asking again with the same code is safe." The receipt keeps its own second
+sentence ("Your code is still held here, and Forget me on Trust takes it off with everything else
+the next time it can."), which is about the code and not about the outcome; see the Forget me
+finding below before relying on that sentence for a malformed answer. The earlier try's note
+already said "We could not confirm that it came off. Keep the recovery code and try again." and is
+unchanged.
+
+**Files.** `src/lib/introduce.ts` (the classifier and the doc comments); `src/components/Looking.tsx`
+(one string); `tests/support/answers.ts` (new: the answers and the interceptor, shared by two test
+files); `src/lib/introduce.test.ts` (new cases); `tests/ui/looking-withdraw.test.tsx` (new, 11 tests);
+`tests/ui/looking-arrival.test.tsx` (one assertion, the old failure sentence, changed on purpose).
+Not touched: `forget.ts`, `net.ts`, `App.tsx`, `registerInterest`, the server, the focus helpers.
+
+**Evidence.**
+- *Both situations the phone cannot tell apart are tested:* the real handler ran and deleted the
+  record and the confirmation was unreadable (`completed`), and an invalid success-looking answer
+  came back with the handler never run and the record still there.
+- `src/lib/introduce.test.ts`: 84 new tests, 90 in the file. Each unconfirmed answer (cut body, the
+  app's HTML, empty, `{}`, `null`, `[]`, string and numeric `removed`, 204, a 202 carrying a valid
+  `{removed: true}`, 404 with HTML, `{}` and another error, 500, 503, no answer) × receipt or pending
+  attempt × completed or not, with storage working; three shapes again with storage refused, so the
+  page's own copies are covered. Each asserts `failed`, the code still held, exactly one request
+  (`DELETE …introduce?code=<code>`, no POST) and the server's state unchanged by the answer. A later
+  valid answer resolves each case (`nothing` after a completed deletion, `removed` after none), with
+  one marker. The three recognized answers clear. Receipt A with pending B: an unconfirmed answer
+  clears neither, a confirmed one clears only the matching record, in either order. (Two different
+  codes in memory are not reachable through the API, so that pair is tested with storage.)
+- `tests/ui/looking-withdraw.test.tsx`: the receipt's "Take my name off", the note's "Take that try
+  off", and "I have a code" (the phone's own code, another phone's code, the receipt screen's own
+  code), each in both situations, and the storage-refused receipt and note. After an unconfirmed
+  answer: the screen stays, none of "Your name is off the list", "Nothing was under that code",
+  "Nothing has changed", "We could not reach the list", "that is us, not you" appears, the code
+  stays in storage (or on screen, for memory-only), the typed code stays in the field, no arrival
+  scroll, and one later valid tap resolves it with no second submission.
+- *Fail-first:* against the previous helper and wording, 69 of the 90 unit tests fail (the other 21
+  are guards that hold on both: network, 5xx, the confirmed answers) and 11 of 11 UI tests fail.
+  *Mutations,* each of which fails at least one test: accept any JSON object as a 200; read an
+  unreadable 200 as `nothing`; accept any 404; accept a 404 with any string `error`; accept any
+  2xx instead of exactly 200 (this one survived the first set of cases, so the 202 case was added);
+  clear before classifying; clear both records whatever the code; clear only the receipt.
+- *Built app* (scratch build, headless Chromium, 390×844 and 320×568, service workers blocked, the
+  introduction function served by the **real handler over an in-memory store** behind a local HTTP
+  server that also serves `dist` with Netlify's SPA fallback). Faults were injected on the wire: the
+  status sent and the socket destroyed mid-body after the real handler had deleted the record
+  (`completed`), and a 200 of the app's own HTML with the handler never run. A lost POST answer made
+  the pending attempt. For each of receipt, note and typed code, in both situations, at both widths
+  (12 runs): the false-claim phrases above were absent; the receipt or pending code was still in
+  `localStorage`; one DELETE and no POST per tap; no horizontal overflow; one DELETE then a real
+  answer resolved it (`nothing` and an unchanged marker where the record was already gone; `removed`
+  and one new marker where it was not), with both keys cleared and the record gone. The previous
+  build fails all 12 (each waits for a message that never appears). This is **local-handler
+  evidence in a real browser**; it is **not** the deployed functions, and the browser-stub evidence
+  of Parts 30 and 31 is a separate, weaker kind. Focus after the receipt's tap was on `BODY` and
+  after the typed tap on `BODY` (known and unrepaired); after the note's tap it stayed on the button.
+
+**Forget me: an unresolved release blocker, not repaired here.** `forgetMe` does not use
+`withdrawInterest`. `del` in `src/lib/forget.ts` (lines 91–95) counts `res.ok || res.status === 404`
+as landed, for all five of its deletes, so a 200 that says nothing about removal is a success there.
+*Reproduction* (a scratch test outside the repository, synthetic state, the real handler over the
+in-memory store, the introduction DELETE answered `200 text/html` with the handler not run), run for
+a saved receipt and for a pending-only attempt: `forgetMe().intro` is `true`; the receipt, the
+pending record and the page's copies are gone; `pendingForget()` is `null` (nothing is kept to send
+again); **the record is still in the store**. In the app, `forgetEverything` then calls
+`window.location.replace('/')` on that result. The affected introduction recovery state is exactly
+the receipt code and the pending-attempt code, which are the only things that could take that record
+off from this phone afterwards, so the person cannot retry from it. **Do not rely on Forget me as a
+verified fallback for a malformed withdrawal response:** it can confirm falsely the same way. A
+targeted repair of the introduction delete in that path is the next slice's question; a broad audit
+of every endpoint's response is not authorized.
+
+**Still open, not touched.** **B**, the receipt's "kept for later" notice read from the saved profile,
+not the request (a founder decision). **The body-stall concern** (source-read only, **not
+reproduced, unverified**): `send()` in `net.ts` clears its 10 s timer when the response headers
+arrive, so a response whose body never finishes may not be bounded by it, and a withdrawal would
+stay on "Taking it off…". This slice does not change `send`, does not fix request-body timeouts and
+does not claim to. Focus on `BODY` after the receipt's button and after a typed-code withdrawal.
+**This does not say deletion confirmation is repaired throughout the app**: it says one helper,
+`withdrawInterest`, no longer treats an unconfirmed answer as confirmed, and one failure sentence no
+longer claims nothing changed.
+
+**Not verified.** No screen reader (VoiceOver, TalkBack, NVDA, JAWS) was used. One browser (headless
+Chromium); Firefox and Safari not run. The built-app runs used the real handler over an in-memory
+store, not the deployed functions or the production store; the lost and cut answers are what a test
+server made, not what Netlify does. Not a usability test.
+
+**Evaluation.** The repository's classifier, on this slice's actual diff (`introduce.ts`,
+`Looking.tsx`, `introduce.test.ts`, `tests/support/answers.ts`, two UI test files, this file and the
+handoff): guide **not required**, judgment **not required**. On the accumulated branch
+(`261d055..HEAD`, 98 files with this slice) it still says **required** for both (workflow,
+`package.json`, lockfile, `tests/eval/`); both live suites are unfunded and the release remains
+paused. Running it rewrites the git-ignored `tests/*/results/outcome.json`; the last write is the
+accumulated-branch answer.

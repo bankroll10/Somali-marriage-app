@@ -271,30 +271,71 @@ export async function registerInterest(input: InterestInput): Promise<Registered
   }
 }
 
+/**
+ * What a withdrawal came to. `failed` means *unconfirmed*: no answer at all, or
+ * an answer that is not one of the two the protocol gives (below). It says
+ * nothing about whether the server removed the record.
+ */
 export type Withdrawn = 'removed' | 'nothing' | 'failed'
 
+/** The body of a response, if it is a JSON object. Anything else — HTML, a cut stream, `null`, an array, a string — is not one. */
+async function objectBody(res: Response): Promise<Record<string, unknown> | null> {
+  try {
+    const body: unknown = await res.json()
+    return body !== null && typeof body === 'object' && !Array.isArray(body) ? (body as Record<string, unknown>) : null
+  } catch {
+    return null
+  }
+}
+
 /**
- * Take a name off by its code. `removed` when a record went; `nothing` when
- * none was under the code — the server has marked it either way, so for the
- * marker's days (two at least, until the weekly run after) a request still
- * on its way under it is refused; `failed` when the server could not be
- * reached or would not answer, in which case the code is kept so she can try
- * again or Forget me can finish it. On `removed` or `nothing` this phone
- * forgets the code, as a receipt and as a pending attempt.
+ * Read a DELETE's answer as `removed`, `nothing` or `failed`, and as nothing
+ * else. Two answers confirm an outcome, and only these:
+ *
+ *  - **200 with a JSON object whose `removed` is a boolean** — the handler's
+ *    own answer (netlify/functions/introduce.ts). `true`: a record went.
+ *    `false`: none was under the code; the withdrawal marker is written either
+ *    way.
+ *  - **404 with a JSON object whose `error` is `not_found`** — the *legacy*
+ *    handler's answer for a code with nothing under it (the one deployed
+ *    before 2026-09-27). It confirms absence under that contract. It is not
+ *    evidence that the current handler's withdrawal marker was written, and
+ *    nothing here treats it as such; the current handler never sends a 404.
+ *
+ * Everything else is `failed`: a 200 whose body cannot be read, is not JSON, or
+ * has no boolean `removed` (a 200 alone is not evidence — Netlify's catch-all
+ * answers 200 with the app's HTML for a path with no function behind it, and a
+ * body can be cut after the status was sent), another 2xx, a 404 with any
+ * other body, and every other status.
+ */
+async function outcomeOf(res: Response | null): Promise<Withdrawn> {
+  if (!res) return 'failed'
+  if (res.status === 200) {
+    const body = await objectBody(res)
+    return body && typeof body.removed === 'boolean' ? (body.removed ? 'removed' : 'nothing') : 'failed'
+  }
+  if (res.status === 404) {
+    const body = await objectBody(res)
+    return body?.error === 'not_found' ? 'nothing' : 'failed'
+  }
+  return 'failed'
+}
+
+/**
+ * Take a name off by its code. `removed` when the server said a record went;
+ * `nothing` when it said none was under the code — it has marked the code
+ * either way, so for the marker's days (two at least, until the weekly run
+ * after) a request still on its way under it is refused; `failed` when the
+ * outcome is not confirmed (see `outcomeOf`): no answer, or one that does not
+ * satisfy the protocol. The deletion may or may not have happened, so on
+ * `failed` the code is kept, as a receipt and as a pending attempt, and asking
+ * again with the same code is safe: a second DELETE is answered `removed:
+ * false`. Only on `removed` or `nothing` does this phone forget the code, and
+ * only the records that hold the code asked about.
  */
 export async function withdrawInterest(code: string): Promise<Withdrawn> {
-  const res = await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`, { method: 'DELETE' })
-  if (!res) return 'failed'
-  let result: Withdrawn
-  if (res.ok) {
-    try {
-      const body = (await res.json()) as { removed?: unknown }
-      result = body.removed === true ? 'removed' : 'nothing'
-    } catch {
-      result = 'nothing'
-    }
-  } else if (res.status === 404) result = 'nothing'
-  else return 'failed'
+  const result = await outcomeOf(await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`, { method: 'DELETE' }))
+  if (result === 'failed') return result
   if (rememberedIntro()?.code === code) forgetIntro()
   if (pendingIntro()?.code === code) forgetPending()
   return result

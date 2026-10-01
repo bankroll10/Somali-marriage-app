@@ -149,7 +149,7 @@ describe('the receipt becomes the form after the name is taken off', () => {
     const off = control(/^Take my name off/)
     act(() => off.focus())
     await m.press(/^Take my name off/)
-    await m.until(() => m.text().includes('We could not reach the list just now'), 'the failure')
+    await m.until(() => m.text().includes('We could not confirm that your name came off the list'), 'the failure')
     expect(scrollTo.mock.calls.length).toBe(before)
     expect(m.text()).toContain('Your request was saved on')
     // And the retry that works is an arrival of its own.
