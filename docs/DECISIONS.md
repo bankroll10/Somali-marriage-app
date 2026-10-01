@@ -4517,6 +4517,13 @@ and the guide's safety reply. *Limit:* where the guide shows the abuse line and
 the crisis line together, the picked country updates the first only; the crisis
 line keeps its existing generic fallback.
 
+*Update, 2026-10-01 (Part 29, BATCH-06):* that limit is resolved for the one place
+the two lines are shown together, the foot of the Guide ("Not safe, or not
+okay?"). There one `HelpLine` owns the temporary choice and renders both blocks
+from it, so a country she names applies to both and the question is asked once.
+The limit above stands as the record of what Part 26 shipped; independent blocks
+in the Guide's thread, and a standalone crisis line, are unchanged.
+
 **2. A caution's card named the wrong recipient** (`src/components/Read.tsx`).
 When she is careful what she raises, the engine's words are `CAREFUL_SCRIPT` —
 for one person who knows her. A caution result carries no `careful` line, so
@@ -4729,3 +4736,121 @@ which the pointer-Back test stands in for.
 the result is in `docs/SESSION-HANDOFF.md`. It says nothing about the accumulated
 branch, whose workflow, harness and lockfile changes still require both live suites
 on the pull request. They are unfunded, and the release remains paused.
+
+## Part 29: One country question for the Guide's two support lines (2026-10-01, BATCH-06)
+
+Part 26 recorded a limit: where the Guide shows the abuse line and the crisis line
+together, the picked country updated the first only. This is the repair, from a
+review that traced the state before proposing anything.
+
+**Reproduced** in the built app (the existing `dist/`, headless Chromium at
+390×844 and 320×568, service workers blocked, every function route answered 503,
+external hosts aborted, synthetic seeded state only, no live model, no participant
+data). With no country saved, the foot of the Guide opened and uk → so → us →
+other → empty → dk chosen: the abuse block followed each choice and the crisis
+block stayed on "A crisis line, where there is one: 988 in the US and Canada,
+116 123 in the UK." every time, so a person who named Denmark never saw
+Livslinien. With a saved US country both blocks were already hers and there was no
+question. The only place the two are rendered together is `Coach.tsx`'s floor; in
+the thread an answer gets a crisis block *or* an abuse block, never both.
+
+**Cause.** `picked` was `useState` inside each `HelpLine`, and only the abuse
+instance could ask (`urgent && kind === 'abuse' && !lineOnly && !known.line`). The
+second, `kind="crisis" lineOnly`, never asked, never held a choice and read the
+saved country only. Two instances, one state each, nothing shared.
+
+**Repair** (`src/components/HelpLine.tsx`, `src/components/Coach.tsx`). A new
+optional prop, `withCrisis`: one `HelpLine` renders the abuse block and the crisis
+block from the same `help`, and draws the one selector after both. The paragraph
+that was written out once became a local `block(kind, lineOnly)` so the two blocks
+share the code and the wording. The floor is now `<HelpLine urgent withCrisis />`.
+The selection is still `useState` in that component: not stored, not sent, not put
+on her identity. It goes when the blocks do: closing the disclosure, switching
+voice or leaving the Guide unmounts them, and the next open asks again. Nothing
+else was added: no wording, no service, no number, no advice.
+
+**What it does.** Nothing chosen, or the choice cleared: both blocks are exactly
+what they were before the question (the generic emergency sentence, the
+country-qualified crisis fallback, no link). A country with lines: its emergency
+number and both lines, each a `tel:` link, the crisis line with its hours where it
+has them (Denmark, Kenya and the UAE are not round the clock, and say so; only the
+abuse line is called "free"). A country with none (Somalia, "somewhere else"): every
+previous service name and link is gone from both blocks; the emergency wording stays
+generic, the abuse block says "We don’t have a local support line listed for this
+location." once, and the crisis block keeps its existing country-qualified fallback.
+Where the two lines differ in availability each block follows its own listing; no
+real `HELP` row differs (every real country has both, Somalia and "somewhere else"
+neither), so that case is tested with a synthetic table. A saved country with
+lines still gets no question and both blocks; a saved country with none (Somalia)
+asks, and an explicit choice applies to both. The selector sits after both blocks
+because it governs both and, measured, stays at the same place on the screen across
+every choice, which it did not need to before the crisis block's text started to
+change with the country.
+
+**Unchanged on purpose.** Standalone `HelpLine` in every caller (the read's two
+cautions, the report screens, the ending, Before you say yes) and the thread's own
+blocks: each keeps its own independent question, so a choice in a thread block is
+not a choice in the floor. A standalone crisis line still never asks and shows its
+generic fallback where no country is known. `src/data/help.ts`,
+`src/data/countries.ts`, `HELP`, its numbers, the voice, the engines, storage,
+backend, workflow and classifier are untouched. No `aria-live` was added.
+
+**Tests.** `tests/ui/help-country.test.tsx`, eight new characterization tests of
+standalone behaviour (rendered text, exact `tel:` links, selector presence, label
+association, `min-h-11`, class placement, no live region; no innerHTML and no
+generated id), written and passed against the old code first and unchanged after;
+`tests/ui/help-pair.test.tsx` (new, 8): one selector after both blocks, the
+supported → unsupported → supported → empty walk plus Denmark and Kenya with hours,
+a synthetic crisis-only and a synthetic abuse-only country, the select staying
+mounted and focused across eight changes and the links before it in tab order,
+storage keys and values, session storage, address, identity, `fetch`, `sendBeacon`
+and `XMLHttpRequest` all unchanged over the selection window, a new mount asking
+again, and a saved country with lines or none; `tests/ui/guide-floor.test.tsx`, three
+new: the floor end to end including close and reopen, a saved US country, and the
+thread block staying independent. Run against the previous `HelpLine`/`Coach`, 8
+of the new tests fail (7 in `help-pair`, 1 in `guide-floor`, the last on exactly the
+Part 26 limit: the crisis block still has no Samaritans after "uk"); the other
+new ones are guards that hold on both (the eight characterizations, the no-write and
+no-request test, the saved US floor and the thread independence).
+
+**Measured in the built app** (rebuilt after the change, headless Chromium,
+synthetic state, no country saved, functions 503): at 390×844 and 320×568, for each
+of empty, uk, so, us, other, dk, ke, ae and empty again, the support text, every
+`tel:` link, the select, the textarea and Send were fully inside the viewport, the
+page needed no vertical scroll, and nothing reached past the right edge. The select
+was 44px tall and its top never moved (684px at 390, 408px at 320). The open floor's
+height was 340 to 383px at 390 and 360 to 424px at 320: the worst state (an unlisted
+country, 424px of 568) is the same as before; the other states are the same or
+shorter. At 320×568 the open floor leaves the thread above it 4px to 68px tall (the same or
+smaller before), so the conversation is out of sight while the floor is open;
+closing the disclosure restores it. Keyboard only: Tab goes link, link, link, select,
+textarea; typing "Kenya" or "Denmark", or an arrow key, changes the country with
+focus staying on the select and both blocks updating; Enter on the summary closes
+and reopens the floor and the question starts empty. Storage keys and values were
+identical before and after the choices and no request was made in that window
+(measured after the app's own save had settled; the earlier whole-session
+difference was that save).
+
+**Not done, and why.** (1) **No screen reader** (VoiceOver, TalkBack, NVDA, JAWS) was
+used. The focus, order and label checks above are DOM and Chromium checks, not a
+test of what is announced. The blocks have no live region, so a screen-reader user
+who changes the country may not hear the lines change; adding `aria-live` is a
+behaviour change that needs a screen-reader test first, and was decided against for
+this slice. Changed support text has not been verified with a screen reader.
+(2) The select keeps Chromium's default focus ring (1px, dark, `auto`); the app's 2px
+gold ring is styled for buttons and links only (`src/index.css`). Unchanged. (3) The
+inline telephone links are 16px tall; the crisis link added to the pair is the same
+kind as the abuse link, and as on the saved-country path. Unchanged. (4) Only headless
+Chromium was run; Firefox and Safari were not, and happy-dom does no layout. (5)
+Thread blocks and the floor ask separately, and a standalone crisis line never asks.
+(6) The floor still takes up to three-quarters of a 568px viewport.
+
+**Evaluation.** The repository's classifier was run on this slice's actual diff;
+the result is in `docs/SESSION-HANDOFF.md`. This changes what the Guide *screen*
+displays under the thread and in the floor, from existing data. It does not touch the
+Guide's measured behaviour: the model, the prompt, the offline voice or the triggers
+that decide when a line is shown (`src/lib/coach.ts`), and the floor is the part
+`tests/judgment/guide.test.ts` already says no grade counts. Nothing moved and the
+classifier was not changed to get that result. It says nothing about the accumulated
+branch, whose workflow, harness and lockfile changes still require both live suites on
+the pull request. They are unfunded, and the release remains paused.

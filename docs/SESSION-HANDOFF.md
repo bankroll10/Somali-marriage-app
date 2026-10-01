@@ -1,6 +1,68 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done
 
-## Status as of the latest session (2026-10-01, BATCH-05)
+## Status as of the latest session (2026-10-01, BATCH-06)
+
+- **BATCH-06, one country question for the Guide's two support lines**
+  (`docs/DECISIONS.md` Part 29; resolves the limit Part 26 recorded, which stays
+  as written with a dated note beside it). **Reproduced** in the built app
+  (headless Chromium, 390×844 and 320×568, service workers blocked, functions
+  stubbed to 503, synthetic seeded state, no live model, no participant data):
+  in the Guide's foot ("Not safe, or not okay?") choosing a country changed the
+  abuse block and left the crisis block on its generic fallback. **Cause:** `picked`
+  was `useState` in each `HelpLine`, and only the abuse one could ask. **Repair**
+  (`HelpLine.tsx`, `Coach.tsx`): a `withCrisis` prop, so one `HelpLine` renders both
+  blocks from the one choice and draws one selector after them; the floor is
+  `<HelpLine urgent withCrisis />`. The choice stays component-local: not stored,
+  not sent, not on her identity; closing the disclosure, switching voice or leaving
+  the Guide discards it. Unsupported choice: every earlier service name and link is
+  gone from both blocks, the abuse block says "We don’t have a local support line
+  listed for this location." once, the crisis block keeps its existing
+  country-qualified fallback; clearing restores the saved-country or default state.
+  No wording, service, number, advice or `aria-live` was added; `src/data/*`, the
+  voice, engines, storage, backend, workflow and classifier are untouched. Standalone
+  callers, the thread's own blocks (each with its own question) and a standalone
+  crisis line (never asks) are unchanged.
+- **Evidence:** `tests/ui/help-country.test.tsx` (+8 characterization tests of
+  standalone behaviour, passed on the old code first), `tests/ui/help-pair.test.tsx`
+  (new, 8), `tests/ui/guide-floor.test.tsx` (+3). Against the old `HelpLine`/`Coach`,
+  8 of the new tests fail (7 + 1, the last on the Part 26 limit itself); the rest are
+  guards that hold on both. `npm run verify > log 2>&1; echo $?` exit 0 (117 files,
+  1602 passed, 2 skipped: the live blocks); `npm run build` exit 0;
+  `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` and any API key were unset for every run.
+- **Measured in the rebuilt app** (no country saved; empty, uk, so, us, other, dk,
+  ke, ae, empty): at 390×844 and 320×568 the support text, every `tel:` link, the
+  select, the textarea and Send were fully in view for every selection, with no page
+  scroll and no horizontal overflow. The select stayed 44px tall and did not move
+  (top 684px at 390, 408px at 320). The open floor was 340–383px at 390 and
+  360–424px at 320 (worst state, an unlisted country, is unchanged at 424 of 568; the
+  rest are the same or shorter). Tab order link, link, link, select, textarea; typing a
+  country or an arrow key changed both blocks with focus on the select; Enter on the
+  summary closed and reopened the floor and the question started empty. Storage keys
+  and values were identical and no request was made over the selection window.
+- **Evaluation applicability for this slice** (the repository's classifier,
+  `tests/eval/check.ts applicability`, on the actual diff: `HelpLine.tsx`, `Coach.tsx`,
+  three test files, `docs/DECISIONS.md`, this file): guide **not required**, judgment
+  **not required**. It would have required both had `src/lib/coach.ts` been touched.
+  This is **not** measured Guide behaviour: the model, prompt, offline voice and the
+  triggers that decide when a line shows are untouched; the floor is what
+  `tests/judgment/guide.test.ts` already says no grade counts. Run on the accumulated
+  branch (`261d055` through this slice, 94 files) it still says **required** for both,
+  from the workflow, `package.json`, the lockfile and `tests/eval/`; the live suites are
+  unfunded and the release remains paused. No PR, merge, deployment, paid evaluation,
+  outreach or participant-data access.
+- **Limitations:** all checks are automated, DOM focus in happy-dom and one browser
+  (headless Chromium); **no screen reader** (VoiceOver, TalkBack, NVDA, JAWS) was used,
+  so what one announces is unverified, and **changed support text has not been
+  verified with a screen reader**: the blocks have no live region and a screen-reader
+  user changing the country may not hear the lines change (adding one was decided
+  against for this slice). Firefox and Safari were not run. The select has Chromium's
+  default focus ring, not the app's 2px gold ring (styled for buttons and links only);
+  the inline telephone links are 16px tall; at 320×568 the open floor leaves the
+  thread 4–68px tall (the same or smaller before). Thread blocks and the floor still
+  ask separately, and a standalone crisis line still never asks. No real `HELP` row has
+  differing availability; that case is tested with a synthetic table.
+
+## Previous status (2026-10-01, BATCH-05)
 
 - **BATCH-05, keyboard focus in the two-person eleven** (`docs/DECISIONS.md`
   Part 28; BATCH-03's deferred "same gap on his side"). **Reproduced** in the

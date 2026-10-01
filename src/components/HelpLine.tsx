@@ -14,6 +14,11 @@ interface Props {
   kind?: 'abuse' | 'crisis'
   /** Only the line, without the emergency sentence: for a second HelpLine under a first. */
   lineOnly?: boolean
+  /**
+   * With an abuse line: also show the crisis line beneath it, from the same
+   * country, under the one question. The Guide's foot shows both together.
+   */
+  withCrisis?: boolean
   className?: string
 }
 
@@ -26,8 +31,13 @@ interface Props {
  * plainly that none is listed; the answer lives in this component only: not
  * stored, not sent, not put on her identity (docs/DECISIONS.md Part 26). The
  * answerer on a couple link has told us nothing, and gets the same question.
+ *
+ * Where the abuse line and the crisis line are shown together (`withCrisis`,
+ * the foot of the Guide) one HelpLine renders both from the one choice, so a
+ * country she names applies to both and the question is asked once. The choice
+ * goes when the blocks do (docs/DECISIONS.md Part 29).
  */
-export default function HelpLine({ urgent = false, kind = 'abuse', lineOnly = false, className = '' }: Props) {
+export default function HelpLine({ urgent = false, kind = 'abuse', lineOnly = false, withCrisis = false, className = '' }: Props) {
   const identity = loadProgress()?.identity
   const known = helpFor(identity ? countryFor(identity) : undefined)
   const [picked, setPicked] = useState('')
@@ -37,62 +47,75 @@ export default function HelpLine({ urgent = false, kind = 'abuse', lineOnly = fa
   // four regions and no one to call.
   const asks = urgent && kind === 'abuse' && !lineOnly && !known.line
   const help = asks && picked ? helpFor(picked) : known
-  const line = kind === 'crisis' ? help.crisis : help.line
-  const words = (
-    <p className={`text-[0.82rem] leading-relaxed text-ink-soft text-pretty ${asks ? '' : className}`}>
-      {!lineOnly && (
-        <>
-          If you are in danger now, call{' '}
-          {help.emergency ? (
-            <a href={dial(help.emergency)} className="font-medium text-ink underline underline-offset-2">
-              {help.emergency}
+  const pair = withCrisis && kind === 'abuse'
+  // The wrapper, where there is one, carries the class; a lone sentence carries its own.
+  const wrapped = asks || pair
+  const block = (of: 'abuse' | 'crisis', only: boolean, spacing = '') => {
+    const line = of === 'crisis' ? help.crisis : help.line
+    return (
+      <p className={`text-[0.82rem] leading-relaxed text-ink-soft text-pretty ${wrapped ? spacing : className}`}>
+        {!only && (
+          <>
+            If you are in danger now, call{' '}
+            {help.emergency ? (
+              <a href={dial(help.emergency)} className="font-medium text-ink underline underline-offset-2">
+                {help.emergency}
+              </a>
+            ) : (
+              <>your local emergency number ({EMERGENCY_ANYWHERE})</>
+            )}
+            .
+          </>
+        )}
+        {(urgent || of === 'crisis') && line && (
+          <>
+            {' '}
+            {/* Only the abuse lines were checked as free and round-the-clock (src/data/help.ts); a crisis line may charge, or keep hours. */}
+            {of === 'crisis' ? 'To talk to someone:' : 'To talk to someone now, free:'} {line.name},{' '}
+            <a href={dial(line.number)} className="font-medium text-ink underline underline-offset-2">
+              {line.number}
             </a>
-          ) : (
-            <>your local emergency number ({EMERGENCY_ANYWHERE})</>
-          )}
-          .
-        </>
-      )}
-      {(urgent || kind === 'crisis') && line && (
-        <>
-          {' '}
-          {/* Only the abuse lines were checked as free and round-the-clock (src/data/help.ts); a crisis line may charge, or keep hours. */}
-          {kind === 'crisis' ? 'To talk to someone:' : 'To talk to someone now, free:'} {line.name},{' '}
-          <a href={dial(line.number)} className="font-medium text-ink underline underline-offset-2">
-            {line.number}
-          </a>
-          {'hours' in line && line.hours ? ` (${line.hours})` : ''}.
-        </>
-      )}
-      {kind === 'crisis' && !line && <> A crisis line, where there is one: {CRISIS_ANYWHERE}.</>}
-      {asks && picked && !line && <> We don’t have a local support line listed for this location.</>}
-    </p>
+            {'hours' in line && line.hours ? ` (${line.hours})` : ''}.
+          </>
+        )}
+        {of === 'crisis' && !line && <> A crisis line, where there is one: {CRISIS_ANYWHERE}.</>}
+        {of === 'abuse' && asks && picked && !line && <> We don’t have a local support line listed for this location.</>}
+      </p>
+    )
+  }
+  const words = (
+    <>
+      {block(kind, lineOnly)}
+      {pair && block('crisis', true, 'mt-1.5')}
+    </>
   )
-  if (!asks) return words
+  if (!wrapped) return words
   return (
     <div className={className}>
       {words}
-      <div className="mt-2.5">
-        <label htmlFor={field} className="block text-[0.82rem] font-medium text-ink">
-          Choose your country to see available support.
-        </label>
-        <select
-          id={field}
-          value={picked}
-          onChange={(e) => setPicked(e.target.value)}
-          className="mt-1.5 min-h-11 w-full max-w-xs rounded-xl border border-line bg-white/70 px-3 text-[0.9rem] text-ink"
-        >
-          <option value="">Choose a country</option>
-          {countries.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.label}
-            </option>
-          ))}
-        </select>
-        <p className="mt-1.5 text-[0.78rem] leading-snug text-muted text-pretty">
-          Only used to show what is listed here. It is not saved and not sent.
-        </p>
-      </div>
+      {asks && (
+        <div className="mt-2.5">
+          <label htmlFor={field} className="block text-[0.82rem] font-medium text-ink">
+            Choose your country to see available support.
+          </label>
+          <select
+            id={field}
+            value={picked}
+            onChange={(e) => setPicked(e.target.value)}
+            className="mt-1.5 min-h-11 w-full max-w-xs rounded-xl border border-line bg-white/70 px-3 text-[0.9rem] text-ink"
+          >
+            <option value="">Choose a country</option>
+            {countries.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1.5 text-[0.78rem] leading-snug text-muted text-pretty">
+            Only used to show what is listed here. It is not saved and not sent.
+          </p>
+        </div>
+      )}
     </div>
   )
 }

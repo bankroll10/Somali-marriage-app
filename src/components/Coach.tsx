@@ -615,9 +615,9 @@ export default function Coach({
             Not safe, or not okay?
           </summary>
           {floorOpen && (
-            <div className="space-y-1.5 pb-1">
-              <HelpLine urgent />
-              <HelpLine kind="crisis" lineOnly />
+            <div className="pb-1">
+              {/* One HelpLine for both lines, so the country she names is asked once and applies to both. */}
+              <HelpLine urgent withCrisis />
             </div>
           )}
         </details>

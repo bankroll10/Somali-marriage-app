@@ -172,3 +172,112 @@ describe('HelpLine, everywhere it must stay as it was', () => {
     expect(screen.text()).toContain('A crisis line, where there is one: 988 in the US and Canada, 116 123 in the UK.')
   })
 })
+
+/**
+ * Standalone HelpLine, characterized before BATCH-06 (docs/DECISIONS.md Part 29).
+ * What each caller sees today, as rendered text, exact telephone links, whether
+ * a selector is there and the accessibility attributes it carries. Written
+ * against the code as it was, then held while the paired floor changed: none of
+ * these may move. No innerHTML and no generated id is pinned.
+ */
+describe('standalone HelpLine, characterized', () => {
+  const GENERIC_EMERGENCY = 'If you are in danger now, call your local emergency number (911 in the US and Canada, 999 in the UK, 112 across Europe, 000 in Australia).'
+  const GENERIC_CRISIS = 'A crisis line, where there is one: 988 in the US and Canada, 116 123 in the UK.'
+  const tels = () => [...screen!.container.querySelectorAll('a')].map((a) => a.getAttribute('href')).filter((h) => h?.startsWith('tel:'))
+  const live = () => screen!.container.querySelectorAll('[aria-live], [role="status"], [role="alert"]').length
+
+  it('no country, not urgent: the generic emergency sentence only', async () => {
+    screen = await mount(<HelpLine />)
+    expect(screen.text()).toBe(GENERIC_EMERGENCY)
+    expect(tels()).toEqual([])
+    expect(select()).toBeNull()
+  })
+
+  it('no country, urgent: the generic sentence, then one labelled selector and its note', async () => {
+    screen = await mount(<HelpLine urgent />)
+    expect(screen.text().startsWith(GENERIC_EMERGENCY)).toBe(true)
+    expect(tels()).toEqual([])
+    expect(screen.container.querySelectorAll('select')).toHaveLength(1)
+    const el = select()!
+    expect(el.value).toBe('')
+    expect(el.options).toHaveLength(COUNTRY_IDS.length + 1)
+    expect(el.options[0].textContent).toBe('Choose a country')
+    // The label is the select's, by id; the note is the one the product promises.
+    expect(screen.container.querySelector(`label[for="${el.id}"]`)?.textContent).toBe('Choose your country to see available support.')
+    expect(el.className).toContain('min-h-11')
+    expect(screen.text()).toContain('Only used to show what is listed here. It is not saved and not sent.')
+    expect(screen.text()).not.toContain('A crisis line')
+    expect(live()).toBe(0)
+  })
+
+  it('saved US, urgent: the emergency number and the abuse line, exact links, no selector', async () => {
+    progress({ scene: 'twin-cities' })
+    screen = await mount(<HelpLine urgent />)
+    expect(screen.text()).toBe('If you are in danger now, call 911. To talk to someone now, free: National Domestic Violence Hotline, 1-800-799-7233.')
+    expect(tels()).toEqual(['tel:911', 'tel:18007997233'])
+    expect(select()).toBeNull()
+  })
+
+  it('saved US, crisis: the emergency number and the crisis line, never asking', async () => {
+    progress({ scene: 'twin-cities' })
+    screen = await mount(<HelpLine kind="crisis" />)
+    expect(screen.text()).toBe('If you are in danger now, call 911. To talk to someone: 988 Suicide & Crisis Lifeline, 988.')
+    expect(tels()).toEqual(['tel:911', 'tel:988'])
+    expect(select()).toBeNull()
+  })
+
+  it('no country, crisis: the generic sentence and the country-qualified crisis fallback, never asking', async () => {
+    screen = await mount(<HelpLine kind="crisis" />)
+    expect(screen.text()).toBe(`${GENERIC_EMERGENCY} ${GENERIC_CRISIS}`)
+    expect(tels()).toEqual([])
+    expect(select()).toBeNull()
+  })
+
+  it('lineOnly: only the line, for the abuse and the crisis kind, with and without a country', async () => {
+    progress({ scene: 'twin-cities' })
+    screen = await mount(<HelpLine urgent lineOnly />)
+    expect(screen.text().trim()).toBe('To talk to someone now, free: National Domestic Violence Hotline, 1-800-799-7233.')
+    expect(tels()).toEqual(['tel:18007997233'])
+    screen.unmount()
+    screen = await mount(<HelpLine kind="crisis" lineOnly />)
+    expect(screen.text().trim()).toBe('To talk to someone: 988 Suicide & Crisis Lifeline, 988.')
+    expect(tels()).toEqual(['tel:988'])
+    screen.unmount()
+
+    progress({ scene: 'copenhagen' })
+    screen = await mount(<HelpLine kind="crisis" lineOnly />)
+    expect(screen.text().trim()).toBe('To talk to someone: Livslinien, 70 201 201 (daily, 09:00–05:00).')
+    screen.unmount()
+
+    phone.storage.clear()
+    screen = await mount(<HelpLine kind="crisis" lineOnly />)
+    expect(screen.text().trim()).toBe(GENERIC_CRISIS)
+    expect(tels()).toEqual([])
+    expect(select()).toBeNull()
+  })
+
+  it('a class name goes on the sentence, or on the wrapper when the selector is shown', async () => {
+    screen = await mount(<HelpLine className="mt-3" />)
+    expect((screen.container.firstElementChild as HTMLElement).className).toContain('mt-3')
+    screen.unmount()
+
+    screen = await mount(<HelpLine urgent className="mt-3" />)
+    const wrapper = screen.container.firstElementChild as HTMLElement
+    expect(wrapper.tagName).toBe('DIV')
+    expect(wrapper.className).toBe('mt-3')
+    expect(wrapper.querySelector('p')!.className).not.toContain('mt-3')
+  })
+
+  it('urgent with no country: its own selector still drives its own block, and nothing else', async () => {
+    screen = await mount(<HelpLine urgent />)
+    await choose('dk')
+    expect(screen.text()).toContain('call 112. To talk to someone now, free: Lev Uden Vold, 1888.')
+    expect(tels()).toEqual(['tel:112', 'tel:1888'])
+    // Not a pair: it shows no crisis line of its own.
+    expect(screen.text()).not.toContain('Livslinien')
+    expect(screen.text()).not.toContain('A crisis line')
+    await choose('so')
+    expect(tels()).toEqual([])
+    expect(screen.text()).toContain('We don’t have a local support line listed for this location.')
+  })
+})

@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { useState } from 'react'
+import { act, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import Coach from '../../src/components/Coach'
 import { CRISIS_REPLY, SAFETY_REPLY, localReply } from '../../src/lib/coach'
@@ -97,6 +97,93 @@ describe('the line at the foot of the guide', () => {
     expect(floor.textContent).toContain('If you are in danger now, call your local emergency number')
     expect(floor.textContent).toMatch(/A crisis line, where there is one: 988/)
     expect(fetchSpy).not.toHaveBeenCalled()
+    m.unmount()
+  })
+})
+
+describe('the line at the foot of the guide, with one country question for both lines', () => {
+  // Part 29: the abuse line and the crisis line in the floor share one temporary
+  // choice. The blocks in the thread, one per answer, are separate and unchanged.
+  const unplaced = 'I keep thinking everyone would be fine if I just wasn’t around anymore.'
+  const KEY = 'niyyah.intake.v1'
+  afterEach(() => localStorage.removeItem(KEY))
+
+  const toggle = (floor: HTMLDetailsElement, open: boolean) =>
+    act(async () => {
+      floor.open = open
+      floor.dispatchEvent(new Event('toggle'))
+    })
+  const tels = (el: Element) => [...el.querySelectorAll('a')].map((a) => a.getAttribute('href')).filter((h) => h?.startsWith('tel:'))
+  async function choose(select: HTMLSelectElement, value: string) {
+    await act(async () => {
+      select.value = value
+      select.dispatchEvent(new Event('change', { bubbles: true }))
+    })
+  }
+
+  it('opens to one selector; choosing a country updates both lines; closing and reopening asks again; nothing is sent', async () => {
+    const m = await mount(<Locked ask={unplaced} onSpend={() => {}} />)
+    await m.until(() => m.text().includes(unplaced), 'her message')
+    const floor = m.container.querySelector('details') as HTMLDetailsElement
+    await toggle(floor, true)
+    await m.until(() => floor.querySelector('select'), 'the question')
+    expect(floor.querySelectorAll('select')).toHaveLength(1)
+
+    let select = floor.querySelector('select') as HTMLSelectElement
+    await choose(select, 'uk')
+    expect(floor.textContent).toContain('call 999')
+    expect(floor.textContent).toContain('National Domestic Abuse Helpline, 0808 2000 247')
+    expect(floor.textContent).toContain('To talk to someone: Samaritans, 116 123.')
+    expect(tels(floor)).toEqual(['tel:999', 'tel:08082000247', 'tel:116123'])
+
+    await choose(select, 'so')
+    expect(tels(floor)).toEqual([])
+    expect(floor.textContent).not.toContain('Samaritans')
+    expect(floor.textContent).toContain('We don’t have a local support line listed for this location.')
+    expect(floor.textContent).toMatch(/A crisis line, where there is one: 988 in the US and Canada, 116 123 in the UK\./)
+
+    await choose(select, 'dk')
+    expect(floor.textContent).toContain('Livslinien, 70 201 201 (daily, 09:00–05:00)')
+
+    // Leaving and returning: the floor unmounts its blocks, so the choice goes with them.
+    await toggle(floor, false)
+    await m.until(() => !floor.querySelector('select'), 'the floor closed')
+    await toggle(floor, true)
+    await m.until(() => floor.querySelector('select'), 'the question again')
+    select = floor.querySelector('select') as HTMLSelectElement
+    expect(select.value).toBe('')
+    expect(tels(floor)).toEqual([])
+    expect(floor.textContent).not.toContain('Livslinien')
+    expect(fetchSpy).not.toHaveBeenCalled()
+    m.unmount()
+  })
+
+  it('a phone that knows her country has no question, and both lines are hers', async () => {
+    localStorage.setItem(KEY, JSON.stringify({ identity: { scene: 'twin-cities', gender: 'woman' }, stage: 'talking', situated: true }))
+    const m = await mount(<Locked ask={unplaced} onSpend={() => {}} />)
+    await m.until(() => m.text().includes(unplaced), 'her message')
+    const floor = m.container.querySelector('details') as HTMLDetailsElement
+    await toggle(floor, true)
+    await m.until(() => /988/.test(floor.textContent ?? ''), 'her lines')
+    expect(floor.querySelector('select')).toBeNull()
+    expect(tels(floor)).toEqual(['tel:911', 'tel:18007997233', 'tel:988'])
+    m.unmount()
+  })
+
+  it('the blocks in the thread keep their own, independent question', async () => {
+    const m = await mount(<Locked ask="he threatened me" onSpend={() => {}} />)
+    await m.until(() => m.text().includes('If you are in danger now, call'), 'the safety reply and its line')
+    const floor = m.container.querySelector('details') as HTMLDetailsElement
+    await toggle(floor, true)
+    await m.until(() => floor.querySelector('select'), 'the floor’s question')
+    const [inThread, inFloor] = [...m.container.querySelectorAll('select')] as HTMLSelectElement[]
+    expect(m.container.querySelectorAll('select')).toHaveLength(2)
+    expect(floor.contains(inThread)).toBe(false)
+    expect(floor.contains(inFloor)).toBe(true)
+    // Unchanged by Part 29: a choice in one is not a choice in the other.
+    await choose(inThread, 'uk')
+    expect(inFloor.value).toBe('')
+    expect(tels(floor)).toEqual([])
     m.unmount()
   })
 })
