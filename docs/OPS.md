@@ -416,7 +416,7 @@ Each scenario gives detection, the first hour, recovery, how much can be lost, w
 
 - **Detect:** the health run (the page does not answer), status.netlify.com, members writing to a mailbox that does not depend on Netlify.
 - **First hour:** confirm it; there is nothing to operate. If it lasts more than a few hours, post once where members gather to say their answers are safe on their phones. Change nothing in the repository or DNS in a hurry.
-- **Recover:** automatic. A Forget me made during the outage finishes the next time the app opens. A keep is retried by her next tap, and its once key makes the retry the same map, never a second one.
+- **Recover:** nothing to operate. A Forget me made during the outage is sent again each time the app opens, and finishes if that attempt gets through; until a delete is confirmed the phone keeps its code (for an introduction name, only an answer the protocol gives confirms it, `docs/DECISIONS.md` Part 33). A keep is retried by her next tap, and its once key makes the retry the same map, never a second one.
 - **Loss and what members see:** no data is lost. A phone that has opened Niyyah before has the shell cached, so the read, Before you say yes on one phone, the map and the offline guide all work. Keeping, the two-phone eleven and reports each say *that is us, not you* and lose nothing. A first-time visitor sees nothing.
 - **Prevent:** nothing prevents this within one vendor; local-first is the mitigation. Drill: `tests/journeys/netlify-down.test.tsx`.
 

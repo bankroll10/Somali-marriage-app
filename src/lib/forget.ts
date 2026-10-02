@@ -1,6 +1,7 @@
+import { cleanCode, isCode } from './code'
 import { rememberedCode } from './keep'
 import { rememberedInstallId } from './progress'
-import { forgetIntro, forgetPending, pendingIntro, rememberedIntro } from './introduce'
+import { confirmWithdrawal, forgetIntro, forgetPending, pendingIntro, rememberedIntro } from './introduce'
 import { clearProgress, loadProgress } from './storage'
 import { send } from './net'
 
@@ -45,18 +46,31 @@ import { send } from './net'
 const KEEP = '/.netlify/functions/keep'
 const PROGRESS = '/.netlify/functions/progress'
 const COUPLE = '/.netlify/functions/couple'
-const INTRODUCE = '/.netlify/functions/introduce'
 
 /** A forget that has not reached the server yet: only the codes it still needs. */
 const PENDING_KEY = 'niyyah.forget.pending.v1'
 
+/**
+ * What a failed forget still has to delete: codes, and nothing else.
+ *
+ * `intros` is every introduction code not yet confirmed gone — the receipt's
+ * and any attempt's, from this forget or an earlier one, in one list. Until
+ * BATCH-07D the record held at most two (`intro`, `introPending`), and a second
+ * unresolved forget replaced the first's code. A record written that way is
+ * still read (both fields are folded into `intros`) and is written back in the
+ * new shape the next time it is saved; a build before this one ignores `intros`.
+ */
 interface Pending {
   code?: string
   id?: string
   pair?: string
-  intro?: string
-  /** The code of an attempt to put her name down that was never answered (src/lib/introduce.ts). */
-  introPending?: string
+  intros?: string[]
+}
+
+/** The shape an earlier build wrote: at most one receipt code and one attempt code. */
+interface StoredPending extends Pending {
+  intro?: unknown
+  introPending?: unknown
 }
 
 /** Every key this app writes. Kept in one place so nothing is left behind. */
@@ -101,82 +115,157 @@ export interface Forgotten {
   progress: boolean
   /** The eleven she sent him — or true when she never sent one. */
   couple: boolean
-  /** Her name on the introduction list — or true when she never put it down. */
+  /** Her name on the introduction list — or true when she never put it down. False means *unconfirmed*, not necessarily still there. */
   intro: boolean
   /** The map code still held on the server when `map` is false, to show her. */
   code?: string
+  /** Every introduction code not yet confirmed gone, when `intro` is false. Never more than codes. */
+  introHeld?: string[]
+  /** Whether this phone's storage holds `introHeld`; false when only this page does, and a reload loses it. */
+  introKept?: boolean
 }
 
-const some = (p: Pending) => !!(p.code || p.id || p.pair || p.intro || p.introPending)
+const some = (p: Pending) => !!(p.code || p.id || p.pair || p.intros?.length)
 
-/** The forget still waiting for the server, if any. */
+/** Introduction codes, tidied: valid ones only, upper-case, each once, in a fixed order. */
+function tidy(codes: unknown[]): string[] {
+  const out = new Set<string>()
+  for (const c of codes) {
+    if (typeof c !== 'string') continue
+    const clean = cleanCode(c)
+    if (isCode(clean)) out.add(clean)
+  }
+  return [...out].sort()
+}
+
+/**
+ * The codes this page is holding because this phone's storage refused to keep
+ * them: introduction codes only, and nothing else about her (no contact, no
+ * name, no day, no receipt). The same fallback `src/lib/introduce.ts` gives its
+ * receipt, and the same limit: a reload clears it. Map, count and couple codes
+ * have no such copy, as before.
+ */
+let mirror: string[] = []
+
+/** For a test that reloads the page: what a reload clears. */
+export function resetForgetMirror(): void {
+  mirror = []
+}
+
+/** The forget still waiting for the server, if any: this phone's record and the page's own copy of the introduction codes. */
 export function pendingForget(): Pending | null {
+  let stored: StoredPending = {}
   try {
     const raw = localStorage.getItem(PENDING_KEY)
-    const p = raw ? (JSON.parse(raw) as Pending) : null
-    return p && some(p) ? p : null
+    const p: unknown = raw ? JSON.parse(raw) : null
+    if (p && typeof p === 'object' && !Array.isArray(p)) stored = p as StoredPending
   } catch {
-    return null
+    /* storage refused or unreadable — the page's own copy, below */
   }
+  const text = (v: unknown) => (typeof v === 'string' && v ? v : undefined)
+  const intros = tidy([...(Array.isArray(stored.intros) ? stored.intros : []), stored.intro, stored.introPending, ...mirror])
+  const p: Pending = {
+    ...(text(stored.code) ? { code: text(stored.code) } : {}),
+    ...(text(stored.id) ? { id: text(stored.id) } : {}),
+    ...(text(stored.pair) ? { pair: text(stored.pair) } : {}),
+    ...(intros.length ? { intros } : {}),
+  }
+  return some(p) ? p : null
 }
 
-function savePending(p: Pending) {
+/**
+ * Write the record. True when this phone's storage took it, or when there was
+ * nothing to keep; false when it refused, in which case the introduction codes
+ * are held by the page instead (`mirror`) and the caller says so.
+ */
+function savePending(p: Pending): boolean {
+  const intros = tidy(p.intros ?? [])
+  const next: Pending = { ...(p.code ? { code: p.code } : {}), ...(p.id ? { id: p.id } : {}), ...(p.pair ? { pair: p.pair } : {}), ...(intros.length ? { intros } : {}) }
   try {
-    if (some(p)) localStorage.setItem(PENDING_KEY, JSON.stringify(p))
+    if (some(next)) localStorage.setItem(PENDING_KEY, JSON.stringify(next))
     else localStorage.removeItem(PENDING_KEY)
+    mirror = []
+    return true
   } catch {
-    /* storage refused; Trust still names the code on screen */
+    /* storage refused; Trust still names the codes on screen */
+    mirror = intros
+    return false
   }
 }
 
-type Landed = { map: boolean; progress: boolean; couple: boolean; intro: boolean; introPending: boolean }
+/** What each delete came to: the three that count a bare success, and each introduction code by its own answer. */
+type Landed = { map: boolean; progress: boolean; couple: boolean; intro: Map<string, boolean> }
+
+/** Confirm each distinct introduction code once, by the strict contract. One request per code, however many places held it. */
+async function confirmIntros(codes: string[]): Promise<Map<string, boolean>> {
+  const answers = await Promise.all(codes.map(async (c) => [c, (await confirmWithdrawal(c)) !== 'failed'] as const))
+  return new Map(answers)
+}
 
 /** Send one set of codes' deletes, and say which landed. */
 async function deleteAll(p: Pending): Promise<Landed> {
-  const [map, progress, couple, intro, introPending] = await Promise.all([
+  const [map, progress, couple, intro] = await Promise.all([
     p.code ? del(`${KEEP}?code=${encodeURIComponent(p.code)}`) : Promise.resolve(true),
     p.id ? del(`${PROGRESS}?id=${encodeURIComponent(p.id)}`) : Promise.resolve(true),
     p.pair ? del(`${COUPLE}?code=${encodeURIComponent(p.pair)}`) : Promise.resolve(true),
-    p.intro ? del(`${INTRODUCE}?code=${encodeURIComponent(p.intro)}`) : Promise.resolve(true),
-    p.introPending ? del(`${INTRODUCE}?code=${encodeURIComponent(p.introPending)}`) : Promise.resolve(true),
+    confirmIntros(p.intros ?? []),
   ])
-  return { map, progress, couple, intro, introPending }
+  return { map, progress, couple, intro }
 }
+
+const allLanded = (done: Landed) => done.map && done.progress && done.couple && [...done.intro.values()].every(Boolean)
 
 /** The codes a set of deletes did not land, and nothing else. */
 const left = (p: Pending, done: Landed): Pending => ({
   ...(done.map || !p.code ? {} : { code: p.code }),
   ...(done.progress || !p.id ? {} : { id: p.id }),
   ...(done.couple || !p.pair ? {} : { pair: p.pair }),
-  ...(done.intro || !p.intro ? {} : { intro: p.intro }),
-  ...(done.introPending || !p.introPending ? {} : { introPending: p.introPending }),
+  intros: (p.intros ?? []).filter((c) => !done.intro.get(c)),
 })
 
 /**
+ * The record as it is *now*, less the codes this operation sent and was
+ * answered for. Never the record as it was when the operation began: a Forget
+ * me that wrote codes while a retry was in flight must keep them when the
+ * retry lands, and a code the retry could not confirm is not removed by it.
+ */
+function afterRetry(sent: Pending, done: Landed): Pending {
+  const now = pendingForget() ?? {}
+  return {
+    ...(now.code && !(done.map && now.code === sent.code) ? { code: now.code } : {}),
+    ...(now.id && !(done.progress && now.id === sent.id) ? { id: now.id } : {}),
+    ...(now.pair && !(done.couple && now.pair === sent.pair) ? { pair: now.pair } : {}),
+    intros: (now.intros ?? []).filter((c) => !(sent.intros?.includes(c) && done.intro.get(c))),
+  }
+}
+
+/**
  * Send a pending forget again. Called on every launch and before every Forget
- * me; the key goes only once every delete it names has landed.
+ * me; a code goes from the record only when its own delete was answered.
+ * True when everything it sent landed. Each call waits for one round of
+ * deletes, the introduction ones bounded at `TIMEOUT_MS` each, in parallel.
  */
 export async function retryPendingForget(): Promise<boolean> {
   const pending = pendingForget()
   if (!pending) return true
   const done = await deleteAll(pending)
-  savePending(left(pending, done))
-  return done.map && done.progress && done.couple && done.intro && done.introPending
+  savePending(afterRetry(pending, done))
+  return allLanded(done)
 }
 
 export async function forgetMe(): Promise<Forgotten> {
-  // Anything an earlier Forget me could not finish, first.
+  // Anything an earlier Forget me could not finish, first — one round, so the
+  // whole of this call waits for at most two (this one, and the one below).
   await retryPendingForget()
   const code = rememberedCode() ?? undefined
   const id = rememberedInstallId() ?? undefined
   // The receipt this phone holds — in storage, or, when storage refused it,
-  // in this page's memory (src/lib/introduce.ts): either way the code is
-  // sent, so a name saved in a browser that is not saving still comes off.
-  const intro = rememberedIntro()?.code
-  const waiting = pendingIntro()?.code
-  const introPending = waiting && waiting !== intro ? waiting : undefined
-  // Read before the phone is wiped. A 404 from any of the four means it was
-  // already gone — the map cascade may well have taken the couple with it —
+  // in this page's memory (src/lib/introduce.ts) — and the attempt it is still
+  // waiting on: either way the code is sent, so a name saved in a browser that
+  // is not saving still comes off. The same code held twice is one code.
+  const intros = tidy([rememberedIntro()?.code, pendingIntro()?.code])
+  // Read before the phone is wiped. A 404 from any of the other three means it
+  // was already gone — the map cascade may well have taken the couple with it —
   // which is the same as done.
   const pair = loadProgress()?.couple?.code
   // Not her reports. They used to be withdrawn here, by the receipts this phone
@@ -186,18 +275,25 @@ export async function forgetMe(): Promise<Forgotten> {
   // any sent message it is not taken back by clearing a phone: it stays until
   // she has read it, and then only the kind of harm and what was done remain
   // (netlify/functions/safety.ts). Trust says so.
-  const asked: Pending = { code, id, pair, intro, introPending }
+  const asked: Pending = { code, id, pair, intros }
   const done = await deleteAll(asked)
   clearEverything()
-  // What did not land is kept — its codes only — to be sent again.
-  savePending({ ...(pendingForget() ?? {}), ...left(asked, done) })
+  // What did not land is kept — its codes only — to be sent again, alongside
+  // whatever the record holds *now*: an earlier forget's introduction codes
+  // are not replaced by this one's. Read and written in the same breath, so
+  // nothing that settled meanwhile is overwritten with an older copy.
+  const now = pendingForget() ?? {}
+  const unresolved = left(asked, done)
+  const kept = savePending({ ...now, ...unresolved, intros: [...(now.intros ?? []), ...(unresolved.intros ?? [])] })
   const still = pendingForget()
+  const introHeld = still?.intros ?? []
   return {
     map: done.map && !still?.code,
     progress: done.progress && !still?.id,
     couple: done.couple && !still?.pair,
-    intro: done.intro && done.introPending && !still?.intro && !still?.introPending,
+    intro: introHeld.length === 0,
     ...(still?.code ? { code: still.code } : {}),
+    ...(introHeld.length ? { introHeld, introKept: kept } : {}),
   }
 }
 

@@ -66,6 +66,17 @@ their neighbours had not hollowed them out.
 | | | "not allowed to refuse him" removed from the force words (2026-09-26) | Red (1) |
 | | | A held-out phrase added to a crisis word list (2026-09-26) | Red (2): the guard, and the gap ledger |
 | Delete means deleted | `delete-means-deleted` | Forget me leaves her name on the introduction list (2026-09-27) | Red |
+| Forget me confirms an introduction deletion only by the protocol's answer | `forget-introduction`, `forget-bound`, `forget`, `ui/forget-introduction` | The introduction delete goes back through `del()`, any 2xx or 404 (2026-10-02) | Red (27 across the targeted files) |
+| | | Every introduction answer counts as confirmed | Red (34) |
+| | | One confirmed code clears every introduction code | Red (2) |
+| | | The same code is sent twice | Red (1) |
+| | | A retry writes back the record it started with (G2) | Red (3) |
+| | | Forget me replaces an earlier forget's introduction code (G4) | Red (5) |
+| | | Clearing the phone clears the page's copy of the codes | Survived the first set; a second unconfirmed tap without storage added, then Red (2) |
+| | | No deadline over the confirmation; timer never cleared; request not aborted; a late answer read | Red (8; 1; 1; 8) |
+| | | The earlier build's `intro` / `introPending` not read; the page copy not read | Red (5; 4) |
+| | | `intro` always true; `introHeld` omitted; the kept flag always true; the introduction named in "could not reach" | Red (21; 19; 3; 2) |
+| | | `withdrawInterest` clears whatever the answer | Red (90) |
 | A retired feature is not a lifetime | `sweep-function`, `integrity`, `recovery` | The sweep opens `contacts` again and deletes a key (2026-09-27) | Red (3 suites) |
 | A name is kept at most 180 days | `sweep-function`, `journeys/looking` | The sweep skips every introduction whatever its day (2026-09-27) | Red (5: 4 in `sweep-function`, 1 in the journey) |
 | Nothing identifying before two yeses | `voice`, `journeys/looking` | Looking says "nothing about you reaches anyone before you say yes" again (2026-09-27) | Red (3: both voice scans, and the journey) |
@@ -99,6 +110,20 @@ What each suite holds beyond its mutation:
   and her phone are searched. Only three things remain, each named: the
   tombstone, her report and the joint tally. The same again with the server
   down mid-forget.
+- **`forget-introduction`.** Forget me's introduction deletes, against the
+  real handler over the in-memory store with only the DELETE's answer
+  replaced: an answer that was cut after the real deletion, and an invalid
+  success-looking answer with the handler never run, for a saved receipt and
+  for a pending-only attempt. The local things are gone, only the codes are
+  kept, a later valid answer resolves it with one marker. Two codes are
+  confirmed independently; one code under both names is sent once; an earlier
+  forget's code is not replaced by the next (G4); a browser that cannot save
+  keeps the codes in the page, through a second unconfirmed tap, and loses
+  them on a reload. `src/lib/forget.test.ts` holds the same by stub, with the
+  retry that must not overwrite (G2); `src/lib/forget-bound.test.ts` the
+  deadline, a body that never ends, a late answer and the two-round total;
+  `tests/ui/forget-introduction.test.tsx` the message, the page-replacement
+  condition and the launch retry.
 - **`founder-routes-fail-closed`.** Every founder check in
   `netlify/functions` must have a row. Each row is refused under seven
   near-miss credentials and an unset key, and answers with the right key.

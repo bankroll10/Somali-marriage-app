@@ -87,7 +87,7 @@ describe('what is sent, and what the person can do about it', () => {
     const text = flat(block!.textContent ?? '')
     expect(text).toMatch(/the founder reads the list; nothing else does/)
     expect(text).toMatch(/Nothing from your map, a read or the eleven is attached/)
-    expect(text).toMatch(/our server under a code this phone made up for it, so you can take your name off from here; Forget me removes it with everything else/)
+    expect(text).toMatch(/our server under a code this phone made up for it, so you can take your name off from here; Forget me sends the same request with everything else, and tells you if it could not confirm it/)
     // The way to the full account is a real control and goes where it says.
     await screen!.press('What leaves your phone')
     expect(h.onTrust).toHaveBeenCalledTimes(1)

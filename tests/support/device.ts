@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import { resetForgetMirror } from '../../src/lib/forget'
 import { resetIntroMirror } from '../../src/lib/introduce'
 import { reloaded } from '../../src/lib/storage'
 
@@ -61,6 +62,7 @@ export function onPhone(phone: Phone): Phone {
 export function reload(): void {
   reloaded()
   resetIntroMirror()
+  resetForgetMirror()
 }
 
 /**

@@ -125,7 +125,7 @@ Plaintext `localStorage`, this browser only; every key is in `LOCAL_KEYS`,
 | `niyyah.install.v1`, `niyyah.via.v1` | The random id her steps go under, not her map code; one word for the link that first brought her | From the first report / `?via=` link | Forget me |
 | `niyyah.intro.v1` | The code her name on the introduction list is under, and the day. Never the contact | From "Put my name down" until its 180th day, when the phone forgets it | Take my name off; Forget me; its day |
 | `niyyah.draft.v1`; `niyyah.entry.v1` | A half-finished read or eleven, as ids; a `?couple=` link part-way through | 30 days; 24 hours | Finishing or leaving; Start over; Forget me |
-| `niyyah.forget.pending.v1` | Only the codes a failed Forget me still has to delete | Until they land | Itself |
+| `niyyah.forget.pending.v1` | Only the codes a failed Forget me still has to delete: the map code, the step id, the couple code, and a list of introduction codes (`intros`; an earlier build wrote `intro` and `introPending`, which are read and rewritten as the list). Never a contact, name, answer, day or receipt | Until each code's delete is confirmed (an introduction code only by an answer the protocol gives, `docs/DECISIONS.md` Part 33); a code no one confirms is sent again at every launch | Itself, code by code |
 | `niyyah.events.v1`, `.reports.v1`, `.waitlist.queue.v1` | Nothing writes them: an old event diary (C6), old report receipts, a door ping | Older phones | Forget me |
 | Service worker cache | The app shell, for offline | Until the next deploy | A deploy. Never a code or a `/.netlify/*` response (`docs/SECURITY.md` T3) |
 
@@ -186,11 +186,23 @@ the deletes in parallel: the map by her code, the step count by her install
 id, the eleven by the couple code on the phone (she may have sent it without
 keeping a map), her name on the introduction list by the code on its receipt,
 and an attempt to put it down that was never answered, by the code that
-attempt went out with; a 404, or a delete that found nothing, counts as done. Then every key in `LOCAL_KEYS` goes. If
+attempt went out with. **For the map, the count and the eleven, a 404, or any
+success, counts as done. For the introduction list it does not:** a delete is
+confirmed only by an answer the protocol gives (a 200 with a boolean `removed`,
+or the legacy 404 `not_found`); a 200 that is not that, a body that is cut, or
+no answer inside ten seconds is *unconfirmed* and the code is kept
+(`docs/DECISIONS.md` Part 33). Then every key in `LOCAL_KEYS` goes. If
 a delete failed, **one key is kept**, `niyyah.forget.pending.v1`, holding only
-the codes still to delete: sent on every launch and before the next Forget
-me, while the screen shows her the map code so she can write in. Before this,
-a retry had no code to send and the map stayed for a year.
+the codes still to delete: sent again on every launch and before the next
+Forget me, and removed code by code only when that code's own delete is
+confirmed. A launch that does not get through changes nothing; there is no
+schedule and no promise that it completes. The screen shows her the map code
+and any unconfirmed introduction codes so she can write in or take a name
+off by its code. When the browser will not save the key, the unconfirmed
+introduction codes (and only those) are held in the page, so a tap in the
+same page still sends them; a reload loses them, and the screen says so. A
+map code has no such copy. Before this, a retry had no code to send and the
+map stayed for a year.
 
 **On the server (`DELETE /keep?code=`),** ordered so a retry finishes:
 

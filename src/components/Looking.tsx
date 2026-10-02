@@ -289,7 +289,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
 
   const withdrawnLine: Record<Withdrawn, string> = {
     removed: 'Your name is off the list. Nothing about you is held there now.',
-    nothing: 'Nothing was under that code any more. It is marked as taken off, so a request still on its way under it is refused for the next days.',
+    nothing: 'Nothing was under that code any more.',
     failed: 'We could not confirm that your name came off the list. It may have, or it may not. Try again in a moment: asking again with the same code is safe.',
   }
 
@@ -605,7 +605,7 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
                   </li>
                   <li className="text-pretty">
                     <span className="font-medium text-ink">Taking it back: </span>it goes to our server under a code this
-                    phone made up for it, so you can take your name off from here; Forget me removes it with everything else.
+                    phone made up for it, so you can take your name off from here; Forget me sends the same request with everything else, and tells you if it could not confirm it.
                   </li>
                 </ul>
               </section>
@@ -905,8 +905,8 @@ function Receipt({ intro, again, unkept, awaySaved, pilot, off, onTakeOff, onMap
       </div>
       {off === 'failed' && (
         <p role="status" className="mt-3 text-[0.85rem] leading-snug text-clay text-pretty">
-          {withdrawnLine.failed} Your code is still held here, and Forget me on Trust takes it off with everything else the
-          next time it can.
+          {withdrawnLine.failed} Your code is still held here. Tap Take my name off to ask again: this page says it is off only when we have confirmed it. Forget
+          me on Trust also asks, and deletes everything else you have kept.
         </p>
       )}
 

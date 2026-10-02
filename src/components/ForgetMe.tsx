@@ -2,10 +2,29 @@ import { useState } from 'react'
 import type { Gender } from '../types'
 import { Disclose, TextButton } from './ui'
 import { CONTACT_EMAIL } from '../lib/site'
+import { formatCode } from '../lib/code'
 import { speak } from '../data/read'
 
-/** Delete everything kept under her codes, then start this phone over. */
-export type Forgot = () => Promise<{ map: boolean; progress: boolean; couple: boolean; intro: boolean; code?: string }>
+/**
+ * Delete everything kept under her codes, then start this phone over.
+ * `intro` false means the introduction list's deletion is *unconfirmed* (not
+ * necessarily still there); `introHeld` is then every introduction code not yet
+ * confirmed, and `introKept` whether this phone's storage holds them.
+ */
+export type Forgot = () => Promise<{
+  map: boolean
+  progress: boolean
+  couple: boolean
+  intro: boolean
+  code?: string
+  introHeld?: string[]
+  introKept?: boolean
+}>
+
+/** "A", "A and B", "A, B and C". */
+function and(items: React.ReactNode[]): React.ReactNode[] {
+  return items.flatMap((item, i) => [i === 0 ? '' : i === items.length - 1 ? ' and ' : ', ', <span key={i}>{item}</span>])
+}
 
 /**
  * Forget me.
@@ -32,6 +51,9 @@ export default function ForgetMe({
   const [stillHeld, setStillHeld] = useState<string[]>([])
   // The code still held on the server, so she can write in with it.
   const [heldCode, setHeldCode] = useState<string | undefined>()
+  // Introduction codes not confirmed gone, and whether this phone saved them. Codes and nothing else.
+  const [introHeld, setIntroHeld] = useState<string[]>([])
+  const [introKept, setIntroKept] = useState(true)
 
   return (
 <section className={`${className} rounded-card border border-line bg-white/50 p-5`}>
@@ -72,13 +94,16 @@ export default function ForgetMe({
                 setForgetting('working')
                 const result = await onForget()
                 setHeldCode(result.code)
-                // A full success replaces the page and never gets here.
+                setIntroHeld(result.intro ? [] : (result.introHeld ?? []))
+                setIntroKept(result.introKept !== false)
+                // A full success replaces the page and never gets here. The
+                // introduction list is not named in this list: it is not
+                // "still held", it is unconfirmed, and says so below.
                 setStillHeld(
                   [
                     !result.map && 'your kept map',
                     !result.progress && 'the count of your steps',
                     !result.couple && 'the eleven you sent',
-                    !result.intro && 'your name on the introduction list',
                   ].filter((s): s is string => !!s),
                 )
                 setForgetting('idle')
@@ -93,20 +118,59 @@ export default function ForgetMe({
             <span className="text-[0.82rem] text-muted">This cannot be undone.</span>
           </>
         )}
-        {stillHeld.length > 0 && (
-          <p role="status" className="w-full text-[0.85rem] leading-snug text-clay text-pretty">
-            This phone is cleared. We could not reach {stillHeld.join(' and ')} just now, so
-            {stillHeld.length > 1 ? ' they are' : ' it is'} still held — that is us, not you.
-            This phone keeps only what it needs to finish, and tries again every time Niyyah
-            opens; or tap Forget me again in a moment. Or write to{' '}
-            <span className="font-medium">{CONTACT_EMAIL}</span>
-            {heldCode ? (
-              <>
-                {' '}with the code <span className="font-medium tracking-[0.15em]">{heldCode}</span>
-              </>
-            ) : null}{' '}
-            and it goes by hand.
-          </p>
+        {(stillHeld.length > 0 || introHeld.length > 0) && (
+          <div role="status" className="w-full space-y-2 text-[0.85rem] leading-snug text-clay text-pretty">
+            <p>
+              This phone is cleared.
+              {stillHeld.length > 0 && (
+                <>
+                  {' '}
+                  We could not reach {stillHeld.join(' and ')} just now, so
+                  {stillHeld.length > 1 ? ' they are' : ' it is'} still held — that is us, not you.
+                </>
+              )}
+              {introHeld.length > 0 && (
+                <>
+                  {' '}
+                  We could not confirm that your name came off the introduction list. It may have, or it may not.
+                </>
+              )}
+            </p>
+            <p>
+              {introHeld.length > 0 && !introKept ? (
+                <>
+                  This browser could not save {introHeld.length === 1 ? 'this recovery code' : 'these recovery codes'}, so it cannot try again once this page is
+                  closed or reloaded. Copy {introHeld.length === 1 ? 'it' : 'them'} now. Until then you can tap Forget me again.
+                </>
+              ) : (
+                <>
+                  This phone keeps only what it needs to finish, and tries again each time Niyyah opens, though that may not get through; or tap Forget me again
+                  in a moment.
+                </>
+              )}
+            </p>
+            <p>
+              Or write to <span className="font-medium">{CONTACT_EMAIL}</span>
+              {heldCode || introHeld.length > 0 ? (
+                <>
+                  {' '}
+                  with {(heldCode ? 1 : 0) + introHeld.length === 1 ? 'the code' : 'these codes'}{' '}
+                  {and([
+                    ...(heldCode ? [<span key="map" className="font-medium tracking-[0.15em]">{heldCode}</span>] : []),
+                    ...introHeld.map((c) => (
+                      <span key={c} className="font-mono font-semibold tracking-wider text-ink">
+                        {formatCode(c)}
+                      </span>
+                    )),
+                  ])}{' '}
+                  to ask for help removing {(heldCode ? 1 : 0) + introHeld.length === 1 ? 'it' : 'them'}.
+                </>
+              ) : (
+                <> to ask for help removing what is held.</>
+              )}
+              {introHeld.length > 0 && <> An introduction code can also go in “Take a name off with its code” on the looking screen.</>}
+            </p>
+          </div>
         )}
         {forgetting === 'working' && <span className="text-[0.88rem] text-muted">Forgetting…</span>}
       </div>

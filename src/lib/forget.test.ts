@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { LOCAL_KEYS, forgetMe, retryPendingForget } from './forget'
+import { LOCAL_KEYS, forgetMe, pendingForget, retryPendingForget } from './forget'
 
 /**
  * Forget me is the control that makes every sentence on Trust enforceable.
@@ -154,8 +154,8 @@ describe('forget me', () => {
     // Offline, the code is kept to send again — and named as what is still held.
     store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27' }))
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false })
-    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intro: 'QRTWXY34' })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false, introHeld: ['QRTWXY34'], introKept: true })
+    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intros: ['QRTWXY34'] })
   })
 
   it('takes off an attempt to put her name down that was never answered, under the code it went out with', async () => {
@@ -177,8 +177,8 @@ describe('forget me', () => {
     store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27', removeOn: '2027-03-21' }))
     store.set('niyyah.intro.pending.v1', JSON.stringify({ code: 'HJKMNPQR', at: '2026-09-27' }))
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false })
-    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intro: 'QRTWXY34', introPending: 'HJKMNPQR' })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false, introHeld: ['HJKMNPQR', 'QRTWXY34'], introKept: true })
+    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intros: ['HJKMNPQR', 'QRTWXY34'] })
     // The next launch finishes it.
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{"removed":true}', { status: 200 })))
     expect(await retryPendingForget()).toBe(true)
@@ -207,5 +207,131 @@ describe('forget me', () => {
         'niyyah.waitlist.queue.v1',
       ].sort(),
     )
+  })
+})
+
+/**
+ * The introduction codes in the pending-forget record (docs/DECISIONS.md Part 33): what an
+ * unresolved deletion leaves behind, and what a completed retry may remove. Fetch is a stub
+ * here and answers what each test says; the real handler runs in
+ * tests/invariants/forget-introduction.test.ts.
+ */
+const A = 'QRTWXY34'
+const B = 'HJKMNPQR'
+const PENDING = 'niyyah.forget.pending.v1'
+const receipt = (code: string) => store.set('niyyah.intro.v1', JSON.stringify({ code, at: '2026-09-27', removeOn: '2027-03-21' }))
+/** The introduction codes the record holds, in whichever shape wrote it. */
+const heldCodes = (): string[] => {
+  const raw = store.get(PENDING)
+  if (!raw) return []
+  const p = JSON.parse(raw) as { intro?: string; introPending?: string; intros?: string[] }
+  return [...new Set([...(p.intros ?? []), p.intro, p.introPending].filter((c): c is string => !!c))].sort()
+}
+const removed = () => new Response('{"removed":true}', { status: 200 })
+
+describe('what Forget me accepts as an introduction deletion', () => {
+  it('the legacy 404 with not_found confirms absence; a 404 with any other body does not', async () => {
+    receipt(A)
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"error":"not_found"}', { status: 404 })))
+    expect((await forgetMe()).intro).toBe(true)
+    expect(store.size).toBe(0)
+
+    receipt(A)
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<!doctype html>', { status: 404 })))
+    expect((await forgetMe()).intro).toBe(false)
+    expect(heldCodes()).toEqual([A])
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{"error":"gone"}', { status: 404 })))
+    expect(await retryPendingForget()).toBe(false)
+    expect(heldCodes()).toEqual([A])
+  })
+
+  it('a bare 200 is not a confirmation, for the receipt or the attempt, but still is for the other deletes', async () => {
+    store.set('niyyah.keep.code.v1', 'ACDEFG')
+    receipt(A)
+    store.set('niyyah.intro.pending.v1', JSON.stringify({ code: B, at: '2026-09-27' }))
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })))
+    const done = await forgetMe()
+    // The map's answer is read as before (not repaired here); the two introduction codes are not confirmed.
+    expect(done).toMatchObject({ map: true, progress: true, couple: true, intro: false, introHeld: [A, B].sort(), introKept: true })
+    expect(heldCodes()).toEqual([A, B].sort())
+    expect(JSON.parse(store.get(PENDING)!)).toEqual({ intros: [A, B].sort() })
+  })
+
+  it('a record written by the earlier build is read, and written back in the new shape', async () => {
+    store.set(PENDING, JSON.stringify({ code: 'ACDEFG', intro: A, introPending: B }))
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes(B) ? new Response('<html>', { status: 200 }) : removed())))
+    expect(await retryPendingForget()).toBe(false)
+    expect(JSON.parse(store.get(PENDING)!)).toEqual({ intros: [B] })
+  })
+
+  it('reads a record with junk in it as far as it can: bad codes are dropped, good ones are kept', async () => {
+    store.set(PENDING, JSON.stringify({ intros: [A, 'zz', 7, null, B], intro: A }))
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>', { status: 200 })))
+    expect(await retryPendingForget()).toBe(false)
+    expect(heldCodes()).toEqual([A, B].sort())
+    expect(pendingForget()).toEqual({ intros: [A, B].sort() })
+  })
+})
+
+describe('a completed retry removes only what it confirmed (G2)', () => {
+  /** A fetch whose first request for `code` waits for `release`; every later request, and every other code, is a 503. */
+  function stallFirst(code: string) {
+    let release!: (r: Response) => void
+    const first = new Promise<Response>((res) => {
+      release = res
+    })
+    const seen: Record<string, number> = {}
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        seen[url] = (seen[url] ?? 0) + 1
+        return String(url).includes(code) && seen[url] === 1 ? first : new Response('{}', { status: 503 })
+      }),
+    )
+    return release
+  }
+
+  it('an introduction code added while it was in flight stays', async () => {
+    store.set(PENDING, JSON.stringify({ intro: A }))
+    const release = stallFirst(A)
+    const retry = retryPendingForget()
+    // While it is out, a Forget me on a phone holding a pending attempt B: its own retry and deletes fail.
+    store.set('niyyah.intro.pending.v1', JSON.stringify({ code: B, at: '2026-09-27' }))
+    await forgetMe()
+    expect(heldCodes()).toEqual([A, B].sort())
+    release(removed())
+    expect(await retry).toBe(true)
+    expect(heldCodes()).toEqual([B])
+  })
+
+  it('a map code added while it was in flight stays, and so does an introduction code', async () => {
+    store.set(PENDING, JSON.stringify({ intro: A }))
+    const release = stallFirst(A)
+    const retry = retryPendingForget()
+    store.set('niyyah.keep.code.v1', 'ACDEFG')
+    receipt(B)
+    await forgetMe()
+    release(removed())
+    expect(await retry).toBe(true)
+    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: 'ACDEFG', intros: [B] })
+  })
+
+  it('a retry that confirms nothing leaves a record that changed meanwhile as it found it', async () => {
+    store.set(PENDING, JSON.stringify({ intro: A }))
+    const release = stallFirst(A)
+    const retry = retryPendingForget()
+    receipt(B)
+    await forgetMe()
+    release(new Response('<html>', { status: 200 }))
+    expect(await retry).toBe(false)
+    expect(heldCodes()).toEqual([A, B].sort())
+  })
+
+  it('a code confirmed by a retry is not brought back by the Forget me that was running beside it', async () => {
+    store.set(PENDING, JSON.stringify({ intros: [A] }))
+    // Both ask about A; A is answered the first time, so the record empties once and stays empty.
+    vi.stubGlobal('fetch', vi.fn(async () => removed()))
+    await Promise.all([retryPendingForget(), forgetMe()])
+    expect(store.has(PENDING)).toBe(false)
   })
 })

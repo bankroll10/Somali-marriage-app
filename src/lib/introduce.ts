@@ -1,7 +1,7 @@
 import type { Gender } from '../types'
 import type { Reach } from '../data/reach'
 import { isCode, newCode } from './code'
-import { send, whyOf, type Why } from './net'
+import { TIMEOUT_MS, send, whyOf, type Why } from './net'
 
 /**
  * Putting a name down for an introduction — the client half of
@@ -294,13 +294,14 @@ async function objectBody(res: Response): Promise<Record<string, unknown> | null
  *
  *  - **200 with a JSON object whose `removed` is a boolean** — the handler's
  *    own answer (netlify/functions/introduce.ts). `true`: a record went.
- *    `false`: none was under the code; the withdrawal marker is written either
- *    way.
+ *    `false`: none was under the code. The current handler writes the
+ *    withdrawal marker either way; nothing on the wire says so, and nothing
+ *    here treats the answer as proof of it.
  *  - **404 with a JSON object whose `error` is `not_found`** — the *legacy*
  *    handler's answer for a code with nothing under it (the one deployed
  *    before 2026-09-27). It confirms absence under that contract. It is not
- *    evidence that the current handler's withdrawal marker was written, and
- *    nothing here treats it as such; the current handler never sends a 404.
+ *    evidence that a withdrawal marker was written, and nothing here treats
+ *    it as such; the current handler never sends a 404.
  *
  * Everything else is `failed`: a 200 whose body cannot be read, is not JSON, or
  * has no boolean `removed` (a 200 alone is not evidence — Netlify's catch-all
@@ -322,19 +323,64 @@ async function outcomeOf(res: Response | null): Promise<Withdrawn> {
 }
 
 /**
- * Take a name off by its code. `removed` when the server said a record went;
- * `nothing` when it said none was under the code — it has marked the code
- * either way, so for the marker's days (two at least, until the weekly run
- * after) a request still on its way under it is refused; `failed` when the
- * outcome is not confirmed (see `outcomeOf`): no answer, or one that does not
- * satisfy the protocol. The deletion may or may not have happened, so on
- * `failed` the code is kept, as a receipt and as a pending attempt, and asking
- * again with the same code is safe: a second DELETE is answered `removed:
- * false`. Only on `removed` or `nothing` does this phone forget the code, and
- * only the records that hold the code asked about.
+ * Ask the server to take a name off by its code, and read the answer — and do
+ * nothing else. This phone's receipt, pending attempt and page copies are not
+ * touched, so a caller that has its own rules for what to keep (Forget me,
+ * src/lib/forget.ts, wipes the phone whatever the answer and keeps only the
+ * codes that did not land) shares the classification and not the clearing.
+ *
+ * `removed` when the server said a record went; `nothing` when it said none was
+ * under the code; `failed` when the outcome is not confirmed (see `outcomeOf`):
+ * no answer, one that does not satisfy the protocol, or none inside
+ * `TIMEOUT_MS`. Asking again with the same code is safe: a second DELETE is
+ * answered `removed: false`.
+ *
+ * **One deadline covers the wait for the response and the read of its body.**
+ * `send()` stops its clock when the headers arrive, and a body that begins and
+ * never ends would otherwise hold the caller — for Forget me, before the phone
+ * is wiped. So this calls `fetch` itself with its own signal, aborts it at the
+ * deadline where the platform honours that, and settles at the deadline either
+ * way (a `fetch` that ignores its signal is not waited for). The timer is
+ * cleared however the call ends. The first thing to settle decides: an answer
+ * that arrives after the deadline is not read as one, and changes nothing.
+ * `net.ts` is not touched, and no other endpoint is bounded by this.
+ */
+export async function confirmWithdrawal(code: string): Promise<Withdrawn> {
+  const abort = new AbortController()
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<Withdrawn>((resolve) => {
+    timer = setTimeout(() => {
+      abort.abort()
+      resolve('failed')
+    }, TIMEOUT_MS)
+  })
+  const answered = (async (): Promise<Withdrawn> => {
+    let res: Response
+    try {
+      res = await fetch(`${ENDPOINT}?code=${encodeURIComponent(code)}`, { method: 'DELETE', signal: abort.signal })
+    } catch {
+      return 'failed'
+    }
+    return outcomeOf(res)
+  })().catch((): Withdrawn => 'failed')
+  try {
+    return await Promise.race([answered, deadline])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+/**
+ * Take a name off by its code and, once the server has answered, forget the
+ * code here. `removed` or `nothing` (see `confirmWithdrawal`): the receipt and
+ * the pending attempt that hold *this* code, and the page's own copies of them,
+ * are cleared — and only those, so a receipt for A and a pending attempt for B
+ * are independent. `failed` means *unconfirmed*: no claim about whether the
+ * server removed anything, so everything is kept, as a receipt and as a
+ * pending attempt, and asking again with the same code is safe.
  */
 export async function withdrawInterest(code: string): Promise<Withdrawn> {
-  const result = await outcomeOf(await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`, { method: 'DELETE' }))
+  const result = await confirmWithdrawal(code)
   if (result === 'failed') return result
   if (rememberedIntro()?.code === code) forgetIntro()
   if (pendingIntro()?.code === code) forgetPending()

@@ -1,6 +1,71 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done (Forget me confirmation is an open release blocker)
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired; the other three deletes are not)
 
-## Status as of the latest session (2026-10-01, BATCH-07C)
+## Status as of the latest session (2026-10-02, BATCH-07D)
+
+- **BATCH-07D (`docs/DECISIONS.md` Part 33): Forget me's two introduction deletes now use the Part 32
+  contract.** `confirmWithdrawal(code)` (`src/lib/introduce.ts`) sends the DELETE and classifies the
+  answer with no local side effects; `withdrawInterest` is that plus its clearing (unchanged); Forget me
+  calls the helper. Only an answer the protocol gives confirms (exactly 200 with a boolean `removed`, or the
+  legacy 404 `not_found`); a malformed, cut, empty, other-2xx, other-404, 5xx or missing answer is
+  *unconfirmed*, the code is kept, `intro` is false, the page is not replaced, and the codes are shown. The
+  launch retry and the tap share `deleteAll`, so they are the same contract by construction.
+- **Four gaps were reproduced on `8807b10` first** (scratch test, deleted; synthetic, real handler): the
+  blocker (`intro: true`, no record, the server record remained); **G4**, a second unresolved forget
+  *replaced* the first's code in the single `intro` slot (A lost, both records on the server); **G2**, a
+  launch retry settling after a Forget me wrote new codes deleted the key and the new codes with it; **G1**,
+  with storage refused an unresolved introduction code survived nowhere, and the next tap reported success
+  having sent nothing. **G3** (a body that never ends holding Forget me before the wipe) cannot occur on
+  `8807b10` and is a hazard of reading a body; held by tests and a mutation.
+- **Schema, within the existing key:** `niyyah.forget.pending.v1` keeps `code`, `id`, `pair` and now
+  `intros: string[]`. An earlier build's `intro` / `introPending` are read and folded in, and the record is
+  rewritten in the new shape the next time it is saved. Only codes; no new key, no contact, name, answer,
+  day or receipt. Not downgrade-safe (an earlier build ignores `intros`).
+- **Retry subtracts, it does not overwrite** (G2); **Forget me unions** (G4); both tested separately. The
+  unresolved introduction codes are held in the page when storage refuses (G1), through a second
+  unconfirmed tap and "Start completely fresh", lost on a reload, and the message says so.
+- **Local bound:** `confirmWithdrawal` owns one deadline (`TIMEOUT_MS`) over the response *and* the body,
+  aborts where supported, always clears its timer, and ignores a late answer. `net.ts` untouched.
+  `withdrawInterest` shares the bound as a consequence. `forgetMe` waits at most two rounds (the retry, then
+  its own), held by a test; no copy gives a time. `tests/fail.test.ts` now allows a second raw `fetch`, in
+  `introduce.ts`, deliberately.
+- **Copy:** Forget me says "We could not confirm that your name came off the introduction list. It may have,
+  or it may not."; the recovery sentence no longer says "every time" or implies only introduction codes;
+  "not saving anything" is "could not save {this recovery code / these recovery codes}"; "it goes by hand" is
+  "to ask for help removing it"; the receipt's suffix separates asking from confirming and no longer
+  implies Forget me retries a receipt by itself; "Nothing was under that code any more." lost its marker
+  sentence. All in Part 33's table.
+- **Evidence:** 52 new tests (invariant 21, bound 9, UI 14, unit +8) plus assertions changed on purpose;
+  the matrix of answers is not repeated (Part 32's stands). **Eighteen mutations: seventeen failed a test
+  at once; one survived** (the wipe clearing the page copy), a test was added, it now fails two. **Built
+  app** (scratch build, headless Chromium, 390×844 and 320×568, real handler over an in-memory store, faults
+  on the wire): 12 runs, 12 passed; the previous build failed all 12. Codes inside the viewport, no
+  horizontal overflow, only the pending record and only codes on the phone, one DELETE per tap and no
+  extra POST, Forget me back and tappable, typed-code recovery in three taps, one ask on a wrong-answer
+  reload and a finish on the next, the refused-storage page-memory path and its reload. **Local-handler
+  evidence, not the deployed functions.** Focus after the tap was `BODY`; no screen reader was used.
+- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (123 files, 1777 passed, 2 skipped: the
+  live blocks); `npm run build` exit 0; `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` unset and no API key in the
+  environment (`ANTHROPIC_BASE_URL` is set by the session's proxy). **Classifier** (`tests/eval/check.ts
+  applicability`, on the actual diff, 19 files): guide **not required**, judgment **not required**. The
+  accumulated branch (`261d055..HEAD`, 103 files with this slice) still requires both live suites (workflow, `package.json`, lockfile,
+  `tests/eval/`); they are unfunded. This is not measured Guide or read behaviour.
+- **NOT repaired, stated plainly:** **Forget me is not fully verified.** The map, the step count and the
+  eleven are still deleted by `del()` (`res.ok || 404`): a bare 200 from a broken route still reads as
+  deleted for those three. The **map code** is still lost under refused storage. **Receipt-location
+  finding B** (a founder decision) and the **shared body-timeout concern** for every other `send()` caller
+  are untouched. **Trust's presentation after a reload is unchanged**: nothing held is shown unprompted;
+  recovery is Trust → Forget me → "Yes, delete everything" (which asks again and shows the codes) or the
+  typed-code box. A code nobody confirms is retried silently at every launch. **A legacy 404 writes no
+  marker**: if the deployed handler is still the legacy one when this ships, a late request for an
+  unanswered attempt could land after a forget; ship order, not a client fix, and not verified (no
+  deployed function was called). **The branch is not release-ready and the release remains paused.**
+- **Limitations:** one browser (headless Chromium); Firefox and Safari not run; the cut and HTML answers
+  are what a test server made, not what Netlify does. **Still unknown:** whether the production sweep ran,
+  whether any real records were deleted, and whether the live evaluation harness passes. No PR, merge,
+  deployment, paid evaluation, outreach or participant-data access. Running the classifier rewrites the
+  git-ignored `tests/*/results/outcome.json`; the last write is the accumulated-branch answer.
+
+## Previous status (2026-10-01, BATCH-07C)
 
 - **BATCH-07C (`docs/DECISIONS.md` Part 32), finding F and the shared withdrawal failure wording
   repaired.** `withdrawInterest` (`src/lib/introduce.ts`) now confirms a withdrawal only from a
@@ -42,7 +107,7 @@
   this file): guide **not required**, judgment **not required**. The accumulated branch (`261d055..HEAD`,
   98 files with this slice) still requires both live suites (workflow, `package.json`, lockfile,
   `tests/eval/`); they are unfunded. This is not measured Guide or read behavior.
-- **RELEASE BLOCKER, unresolved: Forget me confirms an introduction deletion falsely.** `forgetMe`
+- **RELEASE BLOCKER (repaired for introduction codes in BATCH-07D, above): Forget me confirms an introduction deletion falsely.** `forgetMe`
   does not use `withdrawInterest`; `del` in `src/lib/forget.ts` (91–95) counts `res.ok || 404` as
   landed. *Reproduction* (scratch test, synthetic state, the real handler, the introduction DELETE
   answered `200 text/html` with the handler not run), for a saved receipt and for a pending-only

@@ -304,6 +304,8 @@ describe('looking for someone', () => {
     await other.type('Your code', code)
     await other.press(/^Take it off$/)
     await other.until(() => other.text().includes('Nothing was under that code any more'), 'nothing under it')
+    // The absence line says only what the answer established: nothing about a marker (docs/DECISIONS.md Part 33).
+    expect(other.text()).not.toContain('marked as taken off')
     const before = server.requests.length
     await other.type('Your code', 'ABC')
     await other.press(/^Take it off$/)
@@ -471,6 +473,7 @@ describe('looking for someone', () => {
     // Her phone still holds the code; taking it off finds nothing, and clears it.
     await m.press(/^Take my name off/)
     await m.until(() => m.text().includes('Nothing was under that code any more'), 'nothing under it')
+    expect(m.text()).not.toContain('marked as taken off')
     expect(phone.storage.has(INTRO_KEY)).toBe(false)
     expect(m.text()).toContain('Put my name down')
     m.unmount()

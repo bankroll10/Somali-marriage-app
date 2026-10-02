@@ -119,7 +119,7 @@ describe.each(SITUATIONS)('the receipt’s "Take my name off", %s', (_name, comp
     noFalseClaims(m)
     // Still the receipt, still the button, the code still on the phone, nothing scrolled.
     expect(m.text()).toContain('Your request was saved on')
-    expect(m.text()).toContain('Your code is still held here, and Forget me on Trust takes it off')
+    expect(m.text()).toContain('Your code is still held here. Tap Take my name off to ask again')
     expect(m.has(/^Take my name off/)).toBe(true)
     expect(JSON.parse(phone.storage.get(RECEIPT_KEY)!).code).toBe(code)
     expect(scrollTo.mock.calls.length).toBe(scrolls)
