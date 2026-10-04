@@ -77,6 +77,17 @@ their neighbours had not hollowed them out.
 | | | The earlier build's `intro` / `introPending` not read; the page copy not read | Red (5; 4) |
 | | | `intro` always true; `introHeld` omitted; the kept flag always true; the introduction named in "could not reach" | Red (21; 19; 3; 2) |
 | | | `withdrawInterest` clears whatever the answer | Red (90) |
+| Forget me confirms the map, the step count and the eleven only by their handlers' answers | `forget-confirmation`, `forget-pending-compat`, `forget-bound`, `forget`, `ui/forget-introduction` | Any 2xx counts as removed | Red (49) |
+| | | Any 404 counts as nothing; a 404 without its body; a 202 accepted | Red (9; 6; 3) |
+| | | The eleven read by keep's field | Red (15) |
+| | | The body read outside the deadline; timer never cleared; no abort; the reader called for a late response | Red (8; 3; 2; 1) |
+| | | Forget me replaces an earlier code (D2); a retry writes back its starting record | Red (19; 9) |
+| | | No page copy when storage refuses; the wipe clears it | Red (9; 5) |
+| | | Confirmed codes not remembered (an older failed completion puts one back) | Red (3) |
+| | | Stored values cleaned into codes instead of validated | Red (169) |
+| | | The first code not in the slot an older build reads; the overflow not read | Red (32; 4) |
+| | | The step id offered by hand; `kept` always true; no per-kind dedupe; introduction confirmation not through `sendRead` | Red (3; 7; 3; 8) |
+| | | A guard in `sendRead` after the reader returns | Survived: equivalent (the race has already settled); removed |
 | A retired feature is not a lifetime | `sweep-function`, `integrity`, `recovery` | The sweep opens `contacts` again and deletes a key (2026-09-27) | Red (3 suites) |
 | A name is kept at most 180 days | `sweep-function`, `journeys/looking` | The sweep skips every introduction whatever its day (2026-09-27) | Red (5: 4 in `sweep-function`, 1 in the journey) |
 | Nothing identifying before two yeses | `voice`, `journeys/looking` | Looking says "nothing about you reaches anyone before you say yes" again (2026-09-27) | Red (3: both voice scans, and the journey) |
@@ -124,6 +135,14 @@ What each suite holds beyond its mutation:
   deadline, a body that never ends, a late answer and the two-round total;
   `tests/ui/forget-introduction.test.tsx` the message, the page-replacement
   condition and the launch retry.
+- **`forget-confirmation`.** The same, for the map, the step count and the eleven, one `describe.each`
+  over the three: both situations, a mixed result, A-then-B (each kind keeps both), overlapping retry and
+  foreground operations (an older completion neither removes what it did not confirm nor re-adds what a
+  newer one did), a browser that cannot save (page copy, second tap, "Start completely fresh", reload) and a
+  reload. The classifier's answers are one table in `src/lib/forget.test.ts`.
+- **`forget-pending-compat`.** What the build before this one (BATCH-07D's reader and writer, a fixture in
+  `tests/support/forget-07d.ts`) does with a record this build wrote: what survives and what it loses. A
+  demonstration of a risk that is **open**, not a test that it is solved.
 - **`founder-routes-fail-closed`.** Every founder check in
   `netlify/functions` must have a row. Each row is refused under seven
   near-miss credentials and an unset key, and answers with the right key.

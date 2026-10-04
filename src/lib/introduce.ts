@@ -1,7 +1,7 @@
 import type { Gender } from '../types'
 import type { Reach } from '../data/reach'
 import { isCode, newCode } from './code'
-import { TIMEOUT_MS, send, whyOf, type Why } from './net'
+import { objectBody, send, sendRead, whyOf, type Why } from './net'
 
 /**
  * Putting a name down for an introduction — the client half of
@@ -278,16 +278,6 @@ export async function registerInterest(input: InterestInput): Promise<Registered
  */
 export type Withdrawn = 'removed' | 'nothing' | 'failed'
 
-/** The body of a response, if it is a JSON object. Anything else — HTML, a cut stream, `null`, an array, a string — is not one. */
-async function objectBody(res: Response): Promise<Record<string, unknown> | null> {
-  try {
-    const body: unknown = await res.json()
-    return body !== null && typeof body === 'object' && !Array.isArray(body) ? (body as Record<string, unknown>) : null
-  } catch {
-    return null
-  }
-}
-
 /**
  * Read a DELETE's answer as `removed`, `nothing` or `failed`, and as nothing
  * else. Two answers confirm an outcome, and only these:
@@ -309,8 +299,7 @@ async function objectBody(res: Response): Promise<Record<string, unknown> | null
  * body can be cut after the status was sent), another 2xx, a 404 with any
  * other body, and every other status.
  */
-async function outcomeOf(res: Response | null): Promise<Withdrawn> {
-  if (!res) return 'failed'
+async function outcomeOf(res: Response): Promise<Withdrawn> {
   if (res.status === 200) {
     const body = await objectBody(res)
     return body && typeof body.removed === 'boolean' ? (body.removed ? 'removed' : 'nothing') : 'failed'
@@ -335,39 +324,14 @@ async function outcomeOf(res: Response | null): Promise<Withdrawn> {
  * `TIMEOUT_MS`. Asking again with the same code is safe: a second DELETE is
  * answered `removed: false`.
  *
- * **One deadline covers the wait for the response and the read of its body.**
- * `send()` stops its clock when the headers arrive, and a body that begins and
- * never ends would otherwise hold the caller — for Forget me, before the phone
- * is wiped. So this calls `fetch` itself with its own signal, aborts it at the
- * deadline where the platform honours that, and settles at the deadline either
- * way (a `fetch` that ignores its signal is not waited for). The timer is
- * cleared however the call ends. The first thing to settle decides: an answer
- * that arrives after the deadline is not read as one, and changes nothing.
- * `net.ts` is not touched, and no other endpoint is bounded by this.
+ * **One deadline covers the wait for the response and the read of its body**,
+ * and it is `sendRead`'s (src/lib/net.ts), the same bound Forget me puts on its
+ * other three deletes: it aborts where the platform honours that, settles at the
+ * deadline either way, never reads an answer that arrives after it, and clears
+ * its timer. The first thing to settle decides.
  */
 export async function confirmWithdrawal(code: string): Promise<Withdrawn> {
-  const abort = new AbortController()
-  let timer: ReturnType<typeof setTimeout> | undefined
-  const deadline = new Promise<Withdrawn>((resolve) => {
-    timer = setTimeout(() => {
-      abort.abort()
-      resolve('failed')
-    }, TIMEOUT_MS)
-  })
-  const answered = (async (): Promise<Withdrawn> => {
-    let res: Response
-    try {
-      res = await fetch(`${ENDPOINT}?code=${encodeURIComponent(code)}`, { method: 'DELETE', signal: abort.signal })
-    } catch {
-      return 'failed'
-    }
-    return outcomeOf(res)
-  })().catch((): Withdrawn => 'failed')
-  try {
-    return await Promise.race([answered, deadline])
-  } finally {
-    clearTimeout(timer)
-  }
+  return sendRead(`${ENDPOINT}?code=${encodeURIComponent(code)}`, { method: 'DELETE' }, outcomeOf, 'failed')
 }
 
 /**

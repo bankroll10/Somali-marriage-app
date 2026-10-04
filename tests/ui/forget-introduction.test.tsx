@@ -66,7 +66,7 @@ const ALL = { map: true, progress: true, couple: true }
 
 describe('the message, on a stub', () => {
   it('one unconfirmed code, saved on this phone: says it could not confirm, shows the code in full, and promises no completion', async () => {
-    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [A], introKept: true })
+    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [A], kept: true })
     const said = m.text()
     expect(said).toContain('This phone is cleared.')
     expect(said).toContain('We could not confirm that your name came off the introduction list. It may have, or it may not.')
@@ -87,7 +87,7 @@ describe('the message, on a stub', () => {
   })
 
   it('two codes: plural everywhere, each shown in full', async () => {
-    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [B, A], introKept: true })
+    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [B, A], kept: true })
     const said = m.text()
     expect(said).toContain('with these codes')
     expect(said).toContain(`${formatCode(B)} and ${formatCode(A)}`)
@@ -97,7 +97,7 @@ describe('the message, on a stub', () => {
   })
 
   it('three codes, because an earlier forget left one: a list, not a pair', async () => {
-    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [C, B, A], introKept: true })
+    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [C, B, A], kept: true })
     const said = m.text()
     expect(said).toContain(`${formatCode(C)}, ${formatCode(B)} and ${formatCode(A)}`)
     expect(said).toContain('with these codes')
@@ -105,7 +105,7 @@ describe('the message, on a stub', () => {
   })
 
   it('storage refused: says this browser could not save the code, that it cannot try again once the page is closed, and to copy it now', async () => {
-    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [A], introKept: false })
+    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [A], kept: false })
     const said = m.text()
     expect(said).toContain('This browser could not save this recovery code, so it cannot try again once this page is closed or reloaded. Copy it now. Until then you can tap Forget me again.')
     expect(said).toContain(formatCode(A))
@@ -116,16 +116,16 @@ describe('the message, on a stub', () => {
   })
 
   it('storage refused, two codes: plural', async () => {
-    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [B, A], introKept: false })
+    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [B, A], kept: false })
     const said = m.text()
     expect(said).toContain('This browser could not save these recovery codes')
     expect(said).toContain('Copy them now.')
   })
 
   it('a map that could not be reached as well: both said, in their own words, and the recovery sentence does not claim only introduction codes are kept', async () => {
-    const m = await forgetOnStub({ map: false, progress: true, couple: true, intro: false, code: 'ACDEFG', introHeld: [A], introKept: true })
+    const m = await forgetOnStub({ map: false, progress: true, couple: true, intro: false, mapHeld: ['ACDEFG'], introHeld: [A], kept: true })
     const said = m.text()
-    expect(said).toContain('We could not reach your kept map just now, so it is still held — that is us, not you.')
+    expect(said).toContain('We could not confirm that your kept map was deleted. It may have been, or it may not.')
     expect(said).toContain('We could not confirm that your name came off the introduction list. It may have, or it may not.')
     expect(said).toContain(`with these codes ACDEFG and ${formatCode(A)} to ask for help removing them.`)
     expect(said).toContain('keeps only what it needs to finish')
@@ -136,10 +136,10 @@ describe('the message, on a stub', () => {
   })
 
   it('a map alone: the sentence for it, as before, with the hand-off no longer sounding like a deletion', async () => {
-    const m = await forgetOnStub({ map: false, progress: true, couple: true, intro: true, code: 'ACDEFG' })
+    const m = await forgetOnStub({ map: false, progress: true, couple: true, intro: true, mapHeld: ['ACDEFG'], kept: true })
     const said = (m.container.querySelector('[role="status"]')?.textContent ?? '').replace(/\s+/g, ' ')
     expect(said).toContain('This phone is cleared.')
-    expect(said).toContain('We could not reach your kept map just now, so it is still held — that is us, not you.')
+    expect(said).toContain('We could not confirm that your kept map was deleted. It may have been, or it may not.')
     expect(said).toContain('with the code ACDEFG to ask for help removing it.')
     expect(said).not.toContain('introduction')
     expect(said).not.toContain('it goes by hand')
@@ -153,7 +153,7 @@ describe('the message, on a stub', () => {
   it('a second result replaces the first, and an empty one clears it', async () => {
     let n = 0
     const results = [
-      { ...ALL, intro: false, introHeld: [A], introKept: true },
+      { ...ALL, intro: false, introHeld: [A], kept: true },
       { ...ALL, intro: true },
     ]
     const m = await mount(<ForgetMe onForget={async () => results[n++]} />)
@@ -167,6 +167,56 @@ describe('the message, on a stub', () => {
     await m.settle()
     expect(m.container.querySelector('[role="status"]')).toBeNull()
     expect(m.text()).not.toContain(formatCode(A))
+  })
+})
+
+/** What the map, the count and the eleven may not be said to be when nobody confirmed them (docs/DECISIONS.md Part 34). */
+const NO_CLAIMS = ['still held', 'that is us, not you', 'We could not reach', 'Nothing has changed', 'is deleted', 'are deleted', 'has been deleted']
+
+describe('the message for the map, the count and the eleven, on a stub', () => {
+  it('the count alone: uncertain, no hand-off, no code, and the same recovery sentence as for a code that is kept', async () => {
+    const m = await forgetOnStub({ map: true, progress: false, couple: true, intro: true, kept: true })
+    const said = (m.container.querySelector('[role="status"]')?.textContent ?? '').replace(/\s+/g, ' ')
+    expect(said).toContain('This phone is cleared. We could not confirm that the count of your steps was deleted. It may have been, or it may not.')
+    expect(said).toContain('tries again each time Niyyah opens, though that may not get through')
+    // Nothing a person can hand over, so nothing is offered to be written in with.
+    expect(said).not.toContain('Or write to')
+    expect(said).not.toContain('with the code')
+    for (const claim of NO_CLAIMS) expect(said, claim).not.toContain(claim)
+    expect(m.has(/^Forget me$/)).toBe(true)
+  })
+
+  it('the eleven alone is singular, and the three together are a list with the plural', async () => {
+    const one = await forgetOnStub({ map: true, progress: true, couple: false, intro: true, kept: true })
+    expect(one.text()).toContain('We could not confirm that the eleven you sent was deleted. It may have been, or it may not.')
+    one.unmount()
+    screen = undefined
+    const all = await forgetOnStub({ map: false, progress: false, couple: false, intro: true, mapHeld: ['ACDEFG'], kept: true })
+    const said = all.text()
+    expect(said).toContain('We could not confirm that your kept map, the count of your steps and the eleven you sent were deleted. They may have been, or they may not.')
+    expect(said).toContain('with the code ACDEFG')
+    for (const claim of NO_CLAIMS) expect(said, claim).not.toContain(claim)
+  })
+
+  it('two map codes, one earlier: both shown in full, plural', async () => {
+    const m = await forgetOnStub({ map: false, progress: true, couple: true, intro: true, mapHeld: ['ACDEFG', 'CDEFGHJK'], kept: true })
+    expect(m.text()).toContain('with these codes ACDEFG and CDEFGHJK to ask for help removing them.')
+  })
+
+  it('storage refused, only the step id or the couple code held: it says so, shows nothing to copy, and offers no hand-off', async () => {
+    const m = await forgetOnStub({ map: true, progress: false, couple: false, intro: true, kept: false })
+    const said = (m.container.querySelector('[role="status"]')?.textContent ?? '').replace(/\s+/g, ' ')
+    expect(said).toContain('This browser could not save what it needs to try again, so it cannot once this page is closed or reloaded. Until then you can tap Forget me again.')
+    expect(said).not.toContain('Copy')
+    expect(said).not.toContain('Or write to')
+    expect(said).not.toContain('keeps only what it needs')
+  })
+
+  it('storage refused, a map code held with the step id: the code is shown to copy, the step id is not', async () => {
+    const m = await forgetOnStub({ map: false, progress: false, couple: true, intro: true, mapHeld: ['ACDEFG'], kept: false })
+    const said = m.text()
+    expect(said).toContain('This browser could not save this recovery code, so it cannot try again once this page is closed or reloaded. Copy it now. Until then you can tap Forget me again.')
+    expect(said).toContain('with the code ACDEFG')
   })
 })
 
@@ -243,6 +293,32 @@ describe('the real app, with an invalid success-looking answer and the handler n
     await m.until(() => replace.mock.calls.length > 0, 'the page is replaced')
     expect(records()).toEqual([])
     expect(markers()).toEqual([`withdrawn/${code}/${day()}`])
+  })
+})
+
+describe('the real app, with the step count answered by an invalid success-looking answer', () => {
+  it('does not replace the page, says it could not confirm, offers no hand-off, shows no step id, and a tap answered for real finishes it', async () => {
+    const replace = watchReplace()
+    const { m } = await receipt()
+    const ids = blobs.keys('progress')
+    expect(ids).toHaveLength(1)
+    const back = answerDelete(server, appHtml, false, undefined, 'progress')
+    await throughTrust(m)
+    await m.until(() => m.text().includes('We could not confirm that the count of your steps was deleted'), 'the unconfirmed message')
+    expect(replace).not.toHaveBeenCalled()
+    expect(m.text()).not.toContain('Or write to')
+    expect(m.text()).not.toContain(ids[0])
+    for (const claim of NO_CLAIMS) expect(m.text(), claim).not.toContain(claim)
+    expect(phone.keys()).toEqual([PENDING])
+    expect(JSON.parse(phone.storage.get(PENDING)!)).toEqual({ id: ids[0] })
+    expect(blobs.keys('progress')).toEqual(ids)
+
+    back()
+    await m.press(/^Forget me$/)
+    await m.press('Yes, delete everything')
+    await m.until(() => replace.mock.calls.length > 0, 'the page is replaced')
+    expect(blobs.keys('progress')).toEqual([])
+    expect(phone.keys()).toEqual([])
   })
 })
 

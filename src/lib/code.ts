@@ -46,6 +46,23 @@ export function isCode(raw: string): boolean {
   return n === CODE_LENGTH || n === LEGACY_CODE_LENGTH
 }
 
+const CANONICAL = new RegExp(`^(?:[${ALPHABET}]{${LEGACY_CODE_LENGTH}}|[${ALPHABET}]{${CODE_LENGTH}})$`)
+
+/**
+ * Is this string, exactly as it is, a code this product minted? Six or eight
+ * characters, every one in the alphabet, nothing stripped, folded or trimmed.
+ *
+ * Not `isCode`, which asks whether *typed* input could become a code once the
+ * impossible characters are removed. That is right for a field a person types
+ * into and wrong for a value read back from storage: `QR?TWXY34` cleans to a
+ * perfectly good code that nobody ever held, and a delete sent under it would
+ * name somebody else's record. A stored value is a code or it is not; one that
+ * is not names nothing and is not sent (docs/DECISIONS.md Part 34).
+ */
+export function isStoredCode(raw: unknown): raw is string {
+  return typeof raw === 'string' && CANONICAL.test(raw)
+}
+
 /**
  * A code as a person reads it: eight characters as two groups of four, which
  * is what makes eight no harder to say down a phone than six. A six stays as

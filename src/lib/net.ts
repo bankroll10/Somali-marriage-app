@@ -60,6 +60,67 @@ export async function send(input: string, init: RequestInit = {}, ms: number = T
   }
 }
 
+/** The body of a response, if it is a JSON object. Anything else — HTML, a cut stream, `null`, an array, a string — is not one. */
+export async function objectBody(res: Response): Promise<Record<string, unknown> | null> {
+  try {
+    const body: unknown = await res.json()
+    return body !== null && typeof body === 'object' && !Array.isArray(body) ? (body as Record<string, unknown>) : null
+  } catch {
+    return null
+  }
+}
+
+/**
+ * Send a request and read its answer, under one clock.
+ *
+ * `send` stops its clock when the headers arrive and keeps its signal to
+ * itself, so a body that began and never ended is not bounded by it. A caller
+ * that must *read* the answer before it acts — Forget me, which wipes the phone
+ * on the strength of what comes back — needs the wait for the headers and the
+ * read of the body inside one deadline. This calls `fetch` with its own signal
+ * and:
+ *
+ *  - aborts at `ms` where the platform honours that, and settles at `ms`
+ *    either way (a `fetch` that ignores its signal is not waited for);
+ *  - never calls `read` once the deadline has passed: a `fetch` that resolves
+ *    late is cancelled, not read, and a body that finishes late changes nothing
+ *    — the first thing to settle decides;
+ *  - clears its timer however it ends.
+ *
+ * `fallback` is what comes back for no answer, a rejected `fetch`, a `read` that
+ * throws, or the deadline. `send` and every caller of it are untouched.
+ */
+export async function sendRead<T>(input: string, init: RequestInit, read: (res: Response) => Promise<T>, fallback: T, ms: number = TIMEOUT_MS): Promise<T> {
+  const abort = new AbortController()
+  let over = false
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const deadline = new Promise<T>((resolve) => {
+    timer = setTimeout(() => {
+      over = true
+      abort.abort()
+      resolve(fallback)
+    }, ms)
+  })
+  const answered = (async (): Promise<T> => {
+    let res: Response
+    try {
+      res = await fetch(input, { ...init, signal: abort.signal })
+    } catch {
+      return fallback
+    }
+    if (over) {
+      void res.body?.cancel().catch(() => {})
+      return fallback
+    }
+    return read(res)
+  })().catch(() => fallback)
+  try {
+    return await Promise.race([answered, deadline])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 /**
  * Read a failed response as one word.
  *

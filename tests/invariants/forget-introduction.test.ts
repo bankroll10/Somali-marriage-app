@@ -93,7 +93,7 @@ describe.each(SITUATIONS)('Forget me, %s', (_s, completed, reply) => {
 
       const done = await forgetMe()
       expect(done.intro).toBe(false)
-      expect(done).toMatchObject({ introHeld: [A], introKept: true })
+      expect(done).toMatchObject({ introHeld: [A], kept: true })
       // Her things are gone; the one key left holds the code and nothing else.
       expect(phone.keys()).toEqual([PENDING])
       expect(held()).toEqual([A])
@@ -281,7 +281,7 @@ describe('a browser that cannot save the recovery codes (G1)', () => {
 
     const done = await forgetMe()
     expect(done.intro).toBe(false)
-    expect(done).toMatchObject({ introHeld: [a], introKept: false })
+    expect(done).toMatchObject({ introHeld: [a], kept: false })
     // Nothing was written; the page holds the code and nothing else of hers.
     expect(phone.keys()).toEqual([])
     expect(rememberedIntro()).toBeNull()
@@ -308,7 +308,7 @@ describe('a browser that cannot save the recovery codes (G1)', () => {
     expect((await forgetMe()).introHeld).toEqual([a])
     // Again, still wrong: the code the first round left in the page is not dropped by the wipe that follows it.
     const again = await forgetMe()
-    expect(again).toMatchObject({ intro: false, introHeld: [a], introKept: false })
+    expect(again).toMatchObject({ intro: false, introHeld: [a], kept: false })
     expect(pendingForget()).toEqual({ intros: [a] })
     expect(deletes()).toBe(2)
     // One DELETE for the first tap, and one for the held code on the second: the code is sent once per round, never twice.
@@ -353,7 +353,7 @@ describe('a browser that cannot save the recovery codes (G1)', () => {
     expect(lost.kept).toBe(false)
     const back = answerDelete(server, appHtml, false)
     const done = await forgetMe()
-    expect(done).toMatchObject({ intro: false, introHeld: [lost.code], introKept: false })
+    expect(done).toMatchObject({ intro: false, introHeld: [lost.code], kept: false })
     back()
     expect(await retryPendingForget()).toBe(true)
     expect(records()).toEqual([])
@@ -364,7 +364,7 @@ describe('a browser that cannot save the recovery codes (G1)', () => {
     if (!saved.ok) throw new Error('not saved')
     const back = answerDelete(server, appHtml, false)
     const done = await forgetMe()
-    expect(done).toMatchObject({ introHeld: [saved.state.code], introKept: true })
+    expect(done).toMatchObject({ introHeld: [saved.state.code], kept: true })
     back()
   })
 })

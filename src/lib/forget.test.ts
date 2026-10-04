@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { LOCAL_KEYS, forgetMe, pendingForget, retryPendingForget } from './forget'
+import { LOCAL_KEYS, forgetMe, pendingForget, resetForgetMirror, retryPendingForget } from './forget'
 
 /**
  * Forget me is the control that makes every sentence on Trust enforceable.
@@ -25,8 +25,14 @@ function installStorage() {
 let store: Map<string, string>
 beforeEach(() => {
   store = installStorage()
+  // What a reload clears: the codes this page has had confirmed, and the ones it holds because storage refused them.
+  resetForgetMirror()
 })
 afterEach(() => vi.unstubAllGlobals())
+
+/** What each route's own handler answers when it did the work (netlify/functions): the shapes differ, and Forget me reads each by its own. */
+const gave = (url: string) =>
+  new Response(String(url).includes('/couple') ? '{"ok":true}' : String(url).includes('/introduce') ? '{"removed":true}' : '{"forgotten":true}', { status: 200 })
 
 const seed = () => {
   store.set('niyyah.intake.v1', '{"answers":{}}')
@@ -45,16 +51,16 @@ describe('forget me', () => {
     // forgetting was done while both sheets sat on the server for the rest of
     // the ninety days — while Trust says, with no condition, that this
     // "deletes ... the eleven you sent him" (docs/DECISIONS.md).
-    store.set('niyyah.intake.v1', JSON.stringify({ answers: {}, couple: { code: 'QRSTVW', sentAt: 'x' } }))
+    store.set('niyyah.intake.v1', JSON.stringify({ answers: {}, couple: { code: 'QRTWXY', sentAt: 'x' } }))
     store.set('niyyah.install.v1', 'HJKMNP')
-    const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"ok":true}', { status: 200 }))
+    const spy = vi.fn(async (url: string, _init?: RequestInit) => gave(url))
     vi.stubGlobal('fetch', spy)
 
     const result = await forgetMe()
     expect(result).toEqual({ map: true, progress: true, couple: true, intro: true })
     const calls = spy.mock.calls.map((c) => c[0]).sort()
     expect(calls).toEqual([
-      '/.netlify/functions/couple?code=QRSTVW',
+      '/.netlify/functions/couple?code=QRTWXY',
       '/.netlify/functions/progress?id=HJKMNP',
     ])
     expect(store.size).toBe(0)
@@ -62,7 +68,7 @@ describe('forget me', () => {
 
   it('deletes the map by her code and the count by her install code, then wipes every key this app writes', async () => {
     seed()
-    const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"forgotten":true}', { status: 200 }))
+    const spy = vi.fn(async (url: string, _init?: RequestInit) => gave(url))
     vi.stubGlobal('fetch', spy)
     const result = await forgetMe()
     expect(result).toEqual({ map: true, progress: true, couple: true, intro: true })
@@ -94,7 +100,7 @@ describe('forget me', () => {
     seed()
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     // The code is named, so she can write in with it (docs/PRIVACY.md).
-    expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true, intro: true, code: 'ACDEFG' })
+    expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true, intro: true, mapHeld: ['ACDEFG'], kept: true })
     // One key is left: the codes, and none of her answers.
     expect([...store.keys()]).toEqual(['niyyah.forget.pending.v1'])
     expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ code: 'ACDEFG', id: 'HJKMNP' })
@@ -105,7 +111,7 @@ describe('forget me', () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     await forgetMe()
     // Tapping Forget me again used to send nothing, and say it was done.
-    const spy = vi.fn(async (_url: string, _init?: RequestInit) => new Response('{"forgotten":true}', { status: 200 }))
+    const spy = vi.fn(async (url: string, _init?: RequestInit) => gave(url))
     vi.stubGlobal('fetch', spy)
     expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
     expect(spy.mock.calls.map((c) => c[0]).sort()).toEqual(['/.netlify/functions/keep?code=ACDEFG', '/.netlify/functions/progress?id=HJKMNP'])
@@ -116,10 +122,10 @@ describe('forget me', () => {
     seed()
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     await forgetMe()
-    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes('/keep') ? new Response('{}', { status: 200 }) : new Response('{}', { status: 503 }))))
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes('/keep') ? gave(url) : new Response('{}', { status: 503 }))))
     expect(await retryPendingForget()).toBe(false)
     expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ id: 'HJKMNP' })
-    vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })))
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => gave(url)))
     expect(await retryPendingForget()).toBe(true)
     expect(store.size).toBe(0)
   })
@@ -151,10 +157,12 @@ describe('forget me', () => {
     expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
     expect(spy.mock.calls.map((c) => [c[0], c[1]?.method])).toEqual([['/.netlify/functions/introduce?code=QRTWXY34', 'DELETE']])
     expect(store.size).toBe(0)
-    // Offline, the code is kept to send again — and named as what is still held.
+    // Offline, the code is kept to send again — and named as what is still held. (A new page: a code this page had
+    // confirmed is not asked about again here, so the second half starts as a reload would.)
+    resetForgetMirror()
     store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27' }))
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false, introHeld: ['QRTWXY34'], introKept: true })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false, introHeld: ['QRTWXY34'], kept: true })
     expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intros: ['QRTWXY34'] })
   })
 
@@ -173,11 +181,12 @@ describe('forget me', () => {
       ['/.netlify/functions/introduce?code=QRTWXY34', 'DELETE'],
     ])
     expect(store.size).toBe(0)
-    // Offline, both codes are kept to send again, and named as still held.
+    // Offline, both codes are kept to send again, and named as still held. (After a reload.)
+    resetForgetMirror()
     store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27', removeOn: '2027-03-21' }))
     store.set('niyyah.intro.pending.v1', JSON.stringify({ code: 'HJKMNPQR', at: '2026-09-27' }))
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
-    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false, introHeld: ['HJKMNPQR', 'QRTWXY34'], introKept: true })
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false, introHeld: ['HJKMNPQR', 'QRTWXY34'], kept: true })
     expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intros: ['HJKMNPQR', 'QRTWXY34'] })
     // The next launch finishes it.
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{"removed":true}', { status: 200 })))
@@ -236,6 +245,7 @@ describe('what Forget me accepts as an introduction deletion', () => {
     expect((await forgetMe()).intro).toBe(true)
     expect(store.size).toBe(0)
 
+    resetForgetMirror()
     receipt(A)
     vi.stubGlobal('fetch', vi.fn(async () => new Response('<!doctype html>', { status: 404 })))
     expect((await forgetMe()).intro).toBe(false)
@@ -245,21 +255,21 @@ describe('what Forget me accepts as an introduction deletion', () => {
     expect(heldCodes()).toEqual([A])
   })
 
-  it('a bare 200 is not a confirmation, for the receipt or the attempt, but still is for the other deletes', async () => {
+  it('a bare 200 is not a confirmation of any of the four, and every code is kept', async () => {
     store.set('niyyah.keep.code.v1', 'ACDEFG')
+    store.set('niyyah.install.v1', 'HJKMNP')
+    store.set('niyyah.intake.v1', JSON.stringify({ answers: {}, couple: { code: 'QRTWXY', sentAt: 'x' } }))
     receipt(A)
     store.set('niyyah.intro.pending.v1', JSON.stringify({ code: B, at: '2026-09-27' }))
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })))
     const done = await forgetMe()
-    // The map's answer is read as before (not repaired here); the two introduction codes are not confirmed.
-    expect(done).toMatchObject({ map: true, progress: true, couple: true, intro: false, introHeld: [A, B].sort(), introKept: true })
-    expect(heldCodes()).toEqual([A, B].sort())
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ intros: [A, B].sort() })
+    expect(done).toMatchObject({ map: false, progress: false, couple: false, intro: false, mapHeld: ['ACDEFG'], introHeld: [A, B].sort(), kept: true })
+    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: 'ACDEFG', id: 'HJKMNP', pair: 'QRTWXY', intros: [A, B].sort() })
   })
 
   it('a record written by the earlier build is read, and written back in the new shape', async () => {
     store.set(PENDING, JSON.stringify({ code: 'ACDEFG', intro: A, introPending: B }))
-    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes(B) ? new Response('<html>', { status: 200 }) : removed())))
+    vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes(B) ? new Response('<html>', { status: 200 }) : gave(url))))
     expect(await retryPendingForget()).toBe(false)
     expect(JSON.parse(store.get(PENDING)!)).toEqual({ intros: [B] })
   })
@@ -333,5 +343,127 @@ describe('a completed retry removes only what it confirmed (G2)', () => {
     vi.stubGlobal('fetch', vi.fn(async () => removed()))
     await Promise.all([retryPendingForget(), forgetMe()])
     expect(store.has(PENDING)).toBe(false)
+  })
+})
+
+/**
+ * What Forget me accepts as the map's, the step count's and the eleven's deletion (docs/DECISIONS.md Part 34):
+ * the one table that holds each endpoint's answers. The layers above it (tests/invariants/forget-confirmation.test.ts,
+ * the screen) hold what Forget me does with a result, and do not repeat this.
+ */
+describe('what Forget me accepts as a keep, progress or couple deletion', () => {
+  const ENDPOINTS: [string, string, string, (store: Map<string, string>) => void, string][] = [
+    ['keep', 'forgotten', 'map', (m) => m.set('niyyah.keep.code.v1', 'ACDEFG'), 'code'],
+    ['progress', 'forgotten', 'progress', (m) => m.set('niyyah.install.v1', 'HJKMNPQR'), 'id'],
+    ['couple', 'ok', 'couple', (m) => m.set('niyyah.intake.v1', JSON.stringify({ answers: {}, couple: { code: 'QRTWXY', sentAt: 'x' } })), 'pair'],
+  ]
+  const json = (body: unknown, status = 200) => () => new Response(JSON.stringify(body), { status })
+  const html = (status = 200) => () => new Response('<!doctype html><title>Niyyah</title>', { status, headers: { 'content-type': 'text/html' } })
+
+  describe.each(ENDPOINTS)('%s', (_route, field, flag, put, slot) => {
+    const other = field === 'ok' ? 'forgotten' : 'ok'
+    const CONFIRMS: [string, () => Response][] = [
+      [`200 {${field}: true}`, json({ [field]: true })],
+      [`200 {${field}: true} with other fields (an older build added reportsTaken)`, json({ [field]: true, reportsTaken: 2 })],
+      ['404 {error: not_found}', json({ error: 'not_found' }, 404)],
+    ]
+    const UNCONFIRMED: [string, () => Response][] = [
+      ['200 with the app’s own page', html()],
+      ['200 {}', json({})],
+      [`200 {${field}: false}`, json({ [field]: false })],
+      [`200 {${field}: "true"}`, json({ [field]: 'true' })],
+      [`200 {${other}: true}, another endpoint’s answer`, json({ [other]: true })],
+      ['200 null', json(null)],
+      ['200 []', json([])],
+      ['200 empty', () => new Response('', { status: 200 })],
+      ['202 with a valid answer', json({ [field]: true }, 202)],
+      ['204', () => new Response(null, { status: 204 })],
+      ['404 with the app’s own page', html(404)],
+      ['404 {}', json({}, 404)],
+      ['404 {error: expired}', json({ error: 'expired' }, 404)],
+      ['400 bad_code', json({ error: 'bad_code' }, 400)],
+      ['405', json({ error: 'GET, POST or DELETE only' }, 405)],
+      ['503 rate_limited', json({ error: 'rate_limited' }, 503)],
+      ['503 unavailable', json({ error: 'unavailable' }, 503)],
+      ['502', html(502)],
+      ['no answer', () => { throw new Error('offline') }],
+    ]
+    it.each(CONFIRMS)('confirms: %s', async (_n, reply) => {
+      put(store)
+      vi.stubGlobal('fetch', vi.fn(async () => reply()))
+      expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
+      expect(store.size).toBe(0)
+    })
+    it.each(UNCONFIRMED)('does not confirm: %s — the code is kept, and only the code', async (_n, reply) => {
+      put(store)
+      vi.stubGlobal('fetch', vi.fn(async () => reply()))
+      const done = await forgetMe()
+      expect(done[flag as 'map' | 'progress' | 'couple']).toBe(false)
+      expect(done.kept).toBe(true)
+      expect([...store.keys()]).toEqual([PENDING])
+      expect(Object.keys(JSON.parse(store.get(PENDING)!))).toEqual([slot])
+    })
+  })
+})
+
+describe('the codes Forget me will send: exactly a code, never one made out of something else', () => {
+  const calls = () => {
+    const spy = vi.fn(async (url: string, _init?: RequestInit) => gave(url))
+    vi.stubGlobal('fetch', spy)
+    return spy
+  }
+
+  it('sends a valid six-character and a valid eight-character code, as they are', async () => {
+    store.set('niyyah.keep.code.v1', 'ACDEFG')
+    store.set('niyyah.install.v1', 'HJKMNPQR')
+    store.set('niyyah.intake.v1', JSON.stringify({ answers: {}, couple: { code: 'QRTWXY', sentAt: 'x' } }))
+    const spy = calls()
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
+    expect(spy.mock.calls.map((c) => c[0]).sort()).toEqual([
+      '/.netlify/functions/couple?code=QRTWXY',
+      '/.netlify/functions/keep?code=ACDEFG',
+      '/.netlify/functions/progress?id=HJKMNPQR',
+    ])
+  })
+
+  const BAD = ['QR?TWXY34', 'qrtwxy34', 'ACDEFG ', ' ACDEFG', 'ACDE-FG', 'ACDEFGH', 'ACDEF', 'ACDEFGHJKM', 'A1DEFG', 'ACDEFSG', 'ACDEFG\nA']
+  it.each(BAD)('a stored value %j is not a code: it is not sent as itself, not cleaned into another, and not kept', async (bad) => {
+    store.set('niyyah.keep.code.v1', bad)
+    store.set('niyyah.install.v1', bad)
+    store.set('niyyah.intake.v1', JSON.stringify({ answers: {}, couple: { code: bad, sentAt: 'x' } }))
+    store.set('niyyah.intro.v1', JSON.stringify({ code: bad, at: '2026-09-27', removeOn: '2027-03-21' }))
+    const spy = calls()
+    expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: true })
+    expect(spy).not.toHaveBeenCalled()
+    expect(store.size).toBe(0)
+  })
+
+  it('a malformed value in the pending record is dropped on read, so it cannot be retried for ever; the valid ones beside it stay', async () => {
+    store.set(PENDING, JSON.stringify({ code: 'QR?TWXY34', moreCodes: ['ACDEFG', 7, null, 'acdefg'], id: 'ACDEFGH', pair: 'QRTWXY', intros: [A, 'ZZZZZZZZ'] }))
+    expect(pendingForget()).toEqual({ maps: ['ACDEFG'], pairs: ['QRTWXY'], intros: [A] })
+    const spy = calls()
+    expect(await retryPendingForget()).toBe(true)
+    expect(spy.mock.calls.map((c) => c[0]).sort()).toEqual([
+      '/.netlify/functions/couple?code=QRTWXY',
+      '/.netlify/functions/introduce?code=QRTWXY34',
+      '/.netlify/functions/keep?code=ACDEFG',
+    ])
+    expect(store.has(PENDING)).toBe(false)
+  })
+
+  it('reads every record an earlier build wrote — the slots, and the introduction fields — and keeps a valid six- and eight-character code of each', async () => {
+    store.set(PENDING, JSON.stringify({ code: 'ACDEFG', id: 'HJKMNPQR', pair: 'QRTWXY', intro: A, introPending: B }))
+    expect(pendingForget()).toEqual({ maps: ['ACDEFG'], installs: ['HJKMNPQR'], pairs: ['QRTWXY'], intros: [A, B].sort() })
+  })
+
+  it('writes the file the build before it wrote when each kind has one code, and the new fields only for a second', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
+    store.set('niyyah.keep.code.v1', 'ACDEFG')
+    store.set('niyyah.install.v1', 'HJKMNPQR')
+    await forgetMe()
+    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: 'ACDEFG', id: 'HJKMNPQR' })
+    store.set('niyyah.keep.code.v1', 'CDEFGH')
+    await forgetMe()
+    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: 'ACDEFG', moreCodes: ['CDEFGH'], id: 'HJKMNPQR' })
   })
 })

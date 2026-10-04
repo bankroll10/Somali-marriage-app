@@ -1,6 +1,54 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired; the other three deletes are not)
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too; one compatibility constraint open)
 
-## Status as of the latest session (2026-10-02, BATCH-07D)
+## Status as of the latest session (2026-10-02, BATCH-07E)
+
+- **BATCH-07E (`docs/DECISIONS.md` Part 34): Forget me confirms the map, the step count and the eleven only
+  by an answer their handlers give.** keep and progress `200 {forgotten: true}`, couple `200 {ok: true}`, and
+  for all three `404 {error: 'not_found'}`; everything else is *unconfirmed* and the code is kept. The three
+  DELETE sources are byte-identical between `261d055` and HEAD; that is repository equivalence, **not** a
+  statement about what is deployed (no function was called; `health.ts`, `introduce.ts` and `sweep.ts` do
+  differ from `261d055`).
+- **Reproduced on `69f8b92` first** (scratch, real handlers over the in-memory store, deleted): D1 15 of 15
+  (every success-looking answer with the handler not run was confirmed, the page would be replaced, the record
+  stayed); D2 3 of 3 (a second unresolved forget replaced the first's code for the map, the step id and the
+  couple code); D3 3 of 3 (refused storage lost the code and the next tap sent nothing). No prediction was
+  dropped. The built-app control (the previous build, same harness): 18 of 18 failed.
+- **One primitive:** `sendRead` (`src/lib/net.ts`): one deadline over the response and the body, abort,
+  settle at the deadline, never read a response that arrives after it, timer cleared. All four deletes use it;
+  `confirmWithdrawal` is `sendRead` with its own reader; `send()` untouched; `tests/fail.test.ts` is
+  tighter (the `introduce.ts` raw-`fetch` exception is gone).
+- **Four lists** (`maps`, `installs`, `pairs`, `intros`): a Forget me adds, a retry removes only what it
+  confirmed, an older failed completion does not re-add what a newer one confirmed (a page-memory ledger).
+  **Page-memory recovery for all four kinds** when storage refuses. **Stored codes are validated, not
+  cleaned** (`isStoredCode`): `isCode` still cleans typed input.
+- **On disk:** same key; a kind's first code in the old slot, a second and later in `moreCodes` / `moreIds`
+  / `morePairs`; one code of each kind is byte-identical to 07D's file.
+- **Copy:** "We could not confirm that … was deleted. It may have been, or it may not."; no "still held", no
+  "that is us, not you"; no email hand-off and no visible install id or couple code when only those remain.
+- **OPEN RELEASE CONSTRAINT, needs a founder decision before merge:** an older build (07D or earlier: an old
+  tab left open, a cached shell, a rollback) overwrites fields it does not know **even when its deletion
+  fails**, so a record with two or more unresolved codes of one kind loses them. Demonstrated with 07D's
+  reader/writer as a fixture (`forget-pending-compat`). Options: (a) accept and release 07D+07E together, no
+  rollback planned; (b) put the overflow in a second key older builds never rewrite; (c) wait for old tabs.
+  Not chosen here. The network-first service worker is no evidence older clients cannot run.
+- **Evidence:** 2 new invariant files and a fixture; `forget.test.ts` 19 → 100, `forget-bound.test.ts` 9 →
+  17, the UI file 14 → 20; 124 of 177 targeted tests fail against `69f8b92`'s sources. **23 mutations, 22
+  failed a test, one survived and is equivalent** (removed). **Built app** (headless Chromium, 390 and 320
+  wide, the real handlers over an in-memory store, faults on the wire): 18 of 18 passed, no overflow, codes in
+  full, only the pending record on the phone; local-handler evidence, not the deployed functions. Focus
+  after the failed tap is on `BODY`; **no screen reader was used**.
+- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (125 files, 1908 passed, 2 skipped);
+  `npm run build` exit 0; `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` unset and no API key. **Classifier:** the
+  slice's 19 files: guide **not required**, judgment **not required**. The accumulated branch (108 files)
+  still requires both (workflow, `package.json`, `tests/eval/`); **the lockfile is not in that diff**, which
+  corrects the claim made in Parts 32, 33 and below. Both live suites are unfunded.
+- **NOT repaired:** server races and policy (a report in flight can recreate a progress record; a keep 404
+  runs no cascade), a code nobody confirms retried silently at every launch, finding B, the shared
+  body-timeout concern for other `send()` callers, focus on `BODY`. **The branch is not release-ready and the
+  release remains paused.** No PR, merge, deployment, paid call, outreach or participant-data access.
+
+## Previous status (2026-10-02, BATCH-07D)
+
 
 - **BATCH-07D (`docs/DECISIONS.md` Part 33): Forget me's two introduction deletes now use the Part 32
   contract.** `confirmWithdrawal(code)` (`src/lib/introduce.ts`) sends the DELETE and classifies the

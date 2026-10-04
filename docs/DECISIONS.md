@@ -5483,3 +5483,244 @@ accumulated branch (`261d055..HEAD`, 103 files with this slice) it still says **
 lockfile, `tests/eval/`); both live suites are unfunded and the release remains paused. Running it
 rewrites the git-ignored `tests/*/results/outcome.json`; the last write is the accumulated-branch
 answer. This is not measured Guide or read behaviour.
+
+**Update, 2026-10-02 (BATCH-07E, Part 34).** The map, the step count and the eleven now follow the same
+rule as the introduction list: each is confirmed only by an answer its handler gives, and an unconfirmed
+code is kept. Part 33's "Forget me is not fully verified" and "the map code under refused storage is
+still lost" are repaired there. The statement in Parts 32 and 33 and in the handoff that the lockfile is
+among the changes in `261d055..HEAD` is not supported by the actual diff (see Part 34).
+
+
+## Part 34: Forget me confirms the map, the step count and the eleven only by an answer their handlers give (2026-10-02, BATCH-07E)
+
+**Why.** Part 33 left one named weakness: `del()` read any 2xx, or any 404, from the keep, progress and
+couple DELETEs as a confirmed deletion, kept one pending slot per kind, and mirrored only introduction
+codes in the page. The founder approved: endpoint-specific confirmation; one bounded request-and-body
+primitive under all four deletes; a collection of unresolved identifiers for each kind; page-memory
+recovery for all four kinds; uncertainty copy; and no email hand-off, and no visible install id or
+couple code, when only those remain. Nothing here changes a handler, tombstones, retention, consent or
+policy.
+
+**Reproduced first, on `69f8b92`** (a scratch test outside the repository: synthetic state made by the
+real app code, the real handlers over the in-memory store, only the DELETE's answer replaced; no deployed
+store, no participant data; deleted before the commit). The predictions in the investigation were run as
+written and **none was dropped or revised**:
+
+| | What happened on `69f8b92` |
+|---|---|
+| **D1**, an answer that looks like success with the handler never run (`200 text/html`, `200 {}`, `200 {"forgotten":"yes"}`, `204`, `404 text/html`) × map, step count, eleven: 15 of 15 | `forgetMe()` returned all four `true`; the pending record was `null`; no key was left on the phone; **the record was still in the store** (so the app would replace the page) |
+| **D2**, A unresolved, a new B made, both unresolved: 3 of 3 kinds | the record held **B only**; A was gone from the phone and both records were still on the server |
+| **D3**, the pending key refused: 3 of 3 kinds | the first tap reported the kind unconfirmed and the page held nothing; the second tap returned all `true` having **sent no DELETE**, with the record still on the server |
+| C1, deletion ran and the body was cut | reported confirmed (`res.ok`, the body is never read): right by luck |
+| C1, no answer at all, then a real one | kept in the pending record and resolved by the next round: correct |
+
+D4, the copy ("still held — that is us, not you"), is read from `ForgetMe.tsx` and the test that asserted it.
+The first run of the scratch test failed to import the store mock for the couple case (the harness had no
+`node_modules` link); it was fixed and all 27 cases were run again, which is what is recorded.
+
+**Built app, on the same two situations.** The previous build (`69f8b92`, built the same way, same
+harness, same assertions as the new build) failed all 18 runs: for every kind the page was **replaced**
+whether the handler had run or not, and with the answer an invalid page the record stayed on the server
+(map, step count, eleven each). In the A-then-B run it kept only B.
+
+**The protocol** (read from the handlers; every DELETE block in every commit that touched keep, progress
+or couple was extracted and compared: no other success shape ever existed, apart from `reportsTaken`
+added to keep's `200 {forgotten: true}` by two older builds). Source equivalence of the three DELETE
+blocks and their files between `261d055` and HEAD was checked separately: `keep.ts`, `progress.ts` and
+`couple.ts` are byte-identical in that range, and so are the blocks, and no `netlify/shared` file
+differs. **That is a statement about this repository. It does not verify what is deployed**: no deployed
+function was called, and `health.ts`, `introduce.ts` and `sweep.ts` do differ from `261d055`.
+
+| Endpoint | Confirmed: `removed` | Confirmed: `nothing` | Unconfirmed |
+|---|---|---|---|
+| `DELETE keep?code=` | exactly 200, JSON object, `forgotten === true` (other fields ignored). The code was closed, the sheet named in the snapshot retired, the legacy door/vouch/contact entries and the once key deleted, the map deleted | exactly 404, JSON object, `error === 'not_found'`: no map under *this* code. **No cascade runs and no tombstone is written for it**; a moved old code answers it too | everything else: 200 with another body or the app's page or a cut or empty body or another endpoint's shape; another 2xx; a 404 with another body; 400; 405; 503 `rate_limited` or `unavailable` (can follow a written tombstone and a partial cascade; a retry finishes it); 5xx; no answer; the deadline |
+| `DELETE progress?id=` | exactly 200, `forgotten === true`: the record under the id was deleted | exactly 404, `error === 'not_found'`: no record. No marker is written | as above |
+| `DELETE couple?code=` | exactly 200, **`ok === true`** (a different field): the sheet existed, `gone/<code>` (the 90-day report window) was written, the sheet deleted | exactly 404, `error === 'not_found'`: no sheet, which is also what the map's cascade or either side's delete leaves | as above |
+
+No content-type test and no exact-key test: the handlers never needed one. A recovery always reaches a
+recognised answer: after a completed delete keep answers `200` (the tombstone is there, the map is not, the
+cascade runs again) and progress and couple answer `404`; after one that never ran, the real answer.
+
+**What changed.**
+
+- **`sendRead` (`src/lib/net.ts`): one primitive.** `confirmWithdrawal`'s body, generalised: one deadline
+  over the wait for the response **and** the read of the body, abort at the deadline where the platform
+  honours it, settle at the deadline whether or not it does, timer cleared however it ends. **If `fetch`
+  resolves after the deadline the reader is never called** and the response is cancelled; a body that
+  finishes late changes nothing, and nothing in `forget.ts` is touched until the call returns, so a late
+  completion cannot mutate recovery state. `send()` and every other caller are untouched.
+  `confirmWithdrawal` is now `sendRead` with its own reader, and its answers are the same (Part 32's
+  tests and Part 33's are unchanged and pass). `tests/fail.test.ts` is tighter for it: the raw-`fetch`
+  exception for `lib/introduce.ts` is gone and only `lib/coach.ts` remains.
+- **The three readers** (`answerOf` in `forget.ts`): the table above. One request per distinct code.
+- **Four lists, one mechanism.** `maps`, `installs`, `pairs`, `intros` are held and merged by the same
+  rules: a Forget me **adds** its unresolved codes to the record as it is now; a retry **removes only
+  the codes it sent and was answered for**, from the record as it is when its answers arrive; a code is
+  never re-added by an operation that did not confirm it.
+- **A page-memory ledger of confirmed codes.** A Forget me that began before another had confirmed code X
+  and then ended unconfirmed on X must not put X back (an older failed completion against a newer
+  confirmation). The page remembers which codes it has had confirmed; `forgetMe` leaves them out of what
+  it writes. Page memory only, codes only; a reload clears it and the server then answers `404`/`200`.
+- **Stored codes are validated, not cleaned.** New `isStoredCode` in `src/lib/code.ts`: a string that is,
+  exactly as it is, six or eight characters of the alphabet. The record's values, the map code, the
+  install id, the couple code and the introduction codes read from this phone all pass through it. The
+  existing `isCode` stays as it was, for what a person types; it removes characters, so `QR?TWXY34` is
+  a code to it, and a delete sent under that would name a record nobody held. 07D's own `tidy` did that for
+  introduction codes; it does not now. A value that is not a code names nothing, is not sent and is
+  not kept, so a corrupt value cannot retry on a 400 for ever. Valid six- and eight-character values are
+  preserved as written; lower case, padding, a separator, a stray character, seven characters and ten
+  are all dropped (11 malformed cases tested, each across the four places they are read).
+- **On disk.** The same key. A kind's first code in the slot an older build reads (`code`, `id`,
+  `pair`), a second and later in `moreCodes`, `moreIds`, `morePairs`; `intros` as 07D wrote it; its legacy
+  `intro`/`introPending` read. A record with one code of each kind is byte-for-byte the file 07D writes
+  (held by a test). No migration on read.
+- **Page-memory recovery** for all four kinds when `setItem` fails: the unresolved codes, and only
+  those, in the page; `pendingForget()` reads storage and page together; the wipe and "Start completely
+  fresh" leave it; a reload loses it.
+- **Result.** `Forgotten.code` became `mapHeld` (every unconfirmed map code, shown); `introKept` became
+  `kept` (set whenever anything is unconfirmed: whether the phone's storage holds what is needed to try
+  again). `map`, `progress`, `couple` and `intro` mean *confirmed, or nothing to send*.
+  `forgetEverything` is unchanged and still replaces the page only when all four are true.
+
+**The wording** (each string asserted in a test):
+
+| Where | Now |
+|---|---|
+| Map, step count or eleven unconfirmed | "This phone is cleared. We could not confirm that {your kept map, the count of your steps and the eleven you sent} {was / were} deleted. {It may have been, or it may not. / They may have been, or they may not.}" Was: "We could not reach … just now, so {it is / they are} still held — that is us, not you." (a state and a cause nobody knows; the same removal 07C made for withdrawals) |
+| Storage kept | unchanged |
+| Storage refused, a map or introduction code shown | unchanged |
+| Storage refused, **nothing shown** (only the step id or the couple code) | "This browser could not save what it needs to try again, so it cannot once this page is closed or reloaded. Until then you can tap Forget me again." |
+| Hand-off | the sentence is shown **only when a code is shown** (map or introduction). It was also offered with no code ("to ask for help removing what is held"), which nobody could act on. **The install id and the couple code are not shown**: the install id is deliberately not joinable to the map code (`netlify/functions/progress.ts`), and printing both beside each other in one message to the founder would join them |
+
+**Compatibility, and what is not solved.** A build that can read what an older build wrote is **not** a build
+the older one can read, and nothing here makes it so. Demonstrated by running 07D's reader and writer (kept
+as the fixture `tests/support/forget-07d.ts`, held to `git show 69f8b92:src/lib/forget.ts` by reading)
+against a record this build wrote with two codes of every kind
+(`tests/invariants/forget-pending-compat.test.ts`):
+
+| | Survives | Lost |
+|---|---|---|
+| A record with one code of each kind | everything: it is the file 07D writes, and 07D reads it the same way | — |
+| 07D reads a record with two of each | the first code of each kind and both introduction codes | the second map code, step id and couple code: 07D neither sees nor retries them |
+| 07D rewrites the file after **a Forget me whose deletes did not land** (nothing had to succeed) | the introduction codes | every code kept in `more*`, **and** the first codes of each kind, replaced by its own single slots: its old single-slot overwrite |
+| 07D's launch retry settles with nothing confirmed | the first code of each kind and the introduction codes | the `more*` codes: it rewrites the file from the fields it knows |
+
+Three things the investigation said that are not true, and are corrected here. (1) A rollback is not the
+only way to meet an older build: **an older tab left open across the release can later operate online**,
+and a **stale or cached build can run whenever the browser serves it**; the network-first service worker
+(`src/lib/serviceWorker.ts`) is no evidence that an older client cannot run, and it is not redesigned
+here. (2) An older build overwrites the fields it does not understand **even when its deletion fails**; it
+does not need a success. (3) "A case no build ever kept" understated it: a second unresolved code was
+never kept by those builds *because* they overwrote it, which is the defect.
+
+**Unresolved release constraint — a release decision is needed before merge, not a claim of safety.** The
+exposure is a person with two or more unresolved codes of one kind, on a phone that an older build then
+writes to (an old tab, a cached shell, a rollback). It is small and it is silent. The options: (a) accept it
+and release 07D and 07E together as one batch, with no rollback planned; (b) move the overflow to a second
+key an older build never rewrites, which makes it inert for them and survives their writes, at the price of a
+second key in `LOCAL_KEYS`' neighbourhood, its test and its docs; (c) hold the release until older tabs have
+had time to go, which cannot be controlled. This slice does (a) only because it is the design the founder
+approved; it does not choose between them.
+
+**Concurrency, tested separately from one forget after another.** Automatic retry: a code a Forget me wrote
+while it was in flight survives, and only what the retry confirmed is removed; an older retry that ends
+unconfirmed does not put back a code a newer Forget me confirmed. Foreground Forget me: an older one that
+ends unconfirmed does not put back a code a newer one confirmed. Each, for the map, the step count and the
+eleven, against the real handlers with a held request. Sequential A-then-B accumulation is its own test.
+
+**Files.** `src/lib/net.ts`, `src/lib/code.ts`, `src/lib/introduce.ts`, `src/lib/forget.ts`,
+`src/components/ForgetMe.tsx`; tests `tests/invariants/forget-confirmation.test.ts` (new, 31),
+`tests/invariants/forget-pending-compat.test.ts` (new, 5), `tests/support/forget-07d.ts` (new, the 07D
+fixture), `src/lib/forget.test.ts` (100, from 19), `src/lib/forget-bound.test.ts` (17, from 9),
+`tests/ui/forget-introduction.test.tsx` (20, from 14); `introKept` renamed `kept` in
+`tests/invariants/forget-introduction.test.ts`; `tests/support/answers.ts` (`answerDelete` takes a route);
+`tests/fail.test.ts` (the exception removed on purpose). `docs/PRIVACY.md`, `docs/OPS.md`,
+`docs/TESTING.md`, this file and the handoff. **Not touched:** `useNiyyah.ts`, `send()`, any
+`netlify/` file, the storage keys, `registerInterest`, the introduction classifier's answers.
+
+**Evidence.**
+
+- *The classifier's answers are held once.* One table in `src/lib/forget.test.ts`: per endpoint, the two
+  confirming answers and an extra-fields case, and 19 answers that must not confirm (the app's page, `{}`,
+  the field false, the field a string, the other endpoint's field, `null`, `[]`, empty, a 202 with a valid
+  body, 204, a 404 with the page, `{}` and `expired`, 400, 405, two 503s, 502, no answer), each leaving
+  only the code behind. Not repeated at the other layers.
+- `tests/invariants/forget-confirmation.test.ts`: both situations (the answer cut after the real deletion;
+  an invalid answer with the handler never run) for each kind: unconfirmed, her things gone, only the
+  code on the phone, the server as the situation made it (`ended/<code>`, `gone/<code>`, nothing for
+  progress), one DELETE, a later real answer resolves it; a mixed result; A-then-B for each kind;
+  overlapping retry and foreground operations; refused storage (the page holds it, a same-page tap sends it,
+  a second unconfirmed tap and "Start completely fresh" keep it, a reload loses it); reload.
+- `src/lib/forget-bound.test.ts`: `sendRead` itself (an in-time answer, a late response not read and
+  cancelled, a late body, abort, a rejected `fetch`, a throwing reader, no timer left), and the same
+  deadline for the three endpoints (a body that never ends, no answer, a late answer); the two-round total
+  stays.
+- *Fail-first:* the new and changed tests were run against `69f8b92`'s sources: 124 of 177 failed, in all
+  six files (the rest are guards that hold on both).
+- *Mutations, 23, each applied to the repaired source and run against the targeted files.* **22 failed at
+  least one test** on the first run (counts: any 2xx 49; any 404 9; the eleven read by keep's field 15; the
+  body read outside the deadline 8; timer never cleared 3; reader called for a late response 1; no abort
+  2; a Forget me that replaces 19; a retry writing back its starting record 9; no page copy 9; the wipe
+  clearing the page copy 5; no memory of confirmed codes 3; stored values cleaned, not validated 169;
+  kept always true 7; overflow not read 4; the first code not in the old slot 32; the step id offered by
+  hand 3; confirmed codes not remembered 3; the introduction confirmation not through `sendRead` 8; no
+  per-kind dedupe 3; a 404 without its body 6; a 202 accepted 3). **One survived**: the `return over ?
+  fallback : out` guard in `sendRead` after the reader returns. It is **equivalent**: the race has already
+  settled on the deadline, so nothing observes it. It was removed rather than defended with a test that
+  could not fail.
+- *Built app* (scratch build, headless Chromium, 390×844 and 320×568, service workers blocked, the real
+  handlers over an in-memory store behind a local HTTP server that also serves `dist` with Netlify's SPA
+  fallback; faults on the wire: `200 text/html` with the handler not run, and a status then a socket
+  destroyed mid-body after the handler ran). **18 runs at the two widths, 18 passed; the previous build
+  failed all 18.** For each of the map, the step count and the eleven in each situation: the page is not
+  replaced; the new sentence is present and none of "still held", "that is us, not you", "We could not
+  reach"; the install id is never on the screen; the email hand-off is offered for the map and not for the
+  other two; only the pending record is on the phone, with only that kind's code; one DELETE per kind per
+  tap; no horizontal overflow, the status paragraph does not scroll sideways (right edge 345 and 275
+  against widths of 390 and 320); the Forget me button is back and inside the viewport (109 × 43 px); a
+  second tap answered for real finishes it, replaces the page and leaves no record on the server. A then B
+  (a 503 on keep's DELETE, a new map kept, Forget me again): the record holds both, **both codes are on
+  the screen in full**, and a reload with a real answer resolves both with their two tombstones; the
+  previous build kept B only. Refused storage: the step count alone shows the new sentence with no code to
+  copy and no hand-off, and a same-page tap finishes it; a map code under refused storage is shown, and a
+  reload then sends **no** DELETE and the record remains, as the message says. Reload while the answer is
+  wrong: one ask per launch, the code kept; the next launch with a real answer finishes it with no tap.
+  **This is local-handler evidence in a real browser, not the deployed functions**, and the cut and HTML
+  answers are what a test server made, not what Netlify does. **DOM focus** after the failed tap was on
+  `BODY` in all 12 message runs (measured, unchanged from 07D, not a repair target); the status region
+  is `role="status"` with no explicit `aria-live`. **No screen reader was used**, so how it is announced is
+  unverified; the checks are of text, geometry, focus and storage. One browser; Firefox and Safari not
+  run.
+
+**What this does not repair, and does not claim.**
+
+- **The branch is not release-ready and the release remains paused.**
+- **The compatibility constraint above is open.**
+- **Server-side policy and races, untouched:** a progress report in flight can recreate a record after
+  its DELETE (progress writes no marker); a keep `404` runs no cascade, writes no tombstone and does not
+  touch the map a moved code was carried to; a map expired and swept before a DELETE leaves any legacy
+  entries under its code to the founder's hand. None of these is a client repair.
+- **A browser whose reads throw** gives Forget me nothing to send; a browser that never saved the map code
+  or install id has none to give. Unchanged.
+- **A code nobody confirms is retried at every launch, silently, for ever** (one DELETE each time; the
+  endpoint's own forget cap meters it). Trust shows nothing held after a reload. Unchanged from Part 33.
+- **Receipt-location finding B** (a founder decision), the **shared body-timeout concern** for every other
+  `send()` caller, focus on `BODY`: unchanged.
+- **Not verified:** the deployed handlers (no function was called; repository equivalence is not
+  deployment), Firefox, Safari, any screen reader, a real device. Not a usability test.
+
+**Verification.** `npm run verify > log 2>&1; echo $?` exit 0 (125 files, 1908 passed, 2 skipped: the live
+blocks) and `npm run build` exit 0; `GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE` unset and no API key in the
+environment.
+
+**Evaluation.** The repository's classifier, run on the actual diff of this slice (19 files: the five
+source files above, the tests and fixture, and `docs/DECISIONS.md`, `OPS.md`, `PRIVACY.md`, `TESTING.md`,
+`SESSION-HANDOFF.md`): guide **not required**, judgment **not required**; none of those paths is on either
+suite's list and `coach.ts` does not import `net.ts`. On the accumulated branch (`261d055..HEAD`, 108 files
+with this slice) it still says **required** for both: `.github/workflows/guide-eval.yml`, `package.json` and
+`tests/eval/*` are in that range. **The lockfile is not**: `package-lock.json` is not among the changed
+files, so the "lockfile" listed with them in Parts 32 and 33 and in the handoff was wrong and is corrected
+here; the answer does not change. Both live suites are unfunded and the release remains paused. No code was
+moved and no list changed to alter either answer. Running the classifier rewrites the git-ignored
+`tests/*/results/outcome.json`; the last write is the accumulated-branch answer. This is not measured Guide
+or read behaviour.

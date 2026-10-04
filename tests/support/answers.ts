@@ -39,14 +39,18 @@ export const gone = (): Response => {
 /** The app's own page, which Netlify's catch-all answers with a 200 for a path that has no function behind it. */
 export const appHtml = text('<!doctype html><title>Niyyah</title>', 200, 'text/html')
 
+/** The routes a DELETE can be answered on: the four Forget me sends one to. */
+export type Route = 'introduce' | 'keep' | 'progress' | 'couple'
+
 /**
- * Make the next DELETEs to the introduction route be answered by `reply`. Returns the way back.
+ * Make the next DELETEs to a route (the introduction list's, unless `route` says
+ * otherwise) be answered by `reply`. Returns the way back.
  * With `only`, just the DELETEs under that code are: another code's reach the real handler.
  */
-export function answerDelete(server: Served, reply: () => Response, completed: boolean, only?: string): () => void {
+export function answerDelete(server: Served, reply: () => Response, completed: boolean, only?: string, route: Route = 'introduce'): () => void {
   const real = globalThis.fetch
   globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    if (init?.method === 'DELETE' && String(input).includes('introduce') && (only === undefined || String(input).includes(`code=${only}`))) {
+    if (init?.method === 'DELETE' && String(input).includes(`/${route}?`) && (only === undefined || String(input).includes(`=${only}`))) {
       if (completed) await real(input, init)
       else server.requests.push(`DELETE ${String(input)}`)
       return reply()

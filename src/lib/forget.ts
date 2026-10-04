@@ -1,9 +1,9 @@
-import { cleanCode, isCode } from './code'
+import { isStoredCode } from './code'
 import { rememberedCode } from './keep'
 import { rememberedInstallId } from './progress'
 import { confirmWithdrawal, forgetIntro, forgetPending, pendingIntro, rememberedIntro } from './introduce'
+import { objectBody, sendRead } from './net'
 import { clearProgress, loadProgress } from './storage'
-import { send } from './net'
 
 /**
  * Forget me.
@@ -20,27 +20,29 @@ import { send } from './net'
  * netlify/functions/keep.ts finds the couple code inside a kept snapshot — so
  * a woman who sent him the eleven, kept nothing, and tapped this was told it
  * was done while both sheets sat on the server for the rest of the ninety
- * days. Trust says "deletes ... the eleven you sent him" without a condition,
- * and now that is true of her too (docs/DECISIONS.md). The introduction code
- * is the same shape: its own key, its own delete, joined to nothing else
- * (src/lib/introduce.ts). An attempt to put her name down whose answer never
- * arrived is sent as a delete too, under the code it went out with: the
- * server marks the code, so a request still on its way cannot land after
- * this (docs/BATCH-01-PLAN.md D2).
+ * days. The introduction code is the same shape: its own key, its own delete,
+ * joined to nothing else (src/lib/introduce.ts). An attempt to put her name
+ * down whose answer never arrived is sent as a delete too, under the code it
+ * went out with (docs/BATCH-01-PLAN.md D2).
  *
- * Each server call is best-effort and reported honestly — a 404 means it was
- * already gone, which is the same as done. The local wipe happens whatever
- * the server said: her phone is hers, and it is the one thing we can
- * guarantee.
+ * **A delete is confirmed only by an answer its handler gives**
+ * (docs/DECISIONS.md Part 34). Not "any 2xx, or a 404": Netlify's catch-all
+ * answers 200 with the app's own page for a path with no function behind it, a
+ * body can be cut after the status was sent, and a 404 can come from anything
+ * between her and the function. Each handler's own answers are the two that
+ * confirm — keep and progress `200 {forgotten: true}`, couple `200 {ok: true}`,
+ * and for all three `404 {error: 'not_found'}`, which says only that nothing was
+ * under that code. Everything else is *unconfirmed*: no claim about whether the
+ * server removed anything. The local wipe happens whatever the server said: her
+ * phone is hers, and it is the one thing we can guarantee.
  *
- * All but one key (docs/PRIVACY.md). When a server delete fails, the codes
- * it needed are kept — the codes and nothing else, none of her answers — as a
- * pending forget. The phone used to be wiped whatever happened, and Trust
- * told her to tap Forget me again: but the retry had no code left to send, so
- * it reported success while her map stayed on the server for a year, and she could not even write in
- * with the code, because it was gone too. Now the next Forget me sends the
- * pending codes first, the app sends them again every time it opens, and
- * Trust shows her the code so a person can do it by hand.
+ * All but the codes (docs/PRIVACY.md). What a delete did not confirm is kept —
+ * the codes and nothing else, none of her answers — as a pending forget: a
+ * list for each of the four kinds, so a second unresolved forget adds to the
+ * first and never replaces it. The next Forget me sends them first, the app
+ * sends them again every time it opens, and Trust shows her the codes she can
+ * use. When the browser will not save them the page holds them, until it is
+ * reloaded.
  */
 
 const KEEP = '/.netlify/functions/keep'
@@ -50,25 +52,42 @@ const COUPLE = '/.netlify/functions/couple'
 /** A forget that has not reached the server yet: only the codes it still needs. */
 const PENDING_KEY = 'niyyah.forget.pending.v1'
 
+/** The four things Forget me deletes, each by a code of its own. */
+type Kind = 'maps' | 'installs' | 'pairs' | 'intros'
+const KINDS: Kind[] = ['maps', 'installs', 'pairs', 'intros']
+
+/** Codes, and nothing else, for each kind. */
+type Held = Record<Kind, string[]>
+const none = (): Held => ({ maps: [], installs: [], pairs: [], intros: [] })
+
 /**
- * What a failed forget still has to delete: codes, and nothing else.
- *
- * `intros` is every introduction code not yet confirmed gone — the receipt's
- * and any attempt's, from this forget or an earlier one, in one list. Until
- * BATCH-07D the record held at most two (`intro`, `introPending`), and a second
- * unresolved forget replaced the first's code. A record written that way is
- * still read (both fields are folded into `intros`) and is written back in the
- * new shape the next time it is saved; a build before this one ignores `intros`.
+ * What a failed forget still has to delete, as `pendingForget` reports it: the
+ * codes of each kind not yet confirmed gone, a kind with none left out.
  */
-interface Pending {
-  code?: string
-  id?: string
-  pair?: string
+export interface Pending {
+  maps?: string[]
+  installs?: string[]
+  pairs?: string[]
   intros?: string[]
 }
 
-/** The shape an earlier build wrote: at most one receipt code and one attempt code. */
-interface StoredPending extends Pending {
+/**
+ * How the record is written to this phone. Builds before this one kept one slot
+ * per kind (`code`, `id`, `pair`), and BATCH-07D an `intros` list; those are
+ * read as they are. This build writes a kind's first code in the old slot and
+ * only a second, third… in `more*`, so a record with one code of each kind is
+ * the file the build before it wrote. An older build reads the slots and does
+ * not know `more*`: it neither retries them nor keeps them when it saves.
+ */
+interface Stored {
+  code?: unknown
+  moreCodes?: unknown
+  id?: unknown
+  moreIds?: unknown
+  pair?: unknown
+  morePairs?: unknown
+  intros?: unknown
+  /** The introduction fields BATCH-07D and before wrote. */
   intro?: unknown
   introPending?: unknown
 }
@@ -102,152 +121,199 @@ export const LOCAL_KEYS = [
   'niyyah.reports.v1',
 ]
 
-async function del(url: string): Promise<boolean> {
-  const res = await send(url, { method: 'DELETE' })
-  // A 404 is success: there was nothing there to forget.
-  return !!res && (res.ok || res.status === 404)
+/** What one delete came to. `failed` is *unconfirmed*: it says nothing about whether the server removed the record. */
+type Answer = 'removed' | 'nothing' | 'failed'
+
+/**
+ * Read a keep, progress or couple DELETE's answer, and as nothing else:
+ * exactly 200 with a JSON object whose `field` is `true` (the handler's own
+ * answer; its other fields are ignored), or exactly 404 with a JSON object whose
+ * `error` is `not_found` (nothing was under the code). A 200 with any other
+ * body, any other 2xx, a 404 with any other body, 400, 5xx and no answer are
+ * all `failed`. A 404 confirms absence of *this* code and nothing more: the map
+ * handler runs no cascade for it, and the couple has a delete of its own.
+ */
+const answerOf = (field: 'forgotten' | 'ok') => async (res: Response): Promise<Answer> => {
+  if (res.status === 200) return (await objectBody(res))?.[field] === true ? 'removed' : 'failed'
+  if (res.status === 404) return (await objectBody(res))?.error === 'not_found' ? 'nothing' : 'failed'
+  return 'failed'
+}
+
+const del = (url: string, field: 'forgotten' | 'ok') => sendRead<Answer>(url, { method: 'DELETE' }, answerOf(field), 'failed')
+
+/** Send one code's delete. The introduction list has its own answers (src/lib/introduce.ts); the other three share `answerOf`. */
+async function ask(kind: Kind, code: string): Promise<boolean> {
+  const q = encodeURIComponent(code)
+  const answer =
+    kind === 'maps' ? await del(`${KEEP}?code=${q}`, 'forgotten') : kind === 'installs' ? await del(`${PROGRESS}?id=${q}`, 'forgotten') : kind === 'pairs' ? await del(`${COUPLE}?code=${q}`, 'ok') : await confirmWithdrawal(code)
+  return answer !== 'failed'
 }
 
 export interface Forgotten {
-  /** The kept map and everything under its code — or true when there was none. */
+  /** The kept map and everything under its code — confirmed gone, or true when there was none. False means *unconfirmed*, not necessarily still there. */
   map: boolean
-  /** The count of her steps — or true when this phone never had a code. */
+  /** The count of her steps — confirmed, or true when this phone never had a code. */
   progress: boolean
-  /** The eleven she sent him — or true when she never sent one. */
+  /** The eleven she sent him — confirmed, or true when she never sent one. */
   couple: boolean
-  /** Her name on the introduction list — or true when she never put it down. False means *unconfirmed*, not necessarily still there. */
+  /** Her name on the introduction list — confirmed, or true when she never put it down. */
   intro: boolean
-  /** The map code still held on the server when `map` is false, to show her. */
-  code?: string
-  /** Every introduction code not yet confirmed gone, when `intro` is false. Never more than codes. */
+  /** Every map code not yet confirmed, when `map` is false: shown to her. The step id and the couple code are never shown. */
+  mapHeld?: string[]
+  /** Every introduction code not yet confirmed, when `intro` is false. Never more than codes. */
   introHeld?: string[]
-  /** Whether this phone's storage holds `introHeld`; false when only this page does, and a reload loses it. */
-  introKept?: boolean
+  /** When anything is unconfirmed: whether this phone's storage holds the codes still to send; false when only this page does, and a reload loses them. */
+  kept?: boolean
 }
 
-const some = (p: Pending) => !!(p.code || p.id || p.pair || p.intros?.length)
+const some = (h: Held) => KINDS.some((k) => h[k].length > 0)
 
-/** Introduction codes, tidied: valid ones only, upper-case, each once, in a fixed order. */
+/** Codes, tidied: each exactly a code (never cleaned into one), each once, in a fixed order. */
 function tidy(codes: unknown[]): string[] {
-  const out = new Set<string>()
-  for (const c of codes) {
-    if (typeof c !== 'string') continue
-    const clean = cleanCode(c)
-    if (isCode(clean)) out.add(clean)
-  }
-  return [...out].sort()
+  return [...new Set(codes.filter(isStoredCode))].sort()
 }
+
+/** A whole record, tidied kind by kind. */
+const tidied = (h: Record<Kind, unknown[]>): Held => ({ maps: tidy(h.maps), installs: tidy(h.installs), pairs: tidy(h.pairs), intros: tidy(h.intros) })
 
 /**
  * The codes this page is holding because this phone's storage refused to keep
- * them: introduction codes only, and nothing else about her (no contact, no
- * name, no day, no receipt). The same fallback `src/lib/introduce.ts` gives its
- * receipt, and the same limit: a reload clears it. Map, count and couple codes
- * have no such copy, as before.
+ * them, for all four kinds and nothing else about her (no contact, no name, no
+ * day, no receipt). A reload clears it, and Trust says so.
  */
-let mirror: string[] = []
+let mirror: Held = none()
+
+/**
+ * The codes a Forget me in this page has had confirmed. An answer that arrives
+ * late, or an older operation that settles unconfirmed after a newer one
+ * confirmed the same code, must not put it back on the list: a confirmed
+ * deletion is not undone by a later silence. Page memory only; a reload clears it.
+ */
+const confirmed = new Set<string>()
+const keyOf = (kind: Kind, code: string) => `${kind}:${code}`
 
 /** For a test that reloads the page: what a reload clears. */
 export function resetForgetMirror(): void {
-  mirror = []
+  mirror = none()
+  confirmed.clear()
 }
 
-/** The forget still waiting for the server, if any: this phone's record and the page's own copy of the introduction codes. */
-export function pendingForget(): Pending | null {
-  let stored: StoredPending = {}
+const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
+
+/** The record as it is on this phone and in this page, every kind tidied. Empty lists, not absent. */
+function held(): Held {
+  let stored: Stored = {}
   try {
     const raw = localStorage.getItem(PENDING_KEY)
     const p: unknown = raw ? JSON.parse(raw) : null
-    if (p && typeof p === 'object' && !Array.isArray(p)) stored = p as StoredPending
+    if (p && typeof p === 'object' && !Array.isArray(p)) stored = p as Stored
   } catch {
     /* storage refused or unreadable — the page's own copy, below */
   }
-  const text = (v: unknown) => (typeof v === 'string' && v ? v : undefined)
-  const intros = tidy([...(Array.isArray(stored.intros) ? stored.intros : []), stored.intro, stored.introPending, ...mirror])
-  const p: Pending = {
-    ...(text(stored.code) ? { code: text(stored.code) } : {}),
-    ...(text(stored.id) ? { id: text(stored.id) } : {}),
-    ...(text(stored.pair) ? { pair: text(stored.pair) } : {}),
-    ...(intros.length ? { intros } : {}),
+  return tidied({
+    maps: [stored.code, ...list(stored.moreCodes), ...mirror.maps],
+    installs: [stored.id, ...list(stored.moreIds), ...mirror.installs],
+    pairs: [stored.pair, ...list(stored.morePairs), ...mirror.pairs],
+    intros: [...list(stored.intros), stored.intro, stored.introPending, ...mirror.intros],
+  })
+}
+
+/** The forget still waiting for the server, if any: this phone's record and the page's own copy, together. */
+export function pendingForget(): Pending | null {
+  const h = held()
+  if (!some(h)) return null
+  return Object.fromEntries(KINDS.filter((k) => h[k].length).map((k) => [k, h[k]])) as Pending
+}
+
+/** The file: a kind's first code in the slot an older build reads, the rest in `more*`. */
+function toDisk(h: Held): Record<string, unknown> {
+  const [code, ...moreCodes] = h.maps
+  const [id, ...moreIds] = h.installs
+  const [pair, ...morePairs] = h.pairs
+  return {
+    ...(code ? { code } : {}),
+    ...(moreCodes.length ? { moreCodes } : {}),
+    ...(id ? { id } : {}),
+    ...(moreIds.length ? { moreIds } : {}),
+    ...(pair ? { pair } : {}),
+    ...(morePairs.length ? { morePairs } : {}),
+    ...(h.intros.length ? { intros: h.intros } : {}),
   }
-  return some(p) ? p : null
 }
 
 /**
  * Write the record. True when this phone's storage took it, or when there was
- * nothing to keep; false when it refused, in which case the introduction codes
- * are held by the page instead (`mirror`) and the caller says so.
+ * nothing to keep; false when it refused, in which case the page holds every
+ * code instead (`mirror`) and the caller says so.
  */
-function savePending(p: Pending): boolean {
-  const intros = tidy(p.intros ?? [])
-  const next: Pending = { ...(p.code ? { code: p.code } : {}), ...(p.id ? { id: p.id } : {}), ...(p.pair ? { pair: p.pair } : {}), ...(intros.length ? { intros } : {}) }
+function savePending(p: Held): boolean {
+  const next = tidied(p)
   try {
-    if (some(next)) localStorage.setItem(PENDING_KEY, JSON.stringify(next))
+    if (some(next)) localStorage.setItem(PENDING_KEY, JSON.stringify(toDisk(next)))
     else localStorage.removeItem(PENDING_KEY)
-    mirror = []
+    mirror = none()
     return true
   } catch {
-    /* storage refused; Trust still names the codes on screen */
-    mirror = intros
+    /* storage refused; Trust still names the codes it can on screen */
+    mirror = next
     return false
   }
 }
 
-/** What each delete came to: the three that count a bare success, and each introduction code by its own answer. */
-type Landed = { map: boolean; progress: boolean; couple: boolean; intro: Map<string, boolean> }
+/** What each delete came to, code by code, for each kind. */
+type Landed = Record<Kind, Map<string, boolean>>
 
-/** Confirm each distinct introduction code once, by the strict contract. One request per code, however many places held it. */
-async function confirmIntros(codes: string[]): Promise<Map<string, boolean>> {
-  const answers = await Promise.all(codes.map(async (c) => [c, (await confirmWithdrawal(c)) !== 'failed'] as const))
-  return new Map(answers)
+/**
+ * Send each distinct code's delete once, in parallel, and say which landed. A
+ * confirmed code is remembered for this page (`confirmed`) as it is answered.
+ */
+async function deleteAll(p: Held): Promise<Landed> {
+  const out: Landed = { maps: new Map(), installs: new Map(), pairs: new Map(), intros: new Map() }
+  await Promise.all(
+    KINDS.flatMap((kind) =>
+      p[kind].map(async (code) => {
+        const landed = await ask(kind, code)
+        out[kind].set(code, landed)
+        if (landed) confirmed.add(keyOf(kind, code))
+      }),
+    ),
+  )
+  return out
 }
 
-/** Send one set of codes' deletes, and say which landed. */
-async function deleteAll(p: Pending): Promise<Landed> {
-  const [map, progress, couple, intro] = await Promise.all([
-    p.code ? del(`${KEEP}?code=${encodeURIComponent(p.code)}`) : Promise.resolve(true),
-    p.id ? del(`${PROGRESS}?id=${encodeURIComponent(p.id)}`) : Promise.resolve(true),
-    p.pair ? del(`${COUPLE}?code=${encodeURIComponent(p.pair)}`) : Promise.resolve(true),
-    confirmIntros(p.intros ?? []),
-  ])
-  return { map, progress, couple, intro }
-}
-
-const allLanded = (done: Landed) => done.map && done.progress && done.couple && [...done.intro.values()].every(Boolean)
+const allLanded = (done: Landed) => KINDS.every((k) => [...done[k].values()].every(Boolean))
 
 /** The codes a set of deletes did not land, and nothing else. */
-const left = (p: Pending, done: Landed): Pending => ({
-  ...(done.map || !p.code ? {} : { code: p.code }),
-  ...(done.progress || !p.id ? {} : { id: p.id }),
-  ...(done.couple || !p.pair ? {} : { pair: p.pair }),
-  intros: (p.intros ?? []).filter((c) => !done.intro.get(c)),
+const left = (p: Held, done: Landed): Held => ({
+  maps: p.maps.filter((c) => !done.maps.get(c)),
+  installs: p.installs.filter((c) => !done.installs.get(c)),
+  pairs: p.pairs.filter((c) => !done.pairs.get(c)),
+  intros: p.intros.filter((c) => !done.intros.get(c)),
 })
 
 /**
  * The record as it is *now*, less the codes this operation sent and was
- * answered for. Never the record as it was when the operation began: a Forget
- * me that wrote codes while a retry was in flight must keep them when the
- * retry lands, and a code the retry could not confirm is not removed by it.
+ * answered for. Never the record as it was when the operation began, and never
+ * anything added: a Forget me that wrote codes while a retry was in flight keeps
+ * them when the retry lands, a code the retry could not confirm is not removed
+ * by it, and one it could not confirm that something newer already removed is
+ * not put back.
  */
-function afterRetry(sent: Pending, done: Landed): Pending {
-  const now = pendingForget() ?? {}
-  return {
-    ...(now.code && !(done.map && now.code === sent.code) ? { code: now.code } : {}),
-    ...(now.id && !(done.progress && now.id === sent.id) ? { id: now.id } : {}),
-    ...(now.pair && !(done.couple && now.pair === sent.pair) ? { pair: now.pair } : {}),
-    intros: (now.intros ?? []).filter((c) => !(sent.intros?.includes(c) && done.intro.get(c))),
-  }
+function afterRetry(sent: Held, done: Landed): Held {
+  const now = held()
+  const kept = (kind: Kind) => now[kind].filter((c) => !(sent[kind].includes(c) && done[kind].get(c)))
+  return { maps: kept('maps'), installs: kept('installs'), pairs: kept('pairs'), intros: kept('intros') }
 }
 
 /**
  * Send a pending forget again. Called on every launch and before every Forget
- * me; a code goes from the record only when its own delete was answered.
- * True when everything it sent landed. Each call waits for one round of
- * deletes, the introduction ones bounded at `TIMEOUT_MS` each, in parallel.
+ * me; a code goes from the record only when its own delete was answered by one
+ * of its handler's answers. True when everything it sent landed. Each call
+ * waits for one round of deletes, each bounded at `TIMEOUT_MS`, in parallel.
  */
 export async function retryPendingForget(): Promise<boolean> {
-  const pending = pendingForget()
-  if (!pending) return true
+  const pending = held()
+  if (!some(pending)) return true
   const done = await deleteAll(pending)
   savePending(afterRetry(pending, done))
   return allLanded(done)
@@ -257,17 +323,16 @@ export async function forgetMe(): Promise<Forgotten> {
   // Anything an earlier Forget me could not finish, first — one round, so the
   // whole of this call waits for at most two (this one, and the one below).
   await retryPendingForget()
-  const code = rememberedCode() ?? undefined
-  const id = rememberedInstallId() ?? undefined
-  // The receipt this phone holds — in storage, or, when storage refused it,
+  // What this phone holds, read before it is wiped, and only what is exactly a
+  // code. The receipt this phone holds — in storage, or, when storage refused it,
   // in this page's memory (src/lib/introduce.ts) — and the attempt it is still
-  // waiting on: either way the code is sent, so a name saved in a browser that
-  // is not saving still comes off. The same code held twice is one code.
-  const intros = tidy([rememberedIntro()?.code, pendingIntro()?.code])
-  // Read before the phone is wiped. A 404 from any of the other three means it
-  // was already gone — the map cascade may well have taken the couple with it —
-  // which is the same as done.
-  const pair = loadProgress()?.couple?.code
+  // waiting on: either way the code is sent. The same code held twice is one code.
+  const asked: Held = tidied({
+    maps: [rememberedCode()],
+    installs: [rememberedInstallId()],
+    pairs: [loadProgress()?.couple?.code],
+    intros: [rememberedIntro()?.code, pendingIntro()?.code],
+  })
   // Not her reports. They used to be withdrawn here, by the receipts this phone
   // held — so a forget me made with someone standing over her erased the only
   // record of what he did, and he never had to know there was one
@@ -275,25 +340,27 @@ export async function forgetMe(): Promise<Forgotten> {
   // any sent message it is not taken back by clearing a phone: it stays until
   // she has read it, and then only the kind of harm and what was done remain
   // (netlify/functions/safety.ts). Trust says so.
-  const asked: Pending = { code, id, pair, intros }
   const done = await deleteAll(asked)
   clearEverything()
   // What did not land is kept — its codes only — to be sent again, alongside
-  // whatever the record holds *now*: an earlier forget's introduction codes
-  // are not replaced by this one's. Read and written in the same breath, so
-  // nothing that settled meanwhile is overwritten with an older copy.
-  const now = pendingForget() ?? {}
+  // whatever the record holds *now*: an earlier forget's codes are not replaced
+  // by this one's. Read and written in the same breath, so nothing that settled
+  // meanwhile is overwritten with an older copy; and a code another operation in
+  // this page has confirmed since is not put back.
+  const now = held()
   const unresolved = left(asked, done)
-  const kept = savePending({ ...now, ...unresolved, intros: [...(now.intros ?? []), ...(unresolved.intros ?? [])] })
-  const still = pendingForget()
-  const introHeld = still?.intros ?? []
+  const merged: Held = none()
+  for (const kind of KINDS) merged[kind] = [...now[kind], ...unresolved[kind].filter((c) => !confirmed.has(keyOf(kind, c)))]
+  const kept = savePending(merged)
+  const still = held()
   return {
-    map: done.map && !still?.code,
-    progress: done.progress && !still?.id,
-    couple: done.couple && !still?.pair,
-    intro: introHeld.length === 0,
-    ...(still?.code ? { code: still.code } : {}),
-    ...(introHeld.length ? { introHeld, introKept: kept } : {}),
+    map: still.maps.length === 0,
+    progress: still.installs.length === 0,
+    couple: still.pairs.length === 0,
+    intro: still.intros.length === 0,
+    ...(still.maps.length ? { mapHeld: still.maps } : {}),
+    ...(still.intros.length ? { introHeld: still.intros } : {}),
+    ...(some(still) ? { kept } : {}),
   }
 }
 

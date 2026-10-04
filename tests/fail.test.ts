@@ -35,7 +35,7 @@ function sources(dir: string): { file: string; text: string }[] {
 }
 
 describe('every call to the server has a clock', () => {
-  it('goes through the one helper, with the guide and the introduction confirmation as the only exceptions', () => {
+  it('goes through the one helper, with the guide as the only exception', () => {
     // withTimeout was copy-pasted byte-identical into five files, hand-rolled
     // in two more, and missing from both waitlist posts — so a hung form post
     // spun for ever on the one screen that takes someone's contact details.
@@ -46,13 +46,11 @@ describe('every call to the server has a clock', () => {
     // is cleared there, which is not what `send` does. It still carries a
     // signal of its own.
     //
-    // The introduction confirmation (`confirmWithdrawal`) is the other: its one
-    // deadline covers the wait for the response *and* the read of its body, and
-    // `send` stops its clock at the headers and keeps its signal to itself, so a
-    // body that began and never ended could not be bounded or aborted through
-    // it. Forget me waits on that call before it wipes the phone
-    // (docs/DECISIONS.md Part 33). It carries a signal of its own too.
-    expect(raw.map((s) => s.file)).toEqual(['lib/coach.ts', 'lib/introduce.ts'])
+    // Forget me's deletes and the introduction confirmation read a body before
+    // they act, and `send` stops its clock at the headers; they use `sendRead`
+    // (lib/net.ts), which carries one deadline over the response and the body, so
+    // they are not exceptions (docs/DECISIONS.md Part 34).
+    expect(raw.map((s) => s.file)).toEqual(['lib/coach.ts'])
     for (const { text } of raw) expect(text).toMatch(/signal: [a-z]+\.signal/)
     expect(sources('src').filter(({ text }) => text.includes('async function withTimeout('))).toHaveLength(0)
   })
