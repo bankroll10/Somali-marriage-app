@@ -36,11 +36,13 @@ describe('Forget me clears every key the app writes', () => {
       for (const m of text.matchAll(/'(niyyah\.[a-z.]+v\d+)'/g)) found.add(m[1])
     }
     expect(found.size).toBeGreaterThan(5)
-    // One key outlives the wipe, on purpose: a forget the server did not
+    // Unfinished-forget state outlives the wipe, on purpose: a forget the server did not
     // receive, holding only the codes still to delete. It is Forget me's own
     // unfinished instruction, and it goes the moment the server has done it
-    // (src/lib/forget.ts, docs/PRIVACY.md).
-    const outlives = new Set(['niyyah.forget.pending.v1'])
+    // (src/lib/forget.ts, docs/PRIVACY.md). Two names: the recovery keys this
+    // build writes (one per code), and the older builds' single record, which
+    // this build only reads and never removes (docs/DECISIONS.md Part 35).
+    const outlives = new Set(['niyyah.forget.pending.v1', 'niyyah.forget.recovery.v1'])
     for (const key of found) {
       if (outlives.has(key)) continue
       expect(LOCAL_KEYS, `Forget me does not clear ${key}`).toContain(key)

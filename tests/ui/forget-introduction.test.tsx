@@ -6,6 +6,7 @@ import { formatCode } from '../../src/lib/code'
 import { day } from '../../netlify/shared/day'
 import { answerDelete, appHtml } from '../support/answers'
 import { Phone, onPhone, reload } from '../support/device'
+import { recoveryCodes, recoveryKey, recoveryKeys } from '../support/recovery'
 import { mount, type Mounted } from '../support/render'
 import { blobs, serve, type Served } from '../support/server'
 
@@ -26,7 +27,6 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
  */
 
 const CONTACT = 'zq.forget.screen@example.test'
-const PENDING = 'niyyah.forget.pending.v1'
 const A = 'QRTWXY34'
 const B = 'HJKMNPQR'
 const C = 'ACDEFGHJ'
@@ -128,7 +128,7 @@ describe('the message, on a stub', () => {
     expect(said).toContain('We could not confirm that your kept map was deleted. It may have been, or it may not.')
     expect(said).toContain('We could not confirm that your name came off the introduction list. It may have, or it may not.')
     expect(said).toContain(`with these codes ACDEFG and ${formatCode(A)} to ask for help removing them.`)
-    expect(said).toContain('keeps only what it needs to finish')
+    expect(said).toContain('keeps only codes')
     expect(said).not.toMatch(/only (the )?introduction/i)
     // The introduction list is not among the things said to be "still held".
     expect(said).not.toContain('kept map and your name')
@@ -220,12 +220,31 @@ describe('the message for the map, the count and the eleven, on a stub', () => {
   })
 })
 
+describe('an unreadable record of an earlier attempt, on a stub', () => {
+  it('says it could not check, and does not say anything is held that is not', async () => {
+    const m = await forgetOnStub({ ...ALL, intro: true, unchecked: true })
+    const said = m.text()
+    expect(said).toContain('This phone is cleared.')
+    expect(said).toContain('We could not check whether anything from an earlier attempt is still waiting on this phone.')
+    expect(said).not.toContain('We could not confirm')
+    expect(said).not.toContain('Or write to')
+    noFalseClaims(m)
+  })
+
+  it('says nothing about it when the record was read', async () => {
+    const m = await forgetOnStub({ ...ALL, intro: false, introHeld: [A], kept: true })
+    expect(m.text()).not.toContain('We could not check')
+  })
+})
+
 // ── The real app ────────────────────────────────────────────────────────────
 
 const records = () => blobs.keys('introductions').filter((k) => !k.startsWith('withdrawn/'))
 const markers = () => blobs.keys('introductions').filter((k) => k.startsWith('withdrawn/'))
 const deletes = () => server.requests.filter((r) => r.startsWith('DELETE ') && r.includes('introduce')).length
-const heldOnPhone = () => (JSON.parse(phone.storage.get(PENDING) ?? '{}') as { intros?: string[] }).intros ?? []
+const heldOnPhone = () => recoveryCodes(phone.storage, 'intros')
+/** Nothing is waiting on the phone: no recovery key is left (Part 35). */
+const nothingWaiting = () => recoveryKeys(phone.storage).length === 0
 
 /** `window.location.replace`, observed: the app calls it when everything is confirmed, and a test must not leave the page. */
 function watchReplace() {
@@ -270,9 +289,9 @@ describe('the real app, with an invalid success-looking answer and the handler n
     expect(m.text()).toContain(formatCode(code))
     noFalseClaims(m)
     // Her things are gone from the phone; the code is the one thing kept.
-    expect(phone.keys()).toEqual([PENDING])
+    expect(phone.keys()).toEqual([recoveryKey('intros', code)])
     expect(heldOnPhone()).toEqual([code])
-    expect(phone.storage.get(PENDING)).not.toContain(CONTACT)
+    expect([...phone.storage.entries()].flat().join(' ')).not.toContain(CONTACT)
     expect(records()).toEqual([code])
     expect(deletes()).toBe(1)
 
@@ -309,8 +328,8 @@ describe('the real app, with the step count answered by an invalid success-looki
     expect(m.text()).not.toContain('Or write to')
     expect(m.text()).not.toContain(ids[0])
     for (const claim of NO_CLAIMS) expect(m.text(), claim).not.toContain(claim)
-    expect(phone.keys()).toEqual([PENDING])
-    expect(JSON.parse(phone.storage.get(PENDING)!)).toEqual({ id: ids[0] })
+    expect(phone.keys()).toEqual([recoveryKey('installs', ids[0])])
+    expect(phone.storage.get(recoveryKey('installs', ids[0]))).toBe('1')
     expect(blobs.keys('progress')).toEqual(ids)
 
     back()
@@ -327,13 +346,13 @@ describe('the real app, in a browser that cannot save the recovery code', () => 
     phone.refuse(/^niyyah\.(intro|forget)/)
     const replace = watchReplace()
     const { m, code } = await receipt()
-    expect(phone.storage.has(PENDING)).toBe(false)
+    expect(nothingWaiting()).toBe(true)
     const back = answerDelete(server, appHtml, false)
     await throughTrust(m)
     await m.until(() => m.text().includes('This browser could not save this recovery code'), 'the denied message')
     expect(m.text()).toContain(formatCode(code))
     expect(m.text()).toContain('cannot try again once this page is closed or reloaded')
-    expect(phone.storage.has(PENDING)).toBe(false)
+    expect(nothingWaiting()).toBe(true)
     expect(replace).not.toHaveBeenCalled()
     expect(records()).toEqual([code])
 
@@ -380,7 +399,7 @@ describe('the launch retry, on the same contract', () => {
     // The next launch is answered for real: the code goes, the record goes, one marker.
     const again = await mount(<App />)
     screen = again
-    await again.until(() => !phone.storage.has(PENDING), 'the pending forget is finished')
+    await again.until(() => nothingWaiting(), 'the pending forget is finished')
     expect(records()).toEqual([])
     expect(markers()).toEqual([`withdrawn/${code}/${day()}`])
     expect(deletes()).toBe(before + 2)
@@ -401,7 +420,39 @@ describe('the launch retry, on the same contract', () => {
 
     const again = await mount(<App />)
     screen = again
-    await again.until(() => !phone.storage.has(PENDING), 'the pending forget is finished')
+    await again.until(() => nothingWaiting(), 'the pending forget is finished')
     expect(markers()).toEqual([`withdrawn/${code}/${day()}`])
+  })
+})
+
+describe('the real app, when this phone cannot list what it holds', () => {
+  it('does not replace the page on an answered delete, says it could not check, and a tap once storage can be read finishes it', async () => {
+    const replace = watchReplace()
+    const { m } = await receipt()
+    phone.scanRefused = true
+    await throughTrust(m)
+    await m.until(() => m.text().includes('We could not check whether anything from an earlier attempt'), 'the unchecked message')
+    expect(replace).not.toHaveBeenCalled()
+    expect(records()).toEqual([])
+    phone.scanRefused = false
+    await m.press(/^Forget me$/)
+    await m.press('Yes, delete everything')
+    await m.until(() => replace.mock.calls.length > 0, 'the page is replaced')
+  })
+})
+
+describe('the real app, when an older tab changes the record this build imports from', () => {
+  it('a storage event on that key reaches the listener: the codes in its old and new values are kept under recovery keys', async () => {
+    const m = await mount(<App />)
+    screen = m
+    window.dispatchEvent(new StorageEvent('storage', { key: 'niyyah.forget.pending.v1', oldValue: JSON.stringify({ code: 'ACDEFG' }), newValue: JSON.stringify({ id: 'HJKMNPQR' }) }))
+    expect(recoveryCodes(phone.storage, 'maps')).toEqual(['ACDEFG'])
+    expect(recoveryCodes(phone.storage, 'installs')).toEqual(['HJKMNPQR'])
+    expect(phone.storage.has('niyyah.forget.pending.v1')).toBe(false)
+    // After the page goes away the listener goes with it.
+    m.unmount()
+    screen = undefined
+    window.dispatchEvent(new StorageEvent('storage', { key: 'niyyah.forget.pending.v1', oldValue: null, newValue: JSON.stringify({ code: 'CDEFGH' }) }))
+    expect(recoveryCodes(phone.storage, 'maps')).toEqual(['ACDEFG'])
   })
 })

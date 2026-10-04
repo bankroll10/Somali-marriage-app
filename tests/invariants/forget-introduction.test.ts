@@ -4,6 +4,7 @@ import { clearEverything, forgetMe, pendingForget, retryPendingForget } from '..
 import { registerInterest, rememberedIntro, resetIntroMirror } from '../../src/lib/introduce'
 import { answerDelete, appHtml, cutStream, gone } from '../support/answers'
 import { Phone, onPhone, reload } from '../support/device'
+import { LEGACY, recoveryKey, recoveryKeys, recoveryOf } from '../support/recovery'
 import { residue } from '../support/residue'
 import { blobs, call, serve, type Served } from '../support/server'
 
@@ -31,7 +32,7 @@ const B = 'HJKMNPQR'
 const NAME = 'Zqhodanforgetintro'
 const CONTACT = 'zq.forget.intro@example.test'
 const INPUT = { contact: CONTACT, gender: 'woman' as const, scene: 'twin-cities' }
-const PENDING = 'niyyah.forget.pending.v1'
+const PENDING = LEGACY
 const RECEIPT = 'niyyah.intro.v1'
 const ATTEMPT = 'niyyah.intro.pending.v1'
 
@@ -55,13 +56,8 @@ const markerOf = (code: string) => `withdrawn/${code}/${day()}`
 const deletes = () => server.requests.filter((r) => r.startsWith('DELETE ')).length
 const posts = () => server.requests.filter((r) => r.startsWith('POST ')).length
 
-/** The introduction codes the pending-forget record holds, whichever shape wrote it. */
-function held(): string[] {
-  const raw = phone.storage.get(PENDING)
-  if (!raw) return []
-  const p = JSON.parse(raw) as { intro?: string; introPending?: string; intros?: string[] }
-  return [...new Set([...(p.intros ?? []), p.intro, p.introPending].filter((c): c is string => !!c))].sort()
-}
+/** The introduction codes this phone keeps a recovery key for. */
+const held = (): string[] => recoveryOf(phone.storage).intros
 
 /** A record on the server under `code`, as an earlier POST left it. */
 async function onServer(code: string) {
@@ -94,8 +90,8 @@ describe.each(SITUATIONS)('Forget me, %s', (_s, completed, reply) => {
       const done = await forgetMe()
       expect(done.intro).toBe(false)
       expect(done).toMatchObject({ introHeld: [A], kept: true })
-      // Her things are gone; the one key left holds the code and nothing else.
-      expect(phone.keys()).toEqual([PENDING])
+      // Her things are gone; the one key left is the code's own, and holds nothing else.
+      expect(phone.keys()).toEqual([recoveryKey('intros', A)])
       expect(held()).toEqual([A])
       expect(personal()).toEqual([])
       expect(rememberedIntro()).toBeNull()
@@ -177,36 +173,41 @@ describe('one code under both names', () => {
     expect(deletes()).toBe(1)
     expect(done.intro).toBe(false)
     expect(held()).toEqual([A])
-    expect((phone.storage.get(PENDING)!.match(new RegExp(A, 'g')) ?? []).length).toBe(1)
+    expect(recoveryKeys(phone.storage)).toEqual([recoveryKey('intros', A)])
     back()
     expect(await retryPendingForget()).toBe(true)
     expect(held()).toEqual([])
     expect(records()).toEqual([])
   })
 
-  it('a record from the earlier build naming it in both slots is sent once and resolved once', async () => {
-    phone.storage.set(PENDING, JSON.stringify({ intro: A, introPending: A }))
+  it('a record from the earlier build naming it in both slots is imported once, sent once and resolved once', async () => {
+    const raw = JSON.stringify({ intro: A, introPending: A })
+    phone.storage.set(PENDING, raw)
     await onServer(A)
     expect(await retryPendingForget()).toBe(true)
     expect(deletes()).toBe(1)
-    expect(phone.keys()).toEqual([])
+    expect(recoveryKeys(phone.storage)).toEqual([])
+    // The older record is left exactly as it was; this build never writes or removes it.
+    expect(phone.storage.get(PENDING)).toBe(raw)
     expect(records()).toEqual([])
   })
 })
 
-describe('a record the earlier build wrote is read, and rewritten in the shape this build writes', () => {
-  it('reads intro and introPending, keeps what did not land, and carries it forward', async () => {
-    phone.storage.set(PENDING, JSON.stringify({ intro: A, introPending: B }))
+describe('a record the earlier build wrote is imported, never rewritten', () => {
+  it('reads intro and introPending, keeps what did not land under recovery keys, and leaves the older record alone', async () => {
+    const raw = JSON.stringify({ intro: A, introPending: B })
+    phone.storage.set(PENDING, raw)
     await onServer(A)
     await onServer(B)
     const back = answerDelete(server, appHtml, false, B)
     expect(await retryPendingForget()).toBe(false)
     expect(held()).toEqual([B])
-    expect(JSON.parse(phone.storage.get(PENDING)!)).toEqual({ intros: [B] })
+    expect(phone.storage.get(PENDING)).toBe(raw)
     expect(records()).toEqual([B])
     back()
     expect(await retryPendingForget()).toBe(true)
-    expect(phone.keys()).toEqual([])
+    expect(recoveryKeys(phone.storage)).toEqual([])
+    expect(phone.storage.get(PENDING)).toBe(raw)
   })
 })
 

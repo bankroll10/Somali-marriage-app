@@ -16,6 +16,17 @@ export class Phone {
   readonly name: string
   /** Keys this phone's storage refuses to write — private browsing, or a full disk, for the keys that match. */
   refusing: RegExp | null = null
+  /** Keys this phone's storage refuses to *remove*, as a browser with a read-only area might. */
+  refusingRemove: RegExp | null = null
+  /** Reading the list of keys (`length`, `key(i)`) throws, as a browser that denies enumeration does. */
+  scanRefused = false
+  /** The most keys this phone will hold: a write that would add a key past it throws, as a full disk does. */
+  quota: number | null = null
+  /**
+   * Called before every storage operation (`get`, `set`, `remove`, `key`, `length`), with the key it is about
+   * to touch. A test changes storage here — as another tab would — to force an interleaving at an exact point.
+   */
+  hook: ((op: 'get' | 'set' | 'remove' | 'key' | 'length', key: string | null) => void) | null = null
   constructor(name: string) {
     this.name = name
   }
@@ -23,6 +34,11 @@ export class Phone {
   /** Make every write to a matching key throw, as a browser that is not saving does. */
   refuse(keys: RegExp | null): void {
     this.refusing = keys
+  }
+
+  /** Make every removal of a matching key throw. */
+  refuseRemove(keys: RegExp | null): void {
+    this.refusingRemove = keys
   }
 
   /** What this phone holds, as keys. */
@@ -34,15 +50,30 @@ export class Phone {
 function storageOf(phone: Phone): Storage {
   const m = phone.storage
   return {
-    getItem: (k: string) => m.get(k) ?? null,
+    getItem: (k: string) => {
+      phone.hook?.('get', k)
+      return m.get(k) ?? null
+    },
     setItem: (k: string, v: string) => {
+      phone.hook?.('set', k)
       if (phone.refusing?.test(k)) throw new DOMException('QuotaExceededError', 'QuotaExceededError')
+      if (phone.quota !== null && !m.has(k) && m.size >= phone.quota) throw new DOMException('QuotaExceededError', 'QuotaExceededError')
       m.set(k, String(v))
     },
-    removeItem: (k: string) => void m.delete(k),
+    removeItem: (k: string) => {
+      phone.hook?.('remove', k)
+      if (phone.refusingRemove?.test(k)) throw new DOMException('SecurityError', 'SecurityError')
+      m.delete(k)
+    },
     clear: () => m.clear(),
-    key: (i: number) => [...m.keys()][i] ?? null,
+    key: (i: number) => {
+      if (phone.scanRefused) throw new DOMException('SecurityError', 'SecurityError')
+      phone.hook?.('key', null)
+      return [...m.keys()][i] ?? null
+    },
     get length() {
+      if (phone.scanRefused) throw new DOMException('SecurityError', 'SecurityError')
+      phone.hook?.('length', null)
       return m.size
     },
   }

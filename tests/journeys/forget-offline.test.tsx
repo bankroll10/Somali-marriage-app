@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
 import { seedDemo } from '../../src/lib/demo'
 import { Phone, onPhone, reload } from '../support/device'
+import { RECOVERY, recoveryKeys } from '../support/recovery'
 import { mount } from '../support/render'
 import { residue } from '../support/residue'
 import { blobs, serve, type Served } from '../support/server'
@@ -34,7 +35,8 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const PENDING = 'niyyah.forget.pending.v1'
+// What the phone keeps for an unfinished forget: one key per code, nothing inside (Part 35).
+const waiting = (phone: Phone) => recoveryKeys(phone.storage).length > 0
 
 describe('forget me, with the server down', () => {
   it('names the code, keeps only it, and finishes the next time Niyyah opens', async () => {
@@ -65,7 +67,7 @@ describe('forget me, with the server down', () => {
     expect(said).toContain('your kept map')
     expect(said).toContain(`with the code ${code}`)
     // The phone keeps the codes it needs to finish, and nothing of hers.
-    expect(phone.storage.has(PENDING)).toBe(true)
+    expect(waiting(phone)).toBe(true)
     expect(residue(['Hodan'], [phone]).filter((l) => l.startsWith('phone'))).toEqual([])
     // The page is not replaced on this path, so the app is still holding
     // everything it just erased — and its autosave used to write it all back
@@ -73,14 +75,14 @@ describe('forget me, with the server down', () => {
     // past the autosave, and look again.
     await m.press(/^Keep the Guide on this device/)
     await new Promise((r) => setTimeout(r, 400))
-    expect(residue(['Hodan', code], [phone]).filter((l) => l.startsWith('phone') && !l.includes(PENDING))).toEqual([])
+    expect(residue(['Hodan', code], [phone]).filter((l) => l.startsWith('phone') && !l.includes(RECOVERY))).toEqual([])
     m.unmount()
     reload()
 
     // The next time Niyyah opens, with the network back.
     server.down(false)
     const next = await mount(<App />)
-    await next.until(() => !phone.storage.has(PENDING), 'the pending forget is sent')
+    await next.until(() => !waiting(phone), 'the pending forget is sent')
     expect(next.text()).not.toContain('Hodan')
     next.unmount()
 

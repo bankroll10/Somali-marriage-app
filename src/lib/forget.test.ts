@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { LOCAL_KEYS, forgetMe, pendingForget, resetForgetMirror, retryPendingForget } from './forget'
+import { LOCAL_KEYS, forgetMe, importLegacy, pendingForget, resetForgetMirror, retryPendingForget } from './forget'
+import { LEGACY, recoveryKey, recoveryKeys, recoveryOf } from '../../tests/support/recovery'
 
 /**
  * Forget me is the control that makes every sentence on Trust enforceable.
@@ -101,9 +102,10 @@ describe('forget me', () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     // The code is named, so she can write in with it (docs/PRIVACY.md).
     expect(await forgetMe()).toEqual({ map: false, progress: false, couple: true, intro: true, mapHeld: ['ACDEFG'], kept: true })
-    // One key is left: the codes, and none of her answers.
-    expect([...store.keys()]).toEqual(['niyyah.forget.pending.v1'])
-    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ code: 'ACDEFG', id: 'HJKMNP' })
+    // What is left is one key per code to delete, and none of her answers.
+    expect([...store.keys()].sort()).toEqual([recoveryKey('installs', 'HJKMNP'), recoveryKey('maps', 'ACDEFG')].sort())
+    expect(recoveryOf(store)).toEqual({ maps: ['ACDEFG'], installs: ['HJKMNP'], pairs: [], intros: [] })
+    expect(store.get(recoveryKey('maps', 'ACDEFG'))).toBe('1')
   })
 
   it('finishes a forget the server missed — tapping again, or just opening the app — and then leaves nothing', async () => {
@@ -124,7 +126,7 @@ describe('forget me', () => {
     await forgetMe()
     vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes('/keep') ? gave(url) : new Response('{}', { status: 503 }))))
     expect(await retryPendingForget()).toBe(false)
-    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ id: 'HJKMNP' })
+    expect(recoveryOf(store)).toEqual({ maps: [], installs: ['HJKMNP'], pairs: [], intros: [] })
     vi.stubGlobal('fetch', vi.fn(async (url: string) => gave(url)))
     expect(await retryPendingForget()).toBe(true)
     expect(store.size).toBe(0)
@@ -163,7 +165,7 @@ describe('forget me', () => {
     store.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: '2026-09-27' }))
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false, introHeld: ['QRTWXY34'], kept: true })
-    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intros: ['QRTWXY34'] })
+    expect(recoveryOf(store).intros).toEqual(['QRTWXY34'])
   })
 
   it('takes off an attempt to put her name down that was never answered, under the code it went out with', async () => {
@@ -187,7 +189,7 @@ describe('forget me', () => {
     store.set('niyyah.intro.pending.v1', JSON.stringify({ code: 'HJKMNPQR', at: '2026-09-27' }))
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     expect(await forgetMe()).toEqual({ map: true, progress: true, couple: true, intro: false, introHeld: ['HJKMNPQR', 'QRTWXY34'], kept: true })
-    expect(JSON.parse(store.get('niyyah.forget.pending.v1')!)).toEqual({ intros: ['HJKMNPQR', 'QRTWXY34'] })
+    expect(recoveryOf(store).intros).toEqual(['HJKMNPQR', 'QRTWXY34'])
     // The next launch finishes it.
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{"removed":true}', { status: 200 })))
     expect(await retryPendingForget()).toBe(true)
@@ -227,15 +229,10 @@ describe('forget me', () => {
  */
 const A = 'QRTWXY34'
 const B = 'HJKMNPQR'
-const PENDING = 'niyyah.forget.pending.v1'
+const PENDING = LEGACY
 const receipt = (code: string) => store.set('niyyah.intro.v1', JSON.stringify({ code, at: '2026-09-27', removeOn: '2027-03-21' }))
-/** The introduction codes the record holds, in whichever shape wrote it. */
-const heldCodes = (): string[] => {
-  const raw = store.get(PENDING)
-  if (!raw) return []
-  const p = JSON.parse(raw) as { intro?: string; introPending?: string; intros?: string[] }
-  return [...new Set([...(p.intros ?? []), p.intro, p.introPending].filter((c): c is string => !!c))].sort()
-}
+/** The introduction codes this phone keeps a recovery key for. */
+const heldCodes = (): string[] => recoveryOf(store).intros
 const removed = () => new Response('{"removed":true}', { status: 200 })
 
 describe('what Forget me accepts as an introduction deletion', () => {
@@ -264,22 +261,27 @@ describe('what Forget me accepts as an introduction deletion', () => {
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 200 })))
     const done = await forgetMe()
     expect(done).toMatchObject({ map: false, progress: false, couple: false, intro: false, mapHeld: ['ACDEFG'], introHeld: [A, B].sort(), kept: true })
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: 'ACDEFG', id: 'HJKMNP', pair: 'QRTWXY', intros: [A, B].sort() })
+    expect(recoveryOf(store)).toEqual({ maps: ['ACDEFG'], installs: ['HJKMNP'], pairs: ['QRTWXY'], intros: [A, B].sort() })
   })
 
-  it('a record written by the earlier build is read, and written back in the new shape', async () => {
-    store.set(PENDING, JSON.stringify({ code: 'ACDEFG', intro: A, introPending: B }))
+  it('a record written by an earlier build is imported, never rewritten; what did not land is kept under recovery keys', async () => {
+    const raw = JSON.stringify({ code: 'ACDEFG', intro: A, introPending: B })
+    store.set(PENDING, raw)
     vi.stubGlobal('fetch', vi.fn(async (url: string) => (String(url).includes(B) ? new Response('<html>', { status: 200 }) : gave(url))))
     expect(await retryPendingForget()).toBe(false)
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ intros: [B] })
+    expect(recoveryOf(store)).toEqual({ maps: [], installs: [], pairs: [], intros: [B] })
+    // The older record is exactly as that build left it: this build never writes or removes it.
+    expect(store.get(PENDING)).toBe(raw)
   })
 
-  it('reads a record with junk in it as far as it can: bad codes are dropped, good ones are kept', async () => {
-    store.set(PENDING, JSON.stringify({ intros: [A, 'zz', 7, null, B], intro: A }))
+  it('imports a record with junk in it as far as it can: bad codes are not imported, good ones are, and the record is left as it was', async () => {
+    const raw = JSON.stringify({ intros: [A, 'zz', 7, null, B], intro: A })
+    store.set(PENDING, raw)
     vi.stubGlobal('fetch', vi.fn(async () => new Response('<html>', { status: 200 })))
     expect(await retryPendingForget()).toBe(false)
     expect(heldCodes()).toEqual([A, B].sort())
     expect(pendingForget()).toEqual({ intros: [A, B].sort() })
+    expect(store.get(PENDING)).toBe(raw)
   })
 })
 
@@ -323,7 +325,7 @@ describe('a completed retry removes only what it confirmed (G2)', () => {
     await forgetMe()
     release(removed())
     expect(await retry).toBe(true)
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: 'ACDEFG', intros: [B] })
+    expect(recoveryOf(store)).toEqual({ maps: ['ACDEFG'], installs: [], pairs: [], intros: [B] })
   })
 
   it('a retry that confirms nothing leaves a record that changed meanwhile as it found it', async () => {
@@ -342,7 +344,9 @@ describe('a completed retry removes only what it confirmed (G2)', () => {
     // Both ask about A; A is answered the first time, so the record empties once and stays empty.
     vi.stubGlobal('fetch', vi.fn(async () => removed()))
     await Promise.all([retryPendingForget(), forgetMe()])
-    expect(store.has(PENDING)).toBe(false)
+    // Nothing is waiting. The older record is untouched, and still names A: a later launch may import and ask again.
+    expect(recoveryKeys(store)).toEqual([])
+    expect(store.get(PENDING)).toBe(JSON.stringify({ intros: [A] }))
   })
 })
 
@@ -400,8 +404,10 @@ describe('what Forget me accepts as a keep, progress or couple deletion', () => 
       const done = await forgetMe()
       expect(done[flag as 'map' | 'progress' | 'couple']).toBe(false)
       expect(done.kept).toBe(true)
-      expect([...store.keys()]).toEqual([PENDING])
-      expect(Object.keys(JSON.parse(store.get(PENDING)!))).toEqual([slot])
+      // One key, for this code only.
+      const kind = ({ code: 'maps', id: 'installs', pair: 'pairs' } as const)[slot as 'code' | 'id' | 'pair']
+      expect(recoveryKeys(store)).toEqual([recoveryKey(kind, recoveryOf(store)[kind][0])])
+      expect([...store.keys()].sort()).toEqual(recoveryKeys(store))
     })
   })
 })
@@ -438,8 +444,10 @@ describe('the codes Forget me will send: exactly a code, never one made out of s
     expect(store.size).toBe(0)
   })
 
-  it('a malformed value in the pending record is dropped on read, so it cannot be retried for ever; the valid ones beside it stay', async () => {
-    store.set(PENDING, JSON.stringify({ code: 'QR?TWXY34', moreCodes: ['ACDEFG', 7, null, 'acdefg'], id: 'ACDEFGH', pair: 'QRTWXY', intros: [A, 'ZZZZZZZZ'] }))
+  it('a malformed value in an older record is not imported, so it cannot be retried for ever; the valid ones beside it are', async () => {
+    const raw = JSON.stringify({ code: 'QR?TWXY34', moreCodes: ['ACDEFG', 7, null, 'acdefg'], id: 'ACDEFGH', pair: 'QRTWXY', intros: [A, 'ZZZZZZZZ'] })
+    store.set(PENDING, raw)
+    importLegacy([raw])
     expect(pendingForget()).toEqual({ maps: ['ACDEFG'], pairs: ['QRTWXY'], intros: [A] })
     const spy = calls()
     expect(await retryPendingForget()).toBe(true)
@@ -448,22 +456,26 @@ describe('the codes Forget me will send: exactly a code, never one made out of s
       '/.netlify/functions/introduce?code=QRTWXY34',
       '/.netlify/functions/keep?code=ACDEFG',
     ])
-    expect(store.has(PENDING)).toBe(false)
+    // Everything it named is settled, and the older record, malformed value and all, is left byte for byte.
+    expect(recoveryKeys(store)).toEqual([])
+    expect(store.get(PENDING)).toBe(raw)
   })
 
-  it('reads every record an earlier build wrote — the slots, and the introduction fields — and keeps a valid six- and eight-character code of each', async () => {
-    store.set(PENDING, JSON.stringify({ code: 'ACDEFG', id: 'HJKMNPQR', pair: 'QRTWXY', intro: A, introPending: B }))
+  it('imports every record an earlier build wrote — the slots, and the introduction fields — and keeps a valid six- and eight-character code of each', async () => {
+    importLegacy([JSON.stringify({ code: 'ACDEFG', id: 'HJKMNPQR', pair: 'QRTWXY', intro: A, introPending: B })])
     expect(pendingForget()).toEqual({ maps: ['ACDEFG'], installs: ['HJKMNPQR'], pairs: ['QRTWXY'], intros: [A, B].sort() })
   })
 
-  it('writes the file the build before it wrote when each kind has one code, and the new fields only for a second', async () => {
+  it('keeps one key per code: a second unresolved forget adds a key and never replaces one', async () => {
     vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline') }))
     store.set('niyyah.keep.code.v1', 'ACDEFG')
     store.set('niyyah.install.v1', 'HJKMNPQR')
     await forgetMe()
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: 'ACDEFG', id: 'HJKMNPQR' })
+    expect(recoveryOf(store)).toEqual({ maps: ['ACDEFG'], installs: ['HJKMNPQR'], pairs: [], intros: [] })
     store.set('niyyah.keep.code.v1', 'CDEFGH')
     await forgetMe()
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: 'ACDEFG', moreCodes: ['CDEFGH'], id: 'HJKMNPQR' })
+    expect(recoveryOf(store)).toEqual({ maps: ['ACDEFG', 'CDEFGH'], installs: ['HJKMNPQR'], pairs: [], intros: [] })
+    // Nothing but those keys: no record, no older key.
+    expect([...store.keys()].sort()).toEqual([recoveryKey('installs', 'HJKMNPQR'), recoveryKey('maps', 'ACDEFG'), recoveryKey('maps', 'CDEFGH')].sort())
   })
 })

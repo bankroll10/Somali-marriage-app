@@ -112,7 +112,8 @@ describe('after Forget me', () => {
     const first = await forgetMe()
     expect(first.map).toBe(false)
     // Her phone keeps the codes it still needs, and nothing else of hers.
-    expect(her.keys()).toEqual(['niyyah.forget.pending.v1'])
+    expect(her.keys().every((k) => k.startsWith('niyyah.forget.recovery.v1.'))).toBe(true)
+    expect(her.keys().length).toBeGreaterThan(0)
     expect(residue([NAME, OWN_WORDS], [her]).filter((l) => l.startsWith('phone'))).toEqual([])
 
     served.down(false)

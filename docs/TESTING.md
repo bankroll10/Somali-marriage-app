@@ -77,7 +77,7 @@ their neighbours had not hollowed them out.
 | | | The earlier build's `intro` / `introPending` not read; the page copy not read | Red (5; 4) |
 | | | `intro` always true; `introHeld` omitted; the kept flag always true; the introduction named in "could not reach" | Red (21; 19; 3; 2) |
 | | | `withdrawInterest` clears whatever the answer | Red (90) |
-| Forget me confirms the map, the step count and the eleven only by their handlers' answers | `forget-confirmation`, `forget-pending-compat`, `forget-bound`, `forget`, `ui/forget-introduction` | Any 2xx counts as removed | Red (49) |
+| Forget me confirms the map, the step count and the eleven only by their handlers' answers | `forget-confirmation`, `forget-pending-compat`, `forget-recovery-store`, `forget-bound`, `forget`, `ui/forget-introduction` | Any 2xx counts as removed | Red (49) |
 | | | Any 404 counts as nothing; a 404 without its body; a 202 accepted | Red (9; 6; 3) |
 | | | The eleven read by keep's field | Red (15) |
 | | | The body read outside the deadline; timer never cleared; no abort; the reader called for a late response | Red (8; 3; 2; 1) |
@@ -140,9 +140,21 @@ What each suite holds beyond its mutation:
   foreground operations (an older completion neither removes what it did not confirm nor re-adds what a
   newer one did), a browser that cannot save (page copy, second tap, "Start completely fresh", reload) and a
   reload. The classifier's answers are one table in `src/lib/forget.test.ts`.
-- **`forget-pending-compat`.** What the build before this one (BATCH-07D's reader and writer, a fixture in
-  `tests/support/forget-07d.ts`) does with a record this build wrote: what survives and what it loses. A
-  demonstration of a risk that is **open**, not a test that it is solved.
+- **`forget-pending-compat`.** **Hybrid tests** (docs/DECISIONS.md Part 35). The two builds before this one
+  (`261d055` and `69f8b92`) have their `src/lib/forget.ts` vendored verbatim in
+  `tests/support/old-builds/` (only the import specifiers changed; a hash guard holds the text) and run over
+  *today's* helper modules. They prove what the old `forget.ts` reads, writes, removes and spreads on
+  storage and its own permissive confirmation; they do **not** prove anything through the old
+  introduction module or the old screens, which only the real old bundles do (the browser check, not part
+  of `npm test`). They show the recovery keys unchanged through a failed forget, a falsely confirmed retry,
+  the old wipe and a rewrite, and assert as limitations what an older build loses before this build has
+  captured it.
+- **`forget-recovery-store`.** The store on the new build alone: an older tab rewriting the record during
+  an import, the `storage` event (old and new value, a clear, another key), the older key left after a
+  confirmed deletion (zero repeat requests on the same page; one per launch after a reload), a confirmed
+  code followed by a genuinely new failed attempt (kept) against an old mention (not asked again), two tabs
+  over one storage, a scan shaken by another tab and a scan that never settles or is refused (unknown, not
+  empty), `kept` over every unresolved code, and an older key never converted, rewritten or removed.
 - **`founder-routes-fail-closed`.** Every founder check in
   `netlify/functions` must have a row. Each row is refused under seven
   near-miss credentials and an unset key, and answers with the right key.

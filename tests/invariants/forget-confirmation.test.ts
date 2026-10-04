@@ -7,6 +7,7 @@ import { installId, reportRungs, resetReported } from '../../src/lib/progress'
 import { answerDelete, appHtml, cutStream, gone, type Route } from '../support/answers'
 import { sheet } from '../support/arbitrary'
 import { Phone, onPhone, reload } from '../support/device'
+import { recoveryKey, recoveryKeys, recoveryOf } from '../support/recovery'
 import { residue } from '../support/residue'
 import { blobs, serve, type Served } from '../support/server'
 
@@ -32,11 +33,8 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 type Kind = 'map' | 'progress' | 'couple'
 const KINDS: Kind[] = ['map', 'progress', 'couple']
 const ROUTE: Record<Kind, Route> = { map: 'keep', progress: 'progress', couple: 'couple' }
-const SLOT: Record<Kind, 'code' | 'id' | 'pair'> = { map: 'code', progress: 'id', couple: 'pair' }
-const MORE: Record<Kind, string> = { map: 'moreCodes', progress: 'moreIds', couple: 'morePairs' }
 const LIST: Record<Kind, 'maps' | 'installs' | 'pairs'> = { map: 'maps', progress: 'installs', couple: 'pairs' }
 const FLAG: Record<Kind, 'map' | 'progress' | 'couple'> = { map: 'map', progress: 'progress', couple: 'couple' }
-const PENDING = 'niyyah.forget.pending.v1'
 const NAME = 'Zqforgetconfirm'
 
 let server: Served
@@ -76,7 +74,9 @@ function marker(kind: Kind, id: string): unknown {
   return kind === 'map' ? blobs.read('maps', `ended/${id}`) : kind === 'couple' ? blobs.read('couples', `gone/${id}`) : null
 }
 const deletes = (kind: Kind) => server.requests.filter((r) => r.startsWith('DELETE ') && r.includes(`/${ROUTE[kind]}?`)).length
-const onDisk = () => (phone.storage.get(PENDING) ? (JSON.parse(phone.storage.get(PENDING)!) as Record<string, unknown>) : null)
+/** The recovery keys on the phone, as codes by kind: what this build keeps for an unfinished forget. */
+const onDisk = () => recoveryOf(phone.storage)
+const only = (kind: Kind, ...codes: string[]) => ({ maps: [], installs: [], pairs: [], intros: [], [LIST[kind]]: codes.sort() })
 const heldIds = (kind: Kind) => (pendingForget()?.[LIST[kind]] ?? []).slice().sort()
 const personal = () => residue([NAME], [phone]).filter((l) => l.startsWith('phone'))
 
@@ -99,9 +99,10 @@ describe.each(KINDS)('Forget me, the %s', (kind) => {
       expect(done.kept).toBe(true)
       // Only the map's code is ever shown; the step id and the couple code are not.
       expect(done.mapHeld).toEqual(kind === 'map' ? [id] : undefined)
-      // Her things are gone; the one key left holds the code and nothing else.
-      expect(phone.keys()).toEqual([PENDING])
-      expect(onDisk()).toEqual({ [SLOT[kind]]: id })
+      // Her things are gone; the one key left is this code's own, and holds nothing else.
+      expect(phone.keys()).toEqual([recoveryKey(LIST[kind], id)])
+      expect(onDisk()).toEqual(only(kind, id))
+      expect(phone.storage.get(recoveryKey(LIST[kind], id))).toBe('1')
       expect(personal()).toEqual([])
       // One DELETE for it, and the server is what the situation made it.
       expect(deletes(kind)).toBe(1)
@@ -131,7 +132,7 @@ describe('mixed results: each kind is confirmed on its own', () => {
     const done = await forgetMe()
     expect(done).toMatchObject({ map: true, progress: false, couple: true, intro: true, kept: true })
     expect(done.mapHeld).toBeUndefined()
-    expect(onDisk()).toEqual({ id })
+    expect(onDisk()).toEqual(only('progress', id))
     expect(holds('map', mapCode)).toBe(false)
     expect(holds('couple', pair)).toBe(false)
     expect(holds('progress', id)).toBe(true)
@@ -149,7 +150,7 @@ describe.each(KINDS)('a second unresolved forget adds to the first, never replac
     let back = answerDelete(server, gone, false, undefined, ROUTE[kind])
     await forgetMe()
     expect(heldIds(kind)).toEqual([a])
-    expect(onDisk()).toEqual({ [SLOT[kind]]: a })
+    expect(onDisk()).toEqual(only(kind, a))
 
     // She keeps something new — the phone was wiped, so it is a new code — and it is unresolved too.
     const b = await make(kind)
@@ -158,9 +159,9 @@ describe.each(KINDS)('a second unresolved forget adds to the first, never replac
     back()
     expect(again[FLAG[kind]]).toBe(false)
     expect(heldIds(kind)).toEqual([a, b].sort())
-    // The old shape holds the first; only the second needs the new field.
-    const [first, ...rest] = [a, b].sort()
-    expect(onDisk()).toEqual({ [SLOT[kind]]: first, [MORE[kind]]: rest })
+    // Two keys, one for each code: neither replaced the other.
+    expect(onDisk()).toEqual(only(kind, a, b))
+    expect(recoveryKeys(phone.storage)).toEqual([recoveryKey(LIST[kind], a), recoveryKey(LIST[kind], b)].sort())
     expect(again.mapHeld?.slice().sort()).toEqual(kind === 'map' ? [a, b].sort() : undefined)
     expect(holds(kind, a)).toBe(true)
     expect(holds(kind, b)).toBe(true)
@@ -342,7 +343,7 @@ describe('reload: the launch retry sends each kept code once and keeps what is s
     const before = deletes(kind)
     expect(await retryPendingForget()).toBe(false)
     expect(deletes(kind) - before).toBe(1)
-    expect(onDisk()).toEqual({ [SLOT[kind]]: id })
+    expect(onDisk()).toEqual(only(kind, id))
     back()
     expect(await retryPendingForget()).toBe(true)
     expect(phone.keys()).toEqual([])

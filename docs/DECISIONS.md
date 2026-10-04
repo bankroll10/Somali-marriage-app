@@ -5613,6 +5613,8 @@ here. (2) An older build overwrites the fields it does not understand **even whe
 does not need a success. (3) "A case no build ever kept" understated it: a second unresolved code was
 never kept by those builds *because* they overwrote it, which is the defect.
 
+**Update 2026-10-04 (BATCH-07F, Part 35): the constraint below is addressed for every code this build has captured, and not for what an older build loses before that.** Unresolved codes now live in one key each, which no older build reads or rewrites. The text below is left as it was written.
+
 **Unresolved release constraint — a release decision is needed before merge, not a claim of safety.** The
 exposure is a person with two or more unresolved codes of one kind, on a phone that an older build then
 writes to (an old tab, a cached shell, a rollback). It is small and it is silent. The options: (a) accept it
@@ -5723,4 +5725,135 @@ files, so the "lockfile" listed with them in Parts 32 and 33 and in the handoff 
 here; the answer does not change. Both live suites are unfunded and the release remains paused. No code was
 moved and no list changed to alter either answer. Running the classifier rewrites the git-ignored
 `tests/*/results/outcome.json`; the last write is the accumulated-branch answer. This is not measured Guide
+or read behaviour.
+
+## Part 35: Deletion recovery that older app versions cannot overwrite (2026-10-04, BATCH-07F)
+
+**Decision (founder, L0).** Each unresolved deletion identifier gets its **own key**, and the older record
+is left exactly as it is. No settled marks, no garbage collection, no other key family. Receipt-location
+finding B is the next, separate item.
+
+**The defect.** Part 34 kept every unresolved code in the one record, `niyyah.forget.pending.v1`, and left
+an unresolved constraint: an older build (an old tab, a cached shell, a rollback) rewrites that record from
+the fields it knows, even when its own deletion fails, and the overflow is gone. A second key for the
+overflow would still be read-modify-write; a Plan review of the design found that a single record loses
+codes across tabs and that reading it back cannot detect a clobber that comes later.
+
+**Design.**
+
+| | |
+|---|---|
+| Recovery key | `niyyah.forget.recovery.v1.<kind>.<CODE>` = `1`. `<kind>` is `maps`, `installs`, `pairs` or `intros`; `<CODE>` passes `isStoredCode` (six or eight characters of the alphabet, nothing cleaned). **Existence is the record.** No timestamp, contact, name or answer, and nothing is read and rewritten |
+| Older record | `niyyah.forget.pending.v1` is a **read-only import source.** This build never writes, rewrites or removes it, whatever it contains (a spy test holds that). Unparseable, non-object and malformed values are left byte for byte; a value that is not exactly a code is not imported and not converted |
+| Import | Valid codes from the current older record, and from **both `oldValue` and `newValue`** of a `storage` event on that key (the key may be gone or different by the time the event runs). Triggers: the launch retry, the start of Forget me, the event. An event reaches only **other, live** pages; a closed or suspended page gets none |
+| Settlement | Only a strict endpoint confirmation (Part 34) removes **that code's** key. A removal storage refuses leaves the key, and the code is asked again |
+| Scan | Snapshot the keys, scan up to three times until two consecutive passes agree. If storage refuses the scan or they never agree, the result is **unknown, not empty**: `Forgotten.unchecked` is set, the page is not replaced, and the codes seen or written stay held. **Not seeing a key never removes, confirms or clears anything** |
+| `held()` | scanned keys, the page's own writes (checked directly with `getItem`), the page copy. It does not read the older record |
+| `kept` | True only if **every** held code is persisted (a direct read), not the latest write |
+| Not in `LOCAL_KEYS` | Neither family is wiped by Forget me; both outlive it on purpose, as the key they replace did |
+
+**Same-page ledger, scoped.** A page remembers which request confirmed which code (a sequence number). An
+**import** skips any code this page has had confirmed (the older mention is stale). A **capture** skips a
+failed request only when a *later* request confirmed the same code. A request made after a confirmation is
+a genuinely new attempt for the same identifier, and is kept (`forget-recovery-store`: "a confirmed code,
+then a genuinely new failed attempt"). The ledger is page memory and a reload clears it.
+
+**Accepted: repeated legacy retries.** The older record stays on the phone after its codes are confirmed. On
+a later launch (a reload has no ledger) a code it still names is imported again and asked again; this can
+repeat at every launch for as long as the record stays. It is a repeat request (keep's DELETE re-runs its
+cascade and answers 200), **not a recovery loss**. **Not claimed:** exactly one request across tabs or all
+interleavings. Same-code add/remove races across tabs can cause one redundant request. Alternatives
+rejected: compare-then-remove of the older key (not atomic against an older writer that does a plain
+`setItem`; no lock covers it) and settled marks (a second key family, with garbage collection, that the
+founder did not want).
+
+**What an older build still loses (not repaired, tested as limitations).** A code lost **before** this
+build has captured it: an older build's single-slot overwrite of an earlier unresolved code; its false
+confirmation dropping a code from its own record; the base build erasing an `intros`-only record (it reads
+that as nothing); an older tab's own wipe taking the codes the phone still held; a write made while no page
+with this change is open; anything the browser clears (site data; Safari's purge of script-writable storage
+is a known behaviour, **not tested here**). After a rollback a captured code is dormant, not lost, until a
+build with this change runs.
+
+**Visible wording (minimal, and recorded).** The sentence "This phone keeps only what it needs to finish,
+and tries again each time Niyyah opens…" became "This phone keeps only codes, and tries again each time
+Niyyah opens…": with a preserved older record on the phone, "only what it needs to finish" could be false.
+"This phone is cleared." and the static "then clears this phone" line refer to her things and are
+unchanged. **One new sentence**, shown only when the phone cannot list its own storage: "We could not check
+whether anything from an earlier attempt is still waiting on this phone." Nothing else in copy changed.
+
+**Privacy.** `docs/PRIVACY.md` now has two rows: the **active recovery keys** (the code in the key's name
+and the value `1`, nothing else), and the **preserved legacy content**, which this build cannot verify and
+does not claim is codes only. Tests assert the first criterion on everything this build owns; the older key
+is preserved verbatim and is outside it.
+
+**Evidence, by kind.**
+
+- *Unit and invariant tests* (new build, `npm test`): `forget.test.ts` (100) and `forget-bound.test.ts` (17)
+  re-pointed to the key shape with the endpoint and deadline coverage unchanged; `forget-confirmation` (31),
+  `forget-introduction` (21), the UI file (24, from 20), `forget-recovery-store` (new, 23), and
+  `forget-pending-compat` (rewritten, 12). The classifier table and the `sendRead` deadline tests are
+  **reused, not rewritten**.
+- **Hybrid tests (labelled so in the files).** `tests/support/old-builds/forget-261d055.ts` and
+  `forget-69f8b92.ts` are the old `forget.ts` verbatim (only the import specifiers changed; a hash guard
+  holds the text), run over **today's** helper modules. `keep`, `progress` and `storage` are unchanged since
+  `69f8b92`; `net` and `code` only gained exports; `introduce.confirmWithdrawal`'s internals changed; and
+  since `261d055` `rememberedIntro` differs. So they prove what the old `forget.ts` itself reads, writes,
+  removes and spreads, and its permissive confirmation of the map, the step count and the eleven. They do
+  **not** prove the old introduction module or old screens. They replace the earlier paraphrased fixture
+  (`forget-07d.ts`, deleted).
+- *Fail-first:* the changed and new tests were run against `05d50aa`'s sources: **147 of 232 failed**. Many
+  of those fail first on a missing export or the storage shape; that is real, but not each failure is a
+  distinct behaviour, and the mutations below are the sharper evidence.
+- *Mutations, 17, each applied to the new source and run against the 10 targeted files; all 17 failed at
+  least one test:* the older key removed after an import 18; an incomplete scan reported complete 1;
+  `kept` always true 8; `held()` reading the older key 1; the ledger blocking a new attempt 1; settlement
+  removing every key of the kind 13; an `intros`-only record ignored 9; a malformed code converted 4; the
+  event importing only `newValue` 2; an import ignoring the ledger 2; any answer settling 42; the page
+  replaced when unchecked 1; no storage listener 1; a capture that never skips 3; a single-pass scan 2; the
+  recovery write skipped 130; the older key written 141.
+- **Real old bundles, in a browser** (headless Chromium; 390×844 and 320×568; synthetic data; the real
+  handlers over an in-memory store behind a local server; one origin, one browser context, two builds served
+  in turn): builds of `261d055` and `69f8b92` from clean checkouts, and this build. The old build's Forget
+  me with the server failing wrote its record (`{code, id, pair}`); this build opened and copied all three
+  codes into recovery keys, left the older record **byte-identical**, and showed the map code in full with
+  no overflow (right edge inside the viewport at both widths; the Forget me button 109×43 px, in the
+  viewport); the old build then opened with the server answering the app's own page (a false confirmation)
+  and removed its record, **the server still holding the map, the count and the eleven**, and its "Start
+  completely fresh" ran; **the recovery keys were unchanged**; this build then opened with the server
+  answering for real and sent three DELETEs, the keys went, and the server held nothing. **Control:** the
+  same flow with the `05d50aa` build instead: the older build's false confirmation removed the record, no
+  DELETE was ever sent, and the server **still held all three**. 5 runs (2 old builds × 2 widths, plus the control at 390), with every
+  value above read from the run's own record, not from a pass mark. Limits: no introduction record was created, so the old builds' introduction
+  confirmation was **not** exercised in a browser (the hybrid tests cover only the old `forget.ts` part of
+  it); the old error screen was reached by serving a lazy chunk that throws, a stand-in for a real render
+  error; local-handler evidence, not the deployed functions; one browser; no screen reader.
+
+**What this does not repair, and does not claim.** The loss before capture above; the older record stays as
+residue and can cause repeat requests; storage events reach only open pages; a scan can under-report
+another tab's key once (the key persists, and the next trigger asks it); rollback leaves captured codes
+dormant; an old tab stays open until closed; Firefox, Safari, a real device and any screen reader are
+unverified. **The branch is not release-ready and the release remains paused.** No PR, merge, deployment,
+paid evaluation, outreach or participant-data access.
+
+**Files.** `src/lib/forget.ts`, `src/hooks/useNiyyah.ts` (the `storage` listener; the page is replaced only
+when nothing is unchecked), `src/components/ForgetMe.tsx` (the two sentences above); tests
+`tests/invariants/forget-recovery-store.test.ts` (new), `forget-pending-compat.test.ts` (rewritten),
+`tests/support/old-builds/` (new, two vendored fixtures), `tests/support/recovery.ts` (new),
+`tests/support/device.ts` (hooks, removal refusal, scan refusal, quota), `tests/support/forget-07d.ts`
+(deleted), the re-pointed `forget`, `forget-bound`, `forget-confirmation`, `forget-introduction`,
+`delete-means-deleted`, `forget-offline`, `forget-keys` and UI tests; `docs/PRIVACY.md`, `DESIGN.md`,
+`OPS.md`, `TESTING.md`, this file and the handoff. **Not touched:** `LOCAL_KEYS`, `net.ts`, `code.ts`,
+`introduce.ts`, any `netlify/` file.
+
+**Verification.** `npm run verify > log 2>&1; echo $?` exit 0 (126 files, 1942 passed, 2 skipped: the live
+blocks) and `npm run build` exit 0, both read by exit code, not by a grep of the output;
+`GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE` unset and no API key in the environment.
+
+**Evaluation.** The repository's classifier, run on the actual diff of this slice (24 files: the three
+source files above, the tests and fixtures, and six docs): guide **not required**, judgment **not
+required**; none of those paths is on either suite's list. The accumulated branch (`261d055..HEAD`) still
+says **required** for both for the reasons in Part 34 (`.github/workflows/guide-eval.yml`, `package.json`
+and `tests/eval/*` are in that range). No rule, list or file location was changed to alter either answer.
+Running the classifier rewrites the git-ignored `tests/*/results/outcome.json`. This is not measured Guide
 or read behaviour.

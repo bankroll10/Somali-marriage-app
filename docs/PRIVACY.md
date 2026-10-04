@@ -125,7 +125,8 @@ Plaintext `localStorage`, this browser only; every key is in `LOCAL_KEYS`,
 | `niyyah.install.v1`, `niyyah.via.v1` | The random id her steps go under, not her map code; one word for the link that first brought her | From the first report / `?via=` link | Forget me |
 | `niyyah.intro.v1` | The code her name on the introduction list is under, and the day. Never the contact | From "Put my name down" until its 180th day, when the phone forgets it | Take my name off; Forget me; its day |
 | `niyyah.draft.v1`; `niyyah.entry.v1` | A half-finished read or eleven, as ids; a `?couple=` link part-way through | 30 days; 24 hours | Finishing or leaving; Start over; Forget me |
-| `niyyah.forget.pending.v1` | Only the codes a Forget me has not had confirmed: map codes, step ids, couple codes (a kind's first code in `code` / `id` / `pair`, a second and later in `moreCodes` / `moreIds` / `morePairs`) and a list of introduction codes (`intros`; BATCH-07D and before wrote `intro` and `introPending`, and one slot per kind, which are read). Only values that are exactly a code are read or written. Never a contact, name, answer, day or receipt | Until each code's delete is confirmed by an answer its handler gives (`docs/DECISIONS.md` Parts 33, 34); a code no one confirms is sent again at every launch | Itself, code by code |
+| `niyyah.forget.recovery.v1.<kind>.<CODE>` (one key per code; `<kind>` is `maps`, `installs`, `pairs` or `intros`) | **Active recovery keys.** One key for each code a Forget me has not had confirmed: the code is in the key's name and the value is `1`. Only a code that is exactly a code (six or eight characters of the alphabet) is written. Never a contact, name, answer, day or receipt | Until that code's delete is confirmed by an answer its handler gives (`docs/DECISIONS.md` Parts 33, 34, 35); a code no one confirms is sent again at every launch | Itself, code by code, when its delete is confirmed. **Not** by Forget me's wipe: it is Forget me's own unfinished instruction |
+| `niyyah.forget.pending.v1` | **Preserved legacy content, not an active key.** The one record that BATCH-07D, 07E and the build before them wrote for the same purpose. **This build only reads it** (to copy the codes it names into recovery keys); it never writes, rewrites or removes it, so an older build or tab that still uses it is not disturbed. What it holds is whatever an older build left: codes only, as far as that build wrote it. **This build cannot verify the content**, and an unparseable or unexpected value is left exactly as it is. It is *not* covered by the codes-only statement above | Until an older build, or the person clearing this site's data, removes it. **It stays on the phone after every code in it has been confirmed**, and a code it still names can be sent to the server again at a later launch (a repeat request, answered as nothing found or removed); that goes on for as long as the record stays | An older build; clearing site data. Not by this build, and not by Forget me's wipe |
 | `niyyah.events.v1`, `.reports.v1`, `.waitlist.queue.v1` | Nothing writes them: an old event diary (C6), old report receipts, a door ping | Older phones | Forget me |
 | Service worker cache | The app shell, for offline | Until the next deploy | A deploy. Never a code or a `/.netlify/*` response (`docs/SECURITY.md` T3) |
 
@@ -196,12 +197,22 @@ or the app's own page, another 2xx, any other 404, a 4xx or 5xx, or no answer
 inside ten seconds (the wait for the response and the read of its body share
 that one clock) is *unconfirmed*: no claim about whether the server removed
 anything, and the code is kept. Then every key in `LOCAL_KEYS` goes. What was
-not confirmed is kept in **one key**, `niyyah.forget.pending.v1`, holding only
-the codes still to delete, as a list for each of the four kinds: a second
-unresolved Forget me adds to the first and never replaces it. Sent again on
-every launch and before the next Forget me, and removed code by code only when
-that code's own delete is confirmed; a launch that does not get through changes
-nothing, and there is no schedule and no promise that it completes. Only a
+not confirmed is kept as **one key per code**,
+`niyyah.forget.recovery.v1.<kind>.<CODE>` (value `1`), so a second unresolved
+Forget me adds keys and never replaces one, and no write reads and rewrites a
+stored record. Sent again on every launch and before the next Forget me, and
+each key removed only when that code's own delete is confirmed; a launch that
+does not get through changes nothing, and there is no schedule and no promise
+that it completes. The older single record, `niyyah.forget.pending.v1`, is
+**read, never written or removed**: the codes it names are copied into recovery
+keys at each launch, before each Forget me, and when another tab changes it (a
+`storage` event, which reaches only other pages that are open at the time).
+That record is therefore **left on the phone** after its codes are confirmed,
+and a code it still names can be asked of the server again at a later launch, a
+repeat request that finds nothing or removes nothing, for as long as it stays.
+If the phone cannot list its own storage, the screen says it could not check
+whether anything from an earlier attempt is waiting, and the page is not
+replaced. Only a
 value that is exactly a code (six or eight characters of the alphabet, nothing
 stripped or folded) is sent or kept. The screen shows her the map codes and
 any unconfirmed introduction codes so she can write in or take a name off by

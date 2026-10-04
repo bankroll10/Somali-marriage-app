@@ -37,20 +37,43 @@ import { clearProgress, loadProgress } from './storage'
  * phone is hers, and it is the one thing we can guarantee.
  *
  * All but the codes (docs/PRIVACY.md). What a delete did not confirm is kept —
- * the codes and nothing else, none of her answers — as a pending forget: a
- * list for each of the four kinds, so a second unresolved forget adds to the
- * first and never replaces it. The next Forget me sends them first, the app
+ * the codes and nothing else, none of her answers — **one key per code**
+ * (`niyyah.forget.recovery.v1.<kind>.<CODE>`, value "1"), so adding one code and
+ * removing another are independent operations and cannot overwrite each other,
+ * in this page or across tabs. The next Forget me sends them first, the app
  * sends them again every time it opens, and Trust shows her the codes she can
- * use. When the browser will not save them the page holds them, until it is
- * reloaded.
+ * use. When the browser will not save a key the page holds that code, until it
+ * is reloaded.
+ *
+ * **The older record is an import source, never written.** Builds before this one
+ * kept the codes in one key, `niyyah.forget.pending.v1`, and rewrote it from only
+ * the fields they knew, even when a delete failed (docs/DECISIONS.md Part 35).
+ * This build reads that key — at launch, before every Forget me, and when another
+ * tab changes it (from the event's old and new values) — copies every valid code
+ * into recovery keys, and **never writes or removes it**. A code that is still
+ * mentioned there can therefore be imported and asked again on a later launch,
+ * for as long as that record stays; each such request is redundant, not a loss,
+ * and nothing here claims it is made exactly once.
  */
 
 const KEEP = '/.netlify/functions/keep'
 const PROGRESS = '/.netlify/functions/progress'
 const COUPLE = '/.netlify/functions/couple'
 
-/** A forget that has not reached the server yet: only the codes it still needs. */
-const PENDING_KEY = 'niyyah.forget.pending.v1'
+/**
+ * The key an older build wrote its pending forget under, as one record. This
+ * build only **reads** it (`importLegacy`): it never writes, rewrites or removes
+ * it, whatever it holds.
+ */
+const LEGACY_KEY = 'niyyah.forget.pending.v1'
+
+/**
+ * One key per unresolved code: `<prefix>.<kind>.<CODE>`, value "1". The key's
+ * existence is the record; there is no timestamp, contact, name or answer. Older
+ * builds never read, write or remove keys they do not know (docs/DECISIONS.md Part 35).
+ */
+const RECOVERY_PREFIX = 'niyyah.forget.recovery.v1'
+const recoveryKey = (kind: Kind, code: string) => `${RECOVERY_PREFIX}.${kind}.${code}`
 
 /** The four things Forget me deletes, each by a code of its own. */
 type Kind = 'maps' | 'installs' | 'pairs' | 'intros'
@@ -72,12 +95,9 @@ export interface Pending {
 }
 
 /**
- * How the record is written to this phone. Builds before this one kept one slot
- * per kind (`code`, `id`, `pair`), and BATCH-07D an `intros` list; those are
- * read as they are. This build writes a kind's first code in the old slot and
- * only a second, third… in `more*`, so a record with one code of each kind is
- * the file the build before it wrote. An older build reads the slots and does
- * not know `more*`: it neither retries them nor keeps them when it saves.
+ * The older record, as any earlier build wrote it: the base build one slot per
+ * kind and a single `intro`; 07D an `intros` list (and the historical `intro` /
+ * `introPending`); 07E a first code in the slot and the rest in `more*`.
  */
 interface Stored {
   code?: unknown
@@ -87,7 +107,6 @@ interface Stored {
   pair?: unknown
   morePairs?: unknown
   intros?: unknown
-  /** The introduction fields BATCH-07D and before wrote. */
   intro?: unknown
   introPending?: unknown
 }
@@ -162,8 +181,14 @@ export interface Forgotten {
   mapHeld?: string[]
   /** Every introduction code not yet confirmed, when `intro` is false. Never more than codes. */
   introHeld?: string[]
-  /** When anything is unconfirmed: whether this phone's storage holds the codes still to send; false when only this page does, and a reload loses them. */
+  /** When anything is unconfirmed: whether this phone's storage holds every code still to send; false when any is held only by this page, and a reload loses it. */
   kept?: boolean
+  /**
+   * True when the keys this phone keeps for an unfinished forget could not be read completely (storage
+   * refused the scan, or two scans never agreed). That is *unknown*, not "nothing is waiting": the
+   * flags above describe only what could be seen, and the page is not replaced.
+   */
+  unchecked?: boolean
 }
 
 const some = (h: Held) => KINDS.some((k) => h[k].length > 0)
@@ -173,8 +198,12 @@ function tidy(codes: unknown[]): string[] {
   return [...new Set(codes.filter(isStoredCode))].sort()
 }
 
-/** A whole record, tidied kind by kind. */
+/** A whole set of codes, tidied kind by kind. */
 const tidied = (h: Record<Kind, unknown[]>): Held => ({ maps: tidy(h.maps), installs: tidy(h.installs), pairs: tidy(h.pairs), intros: tidy(h.intros) })
+
+const union = (...hs: Held[]): Held => tidied({ maps: hs.flatMap((h) => h.maps), installs: hs.flatMap((h) => h.installs), pairs: hs.flatMap((h) => h.pairs), intros: hs.flatMap((h) => h.intros) })
+
+const sameHeld = (a: Held, b: Held) => KINDS.every((k) => a[k].join() === b[k].join())
 
 /**
  * The codes this page is holding because this phone's storage refused to keep
@@ -184,139 +213,283 @@ const tidied = (h: Record<Kind, unknown[]>): Held => ({ maps: tidy(h.maps), inst
 let mirror: Held = none()
 
 /**
- * The codes a Forget me in this page has had confirmed. An answer that arrives
- * late, or an older operation that settles unconfirmed after a newer one
- * confirmed the same code, must not put it back on the list: a confirmed
- * deletion is not undone by a later silence. Page memory only; a reload clears it.
+ * For each code a delete in this page has had confirmed, the sequence number of
+ * the request that confirmed it. Page memory only; a reload clears it.
+ *
+ * It does two different jobs, and only one of them is a block on a later write:
+ *  - an **import** of an older record's mention of the code is skipped (the page
+ *    already saw the answer, so asking again is waste); but
+ *  - a **capture** of a failed request is skipped only when a *later* request
+ *    confirmed the code. A request made after that confirmation is a new
+ *    attempt, even for the same code, and its failure is kept.
  */
-const confirmed = new Set<string>()
+const confirmedAt = new Map<string, number>()
+let sequence = 0
+
+/** The codes this page wrote a recovery key for and has not settled: its own writes, known exactly, never inferred from a scan. */
+const added = new Set<string>()
+
 const keyOf = (kind: Kind, code: string) => `${kind}:${code}`
+const splitKey = (k: string): [Kind, string] => {
+  const i = k.indexOf(':')
+  return [k.slice(0, i) as Kind, k.slice(i + 1)]
+}
 
 /** For a test that reloads the page: what a reload clears. */
 export function resetForgetMirror(): void {
   mirror = none()
-  confirmed.clear()
+  confirmedAt.clear()
+  added.clear()
 }
 
 const list = (v: unknown): unknown[] => (Array.isArray(v) ? v : [])
 
-/** The record as it is on this phone and in this page, every kind tidied. Empty lists, not absent. */
-function held(): Held {
-  let stored: Stored = {}
+/**
+ * Every valid code an older record names, or null when the string is not a
+ * JSON object (absent, cut, an array, a string): that is not read, and not
+ * touched either way. A value that is not exactly a code is not imported and
+ * not converted into one.
+ */
+function legacyCodes(raw: unknown): Held | null {
+  if (typeof raw !== 'string') return null
+  let parsed: unknown
   try {
-    const raw = localStorage.getItem(PENDING_KEY)
-    const p: unknown = raw ? JSON.parse(raw) : null
-    if (p && typeof p === 'object' && !Array.isArray(p)) stored = p as Stored
+    parsed = JSON.parse(raw)
   } catch {
-    /* storage refused or unreadable — the page's own copy, below */
+    return null
   }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+  const s = parsed as Stored
   return tidied({
-    maps: [stored.code, ...list(stored.moreCodes), ...mirror.maps],
-    installs: [stored.id, ...list(stored.moreIds), ...mirror.installs],
-    pairs: [stored.pair, ...list(stored.morePairs), ...mirror.pairs],
-    intros: [...list(stored.intros), stored.intro, stored.introPending, ...mirror.intros],
+    maps: [s.code, ...list(s.moreCodes)],
+    installs: [s.id, ...list(s.moreIds)],
+    pairs: [s.pair, ...list(s.morePairs)],
+    intros: [...list(s.intros), s.intro, s.introPending],
   })
 }
 
-/** The forget still waiting for the server, if any: this phone's record and the page's own copy, together. */
-export function pendingForget(): Pending | null {
-  const h = held()
-  if (!some(h)) return null
-  return Object.fromEntries(KINDS.filter((k) => h[k].length).map((k) => [k, h[k]])) as Pending
-}
-
-/** The file: a kind's first code in the slot an older build reads, the rest in `more*`. */
-function toDisk(h: Held): Record<string, unknown> {
-  const [code, ...moreCodes] = h.maps
-  const [id, ...moreIds] = h.installs
-  const [pair, ...morePairs] = h.pairs
-  return {
-    ...(code ? { code } : {}),
-    ...(moreCodes.length ? { moreCodes } : {}),
-    ...(id ? { id } : {}),
-    ...(moreIds.length ? { moreIds } : {}),
-    ...(pair ? { pair } : {}),
-    ...(morePairs.length ? { morePairs } : {}),
-    ...(h.intros.length ? { intros: h.intros } : {}),
-  }
-}
-
-/**
- * Write the record. True when this phone's storage took it, or when there was
- * nothing to keep; false when it refused, in which case the page holds every
- * code instead (`mirror`) and the caller says so.
- */
-function savePending(p: Held): boolean {
-  const next = tidied(p)
+const isPersisted = (kind: Kind, code: string): boolean => {
   try {
-    if (some(next)) localStorage.setItem(PENDING_KEY, JSON.stringify(toDisk(next)))
-    else localStorage.removeItem(PENDING_KEY)
-    mirror = none()
-    return true
+    return localStorage.getItem(recoveryKey(kind, code)) !== null
   } catch {
-    /* storage refused; Trust still names the codes it can on screen */
-    mirror = next
     return false
   }
 }
 
-/** What each delete came to, code by code, for each kind. */
-type Landed = Record<Kind, Map<string, boolean>>
+/**
+ * Keep one code: its own key. True when this phone's storage holds it (it did
+ * already, or this write took); false when it refused, in which case the page
+ * holds it (`mirror`) and `kept` says so. One `setItem`, no read-modify-write.
+ */
+function add(kind: Kind, code: string): boolean {
+  if (isPersisted(kind, code)) {
+    mirror[kind] = mirror[kind].filter((c) => c !== code)
+    return true
+  }
+  try {
+    localStorage.setItem(recoveryKey(kind, code), '1')
+    added.add(keyOf(kind, code))
+    mirror[kind] = mirror[kind].filter((c) => c !== code)
+    return true
+  } catch {
+    /* storage refused; Trust still names the codes it can on screen */
+    mirror[kind] = tidy([...mirror[kind], code])
+    return false
+  }
+}
+
+/** Try again to put every code this page holds only in memory into storage. */
+function flush(): void {
+  for (const kind of KINDS) for (const code of [...mirror[kind]]) add(kind, code)
+}
 
 /**
- * Send each distinct code's delete once, in parallel, and say which landed. A
- * confirmed code is remembered for this page (`confirmed`) as it is answered.
+ * Copy the valid codes an older record names into recovery keys. **Import, not
+ * capture:** a code this page has already had confirmed is skipped (its
+ * mention in the older record is stale). Nothing is written or removed on the
+ * older key; a code it still mentions can be imported and asked again on a
+ * later launch, for as long as that record stays.
  */
+export function importLegacy(sources: unknown[]): void {
+  for (const raw of sources) {
+    const codes = legacyCodes(raw)
+    if (!codes) continue
+    for (const kind of KINDS) {
+      for (const code of codes[kind]) {
+        if (confirmedAt.has(keyOf(kind, code))) continue
+        add(kind, code)
+      }
+    }
+  }
+}
+
+function importCurrentLegacy(): void {
+  let raw: string | null
+  try {
+    raw = localStorage.getItem(LEGACY_KEY)
+  } catch {
+    return
+  }
+  importLegacy([raw])
+}
+
+/**
+ * Another tab changed the older key. The key may be overwritten or removed
+ * again before this runs, and a removal by an older tab is exactly when an
+ * unconfirmed code would be lost, so the codes in the event's *old and new*
+ * values are both imported. An event reaches only other, live pages of this
+ * origin: a closed, discarded or suspended page never gets one, so this narrows
+ * the window and guarantees nothing.
+ */
+export function onLegacyStorageEvent(e: { key: string | null; oldValue: string | null; newValue: string | null }): void {
+  if (e.key !== LEGACY_KEY) return
+  importLegacy([e.oldValue, e.newValue])
+}
+
+/** One pass over this origin's keys. Null when storage refused the scan. */
+function scanOnce(): Held | null {
+  try {
+    // Snapshot the keys first: another tab adding or removing a key shifts the indices under us.
+    const keys: string[] = []
+    const n = localStorage.length
+    for (let i = 0; i < n; i++) {
+      const k = localStorage.key(i)
+      if (k !== null) keys.push(k)
+    }
+    const found = none()
+    const head = `${RECOVERY_PREFIX}.`
+    for (const k of keys) {
+      if (!k.startsWith(head)) continue
+      const rest = k.slice(head.length)
+      const dot = rest.indexOf('.')
+      if (dot < 0) continue
+      const kind = rest.slice(0, dot) as Kind
+      const code = rest.slice(dot + 1)
+      if (KINDS.includes(kind) && isStoredCode(code)) found[kind].push(code)
+    }
+    return tidied(found)
+  } catch {
+    return null
+  }
+}
+
+/**
+ * The recovery keys, best effort. The scan is live against other tabs, so it
+ * repeats (at most three times) until two consecutive passes agree; if storage
+ * refuses it, or they never agree, the result is **incomplete**: what was seen,
+ * and a statement that it may not be everything. "Not seen in this scan" is
+ * never "deleted": nothing in this file removes, confirms or clears a code
+ * because a scan did not show it.
+ */
+function scan(): { held: Held; complete: boolean } {
+  let seen = none()
+  let previous: Held | null = null
+  for (let pass = 0; pass < 3; pass++) {
+    const now = scanOnce()
+    if (!now) return { held: seen, complete: false }
+    seen = union(seen, now)
+    if (previous && sameHeld(previous, now)) return { held: now, complete: true }
+    previous = now
+  }
+  return { held: seen, complete: false }
+}
+
+/** Every code waiting: the scanned keys, this page's own writes (checked directly), and the page's copy; and whether the scan was complete. */
+function readHeld(): { held: Held; complete: boolean } {
+  const seen = scan()
+  const own = none()
+  for (const k of [...added]) {
+    const [kind, code] = splitKey(k)
+    let present = true
+    try {
+      present = localStorage.getItem(recoveryKey(kind, code)) !== null
+    } catch {
+      /* cannot verify; it is this page's own write, so keep it */
+    }
+    if (present) own[kind].push(code)
+    else added.delete(k)
+  }
+  return { held: union(seen.held, own, mirror), complete: seen.complete }
+}
+
+/** The forget still waiting for the server, if any: the recovery keys and the page's own copy, together. */
+export function pendingForget(): Pending | null {
+  const { held } = readHeld()
+  if (!some(held)) return null
+  return Object.fromEntries(KINDS.filter((k) => held[k].length).map((k) => [k, held[k]])) as Pending
+}
+
+/** What each delete came to, code by code, and the sequence number of the request that asked. */
+type Landed = Record<Kind, Map<string, { landed: boolean; seq: number }>>
+
+/**
+ * A strict, recognised answer settled this code: remove its recovery key (and
+ * the page's copy) and remember which request settled it. Only a confirmation
+ * does this, and it removes exactly that code; a removal that storage refuses
+ * leaves the key, and the code is simply asked again.
+ */
+function settle(kind: Kind, code: string, seq: number): void {
+  const k = keyOf(kind, code)
+  confirmedAt.set(k, Math.max(confirmedAt.get(k) ?? 0, seq))
+  mirror[kind] = mirror[kind].filter((c) => c !== code)
+  added.delete(k)
+  try {
+    localStorage.removeItem(recoveryKey(kind, code))
+  } catch {
+    /* storage refused; asked again at the next trigger */
+  }
+}
+
+/** Send each distinct code's delete once, in parallel, settling each as its own answer arrives. */
 async function deleteAll(p: Held): Promise<Landed> {
   const out: Landed = { maps: new Map(), installs: new Map(), pairs: new Map(), intros: new Map() }
   await Promise.all(
     KINDS.flatMap((kind) =>
       p[kind].map(async (code) => {
+        const seq = ++sequence
         const landed = await ask(kind, code)
-        out[kind].set(code, landed)
-        if (landed) confirmed.add(keyOf(kind, code))
+        out[kind].set(code, { landed, seq })
+        if (landed) settle(kind, code, seq)
       }),
     ),
   )
   return out
 }
 
-const allLanded = (done: Landed) => KINDS.every((k) => [...done[k].values()].every(Boolean))
-
-/** The codes a set of deletes did not land, and nothing else. */
-const left = (p: Held, done: Landed): Held => ({
-  maps: p.maps.filter((c) => !done.maps.get(c)),
-  installs: p.installs.filter((c) => !done.installs.get(c)),
-  pairs: p.pairs.filter((c) => !done.pairs.get(c)),
-  intros: p.intros.filter((c) => !done.intros.get(c)),
-})
+const allLanded = (done: Landed) => KINDS.every((k) => [...done[k].values()].every((r) => r.landed))
 
 /**
- * The record as it is *now*, less the codes this operation sent and was
- * answered for. Never the record as it was when the operation began, and never
- * anything added: a Forget me that wrote codes while a retry was in flight keeps
- * them when the retry lands, a code the retry could not confirm is not removed
- * by it, and one it could not confirm that something newer already removed is
- * not put back.
+ * Keep what a Forget me could not confirm: one key per code. A failed request
+ * is skipped only when a *later* request confirmed the same code (an older
+ * attempt ending after a newer one is stale). A request made after an earlier
+ * confirmation is a new attempt, even for the same code, and is kept.
  */
-function afterRetry(sent: Held, done: Landed): Held {
-  const now = held()
-  const kept = (kind: Kind) => now[kind].filter((c) => !(sent[kind].includes(c) && done[kind].get(c)))
-  return { maps: kept('maps'), installs: kept('installs'), pairs: kept('pairs'), intros: kept('intros') }
+function capture(done: Landed): void {
+  for (const kind of KINDS) {
+    for (const [code, r] of done[kind]) {
+      if (r.landed) continue
+      if ((confirmedAt.get(keyOf(kind, code)) ?? 0) > r.seq) continue
+      add(kind, code)
+    }
+  }
 }
 
 /**
  * Send a pending forget again. Called on every launch and before every Forget
- * me; a code goes from the record only when its own delete was answered by one
- * of its handler's answers. True when everything it sent landed. Each call
- * waits for one round of deletes, each bounded at `TIMEOUT_MS`, in parallel.
+ * me: it first imports an older record and tries to persist anything the page
+ * holds only in memory, then asks for every code waiting; a code leaves only
+ * when its own delete was answered by one of its handler's answers. True when
+ * everything it sent landed **and** the keys could be read completely: an
+ * incomplete read is not "nothing is waiting". Each call waits for one round of
+ * deletes, each bounded at `TIMEOUT_MS`, in parallel.
  */
 export async function retryPendingForget(): Promise<boolean> {
-  const pending = held()
-  if (!some(pending)) return true
-  const done = await deleteAll(pending)
-  savePending(afterRetry(pending, done))
-  return allLanded(done)
+  importCurrentLegacy()
+  flush()
+  const { held, complete } = readHeld()
+  if (!some(held)) return complete
+  const done = await deleteAll(held)
+  return complete && allLanded(done)
 }
 
 export async function forgetMe(): Promise<Forgotten> {
@@ -342,25 +515,22 @@ export async function forgetMe(): Promise<Forgotten> {
   // (netlify/functions/safety.ts). Trust says so.
   const done = await deleteAll(asked)
   clearEverything()
-  // What did not land is kept — its codes only — to be sent again, alongside
-  // whatever the record holds *now*: an earlier forget's codes are not replaced
-  // by this one's. Read and written in the same breath, so nothing that settled
-  // meanwhile is overwritten with an older copy; and a code another operation in
-  // this page has confirmed since is not put back.
-  const now = held()
-  const unresolved = left(asked, done)
-  const merged: Held = none()
-  for (const kind of KINDS) merged[kind] = [...now[kind], ...unresolved[kind].filter((c) => !confirmed.has(keyOf(kind, c)))]
-  const kept = savePending(merged)
-  const still = held()
+  // What did not land is kept — its codes only, each under its own key — and
+  // nothing already kept is read back and rewritten, so an earlier forget's
+  // codes cannot be replaced by this one's.
+  capture(done)
+  flush()
+  const { held, complete } = readHeld()
+  const kept = KINDS.every((k) => held[k].every((c) => isPersisted(k, c)))
   return {
-    map: still.maps.length === 0,
-    progress: still.installs.length === 0,
-    couple: still.pairs.length === 0,
-    intro: still.intros.length === 0,
-    ...(still.maps.length ? { mapHeld: still.maps } : {}),
-    ...(still.intros.length ? { introHeld: still.intros } : {}),
-    ...(some(still) ? { kept } : {}),
+    map: held.maps.length === 0,
+    progress: held.installs.length === 0,
+    couple: held.pairs.length === 0,
+    intro: held.intros.length === 0,
+    ...(held.maps.length ? { mapHeld: held.maps } : {}),
+    ...(held.intros.length ? { introHeld: held.intros } : {}),
+    ...(some(held) ? { kept } : {}),
+    ...(complete ? {} : { unchecked: true }),
   }
 }
 

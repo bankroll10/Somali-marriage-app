@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { forgetMe, pendingForget, resetForgetMirror, retryPendingForget } from './forget'
 import { confirmWithdrawal, rememberedIntro, resetIntroMirror, withdrawInterest } from './introduce'
 import { TIMEOUT_MS, sendRead } from './net'
+import { LEGACY, recoveryKey, recoveryKeys, recoveryOf } from '../../tests/support/recovery'
 
 /**
  * The introduction confirmation is bounded where it is made (docs/DECISIONS.md Part 33).
@@ -18,7 +19,7 @@ import { TIMEOUT_MS, sendRead } from './net'
 
 const A = 'QRTWXY34'
 const B = 'HJKMNPQR'
-const PENDING = 'niyyah.forget.pending.v1'
+const PENDING = LEGACY
 
 const store = new Map<string, string>()
 function installStorage() {
@@ -47,12 +48,8 @@ afterEach(() => {
 })
 
 const receipt = (code: string) => store.set('niyyah.intro.v1', JSON.stringify({ code, at: '2026-09-27', removeOn: '2027-03-21' }))
-const held = (): string[] => {
-  const raw = store.get(PENDING)
-  if (!raw) return []
-  const p = JSON.parse(raw) as { intro?: string; introPending?: string; intros?: string[] }
-  return [...new Set([...(p.intros ?? []), p.intro, p.introPending].filter((c): c is string => !!c))].sort()
-}
+/** The introduction codes this phone keeps a recovery key for. */
+const held = (): string[] => recoveryOf(store).intros
 
 /** A 200 whose body starts and does not finish, until `finish` — or never. */
 function stalledBody() {
@@ -164,7 +161,7 @@ describe('Forget me with a confirmation that never ends', () => {
     expect(await settledBy(p, 1)).toBe(true)
     const done = await p
     expect(done).toMatchObject({ intro: false, introHeld: [A], kept: true })
-    expect([...store.keys()]).toEqual([PENDING])
+    expect([...store.keys()]).toEqual([recoveryKey('intros', A)])
     expect(held()).toEqual([A])
     expect(vi.getTimerCount()).toBe(0)
     // A late valid answer changes nothing: the code stays until a request of its own is answered.
@@ -274,12 +271,12 @@ describe('the same deadline holds for the map, the step count and the eleven', (
     expect(await settledBy(p, TIMEOUT_MS - 1)).toBe(false)
     expect(await settledBy(p, 1)).toBe(true)
     expect(await p).toMatchObject({ map: false, progress: false, couple: false, intro: true, mapHeld: [KEEP_CODE], kept: true })
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: KEEP_CODE, id: ID, pair: PAIR })
-    expect([...store.keys()]).toEqual([PENDING])
+    expect(recoveryOf(store)).toEqual({ maps: [KEEP_CODE], installs: [ID], pairs: [PAIR], intros: [] })
+    expect([...store.keys()].sort()).toEqual(recoveryKeys(store))
     expect(vi.getTimerCount()).toBe(0)
     for (const b of bodies) b.finish()
     await vi.advanceTimersByTimeAsync(5_000)
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: KEEP_CODE, id: ID, pair: PAIR })
+    expect(recoveryOf(store)).toEqual({ maps: [KEEP_CODE], installs: [ID], pairs: [PAIR], intros: [] })
   })
 
   it('no response from a fetch that ignores its signal is unconfirmed at the deadline for each', async () => {
@@ -300,6 +297,6 @@ describe('the same deadline holds for the map, the step count and the eleven', (
     await p
     for (const r of late) r(new Response('{"forgotten":true,"ok":true}', { status: 200 }))
     await vi.advanceTimersByTimeAsync(5_000)
-    expect(JSON.parse(store.get(PENDING)!)).toEqual({ code: KEEP_CODE, id: ID, pair: PAIR })
+    expect(recoveryOf(store)).toEqual({ maps: [KEEP_CODE], installs: [ID], pairs: [PAIR], intros: [] })
   })
 })

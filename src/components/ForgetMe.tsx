@@ -11,7 +11,8 @@ import { speak } from '../data/read'
  * *unconfirmed* — not necessarily still there. `mapHeld` and `introHeld` are
  * then every map and introduction code not yet confirmed (the step id and the
  * couple code are never shown), and `kept` is whether this phone's storage holds
- * the codes still to send.
+ * the codes still to send. `unchecked` means this phone's record of an
+ * unfinished forget could not be read completely: unknown, not empty.
  */
 export type Forgot = () => Promise<{
   map: boolean
@@ -21,6 +22,7 @@ export type Forgot = () => Promise<{
   mapHeld?: string[]
   introHeld?: string[]
   kept?: boolean
+  unchecked?: boolean
 }>
 
 /** "A", "A and B", "A, B and C". */
@@ -60,6 +62,8 @@ export default function ForgetMe({
   const [introHeld, setIntroHeld] = useState<string[]>([])
   // Whether this phone saved what it needs to try again.
   const [kept, setKept] = useState(true)
+  // This phone's record of an unfinished forget could not be read completely.
+  const [unchecked, setUnchecked] = useState(false)
   // The codes she is shown: the ones a person can use. The step id and the couple code are not among them.
   const shown = mapHeld.length + introHeld.length
 
@@ -104,6 +108,7 @@ export default function ForgetMe({
                 setMapHeld(result.map ? [] : (result.mapHeld ?? []))
                 setIntroHeld(result.intro ? [] : (result.introHeld ?? []))
                 setKept(result.kept !== false)
+                setUnchecked(result.unchecked === true)
                 // A full success replaces the page and never gets here. The
                 // introduction list is not named in this list: it has its own
                 // sentence below. Neither is "still held": none of this is
@@ -127,7 +132,7 @@ export default function ForgetMe({
             <span className="text-[0.82rem] text-muted">This cannot be undone.</span>
           </>
         )}
-        {(stillHeld.length > 0 || introHeld.length > 0) && (
+        {(stillHeld.length > 0 || introHeld.length > 0 || unchecked) && (
           <div role="status" className="w-full space-y-2 text-[0.85rem] leading-snug text-clay text-pretty">
             <p>
               This phone is cleared.
@@ -144,6 +149,12 @@ export default function ForgetMe({
                   We could not confirm that your name came off the introduction list. It may have, or it may not.
                 </>
               )}
+              {unchecked && (
+                <>
+                  {' '}
+                  We could not check whether anything from an earlier attempt is still waiting on this phone.
+                </>
+              )}
             </p>
             <p>
               {!kept && shown === 0 ? (
@@ -155,7 +166,7 @@ export default function ForgetMe({
                 </>
               ) : (
                 <>
-                  This phone keeps only what it needs to finish, and tries again each time Niyyah opens, though that may not get through; or tap Forget me again
+                  This phone keeps only codes, and tries again each time Niyyah opens, though that may not get through; or tap Forget me again
                   in a moment.
                 </>
               )}

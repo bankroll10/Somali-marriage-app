@@ -14,7 +14,7 @@ import { buildEnding } from '../lib/ending'
 import { buildBeforeYes } from '../lib/beforeYes'
 import { reportRungs } from '../lib/progress'
 import { factsFrom } from '../lib/facts'
-import { forgetMe, retryPendingForget, type Forgotten } from '../lib/forget'
+import { forgetMe, onLegacyStorageEvent, retryPendingForget, type Forgotten } from '../lib/forget'
 import { clearAllDrafts } from '../lib/draft'
 import { coupleReading, readCouple, updateCouple, type Joint } from '../lib/couple'
 import { forgetEntry, type Entry, type EntryKind } from '../lib/entry'
@@ -245,9 +245,13 @@ export function useNiyyah(entry: Entry | null = null) {
 
   // A Forget me the server did not receive: its codes are sent again every
   // time the app opens, until every delete has landed (src/lib/forget.ts,
-  // docs/PRIVACY.md).
+  // docs/PRIVACY.md). And an older build in another tab that changes the record
+  // it keeps for that: its old and new values are imported as they change.
   useEffect(() => {
     void retryPendingForget()
+    const onStorage = (e: StorageEvent) => onLegacyStorageEvent(e)
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
   }, [])
 
   // What the rungs were made of, in words from closed lists — which grounds
@@ -452,7 +456,8 @@ export function useNiyyah(entry: Entry | null = null) {
     // replace regardless, so a timed-out DELETE left her kept map on the
     // server and showed her a stranger's app as proof it was gone — against
     // the one promise this product is built on (docs/DESIGN.md).
-    if (result.map && result.progress && result.couple && result.intro) window.location.replace('/')
+    // An unchecked result is unknown, not "nothing is waiting": the page stays.
+    if (result.map && result.progress && result.couple && result.intro && !result.unchecked) window.location.replace('/')
     return result
   }
 

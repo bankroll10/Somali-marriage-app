@@ -1,6 +1,32 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too; one compatibility constraint open)
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions)
 
-## Status as of the latest session (2026-10-02, BATCH-07E)
+## Status as of the latest session (2026-10-04, BATCH-07F)
+
+- **BATCH-07F (`docs/DECISIONS.md` Part 35): deletion recovery is protected from older app versions.** One
+  key per unresolved code, `niyyah.forget.recovery.v1.<kind>.<CODE>` = `1`; the older single record
+  `niyyah.forget.pending.v1` is **read-only** to this build (never written, rewritten or removed). The
+  07E "open release constraint" is closed for codes this build has captured; **not** for codes an older
+  build lost before capture (single-slot overwrite, a base build erasing an `intros`-only record).
+- **Repeated legacy retries are accepted and documented:** the older record stays after its codes are
+  confirmed, and a code it still names can be imported and asked again at a later launch, for as long as it
+  stays (a repeat request, not a loss). Not claimed: exactly one request across tabs or interleavings.
+- **One visible wording correction:** "This phone keeps only what it needs to finish" became "This phone
+  keeps only codes" (the old sentence could be false with preserved older content on the phone). New
+  sentence only when the phone cannot list its storage: "We could not check whether anything from an
+  earlier attempt is still waiting on this phone."; the page is not replaced then.
+- **Evidence:** hybrid tests (old `forget.ts` over current helpers) for `261d055` and `69f8b92`; mutations;
+  and the **real old bundles** in a browser (below, `docs/DECISIONS.md` Part 35).
+- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (126 files, 1942 passed, 2 skipped);
+  `npm run build` exit 0; classifier on the slice's 24 files: guide **not required**, judgment **not
+  required** (the accumulated branch still requires both); `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` unset, no API
+  key. **Real old bundles in a browser** (`261d055`, `69f8b92`, 390 and 320 wide): recovery keys unchanged
+  through the old build's false confirmation and "Start completely fresh"; the control with the `05d50aa`
+  build lost the codes and the server kept the data. Introduction paths are hybrid-test evidence only.
+- **Still open:** loss before capture; the older record remains as residue; storage events reach only open
+  pages; browser-level clearing; receipt-location finding B is the next, separate item. **The branch is
+  not release-ready and the release remains paused.**
+
+## Previous status (2026-10-02, BATCH-07E)
 
 - **BATCH-07E (`docs/DECISIONS.md` Part 34): Forget me confirms the map, the step count and the eleven only
   by an answer their handlers give.** keep and progress `200 {forgotten: true}`, couple `200 {ok: true}`, and
@@ -25,7 +51,7 @@
   / `morePairs`; one code of each kind is byte-identical to 07D's file.
 - **Copy:** "We could not confirm that … was deleted. It may have been, or it may not."; no "still held", no
   "that is us, not you"; no email hand-off and no visible install id or couple code when only those remain.
-- **OPEN RELEASE CONSTRAINT, needs a founder decision before merge:** an older build (07D or earlier: an old
+- **OPEN RELEASE CONSTRAINT, needs a founder decision before merge** (*updated 2026-10-04: addressed by BATCH-07F, `docs/DECISIONS.md` Part 35, for codes this build has captured; see the latest status*): an older build (07D or earlier: an old
   tab left open, a cached shell, a rollback) overwrites fields it does not know **even when its deletion
   fails**, so a record with two or more unresolved codes of one kind loses them. Demonstrated with 07D's
   reader/writer as a fixture (`forget-pending-compat`). Options: (a) accept and release 07D+07E together, no

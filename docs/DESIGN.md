@@ -177,7 +177,7 @@ answers a failure with a status and JSON (`tests/failure-modes.test.ts`).
 | **Failed couple answer** | "That didn’t send — the link is fine and your answers are still here." | his answers, in the draft | yes |
 | **"Has he answered?" fails** | "We couldn’t check whether he has answered", and Check again | everything | yes |
 | **Refresh on `?couple=`, closed tab** | Back at the question he left; the read and the eleven resume too (`src/lib/draft.ts`) | answers | n/a |
-| **Forget me, server unreachable** | The phone is cleared; the screen names what is still held and the code; the delete finishes when Niyyah next opens | only `niyyah.forget.pending.v1` | automatic |
+| **Forget me, server unreachable** | The phone is cleared; the screen names what is still held and the code; the delete finishes when Niyyah next opens | only its recovery keys, `niyyah.forget.recovery.v1.<kind>.<CODE>` (and, if an older build left it, `niyyah.forget.pending.v1`, which this build reads and never changes) | automatic |
 | **Timeout** | 10 s per call (`net.ts`), 8 s on the progress post, 20 s to the guide's first character | everything | yes |
 | **Rate limit** | The same as an outage, deliberately (`netlify/shared/limit.ts`) | everything | yes |
 | **Duplicate action** | Every write is guarded and shows it; keep and couple writes are conditional (`onlyIfMatch`/`onlyIfNew`) | — | yes |
