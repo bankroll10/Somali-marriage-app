@@ -138,7 +138,6 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
   const elsewhere = (sc: string | undefined, named: string | undefined) =>
     !sc || sc === PILOT_SCENE ? null : sc === 'other' ? (named ? (getCountry(named)?.within ?? 'where you are') : null) : (getScene(sc)?.label ?? null)
   const away = elsewhere(scene, other ? country : undefined)
-  const awaySaved = elsewhere(identity.scene, identity.country)
 
   const contactHint = contactTouched && contact.trim() ? contactProblem(contact) : null
   const reachable = looksReachable(contact)
@@ -357,7 +356,6 @@ export default function Looking({ identity, intro, onRegistered, onWithdrawn, on
             intro={intro}
             again={again}
             unkept={!intro.kept}
-            awaySaved={awaySaved}
             pilot={pilot}
             off={off}
             onTakeOff={takeOff}
@@ -785,7 +783,6 @@ interface ReceiptProps {
   intro: IntroState
   again: boolean
   unkept: boolean
-  awaySaved: string | null
   pilot: string
   off: 'idle' | 'removing' | 'failed' | Withdrawn
   onTakeOff: () => void
@@ -802,7 +799,7 @@ interface ReceiptProps {
  * such, for a receipt from before it did. Past the scheduled day the code is
  * kept and the truth said: this phone cannot see whether the removal ran.
  */
-function Receipt({ intro, again, unkept, awaySaved, pilot, off, onTakeOff, onMap, onTalking, onTrust, withdrawnLine, codeEntry }: ReceiptProps) {
+function Receipt({ intro, again, unkept, pilot, off, onTakeOff, onMap, onTalking, onTrust, withdrawnLine, codeEntry }: ReceiptProps) {
   const goes = scheduledRemoval(intro)
   const past = pastScheduled(intro)
   return (
@@ -843,12 +840,12 @@ function Receipt({ intro, again, unkept, awaySaved, pilot, off, onTakeOff, onMap
         </p>
       )}
 
-      {awaySaved && (
-        <p role="status" className="animate-rise mt-5 rounded-2xl border border-gold/40 bg-gold/[0.09] px-4 py-3 text-[0.92rem] leading-snug text-ink-soft text-pretty">
-          Introductions are beginning in {pilot}. Your request is kept for later: nobody in {awaySaved} is being introduced
-          yet, and there is no date for it.
-        </p>
-      )}
+      {/* The pilot's policy, the same on every receipt. It says nothing about this request's place or status:
+          the phone does not hold where the request came from, and her profile may have changed since
+          (docs/DECISIONS.md Part 36). */}
+      <p className="animate-rise mt-5 rounded-2xl border border-gold/40 bg-gold/[0.09] px-4 py-3 text-[0.92rem] leading-snug text-ink-soft text-pretty">
+        Introductions are beginning in {pilot}. Requests from other places are kept for later, with no opening date.
+      </p>
 
       <div className="animate-rise mt-7 rounded-card border border-forest/25 bg-forest/[0.06] p-6">
         <h2 className="font-display text-[1.15rem] font-medium text-ink">What happens now</h2>

@@ -20,6 +20,7 @@ every new test a bookkeeping row and guarded nothing a reviewer does not.
 | Journeys | `tests/journeys/` | The real `<App>`, driven by taps, over the real client and handlers |
 | Screens | `tests/ui/screens.test.tsx` | Every screen a person can reach, reached the way a person reaches them, audited as rendered |
 | First screen and chooser | `tests/ui/welcome.test.tsx`, `tests/ui/focus.test.tsx` | Welcome's headline, doors, scoped privacy paragraph and Talking's descriptions (tied to the scripts that exist); focus reaches a lazy screen's heading when it appears, and a heading draws no ring |
+| The receipt's reminder | `tests/ui/looking-receipt-reminder.test.tsx` | The receipt says the pilot's policy and nothing about where a request is from: identical whatever the profile becomes (both directions), on a fresh load, and on legacy, past-date and unkept receipts |
 | Failure | `tests/failure-modes.test.ts`, `tests/ops.test.ts` | Failures caused on purpose: a cut-off body, a store that will not open, two writes at once |
 | Guards | the rest of `tests/` | What no request or rendered screen can reach: a CSS rule, a build setting, a word the product never says |
 

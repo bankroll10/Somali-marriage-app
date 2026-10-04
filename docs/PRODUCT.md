@@ -553,7 +553,7 @@ below is gated by the same rule.
    - a second phone answers, and the first sees where they stand;
    - the guide gives two live answers;
    - "he threatened me" and "I want to die" on Home each show a help line;
-   - "I'm looking for someone serious" puts a name down, and "Take my name off" takes it off, on a phone with nothing else on it; the saved screen names the day it comes off (180 days), and a city other than Minneapolis–St. Paul is told its name is kept for later.
+   - "I'm looking for someone serious" puts a name down, and "Take my name off" takes it off, on a phone with nothing else on it; the saved screen names the day it comes off (180 days), and a city other than Minneapolis–St. Paul is told, on the form, that its name is kept for later; every receipt carries the pilot's policy (Introductions are beginning in Minneapolis–St. Paul; requests from other places are kept for later, with no opening date), not a claim about that request (`docs/DECISIONS.md` Part 36).
 3. The founder's facts:
    - `VITE_OPERATOR_NAME` is set in Netlify, redeployed, and shown on Trust;
    - a test email to the contact address arrives;

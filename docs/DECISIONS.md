@@ -4939,7 +4939,7 @@ transition; read immediately they are mid-animation (0 to 1px).
 (`identity`), not from what was sent, so after "Not sure? Start where you are" a London
 request's receipt loses it, and after choosing London in Situation a Minneapolis
 request's receipt shows it (`Looking.tsx`, `awaySaved`); fixing it means storing the city
-on the phone or changing approved copy, a founder decision. **C** with storage refused,
+on the phone or changing approved copy, a founder decision (**B closed 2026-10-04, BATCH-07G, Part 36**). **C** with storage refused,
 after a lost answer and changed details (409), the code panel is hidden and the text says
 "a code this phone holds"; after a reload the code is gone and the record stays (the
 reload limit is the documented D8 one). **D** a pending attempt is not shown on return
@@ -5987,3 +5987,66 @@ key this tab's newer failure wrote; (2) receipt-location finding B is undecided;
 branch still requires both live evaluations (workflow, `package.json` and `tests/eval/*` are in its range)
 and both are unfunded and have not run; (4) the older-build residue and loss-before-capture limits in
 Part 35; (5) the server-side races listed in Part 34. No paid evaluation was run for this integration.
+
+## Part 36: The receipt no longer says where a request is from (2026-10-04, BATCH-07G)
+
+**Closes finding B (and only B).** The founder decided: the receipt must not derive a saved request's
+location or status from the current profile, and the app adds no location to the receipt, storage or server
+response.
+
+**The defect (recorded in Part 30, finding B).** `Looking.tsx` computed `awaySaved` from `identity`, the saved
+profile, and the receipt showed "Your request is kept for later: nobody in {place} is being introduced yet,
+and there is no date for it" when that profile was outside the pilot. The profile is not the request. After
+"Not sure? Start where you are" a London request's receipt lost the notice; after choosing London in
+Situation a Minneapolis request's receipt gained it. Either is an unverified claim about a saved record.
+
+**The correction.** `awaySaved`, its receipt prop and its conditional are gone. Every receipt now shows one
+paragraph, in the same place and style, using the existing pilot label:
+
+> Introductions are beginning in {pilot}. Requests from other places are kept for later, with no opening date.
+
+It states the pilot's policy. It does not say "your request is kept for later", does not name the current
+profile's city as the request's city, and does not imply the app has checked whether the saved record still
+exists. The paragraph is the same for a pilot-city request, an outside-pilot request, a receipt from before
+the server gave dates and a receipt past its scheduled day. It is a plain paragraph, not a live region, so
+arrival and focus (the heading) are as they were.
+
+**Not changed.** The form's location-specific disclosure ("From {place} you can leave your name for later:
+nobody there is being introduced yet, and there is no date for it", and the eligibility line) is word for
+word as it was: the form is about the person filling it in now, and there the current choice is the right
+input. Receipt dates, the legacy and past-date handling, recovery codes, withdrawal, focus, the request
+payload, the stored receipt and every backend call are unchanged. No new field, key or request.
+
+**Tests.** `tests/ui/looking-receipt-reminder.test.tsx` (new, 7) mounts the receipt and changes the profile
+while it stays mounted, in both directions: a request made outside the pilot then a pilot-city profile, and a
+pilot-city request then an outside-pilot profile (a city, then another country). The whole receipt text is
+identical before and after, once; a fresh load under three different profiles gives the same text; and the
+reminder is on a receipt from before the server gave dates, on one past its scheduled day and on one this
+browser could not keep, each keeping what it already said. It also asserts none of the old claims and no
+status or check implied. The journey file `tests/journeys/looking.test.tsx` had two assertions on the old
+behaviour: the outside-pilot journey now expects the policy paragraph instead of the old claim (and its
+"no 'opening'" check excludes that sentence), and the pilot-city journey, which asserted the receipt had no
+"for later" note, now expects the same paragraph. Nothing else in the journey suite was duplicated. Against
+the previous `Looking.tsx`, 9 of these 26 tests fail; with the correction all pass.
+
+**Evidence.** `npm run verify > log 2>&1; echo $?` exit 0 (128 files, 1959 passed, 2 skipped: the live
+blocks) and `npm run build` exit 0, read by exit code; `GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE` unset, no API
+key. **Built app** (headless Chromium, 390×844 and 320×568, service workers blocked, the real handlers over an
+in-memory store, synthetic data, nothing leaves the machine; a scratch harness outside the repository): for
+each direction a request was put down, the receipt read, the phone's saved profile changed in storage
+(Columbus to Minneapolis–St. Paul, and Minneapolis–St. Paul to Columbus) and the page loaded afresh: **4 of 4
+runs, the receipt text identical before and after the change, the reminder present once, none of the old
+claims, no horizontal overflow, no clipped element, focus on the receipt heading, one `POST introduce` and
+nothing else**. Not verified: Firefox, Safari, any screen reader, a real device, the deployed site (this change
+is not deployed).
+
+**Evaluation.** The repository's classifier, run on the actual diff of this slice (7 files: `Looking.tsx`, two
+test files and four docs): guide **not required**, judgment **not required**; none of them is on either
+suite's list. The accumulated branch against `main` (110 files) still says **required** for both. No rule,
+list or file location was changed to alter either answer. Live evaluation stays disabled and unfunded; no paid
+call was made.
+
+**Not closed, not touched.** The **cross-tab progress recovery loss** (Part 35, ordering check) and the
+**required live evaluations** (unfunded, not run) remain open, as do the older-build residue limits and the
+server-side races (Part 34). The branch is not release-ready and the release remains paused. No PR, merge to
+main, deployment, paid call, outreach or participant-data access.

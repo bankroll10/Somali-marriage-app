@@ -154,8 +154,9 @@ describe('looking for someone', () => {
     // about them reaches you", which a non-identifying summary would break.
     expect(said).not.toMatch(/nothing about (you|them)[^.]*reach/i)
     expect(said).not.toMatch(/\bfits?\b/i)
-    // Minneapolis–St. Paul is where she is: no "for later" note.
-    expect(said).not.toContain('for later')
+    // The receipt carries the pilot's policy on every receipt, in the pilot city too, and says nothing about her request's place.
+    expect(said).toContain('Requests from other places are kept for later, with no opening date.')
+    expect(said).not.toContain('Your request is kept for later')
     m.unmount()
   })
 
@@ -186,7 +187,7 @@ describe('looking for someone', () => {
     m.unmount()
   })
 
-  it('from anywhere but Minneapolis–St. Paul, she is told her request is kept for later, with no date', async () => {
+  it('from anywhere but Minneapolis–St. Paul, the form says the name is kept for later with no date, and the receipt carries the pilot’s policy', async () => {
     onPhone(new Phone('hers'))
     const m = await mount(<App />)
     await m.press(/I’m looking for someone serious/)
@@ -201,8 +202,11 @@ describe('looking for someone', () => {
     await m.press(/I confirm I am 18/)
     await m.press(/^Put my name down/)
     await saved(m)
-    expect(m.text()).toContain('Your request is kept for later: nobody in the UK is being introduced yet, and there is no date for it.')
-    expect(m.text()).not.toMatch(/\b(soon|next month|this year|opening)\b/i)
+    // The receipt carries the pilot's policy, the same on every receipt (docs/DECISIONS.md Part 36), not a claim about this request.
+    const reminder = 'Introductions are beginning in Minneapolis–St. Paul. Requests from other places are kept for later, with no opening date.'
+    expect(m.text()).toContain(reminder)
+    expect(m.text()).not.toContain('Your request is kept for later')
+    expect(m.text().replace(reminder, '')).not.toMatch(/\b(soon|next month|this year|opening)\b/i)
     m.unmount()
   })
 

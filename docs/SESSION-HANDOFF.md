@@ -1,6 +1,32 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from)
 
-## Status as of the latest session (2026-10-04, release R1 live; main integrated into this branch)
+## Status as of the latest session (2026-10-04, BATCH-07G)
+
+- **BATCH-07G (`docs/DECISIONS.md` Part 36): finding B is closed, and only B.** The receipt no longer derives
+  a saved request's location or status from the current profile: `awaySaved`, its prop and its conditional
+  are removed from `Looking.tsx`, and every receipt shows one paragraph, "Introductions are beginning in
+  {pilot}. Requests from other places are kept for later, with no opening date." It states the pilot's
+  policy; it does not say "your request is kept for later", name the profile's city, or imply the app
+  checked the record. The form's location-specific disclosure is unchanged. No new stored field, no new
+  backend call, no change to dates, legacy or past-date handling, recovery codes, withdrawal, focus or
+  payloads.
+- **Evidence:** `tests/ui/looking-receipt-reminder.test.tsx` (new, 7: both profile-change directions with the
+  receipt mounted, a fresh load under three profiles, a legacy receipt, a past-date receipt and an unkept
+  one) and two updated journey assertions; 9 of 26 fail on the previous `Looking.tsx`.
+- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (128 files, 1959 passed, 2 skipped);
+  `npm run build` exit 0. **Built app** at 390 and 320 (synthetic data, local handlers): both directions, the
+  profile changed in storage and the page loaded afresh, 4 of 4: the receipt text identical, the reminder
+  present, no old claim, no overflow, focus on the receipt heading. **Classifier:** the slice's 7 files: guide
+  **not required**, judgment **not required**; the accumulated branch (110 files vs `main`) still requires
+  both. No paid call.
+- **Still open, unchanged:** the **cross-tab progress recovery loss** (Part 35, "Ordering check") and the
+  **required live evaluations** for the accumulated branch (unfunded, not run; a skipped or missing
+  evaluation is not a pass), plus the older-build residue limits (Part 35) and the server-side races
+  (Part 34). **The branch is not release-ready and the release remains paused.** Production is at `b53429e`
+  (R1); this change is not deployed.
+- **Next:** the cross-tab recovery question, and funding the live evaluations.
+
+## Previous status (2026-10-04, release R1 live; main integrated into this branch)
 
 - **LIVE on joinniyyah.com: release candidate R1, PR #84, merge commit `b53429e`** (`docs/DECISIONS.md`,
   "Release candidate R1"). It is the smallest extract of BATCH-02A plus one BATCH-04 line, 13 files:
