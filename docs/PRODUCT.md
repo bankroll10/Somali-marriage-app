@@ -190,7 +190,8 @@ Part 15). It is kept: it measures how people decide, not which way.
 **The test for any screen:** does it help someone find out earlier, and does it
 end in something they can say? What it changed:
 - **Welcome's lead promises the routing, not the map.** Since 2026-09-30
-  (`docs/DECISIONS.md` Part 25) it says what Niyyah is for and offers two
+  (`docs/DECISIONS.md` Part 25; live on joinniyyah.com since 2026-10-04 as
+  release candidate R1, PR #84) it says what Niyyah is for and offers two
   doors, each naming its action; it makes no completion-time claim and no
   blanket privacy claim.
 - **The three marriage-breakers moved into the map**: `household`, `work` and

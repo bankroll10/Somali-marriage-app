@@ -1,6 +1,38 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions)
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch
 
-## Status as of the latest session (2026-10-04, BATCH-07F)
+## Status as of the latest session (2026-10-04, release R1 live; main integrated into this branch)
+
+- **LIVE on joinniyyah.com: release candidate R1, PR #84, merge commit `b53429e`** (`docs/DECISIONS.md`,
+  "Release candidate R1"). It is the smallest extract of BATCH-02A plus one BATCH-04 line, 13 files:
+  Welcome's headline, scoping sentence, named door actions and the scoped privacy paragraph (with the
+  step-count qualification), the Talking chooser's plain descriptions (including the accurate family-script
+  invitation), the larger restore-entry target, and the focus fixes (no ring on a focused heading; focus
+  reaches a lazy screen's heading when it appears). `verify` and `deployed` passed on `main`;
+  `/version.json` named `b53429e` (the previous serving commit was `cdcd187`); preview and production were
+  checked at 390 and 320 wide with backend requests intercepted and nothing submitted. `guide-eval` was not
+  triggered and no paid call was made. **Not live:** everything else on this branch.
+- **Integration (this session):** `main` (`b53429e`) was merged into `claude/hello-gr0hoz` (`a2b71fc`) by a
+  normal merge (no rebase, reset or force). Five conflicts, resolved by keeping both: `Welcome.tsx` (the
+  released step-count sentence), `useFocusHeading.ts` (the branch's `onlyIfLost` version: the released
+  arrival fix plus the option `FocusStep` and `Looking` use; `App.tsx` calls it unchanged),
+  `welcome.test.tsx` (the released file is a strict superset; both sets of tests kept), `DECISIONS.md` and
+  `PRODUCT.md` (both histories kept; Part 25 and the R1 entry now say they describe the same shipped work,
+  and what was held is listed). No product change was made. The outreach ledger, workflows and evaluation
+  rules are not in the merge.
+- **What is still held (not released):** BATCH-01 and 02C (the introduction path and its signup), 02B (the
+  social card), 03 to 07F, the evaluation harness, and every server change.
+- **Release blockers that remain, unchanged:** (1) the **cross-tab progress recovery loss** (Part 35,
+  "Ordering check": sequence numbers are per page, so another tab's older success can remove the key this
+  tab's newer failure wrote; progress writes no marker, so the record can exist again) is demonstrated and
+  **not fixed**; (2) **receipt-location finding B** is undecided; (3) the accumulated branch **requires both
+  live evaluations** (workflow, `package.json` and `tests/eval/*` are in its range) and both are unfunded
+  and **have not run**: a skipped or missing evaluation is not a pass; (4) the older-build residue and
+  loss-before-capture limits (Part 35); (5) the server-side races in Part 34. **The branch is not
+  release-ready and the release remains paused.** No PR, merge to main, deployment, outreach or
+  participant-data access happened in this integration.
+- **Next:** receipt-location finding B (a founder decision), then the cross-tab recovery question.
+
+## Previous status (2026-10-04, BATCH-07F)
 
 - **BATCH-07F (`docs/DECISIONS.md` Part 35): deletion recovery is protected from older app versions.** One
   key per unresolved code, `niyyah.forget.recovery.v1.<kind>.<CODE>` = `1`; the older single record

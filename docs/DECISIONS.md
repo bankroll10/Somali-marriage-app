@@ -4384,6 +4384,8 @@ What changed, on the first-time visitor's path only:
   replacement says only what the code does: free, no account, answers stay on
   the phone unless the person sends something, with the two commonest
   examples named. Storage, consent and sharing are untouched.
+  *Corrected 2026-10-04 (release candidate R1, below):* the replacement also
+  has to say the step count is on unless turned off; the shipped paragraph does.
 - **The Talking chooser** describes its three options without "the read" or
   "the eleven" as prior knowledge. The eleven is still counted (eleven) and
   exemplified (where you would live, money sent home, children).
@@ -5899,3 +5901,89 @@ says **required** for both for the reasons in Part 34 (`.github/workflows/guide-
 and `tests/eval/*` are in that range). No rule, list or file location was changed to alter either answer.
 Running the classifier rewrites the git-ignored `tests/*/results/outcome.json`. This is not measured Guide
 or read behaviour.
+
+## Release candidate R1: a clearer first screen, on production (2026-10-04)
+
+The founder wants visible improvements on joinniyyah.com while the full working branch is held. This is
+the **smallest coherent extract** of the first-screen work (the working branch's BATCH-02A, plus the one
+Talking line BATCH-04 corrected), built on `origin/main` (`cdcd187`, tree-identical to `261d055`). It is not
+a merge of any batch, and the branch's own numbering (Parts 24 and 25 there) is not used here.
+
+**What changed.** Welcome: the headline "Meet someone serious. Think marriage through." and one scoping
+sentence; each door names what the tap does ("See how introductions work", "Choose where to start") and says
+what it is ("Introductions", "Tools"); the old "two minutes away", "No one else sees it" and "Private to
+you" claims are replaced by one scoped privacy paragraph. Talking: each of the three choices says what it
+does in ordinary words, including the family-script invitation ("Word-for-word sentences to say aloud — to
+your own family, to the other person, and for when the families meet."). Restore entry ("Already have a
+code? Bring your map back") is an 11-unit-high tap target with more contrast. Focus: a programmatically
+focused heading draws no ring; the heading is focused when the lazy screen actually appears
+(`<FocusHeading/>` inside the Suspense boundary), so a keyboard user who taps a door lands on that screen's
+heading and not on `<body>`.
+
+**Every new statement was checked against production behavior** (this checkout, not the branch):
+
+| Statement | Production behavior it rests on |
+|---|---|
+| "The founder speaks with you first." / "made by hand" | `Looking.tsx`: "the founder … speaks with you first, before anyone is considered for you" |
+| "Beginning in Minneapolis–St. Paul." | unchanged from production |
+| "See how introductions work" | the door opens the same screen as before: the explanation, then the form; nothing is submitted until "Put my name down" |
+| "Understand what they have shown you … talk through the big questions before the families do … find the words for them" | the read, the eleven (`BeforeYes`), `Families` |
+| "About ninety seconds" | `Read.tsx` ("About ninety seconds"); the tools' own titles |
+| "Eleven big conversations, such as where you would live, money sent home and children"; "see which you have not had yet, and which to open first" | `eleven.ts` ids `live`, `money-home`, `children`; the result's "Not talked about yet" list and the conversation it opens |
+| "Word-for-word sentences … your own family, the other person, … the families meet" | `families.ts`: `tell-wali-online`, `send-his-people`, `open-mahr-and-living`, `families-meet` (tested) |
+| "Free, and no account." | unchanged claim |
+| "What you answer stays on your phone unless you choose to send something, such as your name for an introduction, which the founder reads, or questions for the person you are talking to." | the introduction request, the eleven sent to the other person, a kept map and a message to the Guide are each a deliberate act |
+
+**One correction to the reviewed copy.** The branch's paragraph stopped there. In production the step
+count, **Tell us which steps you reach**, is **on unless turned off** (`Trust.tsx`, `useNiyyah.ts`): the
+step, the date, her city and woman-or-man, and for a few steps one word of how it came out, under a random
+code. That is not "what you answer" and it is not in her words, but a sentence that says answers stay on the
+phone "unless you choose to send" is incomplete without it. This candidate adds: "Niyyah also counts which
+steps people reach, in one word each and never in your words; you can turn that off under Your privacy."
+Opening Niyyah is counted once, before she can reach that switch; the sentence does not claim otherwise.
+
+**Left out on purpose.** Signup, receipt and recovery behavior (BATCH-01, 02C, 07A–07F), the server
+functions, prompts, service data, dependencies and evaluation rules; the social card and metadata (so the
+share card and `OG_ALT` still read "What’s in your way?" and still match their image); the branch's other
+focus changes (BATCH-03/05) and `Families`/result changes (BATCH-04). `Looking.tsx` is **not** in this
+candidate: BATCH-02A's spacing and contrast edits to it sit on top of BATCH-01's rewrite of that screen
+and do not apply to production's.
+
+**Not verified.** Firefox, Safari, any screen reader (focus is checked by automated tests and in Chromium),
+a real device, and the deployed site.
+
+**Shipped, 2026-10-04.** PR #84 (`release/homepage-entry-rc` at `d6e2148`, 13 files) was merged to `main` as
+`b53429e` through GitHub's normal merge. On that exact head: `verify` and the Netlify deploy preview passed,
+and `guide-eval` was **not triggered** (no changed path is on its filter; nothing paid ran). After the merge
+the `verify` and `deployed` workflows passed, `/version.json` on joinniyyah.com named `b53429e`, and the
+previous commit serving was `cdcd187`. Browser checks of the preview and of production at 390 and 320 wide
+(a fresh context per width, every `/.netlify/functions` request intercepted before navigation, no form
+filled or submitted, no Guide, no record read): the new headline, scoping sentence, door actions and
+privacy paragraph; no old claim; no overflow or clipped element; the restore entry and "Not sure?" 44 px
+tall; door 1 reaches production's own signup screen, door 2 the chooser and each of its three tools, focus
+on each screen's heading and on the headline after Back; the only backend request was the automatic arrival
+step count, which was intercepted and never sent. Still **not verified**: Firefox, Safari, any screen
+reader, a real device, and the real signup submission (deliberately not made on production).
+
+**Integration into the repair branch, 2026-10-04.** `main` (`b53429e`) was merged into
+`claude/hello-gr0hoz` (`a2b71fc`) by a normal merge; nothing was rebased or reset. Five files conflicted
+and were resolved by keeping both sets of behavior: `Welcome.tsx` (the released step-count sentence kept;
+the rest was already identical), `useFocusHeading.ts` (the branch's `onlyIfLost` version kept, which is the
+released lazy-screen arrival fix plus the option the branch's `FocusStep` and `Looking` call with; the
+default call in `App.tsx` is unchanged), `welcome.test.tsx` (both files' tests kept), and this file and
+`PRODUCT.md` (both histories kept). **What this changes in the record:** Part 25 and this entry describe
+the **same shipped work**. Part 25 is the BATCH-02A account; this entry is the release extract, with one
+correction to Part 25's privacy line (the step count is on unless turned off, so "answers stay on the
+phone unless the person sends something" was incomplete without it) and without `Looking.tsx`'s spacing
+edits, which sit on BATCH-01's rewrite and are **not** live. **Still held on the branch, not released:**
+BATCH-01 and 02C (the introduction path and its signup screen), 02B (the social card), 03 to 07F (the
+Guide and help-line focus, caution words, the eleven's focus, receipt and withdrawal, Forget me's
+confirmation and recovery), the evaluation harness, and every server change.
+
+**Release blockers that remain (unchanged by this integration).** The branch is **not** release-ready and
+the release remains paused: (1) the cross-tab progress recovery loss (Part 35, "Ordering check") is
+demonstrated and not fixed: sequence numbers are per page, so another tab's older success can remove the
+key this tab's newer failure wrote; (2) receipt-location finding B is undecided; (3) the accumulated
+branch still requires both live evaluations (workflow, `package.json` and `tests/eval/*` are in its range)
+and both are unfunded and have not run; (4) the older-build residue and loss-before-capture limits in
+Part 35; (5) the server-side races listed in Part 34. No paid evaluation was run for this integration.

@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import Welcome from '../../src/components/Welcome'
 import Talking from '../../src/components/Talking'
+import { familyScript } from '../../src/data/families'
 import { mount, type Mounted } from '../support/render'
 
 /**
@@ -74,6 +75,8 @@ describe('Welcome', () => {
     expect(text).not.toMatch(/What’s in your way/)
     // What it says instead is scoped to what the code does.
     expect(text).toMatch(/stays on your phone unless you choose to send something/)
+    // The step count is on unless she turns it off (Trust, "Tell us which steps you reach"), so the page says it counts steps.
+    expect(text).toMatch(/counts which steps people reach, in one word each and never in your words; you can turn that off under Your privacy/)
     expect(text).toMatch(/which the founder reads/)
   })
 })
@@ -90,5 +93,18 @@ describe('Talking', () => {
     expect(go.onRead).toHaveBeenCalledTimes(1)
     expect(go.onBeforeYes).toHaveBeenCalledTimes(1)
     expect(go.onFamilies).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('Talking: the family-script invitation is true of the scripts that exist', () => {
+  it('says the sentences are for your own family, for the other person and for when the families meet — and each has a script', async () => {
+    const go = { onRead: vi.fn(), onBeforeYes: vi.fn(), onFamilies: vi.fn(), onLooking: vi.fn(), onBack: vi.fn() }
+    screen = await mount(<Talking {...go} />)
+    expect(screen.text()).toContain('Word-for-word sentences to say aloud — to your own family, to the other person, and for when the families meet.')
+    // To her own family, to the other person, and for the two families meeting (src/data/families.ts).
+    expect(familyScript('tell-wali-online', 'woman')).toBeDefined()
+    expect(familyScript('send-his-people', 'woman')).toBeDefined()
+    expect(familyScript('open-mahr-and-living', 'woman')).toBeDefined()
+    expect(familyScript('families-meet', 'woman')).toBeDefined()
   })
 })

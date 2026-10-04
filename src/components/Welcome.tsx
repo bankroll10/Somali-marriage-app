@@ -160,7 +160,8 @@ export default function Welcome({
             <p className="text-[0.88rem] leading-relaxed text-cream/65 text-pretty">
               Free, and no account. What you answer stays on your phone unless you choose to send
               something, such as your name for an introduction, which the founder reads, or questions
-              for the person you are talking to.
+              for the person you are talking to. Niyyah also counts which steps people reach, in one
+              word each and never in your words; you can turn that off under Your privacy.
             </p>
           </div>
           {/* Quiet on purpose: someone arriving for the first time should meet
