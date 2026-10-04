@@ -345,8 +345,9 @@ it; (4) question one committed him — Back returns to the intro; (5) "already
 answered" had no control — the same exit; (6) the vouch form — gone with the
 vouch; (7) the guide's header chevron switched voice — it is Back, to Home.
 
-**Still open:** Welcome's `<h1>` ("What’s in your way?") and Home's ("Salaam,
-{name}.") do not name the place; question screens say only "{i} of {n}".
+**Still open:** Welcome's `<h1>` ("Meet someone serious. Think marriage through.", since release
+candidate R1, `docs/DECISIONS.md`) and Home's ("Salaam, {name}.") do not name the place; question
+screens say only "{i} of {n}".
 
 **Predicted confusions:** **C1** "counted" meant three things — resolved
 2026-09-20 ("Tell us which steps you reach"). **C2** "the eleven" is a name no

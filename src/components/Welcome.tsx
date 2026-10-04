@@ -62,35 +62,25 @@ export default function Welcome({
             {EYEBROW}
           </p>
 
-          {/* The hook keeps the shape of a question you can't answer about
-              yourself — but points it at the obstacle, not at her.
-              "Are you actually ready?" is clickable because it pokes the fear
-              this person already carries: that she might be the reason none of
-              this has worked. Asking what's in her way keeps every bit of the
-              curiosity and assumes she is fine, which is both kinder and closer
-              to what the map actually returns. */}
-          <h1 className="animate-rise font-display text-[2.9rem] font-medium leading-[1.04] tracking-tight text-balance sm:text-[3.6rem]">
-            What’s in your way?
+          {/* The headline says what the product is for, in a sentence a
+              first-time visitor can repeat: serious introductions, and
+              thinking a marriage through. It used to ask "What's in your
+              way?", which described neither door (docs/DECISIONS.md Part 25). */}
+          <h1 className="animate-rise font-display text-[2.6rem] font-medium leading-[1.06] tracking-tight text-balance sm:text-[3.4rem]">
+            Meet someone serious. Think marriage through.
           </h1>
 
           <p
-            className="animate-rise mt-6 max-w-lg text-[1.05rem] leading-relaxed text-cream/75 text-pretty"
+            className="animate-rise mt-5 max-w-lg text-[1.05rem] leading-relaxed text-cream/80 text-pretty"
             style={{ animationDelay: '80ms' }}
           >
-            Two doors. If you are looking for someone serious, put your name down for an
-            introduction made by hand. If you are already talking to someone, a read on what
-            they have shown you, the eleven conversations to have before the families do, and
-            the words for the families.
+            Niyyah runs a founder-led introduction pilot, and offers tools for people already
+            considering someone for marriage.
           </p>
 
-          {/* The two doors (docs/DECISIONS.md Part 22). Until 2026-09-27 the
-              first button was "Start where you are", which led to a question
-              about her situation and then the map, and the only other way in
-              was the read. Someone who was looking for someone had no door at
-              all — the one the two women who signed up had walked through was
-              deleted on 2026-09-24. Now the two situations are the two
-              buttons, in the words a person would use, and the map's path is
-              the quieter line under them. */}
+          {/* The two doors (docs/DECISIONS.md Parts 22 and 25): the two
+              situations in a person's own words, each card ending in what
+              the tap does. The map's path is the quieter line under them. */}
           <div className="animate-rise mt-8" style={{ animationDelay: '160ms' }}>
             {completed ? (
               <Button variant="onDark" onClick={onEnter} className="group">
@@ -103,38 +93,40 @@ export default function Welcome({
                   {(
                     [
                       {
-                        eyebrow: 'Looking for someone',
+                        eyebrow: 'Introductions',
                         title: 'I’m looking for someone serious.',
-                        desc: 'Put your name down for an introduction, made by hand. Beginning in Minneapolis–St. Paul.',
+                        desc: 'Put your name down for an introduction made by hand. The founder speaks with you first. Beginning in Minneapolis–St. Paul.',
+                        action: 'See how introductions work',
                         go: onLooking,
                       },
                       {
-                        eyebrow: 'Already talking to someone',
+                        eyebrow: 'Tools',
                         title: 'I’m already talking to someone.',
-                        desc: 'A read on what they have shown you, the eleven conversations, the words for the families.',
+                        desc: 'Understand what they have shown you, talk through the big questions before the families do, and find the words for them.',
+                        action: 'Choose where to start',
                         go: onTalking,
                       },
-                    ] as { eyebrow: string; title: string; desc: string; go: () => void }[]
+                    ] as { eyebrow: string; title: string; desc: string; action: string; go: () => void }[]
                   ).map((door) => (
                     <button
                       key={door.title}
                       onClick={door.go}
                       className="group flex w-full flex-col items-start rounded-card border border-cream/30 bg-cream/[0.07] p-5 text-left transition hover:-translate-y-0.5 hover:bg-cream/[0.14]"
                     >
-                      <span className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-gold-soft">{door.eyebrow}</span>
-                      <span className="mt-2 font-display text-[1.2rem] font-medium leading-snug text-cream text-balance">{door.title}</span>
-                      <span className="mt-1.5 text-[0.88rem] leading-snug text-cream/65 text-pretty">{door.desc}</span>
-                      <span className="mt-3 inline-flex items-center gap-1.5 text-[0.85rem] font-medium text-cream">
-                        Go
+                      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-gold-soft">{door.eyebrow}</span>
+                      <span className="mt-2 font-display text-[1.25rem] font-medium leading-snug text-cream text-balance">{door.title}</span>
+                      <span className="mt-2 text-[0.92rem] leading-snug text-cream/75 text-pretty">{door.desc}</span>
+                      <span className="mt-4 inline-flex items-center gap-1.5 text-[0.92rem] font-medium text-gold-soft">
+                        {door.action}
                         <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
                       </span>
                     </button>
                   ))}
                 </div>
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-5">
+                <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-5">
                   <button
                     onClick={onBegin}
-                    className="inline-flex items-center gap-1.5 self-start text-sm font-medium text-cream/70 underline-offset-4 transition hover:text-cream hover:underline"
+                    className="inline-flex min-h-11 items-center gap-1.5 self-start text-sm font-medium text-cream/75 underline-offset-4 transition hover:text-cream hover:underline"
                   >
                     Not sure? Start where you are
                     <ArrowRight className="h-4 w-4" />
@@ -142,7 +134,7 @@ export default function Welcome({
                   {hasProgress && (
                     <button
                       onClick={onResume}
-                      className="self-start text-sm font-medium text-cream/70 underline-offset-4 transition hover:text-cream hover:underline"
+                      className="inline-flex min-h-11 items-center self-start text-sm font-medium text-cream/75 underline-offset-4 transition hover:text-cream hover:underline"
                     >
                       Pick up where you left off
                     </button>
@@ -152,83 +144,26 @@ export default function Welcome({
             )}
           </div>
 
-          {/* The lead used to promise the map — "thirteen questions, about two
-              minutes… the one place you're thinnest" — while the flow behind the
-              button routes by stage and only the person not talking to anyone
-              ever reaches the map first. The comments below this file already
-              said the map "ranks near the bottom of what actually hurts"; the
-              first sentence on the page was still selling it. Now the promise
-              matches the routing, and the read — the one thing aimed at the
-              highest-pain problem we can solve today — is in the first breath
-              rather than a card at the bottom. docs/PRODUCT.md.
-
-              What is withheld is the real thing. This used to be a ring with
-              "??" in it and "Your number is two minutes away" — a quiz-funnel
-              hook that promised a score, and then the map had to deliver one.
-              Then it promised "the one place you're thinnest", which is the
-              map's object alone; a woman routed to the read never reaches it.
-              Every instrument here ends in the same kind of thing — the one
-              question to ask him, the one conversation to open, the one honest
-              thing to do — so that is what is promised. */}
-          <div
-            className="animate-rise mt-8 max-w-md border-l-2 border-gold-soft/60 pl-4"
-            style={{ animationDelay: '120ms' }}
-          >
-            <p className="font-display text-[1.15rem] font-medium leading-snug tracking-tight text-cream text-balance">
-              The one thing to say next is two minutes away.
+          {/* What is true, once, and no more than the code does. Every tool
+              runs with no account and is free. Answers stay on the phone
+              unless the person sends something: a name for an introduction
+              (read by the founder), the eleven to someone, a kept map, a
+              message to the live guide (src/components/Trust.tsx and
+              docs/PRIVACY.md hold the full list). The old lines here, "No one
+              else sees it" and "Private to you", said more than that: the
+              eleven is sent to the other person on purpose, and an introduction
+              request is read by the founder. */}
+          <div className="animate-fade mt-8 max-w-md space-y-2.5" style={{ animationDelay: '220ms' }}>
+            <p className="text-[0.95rem] leading-relaxed text-cream/75 text-pretty">
+              You are not behind, and being here is not an admission of anything.
             </p>
-            <p className="mt-1 text-[0.88rem] leading-snug text-cream/55 text-pretty">
-              In words, not a score. No one else sees it — not your family, not anyone you’re talking to.
+            <p className="text-[0.88rem] leading-relaxed text-cream/65 text-pretty">
+              Free, and no account. What you answer stays on your phone unless you choose to send
+              something, such as your name for an introduction, which the founder reads, or questions
+              for the person you are talking to. Niyyah also counts which steps people reach, in one
+              word each and never in your words; you can turn that off under Your privacy.
             </p>
           </div>
-
-          {/* The objection that stops her tapping isn't "is this any good" — it's
-              "does opening this mean something failed?" Answered once, plainly,
-              before the button. No drama, no reassurance the product can't back:
-              the last sentence is simply true, and it explains why she doesn't
-              already know the answer. */}
-          <p
-            className="animate-fade mt-7 max-w-md text-[0.95rem] leading-relaxed text-cream/65 text-pretty"
-            style={{ animationDelay: '200ms' }}
-          >
-            You are not behind, and being here is not an admission of anything.
-            Not knowing yet is where these questions start.
-          </p>
-
-          {/* What kind of thing this is.
-              These three lines used to be written against a dating app — built
-              by a Somali, stage-first, the conversations that break marriages —
-              and every competitor in this category can say the first and third
-              (docs/PRODUCT.md). What none of them does is what these
-              say now: work on the relationship she already has, put the same
-              questions to him on his own phone, and come back to ask whether
-              the conversation happened. The test is Situation.tsx's: a sentence
-              no alternative in the category would think to say.
-              Three lines, and it stays three. The moment this becomes a feature
-              list it has stopped answering her question and started selling. */}
-          <ul
-            className="animate-fade mt-7 max-w-md space-y-2.5"
-            style={{ animationDelay: '220ms' }}
-          >
-            {[
-              'Introductions are made by hand, one at a time, and nobody learns who the other is until both have said yes. There is nothing to browse.',
-              'The rest works on the relationship you already have — however you met, with no account. Send them the same eleven questions; you both see only where the two of you stand.',
-              'A few days later, we ask whether the conversation happened. When you marry, we let you go.',
-            ].map((line) => (
-              <li key={line} className="flex gap-3 text-[0.93rem] leading-snug text-cream/70 text-pretty">
-                <span className="mt-[0.5rem] h-1 w-1 flex-none rounded-full bg-gold-soft" />
-                <span>{line}</span>
-              </li>
-            ))}
-          </ul>
-
-          {/* What is true, in one line. */}
-          <p
-            className="animate-fade mt-5 text-xs text-cream/60"
-            style={{ animationDelay: '300ms' }}
-          >
-            Private to you · No account · Free
-          </p>
           {/* Quiet on purpose: someone arriving for the first time should meet
               the question this app exists to answer, not a login. */}
           <RestoreMap />

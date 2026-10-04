@@ -25,19 +25,19 @@ export default function Talking({ onRead, onBeforeYes, onFamilies, onLooking, on
   const doors = [
     {
       title: 'I can’t tell what they mean yet',
-      desc: 'Get a read: ninety seconds on what they have shown you, and the one question to ask next.',
+      desc: 'Answer a few questions about what they have shown you. About ninety seconds, then a plain read on it and the one question to ask them next.',
       go: onRead,
       glyph: <CompassGlyph />,
     },
     {
       title: 'We’re getting serious',
-      desc: 'Before you say yes: the eleven conversations to have before the families do, and the one to open first.',
+      desc: 'Eleven big conversations, such as where you would live, money sent home and children. See which you have not had yet, and which to open first.',
       go: onBeforeYes,
       glyph: <SeedGlyph />,
     },
     {
       title: 'The families are coming in',
-      desc: 'The words for your family — the wali, hooyo, the mahr — written to be said aloud.',
+      desc: 'Word-for-word sentences to say aloud — to your own family, to the other person, and for when the families meet.',
       go: onFamilies,
       glyph: <PeopleGlyph />,
     },
@@ -54,7 +54,7 @@ export default function Talking({ onRead, onBeforeYes, onFamilies, onLooking, on
             Where are you with it?
           </h1>
           <p className="animate-rise mt-3 text-[0.98rem] leading-relaxed text-muted text-pretty">
-            Three places to start. No account, and nothing here asks who they are.
+            Pick the one that sounds like where you are. No account, and nothing here asks who they are.
           </p>
 
           <div className="mt-8 flex flex-col gap-3">
