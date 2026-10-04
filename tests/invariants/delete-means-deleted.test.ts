@@ -22,12 +22,15 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
  * for anything of hers: her code, her name, her answer in her own words, her
  * install id.
  *
- * Three things are allowed to remain, and each is named, not tolerated:
+ * Four things are allowed to remain, and each is named, not tolerated:
  *  - the tombstone that closes her code — a reason and a date, so the code
  *    can never be kept again from another phone;
  *  - her report — a message to the founder, which forget me must never take
  *    (docs/SECURITY.md, coercion);
- *  - the joint tally — how pairs come out, counts with no pair in them.
+ *  - the joint tally — how pairs come out, counts with no pair in them;
+ *  - the closure marker on her install code (`progress-closed`, `<install>/<day>`):
+ *    a day and nothing about her, kept at least two days so a report still on
+ *    its way cannot make her step count again (docs/DECISIONS.md Part 37).
  * The couple sheet leaves only its reporting window: a date, and nothing
  * either of them answered.
  */
@@ -66,7 +69,16 @@ async function aWholeLife() {
 
 /** What may remain, and only this. */
 function allowed(code: string) {
-  return (line: string) => line.startsWith(`maps:ended/${code} `)
+  return (line: string) => line.startsWith(`maps:ended/${code} `) || line.startsWith('progress-closed:')
+}
+
+/** The step counts after her forget: no record, and one closure marker under her install code, holding a day and nobody. */
+function onlyAClosure(install: string) {
+  expect(blobs.keys('progress')).toEqual([])
+  const keys = blobs.keys('progress-closed')
+  expect(keys).toHaveLength(1)
+  expect(keys[0]).toMatch(new RegExp(`^${install}/\\d{4}-\\d{2}-\\d{2}$`))
+  expect(Object.keys(blobs.read('progress-closed', keys[0]) as object)).toEqual(['at'])
 }
 
 /** The introduction list after her forget: one withdrawal marker under her code, holding a day and nobody. */
@@ -98,6 +110,7 @@ describe('after Forget me', () => {
     // nothing about her — so a request still on its way cannot land after
     // this (netlify/functions/introduce.ts).
     onlyAMarker()
+    onlyAClosure(install)
     expect(her.keys()).toEqual([])
     // The sheet leaves a date, and nothing either of them said.
     expect(blobs.keys('couples')).toEqual([`gone/${pair}`])
@@ -120,6 +133,7 @@ describe('after Forget me', () => {
     expect(await retryPendingForget()).toBe(true)
     expect(residue([code, NAME, OWN_WORDS, install, CONTACT], [her]).filter((l) => !allowed(code)(l))).toEqual([])
     onlyAMarker()
+    onlyAClosure(install)
     expect(her.keys()).toEqual([])
   })
 })

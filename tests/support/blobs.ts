@@ -51,6 +51,8 @@ export class Blobs {
   private clock = 0
   /** Stores that cannot even be opened — `getStore` itself throws. */
   private unopenable = new Set<string>()
+  /** Keys whose next read answers "nothing there" although something is: an eventual read that missed a write. */
+  private stales = new Set<string>()
   /** The options each store was opened with — so a test can hold that a route asked for the latest state. */
   readonly opened = new Map<string, Record<string, unknown>>()
 
@@ -59,7 +61,16 @@ export class Blobs {
     this.rules = []
     this.log.length = 0
     this.unopenable.clear()
+    this.stales.clear()
     this.opened.clear()
+  }
+
+  /** Make the next `get`, `getMetadata` or `getWithMetadata` of this key answer null once, as a read that missed a recent write does. */
+  stale(store: string, key: string) {
+    this.stales.add(`${store}\u0000${key}`)
+  }
+  private missed(store: string, key: string) {
+    return this.stales.delete(`${store}\u0000${key}`)
   }
 
   /** Make opening a store throw, as Blobs does when its context is missing or the platform is down. */
@@ -141,15 +152,18 @@ export class Blobs {
       },
       get: async (key: string, opts?: { type?: string }) => {
         await this.hit(name, 'get', key)
+        if (this.missed(name, key)) return null
         return parse(m().get(key), opts?.type)
       },
       getMetadata: async (key: string) => {
         await this.hit(name, 'getMetadata', key)
+        if (this.missed(name, key)) return null
         const b = m().get(key)
         return b ? { etag: b.etag, metadata: {} } : null
       },
       getWithMetadata: async (key: string, opts?: { type?: string }) => {
         await this.hit(name, 'getWithMetadata', key)
+        if (this.missed(name, key)) return null
         const b = m().get(key)
         return b ? { data: parse(b, opts?.type), etag: b.etag, metadata: {} } : null
       },

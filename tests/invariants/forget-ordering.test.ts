@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { seedDemo } from '../../src/lib/demo'
 import { forgetMe, pendingForget, resetForgetMirror, retryPendingForget } from '../../src/lib/forget'
 import { keepMap } from '../../src/lib/keep'
+import * as d07 from '../support/old-builds/forget-69f8b92'
 import { Phone, onPhone } from '../support/device'
 import { recoveryKey, recoveryOf } from '../support/recovery'
 import { blobs, call, serve } from '../support/server'
@@ -11,18 +12,22 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 /**
  * ORDERING — an older request that succeeds late must not erase a newer attempt
  * for the same code that is still unresolved (docs/DECISIONS.md Part 35, the
- * ordering check).
+ * ordering check), and a late report must not make a forgotten step count again
+ * (Part 37, BATCH-07H).
  *
- * The question is whether that can lose a recovery that matters. It can only
- * when a record can exist on the server *after* the older deletion, while the
- * newer deletion stays unconfirmed. The progress endpoint is that case: its
- * DELETE writes no marker, and a report that was already on its way recreates
- * the record under the same install id (netlify/functions/progress.ts). The keep
- * endpoint is the opposite: its DELETE leaves a tombstone and every later write
- * under the code answers 410, so a newer unconfirmed attempt there is a
- * redundant request for something already gone.
+ * The client rule is unchanged and held here: an older answer does not settle a
+ * code a newer request has not confirmed, within a page, whichever order the
+ * answers arrive in, and with storage denied. What changed is the server. Until
+ * Part 37 the progress endpoint's DELETE left nothing behind, so a report that
+ * was already on its way recreated the record under the same install id, and a
+ * recovery key erased by an older success could leave that record with nothing
+ * naming it. Now a DELETE writes a marker first and a report under a marker is
+ * refused, so there is no record for such a key to name. Keep, the eleven and the
+ * introduction list already closed their codes the same way.
  *
- * Everything is synthetic and local: the real handlers over the in-memory store.
+ * Page-memory sequence numbers are per tab and nothing here coordinates tabs;
+ * the two-tab test says what that still means. Everything is synthetic and
+ * local: the real handlers over the in-memory store.
  */
 
 const I = 'HJKMNPQR'
@@ -92,23 +97,24 @@ async function counted() {
   expect(record()).not.toBeNull()
 }
 
-describe('the progress endpoint: a record can exist after the older deletion', () => {
-  it('its DELETE leaves no marker, so a report already on its way recreates the record under the same id', async () => {
+describe('the progress endpoint: the older deletion closes the code', () => {
+  it('its DELETE writes a marker, so a report that arrives afterwards is refused and makes no record', async () => {
     await counted()
     expect((await call('progress', 'DELETE', `progress?id=${I}`)).status).toBe(200)
     expect(record()).toBeNull()
-    expect((await report()).status).toBe(200)
-    expect(record()).not.toBeNull()
+    expect((await report()).status).toBe(410)
+    expect(record()).toBeNull()
+    expect(blobs.keys('progress-closed')).toHaveLength(1)
   })
 
-  it('older success held, a report recreates the record, a newer attempt fails; the older answer is then released: the newer attempt stays unresolved', async () => {
+  it('older success held, a report is refused, a newer attempt fails; the older answer is then released: the newer attempt stays unresolved, and no record exists', async () => {
     await counted()
     const net = plan('progress', ['hold-success', 'fail'])
     back = net.off
     const older = forgetMe()
     await vi.waitFor(() => expect(record()).toBeNull()) // the older deletion has run; its answer is held
-    expect((await report()).status).toBe(200) // the report that was in flight
-    expect(record()).not.toBeNull()
+    expect((await report()).status).toBe(410) // the report that was in flight: refused, the code is closed
+    expect(record()).toBeNull()
 
     const newer = await forgetMe() // asks the same install id, and fails
     expect(newer.progress).toBe(false)
@@ -116,8 +122,8 @@ describe('the progress endpoint: a record can exist after the older deletion', (
 
     net.release(0) // …and now the older, successful answer arrives
     const result = await older
-    expect(record()).not.toBeNull() // the record is still there
-    expect(held()).toEqual([I]) // so its recovery key must be
+    expect(record()).toBeNull() // no record can be there: the code is closed
+    expect(held()).toEqual([I]) // and the newer attempt's recovery key is still kept (the client rule)
     expect(result.progress).toBe(false) // and the page is not told it is done
     expect(pendingForget()).toEqual({ installs: [I] })
 
@@ -135,7 +141,7 @@ describe('the progress endpoint: a record can exist after the older deletion', (
     back = net.off
     const older = forgetMe()
     await vi.waitFor(() => expect(record()).toBeNull())
-    expect((await report()).status).toBe(200)
+    expect((await report()).status).toBe(410) // refused: the code is closed
     const newer = forgetMe()
     await vi.waitFor(() => expect(net.started()).toBe(2))
 
@@ -145,7 +151,7 @@ describe('the progress endpoint: a record can exist after the older deletion', (
     const result = await newer // the newer attempt fails after it
     expect(result.progress).toBe(false)
     expect(held()).toEqual([I])
-    expect(record()).not.toBeNull()
+    expect(record()).toBeNull()
   })
 
   it('a newer attempt that is a launch retry (it captures nothing, it relies on the key staying) is not undone by an older success', async () => {
@@ -156,11 +162,11 @@ describe('the progress endpoint: a record can exist after the older deletion', (
     back = net.off
     const older = retryPendingForget()
     await vi.waitFor(() => expect(record()).toBeNull())
-    expect((await report()).status).toBe(200)
+    expect((await report()).status).toBe(410) // refused: the code is closed
     expect(await retryPendingForget()).toBe(false) // newer, fails
     net.release(0)
     await older
-    expect(record()).not.toBeNull()
+    expect(record()).toBeNull()
     expect(held()).toEqual([I])
   })
 })
@@ -207,7 +213,7 @@ describe('a browser that will not save: the page memory is held to the same rule
     back = net.off
     const older = forgetMe()
     await vi.waitFor(() => expect(record()).toBeNull())
-    expect((await report()).status).toBe(200)
+    expect((await report()).status).toBe(410) // refused: the code is closed
     const newer = await forgetMe()
     expect(newer).toMatchObject({ progress: false, kept: false })
     expect(held()).toEqual([]) // nothing on disk
@@ -216,7 +222,7 @@ describe('a browser that will not save: the page memory is held to the same rule
     net.release(0)
     const result = await older
     expect(result.progress).toBe(false)
-    expect(record()).not.toBeNull()
+    expect(record()).toBeNull()
     expect(pendingForget()).toEqual({ installs: [I] })
 
     // Storage works again: the next trigger persists it, then a real answer resolves it.
@@ -256,8 +262,8 @@ describe('the keep endpoint: the same ordering is a redundant request, not a nee
   })
 })
 
-describe('LIMITATION: two tabs have separate sequences', () => {
-  it('another tab\'s older success removes the key this tab\'s newer failure wrote: sequence numbers are per page, and nothing here coordinates tabs', async () => {
+describe('two tabs have separate sequences, and that no longer leaves a record', () => {
+  it('another tab’s older success removes the key this tab’s newer failure wrote — the client limit is unchanged — and the code is closed, so no record is left for that key to name', async () => {
     await counted()
     const net = plan('progress', ['hold-success', 'fail'])
     back = net.off
@@ -267,13 +273,46 @@ describe('LIMITATION: two tabs have separate sequences', () => {
     const tabB = await import('../../src/lib/forget')
     const older = tabA.forgetMe()
     await vi.waitFor(() => expect(record()).toBeNull())
-    expect((await report()).status).toBe(200)
+    expect((await report()).status).toBe(410) // the report in flight when A's delete was processed
     expect((await tabB.forgetMe()).progress).toBe(false)
     expect(held()).toEqual([I])
     net.release(0)
     await older
-    // Tab A knows nothing of tab B's request: its confirmation removes the key. The record exists and no key names it.
-    expect(record()).not.toBeNull()
+    // Tab A knows nothing of tab B's request: sequence numbers are per page, and its confirmation removes the key. That is
+    // still so. What it can no longer cost is a record: the server closed the code, so none exists and none can be made.
     expect(held()).toEqual([])
+    expect(record()).toBeNull()
+    expect(blobs.keys('progress-closed')).toHaveLength(1)
+  })
+})
+
+describe('a report that is not the cross-tab case at all', () => {
+  it('one tab: a report already in flight when Forget me runs is refused, and nothing is left on the server or the phone', async () => {
+    await counted()
+    // The report began before the DELETE and finishes after it: Forget me runs, whole, between its read and its write.
+    blobs.before('getWithMetadata', I, async () => expect((await forgetMe()).progress).toBe(true), 'progress')
+    const res = await report()
+    expect([200, 410]).toContain(res.status)
+    expect(record()).toBeNull()
+    expect(blobs.keys('progress-closed')).toHaveLength(1)
+    expect(held()).toEqual([])
+    expect(phone.storage.has('niyyah.install.v1')).toBe(false)
+  })
+
+  it('no record yet: the DELETE finds nothing and is confirmed, and the first report to arrive afterwards is refused', async () => {
+    phone.storage.set('niyyah.install.v1', I) // an id minted, its first report not yet landed
+    expect((await forgetMe()).progress).toBe(true)
+    expect(blobs.keys('progress-closed')).toHaveLength(1)
+    expect((await report()).status).toBe(410)
+    expect(record()).toBeNull()
+  })
+
+  it('an older build’s Forget me (its forget.ts, a hybrid test) is protected too: the server refuses the late report', async () => {
+    await counted()
+    d07.resetForgetMirror()
+    await d07.forgetMe()
+    expect(record()).toBeNull()
+    expect((await report()).status).toBe(410)
+    expect(record()).toBeNull()
   })
 })

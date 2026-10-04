@@ -35,7 +35,7 @@ describe('the weekly sweep', () => {
     memStore('maps').setJSON('BCDFGH', { snapshot: {}, createdAt: '2025-01-01', expiresAt: LAPSED })
     await run()
     const again = await run()
-    expect((await again.json()).swept).toEqual({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, withdrawn: 0, markers: 0, errors: 0 })
+    expect((await again.json()).swept).toEqual({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, withdrawn: 0, markers: 0, stranded: 0, closures: 0, errors: 0 })
   })
 
   // From 2026-09-24 to 2026-09-27 the sweep emptied these three stores every

@@ -271,6 +271,89 @@ function mergeFacts(existing: Facts | undefined, incoming: Facts | undefined): F
 type Store = ReturnType<typeof getStore>
 
 /**
+ * A forgotten install code cannot be written under again — for a while.
+ *
+ * Until this, a progress DELETE removed the record and left nothing behind, so
+ * a report already on its way (or sent from another tab in the moments before
+ * the phone was wiped) landed afterwards and made the record again, under a
+ * code nothing on the phone any longer named. Keep, the eleven and the
+ * introduction list all close their code on the server; this was the one that
+ * did not (docs/DECISIONS.md Part 37).
+ *
+ * **The marker is the authority**, and it is the introduction list's pattern
+ * (netlify/functions/introduce.ts): `DELETE` writes `<install>/<day>` — the day,
+ * and nothing else: no step, fact, city, side or contact — to its own store
+ * *before* it deletes the record, whether or not a record exists, and a POST
+ * that finds any marker under the code refuses (410). The marker is in a
+ * separate store so that nothing that reads, counts, exports or cleans step
+ * counts (the tally, the sweep of expired records, the backup, /health) can
+ * ever see or delete it.
+ *
+ * **What this does not do.** The two stores are not a transaction. A POST
+ * checks before it writes and checks again after, and a write that the second
+ * check finds under a marker is deleted by the POST that made it; that
+ * compensates for a race, and it can fail. A function that stops after its
+ * write, or whose re-check or compensating delete fails, can leave a record
+ * under a marker until a retry of the DELETE, a later refused POST or the
+ * weekly sweep removes it (netlify/functions/sweep.ts). When the re-check
+ * itself cannot be made the POST answers 503 and does not delete what it
+ * wrote: it cannot tell a closed code from an open one.
+ *
+ * **Markers are immutable, one key per code per day.** Blobs has no conditional
+ * delete (`delete(key)` takes no version; @netlify/blobs 11.0.3), so no "read
+ * the marker, then delete it" can be made safe against a DELETE that lands in
+ * between. A marker is therefore removed only by a key whose own day is old
+ * enough, and a DELETE that lands meanwhile writes a different key that
+ * nothing names. A second DELETE the same day is the same key, left as it was.
+ *
+ * **Reads are strong.** The store is opened `consistency: 'strong'`: the
+ * lookups before and after a write depend on seeing a marker written a moment
+ * ago.
+ *
+ * **How long.** A marker is kept at least two full days (CLOSED_DAYS), whatever
+ * the hour it was written, and the weekly sweep removes it on the first run
+ * after that: usually between two and about nine days. There is **no maximum**:
+ * a sweep that fails keeps the marker, and with it the protection, until one
+ * succeeds. Any marker that is present refuses, whatever its day; once it has
+ * been removed a POST under that code succeeds again, which is why nothing says
+ * "never". The phone discards the code at the wipe and mints a new one, so
+ * nothing legitimate waits on it.
+ */
+export const CLOSED_STORE = 'progress-closed'
+/** The least time a marker is kept: longer than any report could still be in flight. */
+export const CLOSED_DAYS = 2
+/** Every marker under one code starts with this. */
+export const closedPrefix = (id: string) => `${id}/`
+/** The key of the marker for one forgetting of one code on one day. Immutable once written. */
+export const closedKey = (id: string, at: string) => `${closedPrefix(id)}${at}`
+/** The code a marker key is under. */
+export const closedId = (key: string) => key.split('/')[0]
+/** The day in a marker key, or null when the key carries none this route could have written. */
+export function closedDay(key: string): string | null {
+  const at = key.split('/')[1]
+  return at && /^\d{4}-\d{2}-\d{2}$/.test(at) ? at : null
+}
+/** The marker store, opened strong. */
+export const closedStore = (): Store => getStore({ name: CLOSED_STORE, consistency: 'strong' })
+/** Is any marker under this code? A list by the code's prefix on the strong store. */
+const closedAny = async (closed: Store, id: string) => (await closed.list({ prefix: closedPrefix(id) })).blobs.length > 0
+
+/**
+ * A POST under a closed code: refused, and whatever sits under the code — this
+ * request's own write, or one an earlier failure left — is deleted if it can
+ * be. When that delete fails the answer is still 410: the marker stands and
+ * the sweep finishes it. The failure is counted so /health sees it.
+ */
+async function forgotten(store: Store, id: string): Promise<Response> {
+  try {
+    await store.delete(id)
+  } catch (err) {
+    await failed('progress', 'a record under a closed code could not be removed; the sweep will', err)
+  }
+  return Response.json({ error: 'forgotten' }, { status: 410 })
+}
+
+/**
  * The founder's readout. Per rung, how many people reached it; the same split
  * by city, by what kind of link brought them, and by side — so the men's
  * funnel can be read apart from the women's, which is the one question
@@ -556,9 +639,19 @@ export default async function handler(req: Request) {
     // (docs/DECISIONS.md). A circuit breaker, far above any real hour.
     if (await overHourlyCap('progress-forget', DEFAULT_FORGET_CAP)) return rateLimited()
     try {
+      // The marker first, whether or not a record exists, so a report still in
+      // flight under this code finds it and refuses (below). Its own key,
+      // dated today; a second DELETE the same day is the same key and
+      // `onlyIfNew` leaves it as it is. If it cannot be written nothing is
+      // deleted and nothing is confirmed: the answer is 503, which the phone
+      // keeps as an unconfirmed forget.
+      const today = day()
+      await closedStore().setJSON(closedKey(id, today), { at: today }, { onlyIfNew: true })
+      // Then the record, deleted whatever this read says: a stale read could
+      // otherwise leave one behind, and under a marker any record is stranded.
       const existing = await store.get(id, { type: 'json' })
-      if (!existing) return Response.json({ error: 'not_found' }, { status: 404 })
       await store.delete(id)
+      if (!existing) return Response.json({ error: 'not_found' }, { status: 404 })
       return Response.json({ forgotten: true })
     } catch (err) {
       await failed('progress', 'forget failed', err)
@@ -601,6 +694,12 @@ export default async function handler(req: Request) {
   // The day, never the moment — see netlify/shared/day.ts.
   const at = day(now)
   try {
+    // A code that was forgotten: nothing is written, and anything an earlier
+    // failure left under it is tried again. If this lookup cannot be made
+    // nothing is written either (503, below): an unprotected write is the one
+    // thing this check exists to prevent.
+    const closed = closedStore()
+    if (await closedAny(closed, id)) return forgotten(store, id)
     // Written at the version it was read, three tries, like every
     // read-modify-write here. A bare write lost a rung whenever two tabs
     // reported at once — and this record only ever adds (docs/PRIVACY.md).
@@ -627,7 +726,16 @@ export default async function handler(req: Request) {
       const written = held
         ? await store.setJSON(id, stamp(record), { onlyIfMatch: held.etag })
         : await store.setJSON(id, stamp(record), { onlyIfNew: true })
-      if (written.modified) return Response.json({ ok: true })
+      if (written.modified) {
+        // Written — unless a DELETE landed between the check above and the
+        // write, in which case a marker is there now and this record goes. This
+        // compensates for that race; it is not a transaction (see CLOSED_STORE).
+        // If the lookup throws, the 503 below says the write could not be
+        // checked; the record is left, and a marker, if there is one, is the
+        // authority that retires it.
+        if (await closedAny(closed, id)) return forgotten(store, id)
+        return Response.json({ ok: true })
+      }
     }
     return Response.json({ error: 'conflict' }, { status: 409 })
   } catch (err) {

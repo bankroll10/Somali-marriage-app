@@ -151,6 +151,7 @@ What each suite holds beyond its mutation:
   of `npm test`). They show the recovery keys unchanged through a failed forget, a falsely confirmed retry,
   the old wipe and a rewrite, and assert as limitations what an older build loses before this build has
   captured it.
+- **`progress-closure`.** The server half of Forget me for step counts (BATCH-07H, `docs/DECISIONS.md` Part 37), against the real handlers over the failing, racing blobs double: the marker written first, with and without a record; strong store; day and UTC boundaries; a second same-day DELETE left as it was; the cap; every failure path (marker write, record delete, lookup before and after a report's write, compensating delete, sweep record-delete) answering truthfully and keeping the marker; a record stranded under a marker resolved by a retry, a refused report or the sweep; the earliest eligible removal; the readout's cleanup and the weekly sweep running while a DELETE lands; and a read that missed the record (`blobs.stale`). Interleavings assert the final protected state, not a status.
 - **`forget-ordering`.** An older request that succeeds late against a newer one for the same code that is
   unresolved, with the real progress and keep handlers over the in-memory store (progress writes no marker, so
   a report can recreate the record; keep's tombstone answers 410): both response orders, a newer launch

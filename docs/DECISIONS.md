@@ -5865,6 +5865,8 @@ They now assert A stays until the next ask and is then resolved. For the introdu
 redundant request above, not a loss. The real-bundle browser flow was re-run on the corrected build (4 runs,
 the same results).
 
+**Update 2026-10-04 (BATCH-07H, Part 37): the harm this paragraph describes is addressed on the server, not by the client.** A DELETE of an install code now writes a marker first, so the late report is refused and no record is left for the erased key to name. The per-page sequence limit below is unchanged.
+
 **Cross-tab limits, stated separately.** Sequence numbers and `askedAt` are per page. Another tab's older
 success has no knowledge of this tab's newer failure and still removes the key this tab wrote; the same
 holds for a tab that never saw the request. A test asserts that as a **limitation** (two module instances
@@ -5981,7 +5983,7 @@ Guide and help-line focus, caution words, the eleven's focus, receipt and withdr
 confirmation and recovery), the evaluation harness, and every server change.
 
 **Release blockers that remain (unchanged by this integration).** The branch is **not** release-ready and
-the release remains paused: (1) the cross-tab progress recovery loss (Part 35, "Ordering check") is
+the release remains paused: (1) the cross-tab progress recovery loss (Part 35, "Ordering check"; *since addressed on the server by Part 37, 2026-10-04*) is
 demonstrated and not fixed: sequence numbers are per page, so another tab's older success can remove the
 key this tab's newer failure wrote; (2) receipt-location finding B is undecided; (3) the accumulated
 branch still requires both live evaluations (workflow, `package.json` and `tests/eval/*` are in its range)
@@ -6046,7 +6048,143 @@ suite's list. The accumulated branch against `main` (110 files) still says **req
 list or file location was changed to alter either answer. Live evaluation stays disabled and unfunded; no paid
 call was made.
 
-**Not closed, not touched.** The **cross-tab progress recovery loss** (Part 35, ordering check) and the
+**Not closed, not touched.** *(Update 2026-10-04: the progress recovery loss is addressed on the server by Part 37; the client's per-page limit and the other-tab autosave remain.)* The **cross-tab progress recovery loss** (Part 35, ordering check) and the
 **required live evaluations** (unfunded, not run) remain open, as do the older-build residue limits and the
 server-side races (Part 34). The branch is not release-ready and the release remains paused. No PR, merge to
 main, deployment, paid call, outreach or participant-data access.
+
+## Part 37: A forgotten step count cannot be made again, for a while (2026-10-04, BATCH-07H)
+
+**The defect (Part 35, "Ordering check").** The progress endpoint's DELETE removed the record and left nothing
+behind, so a report already on its way, or sent by another open tab in the moments before the phone was wiped,
+landed afterwards and made the record again under an install code nothing on the phone named. In the
+demonstrated sequence one tab's older success erased the recovery key a second tab's newer failure had written,
+and the recreated record was left with nothing naming it. It needs no second tab: a slow report in flight when
+Forget me runs does the same. Keep, the eleven and the introduction list already closed their code on the
+server; progress was the one kind where "confirmed deleted" could later be false, which is what made the client's
+"a strict confirmation settles the code" unsound for it.
+
+**Why not the client, and why not the record's own key.** Page-memory sequence numbers are per tab, storage
+events reach only live pages and localStorage offers no atomic read-compare-remove, so a client rule cannot
+coordinate tabs. A tombstone *in the record's key*, the first proposal, fails the ordering the founder named:
+the readout's cleanup (`tally`) and the weekly sweep read an expired record and later delete its key
+unconditionally, Blobs has no conditional delete (`delete(key)` takes no version; @netlify/blobs 11.0.3), and
+`deleteIfUnchanged` re-reads and then deletes, which narrows that race and does not close it. The introduction
+list met and fixed exactly this class on 2026-09-27 with immutable dated keys. Progress reuses that pattern.
+
+**The design.** A new store, **`progress-closed`**, opened `consistency: 'strong'`, holds markers under
+`<install>/<day>` with the body `{at: <day>}` and nothing else (no step, fact, city, side or contact).
+- **DELETE** (validation and the `progress-forget` cap unchanged): (1) write `<install>/<today>` with
+  `onlyIfNew` (a same-day repeat is the same key and is left as it was, not extended or rewritten), **whether or
+  not a record exists**; (2) read the record, then **delete it unconditionally**; (3) answer as before: `200
+  {forgotten: true}` if the read saw a record, else `404 {error: 'not_found'}`. If step 1 or 2 throws the answer
+  is `503`, never a confirmation, and nothing is deleted if the marker could not be written.
+- **POST** (validation and cap unchanged): list the markers under the install code (strong); any marker: `410
+  {error: 'forgotten'}`, nothing written, and anything under the code is deleted if it can be. Otherwise the
+  existing read-merge-conditional-write, then **list again**; a marker now present: the record just written is
+  deleted and the answer is `410`. If either lookup throws, the answer is `503`.
+- **Sweep** (`sweepProgressClosures`): for each marker, delete any record under its code without an existence
+  check, and only then the marker, and only if the day in its own key is strictly before `day(now - 2 days)`. It
+  never reads a marker to decide. A record delete that fails keeps the marker.
+- **Separate store, deliberately.** `tally`, the sweep of expired step counts, `export`, `health.countStores` and
+  `restore` never open it, so none of them can read, count, export or delete a marker, and no existing
+  read-then-delete cleaner can erase one. A marker and a record are never the same key.
+
+**The guarantee, exactly, and what it is not.** Once a DELETE has been answered `200` or `404`, a marker under
+the install code was written (strong, `onlyIfNew`) before the record was deleted; every report under that code
+either finds a marker and writes nothing, or writes, looks again, and removes its own write if it then finds one;
+and a record is retired by whichever of a retry of the DELETE, a later refused report or the weekly sweep next
+runs. **The two stores are not transactional.** The second look compensates for a racing write; it does not
+make every execution leave no record at once:
+- a function that stops after its write, or whose second look or compensating delete fails, can leave a record
+  under a marker **until** one of those three runs. A failed compensating delete still answers `410` (the
+  marker stands) and is counted for `/health`. A failed second look answers `503` and the record is **not**
+  deleted, because the report cannot tell a closed code from an open one; if there is a marker, the three
+  resolvers retire it;
+- a report whose second look precedes a later DELETE legitimately answers `200`; the DELETE then removes its
+  record. The tests assert the final protected state, not a status;
+- **protection has a window.** At least two full days from the moment the marker is written, whatever the hour
+  (removable only from the third UTC midnight); usually removed within two to about nine days by the weekly
+  sweep, with **no guaranteed maximum**: a sweep that fails keeps the marker, and with it the protection, until
+  one succeeds. (The introduction marker's own comment says two to eight; the difference is the day boundary.)
+  A POST refuses under **any marker that is present**, whatever its day, so a lapsed marker the sweep has not yet
+  removed still protects; after physical removal a POST under the code succeeds again. The phone discards the
+  code at the wipe and mints a new one, so nothing legitimate waits on it. Two days is the margin this repo
+  already relies on for withdrawals; it is **not a proof**. The client's 8 s timeout stops the client waiting, not
+  a request already out; what bounds a stray request is that reports have no queue or retry
+  [source: `src/lib/progress.ts`], the service worker handles GET only, and delivery and execution delays are
+  seconds to minutes. A request delayed past the window can still recreate a record;
+- **it does not make Forget me browser-wide, and the client is unchanged.** Another open tab can still write its
+  in-memory state back to the phone after a wipe, and its next report mints a **new** install code and starts a
+  new record. That is unresolved [source, not tested here] and needs its own decision. The 07F recovery keys,
+  `askedAt` and the per-page sequence limit are untouched; with the marker, a recovery key erased by another
+  tab's older success no longer leaves a record behind, but it can still be erased.
+
+**Absent-record DELETE, and its cost.** A valid DELETE writes the marker even when nothing is stored, so a first
+report still on its way is refused. Bound: the existing `progress-forget` breaker (600 an hour, all callers) is
+the only way to create a marker; each is one tiny key, so at the cap tens of thousands of keys across the
+retention window. What it enables is blocking counts for a guessed install code for that long (about one chance
+in 10 million per guess against a given six-character code); a holder of a code can already delete its record,
+and the same cap already lets a flood refuse real Forget me requests. The introduction route accepts the same
+cost. Each DELETE costs one more write; each report two more strong lists.
+
+**Files.** `netlify/functions/progress.ts` (the marker helpers, DELETE, POST), `netlify/functions/sweep.ts`
+(`sweepProgressClosures`; `Swept` gains `stranded` and `closures`), `tests/progress-closure.test.ts` (new, 37),
+`tests/invariants/forget-ordering.test.ts` (rewritten for the closed-code premise, plus single-tab, absent-record
+and older-build cases; 12), `tests/invariants/delete-means-deleted.test.ts` (the marker named as allowed residue
+and its shape asserted), `tests/sweep-function.test.ts` (one exact-shape expectation), `tests/support/blobs.ts`
+(a one-shot `stale` read), `docs/PRIVACY.md`, `OPS.md`, `TESTING.md`, this file and the handoff. **Not touched:**
+any client code, the cleaners' existing read-then-delete of legitimately renewed records (a separate narrow race,
+out of scope), the evaluation rules, any dependency.
+
+**Evidence, by kind.**
+- *Source:* the cleaners delete unconditionally after a read; Blobs 11.0.3 has no conditional delete; the
+  introduction pattern and its tests (`introduce-residue`, `introduce-race`, 18 re-run and passing).
+- *Executed, local real handlers over the failing, racing double:* the success paths, the failure paths (marker
+  write, record delete after the marker, lookup before and after a report's write, compensating delete,
+  sweep record-delete: each answers truthfully and keeps the marker), the interleavings at every call of a POST,
+  UTC boundaries and the earliest eligible removal, a fresh dated marker arriving during removal of an older one,
+  both cleaners running while a DELETE lands (the marker survives, the record is gone, the late report is
+  refused), a read that missed the record, a record stranded under a marker resolved by a retry, a refused
+  report and the sweep; the existing cross-tab reproduction now ends with no record; an older build's Forget me
+  (a hybrid test, its `forget.ts` over current helpers) is protected too.
+- *Mutations, 19, each applied to the server source:* **all 19 failed a test.** Two (the sweep, and the
+  DELETE, deleting a record only if their read found one) first survived: the in-memory double is strongly
+  consistent, so a read never misses a record. A one-shot `stale` read was added to the double and two tests
+  written for exactly the requirement that a read which missed a record must not leave it behind; both now fail
+  those mutations. A third kill was incidental (a test that counted the DELETE's own delete calls); it was
+  re-armed to be independent of them. The same-key failure is documented here and in the code, **not** asserted:
+  no test requires the existing cleaners to stay unsafe, so improving them breaks nothing in this repair; one
+  test asserts only that they never open the marker store.
+- *Not executed:* anything against the deployed functions. Backend-intercepted browser checks do not verify a
+  server change and were not run. **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (129 files,
+  1999 passed, 2 skipped: the live blocks) and `npm run build` exit 0; `GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE`
+  unset and no API key.
+
+**Evaluation.** The repository's classifier, run on the actual diff of this slice (12 files: the two server
+functions, the tests and the test double, and five docs): guide **not required**, judgment **not required**;
+neither `progress.ts` nor `sweep.ts` is on either suite's list. The accumulated branch against `main` still
+says **required** for both, so a skipped or missing live evaluation is not a pass. No rule, list or file
+location was changed to alter either answer; live evaluation stays disabled and unfunded and no paid call was
+made. Running the classifier rewrites the git-ignored `tests/*/results/outcome.json`.
+
+**Rollout and rollback (not decided here).** Server-only and compatible with every client: DELETE keeps its
+shapes (`200`, `404`, `503`); a report can now be answered `410`, which clients ignore. `progress.ts` is
+identical to production today; **`sweep.ts` and `health.ts` are not**, so a production release would be a small
+extract that adds the closure sweep to production's `sweep.ts`, and the two functions must ship together or
+markers are never cleaned. The report path adds strong lists on a store of its own; the cap already reads a
+strong store on every capped call, but whether strong reads succeed in production cannot be verified from here
+(the limiter returns "unknown" and its callers decide), so a first deploy should watch `fail.progress` in
+`/health`: if strong reads were failing, every report would answer `503` and counting would stop silently.
+**Rolling back removes the protection and can allow recreation:** the old handler ignores the marker store, so a
+late report can make a deleted install's record again; markers already written become orphans (an id and a day)
+until a version that knows them has swept; records and clients are not corrupted. Deployment/version evidence
+(`verify`, the Netlify preview, `deployed.yml`, `/version.json`) shows the code shipped; it does not exercise
+progress or the marker store, and only a synthetic deployed write could, which needs separate authorization and
+was not made. Release timing is for the founder, after review.
+
+**Still open, unchanged.** The other-tab autosave and new-install behaviour above; the required live
+evaluations for the accumulated branch (unfunded, not run); the older-build residue and loss-before-capture
+limits (Part 35); the server-side races in Part 34 other than this one; the cleaners' pre-existing narrow race.
+The branch is not release-ready and the release remains paused. No PR, merge to main, deployment, synthetic
+deployed write, paid call, outreach or participant-data access.

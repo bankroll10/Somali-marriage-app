@@ -173,6 +173,7 @@ names and errors, never a body. Fonts are self-hosted (`src/index.css`).
 | `ops` | `day/…`, `sizes/…`, `last/…` | Numbers | Routes; `/health`; export; sweep | 35 days; `last/…` is overwritten | Sweep | — |
 | `introductions` | `<code>` | `contact`, `firstName?`, `gender`, `scene`, `country`, `reach`, `adult` (true; absent on records from before 2026-09-27's batch), `at` | introduce `POST`, under the code the phone minted (or one minted here for an older client). The same request under the same code is answered, never written twice; a different one under a code that exists is refused, never written over | **Scheduled to go on `removeOn`: the Sunday on or before `at` + 180 days** (decision 32; `docs/BATCH-01-PLAN.md` D3), the day the phone's receipt and the founder's list name; sooner if its owner takes it off, or asks the founder to. Never renewed — a retry returns the original `at` | `DELETE /introduce?code=`; Forget me; the founder, by hand; the sweep, on `removeOn` and any later run | ✓ |
 | `introductions` | `withdrawn/<code>/<day>` | `{at}`: the same day, nobody. One immutable key per code per day it was withdrawn on; never rewritten | introduce `DELETE`, before it deletes the record (`onlyIfNew`; a second withdrawal the same day is the same key) | **At least two full days** by the day in its key, then until the first weekly sweep — two to eight days in practice, longer if a run fails or a record is still under its code. While any marker stands under a code, a record under it is excluded from the founder's list and counts, refused on retry and deleted by the sweep on any run | The sweep, after the record under the code is gone, by the key's own day. Blobs has no conditional delete, so no marker is ever read and then deleted: a fresh withdrawal is a different key, which removing an old one cannot touch | — |
+| `progress-closed` | `<install>/<day>` | `{at}`: the day, nobody — no step, fact, city, side or contact. One immutable key per install code per day it was forgotten on; never rewritten | progress `DELETE`, **before** it deletes the record, **whether or not a record exists** (`onlyIfNew`; a second forget the same day is the same key). Opened strong | **At least two full days** by the day in its key, then until the first weekly sweep: usually two to about nine days, with **no maximum**: a sweep that fails keeps the marker (and a record a failed delete left under it) until a run succeeds. While any marker stands under a code a progress `POST` under it is refused (410), whatever the marker's day; once it is removed a `POST` under that code succeeds again | The sweep, after any record under the code is deleted, by the key's own day: it never reads a marker and then deletes it, since Blobs has no conditional delete. Nothing that reads, counts, exports or cleans step counts opens this store | — |
 | `cohort`, `contacts`, `vouches` | any | The door's entries and index; ways to reach people who joined the door 2026-09-08 to 2026-09-24; relatives' names and phones from the vouch | Nothing since 2026-09-24 | **Held** until the founder decides their retention by hand (`docs/DECISIONS.md` decision 21). From 2026-09-24 05:35 to 2026-09-27 13:49 UTC the deployed sweep was written to delete every key in them on each run; its one `@weekly` slot in that window was 2026-09-27 00:00 UTC, and whether that run executed, and what if anything it deleted, is unverified: no session has read the function's log or the stores (`docs/BATCH-01-PLAN.md`, finding 4) | A person's own Forget me (`DELETE /keep?code=`); the founder, by hand. Never the sweep | — |
 
 `gone/<code>` stores its window's end as a full timestamp: the one stored
@@ -233,6 +234,30 @@ for a year, then a second unresolved forget replaced the first's code.
 | 2a | Delete what the door and the vouch left under her code: `contacts/<code>`; the `cohort` entry her index names, and the index; her vouch, its ask and the token that pointed at it (`forgetLegacy`) | Every delete lands on a key that may not exist; a retry does them again |
 | 3 | Delete `once/<id>`, then the map, **last**: it names her couple sheet | A retry after the map has gone, with the code closed as forgotten, answers `{forgotten: true}` |
 
+**Step counts (`DELETE /progress?id=`).** Until BATCH-07H this was the one
+kind of record a delete did not close: a report already on its way, or sent by
+another open tab in the moments before the phone was wiped, landed afterwards
+and made the record again under a code the phone no longer held. Now the
+`DELETE` writes `<install>/<day>` to the `progress-closed` store first,
+**whether or not a record exists**, then deletes the record whatever its own
+read said, and answers as it always did (`200 {forgotten: true}`, or `404
+{error: 'not_found'}` when nothing was there). If the marker cannot be written
+nothing is deleted and the answer is `503`, never a confirmation. A report
+checks for a marker before it writes (410, nothing written) and again after,
+and a write found under a marker is deleted by the report that made it
+(`netlify/functions/progress.ts`, `docs/DECISIONS.md` Part 37). **The guarantee
+is exactly this, and no more:** the two stores are not a transaction. A
+function that stops after its write, or whose second look or compensating
+delete fails, can leave a record under a marker until a retry of the `DELETE`,
+a later refused report or the weekly sweep removes it; when the second look
+cannot be made the report answers `503` and does not delete what it wrote,
+because it cannot tell a closed code from an open one. The marker holds a day
+and nothing else, lives at least two full days and usually two to about nine,
+and has **no maximum** if the sweep fails; after it is removed the code is
+unprotected again. It does not make Forget me browser-wide: another open tab
+can still write its state back to the phone, and a report from it mints a new
+install code (unresolved).
+
 **Tombstones.** A forgotten or moved code answers **410** with which, from
 `GET`, `POST` and `PUT`, even if the map is still there, and never names a
 new code. `mintFree` treats a tombstoned code, or a couple code with a
@@ -240,8 +265,10 @@ new code. `mintFree` treats a tombstoned code, or a couple code with a
 `tests/invariants/delete-means-deleted.test.ts`: the tombstone; her report,
 since a withdrawal under someone's eye is the case this exists for
 (`docs/SECURITY.md` O1); the joint tally, with no code (Trust: "The one thing
-it cannot reach"); the sheet's `gone/` window, a date; and, for at least two
-days and until the weekly sweep after, the introduction list's
+it cannot reach"); the sheet's `gone/` window, a date; for at least two
+days and until the weekly sweep after, the step count's
+`progress-closed/<install>/<day>` marker, a day under her install code (below);
+and, for the same time, the introduction list's
 `withdrawn/<code>/<day>` marker, a day under her code, which is what stops a
 request still on its way from landing after she asked — and what keeps a
 record a failed delete left under the code off the founder's list until the
@@ -255,7 +282,7 @@ rolled back if no tombstone yet, else finished; (2) maps, tombstones and once
 keys past `expiresAt`, only if unchanged since read (`deleteIfUnchanged`);
 (3) couple sheets past 90 days, retired, and ended `gone/` windows; (4) step
 counts past their year, unless `married`; (5) `ops` counts past 35 days. It
-answers `{swept: {maps, couples, progress, journals, introductions, withdrawn, markers, errors}, at}`, never
+answers `{swept: {maps, couples, progress, journals, introductions, withdrawn, markers, stranded, closures, errors}, at}`, never
 touches reports, tallies or limits, and needs no key. (6) Names on the
 introduction list on or after their `removeOn` — the Sunday on or before
 their 180th day, the day the receipt and the founder's list name — and any
@@ -266,7 +293,13 @@ own key is at least two full days behind the run's. Blobs has no conditional
 delete, so the sweep never reads a marker and then deletes it: a withdrawal
 that lands while it runs is a key of its own, which nothing in the run
 names. A record delete that fails keeps its marker, so the next run finds it
-again.
+again. (7) Step counts the same way, in `progress-closed`: for each
+`<install>/<day>` marker, any record still under the install code is deleted
+without an existence check (a read that missed it must not leave it behind),
+and only then the marker, once the day in its own key is at least two full
+days behind the run's (`stranded` and `closures` in the answer). A record
+delete that fails keeps its marker. The cleaners of expired step counts above
+never open this store.
 A name is never held past the day the receipt names by design; a failed
 Sunday is caught by `/health` and the name goes the Sunday after.
 **It never opens `cohort`, `contacts` or `vouches`** (`HELD_STORES`): from

@@ -5,6 +5,8 @@ import { isGone, retire } from '../shared/sheet'
 import { DAY_MS, deleteIfUnchanged, ended, isBookkeeping, isMoving, lapsed, type Journal } from '../shared/integrity'
 import { finishMove, rollBackMove } from './keep'
 import { WITHDRAWN, WITHDRAWN_DAYS, markerCode, markerDay, removeOn } from './introduce'
+import { CLOSED_DAYS, closedDay, closedId, closedStore } from './progress'
+import { CODE } from '../shared/code'
 
 /**
  * The weekly sweep — what makes every stated lifetime true without a person
@@ -70,11 +72,15 @@ export interface Swept {
   withdrawn: number
   /** Withdrawal markers on the introduction list whose own day is at least two full days behind, with nothing left under their code. */
   markers: number
+  /** Step counts still under a closure marker because a delete failed: removed now. */
+  stranded: number
+  /** Closure markers on step counts whose own day is at least two full days behind, with nothing left under their code. */
+  closures: number
   /** Records that could not be read or removed this week. Everything else still went; these are tried again. */
   errors: number
 }
 
-const empty = (): Swept => ({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, withdrawn: 0, markers: 0, errors: 0 })
+const empty = (): Swept => ({ maps: 0, couples: 0, progress: 0, journals: 0, introductions: 0, withdrawn: 0, markers: 0, stranded: 0, closures: 0, errors: 0 })
 
 /**
  * Stores the sweep never opens: the door's and the vouch's, held until the
@@ -236,6 +242,49 @@ export async function sweepIntroductions(introductions: Store, now = Date.now())
   return out
 }
 
+/**
+ * Step counts: a record still under a closure marker, then the marker.
+ *
+ * Forgetting an install code writes `<install>/<day>` to its own store before
+ * deleting the record (netlify/functions/progress.ts), so that a report still
+ * on its way is refused. A record can sit under a marker only because a delete
+ * or a compensating delete failed after the forgetting was answered; it is
+ * deleted on any run, whatever its own day, and **only then** is the marker
+ * considered. The marker goes only once the day in its own key is at least
+ * CLOSED_DAYS behind this run's, so a failed delete keeps the marker, and with
+ * it the protection and the evidence, for the next run.
+ *
+ * Blobs has no conditional delete, so this never decides about a marker by
+ * reading it and then deleting it: the day is in the key, the key is never
+ * rewritten, and a forgetting that lands while this runs writes a key of its own
+ * that no branch here names (tests/progress-closure.test.ts). The record is
+ * deleted unconditionally, without an existence check: a stale read must not
+ * leave one behind, and under a marker any record is illegitimate. The
+ * existing cleaners of expired step counts are not involved: they never open
+ * the marker store.
+ */
+export async function sweepProgressClosures(progress: Store, closed: Store, now = Date.now()) {
+  const out = { stranded: 0, closures: 0, errors: 0 }
+  const markersBefore = day(now - CLOSED_DAYS * DAY_MS)
+  const keys = (await closed.list()).blobs.map((b) => b.key)
+  for (const key of keys) {
+    await each(out, async () => {
+      const id = closedId(key)
+      // A key whose code this route could not have written has nothing under it to delete.
+      if (CODE.test(id)) {
+        const had = !!(await progress.getMetadata(id))
+        await progress.delete(id)
+        if (had) out.stranded += 1
+      }
+      const at = closedDay(key)
+      if (at && at >= markersBefore) return
+      await closed.delete(key)
+      out.closures += 1
+    })
+  }
+  return out
+}
+
 /** The `at` inside a stored record's text, or undefined when there is none to read. */
 function dayIn(raw: string): unknown {
   try {
@@ -250,6 +299,7 @@ export async function sweep(now = Date.now()): Promise<Swept> {
   const swept = await sweepLapsed(getStore('maps'), now)
   const rest = await sweepExpired(getStore('couples'), getStore('progress'), now)
   const names = await sweepIntroductions(getStore({ name: 'introductions', consistency: 'strong' }), now)
+  const closures = await sweepProgressClosures(getStore('progress'), closedStore(), now)
   return {
     ...swept,
     couples: rest.couples,
@@ -257,7 +307,9 @@ export async function sweep(now = Date.now()): Promise<Swept> {
     introductions: names.introductions,
     withdrawn: names.withdrawn,
     markers: names.markers,
-    errors: swept.errors + rest.errors + names.errors,
+    stranded: closures.stranded,
+    closures: closures.closures,
+    errors: swept.errors + rest.errors + names.errors + closures.errors,
   }
 }
 
@@ -276,7 +328,7 @@ export default async function handler(_req: Request) {
     // So /health can tell a sweep that ran from one that stopped (docs/OPS.md).
     await mark('sweep', { errors: swept.errors })
     console.log(
-      `[niyyah] sweep: ${swept.maps} maps, ${swept.couples} couples, ${swept.progress} step counts, ${swept.journals} moves, ${swept.introductions} names on their day, ${swept.withdrawn} names left under a withdrawal, ${swept.markers} withdrawal markers, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
+      `[niyyah] sweep: ${swept.maps} maps, ${swept.couples} couples, ${swept.progress} step counts, ${swept.journals} moves, ${swept.introductions} names on their day, ${swept.withdrawn} names left under a withdrawal, ${swept.markers} withdrawal markers, ${swept.stranded} step counts left under a closure marker, ${swept.closures} closure markers, ${ops} old ops counts, ${swept.errors} errors on ${day()}`,
     )
     return Response.json({ swept, at: day() })
   } catch (err) {

@@ -1,6 +1,35 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from)
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from); BATCH-07H done (a forgotten step count cannot be made again for a while: server-side closure markers)
 
-## Status as of the latest session (2026-10-04, BATCH-07G)
+## Status as of the latest session (2026-10-04, BATCH-07H)
+
+- **BATCH-07H (`docs/DECISIONS.md` Part 37): the cross-tab progress recovery loss is addressed on the server.**
+  A progress DELETE now writes `<install>/<day>` to a new strong store, `progress-closed` (a day and nothing
+  else), **before** it deletes the record, **whether or not a record exists**; a report refuses under any marker
+  and checks again after its write. Marker creation failure means `503`, never a confirmation. A new sweep
+  step deletes any record under a marker, then the marker by the day in its own key (never read-then-delete).
+  `tally`, `sweepExpired`, `export`, `health` and `restore` never open the store. **No client change.**
+- **The guarantee, stated exactly:** the two stores are **not** transactional. A function that stops after its
+  write, or whose second look or compensating delete fails, can leave a record under a marker until a retry of
+  the DELETE, a later refused report or the weekly sweep removes it. Protection lasts at least two full days
+  and usually two to about nine, with **no maximum** if the sweep fails; after removal a report succeeds again.
+- **Evidence:** `tests/progress-closure.test.ts` (new, 37), `forget-ordering` (12, rewritten), the success and
+  failure paths, both cleaners racing a DELETE, UTC boundaries, an older build's Forget me; **19 of 19
+  mutations failed a test** (two first survived because the double could not miss a read; a stale-read helper
+  and two tests were added). `npm run verify` exit 0 (129 files, 1999 passed, 2 skipped), `npm run build` exit 0.
+  No browser suite (server-only), no deployed write.
+- **Still open:** (1) **another open tab can still write its state back to the phone after a wipe, and its
+  next report mints a new install code** (unresolved; this change does not make Forget me browser-wide);
+  (2) the **required live evaluations** for the accumulated branch (unfunded, not run); (3) the older-build
+  residue and loss-before-capture limits (Part 35); (4) the server-side races in Part 34 other than this one;
+  (5) rollout is undecided: `sweep.ts` and `health.ts` differ from production, so a release is a small extract
+  that must ship `progress.ts` and the closure sweep together; **rolling back removes the protection and can
+  allow recreation**; strong reads in production cannot be verified from here (watch `fail.progress`); only a
+  synthetic deployed write (not made, needs authorization) would exercise the real store. **The branch is not
+  release-ready and the release remains paused.** Production is at `b53429e`.
+- **Next:** the other-tab autosave and new-install question; funding the live evaluations; release timing for
+  this fix after review.
+
+## Previous status (2026-10-04, BATCH-07G)
 
 - **BATCH-07G (`docs/DECISIONS.md` Part 36): finding B is closed, and only B.** The receipt no longer derives
   a saved request's location or status from the current profile: `awaySaved`, its prop and its conditional
