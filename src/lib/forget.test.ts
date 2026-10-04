@@ -313,7 +313,13 @@ describe('a completed retry removes only what it confirmed (G2)', () => {
     expect(heldCodes()).toEqual([A, B].sort())
     release(removed())
     expect(await retry).toBe(true)
-    expect(heldCodes()).toEqual([B])
+    // A was confirmed by the older request, but the Forget me asked about A again and that newer ask failed: the
+    // older answer does not settle it (tests/invariants/forget-ordering.test.ts). For the introduction list the
+    // marker makes that one redundant request; the client does not tell kinds apart, so A stays until the next ask.
+    expect(heldCodes()).toEqual([A, B].sort())
+    vi.stubGlobal('fetch', vi.fn(async () => removed()))
+    expect(await retryPendingForget()).toBe(true)
+    expect(heldCodes()).toEqual([])
   })
 
   it('a map code added while it was in flight stays, and so does an introduction code', async () => {
@@ -325,7 +331,8 @@ describe('a completed retry removes only what it confirmed (G2)', () => {
     await forgetMe()
     release(removed())
     expect(await retry).toBe(true)
-    expect(recoveryOf(store)).toEqual({ maps: ['ACDEFG'], installs: [], pairs: [], intros: [B] })
+    // As above: the newer, failed ask about A keeps A until the next ask; the map code and B stay as before.
+    expect(recoveryOf(store)).toEqual({ maps: ['ACDEFG'], installs: [], pairs: [], intros: [A, B].sort() })
   })
 
   it('a retry that confirms nothing leaves a record that changed meanwhile as it found it', async () => {

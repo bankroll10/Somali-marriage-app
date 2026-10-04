@@ -77,7 +77,7 @@ their neighbours had not hollowed them out.
 | | | The earlier build's `intro` / `introPending` not read; the page copy not read | Red (5; 4) |
 | | | `intro` always true; `introHeld` omitted; the kept flag always true; the introduction named in "could not reach" | Red (21; 19; 3; 2) |
 | | | `withdrawInterest` clears whatever the answer | Red (90) |
-| Forget me confirms the map, the step count and the eleven only by their handlers' answers | `forget-confirmation`, `forget-pending-compat`, `forget-recovery-store`, `forget-bound`, `forget`, `ui/forget-introduction` | Any 2xx counts as removed | Red (49) |
+| Forget me confirms the map, the step count and the eleven only by their handlers' answers | `forget-confirmation`, `forget-pending-compat`, `forget-recovery-store`, `forget-ordering`, `forget-bound`, `forget`, `ui/forget-introduction` | Any 2xx counts as removed | Red (49) |
 | | | Any 404 counts as nothing; a 404 without its body; a 202 accepted | Red (9; 6; 3) |
 | | | The eleven read by keep's field | Red (15) |
 | | | The body read outside the deadline; timer never cleared; no abort; the reader called for a late response | Red (8; 3; 2; 1) |
@@ -149,6 +149,11 @@ What each suite holds beyond its mutation:
   of `npm test`). They show the recovery keys unchanged through a failed forget, a falsely confirmed retry,
   the old wipe and a rewrite, and assert as limitations what an older build loses before this build has
   captured it.
+- **`forget-ordering`.** An older request that succeeds late against a newer one for the same code that is
+  unresolved, with the real progress and keep handlers over the in-memory store (progress writes no marker, so
+  a report can recreate the record; keep's tombstone answers 410): both response orders, a newer launch
+  retry, a newer confirmation resolving older failures in both orders, storage-denied page memory, and, as a
+  stated limitation, a second tab whose sequence numbers are separate.
 - **`forget-recovery-store`.** The store on the new build alone: an older tab rewriting the record during
   an import, the `storage` event (old and new value, a clear, another key), the older key left after a
   confirmed deletion (zero repeat requests on the same page; one per launch after a reload), a confirmed

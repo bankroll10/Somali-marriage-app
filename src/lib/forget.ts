@@ -226,6 +226,16 @@ let mirror: Held = none()
 const confirmedAt = new Map<string, number>()
 let sequence = 0
 
+/**
+ * For each code, the sequence number of the newest request this page has sent.
+ * A confirmation settles a code only when no newer request for it is still
+ * unresolved: an older success that arrives late says nothing about a newer
+ * attempt that failed or is still in flight (the progress endpoint writes no
+ * marker, so a record can exist again after the older deletion). Page memory
+ * only, per page; tabs do not share it.
+ */
+const askedAt = new Map<string, number>()
+
 /** The codes this page wrote a recovery key for and has not settled: its own writes, known exactly, never inferred from a scan. */
 const added = new Set<string>()
 
@@ -239,6 +249,7 @@ const splitKey = (k: string): [Kind, string] => {
 export function resetForgetMirror(): void {
   mirror = none()
   confirmedAt.clear()
+  askedAt.clear()
   added.clear()
 }
 
@@ -426,11 +437,16 @@ type Landed = Record<Kind, Map<string, { landed: boolean; seq: number }>>
  * A strict, recognised answer settled this code: remove its recovery key (and
  * the page's copy) and remember which request settled it. Only a confirmation
  * does this, and it removes exactly that code; a removal that storage refuses
- * leaves the key, and the code is simply asked again.
+ * leaves the key, and the code is simply asked again. An answer for an *older*
+ * request does not settle a code that a *newer* request has not confirmed: the
+ * newer attempt's own outcome does, whichever order the two answers arrive in.
  */
 function settle(kind: Kind, code: string, seq: number): void {
   const k = keyOf(kind, code)
   confirmedAt.set(k, Math.max(confirmedAt.get(k) ?? 0, seq))
+  // A newer request for this code has not been confirmed (it failed, or is in
+  // flight): this older answer does not settle it. Its own outcome will.
+  if ((askedAt.get(k) ?? 0) > confirmedAt.get(k)!) return
   mirror[kind] = mirror[kind].filter((c) => c !== code)
   added.delete(k)
   try {
@@ -447,6 +463,7 @@ async function deleteAll(p: Held): Promise<Landed> {
     KINDS.flatMap((kind) =>
       p[kind].map(async (code) => {
         const seq = ++sequence
+        askedAt.set(keyOf(kind, code), seq)
         const landed = await ask(kind, code)
         out[kind].set(code, { landed, seq })
         if (landed) settle(kind, code, seq)

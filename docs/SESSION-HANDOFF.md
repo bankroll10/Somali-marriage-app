@@ -14,9 +14,15 @@
   keeps only codes" (the old sentence could be false with preserved older content on the phone). New
   sentence only when the phone cannot list its storage: "We could not check whether anything from an
   earlier attempt is still waiting on this phone."; the page is not replaced then.
+- **Ordering check (same day):** `settle()` removed a code's key whatever newer requests were unresolved. For
+  the progress endpoint (no marker; a report in flight recreates the record) that lost a recovery that
+  mattered, reproduced with the real handlers. Corrected in `settle()` only (`askedAt`): an older success does
+  not settle a code a newer request has not confirmed; a newer confirmation still resolves older failures, in
+  either order, and with storage denied. Other kinds pay one redundant request. Two G2 expectations were
+  updated on purpose. **Cross-tab: not solved** (per-page sequences); a limitation test records it.
 - **Evidence:** hybrid tests (old `forget.ts` over current helpers) for `261d055` and `69f8b92`; mutations;
   and the **real old bundles** in a browser (below, `docs/DECISIONS.md` Part 35).
-- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (126 files, 1942 passed, 2 skipped);
+- **Verification:** `npm run verify > log 2>&1; echo $?` exit 0 (126 files, 1942 passed, 2 skipped; after the ordering correction 127 files, 1951 passed, 2 skipped);
   `npm run build` exit 0; classifier on the slice's 24 files: guide **not required**, judgment **not
   required** (the accumulated branch still requires both); `GUIDE_EVAL_LIVE`, `JUDGMENT_LIVE` unset, no API
   key. **Real old bundles in a browser** (`261d055`, `69f8b92`, 390 and 320 wide): recovery keys unchanged

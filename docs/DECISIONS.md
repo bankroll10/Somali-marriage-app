@@ -5829,6 +5829,47 @@ is preserved verbatim and is outside it.
   it); the old error screen was reached by serving a lazy chunk that throws, a stand-in for a real render
   error; local-handler evidence, not the deployed functions; one browser; no screen reader.
 
+**Ordering check, 2026-10-04: an older success must not erase a newer unresolved attempt.** Found by
+reading `settle()`: `capture()` compared sequence numbers but `settle()` removed the key, the page copy and
+the page's own-write entry unconditionally. Reproduced first (`tests/invariants/forget-ordering.test.ts`, the
+real handlers over the in-memory store, synthetic): 4 of the 9 tests failed on `e01827b`.
+
+| Question | Finding |
+|---|---|
+| Can a record exist after the older deletion while the newer one is unconfirmed? | **Progress: yes.** Its DELETE writes no marker (`netlify/functions/progress.ts`), and a report already on its way recreates the record under the same id (`onlyIfNew`). The test holds the older success, lets that report land, fails the newer attempt, then releases the older answer: before the correction the key was gone, the record was on the server and nothing named it |
+| Keep, couple, introduction | **No: a redundant request.** Keep's DELETE leaves a tombstone and a later `POST` answers 410 (tested); couple and the introduction list close their code the same way (`gone/`, the withdrawal marker). A newer unconfirmed ask there is for something already gone |
+| Which kinds does the correction cover? | All four. The client does not tell kinds apart, and encoding the server's tombstones in the client would be brittle. The price is **one redundant request** for the other three kinds |
+
+**The correction (`settle()` only, plus one page-memory map).** `askedAt` holds, per code, the newest
+sequence number this page has sent. A confirmation still records itself in `confirmedAt`, but removes the
+key, the page copy and the own-write entry only when no newer request for that code is unconfirmed
+(`askedAt <= confirmedAt`). If a newer request is still in flight, or failed, the older answer does not
+settle the code; the newer request's own outcome does (a confirmation removes it; a failure that captures
+keeps it; a retry that fails leaves the key it relied on). `capture()` and the import rule are unchanged.
+
+**Both orders and storage-denied memory, tested.** Older success held, newer fails, older released: kept.
+Older success first, newer fails after: kept. A newer attempt that is itself a launch retry and fails: kept.
+A newer confirmation still resolves older failures in both orders: the older fails first and is kept, then
+the newer is confirmed: nothing left; the newer is confirmed first and the older fails later: nothing
+brought back. With storage refusing the recovery keys, the newer unresolved attempt stays in page memory
+through the older success, `kept` is false, and once storage works the next trigger persists it and a real
+answer resolves it. **Mutations (4), all failed a test:** the guard removed (4 failed), always skipping (38,
+a newer confirmation could no longer resolve), `askedAt` never recorded (4), `>=` instead of `>` (38).
+
+**An existing expectation changed, on purpose.** Two G2 tests in `src/lib/forget.test.ts` (an introduction
+code, and a map code with an introduction code, added while a retry was in flight) had asserted that the
+older retry's success removes A although the Forget me beside it asked about A again and that ask failed.
+They now assert A stays until the next ask and is then resolved. For the introduction list this is the
+redundant request above, not a loss. The real-bundle browser flow was re-run on the corrected build (4 runs,
+the same results).
+
+**Cross-tab limits, stated separately.** Sequence numbers and `askedAt` are per page. Another tab's older
+success has no knowledge of this tab's newer failure and still removes the key this tab wrote; the same
+holds for a tab that never saw the request. A test asserts that as a **limitation** (two module instances
+over one storage), it is not fixed here, and no coordination between tabs exists to build on. The earlier
+limits stand: no exactly-once across tabs, a repeated legacy retry is possible, and storage events reach only
+open pages.
+
 **What this does not repair, and does not claim.** The loss before capture above; the older record stays as
 residue and can cause repeat requests; storage events reach only open pages; a scan can under-report
 another tab's key once (the key persists, and the next trigger asks it); rollback leaves captured codes
@@ -5847,7 +5888,8 @@ when nothing is unchecked), `src/components/ForgetMe.tsx` (the two sentences abo
 `introduce.ts`, any `netlify/` file.
 
 **Verification.** `npm run verify > log 2>&1; echo $?` exit 0 (126 files, 1942 passed, 2 skipped: the live
-blocks) and `npm run build` exit 0, both read by exit code, not by a grep of the output;
+blocks) and `npm run build` exit 0, both read by exit code, not by a grep of the output; **re-run after the
+ordering correction: exit 0 (127 files, 1951 passed, 2 skipped) and `npm run build` exit 0**;
 `GUIDE_EVAL_LIVE` and `JUDGMENT_LIVE` unset and no API key in the environment.
 
 **Evaluation.** The repository's classifier, run on the actual diff of this slice (24 files: the three
