@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useLayoutEffect, useRef } from 'react'
-import { useFocusHeading } from './hooks/useFocusHeading'
+import { FocusHeading } from './hooks/useFocusHeading'
 import Welcome from './components/Welcome'
 import type { Gender } from './types'
 import { pathFor, type Entry } from './lib/entry'
@@ -65,12 +65,12 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
   }, [n.screen])
 
   // A sighted user sees the whole new screen at once; a keyboard or
-  // screen-reader user is told nothing changed unless focus moves — it
-  // otherwise stays wherever it was, on a now-unmounted element, defaulting
-  // to <body> (docs/DESIGN.md). Every screen has exactly one h1 (or, failing
-  // that, its topmost heading), so that is what receives focus.
+  // screen-reader user is told nothing changed unless focus moves. Every screen
+  // has exactly one h1 (or, failing that, its topmost heading), so that is
+  // what receives focus. The focusing happens in <FocusHeading/>, rendered
+  // inside the Suspense boundary below, so it runs when the screen actually
+  // appears — not while a lazy chunk is still loading (src/hooks/useFocusHeading.ts).
   const screenRef = useRef<HTMLDivElement>(null)
-  useFocusHeading(screenRef, n.screen)
 
   // The address bar follows the two tools that have an address of their own
   // (src/data/tools.ts), and nothing else. Always replaceState, never push: no
@@ -99,6 +99,7 @@ export default function App({ entry = null }: { entry?: Entry | null }) {
     <div key={n.screen} ref={screenRef} className="animate-screen">
       <Suspense fallback={<div className="min-h-dvh bg-cream" />}>
         <AppScreen n={n} />
+        <FocusHeading within={screenRef} />
       </Suspense>
     </div>
   )

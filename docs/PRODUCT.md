@@ -108,7 +108,7 @@ Beside them: Report a concern (`netlify/functions/safety.ts`, read weekly by
 the founder) and a help line picked by her country. None of it is a feed, a
 score or a ritual.
 
-**Getting in.** Welcome's two doors: "I'm looking for someone serious" →
+**Getting in.** Welcome's two doors ("See how introductions work", "Choose where to start"): "I'm looking for someone serious" →
 the introduction list; "I'm already talking to someone" → a chooser of three
 (`src/components/Talking.tsx`): the read, the eleven, the family words. Under
 them, "Not sure? Start where you are" → Identity (gender, first name, 18+) →
@@ -189,8 +189,10 @@ Part 15). It is kept: it measures how people decide, not which way.
 
 **The test for any screen:** does it help someone find out earlier, and does it
 end in something they can say? What it changed:
-- **Welcome's lead promises the routing, not the map**: a read, the eleven, or
-  two minutes on where you stand. The read is in the first breath.
+- **Welcome's lead promises the routing, not the map.** Since release
+  candidate R1 (2026-10-04, `docs/DECISIONS.md`) it says what Niyyah is for and offers two
+  doors, each naming its action; it makes no completion-time claim and no
+  blanket privacy claim.
 - **The three marriage-breakers moved into the map**: `household`, `work` and
   `money-home` joined chapter two, and thirteen questions became sixteen
   (`src/data/intake.ts`); the eleven shows "You told your map…" beside them. If

@@ -4227,3 +4227,53 @@ red (`docs/TESTING.md`).
 **Decision 19.** This PR rests on decision 26 at its first gate, on the
 privacy and safety requirements of decisions 31–33 (the 180-day lifetime, the
 runbook), and on fixing claims that were untrue.
+
+## Release candidate R1: a clearer first screen, on production (2026-10-04)
+
+The founder wants visible improvements on joinniyyah.com while the full working branch is held. This is
+the **smallest coherent extract** of the first-screen work (the working branch's BATCH-02A, plus the one
+Talking line BATCH-04 corrected), built on `origin/main` (`cdcd187`, tree-identical to `261d055`). It is not
+a merge of any batch, and the branch's own numbering (Parts 24 and 25 there) is not used here.
+
+**What changed.** Welcome: the headline "Meet someone serious. Think marriage through." and one scoping
+sentence; each door names what the tap does ("See how introductions work", "Choose where to start") and says
+what it is ("Introductions", "Tools"); the old "two minutes away", "No one else sees it" and "Private to
+you" claims are replaced by one scoped privacy paragraph. Talking: each of the three choices says what it
+does in ordinary words, including the family-script invitation ("Word-for-word sentences to say aloud — to
+your own family, to the other person, and for when the families meet."). Restore entry ("Already have a
+code? Bring your map back") is an 11-unit-high tap target with more contrast. Focus: a programmatically
+focused heading draws no ring; the heading is focused when the lazy screen actually appears
+(`<FocusHeading/>` inside the Suspense boundary), so a keyboard user who taps a door lands on that screen's
+heading and not on `<body>`.
+
+**Every new statement was checked against production behavior** (this checkout, not the branch):
+
+| Statement | Production behavior it rests on |
+|---|---|
+| "The founder speaks with you first." / "made by hand" | `Looking.tsx`: "the founder … speaks with you first, before anyone is considered for you" |
+| "Beginning in Minneapolis–St. Paul." | unchanged from production |
+| "See how introductions work" | the door opens the same screen as before: the explanation, then the form; nothing is submitted until "Put my name down" |
+| "Understand what they have shown you … talk through the big questions before the families do … find the words for them" | the read, the eleven (`BeforeYes`), `Families` |
+| "About ninety seconds" | `Read.tsx` ("About ninety seconds"); the tools' own titles |
+| "Eleven big conversations, such as where you would live, money sent home and children"; "see which you have not had yet, and which to open first" | `eleven.ts` ids `live`, `money-home`, `children`; the result's "Not talked about yet" list and the conversation it opens |
+| "Word-for-word sentences … your own family, the other person, … the families meet" | `families.ts`: `tell-wali-online`, `send-his-people`, `open-mahr-and-living`, `families-meet` (tested) |
+| "Free, and no account." | unchanged claim |
+| "What you answer stays on your phone unless you choose to send something, such as your name for an introduction, which the founder reads, or questions for the person you are talking to." | the introduction request, the eleven sent to the other person, a kept map and a message to the Guide are each a deliberate act |
+
+**One correction to the reviewed copy.** The branch's paragraph stopped there. In production the step
+count, **Tell us which steps you reach**, is **on unless turned off** (`Trust.tsx`, `useNiyyah.ts`): the
+step, the date, her city and woman-or-man, and for a few steps one word of how it came out, under a random
+code. That is not "what you answer" and it is not in her words, but a sentence that says answers stay on the
+phone "unless you choose to send" is incomplete without it. This candidate adds: "Niyyah also counts which
+steps people reach, in one word each and never in your words; you can turn that off under Your privacy."
+Opening Niyyah is counted once, before she can reach that switch; the sentence does not claim otherwise.
+
+**Left out on purpose.** Signup, receipt and recovery behavior (BATCH-01, 02C, 07A–07F), the server
+functions, prompts, service data, dependencies and evaluation rules; the social card and metadata (so the
+share card and `OG_ALT` still read "What’s in your way?" and still match their image); the branch's other
+focus changes (BATCH-03/05) and `Families`/result changes (BATCH-04). `Looking.tsx` is **not** in this
+candidate: BATCH-02A's spacing and contrast edits to it sit on top of BATCH-01's rewrite of that screen
+and do not apply to production's.
+
+**Not verified.** Firefox, Safari, any screen reader (focus is checked by automated tests and in Chromium),
+a real device, and the deployed site.

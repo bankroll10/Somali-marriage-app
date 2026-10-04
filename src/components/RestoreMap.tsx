@@ -59,7 +59,7 @@ export default function RestoreMap() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="animate-fade mt-5 inline-flex w-fit text-sm font-medium text-cream/55 underline-offset-4 transition hover:text-cream/80 hover:underline"
+        className="animate-fade mt-5 inline-flex min-h-11 w-fit items-center text-left text-sm font-medium text-cream/65 underline-offset-4 transition hover:text-cream/85 hover:underline"
         style={{ animationDelay: '380ms' }}
       >
         Already have a code? Bring your map back
