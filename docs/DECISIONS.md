@@ -4304,7 +4304,7 @@ DELETE, a later refused report or the weekly sweep removes it. A marker lives at
 two to about nine, with **no maximum** if the sweep fails; once it is removed a report under that code
 succeeds again. Two days is a **chosen margin, not a proof**: reports have no queue or retry and the service
 worker handles GET only, so a delayed request is held up by the network or the function, but a request
-delayed past the marker can still make a record. The phone's Forget me is unchanged: another open tab can
+delayed past the marker can still make a record. The phone's Forget me flow and client logic are unchanged: another open tab can
 still write its state back, and a report from it mints a new install code. Neither is addressed here.
 
 **Evidence, all local.** `tests/progress-closure.test.ts` (37 tests) drives the real handlers over the
@@ -4325,10 +4325,27 @@ client's recovery keys and sequence limits, `health.ts`, dependencies, workflows
 writes no marker; that suite is not on production, and the paragraph needs correcting when the branch
 integrates this release.
 
+**Amendment, before merge: one user-facing disclosure (2026-10-05).** The founder asked that the person be
+told. The shared Forget me block (`src/components/ForgetMe.tsx`, shown on Trust and on the Ending) gains one
+ordinary paragraph after its introductory one and before the controls, in the same typography: "To help stop
+a delayed step report from bringing your count back, we keep its random code and the day you asked to delete
+it. This deletion marker contains no steps or answers. It normally stays for two to nine days, and longer if
+cleanup fails." It says no more than the server does (a code and a day; at least two days, usually two to
+nine, no maximum if the sweep fails). The deletion flow, its confirmation, its failure wording and the
+client's logic are unchanged, and nothing from the repair branch is imported. This is a **client change**, so
+the earlier "no client change" and "Forget me is unchanged" statements are narrowed to the flow and the logic.
+Added: `src/components/ForgetMe.tsx`, `tests/ui/forget-me.test.tsx` (the paragraph's words, its place between
+the introduction and the controls and outside any disclosure, its typography, and the flow unchanged), and
+this record and `docs/PRIVACY.md`. It was checked in a browser at 390 and 320 wide against the built bundle
+with no backend reached. The guide and judgment suites remain "not required": `ForgetMe.tsx` is not a file
+either measures, and `guide-eval.yml` does not trigger on it.
+
 **Shipping and rollback.** The handler and the sweep must ship together or markers are never cleaned; one
 deploy ships both, and `progress-closed` needs no creation step. Rolling back returns the old handler, which
 ignores the store: a late report can make a deleted step count again, and the markers already written stay
-as orphans (a code and a day) until a version that knows them sweeps. Records and clients are unaffected.
+as orphans (a code and a day) until a version that knows them sweeps. Records are unaffected. The disclosure
+ships in the same deploy, so a whole rollback removes it with the protection; reverting only the server half
+would leave a screen describing a marker that is no longer written.
 **Not verified:** the deployed store, strong reads on Netlify's production Blobs for a store opened this way
 (the limiter, `ops` and the tallies already rely on them), and whether a deploy preview shares production
 data. A deployed check needs the founder's approval first.

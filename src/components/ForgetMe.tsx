@@ -42,6 +42,11 @@ export default function ForgetMe({
         come back after this, you start as a stranger. A concern you reported stays with the
         founder until she has read it.
       </p>
+      <p className="mt-2 text-[0.88rem] leading-snug text-muted text-pretty">
+        To help stop a delayed step report from bringing your count back, we keep its random code
+        and the day you asked to delete it. This deletion marker contains no steps or answers. It
+        normally stays for two to nine days, and longer if cleanup fails.
+      </p>
       {/* The two honest limits used to sit in the middle of the paragraph
           above, which is the least likely place a person reads them. They
           are the same words, under a name that says what they are. */}

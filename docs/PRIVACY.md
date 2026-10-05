@@ -224,11 +224,14 @@ margin, not a proof: the app keeps no queue or retry for reports and its
 service worker handles `GET` only, so a request out after the wipe is held up
 by the network, not by the app, but a request delayed past the marker's life
 can still make a record, because once the marker is removed the code is
-unprotected again. This release changes only the server: the phone's Forget
-me is as it was, it does not make Forget me browser-wide (another open tab can
-still write its state back to the phone, and a report from it mints a new
-install code), and a rollback of this release returns the old behaviour
-(`docs/OPS.md`, Recovery).
+unprotected again. The phone's Forget me flow and client logic are unchanged;
+the Forget me block (`src/components/ForgetMe.tsx`, on Trust and the Ending)
+now says in one paragraph that a random code and the day are kept, that the
+marker holds no steps or answers, and that it normally stays two to nine days
+and longer if cleanup fails. It does not make Forget me browser-wide (another
+open tab can still write its state back to the phone, and a report from it
+mints a new install code), and a rollback of this release returns the old
+behaviour (`docs/OPS.md`, Recovery).
 
 **Tombstones.** A forgotten or moved code answers **410** with which, from
 `GET`, `POST` and `PUT`, even if the map is still there, and never names a
