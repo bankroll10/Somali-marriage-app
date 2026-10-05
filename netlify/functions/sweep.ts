@@ -18,6 +18,9 @@ import { CODE } from '../shared/code'
  *    was deleted only if someone happened to open it.
  *  - **A step count** past its year, unless it reached `married`, which is
  *    kept by rule (netlify/functions/progress.ts).
+ *  - **A step count left under a closure marker** is deleted, then the
+ *    marker once its own day is two full days old (`sweepProgressClosures`;
+ *    netlify/functions/progress.ts).
  *  - **A change of code abandoned part-way** is rolled back or finished
  *    (docs/PRIVACY.md).
  *  - **A name on the introduction list** on its scheduled day — the Sunday on

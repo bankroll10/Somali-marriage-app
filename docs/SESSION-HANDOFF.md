@@ -1,6 +1,39 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from); BATCH-07H done (a forgotten step count cannot be made again for a while: server-side closure markers)
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from); BATCH-07H done (a forgotten step count cannot be made again for a while: server-side closure markers); R2 (the server-side closure markers and one Forget me paragraph) is LIVE on production at 66111da and merged into this branch; the full branch remains held
 
-## Status as of the latest session (2026-10-04, BATCH-07H)
+## Status as of the latest session (2026-10-05, R2 live; main integrated into this branch)
+
+- **R2 is live at `66111da`** (PR #85; `/version.json` names it; `verify` and `deployed.yml` passed on `main`). It is
+  the smallest extract of BATCH-07H: `progress.ts` (a progress DELETE writes `<install>/<day>` to the strong
+  `progress-closed` store before it deletes, whether or not a record exists; a report refuses under any marker and
+  checks again after its write), `sweepProgressClosures` in production's own `sweep.ts`, the closure tests, and
+  **one paragraph on the shared Forget me block** telling the person that a random code and the day are kept, that
+  the marker holds no steps or answers, and that it normally stays two to nine days and longer if cleanup fails.
+  The record of what shipped is `docs/DECISIONS.md`, "Release candidate R2"; Part 37 is the branch's design record.
+  The corrected retention wording is the one in R2: two days is a chosen margin, not a proof, and a request
+  delayed past the marker's removal can still make a record.
+- **Main (`66111da`) was merged into this branch.** Nine files conflicted and were resolved by behavior (see
+  Part 37's integration note): both sweeps are kept, the disclosure sits beside the branch's recovery logic,
+  uncertainty wording, held codes and unchecked state, and the stale `forget-ordering` statement that progress
+  writes no marker is corrected. No new product behavior.
+- **Live status, stated exactly.** The production progress/marker behavior is **unverified**: the founder declined a
+  synthetic production probe, so nothing has exercised the real store, strong reads on production Blobs for
+  `progress-closed`, marker creation or refusal, or the **first scheduled marker cleanup** (the weekly sweep,
+  Sundays 00:00 UTC; the first one after R2 is the next Sunday). Watch `/health` (`fail.progress`, `sweep`). The
+  disclosure was checked on production at 390 and 320 wide with every backend call intercepted. **Rolling back
+  removes the protection and leaves markers until a compatible sweep runs.**
+- **Still open:** (1) **another open tab can write its state back after a wipe, and its next report mints a new
+  install code** (unresolved; Forget me is not browser-wide); (2) the **required live evaluations** for the
+  accumulated branch are **unfunded and unrun**; (3) the older-build residue and loss-before-capture limits
+  (Part 35); (4) the other server-side races in Part 34. **The full repair branch remains held.** Production
+  carries only R1 and R2; everything else from BATCH-01 to BATCH-07G, and the client recovery work, is not
+  released.
+- **Next:** decide whether to approve a narrowly scoped production probe; the other-tab autosave and
+  new-install question; funding the live evaluations; release timing for the rest of the branch.
+
+## Previous status (2026-10-04, BATCH-07H)
+
+*Superseded where it says "No client change", "Production is at `b53429e`" and that rollout is undecided: R2 shipped
+the server half and one Forget me paragraph; see above.*
 
 - **BATCH-07H (`docs/DECISIONS.md` Part 37): the cross-tab progress recovery loss is addressed on the server.**
   A progress DELETE now writes `<install>/<day>` to a new strong store, `progress-closed` (a day and nothing

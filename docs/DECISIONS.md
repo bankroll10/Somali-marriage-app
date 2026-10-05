@@ -6055,6 +6055,15 @@ main, deployment, paid call, outreach or participant-data access.
 
 ## Part 37: A forgotten step count cannot be made again, for a while (2026-10-04, BATCH-07H)
 
+**Status (2026-10-05): the server half shipped; the rest is held.** The progress handler, `sweep.ts`'s
+`sweepProgressClosures`, the closure tests and one paragraph on the Forget me block went to production as release
+candidate R2 (PR #85, merge `66111da`; `/version.json` named it). Its record, below, is what shipped, with the
+retention wording corrected: two days is a chosen margin, and a request delayed past the marker's removal can still
+make a record. **Held on this branch and not released:** everything else in Parts 25–36 (the introduction signup and
+withdrawal work, the receipt wording, and the client recovery of BATCH-07C–F). The founder declined a production
+probe, so live marker behavior and the first scheduled marker cleanup are **unverified**. "Rollout and rollback (not
+decided here)" below was written before that release and is superseded by R2's record.
+
 **The defect (Part 35, "Ordering check").** The progress endpoint's DELETE removed the record and left nothing
 behind, so a report already on its way, or sent by another open tab in the moments before the phone was wiped,
 landed afterwards and made the record again under an install code nothing on the phone named. In the
@@ -6188,3 +6197,88 @@ evaluations for the accumulated branch (unfunded, not run); the older-build resi
 limits (Part 35); the server-side races in Part 34 other than this one; the cleaners' pre-existing narrow race.
 The branch is not release-ready and the release remains paused. No PR, merge to main, deployment, synthetic
 deployed write, paid call, outreach or participant-data access.
+
+## Release candidate R2: a forgotten step count cannot be made again, for a while (2026-10-05)
+
+Forget me deleted a step count and left nothing behind, so a report already on its way, or sent by another
+open tab in the moments before the phone was wiped, landed afterwards and made the record again under a code
+the phone no longer held. Keep, the eleven and the introduction list already close their code on the server;
+the step count was the one that did not. This is the **smallest extract** of the working branch's server
+repair (BATCH-07H, which the branch numbers Part 37) built on `origin/main` (`b53429e`). It is not a merge
+of any batch, and the branch's numbering is not used here.
+
+**What it does.** `DELETE /progress?id=` first writes `<install>/<day>` (a day and nothing else) to a new
+strong store, `progress-closed`, whether or not a record exists, then deletes the record whatever its own
+read said, and answers as it always did (200, or 404 when nothing was there). If the marker cannot be written
+nothing is deleted and the answer is 503, never a confirmation. `POST /progress` refuses (410) under any
+marker that exists, checks before it writes and again after, and deletes its own write if the second look
+finds a marker. The weekly sweep deletes any record still under a marker, without reading it, then the marker
+only by the day in its own key: at least two full days old (`sweepProgressClosures`, added to production's
+existing sweep). It is the introduction list's marker pattern, with the same reasons: a separate store so
+that none of the readout's cleanup, the sweep's expiry pass, the export or the restore ever opens it, and an
+immutable dated key because Blobs has no conditional delete.
+
+**What it does not do.** The two stores are not a transaction: a function that stops after its write, or
+whose second look or compensating delete fails, can leave a record under a marker until a retry of the
+DELETE, a later refused report or the weekly sweep removes it. A marker lives at least two full days, usually
+two to about nine, with **no maximum** if the sweep fails; once it is removed a report under that code
+succeeds again. Two days is a **chosen margin, not a proof**: reports have no queue or retry and the service
+worker handles GET only, so a delayed request is held up by the network or the function, but a request
+delayed past the marker can still make a record. The phone's Forget me flow and client logic are unchanged: another open tab can
+still write its state back, and a report from it mints a new install code. Neither is addressed here.
+
+**Evidence, all local.** `tests/progress-closure.test.ts` (37 tests) drives the real handlers over the
+failing, racing blobs double: absent-record deletion, every failure path, racing writes, both cleaners of
+expired step counts running while a DELETE lands, and marker retention. The 19 server mutations tried against
+it all turn a test red. Against production's previous handler logic 28 of those 37, and both
+`delete-means-deleted` tests, go red. **None of this exercises the deployed store**: the doubles are
+strongly consistent, and no test here reads Netlify's Blobs.
+
+**Scope, and one expansion.** Changed: `netlify/functions/progress.ts`, `netlify/functions/sweep.ts`, the
+`stale`, `opened` and `before(nth)` helpers in `tests/support/blobs.ts`, `tests/progress-closure.test.ts`,
+the sweep's answer shape in `tests/sweep-function.test.ts`, and the docs. **One expansion, demonstrated:**
+`tests/invariants/delete-means-deleted.test.ts` fails on production's own handler logic once a marker exists,
+because the marker is residue under her install code; it now names the marker as the fourth thing allowed to
+remain and asserts it holds a day and nothing else. Left out on purpose: the introduction changes, the
+client's recovery keys and sequence limits, `health.ts`, dependencies, workflows, evaluation rules and
+`SESSION-HANDOFF.md`. The working branch's `TESTING.md` paragraph on `forget-ordering` still says progress
+writes no marker; that suite is not on production, and the paragraph needs correcting when the branch
+integrates this release.
+
+**Amendment, before merge: one user-facing disclosure (2026-10-05).** The founder asked that the person be
+told. The shared Forget me block (`src/components/ForgetMe.tsx`, shown on Trust and on the Ending) gains one
+ordinary paragraph after its introductory one and before the controls, in the same typography: "To help stop
+a delayed step report from bringing your count back, we keep its random code and the day you asked to delete
+it. This deletion marker contains no steps or answers. It normally stays for two to nine days, and longer if
+cleanup fails." It says no more than the server does (a code and a day; at least two days, usually two to
+nine, no maximum if the sweep fails). The deletion flow, its confirmation, its failure wording and the
+client's logic are unchanged, and nothing from the repair branch is imported. This is a **client change**, so
+the earlier "no client change" and "Forget me is unchanged" statements are narrowed to the flow and the logic.
+Added: `src/components/ForgetMe.tsx`, `tests/ui/forget-me.test.tsx` (the paragraph's words, its place between
+the introduction and the controls and outside any disclosure, its typography, and the flow unchanged), and
+this record and `docs/PRIVACY.md`. It was checked in a browser at 390 and 320 wide against the built bundle
+with no backend reached. The guide and judgment suites remain "not required": `ForgetMe.tsx` is not a file
+either measures, and `guide-eval.yml` does not trigger on it.
+
+**Shipping and rollback.** The handler and the sweep must ship together or markers are never cleaned; one
+deploy ships both, and `progress-closed` needs no creation step. Rolling back returns the old handler, which
+ignores the store: a late report can make a deleted step count again, and the markers already written stay
+as orphans (a code and a day) until a version that knows them sweeps. Records are unaffected. The disclosure
+ships in the same deploy, so a whole rollback removes it with the protection; reverting only the server half
+would leave a screen describing a marker that is no longer written.
+**Not verified:** the deployed store, strong reads on Netlify's production Blobs for a store opened this way
+(the limiter, `ops` and the tallies already rely on them), and whether a deploy preview shares production
+data. A deployed check needs the founder's approval first.
+
+**Integration into the working branch (2026-10-05).** Main at `66111da` was merged into the repair branch. The
+conflicts were resolved by behavior, not by taking either file: the released `progress.ts` (its corrected
+`CLOSED_DAYS` wording) and `tests/progress-closure.test.ts` were kept; `sweep.ts` keeps this branch's
+introduction-withdrawal sweep beside the released progress-closure sweep, with R2's header line; the released
+disclosure paragraph sits in this branch's `ForgetMe.tsx` beside its recovery logic, uncertainty wording, held codes
+and unchecked state; `tests/ui/forget-me.test.tsx` keeps its disclosure and ordering checks and its flow test now
+holds the branch's wording; `docs/PRIVACY.md`, `docs/OPS.md` and `docs/TESTING.md` keep both sides' text. The stale
+statement in `docs/TESTING.md`'s `forget-ordering` paragraph that progress writes no marker is corrected. The
+earlier records of Parts 34 and 35 are history and are left as written; Part 37 supersedes their statements about
+progress. No new product behavior. Still unresolved: another open tab can write its state back, and a report from
+it mints a new install code. The live Guide and judgment evaluations the accumulated branch requires remain
+unfunded and unrun, and the full repair branch remains held.

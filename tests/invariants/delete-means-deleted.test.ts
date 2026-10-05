@@ -30,7 +30,8 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
  *  - the joint tally — how pairs come out, counts with no pair in them;
  *  - the closure marker on her install code (`progress-closed`, `<install>/<day>`):
  *    a day and nothing about her, kept at least two days so a report still on
- *    its way cannot make her step count again (docs/DECISIONS.md Part 37).
+ *    its way cannot make her step count again (docs/DECISIONS.md, release
+ *    candidate R2).
  * The couple sheet leaves only its reporting window: a date, and nothing
  * either of them answered.
  */

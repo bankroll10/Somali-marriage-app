@@ -234,29 +234,39 @@ for a year, then a second unresolved forget replaced the first's code.
 | 2a | Delete what the door and the vouch left under her code: `contacts/<code>`; the `cohort` entry her index names, and the index; her vouch, its ask and the token that pointed at it (`forgetLegacy`) | Every delete lands on a key that may not exist; a retry does them again |
 | 3 | Delete `once/<id>`, then the map, **last**: it names her couple sheet | A retry after the map has gone, with the code closed as forgotten, answers `{forgotten: true}` |
 
-**Step counts (`DELETE /progress?id=`).** Until BATCH-07H this was the one
-kind of record a delete did not close: a report already on its way, or sent by
-another open tab in the moments before the phone was wiped, landed afterwards
-and made the record again under a code the phone no longer held. Now the
-`DELETE` writes `<install>/<day>` to the `progress-closed` store first,
-**whether or not a record exists**, then deletes the record whatever its own
-read said, and answers as it always did (`200 {forgotten: true}`, or `404
-{error: 'not_found'}` when nothing was there). If the marker cannot be written
-nothing is deleted and the answer is `503`, never a confirmation. A report
-checks for a marker before it writes (410, nothing written) and again after,
-and a write found under a marker is deleted by the report that made it
-(`netlify/functions/progress.ts`, `docs/DECISIONS.md` Part 37). **The guarantee
-is exactly this, and no more:** the two stores are not a transaction. A
-function that stops after its write, or whose second look or compensating
-delete fails, can leave a record under a marker until a retry of the `DELETE`,
-a later refused report or the weekly sweep removes it; when the second look
-cannot be made the report answers `503` and does not delete what it wrote,
-because it cannot tell a closed code from an open one. The marker holds a day
-and nothing else, lives at least two full days and usually two to about nine,
-and has **no maximum** if the sweep fails; after it is removed the code is
-unprotected again. It does not make Forget me browser-wide: another open tab
-can still write its state back to the phone, and a report from it mints a new
-install code (unresolved).
+**Step counts (`DELETE /progress?id=`).** Until this release a progress delete
+removed the record and left nothing, so a report already on its way, or sent
+by another open tab in the moments before the phone was wiped, landed
+afterwards and made the record again under a code the phone no longer held.
+Now the `DELETE` writes `<install>/<day>` to the `progress-closed` store
+first, **whether or not a record exists**, then deletes the record whatever
+its own read said, and answers as it always did (`200 {forgotten: true}`, or
+`404 {error: 'not_found'}` when nothing was there). If the marker cannot be
+written nothing is deleted and the answer is `503`, never a confirmation. A
+report checks for a marker before it writes (410, nothing written) and again
+after, and a write found under a marker is deleted by the report that made it
+(`netlify/functions/progress.ts`, `docs/DECISIONS.md` release candidate R2).
+**The guarantee is exactly this, and no more:** the two stores are not a
+transaction. A function that stops after its write, or whose second look or
+compensating delete fails, can leave a record under a marker until a retry of
+the `DELETE`, a later refused report or the weekly sweep removes it; when the
+second look cannot be made the report answers `503` and does not delete what
+it wrote, because it cannot tell a closed code from an open one. The marker
+holds a day and nothing else, lives at least two full days and usually two to
+about nine, and has **no maximum** if the sweep fails. Two days is a chosen
+margin, not a proof: the app keeps no queue or retry for reports and its
+service worker handles `GET` only, so a request out after the wipe is held up
+by the network, not by the app, but a request delayed past the marker's life
+can still make a record, because once the marker is removed the code is
+unprotected again. The release that shipped this changed only the Forget me
+block's text on the phone, not its flow or its client logic (this branch's own
+recovery changes, described above, are held and not released); the block
+(`src/components/ForgetMe.tsx`, on Trust and the Ending) now says in one paragraph that a random code and the day are kept, that the
+marker holds no steps or answers, and that it normally stays two to nine days
+and longer if cleanup fails. It does not make Forget me browser-wide (another
+open tab can still write its state back to the phone, and a report from it
+mints a new install code), and a rollback of this release returns the old
+behaviour (`docs/OPS.md`, Recovery).
 
 **Tombstones.** A forgotten or moved code answers **410** with which, from
 `GET`, `POST` and `PUT`, even if the map is still there, and never names a

@@ -278,7 +278,7 @@ type Store = ReturnType<typeof getStore>
  * the phone was wiped) landed afterwards and made the record again, under a
  * code nothing on the phone any longer named. Keep, the eleven and the
  * introduction list all close their code on the server; this was the one that
- * did not (docs/DECISIONS.md Part 37).
+ * did not (docs/DECISIONS.md, release candidate R2).
  *
  * **The marker is the authority**, and it is the introduction list's pattern
  * (netlify/functions/introduce.ts): `DELETE` writes `<install>/<day>` — the day,
@@ -320,7 +320,17 @@ type Store = ReturnType<typeof getStore>
  * nothing legitimate waits on it.
  */
 export const CLOSED_STORE = 'progress-closed'
-/** The least time a marker is kept: longer than any report could still be in flight. */
+/**
+ * The least time a marker is kept, in full UTC days: the chosen protection
+ * margin, not a proof. The client keeps no queue and no retry for reports and
+ * its service worker handles GET only, so a request still out after a Forget
+ * me is held up only by the network, a gateway or the function itself —
+ * seconds to minutes — and two days is far beyond that. But nothing here bounds
+ * it: once the sweep has removed the marker a POST under the code succeeds
+ * again, so a request delayed past that can still make a record under a code
+ * the phone has discarded. That residual is accepted and documented
+ * (docs/PRIVACY.md, docs/DECISIONS.md release candidate R2).
+ */
 export const CLOSED_DAYS = 2
 /** Every marker under one code starts with this. */
 export const closedPrefix = (id: string) => `${id}/`

@@ -5,7 +5,7 @@ import { CLOSED_DAYS, CLOSED_STORE, closedKey } from '../netlify/functions/progr
 
 /**
  * A forgotten install code cannot be written under again, for a while
- * (docs/DECISIONS.md Part 37, BATCH-07H).
+ * (docs/DECISIONS.md, release candidate R2).
  *
  * Until this, a progress DELETE removed the record and left nothing, so a
  * report already on its way — or sent by another tab in the moments before the
