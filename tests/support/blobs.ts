@@ -51,12 +51,26 @@ export class Blobs {
   private clock = 0
   /** Stores that cannot even be opened — `getStore` itself throws. */
   private unopenable = new Set<string>()
+  /** Keys whose next read answers "nothing there" although something is: an eventual read that missed a write. */
+  private stales = new Set<string>()
+  /** The options each store was opened with — so a test can hold that a route asked for the latest state. */
+  readonly opened = new Map<string, Record<string, unknown>>()
 
   reset() {
     this.stores.clear()
     this.rules = []
     this.log.length = 0
     this.unopenable.clear()
+    this.stales.clear()
+    this.opened.clear()
+  }
+
+  /** Make the next `get`, `getMetadata` or `getWithMetadata` of this key answer null once, as a read that missed a recent write does. */
+  stale(store: string, key: string) {
+    this.stales.add(`${store}\u0000${key}`)
+  }
+  private missed(store: string, key: string) {
+    return this.stales.delete(`${store}\u0000${key}`)
   }
 
   /** Make opening a store throw, as Blobs does when its context is missing or the platform is down. */
@@ -75,9 +89,9 @@ export class Blobs {
     this.rules.push({ ...r, seen: 0, once: true, spent: false, error: r.error ?? new Error(`injected ${r.op} failure`) })
   }
 
-  /** Run a competing request just before a chosen call. */
-  before(op: Op, key: string, fn: () => unknown | Promise<unknown>, store?: string) {
-    this.rules.push({ op, key, store, fn, seen: 0, once: true, spent: false })
+  /** Run a competing request just before a chosen call — the `nth` matching one, counting from 1. */
+  before(op: Op, key: string, fn: () => unknown | Promise<unknown>, store?: string, nth?: number) {
+    this.rules.push({ op, key, store, fn, nth, seen: 0, once: true, spent: false })
   }
 
   private async hit(store: string, op: Op, key: string) {
@@ -138,15 +152,18 @@ export class Blobs {
       },
       get: async (key: string, opts?: { type?: string }) => {
         await this.hit(name, 'get', key)
+        if (this.missed(name, key)) return null
         return parse(m().get(key), opts?.type)
       },
       getMetadata: async (key: string) => {
         await this.hit(name, 'getMetadata', key)
+        if (this.missed(name, key)) return null
         const b = m().get(key)
         return b ? { etag: b.etag, metadata: {} } : null
       },
       getWithMetadata: async (key: string, opts?: { type?: string }) => {
         await this.hit(name, 'getWithMetadata', key)
+        if (this.missed(name, key)) return null
         const b = m().get(key)
         return b ? { data: parse(b, opts?.type), etag: b.etag, metadata: {} } : null
       },
@@ -166,5 +183,12 @@ export const blobs = new Blobs()
 
 /** For `vi.mock('@netlify/blobs', () => blobsModule)`. */
 export const blobsModule = {
-  getStore: (arg: string | { name: string }) => blobs.store(typeof arg === 'string' ? arg : arg.name),
+  getStore: (arg: string | { name: string; [option: string]: unknown }) => {
+    if (typeof arg !== 'string') {
+      const { name, ...options } = arg
+      blobs.opened.set(name, options)
+      return blobs.store(name)
+    }
+    return blobs.store(arg)
+  },
 }

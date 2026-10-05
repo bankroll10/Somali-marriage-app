@@ -171,6 +171,7 @@ names and errors, never a body. Fonts are self-hosted (`src/index.css`).
 | `limits` | `<bucket>-<h\|d>-<stamp>` | A counter, no identity | Every capped route | One period | The next period's first write | — |
 | `ops` | `day/…`, `sizes/…`, `last/…` | Numbers | Routes; `/health`; export; sweep | 35 days; `last/…` is overwritten | Sweep | — |
 | `introductions` | `<code>` | `contact`, `firstName?`, `gender`, `scene`, `country`, `reach`, `at` | introduce `POST` | **At most 180 days** from `at` (decision 32); sooner if its owner takes it off, or asks the founder to. Never renewed | `DELETE /introduce?code=`; Forget me; the founder, by hand; the sweep, at the last weekly run before its 180th day | ✓ |
+| `progress-closed` | `<install>/<day>` | `{at}`: the day, nobody — no step, fact, city, side or contact. One immutable key per install code per day it was forgotten on; never rewritten | progress `DELETE`, **before** it deletes the record, **whether or not a record exists** (`onlyIfNew`; a second forget the same day is the same key). Opened strong | **At least two full days** by the day in its key, then until the first weekly sweep: usually two to about nine days, with **no maximum**: a sweep that fails keeps the marker (and a record a failed delete left under it) until a run succeeds. While any marker stands under a code a progress `POST` under it is refused (410), whatever the marker's day; once it is removed a `POST` under that code succeeds again | The sweep, after any record under the code is deleted, by the key's own day: it never reads a marker and then deletes it, since Blobs has no conditional delete. Nothing that reads, counts, exports or cleans step counts opens this store | — |
 | `cohort`, `contacts`, `vouches` | any | The door's entries and index; ways to reach people who joined the door 2026-09-08 to 2026-09-24; relatives' names and phones from the vouch | Nothing since 2026-09-24 | **Held** until the founder decides their retention by hand (`docs/DECISIONS.md` decision 21). From 2026-09-24 to 2026-09-27 the sweep emptied them weekly; its first run was 2026-09-27 00:00 UTC | A person's own Forget me (`DELETE /keep?code=`); the founder, by hand. Never the sweep | — |
 
 `gone/<code>` stores its window's end as a full timestamp: the one stored
@@ -199,6 +200,39 @@ a retry had no code to send and the map stayed for a year.
 | 2a | Delete what the door and the vouch left under her code: `contacts/<code>`; the `cohort` entry her index names, and the index; her vouch, its ask and the token that pointed at it (`forgetLegacy`) | Every delete lands on a key that may not exist; a retry does them again |
 | 3 | Delete `once/<id>`, then the map, **last**: it names her couple sheet | A retry after the map has gone, with the code closed as forgotten, answers `{forgotten: true}` |
 
+**Step counts (`DELETE /progress?id=`).** Until this release a progress delete
+removed the record and left nothing, so a report already on its way, or sent
+by another open tab in the moments before the phone was wiped, landed
+afterwards and made the record again under a code the phone no longer held.
+Now the `DELETE` writes `<install>/<day>` to the `progress-closed` store
+first, **whether or not a record exists**, then deletes the record whatever
+its own read said, and answers as it always did (`200 {forgotten: true}`, or
+`404 {error: 'not_found'}` when nothing was there). If the marker cannot be
+written nothing is deleted and the answer is `503`, never a confirmation. A
+report checks for a marker before it writes (410, nothing written) and again
+after, and a write found under a marker is deleted by the report that made it
+(`netlify/functions/progress.ts`, `docs/DECISIONS.md` release candidate R2).
+**The guarantee is exactly this, and no more:** the two stores are not a
+transaction. A function that stops after its write, or whose second look or
+compensating delete fails, can leave a record under a marker until a retry of
+the `DELETE`, a later refused report or the weekly sweep removes it; when the
+second look cannot be made the report answers `503` and does not delete what
+it wrote, because it cannot tell a closed code from an open one. The marker
+holds a day and nothing else, lives at least two full days and usually two to
+about nine, and has **no maximum** if the sweep fails. Two days is a chosen
+margin, not a proof: the app keeps no queue or retry for reports and its
+service worker handles `GET` only, so a request out after the wipe is held up
+by the network, not by the app, but a request delayed past the marker's life
+can still make a record, because once the marker is removed the code is
+unprotected again. The phone's Forget me flow and client logic are unchanged;
+the Forget me block (`src/components/ForgetMe.tsx`, on Trust and the Ending)
+now says in one paragraph that a random code and the day are kept, that the
+marker holds no steps or answers, and that it normally stays two to nine days
+and longer if cleanup fails. It does not make Forget me browser-wide (another
+open tab can still write its state back to the phone, and a report from it
+mints a new install code), and a rollback of this release returns the old
+behaviour (`docs/OPS.md`, Recovery).
+
 **Tombstones.** A forgotten or moved code answers **410** with which, from
 `GET`, `POST` and `PUT`, even if the map is still there, and never names a
 new code. `mintFree` treats a tombstoned code, or a couple code with a
@@ -206,7 +240,10 @@ new code. `mintFree` treats a tombstoned code, or a couple code with a
 `tests/invariants/delete-means-deleted.test.ts`: the tombstone; her report,
 since a withdrawal under someone's eye is the case this exists for
 (`docs/SECURITY.md` O1); the joint tally, with no code (Trust: "The one thing
-it cannot reach"); the sheet's `gone/` window, a date.
+it cannot reach"); the sheet's `gone/` window, a date; and, for at least two days and until
+the weekly sweep after, the step count's `progress-closed/<install>/<day>`
+marker, a day under her install code (below), which is what stops a report
+still on its way from landing after she asked.
 
 ### The weekly sweep (`netlify/functions/sweep.ts`, `@weekly`)
 
@@ -216,10 +253,17 @@ rolled back if no tombstone yet, else finished; (2) maps, tombstones and once
 keys past `expiresAt`, only if unchanged since read (`deleteIfUnchanged`);
 (3) couple sheets past 90 days, retired, and ended `gone/` windows; (4) step
 counts past their year, unless `married`; (5) `ops` counts past 35 days. It
-answers `{swept: {maps, couples, progress, journals, introductions, errors}, at}`, never
+answers `{swept: {maps, couples, progress, journals, introductions, stranded, closures, errors}, at}`, never
 touches reports, tallies or limits, and needs no key. (6) Names on the
 introduction list at the last weekly run before their 180th day, and any it
 cannot date (decision 32): a name is never held past the day Trust names.
+(7) Step counts under a closure marker, in `progress-closed`: for each
+`<install>/<day>` marker, any record still under the install code is deleted
+without an existence check (a read that missed it must not leave it behind),
+and only then the marker, once the day in its own key is at least two full
+days behind the run's (`stranded` and `closures` in the answer). A record
+delete that fails keeps its marker. The cleaners of expired step counts above
+never open this store.
 **It never opens `cohort`, `contacts` or `vouches`** (`HELD_STORES`): from
 2026-09-24 to 2026-09-27 it emptied them every week on the ground that the
 door had gone, and took the only way to reach two women who had asked to be
