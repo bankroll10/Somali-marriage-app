@@ -67,6 +67,7 @@ their neighbours had not hollowed them out.
 | | | "not allowed to refuse him" removed from the force words (2026-09-26) | Red (1) |
 | | | A held-out phrase added to a crisis word list (2026-09-26) | Red (2): the guard, and the gap ledger |
 | Delete means deleted | `delete-means-deleted` | Forget me leaves her name on the introduction list (2026-09-27) | Red |
+| A forgotten step count cannot be made again | `progress-closure`, `delete-means-deleted` | Progress `DELETE` writes no marker and `POST` never looks for one, as on production before R2 | Red (30: 28 in `progress-closure`, 2 in `delete-means-deleted`) |
 | A retired feature is not a lifetime | `sweep-function`, `integrity`, `recovery` | The sweep opens `contacts` again and deletes a key (2026-09-27) | Red (3 suites) |
 | A name is kept at most 180 days | `sweep-function`, `journeys/looking` | The sweep skips every introduction whatever its day (2026-09-27) | Red (5: 4 in `sweep-function`, 1 in the journey) |
 | Nothing identifying before two yeses | `voice`, `journeys/looking` | Looking says "nothing about you reaches anyone before you say yes" again (2026-09-27) | Red (3: both voice scans, and the journey) |
@@ -78,6 +79,7 @@ deletes the sheet by its own code as well (`src/lib/forget.ts`), so
 `delete-means-deleted` stays green. `keep-function` and `integrity` go red (3).
 
 What each suite holds beyond its mutation:
+- **`progress-closure`.** The server half of Forget me for step counts (`docs/DECISIONS.md`, release candidate R2), against the real `progress` and `sweep` handlers over the failing, racing blobs double. It holds: a DELETE writes the marker first, with a record and with none (absent-record deletion); the marker store is opened strong; a second same-day DELETE leaves the first key as it was; the cap; every failure path (marker write, record delete, the look before and after a report's write, the compensating delete, the sweep's record delete) answers truthfully and keeps the marker; a record stranded under a marker is resolved by a retry, a refused report or the sweep; racing writes, with a DELETE landing at each step of a report and the report's own checks failing; marker retention, meaning the earliest eligible removal and a young marker kept; and the two cleaners of expired step counts (the founder's readout and the weekly sweep) running while a DELETE lands, neither of which opens the marker store. A read that misses a record is `blobs.stale`. Interleavings assert the final protected state, not a status. Before R2 a progress DELETE wrote no marker and a late report could make the record again; any description of progress that says it writes no marker describes that earlier handler. These are tests against in-memory doubles, **not** a check of the deployed store.
 
 - **`one-code-one-person`.** Two to four people each keep a map, and each
   code restores exactly that person's map. Her couple code, install id, report
@@ -88,8 +90,9 @@ What each suite holds beyond its mutation:
   sheet.
 - **`delete-means-deleted`.** She keeps, sends the eleven and he answers, is
   counted on the ladder, reports a concern, and taps Forget me. Every store
-  and her phone are searched. Only three things remain, each named: the
-  tombstone, her report and the joint tally. The same again with the server
+  and her phone are searched. Only four things remain, each named: the
+  tombstone, her report, the joint tally and the step count's closure marker
+  (a day under her install code; no record). The same again with the server
   down mid-forget.
 - **`founder-routes-fail-closed`.** Every founder check in
   `netlify/functions` must have a row. Each row is refused under seven

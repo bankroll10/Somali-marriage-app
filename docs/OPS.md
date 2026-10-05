@@ -146,6 +146,8 @@ Roll back a live, broken deploy first, and work out why second. The data is safe
 4. Fix it on a branch, and let `npm run verify` and the preview pass before you merge.
 5. Choose **Start auto publishing**, and confirm `deployed.yml` is green on the fix.
 
+**Rolling back the step-count closure (`progress-closed`).** The older code ignores the marker store, so a report still on its way after a Forget me can make the step count again, as it could before. Markers already written stay in `progress-closed` as orphans (an install code and a day, nothing else) and nothing removes them until a version that knows the store runs a sweep. Records, clients and the founder's readouts are not affected.
+
 Practise this once in a quiet hour: publish the previous deploy, check the site, then publish the latest again. Netlify moves these buttons around, and on the real day the minutes matter.
 
 ### Did it deploy? Is it up?
@@ -227,7 +229,7 @@ Two checks count open reports and never read what they say. **`safety-urgent`** 
 ### Also on the table
 
 - **`data`: has stored data gone missing?** `/health` records the size of `maps` (not counting bookkeeping keys), `progress` and `reports` once a day, as population totals only, and compares each day with the last day on record. It is amber on any drop in `reports` or a drop of more than 10% from 8 or more records. It is red on a loss of more than a quarter, from 8 or more records (2 or more for `reports`). When it is red, follow "Deleted data" under Recovery.
-- **`sweep`: the weekly clean-up.** Red when it has not run for more than 8 days, amber when its last run had errors. Errors two weeks running mean a record to look at by hand; its key is in the sweep's log.
+- **`sweep`: the weekly clean-up.** Red when it has not run for more than 8 days, amber when its last run had errors. A closure marker on a step count (`progress-closed`) is only as short-lived as this check is green: a failing sweep keeps markers, and any record a failed delete left under one, until a run succeeds. Errors two weeks running mean a record to look at by hand; its key is in the sweep's log.
 - **`client`: the app crashing on phones.** Amber at 3 or more reports today. `chunk` means a screen's code never arrived (a bad deploy, or a CDN problem), and `crash` means a screen threw. `src/lib/crash.ts` sends at most one beacon per page load, from the ErrorBoundary.
 
 ### What is counted, and what never is
@@ -521,7 +523,7 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 
 | What | When | Does |
 |---|---|---|
-| The sweep, `netlify/functions/sweep.ts` | `@weekly` on Netlify's scheduler: Sundays, 00:00 UTC | Removes kept maps past their year, and tombstones and once keys past theirs. Retires couple sheets past ninety days, and deletes their `gone/` keys once the reporting window ends. Deletes step counts past their year unless they reached `married`. Rolls back or finishes changes of code abandoned more than two days ago. Deletes ops counts older than 35 days. Marks `last/sweep` with its error count. It never touches reports, tallies or limits, **and never opens `cohort`, `contacts` or `vouches`**: from 2026-09-24 to 2026-09-27 it emptied them weekly, and its first run took the door's real signups (`docs/DECISIONS.md` Part 22). Removes a name on the introduction list at the last run before its 180th day, and any it cannot date (decision 32). A record it cannot read is counted and tried again the next week |
+| The sweep, `netlify/functions/sweep.ts` | `@weekly` on Netlify's scheduler: Sundays, 00:00 UTC | Removes kept maps past their year, and tombstones and once keys past theirs. Retires couple sheets past ninety days, and deletes their `gone/` keys once the reporting window ends. Deletes step counts past their year unless they reached `married`. Rolls back or finishes changes of code abandoned more than two days ago. For each closure marker in `progress-closed` (`<install>/<day>`) it first deletes any step count still under the install code, without reading it, then the marker, only once the day in its key is at least two full days behind (`stranded`, `closures`; never by reading the marker first, since Blobs has no conditional delete). Deletes ops counts older than 35 days. Marks `last/sweep` with its error count. It never touches reports, tallies or limits, **and never opens `cohort`, `contacts` or `vouches`**: from 2026-09-24 to 2026-09-27 it emptied them weekly, and its first run took the door's real signups (`docs/DECISIONS.md` Part 22). Removes a name on the introduction list at the last run before its 180th day, and any it cannot date (decision 32). A record it cannot read is counted and tried again the next week |
 | `watch.yml` health job | Every 3 hours, on the hour UTC. The 09:00 run is the daily one; Monday's 09:00 run is the weekly one | Reads `/` and `/version.json`, then `/health`. Emails on each check's cadence |
 | `watch.yml` backup job | The 1st of each month, 09:30 UTC, only once `BACKUP_TO_ARTIFACT` is `true` | Saves `/export` as a 35-day artifact |
 | `deployed.yml` | Every push to `main` | Waits for the commit, then smoke-tests it |
@@ -534,6 +536,7 @@ This section covers what runs on a clock, how long each thing is kept, and what 
 | A kept map | A year after its last keep. Its tombstone lasts a year, and a first keep's once key lasts a day |
 | A couple sheet | Ninety days. After that, `gone/<code>` keeps the code reportable for ninety more days |
 | A progress record | A year, refreshed on every report. Kept for good once it reaches `married`. A `/progress` read also deletes expired records as it walks past them |
+| A closure marker on a step count (`progress-closed`, `<install>/<day>`, a day and nobody; one per code per day) | At least two full days by the day in its key, then until the first weekly sweep: usually two to about nine days; **no maximum** if a run fails or a record is still under its code. A report under it is refused while it stands; once it is gone a report under that code succeeds again |
 | An open report | Until the founder resolves it. The resolved stub has no expiry |
 | A name on the introduction list | At most 180 days from the day it was put down, then removed; sooner if its owner takes it off. Never renewed or reminded about |
 | A row in the founder's pilot log | Until its code leaves the list; deleted at the next weekly reconciliation |
