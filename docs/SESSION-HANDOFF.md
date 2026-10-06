@@ -1,6 +1,49 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from); BATCH-07H done (a forgotten step count cannot be made again for a while: server-side closure markers); R2 (the server-side closure markers and one Forget me paragraph) is LIVE on production at 66111da and merged into this branch; the full branch remains held
+# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from); BATCH-07H done (a forgotten step count cannot be made again for a while: server-side closure markers); R2 (the server-side closure markers and one Forget me paragraph) is LIVE on production at 66111da and merged into this branch; the full branch remains held; FOUNDER DIRECTION CHANGE (2026-10-06): toward product-led, AI-assisted matching and mutual connection, recorded here and planned next, not implemented, production unchanged
 
-## Status as of the latest session (2026-10-05, R2 live; main integrated into this branch)
+## Status as of the latest session (2026-10-06, founder direction change; nothing implemented)
+
+- **The direction (founder, 2026-10-06).** Niyyah will move toward **product-led, AI-assisted matching and mutual
+  connection**. Founder interviews and hand-arranged introductions are **no longer the intended operating model**.
+- **This is a direction, not a shipped change.** Production is unchanged (releases R1 and R2 only). The repair branch
+  is held and unchanged. No code, copy, store, workflow or decision text was changed to follow it, and no matching
+  design exists yet.
+- **What production still tells people, unchanged and now at odds with the direction.** The experience a person
+  meets today is still the founder-led one: the Welcome door ("Put your name down for an introduction made by hand.
+  The founder speaks with you first."), Home's introduction card, Looking's "The founder reads the list by hand, and
+  speaks with you first", the Trust sentences about the introduction list, `src/data/brand.ts`, the introduction
+  function (`netlify/functions/introduce.ts`) with its 180-day list, and the founder-side readouts. They are listed
+  so nobody mistakes them for current intent. **Any existing signups were collected under the founder-led terms;
+  their treatment requires a separate decision.** Nothing was inspected to establish who or how many they are.
+- **History is preserved, not rewritten.** `docs/DECISIONS.md` Parts 22 to 37 (the introduction path, the pilot gates,
+  decisions 26 to 33), `docs/PILOT-RESEARCH-01.md`, `docs/BATCH-01-PLAN.md` and the introduction pilot runbook in
+  `docs/OPS.md` record what was decided **under the founder-led model** and stay as written. They are superseded in
+  intent, not in text. Wherever they say "by hand", "the founder speaks with you first", or gate a stage on a founder
+  conversation, they describe the **old** model. A new dated DECISIONS Part will record the new direction after it
+  has been planned.
+- **What may carry over, to be confirmed in planning and not assumed:** the instruments used after a match (the read,
+  the eleven and its two-person form, the Guide, Families, Ended), the safety path (reports, do-not-pair), Forget me
+  and its recovery, the privacy and retention discipline, and the ladder.
+- **To plan next (nothing started):** (1) the member matching and mutual-interest journey; (2) the role and limits
+  of AI compatibility; (3) the minimum profiles, consent and safety controls; (4) how the existing tools support
+  people after a match; (5) the transition away from the live founder-led promise, including how any existing
+  signups are treated.
+- **BATCH-07I (other-tab Forget me), closed at its evidence checkpoint.** The reproductions ran against unchanged
+  source (counting off; a pending autosave; a couple response; the forgetting tab after a partial failure; late
+  keep, rotate, introduction and couple responses; two real Chromium pages): the stale or forgetting page restored
+  erased state, minted a new install id, or kept a late code in the cases listed in the bundle's `README.md`. The
+  frozen-tab case did **not** reproduce and gives no safety conclusion. The repair is **not implemented** and the ten
+  fail-first tests are **not committed**. The bundle (`BATCH-07I-evidence-tests.patch`, the two-page harness, the
+  results and the authoritative checklist) was delivered as a download. Two design blockers remain: what a
+  storage-denied browser should do when no generation can be established, and where and how a late-returned code is
+  shown for explicit recovery. Whether and how the repair is wanted now depends on the matching design.
+- **Still open, unchanged.** The unfunded live evaluations for the accumulated branch; R2's live marker behavior
+  and the first scheduled marker cleanup (unverified; the production probe was declined); the full repair branch
+  remains held.
+- **Next:** the planning conversation above. No code.
+
+## Previous status (2026-10-05, R2 live; main integrated into this branch)
+
+*Superseded in direction by the section above; the facts below were true on 2026-10-05.*
 
 - **R2 is live at `66111da`** (PR #85; `/version.json` names it; `verify` and `deployed.yml` passed on `main`). It is
   the smallest extract of BATCH-07H: `progress.ts` (a progress DELETE writes `<install>/<day>` to the strong
