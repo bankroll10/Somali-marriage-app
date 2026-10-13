@@ -16,7 +16,6 @@ const keep = (await import('../netlify/functions/keep')).default
 const progress = (await import('../netlify/functions/progress')).default
 const couple = (await import('../netlify/functions/couple')).default
 const safety = (await import('../netlify/functions/safety')).default
-const introduce = (await import('../netlify/functions/introduce')).default
 
 type Handler = (req: Request) => Promise<Response>
 const post = (handler: Handler, path: string, body: unknown) =>
@@ -77,11 +76,6 @@ describe('every record about a member carries its version', () => {
     )
     expect(res.status).toBe(200)
     expect(blob('reports', `resolved/${report.id}`).v).toBe(RECORD_VERSION)
-  })
-
-  it('a name on the introduction list', async () => {
-    const { code } = (await (await post(introduce, 'introduce', { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities' })).json()) as { code: string }
-    expect(blob('introductions', code).v).toBe(RECORD_VERSION)
   })
 
   it('a counter is a number, and carries nothing', async () => {

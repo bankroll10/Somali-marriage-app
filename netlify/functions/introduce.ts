@@ -1,15 +1,29 @@
 import { getStore } from '@netlify/blobs'
 import { failed } from '../shared/ops'
-import { readJson } from '../shared/body'
-import { CODE, mint, normalise } from '../shared/code'
+import { CODE, normalise } from '../shared/code'
 import { day } from '../shared/day'
 import { isFounder, notFounder } from '../shared/founder'
 import { overHourlyCap, rateLimited } from '../shared/limit'
-import { stamp } from '../shared/record'
-import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/vocab'
 
 /**
  * The introduction list: a name put down, by hand, for a serious introduction.
+ *
+ * **New requests are closed (release R3, 2026-10-13).** `POST` answers 410
+ * `{ error: 'closed' }` before it reads a body, checks a cap, mints a code or
+ * opens a store, so a refused request writes nothing and spends nothing. Founder-led
+ * introduction intake is no longer the operating model, and matching is not
+ * available. Everything that lets a person or the founder deal with an
+ * earlier request is unchanged: `GET` (the founder's list), `DELETE` (a name
+ * comes off by its code, from any phone), the 180-day lifetime and the weekly
+ * sweep (netlify/functions/sweep.ts). The text below describes what a request
+ * made while intake was open holds, and why; it is history, not a promise
+ * that anything will be done with it.
+ *
+ * A request already running under the previous function when R3 deployed may
+ * have completed afterwards. Such a request was accepted under the old promise
+ * and is a possible late acceptance; it is not evidence that the promised
+ * introduction process was carried out for that person. Nothing here checks
+ * whether any process followed it.
  *
  * Niyyah was started so that serious Somali singles could meet each other and
  * move toward marriage. Two women signed up for exactly that through the old
@@ -57,17 +71,6 @@ import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/voca
  * whole, behind the key, and no other route returns a record.
  */
 
-/** A contact, a name, a side, a city, a country and a reach is the largest thing anyone can send. */
-const MAX_BODY = 2_048
-/** An email or a phone number: long enough for any real one, short enough that nothing else fits. */
-const MAX_CONTACT = 200
-const MAX_NAME = 40
-/**
- * Names put down in one hour, from everyone. Thirty real people do not join
- * in an hour at this stage; a circuit breaker, not a member limit
- * (netlify/shared/limit.ts).
- */
-const DEFAULT_HOURLY_CAP = 60
 /** Names taken off in one hour, from everyone: the read-cap shape from keep.ts, since this deletes by a guessed code. */
 const DEFAULT_FORGET_CAP = 600
 
@@ -99,29 +102,17 @@ export interface Introduction {
 /** Every key a stored record may carry, so a test can hold the shape (tests/introduce-function.test.ts). */
 export const INTRODUCTION_KEYS = ['contact', 'firstName', 'gender', 'scene', 'country', 'reach', 'at', 'v'] as const
 
-/**
- * Could this reach anyone at all? An `@` with a dotted domain after it, or at
- * least seven digits. The phone asks more carefully (src/lib/contact.ts); the
- * server refuses only what could never work, so a typo is not stored as a
- * person.
- */
-export function reachable(raw: string): boolean {
-  if (raw.includes('@')) {
-    const parts = raw.split('@')
-    if (parts.length !== 2 || !parts[0] || /\s/.test(raw)) return false
-    const dot = parts[1].lastIndexOf('.')
-    return dot > 0 && parts[1].length - dot > 2
-  }
-  return /^[+()\-.\s\d]+$/.test(raw) && (raw.match(/\d/g) ?? []).length >= 7
-}
-
-/** A named city knows its country; somewhere else has to be told one. Null when she cannot be placed. */
-export function countryOf(scene: string, told: unknown): string | null {
-  if (scene !== 'other') return SCENE_COUNTRY[scene] ?? null
-  return typeof told === 'string' && COUNTRIES.has(told) ? told : null
-}
-
 export default async function handler(req: Request) {
+  // ── Closed ────────────────────────────────────────────────────────────────
+  // Before the store is opened, a body is read, a cap is spent or a code is
+  // minted: nothing about a refused request is kept. 410, not 503 or 4xx of
+  // another kind, because an older page still open on someone's phone maps
+  // every unrecognised status to "That did not reach us, so nothing is saved",
+  // which is true, where 503 would send her to write "and it goes on by hand".
+  if (req.method === 'POST') {
+    return Response.json({ error: 'closed' }, { status: 410, headers: { 'Cache-Control': 'no-store' } })
+  }
+
   const store = getStore('introductions')
 
   // ── The founder's list ────────────────────────────────────────────────────
@@ -180,51 +171,5 @@ export default async function handler(req: Request) {
     }
   }
 
-  // ── Putting a name down ───────────────────────────────────────────────────
-  if (req.method !== 'POST') return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
-
-  const body = await readJson<{ contact?: unknown; firstName?: unknown; gender?: unknown; scene?: unknown; country?: unknown; reach?: unknown }>(req, MAX_BODY)
-  if (body instanceof Response) return body
-
-  const contact = typeof body.contact === 'string' ? body.contact.trim() : ''
-  if (!contact || contact.length > MAX_CONTACT || !reachable(contact)) return Response.json({ error: 'bad_contact' }, { status: 400 })
-  const gender = typeof body.gender === 'string' && GENDERS.has(body.gender) ? (body.gender as Introduction['gender']) : null
-  if (!gender) return Response.json({ error: 'bad_gender' }, { status: 400 })
-  const scene = typeof body.scene === 'string' && SCENES.has(body.scene) ? body.scene : null
-  if (!scene) return Response.json({ error: 'bad_scene' }, { status: 400 })
-  const country = countryOf(scene, body.country)
-  if (!country) return Response.json({ error: 'bad_country' }, { status: 400 })
-  // Silence means her city. The product never assumes anyone would move.
-  const told = body.reach === undefined ? 'city' : body.reach
-  if (typeof told !== 'string' || !REACH.has(told)) return Response.json({ error: 'bad_reach' }, { status: 400 })
-  const reach = told as Introduction['reach']
-  const firstName = typeof body.firstName === 'string' ? body.firstName.trim().slice(0, MAX_NAME) : ''
-
-  // Bounded, like every public write — after validation, so a bad body spends nothing.
-  if (await overHourlyCap('introduce', DEFAULT_HOURLY_CAP)) return rateLimited()
-
-  const record: Introduction = {
-    contact,
-    ...(firstName ? { firstName } : {}),
-    gender,
-    scene,
-    country,
-    reach,
-    at: day(),
-  }
-  try {
-    // Onto a code nobody holds: a collision costs a retry, never a person
-    // (netlify/shared/code.ts).
-    const code = await mint((c, v) => store.setJSON(c, v, { onlyIfNew: true }), stamp(record))
-    if (!code) {
-      await failed('introduce', 'every minted code collided')
-      return Response.json({ error: 'unavailable' }, { status: 503 })
-    }
-    // Said only once the record is there: the screen shows "you're on the
-    // list" on this answer and on nothing else.
-    return Response.json({ saved: true, code })
-  } catch (err) {
-    await failed('introduce', 'write failed', err)
-    return Response.json({ error: 'unavailable' }, { status: 503 })
-  }
+  return Response.json({ error: 'GET or DELETE only' }, { status: 405 })
 }

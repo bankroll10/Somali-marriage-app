@@ -1,11 +1,9 @@
-import { ArrowRight, BackButton, CompassGlyph, GlyphTile, PeopleGlyph, SeedGlyph, TextButton } from './ui'
+import { ArrowRight, BackButton, CompassGlyph, GlyphTile, PeopleGlyph, SeedGlyph } from './ui'
 
 interface Props {
   onRead: () => void
   onBeforeYes: () => void
   onFamilies: () => void
-  /** The other door, for someone who tapped this one by mistake. */
-  onLooking: () => void
   onBack: () => void
 }
 
@@ -21,7 +19,7 @@ interface Props {
  * and no question about who she is: the instruments ask that themselves, and
  * none of them needs an account.
  */
-export default function Talking({ onRead, onBeforeYes, onFamilies, onLooking, onBack }: Props) {
+export default function Talking({ onRead, onBeforeYes, onFamilies, onBack }: Props) {
   const doors = [
     {
       title: 'I can’t tell what they mean yet',
@@ -74,13 +72,6 @@ export default function Talking({ onRead, onBeforeYes, onFamilies, onLooking, on
               </button>
             ))}
           </div>
-
-          <p className="mt-8 text-[0.92rem] text-muted">
-            Not talking to anyone?{' '}
-            <TextButton onClick={onLooking} className="text-[0.92rem] font-medium text-forest underline">
-              Put your name down for an introduction
-            </TextButton>
-          </p>
         </main>
       </div>
     </div>

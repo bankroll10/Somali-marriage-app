@@ -35,6 +35,7 @@ describe('what she is promised', () => {
         countMe
         onCountMe={() => {}}
         onForget={async () => ({ map: true, progress: true, couple: true, intro: true })}
+        onManageRequest={() => {}}
         onBack={() => {}}
       />,
     )

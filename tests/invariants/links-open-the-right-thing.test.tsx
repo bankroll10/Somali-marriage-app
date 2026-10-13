@@ -36,7 +36,8 @@ const LANDS = {
   readAboutHer: /Is she serious\?/,
   eleven: /Before you say yes/,
   families: /Bringing the families in/,
-  looking: /Put my name down/,
+  // A link in someone's messages still opens the introduction screen: now the closed state, with the way to manage an earlier request.
+  looking: /New introduction requests are closed\.[\s\S]*This phone is not holding a request code/,
 }
 
 async function landOn(url: string): Promise<string> {
@@ -68,7 +69,7 @@ describe('every link the product hands out opens its instrument', () => {
     ['the families’ words', wordsLink('family'), LANDS.families],
     ['the family words, at their own address', toolLink('families', 'family'), LANDS.families],
     ['the eleven, shared at the end', marriedShare().url, LANDS.eleven],
-    ['the introduction list, as a link into a room', instrumentLink('looking', 'group'), LANDS.looking],
+    ['the introduction screen (closed), as a link into a room', instrumentLink('looking', 'group'), LANDS.looking],
   ]
   it.each(cases)('%s', async (_what, url, lands) => {
     expect(await landOn(url)).toMatch(lands)

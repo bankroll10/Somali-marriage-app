@@ -285,6 +285,12 @@ curl -s -H "$K" "$S/progress" | jq '.cohorts | to_entries | sort_by(.key) | .[-2
 
 ## The introduction pilot runbook
 
+> **Status, 2026-10-13 (release R3, `docs/DECISIONS.md`).** New introduction requests are closed and
+> founder-led introductions are no longer the operating model. This runbook describes the process as it was
+> decided and is kept as written, for the requests already held and as history; it is not an offer of a
+> service. What still applies in operation: reading the list (`GET /introduce`), taking a name off by its
+> code (`DELETE`), the 180-day lifetime and the weekly sweep, and the report channel for anyone introduced.
+
 The first twenty introductions are run by hand, from `GET /introduce`, with no software beyond the list itself (`docs/DECISIONS.md` decisions 26–35, Part 23). This section is the process. `tests/runbook.test.ts` holds that it keeps saying each part, and **the founder runs one tabletop drill of it before introduction 1** — a made-up pair, walked from name down to a report and a do-not-pair — and writes the drill's date and anything it changed into `docs/DECISIONS.md` Part 23.
 
 ### Who the first twenty are for (decision 30)

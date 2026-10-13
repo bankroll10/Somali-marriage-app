@@ -4,7 +4,7 @@ import type { FollowUpAsk, Landed } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
-import { untilOf, type IntroState } from '../lib/introduce'
+import type { IntroState } from '../lib/introduce'
 import { SinceLastTime } from './home/FollowUp'
 import StageBand from './home/StageBand'
 import { CONTACT_EMAIL, GUIDE_SOURCE } from '../lib/site'
@@ -267,32 +267,26 @@ export default function Home({
         </section>
         )}
 
-        {/* The introduction list, for the person not talking to anyone
-            (docs/DECISIONS.md Part 22). Only while she is preparing: someone
-            talking to a person, deciding or married is not offered an
-            introduction. Never entered by anything but her own tap on the
-            screen it opens; a finished map is not interest in meeting someone. */}
-        {stage === 'preparing' && (
+        {/* An earlier introduction request, only while this phone holds the
+            code for one (docs/DECISIONS.md, release R3). New requests are
+            closed, so there is no card without one, and with one it is shown
+            at any stage, because taking a request off should never depend on
+            where someone is in the app. */}
+        {intro && (
           <button
             onClick={onOpenLooking}
-            className={`animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border p-5 text-left transition-all hover:-translate-y-0.5 ${
-              intro ? 'border-forest/25 bg-forest/[0.05] hover:bg-forest/[0.09]' : 'border-gold/40 bg-gold/[0.09] hover:bg-gold/[0.14]'
-            }`}
+            className="animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5 hover:bg-forest/[0.09]"
           >
-            <GlyphTile className={intro ? 'bg-forest/10 text-forest' : 'bg-gold/15 text-gold-ink'}>
+            <GlyphTile className="bg-forest/10 text-forest">
               <PeopleGlyph />
             </GlyphTile>
             <span className="flex-1">
-              <span className="font-display text-[1.2rem] font-medium text-ink">
-                {intro ? 'Your name is down for an introduction' : 'Looking for someone serious?'}
-              </span>
+              <span className="font-display text-[1.2rem] font-medium text-ink">An earlier introduction request</span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                {intro
-                  ? `Until ${untilOf(intro.at) ?? 'its 180th day'}. The founder speaks with you first; introductions are made by hand, one at a time. Open it to see what happens next, or to take your name off.`
-                  : 'Put your name down for an introduction made by hand, beginning in Minneapolis–St. Paul — a way to reach you and where you are, nothing from your map.'}
+                New introduction requests are closed and matching is not available. Open this to take the request off the list.
               </span>
             </span>
-            <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${intro ? 'text-forest' : 'text-gold-ink'}`} />
+            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
           </button>
         )}
 
