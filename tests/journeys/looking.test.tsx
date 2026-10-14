@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
 import { seedDemo } from '../../src/lib/demo'
@@ -282,6 +283,301 @@ describe('an earlier request, from a phone that was not the one that made it', (
     expect(m.text()).toContain('The request under that code is off the list.')
     expect(blobs.keys('introductions')).toEqual([])
     expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    m.unmount()
+  })
+})
+
+/**
+ * KEYBOARD AND ANNOUNCEMENTS — a withdrawal result (release R3 amendment).
+ *
+ * happy-dom has no keyboard, so Enter and Space are what they are in a
+ * browser: Space or Enter on a focused button is a click, and Enter in the code
+ * field is a form submit. What is checked is what a keyboard user depends on:
+ * the control that was pressed is still there, still focused and still
+ * focusable while a request is out and after its result; one activation is one
+ * request however many arrive; the result is written into a status region that
+ * was already on the page; and focus moves only when what it sat on goes.
+ * No screen reader was run.
+ */
+describe('keyboard use of a withdrawal, and what is announced', () => {
+  /** Hold every DELETE until `release()`, so the moment a request is out can be looked at. */
+  function holdDeletes() {
+    const real = globalThis.fetch
+    let release!: () => void
+    const gate = new Promise<void>((r) => (release = r))
+    let started = 0
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes('/introduce') && (init?.method ?? '').toUpperCase() === 'DELETE') {
+        started++
+        await gate
+      }
+      return real(input, init)
+    }) as typeof fetch
+    return { release, started: () => started }
+  }
+  const byText = (root: HTMLElement, re: RegExp) => [...root.querySelectorAll('button')].find((b) => re.test(b.textContent ?? '')) as HTMLButtonElement
+  const field = (root: HTMLElement) => root.querySelector('#request-code') as HTMLInputElement
+  const fire = (el: Element, event: Event) => act(async () => void el.dispatchEvent(event))
+  const click = (el: Element) => act(async () => void (el as HTMLElement).click())
+  const submit = (root: HTMLElement) => fire(root.querySelector('form')!, new Event('submit', { bubbles: true, cancelable: true }))
+  const statuses = (root: HTMLElement) => [...root.querySelectorAll('[role="status"]')]
+
+  async function typedScreen() {
+    onPhone(new Phone('another'))
+    blobs.put('introductions', CODE, record())
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.type('Request code', CODE)
+    return m
+  }
+
+  it('typed code: the button stays mounted, focused and focusable while the request is out, and one activation sends one request', async () => {
+    const m = await typedScreen()
+    const button = byText(m.container, /Take it off the list/)
+    const region = statuses(m.container).find((r) => m.container.querySelector('form')!.contains(r))!
+    expect(region, 'the form’s status region is on the page before any result').toBeTruthy()
+    expect(region.textContent).toBe('')
+    const held = holdDeletes()
+    button.focus()
+    await click(button)
+    await m.until(() => held.started() === 1, 'the request is out')
+    // Waiting: the same button, still focused, aria-disabled and not disabled, so it never leaves the tab order.
+    const waiting = byText(m.container, /Taking it off/)
+    expect(waiting).toBe(button)
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.hasAttribute('disabled')).toBe(false)
+    // A second click, an Enter in the field (a submit) and another click in the same wait start nothing.
+    await click(button)
+    await submit(m.container)
+    await click(button)
+    expect(held.started()).toBe(1)
+    held.release()
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'the result')
+    expect(asked()).toEqual([`DELETE /.netlify/functions/introduce?code=${CODE}`])
+    // The announcement landed in the region that was already there, and focus never left the button.
+    expect(statuses(m.container).find((r) => r === region)?.textContent).toContain('off the list')
+    expect(document.activeElement).toBe(button)
+    m.unmount()
+  })
+
+  it('typed code: after an unconfirmed result she can edit, then retry from the keyboard, and the place she is at does not move', async () => {
+    const m = await typedScreen()
+    const button = byText(m.container, /Take it off the list/)
+    const region = statuses(m.container).find((r) => m.container.querySelector('form')!.contains(r))!
+    server.down(/introduce/)
+    button.focus()
+    await click(button)
+    await m.until(() => region.textContent!.includes('We could not confirm'), 'unconfirmed')
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-disabled')).toBe('false')
+    expect(field(m.container).value).toBe(CODE)
+    // Editing clears the old result without removing its region; the field keeps what she typed.
+    field(m.container).focus()
+    await m.type('Request code', `${CODE}X`)
+    expect(region.isConnected).toBe(true)
+    expect(region.textContent).toBe('')
+    expect(field(m.container).value).toBe(`${CODE}X`)
+    // The wrong length is caught here, by the same region, with nothing sent.
+    const sentBefore = asked().length
+    await submit(m.container)
+    await m.until(() => region.textContent!.includes('A request code is 8 characters'), 'refused as typed')
+    expect(asked().length).toBe(sentBefore)
+    // Put it right, server back, retry with Enter in the field.
+    await m.type('Request code', CODE)
+    server.down(false)
+    field(m.container).focus()
+    await submit(m.container)
+    await m.until(() => region.textContent!.includes('The request under that code is off the list.'), 'the retry is confirmed')
+    expect(document.activeElement).toBe(field(m.container))
+    expect(blobs.keys('introductions')).toEqual([])
+    m.unmount()
+  })
+
+  it('two activations in the same instant send one request, on either route', async () => {
+    const m = await typedScreen()
+    const held = holdDeletes()
+    const button = byText(m.container, /Take it off the list/)
+    // Enter and a click landing together, before React has re-rendered with the wait.
+    await act(async () => {
+      button.click()
+      button.click()
+      m.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    })
+    await m.until(() => held.started() >= 1, 'the request is out')
+    expect(held.started()).toBe(1)
+    held.release()
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'the result')
+    expect(asked()).toEqual([`DELETE /.netlify/functions/introduce?code=${CODE}`])
+    m.unmount()
+
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const r = await mount(<App />)
+    await r.press(/Manage an earlier introduction request/)
+    const again = holdDeletes()
+    const own = byText(r.container, /^Take my name off/)
+    await act(async () => {
+      own.click()
+      own.click()
+    })
+    await r.until(() => again.started() >= 1, 'the request is out')
+    expect(again.started()).toBe(1)
+    again.release()
+    await r.until(() => r.text().includes('New introduction requests are closed.'), 'the closed state')
+    r.unmount()
+  })
+
+  it('typed code: an empty field sends nothing, and the button, still focusable, sends her to the field', async () => {
+    onPhone(new Phone('another'))
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const button = byText(m.container, /Take it off the list/)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    button.focus()
+    await click(button)
+    expect(asked()).toEqual([])
+    expect(document.activeElement).toBe(field(m.container))
+    m.unmount()
+  })
+
+  it('a successful removal keeps focus on the control used when that control stays; the field empties, the button remains', async () => {
+    const m = await typedScreen()
+    const button = byText(m.container, /Take it off the list/)
+    button.focus()
+    await click(button)
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'removed')
+    expect(field(m.container).value).toBe('')
+    expect(button.isConnected).toBe(true)
+    expect(document.activeElement).toBe(button)
+    // Emptied, it says so (aria-disabled) and is still reachable.
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    m.unmount()
+  })
+
+  it('what she types while a request is out is hers: completing does not clear it', async () => {
+    const m = await typedScreen()
+    const held = holdDeletes()
+    await click(byText(m.container, /Take it off the list/))
+    await m.until(() => held.started() === 1, 'the request is out')
+    await m.type('Request code', OTHER)
+    held.release()
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'the result')
+    expect(field(m.container).value).toBe(OTHER)
+    m.unmount()
+  })
+
+  it('receipt: the button stays mounted, focused and focusable while waiting, duplicates send nothing, and an unconfirmed result is announced in the region already there', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const button = byText(m.container, /^Take my name off/)
+    const region = button.parentElement!.nextElementSibling as HTMLElement
+    expect(region.getAttribute('role')).toBe('status')
+    expect(region.textContent).toBe('')
+    server.down(/introduce/)
+    const held = holdDeletes()
+    button.focus()
+    await click(button)
+    await m.until(() => held.started() === 1, 'the request is out')
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.hasAttribute('disabled')).toBe(false)
+    await click(button)
+    await click(button)
+    expect(held.started()).toBe(1)
+    held.release()
+    await m.until(() => region.textContent!.includes('We could not confirm whether that request was removed.'), 'unconfirmed')
+    expect(region.isConnected).toBe(true)
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-disabled')).toBe('false')
+    expect(phone.storage.has(INTRO_KEY)).toBe(true)
+    // The same button, pressed again once the server is back, finishes it.
+    server.down(false)
+    await click(button)
+    await m.until(() => m.text().includes('New introduction requests are closed.'), 'the receipt is gone')
+    m.unmount()
+  })
+
+  it('receipt: when taking it off removes the receipt, focus lands on the closed screen’s heading, and the confirmation is announced in the region that was there before', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const top = m.container.querySelector('main > [role="status"]') as HTMLElement
+    expect(top, 'a status region is on the page whichever state shows').toBeTruthy()
+    expect(top.textContent).toBe('')
+    const button = byText(m.container, /^Take my name off/)
+    button.focus()
+    await click(button)
+    await m.until(() => m.text().includes('New introduction requests are closed.'), 'the closed state')
+    expect(button.isConnected).toBe(false)
+    expect(m.container.querySelector('main > [role="status"]')).toBe(top)
+    expect(top.textContent).toContain('The request under this code is off the list.')
+    const heading = m.container.querySelector('h1')!
+    expect(heading.textContent).toBe('New introduction requests are closed.')
+    expect(document.activeElement).toBe(heading)
+    // A one-time target: it is not left in the tab order.
+    heading.dispatchEvent(new FocusEvent('blur'))
+    expect(heading.hasAttribute('tabindex')).toBe(false)
+    m.unmount()
+  })
+
+  it('receipt: if she moved focus elsewhere while it was out, completing leaves it where she put it', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const held = holdDeletes()
+    const button = byText(m.container, /^Take my name off/)
+    button.focus()
+    await click(button)
+    await m.until(() => held.started() === 1, 'the request is out')
+    // Deliberately on something outside the receipt: the header's Back.
+    const back = m.container.querySelector('header button') as HTMLButtonElement
+    back.focus()
+    expect(document.activeElement).toBe(back)
+    held.release()
+    await m.until(() => m.text().includes('New introduction requests are closed.'), 'the closed state')
+    expect(document.activeElement).toBe(back)
+    expect(m.container.querySelector('h1')).not.toBe(document.activeElement)
+    m.unmount()
+  })
+
+  it('receipt: if she was on something else inside the receipt, which goes with it, she is given the heading rather than nothing', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const held = holdDeletes()
+    await click(byText(m.container, /^Take my name off/))
+    await m.until(() => held.started() === 1, 'the request is out')
+    const elsewhere = byText(m.container, /What we hold, exactly/)
+    elsewhere.focus()
+    expect(document.activeElement).toBe(elsewhere)
+    held.release()
+    await m.until(() => m.text().includes('New introduction requests are closed.'), 'the closed state')
+    expect(elsewhere.isConnected).toBe(false)
+    expect(document.activeElement).toBe(m.container.querySelector('h1'))
+    m.unmount()
+  })
+
+  it('typed code on a receipt that matches it: focus goes to the heading too, because the receipt it sat in is gone', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.press(/^Use a different code/)
+    // Opening the field puts her in it.
+    expect(document.activeElement).toBe(field(m.container))
+    await m.type('Request code', CODE)
+    const button = byText(m.container, /Take it off the list/)
+    button.focus()
+    await click(button)
+    await m.until(() => m.text().includes('This phone is not holding a request code.'), 'receipt cleared')
+    expect(document.activeElement).toBe(m.container.querySelector('h1'))
+    expect(m.container.querySelector('main > [role="status"]')?.textContent ?? '').toBe('')
     m.unmount()
   })
 })

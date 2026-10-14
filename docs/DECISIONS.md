@@ -4435,3 +4435,39 @@ never truncated, and one that is not six or eight characters is refused as typed
 `src/data/brand.ts` and `src/data/hook.ts`: with an `ANTHROPIC_API_KEY` secret set, opening a pull request
 would start a paid run. That run was not authorized and no pull request has been opened. The workflow and
 its rules are unchanged.
+
+### R3 amendment: keyboard focus, announcements and the contact address (2026-10-14)
+
+Approved by the founder on 2026-10-14, after the deployed preview of pull request #86 was checked at 390px and
+320px. Two changes, both small; neither touches the server, the copy of the closure or what a result says.
+
+**Keyboard and announcements** (`src/components/Looking.tsx`). A keyboard check of the typed-code route and the
+receipt button found that pressing the button with the keyboard dropped focus to the page after a not-found or
+unconfirmed result (a `disabled` button gives up focus), and that the result sat in a `role="status"` element
+mounted together with its text, which screen readers often do not announce. Now:
+- the control that is waiting is `aria-disabled`, not `disabled`, so it stays mounted and focusable, and a ref
+  (`inFlight`) stops a second click, Enter or Space in the same instant from sending another request;
+- the status containers (under the receipt button, in the code form, and above the screen for the confirmation
+  that arrives as the receipt goes) are mounted before any result;
+- focus moves only when the control it sits on is about to be removed (the receipt goes once its request is taken
+  off), and only if it is inside the receipt at that moment, to the closed screen's heading as a one-time target; a
+  person who moved elsewhere while waiting keeps their place;
+- an empty field and the button "Use a different code" send her to the field, and text typed while a request is
+  out is not cleared by its result. Invalid codes are still refused as typed and send nothing.
+Regression tests are in `tests/journeys/looking.test.tsx` (keyboard submission, retry after an unconfirmed
+result, duplicate activation including in the same instant, completion after focus moved elsewhere). They run in
+happy-dom, which has no keyboard or screen reader: the keyboard behaviour is checked in Chromium at 390px and
+320px, and **no screen reader was run**, so announcements are verified only as to what is in the DOM.
+
+**Contact address** (`src/lib/site.ts`, `docs/OPS.md`). The fallback for `CONTACT_EMAIL` is now
+`joinniyyah@gmail.com`, the address the founder approved as Niyyah's public contact for support and withdrawal
+requests. The earlier fallback, `salaam@joinniyyah.com`, did not receive mail, and a deployed preview built with
+the variable pointing at another address showed that one. `tests/durable.test.ts` still requires the contact
+address to be on the owned domain, with this one address as the exact, documented exception; moving to an address
+on the domain stays the open step in `docs/OPS.md`. The founder sets `VITE_CONTACT_EMAIL` in Netlify for
+Production and Deploy Previews separately; this change lists no environment values.
+
+**Evaluation (record).** Pull request #86 ran `guide-eval` on `1f02863`: it showed success, and the live Guide
+and relationship-judgment evaluations were **not evaluated: insufficient credit** (the API answered
+`credit balance is too low` and the workflow's credit grep exits 0). No credit was added and nothing was run by
+hand.

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CODE_LENGTH, EXAMPLE_CODE, cleanCode, formatCode, isCode } from '../lib/code'
 import { withdrawInterest, type IntroState, type Withdrawal } from '../lib/introduce'
 import { CONTACT_EMAIL } from '../lib/site'
@@ -38,6 +38,19 @@ interface Props {
  *    (netlify/functions/sweep.ts removes a name at the last weekly run before
  *    its 180th day, and again at the next run if one fails).
  *  - The day shown on the receipt is this phone's own record of it.
+ *
+ * Keyboard and announcements (release R3 amendment):
+ *
+ *  - A control that is waiting stays mounted and focusable: it is
+ *    `aria-disabled`, not `disabled`, because a disabled button throws away
+ *    the focus of the person who just pressed it. Duplicate requests are
+ *    stopped by `inFlight`, a ref, so a second click, Enter or Space in the
+ *    same tick cannot start another.
+ *  - The result containers are mounted before any result, so a screen reader
+ *    announces the text that arrives instead of a region that appears with it.
+ *  - Focus moves only when a control it sits on is about to be removed (the
+ *    receipt goes once its request is taken off), and only if it is inside the
+ *    receipt then. A person who moved elsewhere while waiting keeps their place.
  */
 const LABEL = 'text-xs font-medium uppercase tracking-[0.2em] text-muted'
 
@@ -53,31 +66,78 @@ export default function Looking({ intro, onWithdrawn, onTalking, onMap, onTrust,
   const [fieldOpen, setFieldOpen] = useState(false)
   const [busy, setBusy] = useState<Route | null>(null)
   const [outcome, setOutcome] = useState<Outcome | null>(null)
+  /** Whether a request is out. A ref, so two activations in one tick cannot both start one. */
+  const inFlight = useRef(false)
+  const receiptRef = useRef<HTMLElement>(null)
+  const closedHeading = useRef<HTMLHeadingElement>(null)
+  const codeInput = useRef<HTMLInputElement>(null)
+  /** Set only when focus sits inside a receipt that this result is about to remove. */
+  const headingNext = useRef(false)
+
+  /** The receipt is about to go: if focus is on it, the closed state's heading takes focus once it is there. */
+  function claimFocusIfOnReceipt() {
+    headingNext.current = !!receiptRef.current && receiptRef.current.contains(document.activeElement)
+  }
+
+  useEffect(() => {
+    if (intro || !headingNext.current) return
+    headingNext.current = false
+    const h = closedHeading.current
+    if (!h) return
+    // The same one-time target as useFocusHeading: tabindex -1 for the moment, no tab stop left behind.
+    const had = h.hasAttribute('tabindex')
+    if (!had) h.setAttribute('tabindex', '-1')
+    h.focus({ preventScroll: true })
+    if (!had) h.addEventListener('blur', () => h.removeAttribute('tabindex'), { once: true })
+  }, [intro])
+
+  /** Opening the field replaces the control that opened it, so it takes focus. */
+  useEffect(() => {
+    if (fieldOpen) codeInput.current?.focus()
+  }, [fieldOpen])
 
   async function takeOffOwn() {
-    if (!intro || busy) return
+    if (!intro || inFlight.current) return
+    inFlight.current = true
+    headingNext.current = false
     setBusy('own')
-    const kind = await withdrawInterest(intro.code)
+    const kind = await withdrawInterest(intro.code).catch((): Withdrawal => 'unconfirmed')
+    inFlight.current = false
     setBusy(null)
     setOutcome({ route: 'own', kind })
-    if (kind !== 'unconfirmed') onWithdrawn()
+    if (kind !== 'unconfirmed') {
+      claimFocusIfOnReceipt()
+      onWithdrawn()
+    }
   }
 
   async function takeOffTyped(e: React.FormEvent) {
     e.preventDefault()
-    if (busy) return
+    if (inFlight.current) return
+    if (!typed) {
+      // Nothing to send. The button stays focusable, so say where the work is.
+      codeInput.current?.focus()
+      return
+    }
     if (!isCode(typed)) {
       setOutcome({ route: 'typed', kind: 'bad-length' })
       return
     }
     const code = cleanCode(typed)
+    inFlight.current = true
+    headingNext.current = false
     setBusy('typed')
-    const kind = await withdrawInterest(code)
+    const kind = await withdrawInterest(code).catch((): Withdrawal => 'unconfirmed')
+    inFlight.current = false
     setBusy(null)
     setOutcome({ route: 'typed', kind })
     if (kind !== 'unconfirmed') {
-      setTyped('')
-      if (intro && intro.code === code) onWithdrawn()
+      // Clear the field only if it still holds what was sent; edits made while waiting are theirs.
+      setTyped((t) => (cleanCode(t) === code ? '' : t))
+      if (intro && intro.code === code) {
+        claimFocusIfOnReceipt()
+        onWithdrawn()
+      }
     }
   }
 
@@ -109,6 +169,7 @@ export default function Looking({ intro, onWithdrawn, onTalking, onMap, onTrust,
       </label>
       <input
         id="request-code"
+        ref={codeInput}
         type="text"
         inputMode="text"
         autoCapitalize="characters"
@@ -133,7 +194,12 @@ export default function Looking({ intro, onWithdrawn, onTalking, onMap, onTrust,
       <p id="request-code-help" className="mt-2 text-[0.82rem] leading-snug text-muted text-pretty">
         Spaces and dashes are ignored.
       </p>
-      <Button type="submit" disabled={!typed || busy !== null} className="mt-4 w-full sm:w-auto">
+      <Button
+        type="submit"
+        aria-disabled={!typed || busy !== null}
+        aria-busy={busy === 'typed'}
+        className="mt-4 w-full aria-disabled:cursor-not-allowed aria-disabled:opacity-40 sm:w-auto"
+      >
         {busy === 'typed' ? (
           <>
             <Spinner /> Taking it off…
@@ -142,11 +208,10 @@ export default function Looking({ intro, onWithdrawn, onTalking, onMap, onTrust,
           'Take it off the list'
         )}
       </Button>
-      {said('typed') && (
-        <p role="status" className="mt-3 text-[0.9rem] leading-snug text-ink-soft text-pretty">
-          {said('typed')}
-        </p>
-      )}
+      {/* Mounted before any result, so what arrives is announced. */}
+      <p role="status" className={said('typed') ? 'mt-3 text-[0.9rem] leading-snug text-ink-soft text-pretty' : undefined}>
+        {said('typed')}
+      </p>
       <p className="mt-3 text-[0.85rem] leading-snug text-muted text-pretty">
         No code? Write to <span className="font-medium text-ink-soft">{CONTACT_EMAIL}</span> with the email or number you gave, and ask for it to be taken off.
       </p>
@@ -185,8 +250,16 @@ export default function Looking({ intro, onWithdrawn, onTalking, onMap, onTrust,
       </header>
 
       <main className="mx-auto max-w-xl px-6">
+        {/* Mounted whichever state is showing, so the confirmation that arrives as the receipt goes is announced. */}
+        <div role="status">
+          {!intro && outcome?.route === 'own' && outcome.kind !== 'unconfirmed' && (
+            <p className="-mb-4 mt-10 rounded-2xl border border-forest/25 bg-forest/[0.06] px-4 py-3 text-[0.9rem] leading-snug text-ink-soft text-pretty">
+              {message.own[outcome.kind]}
+            </p>
+          )}
+        </div>
         {intro ? (
-          <section className="py-10">
+          <section ref={receiptRef} className="py-10">
             <p className={`animate-fade ${LABEL} text-gold-ink`}>Introductions</p>
             <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
               Your earlier request.
@@ -203,8 +276,9 @@ export default function Looking({ intro, onWithdrawn, onTalking, onMap, onTrust,
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <button
                 onClick={takeOffOwn}
-                disabled={busy !== null}
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-clay/50 px-5 py-2.5 text-[0.88rem] font-medium text-clay transition hover:bg-clay/10 disabled:opacity-50"
+                aria-disabled={busy !== null}
+                aria-busy={busy === 'own'}
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border border-clay/50 px-5 py-2.5 text-[0.88rem] font-medium text-clay transition hover:bg-clay/10 aria-disabled:cursor-wait aria-disabled:opacity-50"
               >
                 {busy === 'own' ? <Spinner /> : null}
                 {busy === 'own' ? 'Taking it off…' : 'Take my name off'}
@@ -213,11 +287,10 @@ export default function Looking({ intro, onWithdrawn, onTalking, onMap, onTrust,
                 What we hold, exactly
               </TextButton>
             </div>
-            {said('own') && (
-              <p role="status" className="mt-3 text-[0.9rem] leading-snug text-clay text-pretty">
-                {said('own')}
-              </p>
-            )}
+            {/* Mounted before any result, so what arrives is announced. */}
+            <p role="status" className={said('own') ? 'mt-3 text-[0.9rem] leading-snug text-clay text-pretty' : undefined}>
+              {said('own')}
+            </p>
 
             <div className="mt-8">
               {fieldOpen ? (
@@ -236,13 +309,8 @@ export default function Looking({ intro, onWithdrawn, onTalking, onMap, onTrust,
           </section>
         ) : (
           <section className="py-10">
-            {outcome?.route === 'own' && outcome.kind !== 'unconfirmed' && (
-              <p role="status" className="mb-6 rounded-2xl border border-forest/25 bg-forest/[0.06] px-4 py-3 text-[0.9rem] leading-snug text-ink-soft text-pretty">
-                {message.own[outcome.kind]}
-              </p>
-            )}
             <p className={`animate-fade ${LABEL} text-gold-ink`}>Introductions</p>
-            <h1 className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
+            <h1 ref={closedHeading} className="animate-rise mt-3 font-display text-[2rem] font-medium leading-tight tracking-tight text-ink text-balance sm:text-[2.4rem]">
               New introduction requests are closed.
             </h1>
             <p className="animate-rise mt-4 text-[1.02rem] leading-relaxed text-ink-soft text-pretty">
