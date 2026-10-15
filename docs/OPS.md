@@ -43,12 +43,12 @@ The test for each supplier is: if it disappeared tomorrow, would we still have t
 
 ### The mailbox: the one open step
 
-`VITE_CONTACT_EMAIL` points at a Gmail inbox that a person reads. An address on a mail provider's domain is the last rented thing a member uses to reach us: it cannot be repointed or handed on. The code's default is `salaam@joinniyyah.com`, which does not receive mail yet, so production must keep the variable set. Move it over in this order:
+`VITE_CONTACT_EMAIL` points at a Gmail inbox that a person reads, and since 2026-10-14 that inbox is `joinniyyah@gmail.com`, the address the founder approved as Niyyah's public contact for support and withdrawal requests. The code's default in `src/lib/site.ts` is the same address, so a build with the variable unset still shows an address that reaches someone (until then the default was `salaam@joinniyyah.com`, which did not receive mail). Keep the variable set to it in Production and Deploy Previews. An address on a mail provider's domain is still the last rented thing a member uses to reach us: it cannot be repointed or handed on. Moving to an address on `joinniyyah.com` is the open step, in this order:
 
 1. **Choose how mail arrives.** Forwarding is enough and costs nothing: ImprovMX, or Cloudflare Email Routing if the zone is on Cloudflare. A real mailbox (Fastmail, Migadu, Google Workspace) is worth paying for only if replies should come *from* the address.
 2. **Add the provider's records** (MX, usually SPF, sometimes DKIM) wherever the `joinniyyah.com` zone lives. Nothing in this repository can reach DNS.
 3. **Prove it.** Send one message from an unrelated account and watch it arrive.
-4. **Only then** set `VITE_CONTACT_EMAIL` to `salaam@joinniyyah.com`, or remove it, and redeploy.
+4. **Only then** set `VITE_CONTACT_EMAIL` to the address on the domain, change the default in `src/lib/site.ts` to match in the same release (the default no longer sits on the domain, so removing the variable would not move it), and redeploy.
 5. **Check the contact link** on Home and on Trust.
 
 The switch comes last because an address that bounces loses the person who wrote in, and nobody finds out. Never release `getniyyah.netlify.app`: Netlify keeps serving it and redirecting, and that is what keeps links already in people's messages alive.
@@ -99,7 +99,7 @@ Set these in Netlify under Site configuration → Environment variables, unless 
 | `ANTHROPIC_API_KEY` | Turns on the live guide (`netlify/functions/guide.ts`). A GitHub Actions secret of the same name lets `guide-eval.yml` run. Give that one its own key with its own console spend limit, so the eval can never spend the members' budget | The guide answers in its offline voice, with no error shown. Without the GitHub secret, the live eval warns and passes |
 | `FOUNDER_KEY` | The bearer token on every readout (`netlify/shared/founder.ts`). Also a GitHub Actions secret with the same value, so `watch.yml` can read `/health`. Generate it with `openssl rand -base64 32` | **Every readout answers 401** (fails closed since 2026-09-12), and every health run is red. The fix is to set it |
 | `VITE_SITE_HOST` | The host used in every link the app hands out, every share card, `robots.txt` and `sitemap.xml`. Set it in every context | `joinniyyah.com` |
-| `VITE_CONTACT_EMAIL` | The contact link on Home and Trust | `salaam@joinniyyah.com`, which does not receive mail yet. Keep this set (above) |
+| `VITE_CONTACT_EMAIL` | The contact link on Home and Trust, and the address withdrawal requests are sent to | `joinniyyah@gmail.com`, a Gmail inbox a person reads (founder-approved 2026-10-14). Set it to the same address in Production and Deploy Previews (above) |
 | `VITE_OPERATOR_NAME` | Who Trust names as running Niyyah: a full legal name, or a company's registered name. A setting so that a name stays out of the public repository | "its founder", which names nobody. Set it before strangers arrive (`docs/DECISIONS.md`, the completion review) |
 | `OPS_COST_ALERT_USD` | The estimated guide spend in a day at which `/health`'s `cost` check turns red | `20`, about half of the worst possible day under the caps |
 | `SITE_URL` (GitHub → Variables) | The site that `watch.yml` and `deployed.yml` check | `https://joinniyyah.com` |
@@ -284,6 +284,12 @@ curl -s -H "$K" "$S/progress" | jq '.cohorts | to_entries | sort_by(.key) | .[-2
 **Public routes need no key.** Keeping a map, reporting a rung, answering the eleven, filing a report and the crash beacon are each bounded by an hourly cap instead (Deploy, above).
 
 ## The introduction pilot runbook
+
+> **Status, 2026-10-13 (release R3, `docs/DECISIONS.md`).** New introduction requests are closed and
+> founder-led introductions are no longer the operating model. This runbook describes the process as it was
+> decided and is kept as written, for the requests already held and as history; it is not an offer of a
+> service. What still applies in operation: reading the list (`GET /introduce`), taking a name off by its
+> code (`DELETE`), the 180-day lifetime and the weekly sweep, and the report channel for anyone introduced.
 
 The first twenty introductions are run by hand, from `GET /introduce`, with no software beyond the list itself (`docs/DECISIONS.md` decisions 26–35, Part 23). This section is the process. `tests/runbook.test.ts` holds that it keeps saying each part, and **the founder runs one tabletop drill of it before introduction 1** — a made-up pair, walked from name down to a report and a do-not-pair — and writes the drill's date and anything it changed into `docs/DECISIONS.md` Part 23.
 
@@ -477,7 +483,7 @@ Each scenario gives detection, the first hour, recovery, how much can be lost, w
 - **First hour:** at the registrar, renew or unlock and check the nameservers. `getniyyah.netlify.app` keeps serving the same deploy the whole time, so tell members to use it.
 - **Recover:** get the domain back. If it is gone for good, point a new domain at Netlify, set `VITE_SITE_HOST`, and redeploy.
 - **Loss:** none on the server. **On phones, access is lost rather than data**, because `localStorage` belongs to the origin: on a new address she sees an empty app until she restores with her code.
-- **Members see:** every link already sent stops working (restore links, couple links and tool links). The printed sheets carry `joinniyyah.com` and cannot be recalled. Mail to `salaam@joinniyyah.com` stops.
+- **Members see:** every link already sent stops working (restore links, couple links and tool links). The printed sheets carry `joinniyyah.com` and cannot be recalled. Mail to any address on `joinniyyah.com` stops; the contact address is a Gmail inbox, so mail to it does not.
 - **Prevent (the founder's, and the most important item here):** auto-renew on, the registrar lock on, a multi-year renewal, and the registrar row in the accounts table filled in. `tests/recovery.test.ts` builds the guide pages with another host and checks that nothing still names the old one. A full build with `VITE_SITE_HOST=getniyyah.netlify.app` leaves `joinniyyah.com` only in the printed sheets and the contact default.
 
 ### 9. Guide runaway cost

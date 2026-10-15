@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Identity } from '../types'
-import { BackButton, Disclose, LockGlyph, Logo } from './ui'
+import { BackButton, Disclose, LockGlyph, Logo, TextButton } from './ui'
 import ReportConcern from './ReportConcern'
 import ForgetMe, { type Forgot } from './ForgetMe'
 import { speak } from '../data/read'
@@ -20,6 +20,8 @@ interface Props {
   onCountMe: (on: boolean) => void
   /** Delete everything kept under her codes, then start this phone over. */
   onForget: Forgot
+  /** Open the introduction screen, where an earlier request is managed. */
+  onManageRequest: () => void
   onBack: () => void
 }
 
@@ -37,7 +39,7 @@ interface Props {
 /** A list inside a disclosure — the same size and colour as the paragraph it follows. */
 const LIST = 'mt-2 list-disc space-y-1 pl-5 text-[0.88rem] leading-snug text-muted'
 
-export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onBack }: Props) {
+export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDevice, countMe, onCountMe, onForget, onManageRequest, onBack }: Props) {
   const fix = speak(identity.gender)
 
   return (
@@ -231,10 +233,11 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
               </p>
             </Disclose>
 
-            <Disclose summary="Putting your name down for an introduction" hint="A way to reach you, and where you are">
+            <Disclose summary="An earlier introduction request" hint="New requests are closed">
               <p className="text-[0.88rem] leading-snug text-muted text-pretty">
-                Only if you tap <span className="font-medium text-ink">Put my name down</span> on the looking screen. Nothing
-                else you do here — a map, a read, the eleven — puts you on the list. What goes to our server:
+                New introduction requests are closed, and matching is not available. Nothing you do here — a map, a read, the
+                eleven — puts you on the list. If you put your name down while requests were open, this is what such a request
+                holds:
               </p>
               <ul className={LIST}>
                 <li>the email or phone number you typed</li>
@@ -245,23 +248,32 @@ export default function Trust({ identity, coupleCode, guideOnDevice, onGuideOnDe
                 <li>the day</li>
               </ul>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                It is kept under a code this phone made up for itself — not your map code, not the code your steps go
-                under — so nothing joins it to your answers. The founder reads the list, by hand, to make introductions
-                one at a time; no other route returns it, and it is not in the backup. It is kept for up to 180 days from
-                the day you put it down, then removed — sooner if you take your name off, from that screen or with Forget
-                me below, or ask us to. If you still want an introduction after that, you put it down again; there is no
-                reminder.
+                It is kept under a separate code, made by our server when the request was saved and given to the phone you
+                used. It is not your map code and not the code your steps go under, so nothing joins it to your answers. The
+                founder can read the list; no other route returns it, and it is not in the backup.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                <span className="font-medium text-ink">If the founder speaks with you.</span> Before anyone is considered for
-                you, the founder talks with you and with one person who knows you. What is kept, under your code and
+                A request is meant to be kept for no more than 180 days from the day it was put down. Removal is done by a
+                cleanup that runs weekly, so it can come up to a week sooner, and later if a run fails. You can take it off
+                sooner: from the introduction screen on the phone you used, with its code from any phone, with Forget me
+                below, or by asking us.
+              </p>
+              <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
+                <span className="font-medium text-ink">If the founder has spoken with you.</span> That conversation, and one
+                with a person who knows you, came before anyone could be considered for you. What is kept, under your code and
                 nowhere in this app: that who you are was checked and the day, that the person who knows you was spoken to
                 and the day, whether you can be introduced now, and one short description of you that you approve and that
                 does not say who you are. Not the other person’s name or number, and no other notes about you.
               </p>
               <p className="mt-2.5 text-[0.88rem] leading-snug text-muted text-pretty">
-                That description is the only thing about you anyone else sees before you have both said yes. Your name and
-                how to reach you go to one other person only after you and they have each said yes.
+                For any introduction already begun, that description is the only thing about you anyone else sees before you
+                have both said yes, and your name and how to reach you go to one other person only after you and they have
+                each said yes.
+              </p>
+              <p className="mt-2.5">
+                <TextButton onClick={onManageRequest} className="min-h-11 text-[0.88rem] font-medium text-forest underline">
+                  Manage an earlier request
+                </TextButton>
               </p>
             </Disclose>
 

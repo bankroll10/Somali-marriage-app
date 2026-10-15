@@ -36,16 +36,19 @@ export const SITE_HOST = import.meta.env.VITE_SITE_HOST || DEFAULT_SITE_HOST
 export const SITE_URL = `https://${SITE_HOST}`
 
 /**
- * Where a person reaches a human: the contact link on Home and Trust.
+ * Where a person reaches a human: the contact link on Home and Trust, and the
+ * address introduction-withdrawal requests are sent to.
  *
- * The default is on the domain we own, which is the half that can be fixed in
- * code. The other half is mail: until a mailbox actually answers at
- * `joinniyyah.com`, production must keep `VITE_CONTACT_EMAIL` pointed at an
- * address a person reads. That is the one open step in `docs/OPS.md`'s
- * cutover, and `docs/OPS.md` carries why it matters — an address on a mail
- * provider's domain is the last rented thing a member uses to reach us.
+ * The default is `joinniyyah@gmail.com`, the address the founder approved on
+ * 2026-10-14 as Niyyah's public contact for support and withdrawal. It is a
+ * Gmail inbox a person reads, so a build with no `VITE_CONTACT_EMAIL` shows an
+ * address that reaches someone, where the earlier default on `joinniyyah.com`
+ * did not receive mail yet. Production and previews set the variable to the
+ * same address. The step still open is moving it to an address on the domain we
+ * own once mail there arrives (`docs/OPS.md`, "The mailbox"): an address on a
+ * mail provider's domain is the last rented thing a member uses to reach us.
  */
-export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'salaam@joinniyyah.com'
+export const CONTACT_EMAIL = import.meta.env.VITE_CONTACT_EMAIL || 'joinniyyah@gmail.com'
 
 /**
  * Who runs Niyyah, as Trust names it: the person or company answerable for

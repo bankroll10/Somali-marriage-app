@@ -1,5 +1,10 @@
 # Niyyah
 
+> **Status, 2026-10-13 (release R3, `docs/DECISIONS.md`).** New introduction requests are closed, matching is
+> not available, and no date is promised. The founder-led introduction path described below is history and
+> stays as written; what is live is the tools for someone already talking to a person, and a way to take an
+> earlier request off the list.
+
 **Two doors, for the Somali diaspora. Looking for someone serious: put your
 name down for an introduction made by hand, beginning in Minneapolis–St. Paul. Already talking to someone: what
 they have done, the conversation to have next, and the words for it — then it

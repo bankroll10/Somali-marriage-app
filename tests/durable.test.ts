@@ -168,11 +168,18 @@ describe('the product survives its suppliers', () => {
         'no DNS to repoint. Use a domain we own — see docs/OPS.md',
     ).toBe(false)
 
-    // And the address a member writes to should live on the same owned domain,
-    // not on a free consumer mail account.
+    // And the address a member writes to belongs on the same owned domain,
+    // with one exact exception: the interim address the founder approved on
+    // 2026-10-14, a Gmail inbox a person reads, until mail on the domain
+    // arrives. Because the exception is exact and docs/OPS.md has to name it,
+    // the default cannot drift to some other consumer account unnoticed.
+    const INTERIM = 'joinniyyah@gmail.com'
     const email = site.match(/VITE_CONTACT_EMAIL \|\| '([^']+)'/)?.[1]
     expect(email, 'src/lib/site.ts must default CONTACT_EMAIL').toBeTruthy()
-    expect(email!.split('@')[1], 'the contact address belongs on the domain we own').toBe(host)
+    if (email!.split('@')[1] !== host) {
+      expect(email, 'off the owned domain, the contact address can only be the founder-approved interim one').toBe(INTERIM)
+      expect(read('docs/OPS.md'), 'docs/OPS.md must name the interim contact address').toContain(INTERIM)
+    }
   })
 
   it('sharing is the platform’s own sheet, not a vendor’s SDK', () => {

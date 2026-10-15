@@ -87,6 +87,13 @@ const PROMISES: [RegExp, string][] = [
   [/\buntil you take (it|your name) off\b|\bstays? (down|on the list) until\b/i, 'a name is kept at most 180 days (decision 32)'],
   [/\b(forty|40) (women|men|each|a side)\b/i, 'forty and forty is retired (decision 27)'],
   [/\b(we|the app|software|niyyah) (will |can )?match(es)? you\b/i, 'nothing here matches anyone (decision 29)'],
+  // Release R3 (docs/DECISIONS.md): new introduction requests are closed and
+  // matching is not available. No screen, description or reply offers the
+  // founder-led service, names a place it was beginning, or takes a name for it.
+  [/\bmade by hand\b|\bintroductions? by hand\b|speaks? with you first|founder-led|Meet someone serious/i, 'founder-led introductions are closed (release R3); say what an earlier request holds, never offer one'],
+  // The old buttons, capitalised as a button is: a sentence about the past ("if you put your name down while requests were open") is fine.
+  [/Put (my|your) name down|See how introductions work/, 'there is no button that takes a name for an introduction (release R3)'],
+  [/\bbeginning in Minneapolis|\bintroductions are beginning\b/i, 'no introductions are beginning anywhere (release R3)'],
 ]
 
 const RULES = [...BANNED, ...OVERCLAIMS, ...PROMISES]

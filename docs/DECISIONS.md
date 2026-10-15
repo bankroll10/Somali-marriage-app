@@ -4349,3 +4349,125 @@ would leave a screen describing a marker that is no longer written.
 **Not verified:** the deployed store, strong reads on Netlify's production Blobs for a store opened this way
 (the limiter, `ops` and the tallies already rely on them), and whether a deploy preview shares production
 data. A deployed check needs the founder's approval first.
+
+## Release candidate R3: new introduction requests are closed (2026-10-13)
+
+On 2026-10-06 the founder directed that Niyyah move toward product-led, AI-assisted matching and mutual
+connection, and that founder interviews and hand-arranged introductions are no longer the operating model.
+Production still told people the founder reads the list by hand and speaks with them first, and still took
+names under that promise. R3 is the **smallest honest change**: it stops taking new introduction requests,
+says plainly that matching is not available, promises no date, and keeps every way an existing request can be
+taken off. Decision 22 requires the founder's explicit approval to remove the signup route; the founder asked
+for this change and approved its implementation on 2026-10-13. Built on `origin/main` (`66111da`), as R1 and
+R2 were; it is not a merge of the held repair branch, and that branch's numbering and repairs are not used.
+
+**Historical decisions are intact.** Parts 22 and 23 and decisions 22 to 24, 26 to 33 and 35 record what was
+decided under the founder-led model and stand as written. They are superseded in operation, for new
+requests, by the direction above and by this release; their text is not edited. Decision 32's 180-day
+lifetime still governs every request already held.
+
+**What it does.** `POST /introduce` answers `410 { error: 'closed' }` first, before the store is opened, a body
+is read, a cap is spent or a code is minted, so a refused request keeps nothing. `GET` (the founder's list),
+`DELETE` (a name comes off by its code, from any phone), `removeBy`, `LIST_DAYS` and the weekly sweep are
+unchanged. 410 was chosen against production's own client (`whyOf` in `src/lib/net.ts`): an older page still
+open on a phone reads it as "That did not reach us, so nothing is saved", which is true, where 503 would
+send her to write "and it goes on by hand". On the phone: the signup form is gone; Welcome has one door and a
+**Manage an earlier introduction request** link; Home shows an earlier-request card only when the phone
+holds a code (at any stage); the Talking chooser's introduction link is gone; the introduction screen is a
+closed state, a receipt for a code this phone holds, and a field for a code from any phone; Trust's
+disclosure is rewritten; the map-flow insight, the description, the social-card text and the manifest
+description no longer promise the service. The headline is "Think marriage through."
+
+**Withdrawal is stricter, for introduction withdrawal only.** `withdrawInterest` returns `removed` only on
+`200 { removed: true }`, `nothing` only on `404 { error: 'not_found' }`, and `unconfirmed` for everything
+else, including a 2xx that is not 200 and an unexpected body. The phone drops the code it holds only on the
+first two. `forget.ts`'s own delete (which treats any 404 as done) and `whyOf` are unchanged: a production
+limitation left as it is.
+
+**Wording, deliberately changed from production.** (1) Trust said the request's code was one "this phone made
+up for itself"; the **server** mints it (`mint` in `netlify/functions/introduce.ts`), so Trust now says a
+separate code made by our server and given to the phone. (2) The retention copy states the 180-day rule as a
+rule and the weekly cleanup as the thing that carries it out (the sweep removes a name at the last weekly
+run before its 180th day, up to a week sooner, and at a later run if one fails); "until {day} at the latest"
+and "then removed" are gone because no day of completion is guaranteed. (3) Unconfirmed withdrawal says "We
+could not confirm whether that request was removed" and offers retry, Forget me and the contact address
+without claiming the request exists or promising an outcome ("still down" and "that is us, not you" are
+gone). (4) A removal is confirmed per code ("The request under this code is off the list"), not "Nothing
+about you is held there now", which overclaimed for a person with more than one request. (5) A code with
+nothing under it is reported as nothing found, never as success. (6) The Trust paragraphs about what a
+screening conversation leaves behind are kept but conditional and in the past ("If the founder has spoken
+with you"); whether any hand introduction is in flight is for the founder to say, and none is assumed.
+
+**A request that completed under the old function.** A request already running under the previous function
+when this deployed may have completed afterwards. It was **accepted under the old promise**. It is a possible
+late acceptance, not evidence that the promised introduction process was or will be carried out for that
+person, and nothing here checks. Such a record is withdrawable and expires like any other.
+
+**Production limitations left unchanged.** There are no withdrawal markers on production, so a withdrawal
+does not stop a request that was already in flight; the receipt's day is the phone's own clock; a 404 cannot
+tell "never existed" from "already removed"; the introduction code is never shown to the person, so the
+typed-code field serves only codes the founder has given out (showing it was declined for this release);
+Forget me is not browser-wide; `src/lib/contact.ts` is now unused and was not removed. Link previews and
+search results that cached the earlier description keep it until they refresh. **Rolling back reopens
+intake under the old promise.**
+
+**Evidence, all local.** `tests/introduce-function.test.ts` (the refusal for the old page's request, an empty,
+malformed, oversize and unfinished body, no store opened, no cap spent, the founder's list unchanged),
+`src/lib/introduce.test.ts` (every withdrawal classification), `tests/journeys/looking.test.tsx` (the closed
+state, the receipt, withdrawal on the phone and from another phone, unconfirmed on both, retention),
+`tests/ui/trust-earlier-request.test.tsx`, `tests/ui/welcome.test.tsx`, `tests/ui/screens.test.tsx`, and a
+new voice rule. 19 mutations of the new behaviour each turn a test red. In headless Chromium at 390 and 320
+wide, with the real handlers over an in-memory store and no request to any other origin: production's
+**previous bundle (`66111da`), already open,** submits the filled form, receives the real 410, shows "nothing
+is saved", writes no receipt and keeps the typed words; the candidate's closed state, receipt, typed-code
+results, Home card and Trust disclosure fit both widths, the new controls are 44px or taller, and focus
+reaches the heading on arrival. One defect was found by that browser run and fixed: the code field's
+`maxLength` counted a typed dash or space and would have dropped the last character of "QRTW XY34". The
+first fix cut the cleaned code to eight characters, which would have turned an overlong code into a valid
+deletion target; that was caught in review and removed. Spaces, dashes and case are ignored, a code is
+never truncated, and one that is not six or eight characters is refused as typed and sends no `DELETE`
+(a regression test names it).
+**Not verified:** anything on the deployed site, and any request made to it.
+
+**Evaluation.** Applicability and trigger differ. Nothing here touches the Guide, its prompt, `coach.ts`,
+`read.ts`, `beforeYes.ts` or `couple.ts`, so the Guide and judgment evaluations are not required. But
+`guide-eval.yml` triggers on any pull request that changes `src/data/**`, and this release changes
+`src/data/brand.ts` and `src/data/hook.ts`: with an `ANTHROPIC_API_KEY` secret set, opening a pull request
+would start a paid run. That run was not authorized and no pull request has been opened. The workflow and
+its rules are unchanged.
+
+### R3 amendment: keyboard focus, announcements and the contact address (2026-10-14)
+
+Approved by the founder on 2026-10-14, after the deployed preview of pull request #86 was checked at 390px and
+320px. Two changes, both small; neither touches the server, the copy of the closure or what a result says.
+
+**Keyboard and announcements** (`src/components/Looking.tsx`). A keyboard check of the typed-code route and the
+receipt button found that pressing the button with the keyboard dropped focus to the page after a not-found or
+unconfirmed result (a `disabled` button gives up focus), and that the result sat in a `role="status"` element
+mounted together with its text, which screen readers often do not announce. Now:
+- the control that is waiting is `aria-disabled`, not `disabled`, so it stays mounted and focusable, and a ref
+  (`inFlight`) stops a second click, Enter or Space in the same instant from sending another request;
+- the status containers (under the receipt button, in the code form, and above the screen for the confirmation
+  that arrives as the receipt goes) are mounted before any result;
+- focus moves only when the control it sits on is about to be removed (the receipt goes once its request is taken
+  off), and only if it is inside the receipt at that moment, to the closed screen's heading as a one-time target; a
+  person who moved elsewhere while waiting keeps their place;
+- an empty field and the button "Use a different code" send her to the field, and text typed while a request is
+  out is not cleared by its result. Invalid codes are still refused as typed and send nothing.
+Regression tests are in `tests/journeys/looking.test.tsx` (keyboard submission, retry after an unconfirmed
+result, duplicate activation including in the same instant, completion after focus moved elsewhere). They run in
+happy-dom, which has no keyboard or screen reader: the keyboard behaviour is checked in Chromium at 390px and
+320px, and **no screen reader was run**, so announcements are verified only as to what is in the DOM.
+
+**Contact address** (`src/lib/site.ts`, `docs/OPS.md`). The fallback for `CONTACT_EMAIL` is now
+`joinniyyah@gmail.com`, the address the founder approved as Niyyah's public contact for support and withdrawal
+requests. The earlier fallback, `salaam@joinniyyah.com`, did not receive mail, and a deployed preview built with
+the variable pointing at another address showed that one. `tests/durable.test.ts` still requires the contact
+address to be on the owned domain, with this one address as the exact, documented exception; moving to an address
+on the domain stays the open step in `docs/OPS.md`. The founder sets `VITE_CONTACT_EMAIL` in Netlify for
+Production and Deploy Previews separately; this change lists no environment values.
+
+**Evaluation (record).** Pull request #86 ran `guide-eval` on `1f02863`: it showed success, and the live Guide
+and relationship-judgment evaluations were **not evaluated: insufficient credit** (the API answered
+`credit balance is too low` and the workflow's credit grep exits 0). No credit was added and nothing was run by
+hand.

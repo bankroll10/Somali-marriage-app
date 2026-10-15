@@ -1,29 +1,28 @@
-import type { Gender } from '../types'
-import type { Reach } from '../data/reach'
 import { isCode } from './code'
-import { send, whyOf, type Why } from './net'
+import { send } from './net'
 
 /**
- * Putting a name down for an introduction — the client half of
- * netlify/functions/introduce.ts.
+ * An earlier introduction request — the client half of
+ * netlify/functions/introduce.ts, now that new requests are closed (release R3,
+ * 2026-10-13).
  *
- * One POST, with exactly what the server keeps: a way to reach her, her first
- * name if she gives it, woman or man, her city (and country, when she is
- * somewhere else), how far she would go. Nothing from her map, her read or
- * her eleven travels with it, and nothing here runs unless she taps the
- * button on the screen that says what it is for (src/components/Looking.tsx).
+ * Nothing here puts a name down any more: the server answers a new request
+ * with 410, and no screen sends one. What is left is what a person needs to
+ * deal with a request made while intake was open: the code this phone was
+ * given and the day it kept it (`rememberedIntro`), and taking a request off
+ * the list by its code (`withdrawInterest`), from this phone's own receipt or
+ * from any phone with the code typed in.
  *
- * The answer is a code, held on this phone under its own key — not her map
- * code, not her install id — so that she can take her name off again from
- * here, and Forget me takes it off with everything else (src/lib/forget.ts).
- * "You're on the list" is shown on a 200 with that code, and on nothing else:
- * a hung request, a 503 or a refused body leaves her told the truth, that it
- * did not go through, with her words still in the form.
+ * The code is the server's: it minted it and answered with it, and this phone
+ * kept it under its own key, apart from the map code and the install id, so a
+ * request can be taken off from here and Forget me takes it off with
+ * everything else (src/lib/forget.ts, unchanged).
  *
- * A name is kept at most 180 days (docs/DECISIONS.md decision 32). The server
- * removes it; this phone forgets the code on the same day, so no screen says
- * "your name is down" about a name that is gone. Nothing reminds her: if she
- * still wants an introduction she puts it down again.
+ * A request is kept at most 180 days from the day it was put down
+ * (docs/DECISIONS.md decision 32). The server removes it on its own schedule;
+ * this phone forgets the code on the same 180th day, so no screen offers to
+ * manage a request it has no code for. That is a rule about how long a request
+ * may be kept, not a statement that cleanup has run.
  */
 
 const ENDPOINT = '/.netlify/functions/introduce'
@@ -35,8 +34,9 @@ const KEY = 'niyyah.intro.v1'
 export const LIST_DAYS = 180
 
 /**
- * Where introductions are beginning (docs/DECISIONS.md decision 28). A name
- * from anywhere else is taken and kept for later, and the screen says so.
+ * Where introductions were beginning (docs/DECISIONS.md decision 28). Kept
+ * because the sweep's lifetime, the scenes list and tests/vocab-sync.test.ts
+ * still name it; no screen says it now.
  */
 export const PILOT_SCENE = 'twin-cities'
 
@@ -49,28 +49,15 @@ export function untilOf(at: string): string | null {
   return Number.isNaN(ms) ? null : new Date(ms + LIST_DAYS * DAY_MS).toISOString().slice(0, 10)
 }
 
-export interface InterestInput {
-  contact: string
-  firstName?: string
-  gender: Gender
-  scene: string
-  /** Only read when the scene is `other`. */
-  country?: string
-  reach?: Reach
-}
-
-/** What this phone remembers: that a name is down, under which code, since when. Never the contact. */
+/** What this phone remembers: that a request was put down, under which code, since when. Never the contact. */
 export interface IntroState {
   code: string
   at: string
 }
 
-export type Registered = { ok: true; code: string } | { ok: false; why: Why }
-
 /**
- * The name this phone put down, while it is still on the list. On and after
- * its 180th day the code is forgotten here too — the server has removed the
- * name, or will at its next sweep, and the founder's list no longer shows it.
+ * The request this phone holds a code for, until its 180th day. On and after
+ * that day the code is forgotten here too, and the phone stops offering it.
  */
 export function rememberedIntro(now = Date.now()): IntroState | null {
   try {
@@ -89,14 +76,6 @@ export function rememberedIntro(now = Date.now()): IntroState | null {
   }
 }
 
-function rememberIntro(state: IntroState): void {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(state))
-  } catch {
-    /* storage refused — she is on the list, and the screen says so for this visit */
-  }
-}
-
 export function forgetIntro(): void {
   try {
     localStorage.removeItem(KEY)
@@ -105,39 +84,47 @@ export function forgetIntro(): void {
   }
 }
 
-/** Put her name down. `ok` only when the server says it saved. */
-export async function registerInterest(input: InterestInput): Promise<Registered> {
-  const res = await send(ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contact: input.contact.trim(),
-      ...(input.firstName?.trim() ? { firstName: input.firstName.trim() } : {}),
-      gender: input.gender,
-      scene: input.scene,
-      ...(input.scene === 'other' && input.country ? { country: input.country } : {}),
-      ...(input.reach ? { reach: input.reach } : {}),
-    }),
-  })
-  if (!res?.ok) return { ok: false, why: await whyOf(res) }
+/** Whether the code this phone holds is this one, however it was typed. */
+function holds(code: string): boolean {
   try {
-    const { saved, code } = (await res.json()) as { saved?: unknown; code?: unknown }
-    if (saved !== true || typeof code !== 'string' || !isCode(code)) return { ok: false, why: 'garbled' }
-    rememberIntro({ code, at: new Date().toISOString().slice(0, 10) })
-    return { ok: true, code }
+    const raw = localStorage.getItem(KEY)
+    const p = raw ? (JSON.parse(raw) as Partial<IntroState>) : null
+    return !!p && p.code === code
   } catch {
-    return { ok: false, why: 'garbled' }
+    return false
   }
 }
 
 /**
- * Take her name off. True when it is gone — a 404 is gone too — and the phone
- * forgets the code either way it succeeded; on a failure the code is kept, so
- * she can try again or Forget me can finish it.
+ * What a request to take a name off came to:
+ *
+ *  - `removed`: the server said `200 { removed: true }`, its one documented
+ *    confirmation. Nothing else is read as one.
+ *  - `nothing`: the server said `404 { error: 'not_found' }`, its one
+ *    documented answer for a well-formed code with nothing under it. It does
+ *    not say whether there ever was, so nothing is claimed about the past.
+ *  - `unconfirmed`: anything else: no answer, a cap, a 503, a 400, a body that
+ *    is not one of the two above. Nothing is known either way.
  */
-export async function withdrawInterest(code: string): Promise<boolean> {
+export type Withdrawal = 'removed' | 'nothing' | 'unconfirmed'
+
+/**
+ * Take a request off the list by its code. The phone forgets its own code
+ * only on `removed` or `nothing`; on `unconfirmed` the code stays, so the
+ * person can try again or Forget me can finish it.
+ */
+export async function withdrawInterest(code: string): Promise<Withdrawal> {
   const res = await send(`${ENDPOINT}?code=${encodeURIComponent(code)}`, { method: 'DELETE' })
-  const gone = !!res && (res.ok || res.status === 404)
-  if (gone) forgetIntro()
-  return gone
+  if (!res) return 'unconfirmed'
+  let body: unknown
+  try {
+    body = await res.json()
+  } catch {
+    return 'unconfirmed'
+  }
+  const answer = body && typeof body === 'object' ? (body as Record<string, unknown>) : {}
+  const result: Withdrawal =
+    res.status === 200 && answer.removed === true ? 'removed' : res.status === 404 && answer.error === 'not_found' ? 'nothing' : 'unconfirmed'
+  if (result !== 'unconfirmed' && holds(code)) forgetIntro()
+  return result
 }
