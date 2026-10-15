@@ -58,6 +58,16 @@
 
 @import 'tailwindcss';
 
+/*
+ * The development-only matching prototype (docs/MATCH-PROTOTYPE.md) is styled by its own stylesheet,
+ * src/prototype/match/prototype.css. Tailwind reads every file under the project root, so without these three
+ * lines the prototype's utility classes, and any class name its tests mention, would be generated into the
+ * app's stylesheet and reach production. tests/prototype/build.test.ts builds the app and holds that none did.
+ */
+@source not "./prototype";
+@source not "../match.html";
+@source not "../tests/prototype";
+
 @theme {
   /* Palette — warm, grounded, intentional */
   --color-cream: #f7f2e8;

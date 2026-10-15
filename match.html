@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Matching prototype. Made-up people. Not part of the Niyyah app." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Matching prototype — Niyyah</title>
+    <!--
+      MATCH-01: a development-only entry point (docs/MATCH-PROTOTYPE.md). `vite build` bundles only
+      index.html's module graph, so this page and src/prototype/ never reach dist/ (tests/prototype/isolation.test.ts).
+      No manifest, no service worker, no analytics, no storage, no network.
+    -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/prototype/match/main.tsx"></script>
+  </body>
+</html>

@@ -4471,3 +4471,31 @@ Production and Deploy Previews separately; this change lists no environment valu
 and relationship-judgment evaluations were **not evaluated: insufficient credit** (the API answered
 `credit balance is too low` and the workflow's credit grep exits 0). No credit was added and nothing was run by
 hand.
+
+## MATCH-01: a prototype-only exception to decision 35 (2026-10-15)
+
+The founder directed (2026-10-06) that Niyyah move toward product-led, AI-assisted matching and mutual
+connection, and on 2026-10-15 approved a first member-journey prototype. Decision 35 lists the old marketplace as
+"never restored": invented candidates, profiles, photos, feeds, member messaging and automatic proposal selection.
+Decisions 22 and 26 require the founder's explicit approval, written here, before such a change.
+
+**Approved, and recorded:** a **prototype-only exception**, limited to synthetic profiles, deterministic selection
+from a fixed order, simulated mutual interest, local conversations and simulated photo sharing, in one
+development-only entry point (`match.html`, `src/prototype/match/`, `docs/MATCH-PROTOTYPE.md`). Production is
+unchanged: the one production file touched is `src/index.css`, which gained three `@source not` lines so the
+prototype's classes are not generated into the app's stylesheet, and a build of this branch is byte-identical to a
+build of `main` at `3eb7f64`. The exception does not cover anything that ships: it is not linked from the app, not built (`vite build`
+never reaches it), has no storage, no network and no real photo, and uses no part of the Guide or the private
+tools. **Decision 35 stands for everything that ships.**
+
+- The six points it asks about (timing, children, practice, city, work, household) are **provisional prototype
+  choices, not launch policy.** Age is shown and not used; age preferences are not built in this slice, so its
+  eligibility checks do not cover every requirement a real product would need.
+- The AI summary and suggested questions are **simulated fixed text labelled "Prototype fixture"**; no model is
+  called, so nothing about live AI behaviour was assessed.
+- Report, block and disconnect change the prototype's own state only and say so. They imply no moderation, review,
+  enforcement or deletion, because none exists.
+- Launch questions (identity, retention, moderation operations, vendor terms, admission size and the rest) are
+  recorded in `docs/MATCH-PROTOTYPE.md` and are not decided by this entry.
+- `tests/invariants/no-marketplace.test.ts` is unchanged and passes: the prototype names nothing it forbids.
+
