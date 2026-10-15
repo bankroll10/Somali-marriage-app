@@ -1,15 +1,25 @@
 import { getStore } from '@netlify/blobs'
 import { failed } from '../shared/ops'
-import { readJson } from '../shared/body'
-import { CODE, mint, normalise } from '../shared/code'
+import { CODE, normalise } from '../shared/code'
 import { day } from '../shared/day'
 import { isFounder, notFounder } from '../shared/founder'
 import { overHourlyCap, rateLimited } from '../shared/limit'
-import { stamp } from '../shared/record'
-import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/vocab'
 
 /**
  * The introduction list: a name put down, by hand, for a serious introduction.
+ *
+ * **New requests are closed** (release R3, 2026-10-13; docs/DECISIONS.md).
+ * Niyyah no longer takes names for introductions, and matching is not
+ * available, so `POST` answers 410 `{ error: 'closed' }` first, before the
+ * store is opened, a body is read, a cap is spent or a code is minted. What is
+ * live here is what an existing request still needs: `GET` (the founder's list),
+ * `DELETE` (a name comes off by its code, from any phone, leaving a withdrawal
+ * marker) and the weekly sweep (netlify/functions/sweep.ts). The paragraphs
+ * below describe how the route took a name while it was open, and the records
+ * that left; they are kept because those records, and the markers, are still
+ * read, removed and explained. The late-POST refusal they describe cannot
+ * happen while the route is closed.
+ *
  *
  * Niyyah was started so that serious Somali singles could meet each other and
  * move toward marriage. Two women signed up for exactly that through the old
@@ -106,17 +116,6 @@ import { COUNTRIES, GENDERS, REACH, SCENES, SCENE_COUNTRY } from '../shared/voca
  * whole, behind the key, and no other route returns a record.
  */
 
-/** A contact, a name, a side, a city, a country, a reach, a code and a flag is the largest thing anyone can send. */
-const MAX_BODY = 2_048
-/** An email or a phone number: long enough for any real one, short enough that nothing else fits. */
-const MAX_CONTACT = 200
-const MAX_NAME = 40
-/**
- * Names put down in one hour, from everyone. Thirty real people do not join
- * in an hour at this stage; a circuit breaker, not a member limit
- * (netlify/shared/limit.ts).
- */
-const DEFAULT_HOURLY_CAP = 60
 /** Names taken off in one hour, from everyone: the read-cap shape from keep.ts, since this deletes by a guessed code. */
 const DEFAULT_FORGET_CAP = 600
 
@@ -177,73 +176,16 @@ export interface Introduction {
 /** Every key a stored record may carry, so a test can hold the shape (tests/introduce-function.test.ts). */
 export const INTRODUCTION_KEYS = ['contact', 'firstName', 'gender', 'scene', 'country', 'reach', 'adult', 'at', 'v'] as const
 
-/**
- * Could this reach anyone at all? An `@` with a dotted domain after it, or at
- * least seven digits. The phone asks more carefully (src/lib/contact.ts); the
- * server refuses only what could never work, so a typo is not stored as a
- * person.
- */
-export function reachable(raw: string): boolean {
-  if (raw.includes('@')) {
-    const parts = raw.split('@')
-    if (parts.length !== 2 || !parts[0] || /\s/.test(raw)) return false
-    const dot = parts[1].lastIndexOf('.')
-    return dot > 0 && parts[1].length - dot > 2
-  }
-  return /^[+()\-.\s\d]+$/.test(raw) && (raw.match(/\d/g) ?? []).length >= 7
-}
-
-/** A named city knows its country; somewhere else has to be told one. Null when she cannot be placed. */
-export function countryOf(scene: string, told: unknown): string | null {
-  if (scene !== 'other') return SCENE_COUNTRY[scene] ?? null
-  return typeof told === 'string' && COUNTRIES.has(told) ? told : null
-}
-
-/** The same request, field for field — what makes a retry a retry and not a second person. */
-export function sameRequest(a: Introduction, b: Introduction): boolean {
-  return (
-    a.contact === b.contact &&
-    (a.firstName ?? '') === (b.firstName ?? '') &&
-    a.gender === b.gender &&
-    a.scene === b.scene &&
-    a.country === b.country &&
-    a.reach === b.reach &&
-    a.adult === b.adult
-  )
-}
-
-/** What the phone is told, and keeps: the code, and the server's own two days. */
-const receipt = (code: string, at: string, again = false) =>
-  Response.json({ saved: true, code, at, removeOn: removeOn(at), ...(again ? { again: true } : {}) })
-
-type Store = ReturnType<typeof getStore>
-
-/**
- * Is any withdrawal marker under this code? A list by the code's prefix, on
- * the store opened strong — `list` inherits the store's consistency in the
- * installed SDK (`makeRequest` takes the store's mode when the call names
- * none), so this sees a marker written a moment ago.
- */
-const withdrawnAny = async (store: Store, code: string) => (await store.list({ prefix: markerPrefix(code) })).blobs.length > 0
-
-/**
- * A request under a code that carries a withdrawal marker: refused, and
- * whatever sits under the code — this request's own write, or one an earlier
- * cleanup could not remove — is deleted if it can be. When that delete fails
- * the answer is still 410: the marker stands, the founder's list already
- * leaves the record out, and the sweep finishes it. The failure is counted
- * so /health sees it.
- */
-async function withdrawn(store: Store, code: string): Promise<Response> {
-  try {
-    await store.delete(code)
-  } catch (err) {
-    await failed('introduce', 'a withdrawn record could not be removed; the sweep will', err)
-  }
-  return Response.json({ error: 'withdrawn' }, { status: 410 })
-}
-
 export default async function handler(req: Request) {
+  // ── Closed ───────────────────────────────────────────────────────────
+  // Before the store is opened, a body is read, a cap is spent or a code is
+  // minted: nothing about a refused request is kept. 410, not 503 or another
+  // 4xx, because an older page still open on a phone maps every unrecognised
+  // status to "That did not reach us, so nothing is saved", which is true.
+  if (req.method === 'POST') {
+    return Response.json({ error: 'closed' }, { status: 410, headers: { 'Cache-Control': 'no-store' } })
+  }
+
   const store = getStore({ name: 'introductions', consistency: 'strong' })
 
   // ── The founder's list ────────────────────────────────────────────────────
@@ -324,82 +266,5 @@ export default async function handler(req: Request) {
     }
   }
 
-  // ── Putting a name down ───────────────────────────────────────────────────
-  if (req.method !== 'POST') return Response.json({ error: 'GET, POST or DELETE only' }, { status: 405 })
-
-  const body = await readJson<{ code?: unknown; contact?: unknown; firstName?: unknown; gender?: unknown; scene?: unknown; country?: unknown; reach?: unknown; adult?: unknown }>(req, MAX_BODY)
-  if (body instanceof Response) return body
-
-  // The code the phone holds, when it sends one. Its shape is checked here;
-  // whether anything is under it is the conditional write's business.
-  const held = body.code === undefined ? null : normalise(body.code)
-  if (held !== null && !CODE.test(held)) return Response.json({ error: 'bad_code' }, { status: 400 })
-  const contact = typeof body.contact === 'string' ? body.contact.trim() : ''
-  if (!contact || contact.length > MAX_CONTACT || !reachable(contact)) return Response.json({ error: 'bad_contact' }, { status: 400 })
-  const gender = typeof body.gender === 'string' && GENDERS.has(body.gender) ? (body.gender as Introduction['gender']) : null
-  if (!gender) return Response.json({ error: 'bad_gender' }, { status: 400 })
-  const scene = typeof body.scene === 'string' && SCENES.has(body.scene) ? body.scene : null
-  if (!scene) return Response.json({ error: 'bad_scene' }, { status: 400 })
-  const country = countryOf(scene, body.country)
-  if (!country) return Response.json({ error: 'bad_country' }, { status: 400 })
-  // Silence means her city. The product never assumes anyone would move.
-  const told = body.reach === undefined ? 'city' : body.reach
-  if (typeof told !== 'string' || !REACH.has(told)) return Response.json({ error: 'bad_reach' }, { status: 400 })
-  const reach = told as Introduction['reach']
-  // The affirmation, exactly `true`: not "yes", not 1, not absent. A client
-  // from before this gate sends nothing here and is refused — it cannot be
-  // told why in words it has, and it must not get through in silence
-  // (docs/OPS.md, "Updating an installed app").
-  if (body.adult !== true) return Response.json({ error: 'bad_adult' }, { status: 400 })
-  const firstName = typeof body.firstName === 'string' ? body.firstName.trim().slice(0, MAX_NAME) : ''
-
-  // Bounded, like every public write — after validation, so a bad body spends nothing.
-  if (await overHourlyCap('introduce', DEFAULT_HOURLY_CAP)) return rateLimited()
-
-  const record: Introduction = {
-    contact,
-    ...(firstName ? { firstName } : {}),
-    gender,
-    scene,
-    country,
-    reach,
-    adult: true,
-    at: day(),
-  }
-  try {
-    if (held) {
-      // Already taken off under this code — by her, or by Forget me — before
-      // this request arrived: nothing is written, the screen is told, and
-      // anything an earlier cleanup left under the code is tried again.
-      if (await withdrawnAny(store, held)) return withdrawn(store, held)
-      const { modified } = await store.setJSON(held, stamp(record), { onlyIfNew: true })
-      if (!modified) {
-        // Something is under the code. Hers, sent again — or someone else's,
-        // or hers with different details. Read back, never written over.
-        const existing = (await store.get(held, { type: 'json' })) as Introduction | null
-        if (await withdrawnAny(store, held)) return withdrawn(store, held)
-        if (!existing) return Response.json({ error: 'withdrawn' }, { status: 410 })
-        if (!sameRequest(existing, record)) return Response.json({ error: 'taken' }, { status: 409 })
-        return receipt(held, existing.at, true)
-      }
-      // Written — unless a withdrawal landed between the check above and the
-      // write, in which case a marker is there now and this record goes.
-      if (await withdrawnAny(store, held)) return withdrawn(store, held)
-      return receipt(held, record.at)
-    }
-    // No code from the phone (a client from before 2026-09-27's batch): onto
-    // a code nobody holds. A collision costs a retry, never a person
-    // (netlify/shared/code.ts).
-    const code = await mint((c, v) => store.setJSON(c, v, { onlyIfNew: true }), stamp(record))
-    if (!code) {
-      await failed('introduce', 'every minted code collided')
-      return Response.json({ error: 'unavailable' }, { status: 503 })
-    }
-    // Said only once the record is there: the screen shows its receipt on
-    // this answer and on nothing else.
-    return receipt(code, record.at)
-  } catch (err) {
-    await failed('introduce', 'write failed', err)
-    return Response.json({ error: 'unavailable' }, { status: 503 })
-  }
+  return Response.json({ error: 'GET or DELETE only' }, { status: 405 })
 }

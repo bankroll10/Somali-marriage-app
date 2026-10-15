@@ -1,92 +1,100 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { blobs, call } from './support/server'
+import { seedRecord } from './support/intro'
 import { day } from '../netlify/shared/day'
-import { markerKey, markerPrefix } from '../netlify/functions/introduce'
+import { markerKey } from '../netlify/functions/introduce'
 
 /**
- * A request still in flight, and a withdrawal that overtakes it
- * (docs/BATCH-01-PLAN.md D2).
+ * A request that was in flight when the route closed, and a withdrawal beside it
+ * (docs/BATCH-01-PLAN.md D2; docs/DECISIONS.md, release R3 and its integration).
  *
- * The phone's `send` gives up after ten seconds, but the request it sent may
- * still land; a person who taps "Take my name off" or Forget me in that
- * window must not be left with a record on the list and no code for it. The
- * DELETE writes `withdrawn/<code>/<day>` before it deletes the record; the
- * POST lists the code's markers before and after its write.
- * tests/support/blobs.ts runs the competing request at an exact call, so
- * each interleaving is a test, not a thought experiment. Whatever the order,
- * the store ends with the marker and nothing else, and the request is told
- * it was withdrawn. tests/introduce-residue.test.ts takes over where a delete
- * fails.
+ * The phone's `send` gives up after ten seconds, but a request it sent before
+ * the route closed may still arrive. It must not write: the route answers 410
+ * before it opens a store, so a late request cannot leave a record that a
+ * withdrawal has already marked. What is left to race is the withdrawal itself:
+ * the DELETE writes `withdrawn/<code>/<day>` before it deletes the record, and
+ * a second tap, or Forget me beside it, must end in the same place.
+ * tests/support/blobs.ts runs the competing request at an exact call, so each
+ * interleaving is a test, not a thought experiment. tests/introduce-residue.test.ts
+ * takes over where a delete fails.
  */
 
 vi.mock('@netlify/blobs', async () => (await import('./support/blobs')).blobsModule)
 
 const CODE = 'HJKMNPQR'
 const MARKER = markerKey(CODE, day())
-/** The POST's marker check is a list by this prefix. */
-const LOOK = markerPrefix(CODE)
 const OK = { code: CODE, contact: 'zq.race@example.com', gender: 'woman', scene: 'twin-cities', adult: true }
 const put = () => call('introduce', 'POST', 'introduce', OK)
 const off = () => call('introduce', 'DELETE', `introduce?code=${CODE}`)
 
 beforeEach(() => blobs.reset())
 
-describe('a withdrawal racing a request under the same code', () => {
-  it('lands before the record is written: the request finds the marker first and writes nothing', async () => {
-    // The marker check reads first; the withdrawal runs just before that read.
-    blobs.before('list', LOOK, () => off(), 'introductions')
+describe('a request that arrives after the route closed', () => {
+  it('is refused before any store is opened, and writes nothing', async () => {
+    const res = await put()
+    expect(res.status).toBe(410)
+    expect(await res.json()).toEqual({ error: 'closed' })
+    expect(res.headers.get('Cache-Control')).toBe('no-store')
+    expect(blobs.keys('introductions')).toEqual([])
+    expect(blobs.opened.has('introductions')).toBe(false)
+  })
+
+  it('is refused the same way when a withdrawal has just marked the code: no record comes back', async () => {
+    seedRecord(CODE)
+    expect(await (await off()).json()).toEqual({ removed: true })
     const res = await put()
     expect(res.status).toBe(410)
     expect(blobs.keys('introductions')).toEqual([MARKER])
   })
 
-  it('lands between the check and the write: the record is written, then removed by the request itself', async () => {
-    blobs.before('setJSON', CODE, () => off(), 'introductions')
-    const res = await put()
-    expect(res.status).toBe(410)
-    expect(blobs.keys('introductions')).toEqual([MARKER])
-  })
-
-  it('lands after the write and before the request’s second look: removed by the withdrawal, and the request says so', async () => {
-    // The first marker read is the check before the write; the second is after.
-    blobs.before('list', LOOK, () => off(), 'introductions', 2)
-    const res = await put()
-    expect(res.status).toBe(410)
-    expect(blobs.keys('introductions')).toEqual([MARKER])
-  })
-
-  it('lands after the request has been answered: the ordinary case, removed and marked', async () => {
-    const saved = await put()
-    expect(saved.status).toBe(200)
-    expect(blobs.keys('introductions')).toEqual([CODE])
+  it('is refused when it lands between a withdrawal’s marker and its delete', async () => {
+    seedRecord(CODE)
+    blobs.before('delete', CODE, () => put(), 'introductions')
     expect(await (await off()).json()).toEqual({ removed: true })
     expect(blobs.keys('introductions')).toEqual([MARKER])
   })
+})
 
-  it('a retry of a request that landed, overtaken by a withdrawal between its refused write and its read-back', async () => {
-    expect((await put()).status).toBe(200)
-    blobs.before('get', CODE, () => off(), 'introductions')
-    const res = await put()
-    expect(res.status).toBe(410)
+describe('a withdrawal racing another under the same code', () => {
+  it('two at once: one record gone, one marker, both told the request is off the list or was not there', async () => {
+    seedRecord(CODE)
+    const [a, b] = await Promise.all([off(), off()])
+    expect([a.status, b.status]).toEqual([200, 200])
+    const said = ((await Promise.all([a.json(), b.json()])) as { removed: boolean }[]).map((r) => r.removed)
+    // Whichever deleted the record says so; the other may say either, but never an error.
+    expect(said).toContain(true)
     expect(blobs.keys('introductions')).toEqual([MARKER])
   })
 
-  it('two requests under one code at once: one record, one day, both told', async () => {
-    const [a, b] = await Promise.all([put(), put()])
-    expect([a.status, b.status]).toEqual([200, 200])
-    const [ra, rb] = (await Promise.all([a.json(), b.json()])) as { at: string; removeOn: string; again?: boolean }[]
-    expect(ra.at).toBe(rb.at)
-    expect(ra.removeOn).toBe(rb.removeOn)
-    expect([ra.again, rb.again].filter(Boolean)).toHaveLength(1)
-    expect(blobs.keys('introductions')).toEqual([CODE])
+  it('a second tap after the first was answered: nothing found, still one marker', async () => {
+    seedRecord(CODE)
+    expect(await (await off()).json()).toEqual({ removed: true })
+    expect(await (await off()).json()).toEqual({ removed: false })
+    expect(blobs.keys('introductions')).toEqual([MARKER])
   })
 
-  it('the store is opened for the latest state, not the edge’s eventual copy', async () => {
+  it('a code with nothing under it still leaves its marker, so a request that was in flight cannot outlive it', async () => {
+    expect(await (await off()).json()).toEqual({ removed: false })
+    expect(blobs.keys('introductions')).toEqual([MARKER])
+  })
+
+  it('the marker is written before the record is touched', async () => {
+    seedRecord(CODE)
+    let seen: string[] = []
+    blobs.before('delete', CODE, () => {
+      seen = blobs.keys('introductions')
+    }, 'introductions')
+    await off()
+    expect(seen.sort()).toEqual([CODE, MARKER].sort())
+  })
+})
+
+describe('the store', () => {
+  it('is opened for the latest state, not the edge’s eventual copy', async () => {
     // The mock records what it was asked for; the SDK's edge reads drift by
     // up to a minute (@netlify/blobs README), and every read here decides
     // whether a person's request stands.
-    await put()
-    expect(blobs.opened.get('introductions')).toEqual({ consistency: 'strong' })
+    seedRecord(CODE)
     await off()
     expect(blobs.opened.get('introductions')).toEqual({ consistency: 'strong' })
   })

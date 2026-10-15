@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { blobs, serve, type Served } from '../../tests/support/server'
-import { pendingIntro, registerInterest, rememberedIntro, resetIntroMirror, withdrawInterest } from './introduce'
+import { holdPendingInPage, holdReceiptInPage, records, seedPending, seedReceipt, seedRecord } from '../../tests/support/intro'
+import { lifetimeOver, pendingIntro, rememberedIntro, resetIntroMirror, untilOf, withdrawInterest } from './introduce'
 import { forgetMe } from './forget'
 import { newCode } from './code'
 import { day } from '../../netlify/shared/day'
@@ -8,29 +9,21 @@ import { answerDelete, appHtml, cutStream, gone, text } from '../../tests/suppor
 import { Phone, onPhone } from '../../tests/support/device'
 
 /**
- * The client half of the introduction path, against the real handler over
- * the in-memory store, on a phone whose storage refuses to hold anything
- * under `niyyah.intro` — the case the review of 2026-09-27 reproduced.
+ * The client half of the introduction path that is still open: taking an
+ * earlier request off, and recovering the code of one (docs/DECISIONS.md,
+ * release R3 and its integration into the held branch).
+ *
+ * New requests are closed, so every state here is seeded (tests/support/intro.ts):
+ * a receipt or an attempt on a phone, in the page when the phone's storage
+ * refuses to hold it, and the record on the real handler over the in-memory
+ * store. The answers the phone reads are the protocol's: `200 { removed: true }`
+ * is `removed`; `200 { removed: false }` and the legacy `404 { error:
+ * 'not_found' }` are `nothing`; everything else is `failed`, an unconfirmed
+ * answer, which must never cost the phone its code. And the days passing never
+ * confirm a deletion, so a code is kept past its 180th day.
  */
 
 vi.mock('@netlify/blobs', async () => (await import('../../tests/support/blobs')).blobsModule)
-
-const INPUT = { contact: 'zq.unit@example.com', gender: 'woman' as const, scene: 'twin-cities' }
-const records = () => blobs.keys('introductions').filter((k) => !k.startsWith('withdrawn/'))
-
-/** getItem answers null, setItem throws: a browser that is not saving. */
-function refusingStorage() {
-  vi.stubGlobal('localStorage', {
-    getItem: () => null,
-    setItem: () => {
-      throw new DOMException('QuotaExceededError', 'QuotaExceededError')
-    },
-    removeItem: () => {},
-    clear: () => {},
-    key: () => null,
-    length: 0,
-  })
-}
 
 let server: Served
 beforeEach(() => {
@@ -43,97 +36,63 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
+const A = 'QRTWXY34'
+
 describe('a browser that refuses to store the receipt', () => {
-  it('registers, keeps the receipt in the page, and Forget me removes the record by that code', async () => {
-    refusingStorage()
-    const result = await registerInterest(INPUT)
-    expect(result.ok).toBe(true)
-    if (!result.ok) return
-    expect(result.kept).toBe(false)
-    expect(result.state.kept).toBe(false)
-    expect(records()).toEqual([result.state.code])
-    // The lib answers from the page's own copy: the same code, marked as not kept.
-    expect(rememberedIntro()).toEqual({ ...result.state, kept: false })
+  it('holds it in the page, and Forget me removes the record by that code', async () => {
+    const phone = onPhone(new Phone('refusing'))
+    holdReceiptInPage(phone, A)
+    seedRecord(A)
+    expect(rememberedIntro()).toMatchObject({ code: A, kept: false })
     expect(pendingIntro()).toBeNull()
+    expect(phone.keys()).toEqual([])
     // Forget me finds it, sends it, and the record is gone — not only the flag.
     const done = await forgetMe()
     expect(done.intro).toBe(true)
     expect(records()).toEqual([])
-    expect(blobs.keys('introductions')).toEqual([`withdrawn/${result.state.code}/${day()}`])
+    expect(blobs.keys('introductions')).toEqual([`withdrawn/${A}/${day()}`])
     expect(rememberedIntro()).toBeNull()
   })
 
-  it('a reload loses the page copy, which is the honest limit; the code shown on the screen is the record', async () => {
-    refusingStorage()
-    const result = await registerInterest(INPUT)
-    expect(result.ok).toBe(true)
+  it('a reload loses the page copy, which is the honest limit; the code shown on the screen is the record', () => {
+    const phone = onPhone(new Phone('refusing'))
+    holdReceiptInPage(phone, A)
+    seedRecord(A)
     resetIntroMirror()
     expect(rememberedIntro()).toBeNull()
     expect(records()).toHaveLength(1)
   })
 
   it('taking the name off from the receipt clears the page copy too', async () => {
-    refusingStorage()
-    const result = await registerInterest(INPUT)
-    if (!result.ok) throw new Error('not saved')
-    expect(await withdrawInterest(result.state.code)).toBe('removed')
+    const phone = onPhone(new Phone('refusing'))
+    holdReceiptInPage(phone, A)
+    seedRecord(A)
+    expect(await withdrawInterest(A)).toBe('removed')
     expect(rememberedIntro()).toBeNull()
     expect(records()).toEqual([])
-  })
-
-  it('a second registration in the same page goes under the receipt’s code, and is answered again', async () => {
-    refusingStorage()
-    const first = await registerInterest(INPUT)
-    const second = await registerInterest(INPUT)
-    expect(first.ok && second.ok).toBe(true)
-    if (!first.ok || !second.ok) return
-    expect(second.state.code).toBe(first.state.code)
-    expect(second.again).toBe(true)
-    expect(records()).toEqual([first.state.code])
   })
 })
 
 describe('a withdrawal that cannot be confirmed', () => {
   it('keeps the pending code and the record, so the same withdrawal can be tried again', async () => {
-    refusingStorage()
-    server.lose(/introduce/)
-    const lost = await registerInterest(INPUT)
-    expect(lost.ok).toBe(false)
-    const code = pendingIntro()!.code
-    server.lose(false)
+    const phone = onPhone(new Phone('refusing'))
+    holdPendingInPage(phone, A)
+    seedRecord(A)
+    expect(pendingIntro()).toMatchObject({ code: A, kept: false })
     // No answer at all, then a server that answers with an error: neither is "removed" or "nothing".
     server.down(/introduce/)
-    expect(await withdrawInterest(code)).toBe('failed')
-    expect(pendingIntro()).toMatchObject({ code, kept: false })
-    expect(records()).toEqual([code])
+    expect(await withdrawInterest(A)).toBe('failed')
+    expect(pendingIntro()).toMatchObject({ code: A, kept: false })
+    expect(records()).toEqual([A])
     server.down(false)
-    blobs.failOn({ store: 'introductions', op: 'setJSON', key: `withdrawn/${code}/${day()}` })
-    expect(await withdrawInterest(code)).toBe('failed')
-    expect(pendingIntro()?.code).toBe(code)
-    expect(records()).toEqual([code])
+    blobs.failOn({ store: 'introductions', op: 'setJSON', key: `withdrawn/${A}/${day()}` })
+    expect(await withdrawInterest(A)).toBe('failed')
+    expect(pendingIntro()?.code).toBe(A)
+    expect(records()).toEqual([A])
     // Only an answer clears it, and the third try gets one.
-    expect(await withdrawInterest(code)).toBe('removed')
+    expect(await withdrawInterest(A)).toBe('removed')
     expect(pendingIntro()).toBeNull()
     expect(records()).toEqual([])
-  })
-})
-
-describe('a server error after the request was sent', () => {
-  it('is unsure — the write may have landed — and the pending code is kept for the retry', async () => {
-    refusingStorage()
-    blobs.failOn({ store: 'introductions', op: 'list', prefix: 'withdrawn/' })
-    const result = await registerInterest(INPUT)
-    expect(result.ok).toBe(false)
-    if (result.ok) return
-    expect(result).toMatchObject({ why: 'refused', unsure: true, kept: false })
-    expect(pendingIntro()?.code).toBe(result.code)
-    // The retry goes under the same code, and nothing was saved twice.
-    const retry = await registerInterest(INPUT)
-    expect(retry.ok).toBe(true)
-    if (!retry.ok) return
-    expect(retry.state.code).toBe(result.code)
-    expect(records()).toEqual([result.code])
-    expect(server.requests.filter((r) => r.startsWith('POST'))).toHaveLength(2)
   })
 })
 
@@ -148,7 +107,8 @@ describe('a server error after the request was sent', () => {
  *    body can be malformed). The record is still there and a 200 is not evidence.
  *
  * In both the phone keeps the code that can resolve it, and a later valid answer
- * resolves it. The synthetic state is a code minted here and a contact no one has.
+ * resolves it. The synthetic state is a code minted here and a contact no one has,
+ * seeded as an earlier request left it.
  */
 describe('a withdrawal answered without confirming it', () => {
   /** Every answer that is not one of the protocol's two, with the shape it has. */
@@ -179,20 +139,14 @@ describe('a withdrawal answered without confirming it', () => {
   type Where = 'receipt' | 'pending'
   type Storage = 'kept' | 'memory'
   const held = (where: Where) => (where === 'receipt' ? rememberedIntro()?.code : pendingIntro()?.code)
-  /** A receipt, or an attempt whose answer never came, on a phone that stores or one that does not. */
+  /** A receipt, or an attempt whose answer never came, on a phone that stores or one that does not; the record is on the server. */
   async function begin(where: Where, storage: Storage): Promise<string> {
-    if (storage === 'memory') refusingStorage()
-    else onPhone(new Phone('withdrawal'))
-    if (where === 'receipt') {
-      const r = await registerInterest(INPUT)
-      if (!r.ok) throw new Error('not saved')
-      return r.state.code
-    }
-    server.lose(/introduce/)
-    const r = await registerInterest(INPUT)
-    server.lose(false)
-    if (r.ok) throw new Error('should be unsure')
-    return pendingIntro()!.code
+    const phone = onPhone(new Phone('withdrawal'))
+    const code = newCode()
+    seedRecord(code)
+    if (where === 'receipt') (storage === 'memory' ? holdReceiptInPage : seedReceipt)(phone, code)
+    else (storage === 'memory' ? holdPendingInPage : seedPending)(phone, code)
+    return code
   }
   const sent = (from: number) => server.requests.slice(from)
 
@@ -317,5 +271,155 @@ describe('a withdrawal answered without confirming it', () => {
         expect(pendingIntro()).toBeNull()
       }
     })
+  })
+})
+
+/**
+ * The same classification, answered by a stub of the protocol alone (no
+ * handler behind it), on a phone whose storage holds a receipt. These pin what
+ * the phone does with each answer on its own; the group above pins it against
+ * the real handler.
+ */
+describe('withdrawInterest, against the protocol’s answers', () => {
+  const CODE = 'QRTWXY34'
+  const KEY = 'niyyah.intro.v1'
+
+  let storage: Map<string, string>
+  let calls: [string, RequestInit | undefined][]
+
+  function answer(status: number, body: unknown) {
+    const text = typeof body === 'string' ? body : JSON.stringify(body)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        calls.push([url, init])
+        return new Response(text, { status })
+      }),
+    )
+  }
+
+  beforeEach(() => {
+    storage = new Map([[KEY, JSON.stringify({ code: CODE, at: new Date().toISOString().slice(0, 10) })]])
+    calls = []
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => storage.get(k) ?? null,
+      setItem: (k: string, v: string) => void storage.set(k, v),
+      removeItem: (k: string) => void storage.delete(k),
+    })
+  })
+
+  it('sends a DELETE with the code, and nothing else', async () => {
+    answer(200, { removed: true })
+    await withdrawInterest(CODE)
+    expect(calls).toHaveLength(1)
+    expect(calls[0][0]).toBe(`/.netlify/functions/introduce?code=${CODE}`)
+    expect(calls[0][1]?.method).toBe('DELETE')
+    expect(calls[0][1]?.body).toBeUndefined()
+  })
+
+  it('removed: only on 200 { removed: true }, and the phone drops the code it holds', async () => {
+    answer(200, { removed: true })
+    expect(await withdrawInterest(CODE)).toBe('removed')
+    expect(storage.has(KEY)).toBe(false)
+  })
+
+  it('nothing: on 200 { removed: false }, and the phone drops the code it holds', async () => {
+    answer(200, { removed: false })
+    expect(await withdrawInterest(CODE)).toBe('nothing')
+    expect(storage.has(KEY)).toBe(false)
+  })
+
+  it('nothing: on the legacy 404 { error: "not_found" }, and the phone drops the code it holds', async () => {
+    answer(404, { error: 'not_found' })
+    expect(await withdrawInterest(CODE)).toBe('nothing')
+    expect(storage.has(KEY)).toBe(false)
+  })
+
+  const unconfirmed: [string, number, unknown][] = [
+    ['a 200 with no body field', 200, {}],
+    ['a 200 whose removed is not a boolean', 200, { removed: 'true' }],
+    ['a 200 that is not JSON', 200, 'ok'],
+    ['a 200 that is an array', 200, []],
+    ['a 200 that is null', 200, null],
+    ['a 201 that says removed: true', 201, { removed: true }],
+    ['a 201 that says removed: false', 201, { removed: false }],
+    ['a 404 that is not not_found', 404, { error: 'expired' }],
+    ['a 404 with no body field', 404, {}],
+    ['a 404 that is not JSON', 404, 'not found'],
+    ['a 400', 400, { error: 'bad_code' }],
+    ['a rate limit', 429, { error: 'rate_limited' }],
+    ['a 503', 503, { error: 'unavailable' }],
+    ['a 500', 500, { error: 'boom' }],
+    ['a 410', 410, { error: 'closed' }],
+  ]
+  it.each(unconfirmed)('unconfirmed: %s, and the phone keeps its code', async (_name, status, body) => {
+    answer(status, body)
+    expect(await withdrawInterest(CODE)).toBe('failed')
+    expect(JSON.parse(storage.get(KEY)!).code).toBe(CODE)
+  })
+
+  it('unconfirmed: no answer at all, and the phone keeps its code', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    )
+    expect(await withdrawInterest(CODE)).toBe('failed')
+    expect(JSON.parse(storage.get(KEY)!).code).toBe(CODE)
+  })
+
+  it('a different code, removed or not found, leaves this phone’s own code alone', async () => {
+    answer(200, { removed: true })
+    expect(await withdrawInterest('ACDEFGHJ')).toBe('removed')
+    expect(JSON.parse(storage.get(KEY)!).code).toBe(CODE)
+    answer(200, { removed: false })
+    expect(await withdrawInterest('ACDEFGHJ')).toBe('nothing')
+    expect(JSON.parse(storage.get(KEY)!).code).toBe(CODE)
+  })
+})
+
+describe('what the phone remembers', () => {
+  const CODE = 'QRTWXY34'
+  const KEY = 'niyyah.intro.v1'
+  let storage: Map<string, string>
+  beforeEach(() => {
+    storage = new Map()
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => storage.get(k) ?? null,
+      setItem: (k: string, v: string) => void storage.set(k, v),
+      removeItem: (k: string) => void storage.delete(k),
+    })
+  })
+
+  it('keeps the code past the 180th day: the days passing do not show the request is gone', () => {
+    const put = '2026-01-01'
+    expect(untilOf(put)).toBe('2026-06-30')
+    storage.set(KEY, JSON.stringify({ code: CODE, at: put }))
+    const state = rememberedIntro()!
+    expect(state.code).toBe(CODE)
+    // Said, never acted on: the 180 days being over is a notice, and the key stays.
+    expect(lifetimeOver(state, Date.parse('2026-06-29T12:00:00Z'))).toBe(false)
+    expect(lifetimeOver(state, Date.parse('2026-06-30T00:00:00Z'))).toBe(true)
+    expect(lifetimeOver(state, Date.parse('2027-06-30T00:00:00Z'))).toBe(true)
+    expect(rememberedIntro()?.code).toBe(CODE)
+    expect(storage.has(KEY)).toBe(true)
+  })
+
+  it('has no day to count from when the day is not one', () => {
+    expect(untilOf('last spring')).toBeNull()
+    expect(lifetimeOver({ code: CODE, at: 'last spring', confirmed: false, kept: true })).toBe(false)
+  })
+
+  it('ignores a record that is not a code', () => {
+    for (const bad of ['nope', JSON.stringify({ code: 'x', at: '2026-01-01' }), JSON.stringify({ code: CODE })]) {
+      storage.set(KEY, bad)
+      expect(rememberedIntro()).toBeNull()
+    }
+  })
+
+  it('keeps a code whose day it cannot read, rather than lose the only way to take the request off', () => {
+    storage.set(KEY, JSON.stringify({ code: CODE, at: 'last spring' }))
+    expect(rememberedIntro()?.code).toBe(CODE)
   })
 })

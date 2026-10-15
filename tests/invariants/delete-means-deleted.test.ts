@@ -2,7 +2,6 @@ import fc from 'fast-check'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { answerCouple, createCouple } from '../../src/lib/couple'
 import { forgetMe, retryPendingForget } from '../../src/lib/forget'
-import { registerInterest } from '../../src/lib/introduce'
 import { keepMap } from '../../src/lib/keep'
 import { installId, reportRungs, resetReported } from '../../src/lib/progress'
 import { sendReport } from '../../src/lib/safety'
@@ -53,8 +52,12 @@ async function aWholeLife() {
   const install = installId()!
   resetReported()
   await reportRungs(['arrived', 'mapped', 'kept'], 'twin-cities')
-  // And her name on the introduction list, the one record that carries a way to reach her.
-  expect((await registerInterest({ contact: CONTACT, firstName: NAME, gender: 'woman', scene: 'twin-cities' })).ok).toBe(true)
+  // And a name put down on the introduction list while it was open, the one
+  // record that carries a way to reach her: nothing writes one now, so it is
+  // seeded as the server left it, with the code her phone was given.
+  const today = new Date().toISOString().slice(0, 10)
+  blobs.put('introductions', 'QRTWXY34', { contact: CONTACT, firstName: NAME, gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: today, v: 1 })
+  her.storage.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: today }))
 
   const [hers, his] = fc.sample(sheet, 2)
   const pair = (await createCouple(hers, 'woman'))!.code

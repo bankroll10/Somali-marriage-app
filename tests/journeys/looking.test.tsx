@@ -1,48 +1,47 @@
 // @vitest-environment happy-dom
+import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
 import { seedDemo } from '../../src/lib/demo'
 import { entryFromUrl } from '../../src/lib/entry'
-import { forgetMe } from '../../src/lib/forget'
 import { formatCode } from '../../src/lib/code'
 import { rememberedIntro } from '../../src/lib/introduce'
 import { day } from '../../netlify/shared/day'
-import { removeOn } from '../../netlify/functions/introduce'
 import { Phone, onPhone, reload } from '../support/device'
-import { mount, type Mounted } from '../support/render'
+import { mount } from '../support/render'
 import { residue } from '../support/residue'
+import { holdPendingInPage, holdReceiptInPage, markers, records, seedPending, seedReceipt, seedRecord } from '../support/intro'
 import { blobs, call, serve, type Served } from '../support/server'
 
 vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsModule)
 
 /**
- * JOURNEY — the two doors (docs/DECISIONS.md Parts 22 and 23;
- * docs/BATCH-01-PLAN.md).
+ * JOURNEY — introductions, now that new requests are closed (release R3), with
+ * the recovery the held branch added kept.
  *
- * A stranger on Welcome is looking for someone serious. She walks through the
- * first door and reads, before the button, who runs this, who the pilot is
- * for, what happens first, what is shown before anyone hears about her, and
- * how long a request is kept. She puts her name down, and is handed a receipt
- * only once the server has it — the server's own day and the Sunday it has
- * scheduled the removal for — with exactly the fields the screen names, under
- * a code her phone minted, and nothing about her anywhere else. When the
- * answer is lost, the same request goes again and is never saved twice; when
- * she has changed her mind in between, nothing is written over; when her
- * browser cannot hold the code, she is shown it, and it takes the name off
- * from any phone. A request still in flight cannot land after Forget me. A
- * receipt from before the server gave dates is shown as the phone's own
- * record. Past the scheduled day the code is kept and the truth said. The
- * address bar holds `/?looking` while she is here. And the second door lands
- * on each of the three instruments built for someone already talking to a
- * person.
+ * Founder-led introduction intake is no longer the operating model and
+ * matching is not available. A stranger on Welcome is offered the tools, not an
+ * introduction, and can still reach "Manage an earlier request". Someone who
+ * put their name down while requests were open can take it off from the phone
+ * that holds its code, or from any phone with the code typed in; what each
+ * answer is called is the server's own (200 `removed`, 404 `not_found`), and
+ * anything else is "could not confirm", which says nothing about whether a
+ * request exists. A name is still meant to be kept at most 180 days, and the
+ * sweep removes the record; the days passing never show the phone that it has,
+ * so the phone keeps the code, says the days are over, and clears it only on an
+ * answer. A code the browser could not save is held in the page and shown, and
+ * Forget me sends it. Taking a request off leaves a marker beside nothing but
+ * its code and the day.
+ *
+ * Records, receipts and attempts are seeded as an earlier request left them
+ * (tests/support/intro.ts): nothing writes one any more.
  */
 
 const DAY = 24 * 60 * 60 * 1000
-
 const CONTACT = 'zq.sagal.looking@example.test'
 const INTRO_KEY = 'niyyah.intro.v1'
-const PENDING_KEY = 'niyyah.intro.pending.v1'
-const CODE_SHAPE = /^[ACDEFGHJKMNPQRTWXY34789]{8}$/
+const CODE = 'QRTWXY34'
+const OTHER = 'ACDEFGHJ'
 
 let server: Served
 beforeEach(() => {
@@ -54,468 +53,694 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-/** Through the first door, and the form filled in — everything but the button. */
-async function fillIn(m: Mounted, contact = CONTACT, throughTheDoor = true) {
-  if (throughTheDoor) await m.press(/I’m looking for someone serious/)
-  expect(m.text()).toContain('Put my name down')
-  await m.press(/^I am a woman/)
-  await m.press(/^Minneapolis/)
-  await m.press(/^Anywhere in the US/)
-  await m.type('Your first name', 'Sagal')
-  await m.type('Email or phone', contact)
-  await m.press(/I confirm I am 18/)
+const record = (at = day()) => ({ contact: CONTACT, firstName: 'Sagal', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at, v: 1 })
+/** An earlier request as the server left it, and the code this phone was given. */
+function aRequest(phone: Phone, code = CODE) {
+  blobs.put('introductions', code, record())
+  phone.storage.set(INTRO_KEY, JSON.stringify({ code, at: day() }))
 }
+const asked = () => server.requests.filter((r) => r.includes('/introduce'))
 
-const saved = (m: Mounted) => m.until(() => m.text().includes('Your request was saved on'), 'the server said saved')
-const records = () => blobs.keys('introductions').filter((k) => !k.startsWith('withdrawn/'))
-const markers = () => blobs.keys('introductions').filter((k) => k.startsWith('withdrawn/'))
-const receipt = (phone: Phone) => JSON.parse(phone.storage.get(INTRO_KEY) ?? 'null') as { code: string; at: string; removeOn: string } | null
-
-describe('looking for someone', () => {
-  it('says what matters before the button, then hands her a receipt only once the server has it, with nothing else about her anywhere', async () => {
-    const phone = onPhone(new Phone('hers'))
-    const m = await mount(<App />)
-    // Both doors, in her words, before anything else.
-    expect(m.text()).toContain('I’m looking for someone serious.')
-    expect(m.text()).toContain('I’m already talking to someone.')
-    expect(m.text()).toContain('The founder speaks with you first.')
-    await m.press(/I’m looking for someone serious/)
-
-    // Before the button, in order: the operator, the pilot's rule, the
-    // conversation first and the one with a person who knows her, the
-    // approved description and the release rule, the scheduled removal.
-    const before = m.text().slice(0, m.text().indexOf('Put my name down'))
-    const order = [
-      'Niyyah is run by its founder',
-      '18 or older, and serious about marriage',
-      'Introductions are beginning in Minneapolis–St. Paul',
-      'For the first twenty introductions, nobody currently engaged or married',
-      'A conversation with you, by the email or number you give',
-      'if you agree to it, one conversation with a person who knows you',
-      'does not say who you are',
-      'goes to a person proposed to you until you and they have both said yes',
-      'scheduled to be removed on the Sunday on or before its 180th day',
-      'What goes, exactly',
-      'that you confirmed you are 18 or older',
-    ]
-    let last = -1
-    for (const line of order) {
-      const at = before.indexOf(line)
-      expect(at, line).toBeGreaterThan(last)
-      last = at
-    }
-    expect(before).not.toMatch(/we will (write|find)|you will hear|opens on|your city opens|is down/i)
-
-    await fillIn(m, CONTACT, false)
-    // Filling the form sends nothing.
-    expect(blobs.keys('introductions')).toEqual([])
-    expect(m.text()).not.toContain('was saved on')
-
-    await m.press(/^Put my name down/)
-    await saved(m)
-
-    // Exactly the named fields, under the code the phone minted.
-    const codes = records()
-    expect(codes).toHaveLength(1)
-    expect(codes[0]).toMatch(CODE_SHAPE)
-    expect(blobs.read('introductions', codes[0])).toEqual({
-      contact: CONTACT,
-      firstName: 'Sagal',
-      gender: 'woman',
-      scene: 'twin-cities',
-      country: 'us',
-      reach: 'country',
-      adult: true,
-      at: day(),
-      v: 1,
-    })
-    // Her phone holds the receipt: the code and the server's two days — never the contact; the pending attempt is done.
-    expect(receipt(phone)).toEqual({ code: codes[0], at: day(), removeOn: removeOn(day()) })
-    expect(phone.storage.has(PENDING_KEY)).toBe(false)
-    // And the way to reach her is nowhere else: not on the ladder, not in a map, not in her saved state.
-    expect(residue([CONTACT], [phone]).filter((l) => !l.startsWith('introductions:'))).toEqual([])
-    for (const k of blobs.keys('progress')) expect(JSON.stringify(blobs.read('progress', k))).not.toMatch(/intro|looking|Sagal/)
-    // What she told the form, the rest of the app knows: no second asking.
-    const identity = () => JSON.parse(phone.storage.get('niyyah.intake.v1') ?? '{}').identity as Record<string, unknown> | undefined
-    await m.until(() => identity()?.gender === 'woman', 'her side saved')
-    expect(identity()).toMatchObject({ gender: 'woman', scene: 'twin-cities', firstName: 'Sagal', adult: true })
-
-    // The receipt says what the server said, as a receipt — never "your name is down".
-    const said = m.text()
-    expect(said).toContain(`Your request was saved on ${day()}.`)
-    expect(said).toContain(`scheduled to be removed on ${removeOn(day())}`)
-    expect(said).not.toMatch(/name is down|at the latest/i)
-    expect(said).toContain('speaks with you first')
-    expect(said).toContain('does not say who they are')
-    expect(said).toContain('Nothing that identifies either of you')
-    expect(said).toContain('never that the other person said no')
-    expect(said).not.toMatch(/we will (write|find)|you will hear|opens on|your city opens/i)
-    // The consent promise the founder corrected (decision 29): not "nothing
-    // about them reaches you", which a non-identifying summary would break.
-    expect(said).not.toMatch(/nothing about (you|them)[^.]*reach/i)
-    expect(said).not.toMatch(/\bfits?\b/i)
-    // The receipt carries the pilot's policy on every receipt, in the pilot city too, and says nothing about her request's place.
-    expect(said).toContain('Requests from other places are kept for later, with no opening date.')
-    expect(said).not.toContain('Your request is kept for later')
-    m.unmount()
-  })
-
-  it('sends the named fields and the code, and nothing that joins them to anything else of hers', async () => {
-    const phone = onPhone(new Phone('hers'))
-    const bodies: string[] = []
-    const real = globalThis.fetch
-    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-      if (String(input).includes('/introduce') && typeof init?.body === 'string') bodies.push(init.body)
-      return real(input, init)
-    }) as typeof fetch
-    const m = await mount(<App />)
-    await fillIn(m)
-    await m.press(/^Put my name down/)
-    await saved(m)
-    expect(bodies).toHaveLength(1)
-    const body = JSON.parse(bodies[0]) as Record<string, unknown>
-    expect(Object.keys(body).sort()).toEqual(['adult', 'code', 'contact', 'firstName', 'gender', 'reach', 'scene'])
-    expect(body.adult).toBe(true)
-    const code = records()[0]
-    expect(body.code).toBe(code)
-    // Not the install id the ladder counts under, not a map code (decision 31); never in the address bar.
-    for (const k of [...phone.storage.keys()].filter((k) => k !== INTRO_KEY)) {
-      expect(phone.storage.get(k) ?? '', k).not.toContain(code)
-    }
-    for (const k of blobs.keys('progress')) expect(JSON.stringify(blobs.read('progress', k))).not.toContain(code)
-    expect(window.location.href).not.toContain(code)
-    m.unmount()
-  })
-
-  it('from anywhere but Minneapolis–St. Paul, the form says the name is kept for later with no date, and the receipt carries the pilot’s policy', async () => {
+describe('a person with no earlier request', () => {
+  it('is offered the tools, no introduction, and a clear closed state with the way to manage a request', async () => {
     onPhone(new Phone('hers'))
     const m = await mount(<App />)
-    await m.press(/I’m looking for someone serious/)
-    expect(m.text()).toContain('Introductions are beginning in Minneapolis–St. Paul')
-    await m.press(/^Columbus/)
-    expect(m.text()).toContain('From Columbus you can leave your name for later: nobody there is being introduced yet, and there is no date for it.')
-    await m.press(/^Somewhere else$/)
-    await m.press(/^United Kingdom$/)
-    expect(m.text()).toContain('From the UK you can leave your name for later')
-    await m.press(/^I am a man/)
-    await m.type('Email or phone', '+44 20 7946 0000')
-    await m.press(/I confirm I am 18/)
-    await m.press(/^Put my name down/)
-    await saved(m)
-    // The receipt carries the pilot's policy, the same on every receipt (docs/DECISIONS.md Part 36), not a claim about this request.
-    const reminder = 'Introductions are beginning in Minneapolis–St. Paul. Requests from other places are kept for later, with no opening date.'
-    expect(m.text()).toContain(reminder)
-    expect(m.text()).not.toContain('Your request is kept for later')
-    expect(m.text().replace(reminder, '')).not.toMatch(/\b(soon|next month|this year|opening)\b/i)
+    const welcome = m.text()
+    expect(welcome).toContain('Think marriage through.')
+    expect(welcome).toContain('New introduction requests are closed, and matching is not available.')
+    expect(welcome).not.toMatch(/looking for someone serious|made by hand|founder/i)
+
+    await m.press(/Manage an earlier introduction request/)
+    const said = m.text()
+    expect(said).toContain('New introduction requests are closed.')
+    expect(said).toContain('Niyyah is not taking new names for introductions, and matching is not available. No date is promised.')
+    expect(said).toContain('This phone is not holding a request code.')
+    expect(said).toContain(`No code? Write to`)
+    // Nothing that takes a name, or promises an introduction, a place or a date.
+    expect(said).not.toMatch(/Put my name down|made by hand|speaks with you|Minneapolis|kept for later|\bfits?\b|opens|launch/i)
+    expect(m.container.querySelectorAll('input')).toHaveLength(1)
+
+    // And the tools are one tap away.
+    await m.press(/Talking to someone now\? Start there/)
+    expect(m.text()).toContain('Where are you with it?')
+    // Nothing was sent to the introduction route by looking.
+    expect(asked()).toEqual([])
     m.unmount()
   })
 
-  it('the answer lost after the write landed: she is told so, the same request goes again under the same code, and it is saved once', async () => {
-    const phone = onPhone(new Phone('hers'))
+  it('has no introduction card on Home', async () => {
+    onPhone(new Phone('hers'))
+    seedDemo()
     const m = await mount(<App />)
-    await fillIn(m)
-    server.lose(/introduce/)
-    await m.press(/^Put my name down/)
-    await m.until(() => m.text().includes('could not tell whether that reached us'), 'told it is unsure')
-    // The write landed. The phone holds the attempt — its code and the day, never the contact — and no receipt yet.
-    expect(records()).toHaveLength(1)
-    const code = records()[0]
-    expect(JSON.parse(phone.storage.get(PENDING_KEY)!)).toEqual({ code, at: day() })
-    expect(phone.storage.has(INTRO_KEY)).toBe(false)
-    expect(residue([CONTACT], [phone]).filter((l) => l.startsWith('phone'))).toEqual([])
-    expect(m.text()).not.toMatch(/nothing is saved|was saved on/)
-    // Her words stay in the form, and the same tap sends the same request again.
-    expect((m.container.querySelector('#looking-contact') as HTMLInputElement).value).toBe(CONTACT)
-    server.lose(false)
-    await m.press(/^Put my name down/)
-    await saved(m)
-    expect(m.text()).toContain('It had already been saved; the same request was not saved twice.')
-    expect(records()).toEqual([code])
-    expect(receipt(phone)).toEqual({ code, at: day(), removeOn: removeOn(day()) })
-    expect(phone.storage.has(PENDING_KEY)).toBe(false)
+    expect(m.text()).not.toMatch(/Looking for someone serious|earlier introduction request/)
+    m.unmount()
+  })
+})
+
+describe('an earlier request this phone holds the code for', () => {
+  it('shows a receipt that states the closure and the 180-day rule, and promises no completion', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const said = m.text()
+    expect(said).toContain('Your earlier request.')
+    expect(said).toContain(`put down on ${day()}, by this phone’s own record`)
+    expect(said).toContain('New introduction requests are closed, and matching is not available. No date is promised.')
+    expect(said).toContain('meant to be kept for no more than 180 days')
+    expect(said).toContain('cleanup that runs weekly')
+    expect(said).toContain('and later if a run fails')
+    // No guaranteed day, no claim about what happened to it, no founder script.
+    expect(said).not.toMatch(/at the latest|until \d{4}|speaks with you|never (read|matched)|has been (read|matched)|still down|is down|already deleted/i)
+    expect(said).not.toMatch(/Minneapolis|made by hand|kept for later/i)
     m.unmount()
   })
 
-  it('changed her mind after an unsure answer: the earlier request is never written over, and she chooses', async () => {
+  it('Home offers it, at any stage, and it opens the receipt', async () => {
     const phone = onPhone(new Phone('hers'))
+    seedDemo()
+    aRequest(phone)
     const m = await mount(<App />)
-    await fillIn(m)
-    server.lose(/introduce/)
-    await m.press(/^Put my name down/)
-    await m.until(() => m.text().includes('could not tell'), 'unsure')
-    server.lose(false)
-    const first = records()[0]
-    // A different number, same code held: the server refuses, and says so.
-    await m.type('Email or phone', '+1 612 555 0199')
-    await m.press(/^Put my name down/)
-    await m.until(() => m.text().includes('An earlier try went through with what you had typed then'), 'told the earlier one landed')
-    expect(records()).toEqual([first])
-    expect((blobs.read('introductions', first) as { contact: string }).contact).toBe(CONTACT)
-    expect(m.text()).toContain('Your changes were not saved over it.')
-    // She takes the earlier one off, then sends what is in the form now — under a fresh code.
-    await m.press(/^Take the earlier name off/)
-    await m.until(() => m.text().includes('Your name is off the list'), 'the earlier one is off')
+    expect(m.text()).toContain('An earlier introduction request')
+    expect(m.text()).toContain('New introduction requests are closed and matching is not available. Open this to take the request off the list.')
+    await m.press(/^An earlier introduction request/)
+    expect(m.text()).toContain('Your earlier request.')
+    m.unmount()
+  })
+
+  it('she can take it off from the receipt, on the server’s documented confirmation, and nothing of hers is held there', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.press(/^Take my name off/)
+    await m.until(() => m.text().includes('The request under this code is off the list.'), 'taken off')
+    expect(asked()).toEqual([`DELETE /.netlify/functions/introduce?code=${CODE}`])
     expect(records()).toEqual([])
-    expect(markers()).toEqual([`withdrawn/${first}/${day()}`])
-    expect(phone.storage.has(PENDING_KEY)).toBe(false)
-    await m.press(/^Put my name down/)
-    await saved(m)
-    const second = records()
-    expect(second).toHaveLength(1)
-    expect(second[0]).not.toBe(first)
-    expect((blobs.read('introductions', second[0]) as { contact: string }).contact).toBe('+1 612 555 0199')
+    // What is left on the server is the code and the day, and nothing else.
+    expect(markers()).toEqual([`withdrawn/${CODE}/${day()}`])
+    expect(blobs.read('introductions', `withdrawn/${CODE}/${day()}`)).toEqual({ at: day() })
+    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    expect(residue([CONTACT], [phone])).toEqual([])
+    // The screen is the closed state now, with the confirmation above it.
+    expect(m.text()).toContain('New introduction requests are closed.')
+    expect(m.text()).toContain('This phone is not holding a request code.')
     m.unmount()
   })
 
-  it('a browser that cannot hold the code: she is shown it, and it takes the name off from any phone', async () => {
-    const phone = onPhone(new Phone('private'))
-    phone.refuse(/^niyyah\.intro/)
+  it('when it cannot be confirmed, she is told so, keeps her code, and can try again', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
     const m = await mount(<App />)
-    await fillIn(m)
-    server.lose(/introduce/)
-    await m.press(/^Put my name down/)
-    await m.until(() => m.text().includes('could not tell'), 'unsure')
-    const code = records()[0]
-    // Nothing on the phone holds it, so the screen does — formatted as a person reads it, with what a reload does to it.
-    // (Wording replaced in BATCH-07B: the earlier "this is the only record of it" sat in the form's message and
-    // was hidden on a conflict; the note about the earlier try now carries it in every state.)
-    expect(phone.storage.has(PENDING_KEY)).toBe(false)
+    await m.press(/Manage an earlier introduction request/)
+    server.down(/introduce/)
+    await m.press(/^Take my name off/)
+    await m.until(() => m.text().includes('We could not confirm whether that request was removed.'), 'told it is unconfirmed')
+    const said = m.text()
+    expect(said).toContain('This phone is keeping its code.')
+    expect(said).toContain('You can try again, use Forget me on Trust, or write to')
+    // It claims neither that the request exists nor that it is gone, and promises no outcome.
+    expect(said).not.toMatch(/is off the list|still down|still held|is down|will be (removed|taken)|that is us, not you/i)
+    expect(records()).toEqual([CODE])
+    expect(phone.storage.has(INTRO_KEY)).toBe(true)
+    // The server back, the same tap confirms it.
+    server.down(false)
+    await m.press(/^Take my name off/)
+    await m.until(() => m.text().includes('The request under this code is off the list.'), 'confirmed on the retry')
+    expect(records()).toEqual([])
+    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    m.unmount()
+  })
+
+  it('a code the server has nothing under is reported as nothing found, never as taken off, and the phone drops it', async () => {
+    const phone = onPhone(new Phone('hers'))
+    // The phone holds a code; the record is not there (the sweep, or the founder, took it).
+    phone.storage.set(INTRO_KEY, JSON.stringify({ code: CODE, at: day() }))
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.press(/^Take my name off/)
+    await m.until(() => m.text().includes('We found nothing under this phone’s code'), 'nothing found')
+    expect(m.text()).toContain('so nothing was taken off. It may already have come off the list. This phone has dropped the code.')
+    expect(m.text()).not.toContain('is off the list')
+    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    // A code with nothing under it still leaves its marker, so a request still in flight could not outlive it.
+    expect(markers()).toEqual([`withdrawn/${CODE}/${day()}`])
+    m.unmount()
+  })
+})
+
+describe('an earlier request, from a phone that was not the one that made it', () => {
+  it('is taken off with its code typed however it was written, and only that one', async () => {
+    onPhone(new Phone('another'))
+    blobs.put('introductions', CODE, record())
+    blobs.put('introductions', OTHER, record())
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.type('Request code', 'qrtw-xy34')
+    expect((m.container.querySelector('#request-code') as HTMLInputElement).value).toBe(CODE)
+    // As two groups of four, the way a code is read aloud and pasted.
+    await m.type('Request code', 'QRTW XY34')
+    expect((m.container.querySelector('#request-code') as HTMLInputElement).value).toBe(CODE)
+    expect(m.container.querySelector('#request-code')!.hasAttribute('maxlength')).toBe(false)
+    await m.press(/^Take it off the list/)
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'taken off')
+    expect(records()).toEqual([OTHER])
+    expect(asked()).toEqual([`DELETE /.netlify/functions/introduce?code=${CODE}`])
+    expect((m.container.querySelector('#request-code') as HTMLInputElement).value).toBe('')
+    m.unmount()
+  })
+
+  it('a code with nothing under it is reported as nothing found, and nothing else is touched', async () => {
+    onPhone(new Phone('another'))
+    blobs.put('introductions', OTHER, record())
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.type('Request code', CODE)
+    await m.press(/^Take it off the list/)
+    await m.until(() => m.text().includes('We found no request under that code'), 'nothing found')
+    expect(m.text()).toContain('so nothing was taken off. It may already have come off the list, or a character may be wrong.')
+    expect(m.text()).not.toContain('is off the list')
+    expect(records()).toEqual([OTHER])
+    m.unmount()
+  })
+
+  // A code with extra characters must never be cut down to a valid one: that
+  // could name, and delete, a different request.
+  it('an overlong code is refused as typed and sends no DELETE, whatever its first eight characters name', async () => {
+    onPhone(new Phone('another'))
+    blobs.put('introductions', CODE, record())
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const field = () => (m.container.querySelector('#request-code') as HTMLInputElement).value
+    for (const [typed, kept] of [
+      ['QRTWXY3499', 'QRTWXY3499'],
+      ['QRTW XY34 99', 'QRTWXY3499'],
+      ['qrtw-xy34-9', 'QRTWXY349'],
+      ['QRTWXY34A', 'QRTWXY34A'],
+      ['QRTWXY3', 'QRTWXY3'],
+    ]) {
+      await m.type('Request code', typed)
+      expect(field(), typed).toBe(kept)
+      await m.press(/^Take it off the list/)
+      expect(m.text(), typed).toContain('A request code is 8 characters')
+    }
+    expect(asked()).toEqual([])
+    expect(records()).toEqual([CODE])
+    // The formatted forms are still accepted, and delete exactly that code.
+    await m.type('Request code', 'qrtw xy34')
+    await m.press(/^Take it off the list/)
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'taken off')
+    expect(asked()).toEqual([`DELETE /.netlify/functions/introduce?code=${CODE}`])
+    expect(records()).toEqual([])
+    m.unmount()
+  })
+
+  it('a code of the wrong length is caught here, before anything is sent', async () => {
+    onPhone(new Phone('another'))
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.type('Request code', 'QRTWX')
+    await m.press(/^Take it off the list/)
+    expect(m.text()).toContain('A request code is 8 characters')
+    expect(asked()).toEqual([])
+    m.unmount()
+  })
+
+  it('when it cannot be confirmed, what she typed stays and she is given the ways on, with no promise', async () => {
+    onPhone(new Phone('another'))
+    blobs.put('introductions', CODE, record())
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.type('Request code', CODE)
+    server.down(/introduce/)
+    await m.press(/^Take it off the list/)
+    await m.until(() => m.text().includes('We could not confirm whether that request was removed.'), 'unconfirmed')
+    expect(m.text()).toContain('What you typed is still here. You can try again, or write to')
+    expect(m.text()).not.toMatch(/is off the list|still down|will be (removed|taken)|that is us, not you/i)
+    expect((m.container.querySelector('#request-code') as HTMLInputElement).value).toBe(CODE)
+    expect(records()).toEqual([CODE])
+    server.down(false)
+    await m.press(/^Take it off the list/)
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'confirmed on the retry')
+    expect(records()).toEqual([])
+    m.unmount()
+  })
+
+  it('typing the code this phone also holds clears the receipt too', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.press(/^Use a different code/)
+    await m.type('Request code', CODE)
+    await m.press(/^Take it off the list/)
+    await m.until(() => m.text().includes('This phone is not holding a request code.'), 'receipt cleared')
+    expect(m.text()).toContain('The request under that code is off the list.')
+    expect(records()).toEqual([])
+    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    m.unmount()
+  })
+})
+
+/**
+ * KEYBOARD AND ANNOUNCEMENTS — a withdrawal result (release R3 amendment).
+ *
+ * happy-dom has no keyboard, so Enter and Space are what they are in a
+ * browser: Space or Enter on a focused button is a click, and Enter in the code
+ * field is a form submit. What is checked is what a keyboard user depends on:
+ * the control that was pressed is still there, still focused and still
+ * focusable while a request is out and after its result; one activation is one
+ * request however many arrive; the result is written into a status region that
+ * was already on the page; and focus moves only when what it sat on goes.
+ * No screen reader was run.
+ */
+describe('keyboard use of a withdrawal, and what is announced', () => {
+  /** Hold every DELETE until `release()`, so the moment a request is out can be looked at. */
+  function holdDeletes() {
+    const real = globalThis.fetch
+    let release!: () => void
+    const gate = new Promise<void>((r) => (release = r))
+    let started = 0
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).includes('/introduce') && (init?.method ?? '').toUpperCase() === 'DELETE') {
+        started++
+        await gate
+      }
+      return real(input, init)
+    }) as typeof fetch
+    return { release, started: () => started }
+  }
+  const byText = (root: HTMLElement, re: RegExp) => [...root.querySelectorAll('button')].find((b) => re.test(b.textContent ?? '')) as HTMLButtonElement
+  const field = (root: HTMLElement) => root.querySelector('#request-code') as HTMLInputElement
+  const fire = (el: Element, event: Event) => act(async () => void el.dispatchEvent(event))
+  const click = (el: Element) => act(async () => void (el as HTMLElement).click())
+  const submit = (root: HTMLElement) => fire(root.querySelector('form')!, new Event('submit', { bubbles: true, cancelable: true }))
+  const statuses = (root: HTMLElement) => [...root.querySelectorAll('[role="status"]')]
+
+  async function typedScreen() {
+    onPhone(new Phone('another'))
+    blobs.put('introductions', CODE, record())
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.type('Request code', CODE)
+    return m
+  }
+
+  it('typed code: the button stays mounted, focused and focusable while the request is out, and one activation sends one request', async () => {
+    const m = await typedScreen()
+    const button = byText(m.container, /Take it off the list/)
+    const region = statuses(m.container).find((r) => m.container.querySelector('form')!.contains(r))!
+    expect(region, 'the form’s status region is on the page before any result').toBeTruthy()
+    expect(region.textContent).toBe('')
+    const held = holdDeletes()
+    button.focus()
+    await click(button)
+    await m.until(() => held.started() === 1, 'the request is out')
+    // Waiting: the same button, still focused, aria-disabled and not disabled, so it never leaves the tab order.
+    const waiting = byText(m.container, /Taking it off/)
+    expect(waiting).toBe(button)
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.hasAttribute('disabled')).toBe(false)
+    // A second click, an Enter in the field (a submit) and another click in the same wait start nothing.
+    await click(button)
+    await submit(m.container)
+    await click(button)
+    expect(held.started()).toBe(1)
+    held.release()
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'the result')
+    expect(asked()).toEqual([`DELETE /.netlify/functions/introduce?code=${CODE}`])
+    // The announcement landed in the region that was already there, and focus never left the button.
+    expect(statuses(m.container).find((r) => r === region)?.textContent).toContain('off the list')
+    expect(document.activeElement).toBe(button)
+    m.unmount()
+  })
+
+  it('typed code: after an unconfirmed result she can edit, then retry from the keyboard, and the place she is at does not move', async () => {
+    const m = await typedScreen()
+    const button = byText(m.container, /Take it off the list/)
+    const region = statuses(m.container).find((r) => m.container.querySelector('form')!.contains(r))!
+    server.down(/introduce/)
+    button.focus()
+    await click(button)
+    await m.until(() => region.textContent!.includes('We could not confirm'), 'unconfirmed')
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-disabled')).toBe('false')
+    expect(field(m.container).value).toBe(CODE)
+    // Editing clears the old result without removing its region; the field keeps what she typed.
+    field(m.container).focus()
+    await m.type('Request code', `${CODE}X`)
+    expect(region.isConnected).toBe(true)
+    expect(region.textContent).toBe('')
+    expect(field(m.container).value).toBe(`${CODE}X`)
+    // The wrong length is caught here, by the same region, with nothing sent.
+    const sentBefore = asked().length
+    await submit(m.container)
+    await m.until(() => region.textContent!.includes('A request code is 8 characters'), 'refused as typed')
+    expect(asked().length).toBe(sentBefore)
+    // Put it right, server back, retry with Enter in the field.
+    await m.type('Request code', CODE)
+    server.down(false)
+    field(m.container).focus()
+    await submit(m.container)
+    await m.until(() => region.textContent!.includes('The request under that code is off the list.'), 'the retry is confirmed')
+    expect(document.activeElement).toBe(field(m.container))
+    expect(records()).toEqual([])
+    m.unmount()
+  })
+
+  it('two activations in the same instant send one request, on either route', async () => {
+    const m = await typedScreen()
+    const held = holdDeletes()
+    const button = byText(m.container, /Take it off the list/)
+    // Enter and a click landing together, before React has re-rendered with the wait.
+    await act(async () => {
+      button.click()
+      button.click()
+      m.container.querySelector('form')!.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }))
+    })
+    await m.until(() => held.started() >= 1, 'the request is out')
+    expect(held.started()).toBe(1)
+    held.release()
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'the result')
+    expect(asked()).toEqual([`DELETE /.netlify/functions/introduce?code=${CODE}`])
+    m.unmount()
+
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const r = await mount(<App />)
+    await r.press(/Manage an earlier introduction request/)
+    const again = holdDeletes()
+    const own = byText(r.container, /^Take my name off/)
+    await act(async () => {
+      own.click()
+      own.click()
+    })
+    await r.until(() => again.started() >= 1, 'the request is out')
+    expect(again.started()).toBe(1)
+    again.release()
+    await r.until(() => r.text().includes('New introduction requests are closed.'), 'the closed state')
+    r.unmount()
+  })
+
+  it('typed code: an empty field sends nothing, and the button, still focusable, sends her to the field', async () => {
+    onPhone(new Phone('another'))
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const button = byText(m.container, /Take it off the list/)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    button.focus()
+    await click(button)
+    expect(asked()).toEqual([])
+    expect(document.activeElement).toBe(field(m.container))
+    m.unmount()
+  })
+
+  it('a successful removal keeps focus on the control used when that control stays; the field empties, the button remains', async () => {
+    const m = await typedScreen()
+    const button = byText(m.container, /Take it off the list/)
+    button.focus()
+    await click(button)
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'removed')
+    expect(field(m.container).value).toBe('')
+    expect(button.isConnected).toBe(true)
+    expect(document.activeElement).toBe(button)
+    // Emptied, it says so (aria-disabled) and is still reachable.
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    m.unmount()
+  })
+
+  it('what she types while a request is out is hers: completing does not clear it', async () => {
+    const m = await typedScreen()
+    const held = holdDeletes()
+    await click(byText(m.container, /Take it off the list/))
+    await m.until(() => held.started() === 1, 'the request is out')
+    await m.type('Request code', OTHER)
+    held.release()
+    await m.until(() => m.text().includes('The request under that code is off the list.'), 'the result')
+    expect(field(m.container).value).toBe(OTHER)
+    m.unmount()
+  })
+
+  it('receipt: the button stays mounted, focused and focusable while waiting, duplicates send nothing, and an unconfirmed result is announced in the region already there', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const button = byText(m.container, /^Take my name off/)
+    const region = button.parentElement!.nextElementSibling as HTMLElement
+    expect(region.getAttribute('role')).toBe('status')
+    expect(region.textContent).toBe('')
+    server.down(/introduce/)
+    const held = holdDeletes()
+    button.focus()
+    await click(button)
+    await m.until(() => held.started() === 1, 'the request is out')
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.hasAttribute('disabled')).toBe(false)
+    await click(button)
+    await click(button)
+    expect(held.started()).toBe(1)
+    held.release()
+    await m.until(() => region.textContent!.includes('We could not confirm whether that request was removed.'), 'unconfirmed')
+    expect(region.isConnected).toBe(true)
+    expect(document.activeElement).toBe(button)
+    expect(button.getAttribute('aria-disabled')).toBe('false')
+    expect(phone.storage.has(INTRO_KEY)).toBe(true)
+    // The same button, pressed again once the server is back, finishes it.
+    server.down(false)
+    await click(button)
+    await m.until(() => m.text().includes('New introduction requests are closed.'), 'the receipt is gone')
+    m.unmount()
+  })
+
+  it('receipt: when taking it off removes the receipt, focus lands on the closed screen’s heading, and the confirmation is announced in the region that was there before', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const top = m.container.querySelector('main > [role="status"]') as HTMLElement
+    expect(top, 'a status region is on the page whichever state shows').toBeTruthy()
+    expect(top.textContent).toBe('')
+    const button = byText(m.container, /^Take my name off/)
+    button.focus()
+    await click(button)
+    await m.until(() => m.text().includes('New introduction requests are closed.'), 'the closed state')
+    expect(button.isConnected).toBe(false)
+    expect(m.container.querySelector('main > [role="status"]')).toBe(top)
+    expect(top.textContent).toContain('The request under this code is off the list.')
+    const heading = m.container.querySelector('h1')!
+    expect(heading.textContent).toBe('New introduction requests are closed.')
+    expect(document.activeElement).toBe(heading)
+    // A one-time target: it is not left in the tab order.
+    heading.dispatchEvent(new FocusEvent('blur'))
+    expect(heading.hasAttribute('tabindex')).toBe(false)
+    m.unmount()
+  })
+
+  it('receipt: if she moved focus elsewhere while it was out, completing leaves it where she put it', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const held = holdDeletes()
+    const button = byText(m.container, /^Take my name off/)
+    button.focus()
+    await click(button)
+    await m.until(() => held.started() === 1, 'the request is out')
+    // Deliberately on something outside the receipt: the header's Back.
+    const back = m.container.querySelector('header button') as HTMLButtonElement
+    back.focus()
+    expect(document.activeElement).toBe(back)
+    held.release()
+    await m.until(() => m.text().includes('New introduction requests are closed.'), 'the closed state')
+    expect(document.activeElement).toBe(back)
+    expect(m.container.querySelector('h1')).not.toBe(document.activeElement)
+    m.unmount()
+  })
+
+  it('receipt: if she was on something else inside the receipt, which goes with it, she is given the heading rather than nothing', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    const held = holdDeletes()
+    await click(byText(m.container, /^Take my name off/))
+    await m.until(() => held.started() === 1, 'the request is out')
+    const elsewhere = byText(m.container, /What we hold, exactly/)
+    elsewhere.focus()
+    expect(document.activeElement).toBe(elsewhere)
+    held.release()
+    await m.until(() => m.text().includes('New introduction requests are closed.'), 'the closed state')
+    expect(elsewhere.isConnected).toBe(false)
+    expect(document.activeElement).toBe(m.container.querySelector('h1'))
+    m.unmount()
+  })
+
+  it('typed code on a receipt that matches it: focus goes to the heading too, because the receipt it sat in is gone', async () => {
+    const phone = onPhone(new Phone('hers'))
+    aRequest(phone)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.press(/^Use a different code/)
+    // Opening the field puts her in it.
+    expect(document.activeElement).toBe(field(m.container))
+    await m.type('Request code', CODE)
+    const button = byText(m.container, /Take it off the list/)
+    button.focus()
+    await click(button)
+    await m.until(() => m.text().includes('This phone is not holding a request code.'), 'receipt cleared')
+    expect(document.activeElement).toBe(m.container.querySelector('h1'))
+    expect(m.container.querySelector('main > [role="status"]')?.textContent ?? '').toBe('')
+    m.unmount()
+  })
+})
+
+describe('how long a request is kept', () => {
+  it('after 180 days her phone still holds the code and says the days are over; the sweep removes the record, and taking it off then finds nothing and clears the code', async () => {
+    const phone = onPhone(new Phone('hers'))
+    const put = day(Date.now() - 181 * DAY)
+    blobs.put('introductions', 'HJKMNPQR', { ...record(put) })
+    seedReceipt(phone, 'HJKMNPQR', put)
+    seedDemo()
+    const m = await mount(<App />)
+    // Time passing is not an answer from the server: Home still offers it, and the key stays.
+    expect(m.text()).toContain('An earlier introduction request')
+    expect(phone.storage.has(INTRO_KEY)).toBe(true)
+    await m.press(/^An earlier introduction request/)
+    expect(m.text()).toContain(`The 180 days from ${put} are over.`)
+    expect(m.text()).toContain('This phone cannot see whether the request has come off the list, so it has kept the code.')
+    expect(m.text()).toContain('so it keeps the code until you take the request off, or use Forget me')
+    // The sweep takes the record, on any run; the phone does not know.
+    const res = await call('sweep', 'POST', 'sweep')
+    expect(((await res.json()) as { swept: { introductions: number } }).swept.introductions).toBe(1)
+    expect(records()).toEqual([])
+    expect(phone.storage.has(INTRO_KEY)).toBe(true)
+    // Only an answer clears it.
+    await m.press(/^Take my name off/)
+    await m.until(() => m.text().includes('We found nothing under this phone’s code'), 'nothing under it')
+    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    expect(m.text()).toContain('This phone is not holding a request code.')
+    expect(markers()).toEqual([`withdrawn/HJKMNPQR/${day()}`])
+    m.unmount()
+  })
+
+  it('a request put down more than 180 days ago is still taken off by its code, from the phone that holds it, if the server still has it', async () => {
+    const phone = onPhone(new Phone('hers'))
+    const put = day(Date.now() - 200 * DAY)
+    blobs.put('introductions', CODE, { ...record(put) })
+    seedReceipt(phone, CODE, put)
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    await m.press(/^Take my name off/)
+    await m.until(() => m.text().includes('The request under this code is off the list.'), 'taken off')
+    expect(records()).toEqual([])
+    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    m.unmount()
+  })
+})
+
+describe('a browser that cannot save the code', () => {
+  it('an attempt whose answer never came: the screen shows the code, and it takes the request off from any phone', async () => {
+    const phone = onPhone(new Phone('private'))
+    holdPendingInPage(phone, CODE)
+    seedRecord(CODE, { contact: CONTACT })
+    const m = await mount(<App />)
+    await m.press(/Manage an earlier introduction request/)
+    // Nothing on the phone holds it, so the page does, shown as a person reads it.
+    expect(phone.keys().filter((k) => k.startsWith('niyyah.intro'))).toEqual([])
     expect(m.text()).toContain('This browser could not save the recovery code.')
     expect(m.text()).toContain('Closing or reloading this page loses the code here.')
-    expect(m.text()).toContain(formatCode(code))
-    // The page still holds the attempt: the retry goes under the same code.
-    server.lose(false)
-    await m.press(/^Put my name down/)
-    await saved(m)
-    expect(records()).toEqual([code])
-    expect(m.text()).toContain('This browser is not saving anything')
-    expect(m.text()).toContain(formatCode(code))
-    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    expect(m.text()).toContain(formatCode(CODE))
     m.unmount()
     reload()
 
     // On another phone, with nothing but the code she wrote down.
     onPhone(new Phone('another'))
     const other = await mount(<App />)
-    await other.press(/I’m looking for someone serious/)
-    await other.press(/^I have a code/)
-    await other.type('Your code', code.toLowerCase())
-    await other.press(/^Take it off$/)
-    await other.until(() => other.text().includes('Your name is off the list'), 'taken off by its code')
+    await other.press(/Manage an earlier introduction request/)
+    await other.type('Request code', CODE.toLowerCase())
+    await other.press(/^Take it off the list/)
+    await other.until(() => other.text().includes('The request under that code is off the list.'), 'taken off by its code')
     expect(records()).toEqual([])
-    expect(markers()).toEqual([`withdrawn/${code}/${day()}`])
+    expect(markers()).toEqual([`withdrawn/${CODE}/${day()}`])
     // The same code again finds nothing, and says so; a code of the wrong shape never leaves the phone.
-    await other.type('Your code', code)
-    await other.press(/^Take it off$/)
-    await other.until(() => other.text().includes('Nothing was under that code any more'), 'nothing under it')
-    // The absence line says only what the answer established: nothing about a marker (docs/DECISIONS.md Part 33).
-    expect(other.text()).not.toContain('marked as taken off')
+    await other.type('Request code', CODE)
+    await other.press(/^Take it off the list/)
+    await other.until(() => other.text().includes('We found no request under that code'), 'nothing under it')
     const before = server.requests.length
-    await other.type('Your code', 'ABC')
-    await other.press(/^Take it off$/)
-    expect(other.text()).toContain('A code is 8 characters')
+    await other.type('Request code', 'ABC')
+    await other.press(/^Take it off the list/)
+    expect(other.text()).toContain('A request code is 8 characters')
     expect(server.requests.length).toBe(before)
     other.unmount()
   })
 
-  it('a browser that cannot hold the receipt: the page still does, Home shows it, and Forget me takes the name off', async () => {
-    // Reproduced by the review of 2026-09-27: with `setItem` throwing, the
-    // request saved, the receipt was dropped, and Forget me — finding no code
-    // on the phone — reported the name gone while the record stayed.
+  it('a receipt the browser would not keep: the page still holds it, Home offers it, and Forget me takes the request off', async () => {
     const phone = onPhone(new Phone('private'))
-    phone.refuse(/^niyyah\.intro/)
+    holdReceiptInPage(phone, CODE)
+    seedRecord(CODE, { contact: CONTACT })
+    seedDemo()
     const m = await mount(<App />)
-    await fillIn(m)
-    await m.press(/^Put my name down/)
-    await saved(m)
-    const code = records()[0]
-    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    expect(m.text()).toContain('An earlier introduction request')
+    expect(m.text()).toContain('This browser is not saving, so this page is the only place that holds the code')
+    await m.press(/^An earlier introduction request/)
+    expect(m.text()).toContain(formatCode(CODE))
     expect(m.text()).toContain('This browser is not saving anything')
-    expect(m.text()).toContain(formatCode(code))
-    // Away from the screen and back through the door: the page still holds it.
+    expect(rememberedIntro()).toMatchObject({ code: CODE, kept: false })
+    // Away and back within the app: the page still holds it.
     await m.press(/^Back/)
-    await m.until(() => m.text().includes('I’m already talking to someone.'), 'back on Welcome')
-    expect(m.text()).not.toContain(formatCode(code))
-    await m.press(/I’m looking for someone serious/)
-    await m.until(() => m.text().includes(`Your request was saved on ${day()}.`), 'the receipt again')
-    expect(m.text()).toContain(formatCode(code))
-    expect(rememberedIntro()).toMatchObject({ code, kept: false })
+    await m.press(/^An earlier introduction request/)
+    expect(m.text()).toContain(formatCode(CODE))
     // Forget me, through Trust: the code the page holds is sent, and the record goes.
-    await m.press(/^What we hold, exactly/)
+    await m.press(/^Back/)
+    await m.press(/^Your privacy/)
     await m.press(/^Forget me$/)
     await m.press('Yes, delete everything')
     await m.until(() => records().length === 0, 'the record is deleted')
-    expect(markers()).toEqual([`withdrawn/${code}/${day()}`])
+    expect(markers()).toEqual([`withdrawn/${CODE}/${day()}`])
     expect(residue([CONTACT], [phone])).toEqual([])
     m.unmount()
   })
+})
 
-  it('two tabs on one phone send the same request: one record, one day, both told', async () => {
+describe('an earlier try whose answer never came', () => {
+  it('Home offers it and the closed screen leads with it, and it is taken off directly', async () => {
     const phone = onPhone(new Phone('hers'))
-    const a = await mount(<App />)
-    await fillIn(a)
-    server.lose(/introduce/)
-    await a.press(/^Put my name down/)
-    await a.until(() => a.text().includes('could not tell'), 'tab A is unsure')
-    server.lose(false)
-    // Tab B opens on the same phone, and finds the attempt this phone holds.
-    const b = await mount(<App />)
-    await fillIn(b)
-    await b.press(/^Put my name down/)
-    await saved(b)
-    expect(b.text()).toContain('the same request was not saved twice')
-    await a.press(/^Put my name down/)
-    await saved(a)
-    expect(records()).toHaveLength(1)
-    expect(receipt(phone)!.code).toBe(records()[0])
-    a.unmount()
-    b.unmount()
-  })
-
-  it('a request still in flight when she taps Forget me cannot land afterwards', async () => {
-    const phone = onPhone(new Phone('hers'))
-    const m = await mount(<App />)
-    await fillIn(m)
-    const release = server.hold(/introduce/, 'POST')
-    await m.press(/^Put my name down/)
-    expect(m.text()).toContain('Saving…')
-    const pending = JSON.parse(phone.storage.get(PENDING_KEY)!) as { code: string }
-    expect(pending.code).toMatch(CODE_SHAPE)
-    // Forget me, from Trust, while the request has not been answered.
-    const done = await forgetMe()
-    expect(done.intro).toBe(true)
-    expect(phone.keys()).toEqual([])
-    expect(markers()).toEqual([`withdrawn/${pending.code}/${day()}`])
-    // The request lands now — and finds the marker.
-    release()
-    await m.until(() => m.text().includes('taken off before this request was answered'), 'the late request was refused')
-    expect(records()).toEqual([])
-    expect(markers()).toEqual([`withdrawn/${pending.code}/${day()}`])
-    expect(residue([CONTACT], [phone])).toEqual([])
-    m.unmount()
-  })
-
-  it('a request still in flight when she takes the name off by its code cannot land afterwards', async () => {
-    const phone = onPhone(new Phone('hers'))
-    const m = await mount(<App />)
-    await fillIn(m)
-    const release = server.hold(/introduce/, 'POST')
-    await m.press(/^Put my name down/)
-    const pending = JSON.parse(phone.storage.get(PENDING_KEY)!) as { code: string }
-    await call('introduce', 'DELETE', `introduce?code=${pending.code}`)
-    release()
-    await m.until(() => m.text().includes('taken off before this request was answered'), 'refused')
-    expect(records()).toEqual([])
-    expect(phone.storage.has(PENDING_KEY)).toBe(false)
-    m.unmount()
-  })
-
-  it('she can take her name off from the receipt, and then nothing of hers is held there', async () => {
-    const phone = onPhone(new Phone('hers'))
-    const m = await mount(<App />)
-    await fillIn(m)
-    await m.press(/^Put my name down/)
-    await saved(m)
-    const code = records()[0]
-    await m.press(/^Take my name off/)
-    await m.until(() => m.text().includes('Your name is off the list'), 'taken off')
-    expect(records()).toEqual([])
-    expect(markers()).toEqual([`withdrawn/${code}/${day()}`])
-    expect(phone.storage.has(INTRO_KEY)).toBe(false)
-    expect(residue([CONTACT], [phone])).toEqual([])
-    // And put down again in the same visit, the receipt shows — found in the
-    // phone-width walk of 2026-09-27, where it saved and still showed the form.
-    await m.type('Email or phone', CONTACT)
-    await m.press(/^Put my name down/)
-    await saved(m)
-    expect(m.text()).not.toContain('Your name is off the list')
-    expect(records()).toHaveLength(1)
-    expect(records()[0]).not.toBe(code)
-    m.unmount()
-  })
-
-  it('a receipt from before the server gave dates is shown as this phone’s own record, and still takes the name off', async () => {
-    const phone = onPhone(new Phone('hers'))
-    const put = day(Date.now() - 20 * DAY)
-    blobs.put('introductions', 'HJKMNPQR', { contact: CONTACT, gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: put, v: 1 })
-    phone.storage.set(INTRO_KEY, JSON.stringify({ code: 'HJKMNPQR', at: put }))
+    seedPending(phone, CODE)
+    seedRecord(CODE, { contact: CONTACT })
     seedDemo()
     const m = await mount(<App />)
-    expect(m.text()).toContain(`A code from around ${put}, by this phone’s own record`)
-    await m.press(/^Your request for an introduction/)
-    expect(m.text()).toContain(`This phone holds a code for a request from around ${put}.`)
-    expect(m.text()).toContain('That day is this phone’s own record')
-    expect(m.text()).toContain(`so by ${removeOn(put)}`)
-    expect(m.text()).not.toMatch(/was saved on|name is down/)
-    await m.press(/^Take my name off/)
-    await m.until(() => m.text().includes('Your name is off the list'), 'taken off')
+    expect(m.text()).toContain('An earlier introduction request')
+    await m.press(/^An earlier introduction request/)
+    expect(m.text()).toContain('An earlier try may have reached us')
+    await m.press(/^Take that try off/)
+    await m.until(() => m.text().includes('The request under the code this phone was holding for that try is off the list.'), 'taken off')
     expect(records()).toEqual([])
-    expect(phone.storage.has(INTRO_KEY)).toBe(false)
+    expect(markers()).toEqual([`withdrawn/${CODE}/${day()}`])
+    expect(phone.storage.has('niyyah.intro.pending.v1')).toBe(false)
     m.unmount()
   })
+})
 
-  it('past the scheduled day the code is kept and the truth said; the sweep removes the record on that day', async () => {
-    const phone = onPhone(new Phone('hers'))
-    // Put down long ago: its Sunday has passed, and the sweep has not run since.
-    const put = day(Date.now() - 200 * DAY)
-    const goes = removeOn(put)!
-    blobs.put('introductions', 'HJKMNPQR', { contact: CONTACT, gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', adult: true, at: put, v: 1 })
-    phone.storage.set(INTRO_KEY, JSON.stringify({ code: 'HJKMNPQR', at: put, removeOn: goes }))
-    seedDemo()
-    const m = await mount(<App />)
-    expect(m.text()).toContain('The day scheduled for its removal has passed.')
-    // Not thrown away on the phone's say-so: the code stays until she acts.
-    expect(phone.storage.has(INTRO_KEY)).toBe(true)
-    await m.press(/^Your request for an introduction/)
-    expect(m.text()).toContain(`Your request was saved on ${put}.`)
-    expect(m.text()).toContain(`scheduled to be removed on ${goes}`)
-    expect(m.text()).toContain('This phone cannot see whether the removal ran')
-    // The sweep takes it — on its day, and on any later run.
-    const res = await call('sweep', 'POST', 'sweep')
-    expect(((await res.json()) as { swept: { introductions: number } }).swept.introductions).toBe(1)
-    expect(records()).toEqual([])
-    // Her phone still holds the code; taking it off finds nothing, and clears it.
-    await m.press(/^Take my name off/)
-    await m.until(() => m.text().includes('Nothing was under that code any more'), 'nothing under it')
-    expect(m.text()).not.toContain('marked as taken off')
-    expect(phone.storage.has(INTRO_KEY)).toBe(false)
-    expect(m.text()).toContain('Put my name down')
-    m.unmount()
-  })
-
-  it('a member with a Home finds the list from Home, and Home shows the receipt', async () => {
-    const phone = onPhone(new Phone('hers'))
-    seedDemo()
-    const home = await mount(<App />)
-    expect(home.text()).toContain('Looking for someone serious?')
-    expect(home.text()).toContain('for adults serious about marriage')
-    await home.press(/^Looking for someone serious\?/)
-    expect(home.text()).toContain('Put my name down')
-    home.unmount()
-    reload()
-    phone.storage.set(INTRO_KEY, JSON.stringify({ code: 'HJKMNPQR', at: day(), removeOn: removeOn(day()) }))
-    const again = await mount(<App />)
-    expect(again.text()).toContain('Your request for an introduction')
-    expect(again.text()).toContain(`Saved ${day()}; scheduled to be removed on ${removeOn(day())}`)
-    expect(again.text()).not.toContain('Looking for someone serious?')
-    again.unmount()
-  })
-
-  it('the address bar holds /?looking while she is here — on a reload, and after Back it is gone', async () => {
+describe('the address bar', () => {
+  it('holds /?looking while she is here — on a reload it lands on the closed screen, and after Back it is gone', async () => {
     onPhone(new Phone('hers'))
     window.history.replaceState({}, '', '/')
     const m = await mount(<App />)
-    await m.press(/I’m looking for someone serious/)
+    await m.press(/Manage an earlier introduction request/)
     expect(window.location.pathname + window.location.search).toBe('/?looking')
     await m.press(/^Back/)
     expect(window.location.pathname + window.location.search).toBe('/')
     m.unmount()
     reload()
-    // A reload of the address the bar showed: main.tsx parses it as a link and lands on the form.
+    // A reload of the address the bar showed: main.tsx parses it as a link and lands on the closed screen.
     const link = new URL('https://niyyah.test/?looking&via=group')
     window.history.replaceState({}, '', link.pathname)
     const again = await mount(<App entry={entryFromUrl(link.search, link.pathname)} />)
-    expect(again.text()).toContain('Put my name down')
+    expect(again.text()).toContain('New introduction requests are closed.')
+    expect(again.text()).not.toMatch(/Put my name down/)
     // The kind of link is remembered elsewhere; it is never put back into the bar.
     expect(window.location.pathname + window.location.search).toBe('/?looking')
     again.unmount()
@@ -534,19 +759,9 @@ describe('already talking to someone', () => {
     const m = await mount(<App />)
     await m.press(/I’m already talking to someone/)
     expect(m.text()).toContain('Where are you with it?')
+    expect(m.text()).not.toMatch(/introduction/i)
     await m.press(door)
     expect(m.text()).toMatch(lands)
-    m.unmount()
-  })
-
-  it('and the other door is one tap away from each', async () => {
-    onPhone(new Phone('theirs'))
-    const m = await mount(<App />)
-    await m.press(/I’m already talking to someone/)
-    await m.press(/Put your name down for an introduction/)
-    expect(m.text()).toContain('Put my name down')
-    await m.press(/Start there instead/)
-    expect(m.text()).toContain('Where are you with it?')
     m.unmount()
   })
 })

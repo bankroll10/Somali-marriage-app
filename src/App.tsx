@@ -157,11 +157,8 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
     case 'looking':
       return (
         <Looking
-          identity={n.identity}
           intro={n.intro}
-          onRegistered={n.setIntro}
           onWithdrawn={() => n.setIntro(null)}
-          onIdentity={(patch) => n.setIdentity((prev) => ({ ...prev, ...patch }))}
           onTalking={() => n.setScreen('talking')}
           onMap={n.beginMap}
           onTrust={() => n.openTrust('looking')}
@@ -175,7 +172,6 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           onRead={() => n.setScreen('read')}
           onBeforeYes={() => n.openBeforeYes()}
           onFamilies={() => n.setScreen('families')}
-          onLooking={() => n.setScreen('looking')}
           onBack={backHome}
         />
       )
@@ -307,6 +303,7 @@ function AppScreen({ n }: { n: ReturnType<typeof useNiyyah> }) {
           countMe={n.trust.countMe}
           onCountMe={(on) => n.setTrust((prev) => ({ ...prev, countMe: on }))}
           onForget={n.forgetEverything}
+          onManageRequest={() => n.setScreen('looking')}
           onBack={() => n.setScreen(n.trustReturn)}
         />
       )

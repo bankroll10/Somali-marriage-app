@@ -6,6 +6,7 @@ import { formatCode } from '../../src/lib/code'
 import { day } from '../../netlify/shared/day'
 import { answerDelete, appHtml } from '../support/answers'
 import { Phone, onPhone, reload } from '../support/device'
+import { seedReceipt, seedRecord } from '../support/intro'
 import { recoveryCodes, recoveryKey, recoveryKeys } from '../support/recovery'
 import { mount, type Mounted } from '../support/render'
 import { blobs, serve, type Served } from '../support/server'
@@ -75,7 +76,7 @@ describe('the message, on a stub', () => {
     expect(said).toContain('to ask for help removing it.')
     expect(said).toContain('tries again each time Niyyah opens, though that may not get through')
     expect(said).toContain('or tap Forget me again in a moment')
-    expect(said).toContain('“Take a name off with its code” on the looking screen')
+    expect(said).toContain('typed on the introduction screen, under “Manage an earlier request”')
     // Not blame, not a completion promise, not the not-saving sentence, not a hand-off that sounds like a deletion.
     expect(said).not.toContain('that is us, not you')
     expect(said).not.toContain('still held')
@@ -259,16 +260,14 @@ function watchReplace() {
   return replace
 }
 
+/** A request that exists: its record on the server and its receipt on this phone, reached through the introduction screen. */
 async function receipt() {
+  seedRecord(A, { contact: CONTACT })
+  seedReceipt(phone, A)
   const m = await mount(<App />)
   screen = m
-  await m.press(/I’m looking for someone serious/)
-  await m.press(/^I am a woman/)
-  await m.press(/^Minneapolis/)
-  await m.type('Email or phone', CONTACT)
-  await m.press(/I confirm I am 18/)
-  await m.press(/^Put my name down/)
-  await m.until(() => m.text().includes('Your request was saved on'), 'the receipt')
+  await m.press(/Manage an earlier introduction request/)
+  await m.until(() => m.text().includes('Your earlier request.'), 'the receipt')
   return { m, code: records()[0] }
 }
 async function throughTrust(m: Mounted) {
@@ -318,7 +317,16 @@ describe('the real app, with an invalid success-looking answer and the handler n
 describe('the real app, with the step count answered by an invalid success-looking answer', () => {
   it('does not replace the page, says it could not confirm, offers no hand-off, shows no step id, and a tap answered for real finishes it', async () => {
     const replace = watchReplace()
-    const { m } = await receipt()
+    // A member with a Home, so her steps are counted (a form used to do that as a side effect), who also holds a receipt.
+    const { seedDemo } = await import('../../src/lib/demo')
+    seedDemo()
+    seedRecord(A, { contact: CONTACT })
+    seedReceipt(phone, A)
+    const m = await mount(<App />)
+    screen = m
+    await m.until(() => blobs.keys('progress').length === 1, 'a step counted')
+    await m.press(/An earlier introduction request/)
+    await m.until(() => m.text().includes('Your earlier request.'), 'the receipt')
     const ids = blobs.keys('progress')
     expect(ids).toHaveLength(1)
     const back = answerDelete(server, appHtml, false, undefined, 'progress')

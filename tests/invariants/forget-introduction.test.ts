@@ -1,12 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { day } from '../../netlify/shared/day'
 import { clearEverything, forgetMe, pendingForget, retryPendingForget } from '../../src/lib/forget'
-import { registerInterest, rememberedIntro, resetIntroMirror } from '../../src/lib/introduce'
+import { rememberedIntro, resetIntroMirror } from '../../src/lib/introduce'
 import { answerDelete, appHtml, cutStream, gone } from '../support/answers'
 import { Phone, onPhone, reload } from '../support/device'
 import { LEGACY, recoveryKey, recoveryKeys, recoveryOf } from '../support/recovery'
 import { residue } from '../support/residue'
-import { blobs, call, serve, type Served } from '../support/server'
+import { holdPendingInPage, holdReceiptInPage, markers as markersOf, records as recordsOf, seedPending, seedReceipt, seedRecord } from '../support/intro'
+import { blobs, serve, type Served } from '../support/server'
 
 vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsModule)
 
@@ -29,12 +30,10 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 
 const A = 'QRTWXY34'
 const B = 'HJKMNPQR'
+const C = 'ACDEFGHJ'
 const NAME = 'Zqhodanforgetintro'
 const CONTACT = 'zq.forget.intro@example.test'
-const INPUT = { contact: CONTACT, gender: 'woman' as const, scene: 'twin-cities' }
 const PENDING = LEGACY
-const RECEIPT = 'niyyah.intro.v1'
-const ATTEMPT = 'niyyah.intro.pending.v1'
 
 let server: Served
 let phone: Phone
@@ -50,8 +49,8 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-const records = () => blobs.keys('introductions').filter((k) => !k.startsWith('withdrawn/'))
-const markers = () => blobs.keys('introductions').filter((k) => k.startsWith('withdrawn/')).sort()
+const records = recordsOf
+const markers = () => markersOf().sort()
 const markerOf = (code: string) => `withdrawn/${code}/${day()}`
 const deletes = () => server.requests.filter((r) => r.startsWith('DELETE ')).length
 const posts = () => server.requests.filter((r) => r.startsWith('POST ')).length
@@ -59,13 +58,20 @@ const posts = () => server.requests.filter((r) => r.startsWith('POST ')).length
 /** The introduction codes this phone keeps a recovery key for. */
 const held = (): string[] => recoveryOf(phone.storage).intros
 
-/** A record on the server under `code`, as an earlier POST left it. */
-async function onServer(code: string) {
-  const res = await call('introduce', 'POST', 'introduce', { code, ...INPUT, adult: true })
-  expect(res.status).toBe(200)
+/** A record on the server under `code`, as the route left it while it still took requests (tests/support/intro.ts). */
+const onServer = (code: string) => seedRecord(code, { contact: CONTACT })
+const receipt = (code: string) => seedReceipt(phone, code, day(), '2027-03-21')
+const attempt = (code: string) => seedPending(phone, code)
+/** The same two, for a browser that refuses to save them: they live in the page, and Forget me's own key is refused too. */
+const refuseAll = () => phone.refuse(/^niyyah\.(intro|forget)/)
+const receiptInPage = (code: string) => {
+  holdReceiptInPage(phone, code)
+  refuseAll()
 }
-const receipt = (code: string) => phone.storage.set(RECEIPT, JSON.stringify({ code, at: day(), removeOn: '2027-03-21' }))
-const attempt = (code: string) => phone.storage.set(ATTEMPT, JSON.stringify({ code, at: day() }))
+const attemptInPage = (code: string) => {
+  holdPendingInPage(phone, code)
+  refuseAll()
+}
 /** Her kept things on the phone, to be cleared: the codes alone are allowed to stay. */
 const herThings = () => phone.storage.set('niyyah.intake.v1', JSON.stringify({ answers: {}, identity: { firstName: NAME } }))
 const personal = () => residue([NAME, CONTACT], [phone]).filter((l) => l.startsWith('phone'))
@@ -84,7 +90,7 @@ describe.each(SITUATIONS)('Forget me, %s', (_s, completed, reply) => {
     it('says the name is not confirmed gone, clears her things, keeps only the code, and a later valid answer resolves it', async () => {
       herThings()
       put(A)
-      await onServer(A)
+      onServer(A)
       const back = answerDelete(server, reply, completed)
 
       const done = await forgetMe()
@@ -123,8 +129,8 @@ describe('two codes are confirmed independently', () => {
     herThings()
     receipt(A)
     attempt(B)
-    await onServer(A)
-    await onServer(B)
+    onServer(A)
+    onServer(B)
     const backs = badOnes.map(bad)
     const done = await forgetMe()
     expect(done.intro).toBe(left.length === 0)
@@ -142,8 +148,8 @@ describe('two codes are confirmed independently', () => {
   ])('and a retry resolves them one at a time: %s', async (_n, first, second) => {
     receipt(A)
     attempt(B)
-    await onServer(A)
-    await onServer(B)
+    onServer(A)
+    onServer(B)
     let back = [bad(A), bad(B)]
     await forgetMe()
     expect(held()).toEqual([A, B].sort())
@@ -167,7 +173,7 @@ describe('one code under both names', () => {
   it('is deleted once, answered once, and kept once', async () => {
     receipt(A)
     attempt(A)
-    await onServer(A)
+    onServer(A)
     const back = answerDelete(server, appHtml, false)
     const done = await forgetMe()
     expect(deletes()).toBe(1)
@@ -183,7 +189,7 @@ describe('one code under both names', () => {
   it('a record from the earlier build naming it in both slots is imported once, sent once and resolved once', async () => {
     const raw = JSON.stringify({ intro: A, introPending: A })
     phone.storage.set(PENDING, raw)
-    await onServer(A)
+    onServer(A)
     expect(await retryPendingForget()).toBe(true)
     expect(deletes()).toBe(1)
     expect(recoveryKeys(phone.storage)).toEqual([])
@@ -197,8 +203,8 @@ describe('a record the earlier build wrote is imported, never rewritten', () => 
   it('reads intro and introPending, keeps what did not land under recovery keys, and leaves the older record alone', async () => {
     const raw = JSON.stringify({ intro: A, introPending: B })
     phone.storage.set(PENDING, raw)
-    await onServer(A)
-    await onServer(B)
+    onServer(A)
+    onServer(B)
     const back = answerDelete(server, appHtml, false, B)
     expect(await retryPendingForget()).toBe(false)
     expect(held()).toEqual([B])
@@ -213,19 +219,18 @@ describe('a record the earlier build wrote is imported, never rewritten', () => 
 
 describe('G4 — a code unresolved from one Forget me is not replaced by the next', () => {
   it('A unresolved, then B saved, then Forget me with B also unconfirmed: both are kept, and a reload resolves both', async () => {
-    const first = await registerInterest(INPUT)
-    if (!first.ok) throw new Error('not saved')
-    const a = first.state.code
+    const a = A
+    receipt(a)
+    onServer(a)
     let back = answerDelete(server, gone, false)
     expect((await forgetMe()).intro).toBe(false)
     expect(held()).toEqual([a])
     back()
 
-    // She puts her name down again, and it is saved under a new code.
-    const second = await registerInterest(INPUT)
-    if (!second.ok) throw new Error('not saved')
-    const b = second.state.code
-    expect(b).not.toBe(a)
+    // A second request she made earlier is on the phone under another code.
+    const b = B
+    receipt(b)
+    onServer(b)
     expect(held()).toEqual([a])
 
     back = answerDelete(server, gone, false)
@@ -245,25 +250,22 @@ describe('G4 — a code unresolved from one Forget me is not replaced by the nex
   })
 
   it('three generations — a receipt, a second receipt and an unanswered attempt — all stay', async () => {
-    const one = await registerInterest(INPUT)
-    if (!one.ok) throw new Error('not saved')
+    receipt(A)
+    onServer(A)
     let back = answerDelete(server, gone, false)
     await forgetMe()
     back()
-    const two = await registerInterest(INPUT)
-    if (!two.ok) throw new Error('not saved')
+    receipt(B)
+    onServer(B)
     back = answerDelete(server, gone, false)
     await forgetMe()
     back()
-    // The third is sent and its answer is lost: the attempt is pending, and the record is written.
-    server.lose(/introduce/)
-    const three = await registerInterest(INPUT)
-    server.lose(false)
-    expect(three.ok).toBe(false)
-    if (three.ok) return
+    // The third was sent and its answer lost: the attempt is pending, and the record is written.
+    attempt(C)
+    onServer(C)
     back = answerDelete(server, gone, false)
     expect((await forgetMe()).intro).toBe(false)
-    expect(held()).toEqual([one.state.code, two.state.code, three.code].sort())
+    expect(held()).toEqual([A, B, C].sort())
     back()
     expect(await retryPendingForget()).toBe(true)
     expect(records()).toEqual([])
@@ -273,11 +275,10 @@ describe('G4 — a code unresolved from one Forget me is not replaced by the nex
 
 describe('a browser that cannot save the recovery codes (G1)', () => {
   it('keeps the unresolved code in the page, shows it, and lets the same page send it again — a reload loses it', async () => {
-    phone.refuse(/^niyyah\.(intro|forget)/)
-    const saved = await registerInterest(INPUT)
-    if (!saved.ok) throw new Error('not saved')
-    expect(saved.kept).toBe(false)
-    const a = saved.state.code
+    const a = A
+    receiptInPage(a)
+    onServer(a)
+    expect(phone.keys()).toEqual([])
     const back = answerDelete(server, appHtml, false)
 
     const done = await forgetMe()
@@ -301,10 +302,9 @@ describe('a browser that cannot save the recovery codes (G1)', () => {
   })
 
   it('a Forget me that is unconfirmed again keeps the code in the page, shows it again, and a third that is answered finishes it', async () => {
-    phone.refuse(/^niyyah\.(intro|forget)/)
-    const saved = await registerInterest(INPUT)
-    if (!saved.ok) throw new Error('not saved')
-    const a = saved.state.code
+    const a = A
+    receiptInPage(a)
+    onServer(a)
     const back = answerDelete(server, appHtml, false)
     expect((await forgetMe()).introHeld).toEqual([a])
     // Again, still wrong: the code the first round left in the page is not dropped by the wipe that follows it.
@@ -320,52 +320,47 @@ describe('a browser that cannot save the recovery codes (G1)', () => {
   })
 
   it('"Start completely fresh" wipes her things and leaves the codes still to be sent, as it does for the saved record', async () => {
-    phone.refuse(/^niyyah\.(intro|forget)/)
-    const saved = await registerInterest(INPUT)
-    if (!saved.ok) throw new Error('not saved')
+    receiptInPage(A)
+    onServer(A)
     const back = answerDelete(server, appHtml, false)
     await forgetMe()
     clearEverything()
-    expect(pendingForget()).toEqual({ intros: [saved.state.code] })
+    expect(pendingForget()).toEqual({ intros: [A] })
     back()
   })
 
   it('a reload loses the page’s copy: the code that was shown is the only record', async () => {
-    phone.refuse(/^niyyah\.(intro|forget)/)
-    const saved = await registerInterest(INPUT)
-    if (!saved.ok) throw new Error('not saved')
+    receiptInPage(A)
+    onServer(A)
     const back = answerDelete(server, appHtml, false)
     await forgetMe()
     back()
-    expect(pendingForget()).toEqual({ intros: [saved.state.code] })
+    expect(pendingForget()).toEqual({ intros: [A] })
     reload()
     expect(pendingForget()).toBeNull()
     expect(await retryPendingForget()).toBe(true)
-    expect(records()).toEqual([saved.state.code])
+    expect(records()).toEqual([A])
   })
 
   it('a pending-only attempt is carried the same way', async () => {
-    phone.refuse(/^niyyah\.(intro|forget)/)
-    server.lose(/introduce/)
-    const lost = await registerInterest(INPUT)
-    server.lose(false)
-    expect(lost.ok).toBe(false)
-    if (lost.ok) return
-    expect(lost.kept).toBe(false)
+    // The answer was lost and the browser would not save the attempt, so only the page has it. The record was written.
+    attemptInPage(A)
+    onServer(A)
+    expect(phone.keys()).toEqual([])
     const back = answerDelete(server, appHtml, false)
     const done = await forgetMe()
-    expect(done).toMatchObject({ intro: false, introHeld: [lost.code], kept: false })
+    expect(done).toMatchObject({ intro: false, introHeld: [A], kept: false })
     back()
     expect(await retryPendingForget()).toBe(true)
     expect(records()).toEqual([])
   })
 
   it('the one code kept in storage and the page’s copy do not double: a code is shown once', async () => {
-    const saved = await registerInterest(INPUT)
-    if (!saved.ok) throw new Error('not saved')
+    receipt(A)
+    onServer(A)
     const back = answerDelete(server, appHtml, false)
     const done = await forgetMe()
-    expect(done).toMatchObject({ introHeld: [saved.state.code], kept: true })
+    expect(done).toMatchObject({ introHeld: [A], kept: true })
     back()
   })
 })

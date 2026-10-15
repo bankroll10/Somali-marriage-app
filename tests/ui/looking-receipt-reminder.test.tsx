@@ -1,123 +1,96 @@
 // @vitest-environment happy-dom
-import { act, useState } from 'react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import Looking from '../../src/components/Looking'
-import type { Identity } from '../../src/types'
 import type { IntroState } from '../../src/lib/introduce'
 import { mount, type Mounted } from '../support/render'
 
 /**
- * The receipt's reminder is the pilot's policy, not a reading of this request
- * (docs/DECISIONS.md Part 36, closing finding B).
+ * What the receipt says and does not say (docs/DECISIONS.md Part 36, closing
+ * finding B; kept through release R3 and its integration).
  *
- * It used to be derived from the *current profile*: a request made from London
- * lost its notice after "Not sure? Start where you are", and a Minneapolis
- * request gained one after choosing London there. The phone does not hold where
- * a request came from, so the receipt must not say. These hold both directions:
- * the receipt is the same whatever the profile becomes, on a fresh load too, and
- * for the receipts from before the server gave dates.
+ * Finding B: a receipt must not say where a request came from, because the
+ * phone does not hold it and the profile can change. R3 removed the pilot's
+ * policy line altogether, so the receipt now says nothing about a place; these
+ * hold that. And the receipt's account of time: the day is this phone's own
+ * record, and past the 180th day the phone says so and keeps the code, because
+ * time passing does not show that the server has removed anything.
  */
-
-const REMINDER = 'Introductions are beginning in Minneapolis–St. Paul. Requests from other places are kept for later, with no opening date.'
-/** What the old receipt said about the profile's place. */
-const OLD_CLAIMS = [/Your request is kept for later/, /nobody in .* is being introduced/, /nobody there is being introduced/]
 
 const NOW = Date.now()
 const day = (offset: number) => new Date(NOW + offset * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
 const receipt = (over: Partial<IntroState> = {}): IntroState => ({ code: 'QRTWXY34', at: day(-3), removeOn: day(170), confirmed: true, kept: true, ...over })
-
-const COLUMBUS: Identity = { scene: 'columbus', country: 'us', gender: 'woman', adult: true }
-const TWIN: Identity = { scene: 'twin-cities', country: 'us', gender: 'woman', adult: true }
-const UK: Identity = { scene: 'other', country: 'gb', gender: 'man', adult: true }
+/** What the old receipt said about a place, or about the request's standing. */
+const PLACE_CLAIMS = [
+  /Introductions are beginning in/,
+  /Requests from other places are kept for later/,
+  /Your request is kept for later/,
+  /nobody in .* is being introduced/,
+  /Minneapolis|Columbus|the UK/,
+  /is still on the list|has been checked|we checked|still saved/i,
+]
 
 let screen: Mounted | undefined
-let setIdentity: (i: Identity) => void = () => {}
 afterEach(() => {
   screen?.unmount()
   screen = undefined
 })
 
-/** The Looking screen with a receipt, whose profile a test can change while it stays mounted. */
-function Host({ start, intro }: { start: Identity; intro: IntroState }) {
-  const [identity, set] = useState(start)
-  setIdentity = set
-  return <Looking identity={identity} intro={intro} onRegistered={vi.fn()} onWithdrawn={vi.fn()} onIdentity={vi.fn()} onTalking={vi.fn()} onMap={vi.fn()} onTrust={vi.fn()} onBack={vi.fn()} />
-}
-async function show(start: Identity, intro: IntroState = receipt()) {
-  screen = await mount(<Host start={start} intro={intro} />)
+const show = async (intro: IntroState = receipt()) => {
+  screen = await mount(<Looking intro={intro} onWithdrawn={vi.fn()} onTalking={vi.fn()} onMap={vi.fn()} onTrust={vi.fn()} onBack={vi.fn()} />)
   return screen
 }
-const changeTo = (i: Identity) => act(async () => setIdentity(i))
 const flat = (m: Mounted) => m.text().replace(/\s+/g, ' ')
-const noOldClaims = (t: string) => OLD_CLAIMS.forEach((c) => expect(t).not.toMatch(c))
+const claimsNoPlace = (t: string) => PLACE_CLAIMS.forEach((c) => expect(t).not.toMatch(c))
 
-describe('the receipt says the same whatever the profile becomes', () => {
-  it('a request made outside the pilot, then a profile in the pilot city: nothing about the receipt changes', async () => {
-    const m = await show(COLUMBUS)
-    const before = flat(m)
-    expect(before).toContain(REMINDER)
-    noOldClaims(before)
-    expect(before).not.toContain('Columbus')
-    await changeTo(TWIN)
-    expect(flat(m)).toBe(before)
-    expect(flat(m).split(REMINDER)).toHaveLength(2) // once
-  })
-
-  it('a request made in the pilot city, then a profile outside it (a city, then another country): the reminder stays and no claim appears', async () => {
-    const m = await show(TWIN)
-    const before = flat(m)
-    expect(before).toContain(REMINDER)
-    for (const outside of [COLUMBUS, UK]) {
-      await changeTo(outside)
-      expect(flat(m)).toBe(before)
-      noOldClaims(flat(m))
-      expect(flat(m)).not.toMatch(/Columbus|the UK/)
+describe('the receipt says nothing about where a request is from, or how it stands', () => {
+  it('for a server-dated receipt, one from before the server gave dates, and one past its days', async () => {
+    for (const intro of [receipt(), receipt({ confirmed: false, removeOn: undefined, at: day(-5) }), receipt({ at: day(-200), removeOn: day(-20) })]) {
+      const m = await show(intro)
+      claimsNoPlace(flat(m))
+      expect(flat(m)).toContain('New introduction requests are closed, and matching is not available.')
+      m.unmount()
     }
   })
 
-  it('on a fresh load (a reload holds the receipt, not the old profile), the receipt is the same under either profile', async () => {
-    const first = await show(COLUMBUS)
-    const text = flat(first)
-    first.unmount()
-    for (const profile of [TWIN, UK, {} as Identity]) {
-      const again = await show(profile)
-      expect(flat(again)).toBe(text)
-      again.unmount()
-    }
+  it('a receipt keeps saying the day is this phone’s own record of it', async () => {
+    const m = await show(receipt({ confirmed: false, removeOn: undefined, at: day(-5) }))
+    expect(flat(m)).toContain(`put down on ${day(-5)}, by this phone’s own record`)
   })
 })
 
-describe('the reminder is on every receipt, and the receipt keeps what it already said', () => {
-  it('a receipt from before the server gave dates: the phone’s own day, labelled, and the reminder', async () => {
-    const m = await show(UK, receipt({ confirmed: false, removeOn: undefined, at: day(-5) }))
-    const t = flat(m)
-    expect(t).toContain('This phone holds a code for a request from around')
-    expect(t).toContain('That day is this phone’s own record')
-    expect(t).toContain(REMINDER)
-    noOldClaims(t)
+describe('time passing does not make the phone let go of a code', () => {
+  it('inside its 180 days: no notice, and the code is kept until the request is taken off', async () => {
+    const t = flat(await show(receipt({ at: day(-30), removeOn: day(150) })))
+    expect(t).not.toContain('are over')
+    expect(t).toContain('keeps the code until you take the request off, or use Forget me')
   })
 
-  it('a receipt past its scheduled day: the removal notice and the reminder, both', async () => {
-    const m = await show(TWIN, receipt({ at: day(-200), removeOn: day(-20) }))
+  it('past its 180 days: the notice says so, says the phone cannot see the list, and the button is still there', async () => {
+    const m = await show(receipt({ at: day(-200), removeOn: day(-20) }))
     const t = flat(m)
-    expect(t).toContain('The day scheduled for its removal has passed.')
-    expect(t).toContain(REMINDER)
+    expect(t).toContain(`The 180 days from ${day(-200)} are over.`)
+    expect(t).toContain('This phone cannot see whether the request has come off the list, so it has kept the code.')
+    expect(m.has(/^Take my name off/)).toBe(true)
+    // Not a claim that it is gone, or that it is still there.
+    expect(t).not.toMatch(/has been removed|is gone|was removed|still there/i)
+    expect(t).not.toContain('stops offering this code')
   })
 
-  it('a receipt this browser could not keep: its code is shown and the reminder is there too', async () => {
-    const m = await show(COLUMBUS, receipt({ kept: false }))
+  it('on exactly the 180th day it is over; the day before it is not', async () => {
+    const at = day(-180)
+    expect(flat(await show(receipt({ at })))).toContain('are over.')
+    screen?.unmount()
+    expect(flat(await show(receipt({ at: day(-179) })))).not.toContain('are over.')
+  })
+})
+
+describe('a receipt this browser could not keep', () => {
+  it('shows its code, says what a reload does, and still says nothing about a place', async () => {
+    const m = await show(receipt({ kept: false }))
     const t = flat(m)
     expect(t).toContain('This browser is not saving anything')
     expect(t).toContain('QRTW XY34')
-    expect(t).toContain(REMINDER)
-  })
-
-  it('the reminder describes the pilot, and never the request or the app’s knowledge of it', async () => {
-    const m = await show(UK)
-    const t = flat(m)
-    expect(t).toContain('Requests from other places are kept for later')
-    expect(t).not.toMatch(/your request is kept for later|is still on the list|has been checked|we checked|still saved/i)
-    // The form's own location-specific disclosure is not on the receipt, and not changed by it.
-    expect(t).not.toMatch(/From .* you can leave your name for later/)
+    expect(t).toContain('Keep it: it takes the request off later, here or on another phone.')
+    claimsNoPlace(t)
   })
 })

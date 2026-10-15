@@ -3,6 +3,7 @@ import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../../src/App'
 import { Phone, onPhone, reload } from '../support/device'
+import { seedPending, seedReceipt, seedRecord } from '../support/intro'
 import { mount, type Mounted } from '../support/render'
 import { blobs, serve, type Served } from '../support/server'
 
@@ -10,26 +11,31 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 
 /**
  * Where the person lands when the introduction screen's content is replaced in
- * place (docs/DECISIONS.md Part 30, BATCH-07A): the form becoming the receipt
- * once the request is saved, and the receipt becoming the form, with its word
- * that the name is off, once it is taken off.
+ * place (docs/DECISIONS.md Part 30, BATCH-07A, and release R3's amendment): the
+ * receipt, or the note about an earlier try, going once its request is taken
+ * off, so the confirmation and the screen's heading are what is left.
  *
- * Neither is a screen change, so App's scroll to the top and heading focus did
- * not run: the window kept the form's offset (the receipt's beginning, with the
- * server's dates, was above it) and the button that held focus was gone, so
- * focus sat on <body>. Scroll and focus are two separate actions and are held
- * separately here. These check DOM focus and the calls to `window.scrollTo`,
- * which is all happy-dom has; the real offsets and visibility are measured in a
- * browser (docs/SESSION-HANDOFF.md). None of this is a screen-reader test.
+ * Neither is a screen change, so App's scroll to the top and heading focus do
+ * not run: the window would keep the old offset and the button that held focus
+ * would be gone, so focus would sit on <body>. Scroll and focus are two separate
+ * actions and are held separately here, along with the rule that focus the
+ * person moved elsewhere while the request was out is theirs. These check DOM
+ * focus and the calls to `window.scrollTo`, which is all happy-dom has; the real
+ * behaviour was measured in Chromium. None of this is a screen-reader test.
+ *
+ * The form arriving as a receipt once a request is saved is not here: nothing
+ * can put a name down now. The receipt and the note are seeded.
  */
 
+const CODE = 'QRTWXY34'
 let server: Served
+let phone: Phone
 let screen: Mounted | undefined
 let scrollTo: ReturnType<typeof vi.fn>
 beforeEach(() => {
   blobs.reset()
   server = serve()
-  onPhone(new Phone('arrival'))
+  phone = onPhone(new Phone('arrival'))
   scrollTo = vi.fn()
   vi.stubGlobal('scrollTo', scrollTo)
 })
@@ -42,252 +48,128 @@ afterEach(() => {
 })
 
 const active = () => document.activeElement as HTMLElement | null
-const onHeading = (text: RegExp) => active()?.tagName === 'H1' && text.test(active()?.textContent ?? '')
+const onHeading = (tag: 'H1' | 'H2', text: RegExp) => active()?.tagName === tag && text.test(active()?.textContent ?? '')
 const control = (name: RegExp) => [...screen!.container.querySelectorAll<HTMLElement>('button')].find((b) => name.test(b.textContent ?? ''))!
 
-async function toForm() {
+async function toLooking(kind: 'receipt' | 'try') {
+  seedRecord(CODE)
+  if (kind === 'receipt') seedReceipt(phone, CODE)
+  else seedPending(phone, CODE)
   screen = await mount(<App />)
-  await screen.press(/I’m looking for someone serious/)
-  await screen.until(() => onHeading(/Put your name down/), 'focus on the form heading')
+  await screen.press(/Manage an earlier introduction request/)
+  await screen.until(() => (kind === 'receipt' ? onHeading('H1', /Your earlier request\./) : onHeading('H2', /An earlier try may have reached us/)), 'focus on the first heading')
   return screen
 }
-async function fill(m: Mounted) {
-  await m.press(/^I am a woman/)
-  await m.press(/^Minneapolis/)
-  await m.type('Email or phone', 'zq.arrival@example.test')
-  await m.press(/I confirm I am 18/)
-}
-/** Focus the submit button, as a keyboard user or a tap leaves it, then send. */
-async function send(m: Mounted) {
-  act(() => control(/^Put my name down/).focus())
-  await m.press(/^Put my name down/)
-  await m.until(() => m.text().includes('Your request was saved on'), 'the receipt')
-}
+const buttonFor = (kind: 'receipt' | 'try') => (kind === 'receipt' ? /^Take my name off/ : /^Take that try off/)
+const confirmation = (kind: 'receipt' | 'try') => (kind === 'receipt' ? 'The request under this code is off the list.' : 'The request under the code this phone was holding for that try is off the list.')
 
-describe('the form becomes the receipt', () => {
-  it('brings the receipt to the top and puts focus on its heading', async () => {
-    const m = await toForm()
-    await fill(m)
+describe.each(['receipt', 'try'] as const)('the %s going once its request is taken off', (kind) => {
+  it('brings the confirmation and the screen heading to the top and puts focus on the heading', async () => {
+    const m = await toLooking(kind)
     const before = scrollTo.mock.calls.length
-    await send(m)
-    await m.until(() => onHeading(/Your request was saved on/), 'focus on the receipt heading')
-    // The scroll is its own action: the window goes to the top, once.
+    act(() => control(buttonFor(kind)).focus())
+    await m.press(buttonFor(kind))
+    await m.until(() => m.text().includes(confirmation(kind)), 'the confirmation')
+    await m.until(() => onHeading('H1', /New introduction requests are closed\./), 'focus on the screen heading')
     expect(scrollTo.mock.calls.slice(before)).toEqual([[0, 0]])
-    // The heading is not a tab stop afterwards; the first Tab is the first control after it.
-    expect(active()?.getAttribute('tabindex')).toBe('-1')
-  })
-
-  // Changed in BATCH-07B (docs/DECISIONS.md Part 31). BATCH-07A held that a failed or unsure
-  // submit never arrives: nothing the person needed was above the window. Now the first
-  // uncertain result puts a note about the earlier try at the top of the page (its code and
-  // its withdrawal), so that one outcome is brought into view; the same outcome again is not.
-  it('is never the receipt when the request does not save; the first uncertain result brings the note about the earlier try into view, once', async () => {
-    const m = await toForm()
-    await fill(m)
-    server.lose(/introduce/)
-    const before = scrollTo.mock.calls.length
-    act(() => control(/^Put my name down/).focus())
-    await m.press(/^Put my name down/)
-    await m.until(() => m.text().includes('could not tell whether that reached us'), 'the unsure answer')
-    await m.until(() => active()?.tagName === 'H2' && /An earlier try may have reached us/.test(active()?.textContent ?? ''), 'focus on the note about the earlier try')
-    expect(scrollTo.mock.calls.slice(before)).toEqual([[0, 0]])
-    expect(onHeading(/Your request was saved on/)).toBe(false)
-    expect(m.text()).not.toContain('Your request was saved on')
-    // The same outcome again is already on the page: no second scroll, and focus is not taken back.
-    const after = scrollTo.mock.calls.length
-    const back = screen!.container.querySelector<HTMLElement>('header button')!
-    act(() => back.focus())
-    await m.press(/^Put my name down/)
-    await m.until(() => !m.text().includes('Saving…'), 'the second answer')
-    await m.settle()
-    expect(scrollTo.mock.calls.length).toBe(after)
-    expect(active()).toBe(back)
-  })
-
-  it('leaves focus where the person put it while the request was in flight', async () => {
-    const m = await toForm()
-    await fill(m)
-    const release = server.hold(/introduce/)
-    await m.press(/^Put my name down/)
-    const back = screen!.container.querySelector<HTMLElement>('header button')!
-    act(() => back.focus())
-    release()
-    await m.until(() => m.text().includes('Your request was saved on'), 'the receipt')
-    await m.settle()
-    // The scroll still brings the result into view; focus was not lost, so it stays.
-    expect(active()).toBe(back)
-  })
-})
-
-describe('the receipt becomes the form after the name is taken off', () => {
-  it('brings the form and its confirmation to the top and puts focus on the form heading', async () => {
-    const m = await toForm()
-    await fill(m)
-    await send(m)
-    await m.until(() => onHeading(/Your request was saved on/), 'the receipt heading')
-    const before = scrollTo.mock.calls.length
-    act(() => control(/^Take my name off/).focus())
-    await m.press(/^Take my name off/)
-    await m.until(() => m.text().includes('Your name is off the list'), 'the confirmation')
-    await m.until(() => onHeading(/Put your name down/), 'focus on the form heading')
-    expect(scrollTo.mock.calls.slice(before)).toEqual([[0, 0]])
-    // The confirmation sits directly above the heading in the same screen, so
-    // the top of the page shows both.
+    // The confirmation sits above the heading in the same screen, so the top of the page shows both.
     const main = m.container.querySelector('main')!
-    const status = [...main.querySelectorAll('[role="status"]')].find((s) => s.textContent?.includes('Your name is off the list'))!
+    const status = [...main.querySelectorAll('[role="status"]')].find((s) => s.textContent?.includes(confirmation(kind)))!
     expect(status.compareDocumentPosition(active()!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(main.querySelector('h1, h2')).toBe(active())
   })
 
-  it('does not scroll or move focus when taking the name off fails', async () => {
-    const m = await toForm()
-    await fill(m)
-    await send(m)
-    await m.until(() => onHeading(/Your request was saved on/), 'the receipt heading')
+  it('does not scroll or move focus when taking it off fails, and the retry that works arrives', async () => {
+    const m = await toLooking(kind)
     const before = scrollTo.mock.calls.length
     server.down(/introduce/)
-    const off = control(/^Take my name off/)
+    const off = control(buttonFor(kind))
     act(() => off.focus())
-    await m.press(/^Take my name off/)
-    await m.until(() => m.text().includes('We could not confirm that your name came off the list'), 'the failure')
+    await m.press(buttonFor(kind))
+    await m.until(() => m.text().includes('We could not confirm whether that request was removed.'), 'the failure')
     expect(scrollTo.mock.calls.length).toBe(before)
-    expect(m.text()).toContain('Your request was saved on')
-    // And the retry that works is an arrival of its own.
+    expect(active()).toBe(off)
     server.down(false)
-    await m.press(/^Take my name off/)
-    await m.until(() => onHeading(/Put your name down/), 'focus on the form heading')
+    await m.press(buttonFor(kind))
+    await m.until(() => onHeading('H1', /New introduction requests are closed\./), 'focus on the screen heading')
     expect(scrollTo.mock.calls.length).toBe(before + 1)
   })
 })
 
-describe('focus the person moves during a submission is theirs', () => {
-  // BATCH-07B follow-up. The arrival that brings the note about an earlier try into view
-  // lets go of focus only when it is still on the control the tap came from. Focus lost to
-  // <body> is taken by the heading; focus the person moved elsewhere while the request was
-  // out — another field in the same form, or the header's Back — stays where she put it.
-  // The scroll to the top happens in every case.
-  const note = () => active()?.tagName === 'H2' && /An earlier try may have reached us/.test(active()?.textContent ?? '')
-  const field = (label: string) => screen!.container.querySelector<HTMLElement>(`#${label}`)!
-  const uncertain = (m: Mounted) => m.until(() => m.text().includes('could not tell whether that reached us'), 'the unsure answer')
-
-  it('a field focused while the request is out keeps focus when the answer is uncertain', async () => {
-    const m = await toForm()
-    await fill(m)
-    const release = server.hold(/introduce/)
-    server.lose(/introduce/)
-    const before = scrollTo.mock.calls.length
-    act(() => control(/^Put my name down/).focus())
-    await m.press(/^Put my name down/)
-    expect(m.text()).toContain('Saving…')
-    const other = field('looking-name')
-    act(() => other.focus())
-    release()
-    await uncertain(m)
-    await m.settle()
-    expect(m.text()).toContain('An earlier try may have reached us')
-    expect(active()).toBe(other)
-    expect(scrollTo.mock.calls.slice(before)).toEqual([[0, 0]])
-  })
-
-  it('a field focused while the request is out keeps focus when the answer is a 409', async () => {
-    const m = await toForm()
-    await fill(m)
-    server.lose(/introduce/)
-    await m.press(/^Put my name down/)
-    await uncertain(m)
-    server.lose(false)
-    await m.type('Email or phone', '+1 612 555 0199')
-    const release = server.hold(/introduce/)
-    const before = scrollTo.mock.calls.length
-    act(() => control(/^Put my name down/).focus())
-    await m.press(/^Put my name down/)
-    expect(m.text()).toContain('Saving…')
-    const other = field('looking-name')
-    act(() => other.focus())
-    release()
-    await m.until(() => m.text().includes('An earlier try was saved with different details'), 'the conflict')
-    await m.settle()
-    expect(active()).toBe(other)
-    expect(scrollTo.mock.calls.slice(before)).toEqual([[0, 0]])
-  })
-
-  it('the header’s Back, focused while the request is out, keeps focus', async () => {
-    const m = await toForm()
-    await fill(m)
-    const release = server.hold(/introduce/)
-    server.lose(/introduce/)
-    act(() => control(/^Put my name down/).focus())
-    await m.press(/^Put my name down/)
+describe('focus the person moves during a withdrawal is theirs', () => {
+  it('the header’s Back, focused while the request is out, keeps focus when the note goes', async () => {
+    const m = await toLooking('try')
+    const release = server.hold(/introduce/, 'DELETE')
+    act(() => control(/^Take that try off/).focus())
+    await m.press(/^Take that try off/)
     const back = screen!.container.querySelector<HTMLElement>('header button')!
     act(() => back.focus())
     release()
-    await uncertain(m)
+    await m.until(() => m.text().includes(confirmation('try')), 'the confirmation')
     await m.settle()
     expect(active()).toBe(back)
+    expect(m.container.querySelector('h1')).not.toBe(active())
   })
 
-  it('focus still on the control the tap came from is released, and the note takes it', async () => {
-    const m = await toForm()
-    await fill(m)
-    const release = server.hold(/introduce/)
-    server.lose(/introduce/)
-    act(() => control(/^Put my name down/).focus())
-    await m.press(/^Put my name down/)
+  it('focus still on the control the tap came from is released, and the heading takes it', async () => {
+    const m = await toLooking('try')
+    const release = server.hold(/introduce/, 'DELETE')
+    act(() => control(/^Take that try off/).focus())
+    await m.press(/^Take that try off/)
     release()
-    await uncertain(m)
-    await m.until(note, 'focus on the note')
+    await m.until(() => onHeading('H1', /New introduction requests are closed\./), 'focus on the screen heading')
   })
 
-  it('focus lost to <body> is taken by the note', async () => {
-    const m = await toForm()
-    await fill(m)
-    // Nothing holds focus: the page heading App focused on arrival is let go of, as a tap elsewhere does.
+  it('focus lost to <body> before the answer is left alone: she chose to click away', async () => {
+    const m = await toLooking('try')
+    const release = server.hold(/introduce/, 'DELETE')
+    await m.press(/^Take that try off/)
     act(() => active()?.blur())
     expect(active()).toBe(document.body)
-    const release = server.hold(/introduce/)
-    server.lose(/introduce/)
-    await m.press(/^Put my name down/)
     release()
-    await uncertain(m)
-    await m.until(note, 'focus on the note')
+    await m.until(() => m.text().includes(confirmation('try')), 'the confirmation')
+    await m.settle()
+    // The note and its button went with the answer, but she had not been on them.
+    expect(active()).toBe(document.body)
   })
 })
 
 describe('nothing else triggers it', () => {
   it('first arrival through App is one scroll and one focus, from App alone', async () => {
+    seedRecord(CODE)
+    seedReceipt(phone, CODE)
     screen = await mount(<App />)
     const before = scrollTo.mock.calls.length
-    await screen.press(/I’m looking for someone serious/)
-    await screen.until(() => onHeading(/Put your name down/), 'focus on the form heading')
+    await screen.press(/Manage an earlier introduction request/)
+    await screen.until(() => onHeading('H1', /Your earlier request\./), 'focus on the heading')
     await screen.settle()
-    // App's own scroll for the screen change, and nothing from Looking.
+    // App's own scroll for the screen change, and nothing from the screen.
     expect(scrollTo.mock.calls.length - before).toBe(1)
   })
 
-  it('typing, validation and field changes on the form never scroll or take focus', async () => {
-    const m = await toForm()
+  it('typing, validation and field changes on the closed screen never scroll or take focus', async () => {
+    screen = await mount(<App />)
+    await screen.press(/Manage an earlier introduction request/)
+    await screen.settle()
     const before = scrollTo.mock.calls.length
-    await m.press(/^I am a man/)
-    await m.press(/^London/)
-    await m.type('Email or phone', 'sagal@gmial')
-    await m.type('Your first name', 'Sagal')
-    act(() => control(/I confirm I am 18/).focus())
-    await m.press(/I confirm I am 18/)
+    const focused = active()
+    await screen.type('Request code', 'abc-d')
+    await screen.press(/^Take it off the list/)
+    await screen.settle()
+    expect(screen.text()).toContain('A request code is 8 characters')
     expect(scrollTo.mock.calls.length).toBe(before)
-    expect(active()?.textContent).toMatch(/I confirm I am 18/)
+    // Focus is exactly where it was: nothing here took it, or gave it back.
+    expect(active()).toBe(focused)
   })
 
-  it('on the receipt, opening the code field or any rerender does not scroll or take focus', async () => {
-    const m = await toForm()
-    await fill(m)
-    await send(m)
-    await m.until(() => onHeading(/Your request was saved on/), 'the receipt heading')
+  it('on the receipt, opening the code field or any rerender does not scroll or take focus from the field', async () => {
+    const m = await toLooking('receipt')
     const before = scrollTo.mock.calls.length
-    act(() => control(/^I have a code/).focus())
-    await m.press(/^I have a code/)
-    await m.type('Your code', 'ABC')
+    act(() => control(/^Use a different code/).focus())
+    await m.press(/^Use a different code/)
+    await m.type('Request code', 'ABC')
     await m.settle()
     expect(scrollTo.mock.calls.length).toBe(before)
-    expect(active()?.tagName).not.toBe('H1')
+    expect(active()?.id).toBe('request-code')
   })
 })

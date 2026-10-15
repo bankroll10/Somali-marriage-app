@@ -195,7 +195,7 @@ export default function ForgetMe({
                   )),
                 ])}{' '}
                 to ask for help removing {shown === 1 ? 'it' : 'them'}.
-                {introHeld.length > 0 && <> An introduction code can also go in “Take a name off with its code” on the looking screen.</>}
+                {introHeld.length > 0 && <> An introduction code can also be typed on the introduction screen, under “Manage an earlier request”.</>}
               </p>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TOPICS } from '../netlify/shared/vocab'
+import { day } from '../netlify/shared/day'
 import { memStore, stores } from './support/memory'
 
 /**
@@ -72,14 +73,6 @@ const cases: { bucket: string; path: string; handler: Handler; store: string; fi
     first: { id: 'ACDEFG', rungs: ['arrived'] },
     second: { id: 'HJKMNP', rungs: ['arrived'] },
   },
-  {
-    bucket: 'introduce',
-    path: 'introduce',
-    handler: introduce,
-    store: 'introductions',
-    first: { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities', adult: true },
-    second: { contact: 'hodan@example.com', gender: 'woman', scene: 'london', adult: true },
-  },
 ]
 
 describe('every public write is bounded', () => {
@@ -130,8 +123,9 @@ describe('every public write is bounded', () => {
 
   it('taking a name off the introduction list spends its own bucket — it deletes by a code', async () => {
     vi.stubEnv('INTRODUCE_FORGET_HOURLY_CAP', '1')
-    const { code: a } = await (await post(introduce, 'introduce', { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities', adult: true })).json()
-    const { code: b } = await (await post(introduce, 'introduce', { contact: 'hodan@example.com', gender: 'man', scene: 'london', adult: true })).json()
+    // Seeded: a new request is closed, so nothing writes these any more.
+    const [a, b] = ['QRTWXY34', 'ACDEFGHJ']
+    for (const code of [a, b]) memStore('introductions').setJSON(code, { contact: 'sagal@example.com', gender: 'woman', scene: 'twin-cities', country: 'us', reach: 'city', at: day(), v: 1 })
     const off = (code: string) => introduce(new Request(`http://x/.netlify/functions/introduce?code=${code}`, { method: 'DELETE' }))
     expect((await off(a)).status).toBe(200)
     expect((await off(b)).status).toBe(503)

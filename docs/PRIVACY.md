@@ -70,6 +70,13 @@ Only while "Tell us which steps you reach" is on, under the install code:
   the facts); the kind of link that first brought her, never who or which
 - under no code, how pairs come out on the eleven, once he answers
 
+**Status, 2026-10-13 (release R3, `docs/DECISIONS.md`): new introduction requests are closed.**
+`POST /introduce` now answers 410 before it opens a store, reads a body or spends a cap, so nothing new is
+written. Records already held keep their lifetime (at most 180 days, carried out by the weekly sweep, which
+removes a name at the last run before its 180th day and at a later run if one fails), the founder's list
+and withdrawal by code from any phone. The code a request lives under is made by the server and given to
+the phone. The paragraph below describes what a request made while intake was open holds.
+
 **When she puts her name down for an introduction** (`POST /introduce`, only
 from the looking screen's own button, never from using anything else): the
 email or phone number she typed; her first name if she gave one; woman or

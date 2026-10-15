@@ -29,6 +29,11 @@
  * put down for an introduction made by hand, and the instruments for someone
  * already talking to one. Neither promises an introduction, a date or a pool.
  *
+ * On 2026-10-13 (docs/DECISIONS.md, release R3) the introduction door went
+ * again: new introduction requests are closed and matching is not available,
+ * so the description and the card name only the tools. A chat app or search
+ * engine that cached the earlier text keeps showing it until it refreshes.
+ *
  * "Powered by AI" is gone from all three surfaces that still carried it after
  * docs/PRODUCT.md recorded it removed — the model may add a sentence, never
  * be the reason (tests/durable.test.ts). No imports: vite.config.ts loads
@@ -40,37 +45,16 @@ export const NAME = 'Niyyah'
 /** The eyebrow over the hero, and the first thing anyone reads. */
 export const EYEBROW = 'Built for the Somali diaspora'
 
-/**
- * The homepage's headline (src/components/Welcome.tsx), and so what a tab, a
- * bookmark and a pasted link lead with. Since 2026-10-01 (docs/DECISIONS.md
- * Part 25) the title, descriptions and card all say the two paths in the
- * homepage's words: a founder-led introduction pilot beginning in
- * Minneapolis–St. Paul, and tools for people already considering someone for
- * marriage. None promises a match, a date, a pool or a response time.
- */
-export const HEADLINE = 'Meet someone serious. Think marriage through.'
-
 /** `<title>`: what a tab, a bookmark and a search result call this. */
-export const TITLE = `${NAME} — ${HEADLINE}`
+export const TITLE = `${NAME} — marriage for the Somali diaspora, done in the open`
 
 /** The meta description and the manifest's description. */
 export const DESCRIPTION =
-  'A founder-led introduction pilot beginning in Minneapolis–St. Paul, and free tools for people already considering someone for marriage. For the Somali diaspora.'
-
-/** `og:title` and `twitter:title` on the home page; `og:site_name` already says the name. */
-export const SOCIAL_TITLE = HEADLINE
+  'Already talking to someone? Read what they have shown you, the conversations to have before you marry, and the words for them. For the Somali diaspora. No account.'
 
 /** What the social card says when a link is pasted into a chat. */
 export const TAGLINE =
-  'A founder-led introduction pilot beginning in Minneapolis–St. Paul, and tools for people already considering someone for marriage.'
+  'Already talking to someone? What they have shown you; the conversation to have next.'
 
-/**
- * The social card, under public/. The file is named for the card, not for
- * "og", and renamed whenever the card changes, so a new card has a new URL
- * rather than hoping a chat app re-fetches the old one (it may not; this does
- * not clear anyone's cache). Source and command: scripts/og/, `npm run og`.
- */
-export const OG_IMAGE = 'og-pilot.png'
-
-/** The social card's alt text: what the image shows, in its own words. */
-export const OG_ALT = `${NAME} logo on dark green. “${HEADLINE}” Introductions beginning in Minneapolis–St. Paul. Tools for people considering someone for marriage.`
+/** The social card's alt text. */
+export const OG_ALT = `${NAME} — built for the Somali diaspora. What’s in your way?`

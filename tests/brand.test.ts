@@ -1,6 +1,7 @@
+import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
-import { DESCRIPTION, HEADLINE, OG_ALT, OG_IMAGE, SOCIAL_TITLE, TAGLINE, TITLE } from '../src/data/brand'
+import { DESCRIPTION, TAGLINE, TITLE } from '../src/data/brand'
 
 /**
  * The brand's first sentences live in one file — docs/PRODUCT.md's
@@ -9,78 +10,41 @@ import { DESCRIPTION, HEADLINE, OG_ALT, OG_IMAGE, SOCIAL_TITLE, TAGLINE, TITLE }
  * components import them. tests/voice.test.ts holds "powered by AI" out.
  */
 
+/** sha256 of the BATCH-02B card ("Introductions beginning in Minneapolis–St. Paul"), which the released card replaced. */
+const FOUNDER_LED_CARD = '6b7a8b97369aabf77287736b4cc372c12826dbf46e2e5c8b46346371eeb13daa'
+
 describe('the brand strings', () => {
   it('index.html carries placeholders, never the literals', () => {
     const html = readFileSync('index.html', 'utf8')
-    for (const key of ['%BRAND_TITLE%', '%BRAND_DESCRIPTION%', '%BRAND_TAGLINE%', '%BRAND_OG_ALT%', '%BRAND_SOCIAL_TITLE%', '%BRAND_OG_IMAGE%']) {
+    for (const key of ['%BRAND_TITLE%', '%BRAND_DESCRIPTION%', '%BRAND_TAGLINE%', '%BRAND_OG_ALT%']) {
       expect(html).toContain(key)
     }
     expect(html).not.toMatch(/Somali/)
-    expect(html).not.toMatch(/og\.png|og-pilot/)
   })
 
   it('the manifest says what brand.ts says', () => {
     const manifest = JSON.parse(readFileSync('public/manifest.webmanifest', 'utf8')) as { description: string }
     expect(manifest.description).toBe(DESCRIPTION)
   })
-
-  it('the headline is the homepage’s, and the social title and the page title lead with it', () => {
-    expect(readFileSync('src/components/Welcome.tsx', 'utf8')).toContain(HEADLINE)
-    expect(SOCIAL_TITLE).toBe(HEADLINE)
-    expect(TITLE).toContain(HEADLINE)
-  })
-
-  it('says both paths, and the pilot’s city, and promises nothing about outcomes', () => {
-    for (const text of [DESCRIPTION, TAGLINE]) {
-      expect(text).toMatch(/introduction pilot/)
-      expect(text).toMatch(/Minneapolis–St\. Paul/)
-      expect(text).toMatch(/considering someone for marriage/)
-      expect(text).not.toMatch(/guarantee|match(es|ed)? you|find your|within|days|\d{2,}/i)
-    }
-    expect(OG_ALT).toContain(HEADLINE)
-    expect(OG_ALT).toMatch(/Minneapolis–St\. Paul/)
-    expect(OG_ALT).not.toMatch(/What’s in your way/)
-  })
-
   it('keeps title and description within what a result or a chat preview shows', () => {
     expect(TITLE.length).toBeLessThanOrEqual(65)
     expect(DESCRIPTION.length).toBeLessThanOrEqual(170)
     expect(TAGLINE.length).toBeLessThanOrEqual(170)
   })
-})
 
-describe('the social card', () => {
-  it('is a 1200×630 PNG under public/, at the name brand.ts gives it', () => {
-    const path = `public/${OG_IMAGE}`
-    expect(existsSync(path), path).toBe(true)
-    const png = readFileSync(path)
-    expect(png.subarray(1, 4).toString()).toBe('PNG')
-    expect(png.readUInt32BE(16)).toBe(1200)
-    expect(png.readUInt32BE(20)).toBe(630)
-  })
-
-  it('has an editable source that says what OG_ALT says it says', () => {
-    const source = readFileSync('scripts/og/og.html', 'utf8')
-    expect(source).toContain('Meet someone serious.')
-    expect(source).toContain('Think marriage through.')
-    expect(source).toContain('Introductions beginning in Minneapolis–St. Paul.')
-    expect(source).toContain('Tools for people considering someone for marriage.')
-    expect(readFileSync('package.json', 'utf8')).toContain('"og": "node scripts/og/render.mjs"')
-  })
-
-  it('keeps public/og.png, the address earlier links carry, as a byte-identical copy of the new card', () => {
-    // Metadata names OG_IMAGE (og-pilot.png); og.png exists so a link that
-    // already points at the old address serves the new card after deployment.
-    // Both are written together by `npm run og` (scripts/og/render.mjs).
-    expect(OG_IMAGE).toBe('og-pilot.png')
+  it('ships the released card, and no founder-led one (docs/DECISIONS.md, release R3 and its integration)', () => {
+    // The held branch's BATCH-02B card said "Introductions beginning in
+    // Minneapolis–St. Paul". It is superseded: the card at og.png is the one
+    // released, and nothing here names or builds another.
     expect(existsSync('public/og.png')).toBe(true)
-    expect(existsSync('public/og-pilot.png')).toBe(true)
-    expect(readFileSync('public/og.png').equals(readFileSync('public/og-pilot.png'))).toBe(true)
-  })
-
-  it('no page or manifest names og.png: current metadata points at og-pilot.png only', () => {
-    expect(readFileSync('index.html', 'utf8')).not.toMatch(/og\.png/)
-    expect(readFileSync('src/lib/guidePages.ts', 'utf8')).not.toMatch(/og\.png/)
-    expect(readFileSync('public/manifest.webmanifest', 'utf8')).not.toMatch(/og\.png/)
+    // The retired card, by content: the file was renamed og-pilot.png on that branch, but the same bytes also sat at og.png.
+    expect(createHash('sha256').update(readFileSync('public/og.png')).digest('hex')).not.toBe(FOUNDER_LED_CARD)
+    expect(existsSync('public/og-pilot.png')).toBe(false)
+    expect(existsSync('scripts/og')).toBe(false)
+    expect(readFileSync('package.json', 'utf8')).not.toContain('scripts/og')
+    for (const file of ['index.html', 'src/lib/guidePages.ts']) expect(readFileSync(file, 'utf8')).toContain('og.png')
+    for (const text of [DESCRIPTION, TAGLINE, readFileSync('public/manifest.webmanifest', 'utf8')]) {
+      expect(text).not.toMatch(/founder-led|introduction pilot|Minneapolis|made by hand|Put your name down/)
+    }
   })
 })

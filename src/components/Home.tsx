@@ -4,7 +4,7 @@ import type { FollowUpAsk, Landed } from '../lib/followup'
 import { readIsStale } from '../lib/followup'
 import { getScene } from '../data/scenes'
 import { momentsFor } from '../data/moments'
-import { pastScheduled, scheduledRemoval, type IntroState } from '../lib/introduce'
+import { pendingIntro, type IntroState } from '../lib/introduce'
 import { SinceLastTime } from './home/FollowUp'
 import StageBand from './home/StageBand'
 import { CONTACT_EMAIL, GUIDE_SOURCE } from '../lib/site'
@@ -100,6 +100,8 @@ export default function Home({
   onSetStage,
 }: Props) {
   const [restarting, setRestarting] = useState(false)
+  /** An attempt whose answer never came, if this phone holds one (the lib owns the record). */
+  const [earlierTry] = useState(pendingIntro)
   // Who answered her eleven — the other side.
   const answerer = identity.gender === 'man' ? 'She' : 'He'
   const name = identity.firstName?.trim()
@@ -267,41 +269,29 @@ export default function Home({
         </section>
         )}
 
-        {/* The introduction list, for the person not talking to anyone
-            (docs/DECISIONS.md Part 22). Only while she is preparing: someone
-            talking to a person, deciding or married is not offered an
-            introduction. Never entered by anything but her own tap on the
-            screen it opens; a finished map is not interest in meeting someone.
-            With a receipt, the card says what the receipt says — a request
-            saved on a day, scheduled to go on a day — never that a name "is
-            down": a phone holds a receipt, not a view of the list. */}
-        {stage === 'preparing' && (
+        {/* An earlier introduction request, only while this phone holds a code
+            for one (docs/DECISIONS.md, release R3): a receipt, or an attempt
+            whose answer never came. New requests are closed, so there is no
+            card without a code, and with one it is shown at any stage, because
+            taking a request off should never depend on where someone is in the
+            app. */}
+        {(intro || earlierTry) && (
           <button
             onClick={onOpenLooking}
-            className={`animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border p-5 text-left transition-all hover:-translate-y-0.5 ${
-              intro ? 'border-forest/25 bg-forest/[0.05] hover:bg-forest/[0.09]' : 'border-gold/40 bg-gold/[0.09] hover:bg-gold/[0.14]'
-            }`}
+            className="animate-rise group mt-4 flex w-full items-center gap-4 rounded-card border border-forest/25 bg-forest/[0.05] p-5 text-left transition-all hover:-translate-y-0.5 hover:bg-forest/[0.09]"
           >
-            <GlyphTile className={intro ? 'bg-forest/10 text-forest' : 'bg-gold/15 text-gold-ink'}>
+            <GlyphTile className="bg-forest/10 text-forest">
               <PeopleGlyph />
             </GlyphTile>
             <span className="flex-1">
-              <span className="font-display text-[1.2rem] font-medium text-ink">
-                {intro ? 'Your request for an introduction' : 'Looking for someone serious?'}
-              </span>
+              <span className="font-display text-[1.2rem] font-medium text-ink">An earlier introduction request</span>
               <span className="mt-0.5 block text-[0.88rem] text-muted text-pretty">
-                {!intro
-                  ? 'Put your name down for an introduction made by hand, beginning in Minneapolis–St. Paul, for adults serious about marriage — a way to reach you and where you are, nothing from your map.'
-                  : pastScheduled(intro)
-                    ? 'The day scheduled for its removal has passed. Open it to take the name off, or to put it down again.'
-                    : intro.confirmed
-                      ? `Saved ${intro.at}; scheduled to be removed on ${scheduledRemoval(intro)}. The founder speaks with you first; introductions are made by hand, one at a time. Open it to see what happens next, or to take your name off.${
-                          intro.kept ? '' : ' This browser is not saving, so this page is the only place that holds the code: open it to read the code before you close the page.'
-                        }`
-                      : `A code from around ${intro.at}, by this phone’s own record. Open it to see what happens next, or to take your name off.`}
+                New introduction requests are closed and matching is not available. Open this to take the request off the list.
+                {intro && !intro.kept ? ' This browser is not saving, so this page is the only place that holds the code: open it to read the code before you close the page.' : ''}
+                {!intro && earlierTry && !earlierTry.kept ? ' This browser could not save its code, so this page is the only place that holds it: open it to read the code before you close the page.' : ''}
               </span>
             </span>
-            <ArrowRight className={`flex-none transition-transform group-hover:translate-x-0.5 ${intro ? 'text-forest' : 'text-gold-ink'}`} />
+            <ArrowRight className="flex-none text-forest transition-transform group-hover:translate-x-0.5" />
           </button>
         )}
 

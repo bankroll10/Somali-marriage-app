@@ -8,7 +8,7 @@ import { EYEBROW } from '../data/brand'
 interface Props {
   /** Not sure which door: the situation question, then the map. */
   onBegin: () => void
-  /** The first door: not talking to anyone, and wants to be introduced (src/components/Looking.tsx). */
+  /** An earlier introduction request: new requests are closed, so this only manages one (src/components/Looking.tsx). */
   onLooking: () => void
   /** The second door: already talking to someone (src/components/Talking.tsx). */
   onTalking: () => void
@@ -63,24 +63,26 @@ export default function Welcome({
           </p>
 
           {/* The headline says what the product is for, in a sentence a
-              first-time visitor can repeat: serious introductions, and
-              thinking a marriage through. It used to ask "What's in your
-              way?", which described neither door (docs/DECISIONS.md Part 25). */}
+              first-time visitor can repeat. It used to promise "Meet someone
+              serious" as well; new introduction requests are closed and
+              matching is not available, so it no longer does
+              (docs/DECISIONS.md, release R3). */}
           <h1 className="animate-rise font-display text-[2.6rem] font-medium leading-[1.06] tracking-tight text-balance sm:text-[3.4rem]">
-            Meet someone serious. Think marriage through.
+            Think marriage through.
           </h1>
 
           <p
             className="animate-rise mt-5 max-w-lg text-[1.05rem] leading-relaxed text-cream/80 text-pretty"
             style={{ animationDelay: '80ms' }}
           >
-            Niyyah runs a founder-led introduction pilot, and offers tools for people already
-            considering someone for marriage.
+            Niyyah has tools for people who are already considering someone for marriage. New
+            introduction requests are closed, and matching is not available.
           </p>
 
-          {/* The two doors (docs/DECISIONS.md Parts 22 and 25): the two
-              situations in a person's own words, each card ending in what
-              the tap does. The map's path is the quieter line under them. */}
+          {/* One door now (docs/DECISIONS.md Parts 22 and 25, then release R3):
+              the situation in a person's own words, ending in what the tap
+              does. The introduction door is gone; the map's path and a way to
+              manage an earlier request are the quieter lines under it. */}
           <div className="animate-rise mt-8" style={{ animationDelay: '160ms' }}>
             {completed ? (
               <Button variant="onDark" onClick={onEnter} className="group">
@@ -89,16 +91,9 @@ export default function Welcome({
               </Button>
             ) : (
               <>
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3">
                   {(
                     [
-                      {
-                        eyebrow: 'Introductions',
-                        title: 'I’m looking for someone serious.',
-                        desc: 'Put your name down for an introduction made by hand. The founder speaks with you first. Beginning in Minneapolis–St. Paul.',
-                        action: 'See how introductions work',
-                        go: onLooking,
-                      },
                       {
                         eyebrow: 'Tools',
                         title: 'I’m already talking to someone.',
@@ -142,26 +137,35 @@ export default function Welcome({
                 </div>
               </>
             )}
+            {/* For anyone who put their name down while requests were open,
+                with or without a receipt on this phone, including someone
+                who already has a Home. */}
+            <button
+              onClick={onLooking}
+              className="mt-1 inline-flex min-h-11 items-center self-start text-sm font-medium text-cream/75 underline-offset-4 transition hover:text-cream hover:underline"
+            >
+              Manage an earlier introduction request
+            </button>
           </div>
 
           {/* What is true, once, and no more than the code does. Every tool
               runs with no account and is free. Answers stay on the phone
-              unless the person sends something: a name for an introduction
-              (read by the founder), the eleven to someone, a kept map, a
-              message to the live guide (src/components/Trust.tsx and
+              unless the person sends something: the eleven to someone, a kept
+              map, a message to the live guide (src/components/Trust.tsx and
               docs/PRIVACY.md hold the full list). The old lines here, "No one
               else sees it" and "Private to you", said more than that: the
-              eleven is sent to the other person on purpose, and an introduction
-              request is read by the founder. */}
+              eleven is sent to the other person on purpose. Introduction
+              requests are closed (release R3), so they are no longer named
+              here; Trust still says what an earlier one holds. */}
           <div className="animate-fade mt-8 max-w-md space-y-2.5" style={{ animationDelay: '220ms' }}>
             <p className="text-[0.95rem] leading-relaxed text-cream/75 text-pretty">
               You are not behind, and being here is not an admission of anything.
             </p>
             <p className="text-[0.88rem] leading-relaxed text-cream/65 text-pretty">
               Free, and no account. What you answer stays on your phone unless you choose to send
-              something, such as your name for an introduction, which the founder reads, or questions
-              for the person you are talking to. Niyyah also counts which steps people reach, in one
-              word each and never in your words; you can turn that off under Your privacy.
+              something, such as questions for the person you are talking to. Niyyah also counts
+              which steps people reach, in one word each and never in your words; you can turn that
+              off under Your privacy.
             </p>
           </div>
           {/* Quiet on purpose: someone arriving for the first time should meet

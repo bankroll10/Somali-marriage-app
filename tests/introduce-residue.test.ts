@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { blobs, call, FOUNDER, FOUNDER_KEY } from './support/server'
+import { seedRecord } from './support/intro'
 import { day } from '../netlify/shared/day'
 import { markerKey } from '../netlify/functions/introduce'
 
@@ -8,15 +9,18 @@ import { markerKey } from '../netlify/functions/introduce'
  * (docs/BATCH-01-PLAN.md D2, as repaired on 2026-09-27).
  *
  * The interleavings in tests/introduce-race.test.ts assume every delete
- * lands. Here one does not: a late request writes its record after the
- * withdrawal has been answered, finds the marker, and cannot delete what it
- * wrote. Before the repair that request answered 503, the founder's list
- * showed the person, and the sweep kept the record for 180 days while the
- * marker went after two — a withdrawal that was acknowledged and then quietly
- * undone. The marker is the authority now: a record under a marked code is
- * not on the founder's list and not in the counts; the sweep deletes it on any
- * run and only then the marker; a cleanup that fails keeps the marker, so the
- * evidence for the next attempt stays.
+ * lands. Here one does not. A record can sit under a marked code in two ways:
+ * a withdrawal whose own delete failed after its marker was written, and a
+ * record written by a request that was in flight when its code was withdrawn,
+ * while the route still took requests. The route is closed now (release R3),
+ * so the second can no longer be made, but any that exist are real, so the
+ * state is seeded directly. Before the repair such a record showed on the
+ * founder's list and the sweep kept it for 180 days while the marker went after
+ * two: a withdrawal that was acknowledged and then quietly undone. The marker
+ * is the authority: a record under a marked code is not on the founder's list
+ * and not in the counts; the sweep deletes it on any run and only then the
+ * marker; a cleanup that fails keeps the marker, so the evidence for the next
+ * attempt stays.
  *
  * And the marker itself cannot be undone by cleanup. Blobs has no conditional
  * delete, so the first repair's "read the marker, then delete it if unchanged"
@@ -51,24 +55,23 @@ async function sweepAt(when: number) {
   return sweepIntroductions(blobs.store('introductions') as never, when)
 }
 
-describe('a late write whose cleanup fails, after the withdrawal was answered', () => {
-  async function reproduce() {
-    // The withdrawal lands just before the request's write; the request's own
-    // delete of what it wrote then fails.
-    blobs.before('setJSON', CODE, () => off(), 'introductions')
-    blobs.failOn({ store: 'introductions', op: 'delete', key: CODE })
-    return put()
+describe('a record left under a marked code, after the withdrawal was answered', () => {
+  /** What a late request's write left: today's marker, and the record beside it. */
+  function leftBehind() {
+    seedRecord(CODE, { contact: 'zq.residue@example.com' })
+    blobs.put('introductions', MARKER, { at: day() })
   }
 
-  it('answers withdrawn, not a server error, and leaves the marker beside the record it could not remove', async () => {
-    const res = await reproduce()
-    expect(res.status).toBe(410)
-    expect((await res.json()).error).toBe('withdrawn')
+  it('a withdrawal whose own delete fails answers unavailable, and leaves the marker beside the record', async () => {
+    seedRecord(CODE, { contact: 'zq.residue@example.com' })
+    blobs.failOn({ store: 'introductions', op: 'delete', key: CODE })
+    const res = await off()
+    expect(res.status).toBe(503)
     expect(blobs.keys('introductions')).toEqual([CODE, MARKER])
   })
 
   it('the founder’s list does not show the person, and does not count them', async () => {
-    await reproduce()
+    leftBehind()
     const body = await list()
     expect(body.people).toEqual([])
     expect(body.counts).toEqual({})
@@ -78,7 +81,7 @@ describe('a late write whose cleanup fails, after the withdrawal was answered', 
   })
 
   it('a later sweep deletes the record on any run, and the marker only once it is gone and its days are up', async () => {
-    await reproduce()
+    leftBehind()
     // The same night: the record goes, today's marker stays.
     expect(await sweepAt(Date.now())).toEqual({ introductions: 0, withdrawn: 1, markers: 0, errors: 0 })
     expect(blobs.keys('introductions')).toEqual([MARKER])
@@ -88,15 +91,20 @@ describe('a late write whose cleanup fails, after the withdrawal was answered', 
     expect(blobs.keys('introductions')).toEqual([])
   })
 
-  it('a retry of the same request finds the marker and is refused; it never becomes a second record', async () => {
-    await reproduce()
+  it('a withdrawal tapped again deletes it, answering that it was there', async () => {
+    leftBehind()
+    expect(await (await off()).json()).toEqual({ removed: true })
+    expect(blobs.keys('introductions')).toEqual([MARKER])
+  })
+
+  it('a request sent now is refused before anything is opened; it never becomes a second record', async () => {
+    leftBehind()
+    blobs.log.length = 0
     const res = await put()
     expect(res.status).toBe(410)
-    // The retry's own attempt to clear the residue succeeded this time.
-    expect(blobs.keys('introductions')).toEqual([MARKER])
-    // The check is a list by the code's marker prefix, on the store opened strong.
-    expect(blobs.log.filter((c) => c.op === 'list').map((c) => c.key)).toContain(`withdrawn/${CODE}/`)
-    expect(blobs.opened.get('introductions')).toEqual({ consistency: 'strong' })
+    expect((await res.json()).error).toBe('closed')
+    expect(blobs.keys('introductions')).toEqual([CODE, MARKER])
+    expect(blobs.log.filter((c) => c.op === 'setJSON' || c.op === 'list')).toEqual([])
   })
 })
 
@@ -130,7 +138,7 @@ describe('the sweep processing markers', () => {
     expect(blobs.keys('introductions')).toEqual([OLD, MARKER])
     expect(await sweepAt(Date.now())).toEqual({ introductions: 0, withdrawn: 0, markers: 1, errors: 0 })
     expect(blobs.keys('introductions')).toEqual([MARKER])
-    // And a request under the code is refused while any marker stands.
+    // And a request under the code is refused: the route is closed, and the markers stand regardless.
     expect((await put()).status).toBe(410)
   })
 

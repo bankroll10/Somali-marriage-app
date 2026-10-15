@@ -1,45 +1,40 @@
-import type { Gender } from '../types'
-import type { Reach } from '../data/reach'
-import { isCode, newCode } from './code'
-import { objectBody, send, sendRead, whyOf, type Why } from './net'
+import { isCode } from './code'
+import { objectBody, sendRead } from './net'
 
 /**
- * Putting a name down for an introduction — the client half of
- * netlify/functions/introduce.ts.
+ * An earlier introduction request — the client half of
+ * netlify/functions/introduce.ts, now that new requests are closed (release R3,
+ * 2026-10-13; docs/DECISIONS.md).
  *
- * One POST, with exactly what the server keeps: a way to reach her, her first
- * name if she gives it, woman or man, her city (and country, when she is
- * somewhere else), how far she would go, and that she confirmed she is an
- * adult. Nothing from her map, her read or her eleven travels with it, and
- * nothing here runs unless she taps the button on the screen that says what
- * it is for (src/components/Looking.tsx).
+ * Nothing here puts a name down any more: the server answers a new request with
+ * 410 and no screen sends one. What stays is what a person needs to deal with a
+ * request made while intake was open, or an attempt that was in flight:
  *
- * **The code is minted here, before the request** (docs/BATCH-01-PLAN.md D1).
- * It is held as a *pending* attempt — the code and the day, never the
- * contact — and sent with the fields. If the answer is lost, the same code
- * goes again with the same request and the server answers `again` instead of
- * writing twice; if this phone's storage refuses to hold it, a module
- * variable holds it for the page, and the screen shows the code so she can
- * take the name off by hand later. A different request under a code that
- * exists is refused by the server (409), and the screen asks her what she
- * wants done; nothing is ever written over.
+ *  - the receipt this phone holds (`rememberedIntro`), the pending attempt whose
+ *    answer never came (`pendingIntro`), and the page's own copy of either when
+ *    storage refused to hold it, which shows the code so the request can still
+ *    be taken off;
+ *  - taking a request off by its code (`confirmWithdrawal`, `withdrawInterest`),
+ *    from the receipt, from the pending note, or from any phone with the code
+ *    typed in;
+ *  - Forget me (src/lib/forget.ts), which uses the same classification and keeps
+ *    every code that did not land.
  *
- * **The receipt has the same fallback.** When storage refuses the receipt
- * too, the page keeps it in memory, and `rememberedIntro` answers from there:
- * so Home shows the card, "Take my name off" works, and Forget me on Trust
- * sends the code — all within the page. Until 2026-09-27 the receipt was
- * dropped on the floor when `setItem` threw, and Forget me, finding no code,
- * reported the name gone while the record stayed. What a reload clears is
- * still cleared: the screen shows the code once and says to keep it, and
- * that is the honest limit of a browser that is not saving.
+ * `rememberIntro` and `holdPending` are kept, exported, for the tests that build
+ * those recovery states; nothing in the app calls them while the route is closed.
  *
- * **The receipt is the server's** (D4). "Saved" is shown on a 200 that carries
- * the code and the server's two days — the day it wrote, and the Sunday it
- * has scheduled the removal for — and on nothing else. A receipt written by
- * the version before this one carries only the day this phone recorded, and
- * is shown as that. The phone never throws a code away on its own clock's
- * say-so: past the scheduled day it says so and keeps the code, so the name
- * can still be taken off until she does, or Forget me does (src/lib/forget.ts).
+ * **The phone never throws a code away on its own clock's say-so.** A request
+ * is kept at most 180 days, and the server removes it on its own schedule, but
+ * time passing does not confirm that it did. Past the 180th day the receipt says
+ * so and keeps the code, so the request can still be taken off until it is, or
+ * Forget me does it (this supersedes release R3's rule that the phone forgot
+ * the code on the 180th day; docs/DECISIONS.md, the integration entry).
+ *
+ * **A withdrawal is read strictly** (`outcomeOf`): `200 { removed: true }`
+ * confirms removal; documented `200 { removed: false }` and the legacy
+ * `404 { error: 'not_found' }` both mean nothing was found; everything else,
+ * including any other 2xx, an unreadable body and no answer, is unconfirmed and
+ * costs the phone nothing it holds.
  */
 
 const ENDPOINT = '/.netlify/functions/introduce'
@@ -62,6 +57,23 @@ const DAY_MS = 24 * 60 * 60 * 1000
 
 const today = (now = Date.now()) => new Date(now).toISOString().slice(0, 10)
 
+/** The day a name put down on `at` has had its 180 days. Null when `at` is not a day. */
+export function untilOf(at: string): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(at)) return null
+  const ms = Date.parse(`${at}T00:00:00Z`)
+  return Number.isNaN(ms) ? null : today(ms + LIST_DAYS * DAY_MS)
+}
+
+/**
+ * Whether the 180 days of this request are over. Said, never acted on: time
+ * passing does not show that the server has removed anything, so the code is
+ * kept until the request is taken off or Forget me does it.
+ */
+export function lifetimeOver(state: IntroState, now = Date.now()): boolean {
+  const until = untilOf(state.at)
+  return !!until && today(now) >= until
+}
+
 /**
  * The Sunday (00:00 UTC) on or before `at` plus 180 days: the day the weekly
  * sweep takes a name put down on `at`. The server's `removeOn` is the one the
@@ -74,16 +86,6 @@ export function removeOnOf(at: string): string | null {
   if (Number.isNaN(ms)) return null
   const last = new Date(ms + LIST_DAYS * DAY_MS)
   return today(last.getTime() - last.getUTCDay() * DAY_MS)
-}
-
-export interface InterestInput {
-  contact: string
-  firstName?: string
-  gender: Gender
-  scene: string
-  /** Only read when the scene is `other`. */
-  country?: string
-  reach?: Reach
 }
 
 /** What this phone remembers about a saved request. Never the contact. */
@@ -144,7 +146,7 @@ export function rememberedIntro(): IntroState | null {
  * this page holds it, in which case the state returned by `rememberedIntro`
  * says `kept: false` and the screen shows the code.
  */
-function rememberIntro(state: Omit<IntroState, 'kept'>): boolean {
+export function rememberIntro(state: Omit<IntroState, 'kept'>): boolean {
   try {
     localStorage.setItem(KEY, JSON.stringify({ code: state.code, at: state.at, removeOn: state.removeOn }))
     receiptMirror = null
@@ -177,7 +179,7 @@ export function pendingIntro(): PendingIntro | null {
   return mirror
 }
 
-function holdPending(code: string, at: string): PendingIntro {
+export function holdPending(code: string, at: string): PendingIntro {
   let kept = false
   try {
     localStorage.setItem(PENDING_KEY, JSON.stringify({ code, at }))
@@ -202,73 +204,6 @@ export function forgetPending(): void {
 export function resetIntroMirror(): void {
   mirror = null
   receiptMirror = null
-}
-
-export type Registered =
-  | { ok: true; state: IntroState; again: boolean; kept: boolean }
-  | {
-      ok: false
-      /** `taken`: a different request landed under this code; `withdrawn`: the code was taken off before this arrived. */
-      why: Why | 'withdrawn'
-      /** The code the attempt went under, so the screen can show it when nothing else holds it. */
-      code: string
-      /** Whether this phone's storage holds the pending attempt. */
-      kept: boolean
-      /** True when the request may have landed: no answer, an answer that could not be read, or a server error after the write may have happened. */
-      unsure: boolean
-    }
-
-/**
- * Put her name down, under the pending code if there is one, else a fresh
- * one held first. `ok` only when the server says it saved — this time, or an
- * earlier time under the same code.
- */
-export async function registerInterest(input: InterestInput): Promise<Registered> {
-  // The code this request goes under: the attempt this phone is still waiting
-  // on; else the receipt this phone already holds — another tab on the same
-  // phone may have been answered first, and a request from a phone with a
-  // receipt is the same request, answered `again`, or a different one,
-  // refused; else a fresh one, held before anything is sent.
-  const held = rememberedIntro()
-  const pending = pendingIntro() ?? (held ? { code: held.code, at: held.at, kept: true } : holdPending(newCode(), today()))
-  const { code } = pending
-  const res = await send(ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      code,
-      contact: input.contact.trim(),
-      ...(input.firstName?.trim() ? { firstName: input.firstName.trim() } : {}),
-      gender: input.gender,
-      scene: input.scene,
-      ...(input.scene === 'other' && input.country ? { country: input.country } : {}),
-      ...(input.reach ? { reach: input.reach } : {}),
-      adult: true,
-    }),
-  })
-  const failed = (why: Why | 'withdrawn', unsure: boolean): Registered => ({ ok: false, why, code, kept: pending.kept, unsure })
-  if (!res) return failed('unreachable', true)
-  if (res.status === 410) {
-    // Taken off — by her, or by Forget me — before this was answered. The
-    // code is spent; the next tap goes under a fresh one. Whether anything
-    // is still physically under it is the server's and the sweep's business,
-    // never a claim this phone makes.
-    forgetPending()
-    return failed('withdrawn', false)
-  }
-  // A server error can come after the write landed, so the pending code is
-  // kept and the attempt is unsure; a refusal of the body (4xx) is not.
-  if (!res.ok) return failed(await whyOf(res), res.status >= 500)
-  try {
-    const body = (await res.json()) as { saved?: unknown; code?: unknown; at?: unknown; removeOn?: unknown; again?: unknown }
-    if (body.saved !== true || body.code !== code || typeof body.at !== 'string' || typeof body.removeOn !== 'string') return failed('garbled', true)
-    const kept = rememberIntro({ code, at: body.at, removeOn: body.removeOn, confirmed: true })
-    const state: IntroState = { code, at: body.at, removeOn: body.removeOn, confirmed: true, kept }
-    forgetPending()
-    return { ok: true, state, again: body.again === true, kept }
-  } catch {
-    return failed('garbled', true)
-  }
 }
 
 /**

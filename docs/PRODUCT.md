@@ -13,6 +13,10 @@ Somali singles are a foundational capability (decision 26), rebuilt through
 staged gates, beginning in Minneapolis–St. Paul, as **MEET → KNOW → DECIDE**.
 Removing or materially redefining it needs the founder's explicit approval.
 
+> **Status, 2026-10-13 (release R3, `docs/DECISIONS.md`).** New introduction requests are closed, matching is
+> not available, and no date is promised. The founder-led introduction path described below is history and
+> stays as written; what is live is the tools, and the way to take an earlier request off the list.
+
 ## 0. What Niyyah is
 
 **The problem: finding out too late.** Somali singles in the diaspora lose

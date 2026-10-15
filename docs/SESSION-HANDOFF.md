@@ -1,4 +1,32 @@
-# Session handoff — BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from); BATCH-07H done (a forgotten step count cannot be made again for a while: server-side closure markers); R2 (the server-side closure markers and one Forget me paragraph) is LIVE on production at 66111da and merged into this branch; the full branch remains held; FOUNDER DIRECTION CHANGE (2026-10-06): toward product-led, AI-assisted matching and mutual connection, recorded here and planned next, not implemented, production unchanged
+# Session handoff — released main (R3) integrated into the held branch, the full branch still held; earlier: BATCH-01 complete on the branch, release paused; BATCH-02 done; BATCH-03 repairs 1–3 done; BATCH-04 done; BATCH-05 done; BATCH-06 done; BATCH-07A done; BATCH-07B done; BATCH-07C done; BATCH-07D done (Forget me's introduction deletes repaired); BATCH-07E done (the map, the step count and the eleven too); BATCH-07F done (deletion recovery protected from older app versions); the first-screen release (R1, PR #84) is LIVE on production and merged into this branch; BATCH-07G done (finding B closed: the receipt no longer says where a request is from); BATCH-07H done (a forgotten step count cannot be made again for a while: server-side closure markers); R2 (the server-side closure markers and one Forget me paragraph) is LIVE on production at 66111da and merged into this branch; the full branch remains held; FOUNDER DIRECTION CHANGE (2026-10-06): toward product-led, AI-assisted matching and mutual connection, recorded here and planned next, not implemented, production unchanged
+
+## Status as of the integration (2026-10-15): R3 is in the branch; the full branch is still held
+
+**Shipped (on `main`, live):** R1 (first-screen release, PR #84), R2 (server-side progress closure markers and one
+Forget me paragraph, PR #85), R3 (new introduction requests closed, PR #86, at `3eb7f64`) and the R3 amendment
+(keyboard and announcement fixes for the withdrawal screen, the `joinniyyah@gmail.com` fallback).
+
+**Held (on `claude/hello-gr0hoz` only, not released):** BATCH-01 to 07H, the outreach logs, the evaluation
+outcomes and the introduction recovery repairs (withdrawal markers, strict confirmations, pending and page-memory
+recovery, Forget me's handling of them). BATCH-02's founder-led social card, its metadata and the signup form are
+**superseded** by R3 and are not in the merged tree. BATCH-07I stays closed at its evidence checkpoint; matching is
+not started.
+
+- **What this merge did.** `main` at `3eb7f64` was merged into `c508547`. The merged tree has R3's public surface and
+  the held branch's withdrawal and recovery mechanics. The full record, with the three decisions, is the last entry
+  of `docs/DECISIONS.md` ("Integration of released main (R3) into the held repair branch").
+- **Decisions the founder made for it.** (1) The phone keeps a request code past the 180th day, because time passing
+  does not confirm a deletion; the receipt says so. (2) `200 { removed: true }` confirms; `200 { removed: false }`
+  and the legacy `404 not_found` are nothing found; anything else is unconfirmed. (3) Only the obsolete BATCH-02
+  changes were superseded; the released card and metadata were restored by targeted hunks.
+- **Tests.** Signup-dependent tests were replaced by seeded recovery cases (`tests/support/intro.ts`); only tests of
+  the signup form itself were removed.
+- **Not done.** No pull request, no deployment, no live evaluation (**not evaluated: insufficient credit**), no
+  participant data, no outreach. The merge is a source change that has not been released.
+- **The section below is the 2026-10-06 direction-change status and is history.** Its statement of what production
+  tells people is superseded for production by R3 (production no longer takes names or describes the founder-led
+  model); its direction and planning items are unchanged.
+
 
 ## Status as of the latest session (2026-10-06, founder direction change; nothing implemented)
 

@@ -34,6 +34,8 @@ vi.mock('@netlify/blobs', async () => (await import('../support/blobs')).blobsMo
 interface Visit {
   /** A member with a map (the demo seed), or nobody. */
   who: 'member' | 'stranger'
+  /** This phone holds the code for an earlier introduction request (src/lib/introduce.ts). */
+  intro?: true
   /** A link the app was opened on. */
   link?: () => string | Promise<string>
   /** What she taps to get there. */
@@ -50,13 +52,24 @@ const START = ['Start where you are', /^I am a woman/, /I confirm I am 18/, /^Co
 const HOOK = [...START, /^I’m not talking to anyone/, /^Continue/]
 
 const VISITS: Record<string, Visit> = {
-  welcome: { who: 'stranger', lands: /Meet someone serious\. Think marriage through\./ },
-  // The two doors (docs/DECISIONS.md Part 22).
-  looking: { who: 'stranger', taps: [/I’m looking for someone serious/], lands: /Put my name down/ },
-  'looking — somewhere else': { who: 'stranger', taps: [/I’m looking for someone serious/, /^Somewhere else$/], lands: /Somewhere else in…/ },
-  'looking — from a link': { who: 'stranger', link: () => instrumentLink('looking', 'group'), lands: /Put my name down/ },
+  welcome: { who: 'stranger', lands: /Think marriage through\./ },
+  // The one door, and the way to manage an earlier introduction request
+  // (docs/DECISIONS.md Parts 22 and 25, then release R3).
+  looking: { who: 'stranger', taps: [/Manage an earlier introduction request/], lands: /This phone is not holding a request code/ },
+  'looking — from a link': { who: 'stranger', link: () => instrumentLink('looking', 'group'), lands: /This phone is not holding a request code/ },
+  'looking — an earlier request on this phone': { who: 'member', intro: true, taps: [/^An earlier introduction request/], lands: /Your earlier request\./ },
+  'looking — a different code': {
+    who: 'member',
+    intro: true,
+    taps: [/^An earlier introduction request/, /^Use a different code/],
+    lands: /A request under a different code/,
+  },
+  'trust — an earlier request': {
+    who: 'member',
+    taps: [/^Your privacy/, /^Manage an earlier request/],
+    lands: /This phone is not holding a request code/,
+  },
   talking: { who: 'stranger', taps: [/I’m already talking to someone/], lands: /Where are you with it\?/ },
-  'home — the introduction card': { who: 'member', taps: [/^Looking for someone serious\?/], lands: /Put my name down/ },
   identity: { who: 'stranger', taps: ['Start where you are'], lands: /Let’s start with you/ },
   situation: { who: 'stranger', taps: START, lands: /What’s happening right now\?/ },
   'situation — getting ready': { who: 'stranger', taps: [...START, /^I’m not talking to anyone/], lands: /Get yourself ready first/ },
@@ -115,8 +128,9 @@ afterEach(() => {
 
 async function visit(v: Visit): Promise<Mounted> {
   const url = v.link ? new URL(await v.link()) : null
-  onPhone(new Phone('audit'))
+  const phone = onPhone(new Phone('audit'))
   if (v.who === 'member') seedDemo()
+  if (v.intro) phone.storage.set('niyyah.intro.v1', JSON.stringify({ code: 'QRTWXY34', at: new Date().toISOString().slice(0, 10) }))
   const m = await mount(<App entry={url ? entryFromUrl(url.search, url.pathname) : null} />)
   for (const t of v.taps ?? []) await m.press(t)
   return m

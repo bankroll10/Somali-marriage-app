@@ -6,12 +6,14 @@ import { familyScript } from '../../src/data/families'
 import { mount, type Mounted } from '../support/render'
 
 /**
- * The first screen (docs/DECISIONS.md Part 25): a headline that says what
- * Niyyah is for, two doors that each say what the tap does, and no promise
- * the product cannot keep. A promise about privacy is the one thing that must
- * not outrun the code (docs/PRIVACY.md): the eleven is sent to another person
- * on purpose and an introduction request is read by the founder, so neither
- * "No one else sees it" nor "Private to you" is true of the page as a whole.
+ * The first screen (docs/DECISIONS.md Part 25, then release R3): a headline
+ * that says what Niyyah is for, one door that says what the tap does, a way to
+ * manage an earlier introduction request, and no promise the product cannot
+ * keep. New introduction requests are closed and matching is not available, so
+ * nothing here offers either. A promise about privacy is the one thing that
+ * must not outrun the code (docs/PRIVACY.md): the eleven is sent to another
+ * person on purpose, so neither "No one else sees it" nor "Private to you" is
+ * true of the page as a whole.
  */
 
 let screen: Mounted | undefined
@@ -31,22 +33,24 @@ const props = () => ({
 })
 
 describe('Welcome', () => {
-  it('names what Niyyah is for, and keeps both doors and the quieter paths', async () => {
+  it('names what Niyyah is for, says introductions are closed, and keeps the one door and the quieter paths', async () => {
     screen = await mount(<Welcome {...props()} />)
     const text = screen.text()
-    expect(text).toMatch(/Meet someone serious\. Think marriage through\./)
-    expect(text).toMatch(/founder-led introduction pilot/)
-    expect(text).toMatch(/Minneapolis–St\. Paul/)
-    expect(text).toMatch(/The founder speaks with you first/)
-    for (const name of [/I’m looking for someone serious/, /See how introductions work/, /I’m already talking to someone/, /Choose where to start/, 'Start where you are', /Bring your map back/]) {
+    expect(text).toMatch(/Think marriage through\./)
+    expect(text).toMatch(/New introduction requests are closed, and matching is not available\./)
+    // Nothing that promises the discontinued service, or a date.
+    expect(text).not.toMatch(/Meet someone serious|founder-led|made by hand|founder speaks with you|Minneapolis|looking for someone serious|See how introductions work/i)
+    expect(text).not.toMatch(/\b(soon|opens|launch|coming)\b/i)
+    for (const name of [/I’m already talking to someone/, /Choose where to start/, 'Start where you are', /Manage an earlier introduction request/, /Bring your map back/]) {
       expect(screen.has(name), String(name)).toBe(true)
     }
+    for (const gone of [/I’m looking for someone serious/, /See how introductions work/]) expect(screen.has(gone), String(gone)).toBe(false)
   })
 
-  it('sends each door where it says, and the map path where it says', async () => {
+  it('sends the door where it says, the map path where it says, and an earlier request to its screen', async () => {
     const p = props()
     screen = await mount(<Welcome {...p} />)
-    await screen.press(/See how introductions work/)
+    await screen.press(/Manage an earlier introduction request/)
     expect(p.onLooking).toHaveBeenCalledTimes(1)
     await screen.press(/Choose where to start/)
     expect(p.onTalking).toHaveBeenCalledTimes(1)
@@ -63,7 +67,8 @@ describe('Welcome', () => {
     screen.unmount()
     screen = await mount(<Welcome {...props()} completed />)
     expect(screen.has(/^Enter Niyyah/)).toBe(true)
-    expect(screen.has(/See how introductions work/)).toBe(false)
+    // A returning member can still reach an earlier request.
+    expect(screen.has(/Manage an earlier introduction request/)).toBe(true)
   })
 
   it('makes no completion-time claim and no blanket privacy claim', async () => {
@@ -74,18 +79,19 @@ describe('Welcome', () => {
     expect(text).not.toMatch(/Private to you/i)
     expect(text).not.toMatch(/What’s in your way/)
     // What it says instead is scoped to what the code does.
-    expect(text).toMatch(/stays on your phone unless you choose to send something/)
+    expect(text).toMatch(/stays on your phone unless you choose to send something, such as questions for the person you are talking to/)
     // The step count is on unless she turns it off (Trust, "Tell us which steps you reach"), so the page says it counts steps.
     expect(text).toMatch(/counts which steps people reach, in one word each and never in your words; you can turn that off under Your privacy/)
-    expect(text).toMatch(/which the founder reads/)
+    expect(text).not.toMatch(/founder reads|your name for an introduction/)
   })
 })
 
 describe('Talking', () => {
   it('explains its three options without needing the product’s own terms first', async () => {
-    const go = { onRead: vi.fn(), onBeforeYes: vi.fn(), onFamilies: vi.fn(), onLooking: vi.fn(), onBack: vi.fn() }
+    const go = { onRead: vi.fn(), onBeforeYes: vi.fn(), onFamilies: vi.fn(), onBack: vi.fn() }
     screen = await mount(<Talking {...go} />)
     const text = screen.text()
+    expect(text).not.toMatch(/introduction/i)
     expect(text).not.toMatch(/\bthe read\b|\bget a read\b|the eleven/i)
     await screen.press(/I can’t tell what they mean yet/)
     await screen.press(/We’re getting serious/)
@@ -98,7 +104,7 @@ describe('Talking', () => {
 
 describe('Talking: the family-script invitation is true of the scripts that exist', () => {
   it('says the sentences are for your own family, for the other person and for when the families meet — and each has a script', async () => {
-    const go = { onRead: vi.fn(), onBeforeYes: vi.fn(), onFamilies: vi.fn(), onLooking: vi.fn(), onBack: vi.fn() }
+    const go = { onRead: vi.fn(), onBeforeYes: vi.fn(), onFamilies: vi.fn(), onBack: vi.fn() }
     screen = await mount(<Talking {...go} />)
     expect(screen.text()).toContain('Word-for-word sentences to say aloud — to your own family, to the other person, and for when the families meet.')
     // To her own family, to the other person, and for the two families meeting (src/data/families.ts).
