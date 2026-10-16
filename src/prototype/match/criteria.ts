@@ -1,8 +1,11 @@
-import type { CriterionId } from './types'
+import type { CriterionId, Firmness } from './types'
 
 export interface Option {
   id: string
+  /** The answer in the first person: what a person says about themselves. */
   label: string
+  /** The same answer as something wanted in a partner. Display only: eligibility runs on `id`. */
+  partner: string
 }
 
 export interface Criterion {
@@ -12,8 +15,6 @@ export interface Criterion {
   name: string
   /** About you. */
   question: string
-  /** What would work for you. */
-  asks: string
   options: Option[]
 }
 
@@ -29,12 +30,11 @@ export const CRITERIA: Criterion[] = [
     group: 'intentions',
     name: 'Timing',
     question: 'When would you like to be married?',
-    asks: 'Which timing would work for you?',
     options: [
-      { id: 't-year', label: 'Within a year' },
-      { id: 't-two', label: 'In one to two years' },
-      { id: 't-later', label: 'Later than that' },
-      { id: 't-unsure', label: 'I am not sure yet' },
+      { id: 't-year', label: 'Within a year', partner: 'A partner who wants to marry within a year' },
+      { id: 't-two', label: 'In one to two years', partner: 'A partner who wants to marry in one to two years' },
+      { id: 't-later', label: 'Later than that', partner: 'A partner who wants to marry more than two years from now' },
+      { id: 't-unsure', label: 'I am not sure yet', partner: 'A partner who is not sure yet' },
     ],
   },
   {
@@ -42,11 +42,10 @@ export const CRITERIA: Criterion[] = [
     group: 'intentions',
     name: 'Children',
     question: 'Where are you on children?',
-    asks: 'Which would work for you?',
     options: [
-      { id: 'c-want', label: 'I want children' },
-      { id: 'c-open', label: 'I am open to them, and would decide together' },
-      { id: 'c-none', label: 'I do not want children' },
+      { id: 'c-want', label: 'I want children', partner: 'A partner who wants children' },
+      { id: 'c-open', label: 'I am open to them, and would decide together', partner: 'A partner who is open to children, and would decide together' },
+      { id: 'c-none', label: 'I do not want children', partner: 'A partner who does not want children' },
     ],
   },
   {
@@ -54,11 +53,10 @@ export const CRITERIA: Criterion[] = [
     group: 'intentions',
     name: 'Practice',
     question: 'How would you describe your practice day to day?',
-    asks: 'Which would work for you?',
     options: [
-      { id: 'p-steady', label: 'Prayer is steady and central to my days' },
-      { id: 'p-build', label: 'I am building the habit' },
-      { id: 'p-occasional', label: 'I practise occasionally' },
+      { id: 'p-steady', label: 'Prayer is steady and central to my days', partner: 'A partner whose prayer is steady and central to their days' },
+      { id: 'p-build', label: 'I am building the habit', partner: 'A partner who is building the habit of prayer' },
+      { id: 'p-occasional', label: 'I practise occasionally', partner: 'A partner who practises occasionally' },
     ],
   },
   {
@@ -66,11 +64,10 @@ export const CRITERIA: Criterion[] = [
     group: 'practical',
     name: 'City',
     question: 'Where do you live?',
-    asks: 'Which cities would work for you?',
     options: [
-      { id: 'mpls', label: 'Minneapolis–St. Paul' },
-      { id: 'london', label: 'London' },
-      { id: 'toronto', label: 'Toronto' },
+      { id: 'mpls', label: 'Minneapolis–St. Paul', partner: 'A partner who lives in Minneapolis–St. Paul' },
+      { id: 'london', label: 'London', partner: 'A partner who lives in London' },
+      { id: 'toronto', label: 'Toronto', partner: 'A partner who lives in Toronto' },
     ],
   },
   {
@@ -78,11 +75,10 @@ export const CRITERIA: Criterion[] = [
     group: 'practical',
     name: 'Work',
     question: 'After marriage, what do you expect for your own work?',
-    asks: 'Which would work for you?',
     options: [
-      { id: 'w-work', label: 'I plan to work' },
-      { id: 'w-either', label: 'I am open to either' },
-      { id: 'w-home', label: 'I plan to be at home' },
+      { id: 'w-work', label: 'I plan to work', partner: 'A partner who plans to work' },
+      { id: 'w-either', label: 'I am open to either', partner: 'A partner who is open to working or staying at home' },
+      { id: 'w-home', label: 'I plan to be at home', partner: 'A partner who plans to be at home' },
     ],
   },
   {
@@ -90,11 +86,10 @@ export const CRITERIA: Criterion[] = [
     group: 'practical',
     name: 'Household',
     question: 'Where would you live at first?',
-    asks: 'Which would work for you?',
     options: [
-      { id: 'h-own', label: 'Our own home' },
-      { id: 'h-open', label: 'Open to living with family for a time' },
-      { id: 'h-family', label: 'With family' },
+      { id: 'h-own', label: 'Our own home', partner: 'A partner who wants us to have our own home' },
+      { id: 'h-open', label: 'Open to living with family for a time', partner: 'A partner who is open to living with family for a time' },
+      { id: 'h-family', label: 'With family', partner: 'A partner who wants to live with family' },
     ],
   },
 ]
@@ -103,6 +98,11 @@ export const criterionOf = (id: CriterionId): Criterion => CRITERIA.find((c) => 
 
 export function labelOf(id: CriterionId, option: string): string {
   return criterionOf(id).options.find((o) => o.id === option)?.label ?? option
+}
+
+/** The answer as something wanted in a partner (the tester’s own accepted answers are shown this way). */
+export function partnerLabelOf(id: CriterionId, option: string): string {
+  return criterionOf(id).options.find((o) => o.id === option)?.partner ?? option
 }
 
 /** Words for the point, lower case, for use inside a sentence. */
@@ -117,3 +117,32 @@ export const PROMPTS = [
   { label: 'What should the person you marry know about how you live?', short: 'How they live', required: true },
   { label: 'How involved do you expect your families to be? (optional)', short: 'Families', required: false },
 ] as const
+
+/**
+ * What each firmness means, written once. `full` is read at first use and again whenever the
+ * person reopens the explanation; `short` is the definition that stays in view after that.
+ * Nothing here chooses for the person or leans toward one of the three.
+ */
+export const FIRMNESS: { id: Firmness; name: string; short: string; full: string }[] = [
+  {
+    id: 'requirement',
+    name: 'Requirement',
+    short: 'People who do not fit are left out.',
+    full: 'Only people who fit are shown to you. People who do not fit are left out, and they are never told.',
+  },
+  {
+    id: 'preference',
+    name: 'Preference',
+    short: 'People who differ are still shown.',
+    full: 'People who differ are still shown to you, and the difference is pointed out.',
+  },
+  {
+    id: 'any',
+    name: 'Doesn’t matter',
+    short: 'Not used for this topic.',
+    full: 'Your choice on this topic won’t exclude anyone or flag a preference difference. Your own answer is still shown and can be checked against the other person’s requirements. Your partner selections are kept but not used.',
+  },
+]
+
+/** Said at first use, when the explanation is reopened, and again on Review. */
+export const BOTH_WAYS = 'Requirements work both ways. If your answer does not fit someone’s requirement, you are left out of their suggestions, and you are not told.'

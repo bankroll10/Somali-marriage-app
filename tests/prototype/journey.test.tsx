@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { act } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { BOTH_WAYS, FIRMNESS } from '../../src/prototype/match/criteria'
 import MatchPrototype from '../../src/prototype/match/MatchPrototype'
 import { accessibleName, audit } from '../support/a11y'
 import { mount, type Mounted } from '../support/render'
@@ -326,7 +327,7 @@ describe('honest sample scenarios', () => {
     expect(m.text()).toContain('Practice: “I practise occasionally”')
     await m.press('Read more about Hassan')
     expect(m.text()).toContain('Hassan’s answer: “I practise occasionally”')
-    expect(m.text()).toContain('You preferred: “Prayer is steady and central to my days”')
+    expect(m.text()).toContain('You preferred: “A partner whose prayer is steady and central to their days”')
     expect(m.container.querySelectorAll('section[aria-labelledby^="fx-"]')).toHaveLength(1)
     m.unmount()
   })
@@ -371,7 +372,7 @@ describe('honest sample scenarios', () => {
     await m.press('Read more about Liban')
     // Derived from the structured fields, so it follows the edit. The comparison is with what was accepted, not with the new answer.
     expect(m.text()).toContain('Liban’s answer: “I plan to be at home”')
-    expect(m.text()).toContain('You preferred: “I plan to work” or “I am open to either”')
+    expect(m.text()).toContain('You preferred: “A partner who plans to work” or “A partner who is open to working or staying at home”')
     // Fixed text, written for the unedited scenario, is not shown as if it still described this tester.
     expect(m.text()).not.toContain('The one difference you marked as a preference is work')
     const blocks = [...m.container.querySelectorAll('section[aria-labelledby^="fx-"]')]
@@ -511,17 +512,21 @@ describe('setup, in short steps (MATCH-02)', () => {
     expect(h1s(m)).toEqual(['Timing.'])
     expect(m.text()).toContain('Step 2 of 8.')
     // The order is the point: answers that would work come before how firm.
-    const legends = [...m.container.querySelectorAll('legend')].map((l) => l.textContent)
-    expect(legends).toEqual(['When would you like to be married?', 'Which timing would work for you?', 'How firm is this for you?'])
+    const legends = [...m.container.querySelectorAll('legend')].map((l) => l.textContent!.replace(/\s+/g, ' ').trim())
+    expect(legends).toEqual([
+      'About you When would you like to be married?',
+      'What would work for you in a partner Choose every answer that would work. At least one, unless this does not matter to you.',
+      'How firm is this?',
+    ])
     const [own, would, firm] = [...m.container.querySelectorAll('fieldset')]
     expect(own.compareDocumentPosition(would) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     expect(would.compareDocumentPosition(firm) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     // Nothing is chosen for the person, and what each firmness does is always in view.
     expect(checked(m)).toEqual([])
     expect(m.text()).toContain('Only people who fit are shown to you. People who do not fit are left out, and they are never told.')
-    expect(m.text()).toContain('You will still see people who differ, and the difference is pointed out.')
-    expect(m.text()).toContain('Not used. What you chose above is set aside.')
-    expect(m.text()).toContain('It works the other way too: someone’s requirements can leave you out of their suggestions.')
+    expect(m.text()).toContain('People who differ are still shown to you, and the difference is pointed out.')
+    expect(m.text()).toContain(FIRMNESS.find((f) => f.id === 'any')!.full)
+    expect(m.text()).toContain(BOTH_WAYS)
 
     // Each step checks only what it asks, and says which part is missing.
     await m.press('Continue')
@@ -530,7 +535,7 @@ describe('setup, in short steps (MATCH-02)', () => {
     await choose(m, 'radio', 'Within a year')
     await m.press('Continue')
     expect(statusText(m)).toContain('Still to do: an answer that would work (or choose “Doesn’t matter”), how firm this is.')
-    await choose(m, 'checkbox', 'Within a year')
+    await choose(m, 'checkbox', 'A partner who wants to marry within a year')
     await m.press('Continue')
     expect(statusText(m)).toContain('Still to do: how firm this is.')
     await choose(m, 'radio', 'Requirement')
@@ -545,15 +550,15 @@ describe('setup, in short steps (MATCH-02)', () => {
     await startBlank(m)
     await m.press('Continue')
     await choose(m, 'radio', 'In one to two years')
-    await choose(m, 'checkbox', 'Within a year')
-    await choose(m, 'checkbox', 'In one to two years')
+    await choose(m, 'checkbox', 'A partner who wants to marry within a year')
+    await choose(m, 'checkbox', 'A partner who wants to marry in one to two years')
     await choose(m, 'radio', 'Preference')
     await m.press('Continue')
     expect(h1s(m)).toEqual(['Children.'])
     await choose(m, 'radio', 'I want children')
     await back(m)
     expect(h1s(m)).toEqual(['Timing.'])
-    expect(checked(m)).toEqual(['In one to two years', 'Within a year', 'In one to two years', 'Preference'])
+    expect(checked(m)).toEqual(['In one to two years', 'A partner who wants to marry within a year', 'A partner who wants to marry in one to two years', 'Preference'])
     await back(m)
     expect(h1s(m)).toEqual(['About you.'])
     expect(field(m, 'A made-up first name')!.value).toBe('Maryan')
@@ -570,18 +575,19 @@ describe('setup, in short steps (MATCH-02)', () => {
     await startBlank(m)
     await m.press('Continue')
     await choose(m, 'radio', 'Within a year')
-    await choose(m, 'checkbox', 'Within a year')
-    await choose(m, 'checkbox', 'In one to two years')
+    await choose(m, 'checkbox', 'A partner who wants to marry within a year')
+    await choose(m, 'checkbox', 'A partner who wants to marry in one to two years')
     await choose(m, 'radio', 'Doesn’t matter')
     const would = [...m.container.querySelectorAll('fieldset')][1] as HTMLFieldSetElement
     expect(would.disabled).toBe(true)
-    expect(m.text()).toContain('Set aside while this does not matter to you.')
+    // The group stays identified while it is set aside, with the reason beneath its name.
+    expect(would.querySelector('legend')!.textContent!.replace(/\s+/g, ' ').trim()).toBe('What would work for you in a partner Set aside while this does not matter to you.')
     await m.press('Continue') // no answer that would work is needed
     expect(h1s(m)).toEqual(['Children.'])
     await back(m)
     await choose(m, 'radio', 'Preference')
     expect(((await Promise.resolve([...m.container.querySelectorAll('fieldset')][1])) as HTMLFieldSetElement).disabled).toBe(false)
-    expect(checked(m)).toEqual(['Within a year', 'Within a year', 'In one to two years', 'Preference'])
+    expect(checked(m)).toEqual(['Within a year', 'A partner who wants to marry within a year', 'A partner who wants to marry in one to two years', 'Preference'])
     m.unmount()
   })
 
@@ -598,15 +604,17 @@ describe('setup, in short steps (MATCH-02)', () => {
     await choose(m, 'radio', 'Doesn’t matter')
     for (const step of ['Continue', 'Continue', 'Continue']) await m.press(step)
     expect(h1s(m)).toEqual(['Check before you see anyone.'])
-    const rows = [...m.container.querySelectorAll('main ul li')].filter((li) => /^(Timing|Children|Practice|City|Work|Household)\./.test(li.textContent ?? ''))
+    const rows = [...m.container.querySelectorAll('main ul li')].filter((li) => /^(Timing|Children|Practice|City|Work|Household)$/.test(li.querySelector('h3')?.textContent ?? ''))
     expect(rows).toHaveLength(6)
-    const text = (name: string) => (rows.find((r) => (r.textContent ?? '').startsWith(name)) as HTMLElement).textContent!.replace(/\s+/g, ' ')
-    expect(text('Timing.')).toContain('Would work: Within a year; In one to two years. Requirement.')
-    expect(text('Practice.')).toContain('Preference.')
+    const text = (name: string) => (rows.find((r) => r.querySelector('h3')!.textContent === name) as HTMLElement).textContent!.replace(/\s+/g, ' ')
+    // Three labelled rows: your own answer, what would work in a partner, how firm.
+    expect(text('Timing')).toContain('In a partner A partner who wants to marry within a year; A partner who wants to marry in one to two years')
+    expect(text('Timing')).toContain('How firm Requirement')
+    expect(text('Practice')).toContain('How firm Preference')
     // The setting-aside is shown as what it is. The retained, ignored selections are not presented as active.
-    expect(text('Work.')).toContain('Not used: this does not matter to you.')
-    expect(text('Work.')).not.toMatch(/Would work|Requirement\.|Preference\./)
-    expect(text('Work.')).not.toContain('I plan to work;')
+    expect(text('Work')).toContain('In a partner Not used: this does not matter to you.')
+    expect(text('Work')).toContain('How firm Doesn’t matter')
+    expect(text('Work')).not.toContain('A partner who plans to work')
     // Change a point from Review: Continue and Back both come straight back.
     await m.press('Change children')
     expect(h1s(m)).toEqual(['Children.'])
@@ -665,7 +673,7 @@ describe('the suggestion screen, shorter and led by their words (MATCH-02)', () 
     for (const label of ['Looking for', 'How they live', 'Families']) expect(m.text()).toContain(label)
     // The difference is the person’s answer against the answers the tester selected as preferred.
     expect(m.text()).toContain('Liban’s answer: “I plan to be at home”')
-    expect(m.text()).toContain('You preferred: “I plan to work” or “I am open to either”')
+    expect(m.text()).toContain('You preferred: “A partner who plans to work” or “A partner who is open to working or staying at home”')
     expect(m.text()).not.toContain('You marked this a preference')
     // A different personal answer that the tester accepted is not a difference: Liban’s timing differs from the tester’s own but works.
     const diffItems = [...main.querySelectorAll('h2#differ ~ ul li')].map((li) => li.textContent)
@@ -936,6 +944,135 @@ describe('withdrawing interest, and undoing “Not for me” (MATCH-02)', () => 
     for (const name of ['Disconnect', 'Block', 'Report']) expect(m.has(name), name).toBe(true)
     await m.press('Report')
     expect(m.text()).toContain('Prototype: no one will receive this and no one will review it.')
+    m.unmount()
+  })
+})
+
+// ── MATCH-03: less to read at setup, and whose answer each group is ─────────────────────────────
+
+const norm = (t: string | null | undefined) => (t ?? '').replace(/\s+/g, ' ').trim()
+const groupNames = (m: Mounted) => [...m.container.querySelectorAll('main fieldset')].map((f) => norm(f.querySelector('legend')?.textContent))
+const labelsIn = (fieldset: Element) => [...fieldset.querySelectorAll('label')].map((l) => norm(l.querySelector('span > span')?.textContent))
+
+describe('setup: whose answer it is, and what each firmness means (MATCH-03)', () => {
+  /** Answer the topic on screen with the first choices and a Requirement, then go on. */
+  async function fillTopic(m: Mounted) {
+    await act(async () => {
+      const all = (type: string) => [...m.container.querySelectorAll(`main input[type="${type}"]`)] as HTMLInputElement[]
+      all('radio')[0].click()
+      all('checkbox')[0].click()
+      all('radio').find((i) => /^Requirement/.test(accessibleName(i)))!.click()
+    })
+    await m.settle()
+    await m.press('Continue')
+  }
+  async function toTopic(m: Mounted, name: string) {
+    await startBlank(m)
+    await m.press('Continue')
+    for (const step of ['Timing.', 'Children.', 'Practice.', 'City.', 'Work.', 'Household.']) {
+      if (step === name) return
+      expect(h1s(m)).toEqual([step])
+      await fillTopic(m)
+    }
+  }
+
+  it('names the three groups on every topic, in order: about you, what would work in a partner, how firm', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toTopic(m, 'Work.')
+    expect(h1s(m)).toEqual(['Work.'])
+    expect(groupNames(m)).toEqual([
+      'About you After marriage, what do you expect for your own work?',
+      'What would work for you in a partner Choose every answer that would work.',
+      'How firm is this?',
+    ])
+    // Your own answers are in the first person; the partner group says “a partner” and means the same options.
+    const [own, partner] = [...m.container.querySelectorAll('main fieldset')]
+    expect(labelsIn(own)).toEqual(['I plan to work', 'I am open to either', 'I plan to be at home'])
+    expect(labelsIn(partner)).toEqual(['A partner who plans to work', 'A partner who is open to working or staying at home', 'A partner who plans to be at home'])
+    m.unmount()
+  })
+
+  it('shows the full explanation at first use only, with the short definitions always in view after it', async () => {
+    const m = await mount(<MatchPrototype />)
+    await startBlank(m)
+    await m.press('Continue')
+    expect(h1s(m)).toEqual(['Timing.'])
+    // First use: every definition in full, the both-ways sentence, and no control to reopen anything.
+    for (const f of FIRMNESS) expect(m.text()).toContain(f.full)
+    expect(m.text()).toContain(BOTH_WAYS)
+    expect(m.container.querySelector('main details')).toBeNull()
+    expect(m.text()).not.toContain('Not sure?')
+    for (const f of FIRMNESS) expect(m.text()).not.toContain(f.short)
+    expect(checked(m)).toEqual([])
+    m.unmount()
+  })
+
+  it('on later topics keeps short definitions in view and a way to reopen the full explanation', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toTopic(m, 'Work.')
+    for (const f of FIRMNESS) expect(m.text()).toContain(f.short)
+    const details = m.container.querySelector('main details') as HTMLDetailsElement
+    expect(details).not.toBeNull()
+    expect(details.open).toBe(false)
+    expect(norm(details.querySelector('summary')!.textContent)).toBe('What these three mean')
+    // The body is the same text as at first use, from one source.
+    for (const f of FIRMNESS) expect(norm(details.textContent)).toContain(f.full)
+    expect(norm(details.textContent)).toContain(BOTH_WAYS)
+    // Opening and closing it is not a choice: nothing is picked or changed, and firmness stays unset.
+    const before = checked(m)
+    await act(async () => {
+      details.querySelector('summary')!.click()
+    })
+    await m.settle()
+    await act(async () => {
+      details.querySelector('summary')!.click()
+    })
+    await m.settle()
+    expect(checked(m)).toEqual(before)
+    expect(['Requirement', 'Preference', 'Doesn’t matter'].some((f) => checked(m).includes(f))).toBe(false)
+    m.unmount()
+  })
+
+  it('has no pressure toward a firmness, anywhere in setup', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toTopic(m, 'Work.')
+    expect(m.text() + norm(m.container.querySelector('main details')?.textContent)).not.toMatch(/Not sure\?|we suggest|recommend|best to|gentler/i)
+    m.unmount()
+  })
+
+  it('does not start with a firmness chosen on any topic', async () => {
+    const m = await mount(<MatchPrototype />)
+    await startBlank(m)
+    await m.press('Continue')
+    for (const step of ['Timing.', 'Children.', 'Practice.', 'City.', 'Work.', 'Household.']) {
+      expect(h1s(m)).toEqual([step])
+      expect(inputs(m).filter((i) => i.type === 'radio' && i.checked)).toEqual([])
+      expect(inputs(m).filter((i) => i.type === 'checkbox' && i.checked)).toEqual([])
+      await fillTopic(m)
+    }
+    m.unmount()
+  })
+
+  it('Review puts your answer, what would work in a partner and how firm on three labelled lines, with a Change that is a full-size target on the heading line', async () => {
+    const m = await mount(<MatchPrototype />)
+    await tick(m, 'I am a woman')
+    await act(async () => {
+      buttons(m, 'Start from this sample')[0].click()
+    })
+    await m.settle()
+    for (let i = 0; i < 8; i++) await m.press('Continue')
+    expect(h1s(m)).toEqual(['Check before you see anyone.'])
+    const rows = [...m.container.querySelectorAll('main ul li')].filter((li) => li.querySelector('h3'))
+    expect(rows).toHaveLength(6)
+    for (const row of rows) {
+      const heading = row.querySelector('h3')!
+      const change = row.querySelector('button')!
+      // The heading and its Change share a line (a wrapping row) and Change keeps the shared 44px target.
+      expect(heading.parentElement).toBe(change.parentElement)
+      expect(change.className).toContain('min-h-11')
+      expect([...row.querySelectorAll('p')].map((p) => norm(p.textContent).split(' ').slice(0, 2).join(' '))).toEqual(['About you', 'In a', 'How firm'])
+    }
+    expect(m.text()).toContain('Requirements work both ways: your answers can leave you out of other people’s suggestions.')
     m.unmount()
   })
 })

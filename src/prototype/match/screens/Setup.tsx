@@ -1,11 +1,11 @@
 import { useState, type Dispatch, type FormEvent } from 'react'
 import { Button, fieldClass, TextButton } from '../../../components/ui'
-import { CRITERIA, PROMPTS, labelOf, nameOf, criterionOf } from '../criteria'
+import { BOTH_WAYS, CRITERIA, FIRMNESS, PROMPTS, labelOf, nameOf, criterionOf, partnerLabelOf } from '../criteria'
 import { SCENARIOS } from '../fixtures'
 import { POINT_STEPS, SETUP_STEPS, completeSelf, locked, missingAbout, missingPoint, missingPoints, missingWords, type Action, type Me, type PointGap, type Session } from '../flow'
 import { Choice, H1, H2, Note, P, Screen } from '../parts'
 import { looksLikeContact } from '../suggest'
-import type { Firmness, Side } from '../types'
+import type { Side } from '../types'
 
 type D = Dispatch<Action>
 
@@ -74,7 +74,7 @@ export function Front({ dispatch }: { dispatch: D }) {
   )
 }
 
-const StepLine = ({ n }: { n: number }) => <p className="mt-2 text-[0.9rem] text-muted">{`Step ${n} of ${SETUP_STEPS}.`}</p>
+const StepLine = ({ n }: { n: number }) => <p className="mt-1 text-[0.9rem] text-muted">{`Step ${n} of ${SETUP_STEPS}.`}</p>
 
 const stepOf = (id: Parameters<typeof criterionOf>[0]) => POINT_STEPS.findIndex((g) => g.includes(id))
 
@@ -131,28 +131,45 @@ export function About({ s, dispatch }: { s: Session; dispatch: D }) {
   )
 }
 
-const FIRM: { id: Firmness; name: string; says: string }[] = [
-  { id: 'requirement', name: 'Requirement', says: 'Only people who fit are shown to you. People who do not fit are left out, and they are never told.' },
-  { id: 'preference', name: 'Preference', says: 'You will still see people who differ, and the difference is pointed out.' },
-  { id: 'any', name: 'Doesn’t matter', says: 'Not used. What you chose above is set aside.' },
-]
-
 const GAP_WORDS: Record<PointGap, string> = {
   answer: 'your answer',
   accept: 'an answer that would work (or choose “Doesn’t matter”)',
   firm: 'how firm this is',
 }
 
+/** A group's name in the first line of its legend, so a screen reader and a glance both hear whose answer it is. */
+const GroupName = ({ children }: { children: string }) => <span className="block text-[0.9rem] font-medium text-forest">{children}</span>
+const legendClass = 'text-[0.98rem] font-medium leading-snug text-ink'
+
+/** What each firmness means, in full: read at first use, and again when the person reopens it. */
+function FirmnessMeaning() {
+  return (
+    <div className="pb-1 text-[0.93rem] leading-snug text-ink-soft">
+      <dl className="grid gap-2.5">
+        {FIRMNESS.map((f) => (
+          <div key={f.id}>
+            <dt className="font-medium text-ink">{f.name}</dt>
+            <dd>{f.full}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-2.5 text-muted">{BOTH_WAYS}</p>
+    </div>
+  )
+}
+
 /**
  * One setup step: a point (or a few, when POINT_STEPS groups them) asked in the order
- * a person thinks it through. Your own answer, then which answers would work for you,
- * then how firm that is. Entered answers live in the reducer, so going Back or
- * forward never clears them.
+ * a person thinks it through. Your own answer, then which answers would work for you in
+ * a partner, then how firm that is. Entered answers live in the reducer, so going Back or
+ * forward never clears them. The first step explains the three firmness choices in full;
+ * the rest keep a short definition in view and a way to read the full one again.
  */
 export function Point({ s, dispatch }: { s: Session; dispatch: D }) {
   const [error, setError] = useState('')
   const frozen = locked(s)
   const index = Math.min(Math.max(s.point, 0), POINT_STEPS.length - 1)
+  const first = index === 0
   const ids = POINT_STEPS[index]
   const heading = ids.map((id) => nameOf(id)).join(' and ')
   const next = index + 1 < POINT_STEPS.length ? { type: 'go' as const, stage: 'point' as const, point: index + 1 } : { type: 'go' as const, stage: 'words' as const }
@@ -181,7 +198,9 @@ export function Point({ s, dispatch }: { s: Session; dispatch: D }) {
             <section key={id} aria-label={ids.length > 1 ? c.name : undefined}>
               {ids.length > 1 && <H2>{c.name}</H2>}
               <fieldset className="mt-6" disabled={frozen}>
-                <legend className="text-[0.98rem] font-medium text-ink">{c.question}</legend>
+                <legend className={legendClass}>
+                  <GroupName>About you</GroupName> {c.question}
+                </legend>
                 <div className="mt-2.5 grid gap-2">
                   {c.options.map((o) => (
                     <Choice key={o.id} type="radio" name={`about-${id}`} checked={s.me.answers[id] === o.id} onChange={() => dispatch({ type: 'answer', id, value: o.id })}>
@@ -191,40 +210,59 @@ export function Point({ s, dispatch }: { s: Session; dispatch: D }) {
                 </div>
               </fieldset>
 
-              <fieldset className={`mt-7 ${unused ? 'opacity-60' : ''}`} disabled={frozen || unused}>
-                <legend className="text-[0.98rem] font-medium text-ink">{c.asks}</legend>
-                <p className="mt-1 text-[0.86rem] text-muted">
-                  {unused ? 'Set aside while this does not matter to you.' : 'Choose every answer that would work. At least one, unless this does not matter to you.'}
-                </p>
-                <div className="mt-2.5 grid gap-2">
-                  {c.options.map((o) => (
-                    <Choice key={o.id} type="checkbox" name={`accept-${id}`} checked={ask.accept.includes(o.id)} onChange={(on) => dispatch({ type: 'accept', id, option: o.id, on })}>
-                      {o.label}
-                    </Choice>
-                  ))}
-                </div>
-              </fieldset>
+              <div className="mt-5 border-t border-line/70 pt-5">
+                <fieldset disabled={frozen || unused}>
+                  <legend className={legendClass}>
+                    <GroupName>What would work for you in a partner</GroupName>{' '}
+                    <span className="font-normal text-muted">
+                      {unused
+                        ? 'Set aside while this does not matter to you.'
+                        : first
+                          ? 'Choose every answer that would work. At least one, unless this does not matter to you.'
+                          : 'Choose every answer that would work.'}
+                    </span>
+                  </legend>
+                  <div className={`mt-2.5 grid gap-2 ${unused ? 'opacity-60' : ''}`}>
+                    {c.options.map((o) => (
+                      <Choice key={o.id} type="checkbox" name={`accept-${id}`} checked={ask.accept.includes(o.id)} onChange={(on) => dispatch({ type: 'accept', id, option: o.id, on })}>
+                        {o.partner}
+                      </Choice>
+                    ))}
+                  </div>
+                </fieldset>
+              </div>
 
-              <fieldset className="mt-7" disabled={frozen}>
-                <legend className="text-[0.98rem] font-medium text-ink">How firm is this for you?</legend>
-                <div className="mt-2.5 grid gap-2">
-                  {FIRM.map((f) => (
-                    <Choice key={f.id} type="radio" name={`firm-${id}`} checked={ask.firm === f.id} onChange={() => dispatch({ type: 'firm', id, value: f.id })} hint={f.says}>
-                      {f.name}
-                    </Choice>
-                  ))}
-                </div>
-              </fieldset>
+              <div className="mt-5 border-t border-line/70 pt-5">
+                <fieldset disabled={frozen}>
+                  <legend className={legendClass}>
+                    <GroupName>How firm is this?</GroupName>
+                  </legend>
+                  <div className="mt-2.5 grid gap-2">
+                    {FIRMNESS.map((f) => (
+                      <Choice key={f.id} type="radio" name={`firm-${id}`} checked={ask.firm === f.id} onChange={() => dispatch({ type: 'firm', id, value: f.id })} hint={first ? f.full : f.short}>
+                        {f.name}
+                      </Choice>
+                    ))}
+                  </div>
+                </fieldset>
+                {first ? (
+                  <P muted>{BOTH_WAYS}</P>
+                ) : (
+                  <details className="mt-1.5">
+                    <summary className="flex min-h-11 cursor-pointer items-center text-[0.95rem] text-forest underline underline-offset-4">What these three mean</summary>
+                    <FirmnessMeaning />
+                  </details>
+                )}
+              </div>
             </section>
           )
         })}
-        <P muted>It works the other way too: someone’s requirements can leave you out of their suggestions. Not sure? A preference still shows you the difference.</P>
-        <div role="status" className="mt-4 min-h-[1.5rem] text-[0.9rem] text-clay">
-          {error}
-        </div>
-        <Button type="submit" className="mt-2">
+        <Button type="submit" className="mt-5">
           Continue
         </Button>
+        <div role="status" className="mt-3 text-[0.9rem] text-clay">
+          {error}
+        </div>
       </form>
     </Screen>
   )
@@ -298,27 +336,31 @@ export function Review({ s, dispatch }: { s: Session; dispatch: D }) {
         {CRITERIA.map((c) => {
           const k = me.asks[c.id]
           const mine = me.answers[c.id]
+          const label = 'font-medium text-ink'
           return (
             <li key={c.id} className="text-[0.95rem] leading-snug text-ink-soft">
+              <div className="flex flex-wrap items-center justify-between gap-x-4">
+                <h3 className="font-display text-[1.1rem] font-medium text-ink">{c.name}</h3>
+                <TextButton className="-mr-2 text-forest underline" onClick={() => change(stepOf(c.id))}>
+                  {`Change ${c.name.toLowerCase()}`}
+                </TextButton>
+              </div>
               <p>
-                <span className="font-medium text-ink">{c.name}.</span> You: {mine ? labelOf(c.id, mine) : 'no answer yet'}.
+                <span className={label}>About you</span> {mine ? labelOf(c.id, mine) : 'No answer yet.'}
               </p>
-              {k.firm === 'any' ? (
-                <p className="mt-0.5 text-muted">Not used: this does not matter to you.</p>
-              ) : (
-                <p className="mt-0.5">
-                  {k.accept.length ? `Would work: ${k.accept.map((o) => labelOf(c.id, o)).join('; ')}.` : 'No answer chosen yet.'}{' '}
-                  {k.firm === 'requirement' ? 'Requirement.' : k.firm === 'preference' ? 'Preference.' : 'Not decided yet.'}
-                </p>
-              )}
-              <TextButton className="mt-1 text-forest underline" onClick={() => change(stepOf(c.id))}>
-                {`Change ${c.name.toLowerCase()}`}
-              </TextButton>
+              <p className="mt-0.5">
+                <span className={label}>In a partner</span>{' '}
+                {k.firm === 'any' ? 'Not used: this does not matter to you.' : k.accept.length ? `${k.accept.map((o) => partnerLabelOf(c.id, o)).join('; ')}.` : 'No answer chosen yet.'}
+              </p>
+              <p className="mt-0.5">
+                <span className={label}>How firm</span> {k.firm === 'requirement' ? 'Requirement' : k.firm === 'preference' ? 'Preference' : k.firm === 'any' ? 'Doesn’t matter' : 'Not decided yet.'}
+              </p>
             </li>
           )
         })}
       </ul>
-      <p className="mt-5 flex flex-wrap gap-x-5 gap-y-1">
+      <p className="mt-3 text-[0.9rem] leading-snug text-muted">Requirements work both ways: your answers can leave you out of other people’s suggestions.</p>
+      <p className="mt-3 flex flex-wrap gap-x-5">
         <TextButton className="text-forest underline" onClick={() => dispatch({ type: 'go', stage: 'about', editing: true })}>
           Change name and age
         </TextButton>

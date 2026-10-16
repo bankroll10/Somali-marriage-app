@@ -102,7 +102,7 @@ export function compare(me: Self, person: Person): Comparison {
       })
     } else {
       // In the order the answers are listed on the form, not the order they were ticked.
-      differ.push({ id: c, theirs: labelOf(c, theirs), preferred: criterionOf(c).options.filter((o) => ask.accept.includes(o.id)).map((o) => o.label) })
+      differ.push({ id: c, theirs: labelOf(c, theirs), preferred: criterionOf(c).options.filter((o) => ask.accept.includes(o.id)).map((o) => o.partner) })
     }
   }
   return { lineUp, differ, unused }

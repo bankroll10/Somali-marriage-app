@@ -1,6 +1,6 @@
-# MATCH-01 and MATCH-02: the member-journey prototype
+# MATCH-01 to MATCH-03: the member-journey prototype
 
-Status: a development-only prototype of how meeting someone could work, built on 2026-10-15 (MATCH-01) and revised after the founder's review the same day (MATCH-02, below). **It is not part of
+Status: a development-only prototype of how meeting someone could work, built on 2026-10-15 (MATCH-01) and revised after the founder's review the same day (MATCH-02, then MATCH-03: less to read at setup, below). **It is not part of
 the app, is not built or deployed, and promises nothing to anyone.** Introductions in the live app stay closed
 (release R3). The exception that allowed it is recorded at the end of `docs/DECISIONS.md`.
 
@@ -33,7 +33,7 @@ One journey, from a made-up person's side, as a woman or as a man:
 1. **Answers, in eight steps.** A made-up name and age; then one step for each of six points (timing,
    children, practice, city, work, household); then written answers in the person's own words. Everything is made up,
    and the screens say so. The steps are more focused than the earlier two long screens, but **setup is not shorter
-   overall** (see MATCH-02 below).
+   overall** (see MATCH-02 and MATCH-03 below).
 2. **Requirement or preference, per point.** On each point step the person gives their own answer, then chooses
    which answers would work for them, and only then how firm that is: *requirement* (only people who fit are shown),
    *preference* (people who differ are shown, and the difference is pointed out) or *doesn't matter* (not used; the
@@ -141,6 +141,48 @@ against the points claimed, and pin each specific claim in the prose (for exampl
 within a year") to the answers. That catches a text drifting from the data it was written for. **It is metadata
 consistency, not proof that the prose is accurate**: each sentence was also read against the scenario's answers when
 checked, and that reading found them accurate. A reworded or new text needs the same reading.
+
+## MATCH-03: less to read at setup, and whose answer it is
+
+Three things changed on the setup steps and on Review, and one label on the suggestion screen. The reducer, the
+eligibility rules, the option ids and order, the suggestion profiles, withdrawing, undoing, mutual interest, messaging,
+photo consent and the safety row are unchanged.
+
+- **Whose answer it is.** Each point step names its three groups in the first line of each legend: *About you*,
+  *What would work for you in a partner*, and *How firm is this?* The partner group uses partner wording ("A partner
+  who plans to work", not "I plan to work"). Each option has a second display label (`partner`) beside its first-person
+  `label`; eligibility still runs on the option id. Where a partner-side answer is shown, it uses the partner label:
+  the setup group, Review, and the "You preferred" line on the suggestion screen. The person's own answer, and another
+  person's answer ("Liban's answer"), keep the first-person labels, which are theirs. When "Doesn't matter" sets the
+  group aside, the group keeps its name and says "Set aside while this does not matter to you." beneath it.
+- **The three firmness choices are explained once, in full, at first use.** Timing, the first point, shows each
+  definition in full and a sentence that requirements work both ways. Later points keep a short definition in view
+  inside each choice ("People who do not fit are left out." / "People who differ are still shown." / "Not used for this
+  topic.") and a native disclosure, "What these three mean", that reopens the same full text. Both texts live in one place
+  (`FIRMNESS`, `BOTH_WAYS` in `criteria.ts`). Every point still needs an explicit choice; nothing is chosen, defaulted or
+  inferred, opening the explanation changes nothing, and the earlier "Not sure? A preference still shows you the
+  difference." is gone because it steered toward one choice. The full "Doesn't matter" text says the person's own answer
+  is still shown and can be checked against the other person's requirements, and that the partner selections are kept
+  but not used.
+- **Review states whose answer each line is.** Each point is three lines, *About you*, *In a partner* and *How firm*,
+  with its Change control on the heading line (a wrapping row, still a 44 px target). A "Doesn't matter" point shows
+  "Not used: this does not matter to you." and none of the set-aside selections. A line under the list repeats that
+  requirements work both ways.
+- **Less repeated text and spacing, with the same controls.** The step line sits under the heading; the three groups
+  are separated by a hairline rather than boxes; the empty status line no longer reserves height, and its message sits
+  below Continue so the button does not move when a message appears. Choices keep their 44 px targets and text size.
+
+**Measured, and what that does and does not show.** At 390 px (320 px in brackets), from the same script on the MATCH-02
+tree and this one: a later point step is 1,275 px against 1,377 (1,348 against 1,477), about 7% to 9% shorter, and
+about 100 words against about 140. Timing, the first use, is *longer*: 1,613 against 1,469 (1,734 against 1,552), by
+design, because it carries the full explanation. Review is *longer*: 2,024 against 1,745 (2,083 against 1,826),
+because every point now says whose answer each line is. About plus the six points come to 8,832 against 9,200
+(9,328 against 9,794). Across the whole setup path including Words and Review the height is **about the same**
+(12,049 against 12,142 at 390 px, under 1% less). **The shorter-setup goal is still not met.** These are page heights
+and word counts, which describe reading and scrolling burden; they are not evidence that people understand the screens or
+finish setup sooner, and no participant, screen reader or real person was involved. The decision about pairing points
+into fewer steps, or leaving eight short ones, has not been made and is better made on a person's experience than on
+these numbers.
 
 ## What is not covered
 

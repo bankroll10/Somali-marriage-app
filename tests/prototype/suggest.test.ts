@@ -95,9 +95,9 @@ describe('where two sets of answers line up and differ', () => {
 
   it('attributes each answer to the person who gave it, against what the tester said would work, and shows no number', () => {
     const c = compare(me, p2)
-    expect(c.differ[0]).toEqual({ id: 'work', theirs: 'I plan to be at home', preferred: ['I plan to work', 'I am open to either'] })
+    expect(c.differ[0]).toEqual({ id: 'work', theirs: 'I plan to be at home', preferred: ['A partner who plans to work', 'A partner who is open to working or staying at home'] })
     for (const x of c.lineUp) expect(x.text).not.toMatch(/\d/)
-    expect(orList(c.differ[0].preferred)).toBe('“I plan to work” or “I am open to either”')
+    expect(orList(c.differ[0].preferred)).toBe('“A partner who plans to work” or “A partner who is open to working or staying at home”')
     expect(orList(['A', 'B', 'C'])).toBe('“A”, “B” or “C”')
     expect(orList(['A'])).toBe('“A”')
   })
@@ -116,13 +116,13 @@ describe('where two sets of answers line up and differ', () => {
       // The tester answers “I plan to work” but would prefer someone “open to either”; Abdi plans to work.
       expect(p1.answers.work).toBe(me.answers.work)
       const c = compare(selfWith(me, { work: { accept: ['w-either'], firm: 'preference' } }), p1)
-      expect(c.differ.find((d) => d.id === 'work')).toEqual({ id: 'work', theirs: 'I plan to work', preferred: ['I am open to either'] })
+      expect(c.differ.find((d) => d.id === 'work')).toEqual({ id: 'work', theirs: 'I plan to work', preferred: ['A partner who is open to working or staying at home'] })
       expect(c.lineUp.map((x) => x.id)).not.toContain('work')
     })
 
     it('reports exactly the answers the tester selected as preferred, in the order the form lists them and not the order they were ticked', () => {
       const c = compare(selfWith(me, { household: { accept: ['h-open', 'h-own'], firm: 'preference' } }), p3)
-      expect(c.differ.find((d) => d.id === 'household')!.preferred).toEqual(['Our own home', 'Open to living with family for a time'])
+      expect(c.differ.find((d) => d.id === 'household')!.preferred).toEqual(['A partner who wants us to have our own home', 'A partner who is open to living with family for a time'])
     })
   })
 

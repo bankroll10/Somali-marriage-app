@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { CRITERIA, FIRMNESS } from '../../src/prototype/match/criteria'
 import { BANNED } from '../voice-rules'
 import { PROTOTYPE, ROOT, codeLines, walk } from './support'
 
@@ -77,5 +78,40 @@ describe('the prototype’s copy', () => {
   it('never reads a pair text for a person without going through the scenario check', () => {
     const users = files.filter((f) => /pairTextFor|PAIR_TEXT/.test(readFileSync(f, 'utf8'))).map((f) => f.slice(ROOT.length + 1))
     expect(users.sort()).toEqual([`${PROTOTYPE}/fixtures.ts`, `${PROTOTYPE}/suggest.ts`].sort())
+  })
+  // MATCH-03: a partner-side answer says so, and says the same thing as the option it stands for.
+  it('words the partner side as “a partner”, and leaves the options, their order and the first-person answers as they were', () => {
+    // The ids and their order carry the meaning and the eligibility rules; the first-person labels are the person’s own answer.
+    expect(CRITERIA.map((c) => [c.id, c.options.map((o) => [o.id, o.label])])).toEqual([
+      ['timeline', [['t-year', 'Within a year'], ['t-two', 'In one to two years'], ['t-later', 'Later than that'], ['t-unsure', 'I am not sure yet']]],
+      ['children', [['c-want', 'I want children'], ['c-open', 'I am open to them, and would decide together'], ['c-none', 'I do not want children']]],
+      ['practice', [['p-steady', 'Prayer is steady and central to my days'], ['p-build', 'I am building the habit'], ['p-occasional', 'I practise occasionally']]],
+      ['city', [['mpls', 'Minneapolis–St. Paul'], ['london', 'London'], ['toronto', 'Toronto']]],
+      ['work', [['w-work', 'I plan to work'], ['w-either', 'I am open to either'], ['w-home', 'I plan to be at home']]],
+      ['household', [['h-own', 'Our own home'], ['h-open', 'Open to living with family for a time'], ['h-family', 'With family']]],
+    ])
+    for (const c of CRITERIA) {
+      for (const o of c.options) {
+        expect(o.partner, `${c.id}/${o.id}`).toMatch(/^A partner (who|whose) /)
+        expect(o.partner).not.toMatch(/\b(I|my|me)\b/)
+        expect(o.partner).not.toBe(o.label)
+      }
+      expect(new Set(c.options.map((o) => o.partner)).size).toBe(c.options.length)
+    }
+    // The wording the founder approved, word for word, where it was adjusted.
+    const partner = (id: string, option: string) => CRITERIA.find((c) => c.id === id)!.options.find((o) => o.id === option)!.partner
+    expect(partner('timeline', 't-later')).toBe('A partner who wants to marry more than two years from now')
+    expect(partner('work', 'w-either')).toBe('A partner who is open to working or staying at home')
+    expect(partner('practice', 'p-build')).toBe('A partner who is building the habit of prayer')
+  })
+
+  it('defines each firmness once, in full and in short, and says nothing that steers toward one', () => {
+    expect(FIRMNESS.map((f) => f.id)).toEqual(['requirement', 'preference', 'any'])
+    expect(FIRMNESS.find((f) => f.id === 'any')!.short).toBe('Not used for this topic.')
+    for (const f of FIRMNESS) {
+      expect(f.short.length).toBeLessThan(f.full.length)
+      expect(f.short.length).toBeLessThanOrEqual(40)
+      expect(`${f.short} ${f.full}`).not.toMatch(/not sure|we suggest|recommend|safer|gentler|best/i)
+    }
   })
 })
