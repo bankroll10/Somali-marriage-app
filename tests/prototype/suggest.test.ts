@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { CRITERIA } from '../../src/prototype/match/criteria'
+import { CRITERIA, PROMPTS, labelOf } from '../../src/prototype/match/criteria'
 import { PAIR_TEXT, SCENARIOS, fingerprint, pairTextFor, peopleFor, scenarioOf } from '../../src/prototype/match/fixtures'
-import { SHOWN_LIMIT, compare, evaluate, judge, looksLikeContact, orList, pairFixture, type Self } from '../../src/prototype/match/suggest'
+import { SHOWN_LIMIT, basisLine, compare, evaluate, judge, looksLikeContact, orList, pairFixture, resolveBasis, summaryPoints, type Self } from '../../src/prototype/match/suggest'
 import { CRITERION_IDS, type Asks, type Side } from '../../src/prototype/match/types'
 
 /**
@@ -151,7 +151,7 @@ describe('fixed pair text', () => {
     expect(f.available).toBe(true)
     if (f.available) {
       expect(f.text.summary).toContain('Abdi')
-      expect(f.text.summary).toContain('He describes his practice')
+      expect(f.text.summary).toContain('Abdi chose “Prayer is steady and central to my days”')
       expect(f.text.questions).toHaveLength(3)
     }
   })
@@ -236,7 +236,7 @@ describe('the hand-written summaries, held against the answers they were written
   const CLAIMS: { sc: 'three' | 'one'; key: string; says: string; holds: (self: Self, p: ReturnType<typeof peopleFor>[number]) => boolean }[] = [
     { sc: 'three', key: 'p1', says: 'give the same answers on timing, children, city, work and household', holds: (m, p) => (['timeline', 'children', 'city', 'work', 'household'] as const).every((id) => p.answers[id] === m.answers[id]) },
     { sc: 'three', key: 'p1', says: 'you both want to marry within a year', holds: (m, p) => p.answers.timeline === 't-year' && m.answers.timeline === 't-year' },
-    { sc: 'three', key: 'p1', says: 'practice as steadier than yours', holds: (m, p) => p.answers.practice === 'p-steady' && m.answers.practice === 'p-build' },
+    { sc: 'three', key: 'p1', says: 'chose “Prayer is steady and central to my days”, a steadier answer than your “I am building the habit”', holds: (m, p) => p.answers.practice === 'p-steady' && m.answers.practice === 'p-build' },
     { sc: 'three', key: 'p2', says: 'a little later on timing (one to two years, where you said within a year)', holds: (m, p) => p.answers.timeline === 't-two' && m.answers.timeline === 't-year' },
     { sc: 'three', key: 'p2', says: 'open on children where you said you want them', holds: (m, p) => p.answers.children === 'c-open' && m.answers.children === 'c-want' },
     { sc: 'three', key: 'p2', says: 'plans to be at home and you plan to work', holds: (m, p) => p.answers.work === 'w-home' && m.answers.work === 'w-work' },
@@ -245,7 +245,7 @@ describe('the hand-written summaries, held against the answers they were written
     { sc: 'three', key: 'p3', says: 'differs from your preferences on practice, city, work and household', holds: (m, p) => compare(m, p).differ.map((d) => d.id).join() === 'practice,city,work,household' },
     { sc: 'three', key: 'p3', says: 'lives in Toronto, where you do not', holds: (m, p) => p.answers.city === 'toronto' && m.answers.city !== 'toronto' },
     { sc: 'one', key: 'p4', says: 'give the same answers on timing, children, city and household', holds: (m, p) => (['timeline', 'children', 'city', 'household'] as const).every((id) => p.answers[id] === m.answers[id]) },
-    { sc: 'one', key: 'p4', says: 'practice as occasional, where you describe yours as steady, which you marked as a preference', holds: (m, p) => p.answers.practice === 'p-occasional' && m.answers.practice === 'p-steady' && m.asks.practice.firm === 'preference' },
+    { sc: 'one', key: 'p4', says: 'chose “I practise occasionally”, where you chose “Prayer is steady and central to my days”, and you marked practice as a preference', holds: (m, p) => p.answers.practice === 'p-occasional' && m.answers.practice === 'p-steady' && m.asks.practice.firm === 'preference' },
   ]
 
   it.each(SIDES)('the specific claims each summary makes are true of the answers, for a tester who is a %s', (side) => {
@@ -278,5 +278,206 @@ describe('the criteria', () => {
     for (const c of CRITERIA) expect(c.options.length).toBeGreaterThanOrEqual(2)
     const all = JSON.stringify(CRITERIA).toLowerCase()
     for (const banned of ['qabiil', 'clan', 'mahr', 'going back', 'going-back']) expect(all).not.toContain(banned)
+  })
+})
+
+// MATCH-04: what each line of the fixed text is based on.
+//
+// These are REFERENCE checks. They show that every cited answer exists, belongs to the person it is attributed to,
+// and is the text on screen, and that every quotation in a summary or a question is a label or an exact piece of a
+// cited written answer. They do not show that a question follows from what it cites, that it invents no problem or
+// motive, or that the prose is accurate: that was read by hand, sentence by sentence (docs/MATCH-PROTOTYPE.md).
+describe('what the fixed text is based on (MATCH-04)', () => {
+  const quotes = (text: string) => [...text.matchAll(/“([^”]+)”/g)].map((m) => m[1])
+  const cases = SIDES.flatMap((side) =>
+    SCENARIOS.flatMap((sc) => {
+      const self = selfOf(sc.id, side)
+      return evaluate(self, peopleFor(side)).shown.map((p) => ({ side, sc, self, p, why: `${side}/${sc.id}/${p.id}` }))
+    }),
+  )
+
+  it('gives every question a basis or marks it general, and says what each summary draws on', () => {
+    expect(cases.length).toBeGreaterThan(0)
+    for (const { sc, p, why } of cases) {
+      const text = pairTextFor(sc.id, p.id)!
+      expect(Array.isArray(text.summaryWords), why).toBe(true)
+      expect(text.questions, why).toHaveLength(3)
+      for (const q of text.questions) expect(q.basis === 'general' || (Array.isArray(q.basis) && q.basis.length > 0), `${why}: ${q.text}`).toBe(true)
+    }
+  })
+
+  it('resolves every cited answer from the data, for the person it belongs to', () => {
+    for (const { side, sc, self, p, why } of cases) {
+      const text = pairFixture(self, sc.id, p)
+      if (!text.available) throw new Error(why)
+      const raw = pairTextFor(sc.id, p.id)!
+      for (const q of raw.questions) {
+        if (q.basis === 'general') continue
+        // Written answers cited are the other person’s, never the tester’s.
+        for (const r of q.basis) if ('words' in r) expect(r.who, `${why}: ${q.text}`).toBe('them')
+        const resolved = resolveBasis(q.basis, self, p)
+        expect(resolved).toHaveLength(new Set(q.basis.map((r) => ('pick' in r ? r.pick : `w${r.words}`))).size)
+        for (const r of resolved) {
+          if (r.kind === 'pick') {
+            expect(CRITERION_IDS, why).toContain(r.point)
+            if (r.you !== undefined) expect(r.you, why).toBe(labelOf(r.point, self.answers[r.point]))
+            if (r.them !== undefined) expect(r.them, why).toBe(labelOf(r.point, p.answers[r.point]))
+          } else {
+            expect(r.text, why).toBe(p.words[r.index])
+            expect(r.text.trim(), why).not.toBe('')
+            expect(r.prompt, why).toBe(PROMPTS[r.index].short)
+            expect(sc.words, `${why}: the tester’s own words are never cited`).not.toContain(r.text)
+          }
+        }
+      }
+      expect(side).toBeTruthy()
+    }
+  })
+
+  it('every quotation in a summary or a question is a cited answer’s label or an exact piece of a cited written answer', () => {
+    for (const { sc, self, p, why } of cases) {
+      const raw = pairTextFor(sc.id, p.id)!
+      const filled = pairFixture(self, sc.id, p)
+      if (!filled.available) throw new Error(why)
+      const labelsOf = (points: (typeof CRITERION_IDS)[number][]) => points.flatMap((id) => [labelOf(id, self.answers[id]), labelOf(id, p.answers[id])])
+      // The summary: labels of the points its facts claim; a quotation from a written answer only if summaryWords names it.
+      const claimed = [...raw.facts.same, ...raw.facts.workable, ...raw.facts.differs]
+      for (const quote of quotes(filled.text.summary)) {
+        if (labelsOf(claimed).includes(quote)) continue
+        const from = p.words.findIndex((w) => w.includes(quote))
+        expect(from, `${why}: summary quotes “${quote}”`).toBeGreaterThanOrEqual(0)
+        expect(raw.summaryWords, `${why}: summary quotes a written answer`).toContain(from)
+      }
+      // Each question: only what it cites.
+      filled.text.questions.forEach((q, i) => {
+        const qb = raw.questions[i].basis
+        const cited = qb === 'general' ? [] : qb
+        const points = cited.flatMap((r) => ('pick' in r ? [r.pick] : []))
+        const words = cited.flatMap((r) => ('words' in r ? [p.words[r.words]] : []))
+        for (const quote of quotes(q.text)) {
+          const ok = labelsOf(points).includes(quote) || words.some((w) => w.includes(quote))
+          expect(ok, `${why}: question ${i + 1} quotes “${quote}” without citing it`).toBe(true)
+        }
+      })
+    }
+  })
+
+  it('marks exactly the questions that draw on no answer as general, and they quote nothing', () => {
+    const general = Object.entries(PAIR_TEXT).flatMap(([sc, by]) =>
+      Object.entries(by!).flatMap(([key, t]) => t.questions.flatMap((q, i) => (q.basis === 'general' ? [`${sc}/${key}/${i + 1}`] : []))),
+    )
+    expect(general.sort()).toEqual(['three/p1/2', 'three/p3/1'])
+    for (const by of Object.values(PAIR_TEXT)) for (const t of Object.values(by!)) for (const q of t.questions) if (q.basis === 'general') expect(quotes(q.text)).toEqual([])
+  })
+
+  it('writes each line of a basis from the data, and names the points a summary uses in the form’s order', () => {
+    const me = selfOf('three', 'woman')
+    const [, p2] = peopleFor('woman')
+    const [pick] = resolveBasis([{ who: 'you', pick: 'work' }, { who: 'them', pick: 'work' }], me, p2)
+    expect(basisLine(pick, p2.firstName)).toBe('Work. You: “I plan to work”. Liban: “I plan to be at home”.')
+    const [one] = resolveBasis([{ who: 'them', pick: 'children' }], me, p2)
+    expect(basisLine(one, p2.firstName)).toBe('Children. Liban: “I am open to them, and would decide together”.')
+    const [words] = resolveBasis([{ who: 'them', words: 0 }], me, p2)
+    expect(basisLine(words, p2.firstName)).toBe('Liban’s written answer, Looking for: “I am looking for someone kind and patient who wants to build slowly.”')
+    expect(summaryPoints({ same: ['city'], workable: ['timeline'], differs: ['work', 'children'] })).toEqual(['timeline', 'children', 'city', 'work'])
+  })
+
+  it('reads the same reference from whichever person it is resolved for', () => {
+    const me = selfOf('three', 'woman')
+    const [p1, p2] = peopleFor('woman')
+    const a = resolveBasis([{ who: 'them', pick: 'work' }], me, p1)[0]
+    const b = resolveBasis([{ who: 'them', pick: 'work' }], me, p2)[0]
+    expect(a).toMatchObject({ them: 'I plan to work' })
+    expect(b).toMatchObject({ them: 'I plan to be at home' })
+  })
+
+  // The corrections this change made.
+  it('words no practice answer as something a person described, and keeps Yusuf’s answer under Families about family', () => {
+    for (const by of Object.values(PAIR_TEXT)) for (const t of Object.values(by!)) expect(t.summary).not.toMatch(/describes? \{his\}|describes? \{her\}/)
+    const yusuf = peopleFor('woman')[2]
+    expect(PROMPTS[2].short).toBe('Families')
+    expect(yusuf.words[2]).toMatch(/\bfamily\b/i)
+    expect(yusuf.words[2]).not.toMatch(/honest disagreement/)
+    // Nothing new about him: the family idea in his third answer is the one already in his first.
+    expect(yusuf.words[0]).toMatch(/\bfamily\b/i)
+    expect(yusuf.answers.household).toBe('h-family')
+  })
+})
+
+// MATCH-04 follow-up: five questions reworded to invite clarification, with the references that support them.
+describe('the reworded questions, on both sides', () => {
+  const texts = (side: Side, sc: 'three' | 'one', key: string) => {
+    const self = selfOf(sc, side)
+    const p = peopleFor(side).find((x) => x.id.endsWith(key))!
+    const f = pairFixture(self, sc, p)
+    if (!f.available) throw new Error(`${side}/${sc}/${key}`)
+    return { self, p, q: f.text.questions.map((x) => x.text), raw: PAIR_TEXT[sc]![key].questions }
+  }
+
+  const NAMES = { woman: { p1: 'Abdi', p2: 'Liban' }, man: { p1: 'Amina', p2: 'Sahra' } } as const
+  it.each(SIDES)('say exactly this, with the right fixture name, for a tester who is a %s', (side) => {
+    const n = NAMES[side]
+    expect(texts(side, 'three', 'p1').q[0]).toBe('What does prayer look like in an ordinary week for each of you?')
+    expect(texts(side, 'three', 'p1').q[2]).toBe(`${n.p1} wrote about families knowing you both while leaving daily decisions to the couple. What would that involvement look like for each of you?`)
+    expect(texts(side, 'three', 'p2').q[0]).toBe(`${n.p2} chose “I plan to be at home”. What would you want to understand about that day to day?`)
+    expect(texts(side, 'three', 'p2').q[1]).toBe('You chose different marriage timelines. What timing could work for both of you?')
+    expect(texts(side, 'one', 'p4').q[1]).toBe('What would each of you want your partner to understand about your practice?')
+  })
+
+  it('cite the answers they are about, and nothing else', () => {
+    const cites = (key: string, sc: 'three' | 'one', i: number) => JSON.stringify(PAIR_TEXT[sc]![key].questions[i].basis)
+    expect(cites('p1', 'three', 0)).toBe(JSON.stringify([{ who: 'you', pick: 'practice' }, { who: 'them', pick: 'practice' }]))
+    expect(cites('p1', 'three', 2)).toBe(JSON.stringify([{ who: 'them', words: 2 }]))
+    expect(cites('p2', 'three', 0)).toBe(JSON.stringify([{ who: 'them', pick: 'work' }]))
+    expect(cites('p2', 'three', 1)).toBe(JSON.stringify([{ who: 'you', pick: 'timeline' }, { who: 'them', pick: 'timeline' }]))
+    expect(cites('p4', 'one', 1)).toBe(JSON.stringify([{ who: 'you', pick: 'practice' }, { who: 'them', pick: 'practice' }]))
+  })
+
+  // What a question says about the answers is checked in every scenario and on every side where it can render.
+  it('say only what the answers say, wherever they render', () => {
+    const rendered: string[] = []
+    for (const side of SIDES) {
+      for (const sc of SCENARIOS) {
+        const self = selfOf(sc.id, side)
+        for (const p of evaluate(self, peopleFor(side)).shown) {
+          const f = pairFixture(self, sc.id, p)
+          if (!f.available) continue
+          for (const q of f.text.questions) {
+            // “Name chose “I plan to be at home”.” is the person’s own answer, under their own name.
+            if (q.text === `${p.firstName} chose “I plan to be at home”. What would you want to understand about that day to day?`) {
+              rendered.push(`${side}/${sc.id}/${p.id}: home`)
+              expect(p.answers.work, `${side}/${sc.id}/${p.id}`).toBe('w-home')
+            }
+            // Different timelines. Nothing is said about what either asked for.
+            if (q.text.startsWith('You chose different marriage timelines.')) {
+              rendered.push(`${side}/${sc.id}/${p.id}: timing`)
+              expect(p.answers.timeline, `${side}/${sc.id}/${p.id}`).not.toBe(self.answers.timeline)
+              expect(q.text).not.toMatch(/asked for|fit/)
+            }
+            // “Name wrote about families…” is the person’s own written answer about families, under their own name.
+            if (q.text.startsWith(`${p.firstName} wrote about families knowing you both while leaving daily decisions to the couple.`)) {
+              rendered.push(`${side}/${sc.id}/${p.id}: families`)
+              expect(p.words[2]).toBe('I expect our families to know us both well, and to leave the daily decisions to us.')
+            }
+          }
+        }
+      }
+    }
+    // Each renders only in the one sample scenario it was written for, on both sides.
+    expect(rendered.sort()).toEqual([
+      'man/three/woman-p1: families',
+      'man/three/woman-p2: home',
+      'man/three/woman-p2: timing',
+      'woman/three/man-p1: families',
+      'woman/three/man-p2: home',
+      'woman/three/man-p2: timing',
+    ])
+  })
+
+  it('invite clarification: none of the five says a difference is a problem or asks what someone would give up', () => {
+    for (const [sc, key, i] of [['three', 'p1', 0], ['three', 'p1', 2], ['three', 'p2', 0], ['three', 'p2', 1], ['one', 'p4', 1]] as const) {
+      const text = PAIR_TEXT[sc]![key].questions[i].text
+      expect(text, `${sc}/${key}/${i + 1}`).not.toMatch(/\b(problem|issue|conflict|struggle|worry|concern|give up|compromise|sacrifice|disagree)/i)
+    }
   })
 })

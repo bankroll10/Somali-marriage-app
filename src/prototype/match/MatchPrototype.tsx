@@ -1,4 +1,4 @@
-import { useReducer, useRef } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import { TextButton } from '../../components/ui'
 import { FocusHeading } from '../../hooks/useFocusHeading'
 import { initial, reduce } from './flow'
@@ -15,6 +15,12 @@ import { People, Suggestion, Suggestions } from './screens/Browse'
 export default function MatchPrototype() {
   const [s, dispatch] = useReducer(reduce, undefined, initial)
   const ref = useRef<HTMLDivElement>(null)
+  // A message not yet sent, for each person. Held here so that looking at their profile and coming back does not lose it;
+  // it is cleared by Start again and, like everything else, by a reload.
+  const [drafts, setDrafts] = useState<Record<string, string>>({})
+  useEffect(() => {
+    if (s.stage === 'front') setDrafts((d) => (Object.keys(d).length ? {} : d))
+  }, [s.stage])
 
   const screen = (() => {
     switch (s.stage) {
@@ -35,7 +41,7 @@ export default function MatchPrototype() {
       case 'people':
         return <People s={s} dispatch={dispatch} />
       case 'conversation':
-        return <Conversation s={s} dispatch={dispatch} />
+        return <Conversation s={s} dispatch={dispatch} draft={drafts[s.focus ?? ''] ?? ''} setDraft={(text) => s.focus && setDrafts((d) => ({ ...d, [s.focus!]: text }))} />
       case 'notes':
         return <Notes dispatch={dispatch} from={s.from} />
     }

@@ -87,6 +87,8 @@ export interface Session {
   editing: boolean
   /** Where the notes page returns to. */
   from: Stage
+  /** The screen that opened the profile on screen: Back from the profile returns there. */
+  origin: Stage
   me: Me
   /** Fixed when the suggestions are first shown; never refilled. */
   shown: PersonId[]
@@ -131,6 +133,7 @@ export const initial = (): Session => ({
   point: 0,
   editing: false,
   from: 'front',
+  origin: 'suggestions',
   me: emptyMe(),
   shown: [],
   decision: {},
@@ -277,6 +280,12 @@ export const UNDO_POLICY: Record<Action['type'], 'keep' | 'clear' | 'own'> = {
   report: 'clear',
 }
 
+/**
+ * Whether a person’s profile may be shown: not once they are blocked or a conversation with
+ * them has ended. Their profile is for people the tester has not closed the door on.
+ */
+const profileOpen = (s: Session, id: PersonId): boolean => s.decision[id] !== 'blocked' && (s.links[id]?.status ?? 'open') === 'open'
+
 const navigates = (s: Session, a: Extract<Action, { type: 'go' }>): boolean =>
   a.stage !== s.stage || (a.focus ?? s.focus) !== s.focus || (a.point ?? s.point) !== s.point
 
@@ -313,8 +322,12 @@ function step(s: Session, a: Action): Session {
 
     case 'go': {
       const setup = a.stage === 'about' || a.stage === 'point' || a.stage === 'words'
+      const target = a.focus ?? s.focus
+      if (a.stage === 'suggestion' && target && !profileOpen(s, target)) return s
       return {
         ...s,
+        // A profile remembers the screen that opened it; the notes page and the profile itself do not count.
+        origin: a.stage === 'suggestion' && s.stage !== 'suggestion' && s.stage !== 'notes' ? s.stage : s.origin,
         stage: a.stage,
         focus: a.focus ?? s.focus,
         point: a.point ?? s.point,
@@ -446,7 +459,8 @@ function endLink(s: Session, person: PersonId, status: 'ended' | 'blocked'): Ses
   return {
     ...s,
     sheet: null,
-    stage: s.stage === 'conversation' && s.focus === person ? 'people' : s.stage,
+    // Leaves the conversation or the profile it was reached from, as a block does.
+    stage: s.stage === 'conversation' || s.stage === 'suggestion' ? 'people' : s.stage,
     links: { ...s.links, [person]: { status, messages: [], youShare: false } },
     they: { ...s.they, [person]: { ...s.they[person], sharePhoto: false } },
     focus: person,

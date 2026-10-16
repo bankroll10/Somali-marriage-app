@@ -83,7 +83,7 @@ const TEMPLATES: Template[] = [
     words: [
       'I am close to my family and I want a marriage that includes them without being run by them.',
       'I am not rushing, and I am not waiting for a perfect version of anyone either.',
-      'Tell me what an honest disagreement looks like for you.',
+      'I expect my family to be part of our life, and I expect us to make our own decisions.',
     ],
     interestedInYou: true,
     replies: ['Salaam. Where do you see yourself living, and how fixed is that?', 'My family would want to know your family. How do you feel about that?'],
@@ -270,44 +270,69 @@ export interface PairFacts {
   differs: CriterionId[]
 }
 
+/**
+ * A pointer to one answer a line of the fixed text was written from: a point (the
+ * tester’s answer, the other person’s, or both), or one of the other person’s written
+ * answers. The words are resolved from the data when shown, never copied here, and a
+ * written answer can only be the other person’s: the tester’s own words are not cited.
+ */
+export type Ref = { who: 'you' | 'them'; pick: CriterionId } | { who: 'them'; words: 0 | 1 | 2 }
+
+export interface PairQuestion {
+  text: string
+  /** What the question was written from, or `general`: it draws on no answer of either person. */
+  basis: Ref[] | 'general'
+}
+
 export interface PairText {
   /** Two sentences, standing in for an AI summary. Written only from the scenario's structured answers. */
   summary: string
+  /** Which of the other person’s written answers the summary draws on. Empty: it uses structured answers only. */
+  summaryWords: (0 | 1 | 2)[]
   /** Three questions, standing in for AI-suggested questions. */
-  questions: string[]
+  questions: PairQuestion[]
   facts: PairFacts
 }
+
+const you = (pick: CriterionId): Ref => ({ who: 'you', pick })
+const them = (pick: CriterionId): Ref => ({ who: 'them', pick })
+const theirWords = (words: 0 | 1 | 2): Ref => ({ who: 'them', words })
+const both = (pick: CriterionId): Ref[] => [you(pick), them(pick)]
+const general = 'general' as const
 
 /** Fixed pair texts: [scenario][person template key]. Only people who are eligible in a scenario have one. */
 export const PAIR_TEXT: Partial<Record<ScenarioId, Record<string, PairText>>> = {
   three: {
     p1: {
       summary:
-        'You and {name} give the same answers on timing, children, city, work and household, and you both want to marry within a year. {He} describes {his} practice as steadier than yours.',
+        'You and {name} give the same answers on timing, children, city, work and household, and you both want to marry within a year. On practice, {name} chose “Prayer is steady and central to my days”, a steadier answer than your “I am building the habit”.',
+      summaryWords: [],
       questions: [
-        'What does a week of prayer and rest look like in the home you each imagine?',
-        'What would you want settled before you marry, and what can wait?',
-        'What do you each want your families to know about you, and when?',
+        { text: 'What does prayer look like in an ordinary week for each of you?', basis: both('practice') },
+        { text: 'What would you want settled before you marry, and what can wait?', basis: general },
+        { text: '{name} wrote about families knowing you both while leaving daily decisions to the couple. What would that involvement look like for each of you?', basis: [theirWords(2)] },
       ],
       facts: { same: ['timeline', 'children', 'city', 'work', 'household'], workable: ['practice'], differs: [] },
     },
     p2: {
       summary:
         '{name} is a little later on timing (one to two years, where you said within a year) and open on children where you said you want them. The one difference you marked as a preference is work: {name} plans to be at home and you plan to work.',
+      summaryWords: [],
       questions: [
-        'What does being at home mean to you: always, for a time, or while children are small?',
-        'What would you want in place before the wedding, given your different timing?',
-        'What would you each want to decide together about children?',
+        { text: '{name} chose “I plan to be at home”. What would you want to understand about that day to day?', basis: [them('work')] },
+        { text: 'You chose different marriage timelines. What timing could work for both of you?', basis: both('timeline') },
+        { text: 'What would you each want to decide together about children?', basis: both('children') },
       ],
       facts: { same: [], workable: ['timeline', 'children'], differs: ['work'] },
     },
     p3: {
       summary:
         '{name} meets your requirements on timing and children. {He} differs from your preferences on practice, city, work and household, and lives in Toronto, where you do not.',
+      summaryWords: [],
       questions: [
-        'Which of these differences would you each want to talk through first?',
-        'Where would each of you want to live, and what would you give up for it?',
-        'How do you each picture daily life with family nearby?',
+        { text: 'Which of these differences would you each want to talk through first?', basis: general },
+        { text: 'You live in different cities. How does each of you see where you would live?', basis: both('city') },
+        { text: '{name} chose “With family” and you chose “Our own home” for where to live at first. What does each of you picture?', basis: both('household') },
       ],
       facts: { same: [], workable: ['timeline', 'children'], differs: ['practice', 'city', 'work', 'household'] },
     },
@@ -315,11 +340,12 @@ export const PAIR_TEXT: Partial<Record<ScenarioId, Record<string, PairText>>> = 
   one: {
     p4: {
       summary:
-        'You and {name} give the same answers on timing, children, city and household. {He} describes {his} practice as occasional, where you describe yours as steady, which you marked as a preference.',
+        'You and {name} give the same answers on timing, children, city and household. On practice, {name} chose “I practise occasionally”, where you chose “Prayer is steady and central to my days”, and you marked practice as a preference.',
+      summaryWords: [],
       questions: [
-        'What does practice look like for you in an ordinary week?',
-        'What would you each want from the other around prayer and the home?',
-        'What would make a longer timeline feel right to you both?',
+        { text: 'What does practice look like for you in an ordinary week?', basis: [them('practice'), theirWords(1)] },
+        { text: 'What would each of you want your partner to understand about your practice?', basis: both('practice') },
+        { text: '{name} wrote about “a pace that suits both of us”. What does a good pace look like for you?', basis: [...both('timeline'), theirWords(0)] },
       ],
       facts: { same: ['timeline', 'children', 'city', 'household'], workable: [], differs: ['practice'] },
     },

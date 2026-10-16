@@ -366,6 +366,54 @@ describe('regression: what MATCH-02 must not change', () => {
   })
 })
 
+// MATCH-04: a profile can be opened from a conversation and from Your people, and Back returns to where it was opened.
+describe('the profile of someone with an open conversation (MATCH-04)', () => {
+  const mutual = () => apply(session('woman', 'three'), { type: 'decide', person: A, choice: 'interested' })
+
+  it('remembers the screen that opened it, and keeps that through the notes page', () => {
+    const base = mutual()
+    expect(reduce(apply(base, { type: 'go', stage: 'people' }), { type: 'go', stage: 'suggestion', focus: A }).origin).toBe('people')
+    expect(reduce(apply(base, { type: 'go', stage: 'conversation', focus: A }), { type: 'go', stage: 'suggestion', focus: A }).origin).toBe('conversation')
+    const fromList = apply(base, { type: 'go', stage: 'suggestions' }, { type: 'go', stage: 'suggestion', focus: C })
+    expect(fromList.origin).toBe('suggestions')
+    // The notes page is not the screen that opened the profile.
+    const viaNotes = apply(base, { type: 'go', stage: 'conversation', focus: A }, { type: 'go', stage: 'suggestion', focus: A }, { type: 'go', stage: 'notes' }, { type: 'go', stage: 'suggestion' })
+    expect(viaNotes.origin).toBe('conversation')
+  })
+
+  it('changes nothing about interest, the conversation, photos or what the other person chose', () => {
+    let s = apply(mutual(), { type: 'send', person: A, text: 'Salaam' }, { type: 'sharePhoto', person: A }, { type: 'theyShare', person: A, on: true })
+    s = apply(s, { type: 'go', stage: 'conversation', focus: A })
+    const viewed = apply(s, { type: 'go', stage: 'suggestion', focus: A }, { type: 'go', stage: 'conversation', focus: A })
+    expect(viewed.decision).toEqual(s.decision)
+    expect(viewed.links).toEqual(s.links)
+    expect(viewed.they).toEqual(s.they)
+    expect(viewed.shown).toEqual(s.shown)
+    expect(viewed.reports).toEqual(s.reports)
+    expect(viewed.stage).toBe('conversation')
+    expect(viewed.focus).toBe(A)
+  })
+
+  it('is not opened for someone who was blocked or whose conversation ended', () => {
+    for (const end of [{ type: 'block', person: A }, { type: 'disconnect', person: A }, { type: 'theyEnd', person: A }] as Action[]) {
+      const s = apply(mutual(), end, { type: 'go', stage: 'people' })
+      expect(reduce(s, { type: 'go', stage: 'suggestion', focus: A }), end.type).toBe(s)
+    }
+    // Blocked before any conversation: also closed.
+    const blocked = apply(session('woman', 'three'), { type: 'block', person: C }, { type: 'go', stage: 'people' })
+    expect(reduce(blocked, { type: 'go', stage: 'suggestion', focus: C })).toBe(blocked)
+  })
+
+  it('leaves the profile when the conversation ends from it, as a block already did', () => {
+    const open = apply(mutual(), { type: 'go', stage: 'suggestion', focus: A })
+    for (const end of [{ type: 'disconnect', person: A }, { type: 'theyEnd', person: A }, { type: 'block', person: A }] as Action[]) {
+      const s = apply(open, end)
+      expect(s.stage, end.type).toBe('people')
+      expect(s.links[A].status).not.toBe('open')
+    }
+  })
+})
+
 // ── Properties, over random sequences of every action ────────────────────────────
 
 const IDS = peopleFor('woman').map((p) => p.id)
@@ -388,7 +436,7 @@ const action: fc.Arbitrary<Action> = fc.oneof(
   fc.record({ type: fc.constant('report' as const), person, reason: fc.constant('Something else'), note: text }),
   fc.record({ type: fc.constant('openSheet' as const), kind: fc.constantFrom('disconnect' as const, 'block' as const, 'report' as const), person }),
   fc.record({ type: fc.constant('closeSheet' as const) }),
-  fc.record({ type: fc.constant('go' as const), stage: fc.constantFrom('people' as const, 'suggestions' as const, 'conversation' as const), focus: person }),
+  fc.record({ type: fc.constant('go' as const), stage: fc.constantFrom('people' as const, 'suggestions' as const, 'conversation' as const, 'suggestion' as const), focus: person }),
   fc.record({ type: fc.constant('show' as const) }),
 )
 
@@ -462,6 +510,11 @@ function check(prev: Session, next: Session, a: Action) {
   if (prev.undo && UNDO_POLICY[a.type] === 'clear' && next !== prev && !(a.type === 'go' && next.stage === prev.stage && next.focus === prev.focus)) expect(next.undo).toBeNull()
   // A conversation that has ended or been blocked is never reopened, whatever the sequence.
   for (const [id, l] of Object.entries(prev.links)) if (l.status !== 'open') expect(next.links[id].status).toBe(l.status)
+  // The profile on screen is never one of a blocked person or an ended conversation (MATCH-04).
+  if (next.stage === 'suggestion' && next.focus) {
+    expect(next.decision[next.focus]).not.toBe('blocked')
+    expect(next.links[next.focus]?.status ?? 'open').toBe('open')
+  }
   // A report never changes who is blocked or connected.
   if (a.type === 'report') {
     expect(next.links).toEqual(prev.links)

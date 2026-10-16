@@ -6,7 +6,7 @@ import { FixtureBlock } from '../Fixture'
 import { fill } from '../fixtures'
 import { completeSelf, openLinks, person as personOf, visibleSuggestions, type Action, type Notice, type Session } from '../flow'
 import { H1, H2, Note, P, Screen } from '../parts'
-import { compare, orList, pairFixture, pointNames } from '../suggest'
+import { basisLine, compare, orList, pairFixture, pointNames, resolveBasis, summaryPoints } from '../suggest'
 import { CRITERION_IDS, type Person } from '../types'
 import { SafetyRow } from './Safety'
 
@@ -135,8 +135,13 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
     const d = c.differ.find((x) => x.id === id)
     return d ? [{ id, text: `${p.firstName}’s answer: “${d.theirs}”. You preferred: ${orList(d.preferred)}.` }] : []
   })
+  // Back returns to the screen that opened the profile: the conversation, Your people, or the list.
+  const backTo = s.origin === 'conversation' && link?.status === 'open' ? 'conversation' : s.origin === 'people' || s.origin === 'conversation' ? 'people' : 'suggestions'
   return (
-    <Screen onBack={() => dispatch({ type: 'go', stage: 'suggestions' })}>
+    <Screen
+      onBack={() => dispatch({ type: 'go', stage: backTo })}
+      backLabel={backTo === 'conversation' ? 'Back to conversation' : backTo === 'people' ? 'Back to your people' : undefined}
+    >
       <H1>{p.firstName}</H1>
       <p className="mt-2 text-[0.95rem] text-muted">
         {p.age} · {cityOf(p)} · Made up
@@ -172,8 +177,8 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
       <p className="mt-5 text-[0.95rem] leading-snug text-ink-soft">
         {c.lineUp.length ? `Fits what you asked for on: ${pointNames(c.lineUp.map((x) => x.id))}.` : 'None of the points you compared fit what you asked for.'}
       </p>
-      <details className="mt-2 rounded-2xl border border-line bg-white/40 px-4 py-2.5">
-        <summary className="cursor-pointer py-1 text-[0.92rem] font-medium text-ink">{`${p.firstName}’s answers on each point`}</summary>
+      <details className="mt-2 rounded-2xl border border-line bg-white/40 px-4">
+        <summary className="min-h-11 cursor-pointer py-3 text-[0.92rem] font-medium text-ink">{`${p.firstName}’s answers on each point`}</summary>
         <ul className="mt-2 grid gap-1.5 pb-2 text-[0.93rem] leading-snug text-ink-soft">
           {answered.map((x) => (
             <li key={x.id}>
@@ -186,17 +191,53 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
 
       <div className="mt-8">
         <FixtureBlock id="fx-notes" title="Summary and questions" result={fixture}>
-          {(f) => (
-            <>
-              <p className="text-[0.98rem] leading-relaxed text-ink-soft text-pretty">{f.text.summary}</p>
-              <h4 className="mt-4 font-medium text-ink">Questions worth asking</h4>
-              <ul className="mt-1.5 list-disc pl-5 text-[0.98rem] leading-relaxed text-ink-soft">
-                {f.text.questions.map((q) => (
-                  <li key={q}>{q}</li>
-                ))}
-              </ul>
-            </>
-          )}
+          {(f) => {
+            const points = summaryPoints(f.text.facts)
+            return (
+              <>
+                <p className="text-[0.98rem] leading-relaxed text-ink-soft text-pretty">{f.text.summary}</p>
+                <h4 className="mt-4 font-medium text-ink">Questions worth asking</h4>
+                <ol className="mt-1.5 list-decimal pl-5 text-[0.98rem] leading-relaxed text-ink-soft">
+                  {f.text.questions.map((q) => (
+                    <li key={q.text}>
+                      {q.text}
+                      {q.basis === 'general' && <span className="block text-[0.84rem] leading-snug text-muted">General question.</span>}
+                    </li>
+                  ))}
+                </ol>
+                <details className="mt-4 rounded-2xl border border-line bg-white/50 px-4">
+                  <summary className="min-h-11 cursor-pointer py-3 text-[0.92rem] font-medium text-ink">What this is based on</summary>
+                  <div className="pb-3 text-[0.9rem] leading-snug text-ink-soft">
+                    <p className="text-pretty">
+                      <span className="font-medium text-ink">Summary.</span>{' '}
+                      {f.text.summaryWords.length === 0
+                        ? `This summary uses structured answers only: your answers and ${p.firstName}’s on ${pointNames(points)}. It does not use anything either of you wrote.`
+                        : `This summary uses your answers and ${p.firstName}’s on ${pointNames(points)}, and ${p.firstName}’s written answers: ${f.text.summaryWords.map((i) => PROMPTS[i].short).join(', ')}.`}
+                    </p>
+                    <ol className="mt-3 grid gap-2">
+                      {f.text.questions.map((q, i) => (
+                        <li key={q.text} className="text-pretty">
+                          <span className="font-medium text-ink">{`Question ${i + 1}.`}</span>{' '}
+                          {q.basis === 'general' ? (
+                            'General question. It is not drawn from either person’s answers.'
+                          ) : (
+                            <span className="block">
+                              {resolveBasis(q.basis, self, p).map((r, j) => (
+                                <span key={j} className="block">
+                                  {basisLine(r, p.firstName)}
+                                </span>
+                              ))}
+                            </span>
+                          )}
+                        </li>
+                      ))}
+                    </ol>
+                    <p className="mt-3 text-[0.84rem] text-muted text-pretty">These show what each line was written from. They do not show that a line follows from them.</p>
+                  </div>
+                </details>
+              </>
+            )
+          }}
         </FixtureBlock>
       </div>
 
@@ -288,9 +329,12 @@ export function People({ s, dispatch }: { s: Session; dispatch: D }) {
       {open.length ? (
         <ul className="mt-3 grid gap-3">
           {open.map((id) => (
-            <li key={id}>
+            <li key={id} className="flex flex-wrap items-center gap-2">
               <Button variant="soft" onClick={() => dispatch({ type: 'go', stage: 'conversation', focus: id })}>
                 {`Open conversation with ${name(id)}`}
+              </Button>
+              <Button variant="outline" className="!px-5 !py-2.5" onClick={() => dispatch({ type: 'go', stage: 'suggestion', focus: id })}>
+                {`View profile of ${name(id)}`}
               </Button>
             </li>
           ))}

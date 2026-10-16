@@ -184,6 +184,69 @@ finish setup sooner, and no participant, screen reader or real person was involv
 into fewer steps, or leaving eight short ones, has not been made and is better made on a person's experience than on
 these numbers.
 
+## MATCH-04: the profile after mutual interest, and what the fixed text is based on
+
+Prompted by a review of the suggestion screens (the three-, one- and zero-suggestion scenarios, on both sides). Setup,
+eligibility, interest, withdrawing, undoing, photo consent and messaging behave as before, apart from the navigation
+state listed below.
+
+- **The profile stays reachable once there is a conversation.** Before this, the screen with the person's words, the
+  differences, the summary and the questions could not be reopened after mutual interest. Now **View profile of Name**
+  is on each open conversation and beside "Open conversation with Name" on Your people. Back from the profile returns to
+  the screen that opened it (**Back to conversation**, **Back to your people**, or Back to the list), and the thread and
+  an unsent draft are kept. Viewing changes no choice, reopens nothing and shows no photo. A blocked person, and a
+  conversation that has ended, offer no profile and cannot be opened by navigation.
+- **What the fixed text is based on, on request.** Under the summary and the three questions (now a numbered list),
+  one native disclosure, **What this is based on**, is closed by default. It says whether the summary uses structured
+  answers only (all four do: "It does not use anything either of you wrote"), and for each question lists the answers
+  it cites, resolved from the data for the right person ("Work. You: "I plan to work". Liban: "I plan to be at home""),
+  with a person's written answer quoted in full under the prompt it answers. A question that draws on no answer of
+  either person is marked **General question.** in view and in the disclosure; two are (Abdi's second, Yusuf's first),
+  and they were left as written. The block is still the one labelled "Prototype fixture", with no model called.
+- **Wording corrected where it presumed or drifted.** Yusuf's city question no longer asks what a person would "give up"; his
+  household question quotes his answer ("With family") and the tester's, where it had said "family nearby"; Hassan's
+  timeline question quotes his own words ("a pace that suits both of us") where it had asked what would make a longer
+  timeline "feel right" for two people who chose the same one. Both practice summaries said a person "describes" a
+  practice that they had selected; they now say they chose it. Yusuf's third written answer, shown under "Families",
+  answered something else; it now speaks of family, using the idea already in his first answer and his household answer.
+  Nothing else about any fixture person changed. A review then reworded five more questions to invite clarification and
+  drop what the answers do not say (Abdi 1 and 3, Liban 1 and 2, Hassan 2), with their references updated.
+- **One target made full size.** "Name's answers on each point" (MATCH-02) is now a 44 px minimum target. It is still a
+  native disclosure with the browser's own keyboard focus.
+- **State changes (not just wording).** `Session.origin` records the screen that opened the profile. `go` to a profile is
+  refused for a blocked person or an ended conversation. Ending a conversation (disconnect, or the simulated person
+  ending it) now leaves the profile for Your people, as a block already did; before, it left only the conversation
+  screen. Back from a profile opened from Your people now returns there; it used to go to the list, where a person
+  already chosen no longer appears. A draft is held by the page, for each person, not in the reducer, and is cleared by
+  Start again.
+
+**What the reference checks are, and are not.** Tests check that every cited answer exists, belongs to the person it is
+attributed to and is what is on screen, that a written answer cited is the other person's and never the tester's, and
+that every quotation in a summary or a question is a label of a cited answer or an exact piece of a cited written
+answer. They do **not** show that a question follows from what it cites, that it invents no problem or motive, or that
+the prose is accurate.
+
+**Read by hand, as the meaning check** (one reviewer; a reading, not a measure). Each question against what it cites:
+
+| Question (about) | Cites | Reading |
+|---|---|---|
+| Abdi 1, prayer in an ordinary week | practice, both | Follows; invents nothing. |
+| Abdi 2, what to settle | none | General. |
+| Abdi 3, "Abdi wrote about families knowing you both while leaving daily decisions to the couple…" | his Families answer | Follows: it restates his own words under his name, and "involvement" is the word the prompt uses. |
+| Liban 1, "Liban chose "I plan to be at home"…" | his work answer | Follows; quotes his label exactly, under his name. |
+| Liban 2, "You chose different marriage timelines that fit what you each asked for…" | timing, both | Follows, and the sentence is true wherever it renders (tested: the timelines differ, and each fits what the other asked for). "agree on timing" treats timing as something to settle together, not as a problem. |
+| Liban 3, what to decide together about children | children, both | Follows; "decide together" is in his own answer. |
+| Yusuf 1, which difference first | none | General. |
+| Yusuf 2, how each sees where to live | city, both | Follows; the cities differ. |
+| Yusuf 3, what each pictures at first | household, both | Follows; quotes both answers exactly. |
+| Hassan 1, practice in an ordinary week | his practice, his second written answer | Follows. |
+| Hassan 2, what each would want a partner to understand about their practice | practice, both | Follows; invents nothing. |
+| Hassan 3, a good pace | timing both, his first written answer | Follows; the quotation is exact; no problem is assumed. |
+
+One thing this does not settle: Yusuf's new third answer is my paraphrase of the idea in his first ("includes them
+without being run by them"), so his first and third now say much the same (kept as delivered). The summaries were re-read
+sentence by sentence, as before.
+
 ## What is not covered
 
 - **Age is shown and not used.** Age preferences are not built in this slice, so the eligibility checks do not cover

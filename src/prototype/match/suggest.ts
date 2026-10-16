@@ -1,5 +1,5 @@
-import { criterionOf, labelOf, nameOf } from './criteria'
-import { fill, fingerprint, pairTextFor, scenarioFingerprint, type PairText } from './fixtures'
+import { PROMPTS, criterionOf, labelOf, nameOf } from './criteria'
+import { fill, fingerprint, pairTextFor, scenarioFingerprint, type PairFacts, type PairText, type Ref } from './fixtures'
 import { CRITERION_IDS, type Answers, type Asks, type CriterionId, type Person, type ScenarioId, type Side } from './types'
 
 /**
@@ -128,10 +128,49 @@ export function pairFixture(me: Self, scenario: ScenarioId | null, person: Perso
   if (!text) return { available: false, reason: 'none-written' }
   const filled: PairText = {
     summary: fill(text.summary, person.side, person.firstName),
-    questions: text.questions.map((q) => fill(q, person.side, person.firstName)),
+    summaryWords: text.summaryWords,
+    questions: text.questions.map((q) => ({ ...q, text: fill(q.text, person.side, person.firstName) })),
     facts: text.facts,
   }
   return { available: true, text: filled, scenario }
+}
+
+/** One cited answer, read from the data: a point (either person’s answer, or both), or one of the other person’s written answers. */
+export type Resolved = { kind: 'pick'; point: CriterionId; you?: string; them?: string } | { kind: 'words'; index: 0 | 1 | 2; prompt: string; text: string }
+
+/**
+ * What the references of a line of the fixed text point at, resolved from the answers on
+ * screen. Nothing is copied from the fixture: a cited answer is shown as it now stands. A
+ * point cited for both people becomes one entry, in the order first cited.
+ */
+export function resolveBasis(refs: Ref[], me: Self, person: Person): Resolved[] {
+  const out: Resolved[] = []
+  for (const r of refs) {
+    if ('words' in r) {
+      if (!out.some((x) => x.kind === 'words' && x.index === r.words)) out.push({ kind: 'words', index: r.words, prompt: PROMPTS[r.words].short, text: person.words[r.words] })
+      continue
+    }
+    let entry = out.find((x): x is Extract<Resolved, { kind: 'pick' }> => x.kind === 'pick' && x.point === r.pick)
+    if (!entry) {
+      entry = { kind: 'pick', point: r.pick }
+      out.push(entry)
+    }
+    if (r.who === 'you') entry.you = labelOf(r.pick, me.answers[r.pick])
+    else entry.them = labelOf(r.pick, person.answers[r.pick])
+  }
+  return out
+}
+
+/** A resolved citation as one line: “Work. You: “I plan to work”. Liban: “I plan to be at home”.” */
+export function basisLine(r: Resolved, name: string): string {
+  if (r.kind === 'words') return `${name}’s written answer, ${r.prompt}: “${r.text}”`
+  return [`${nameOf(r.point)}.`, r.you !== undefined ? `You: “${r.you}”.` : '', r.them !== undefined ? `${name}: “${r.them}”.` : ''].filter(Boolean).join(' ')
+}
+
+/** The points a summary’s facts claim, in the order the form lists them. */
+export function summaryPoints(facts: PairFacts): CriterionId[] {
+  const claimed = new Set([...facts.same, ...facts.workable, ...facts.differs])
+  return CRITERION_IDS.filter((c) => claimed.has(c))
 }
 
 /** A way to reach someone: an email, a phone number, a handle or a link. Kept out of the written answers. */

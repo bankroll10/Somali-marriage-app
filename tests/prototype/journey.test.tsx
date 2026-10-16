@@ -309,7 +309,7 @@ describe('the same journey, as a man', () => {
     await toSuggestions(m, 'man')
     expect([...m.container.querySelectorAll('li h2')].map((h) => h.textContent)).toEqual(['Amina', 'Sahra', 'Ladan'])
     await m.press('Read more about Amina')
-    expect(m.text()).toContain('She describes her practice as steadier than yours.')
+    expect(m.text()).toContain('On practice, Amina chose “Prayer is steady and central to my days”, a steadier answer than your “I am building the habit”.')
     expect(m.text()).toContain('Amina is told only if she also chooses you, and you can withdraw it until then.')
     m.unmount()
   })
@@ -702,7 +702,7 @@ describe('the suggestion screen, shorter and led by their words (MATCH-02)', () 
     const details = m.container.querySelector('main details')!
     expect(details.textContent).toContain('Practice. Abdi said: “Prayer is steady and central to my days”. That works for you.')
     expect(m.text()).toContain('give the same answers on timing, children, city, work and household')
-    expect(m.text()).toContain('He describes his practice as steadier than yours.')
+    expect(m.text()).toContain('On practice, Abdi chose “Prayer is steady and central to my days”, a steadier answer than your “I am building the habit”.')
     m.unmount()
   })
 })
@@ -1073,6 +1073,305 @@ describe('setup: whose answer it is, and what each firmness means (MATCH-03)', (
       expect([...row.querySelectorAll('p')].map((p) => norm(p.textContent).split(' ').slice(0, 2).join(' '))).toEqual(['About you', 'In a', 'How firm'])
     }
     expect(m.text()).toContain('Requirements work both ways: your answers can leave you out of other people’s suggestions.')
+    m.unmount()
+  })
+})
+
+// ── MATCH-04: the profile after mutual interest, and what the fixed text is based on ─────────────
+
+const draftOf = (m: Mounted, label: string) => (field(m, label) as HTMLTextAreaElement | undefined)?.value
+const backName = (m: Mounted) => accessibleName(m.container.querySelector('header button')!)
+
+describe('the profile stays reachable after mutual interest (MATCH-04)', () => {
+  /** Abdi had chosen the tester already: choosing him opens the conversation, and the tester lands on Your people. */
+  async function mutualWithAbdi(m: Mounted) {
+    await toSuggestions(m)
+    await m.press('Read more about Abdi')
+    await m.press('I’m interested')
+    expect(h1s(m)).toEqual(['Your people.'])
+  }
+
+  it('is one tap from Your people, and Back returns there', async () => {
+    const m = await mount(<MatchPrototype />)
+    await mutualWithAbdi(m)
+    expect(m.has('View profile of Abdi')).toBe(true)
+    expect(m.has('Open conversation with Abdi')).toBe(true)
+    await m.press('View profile of Abdi')
+    expect(h1s(m)).toEqual(['Abdi'])
+    expect(m.text()).toContain('In Abdi’s words')
+    expect(m.text()).toContain('Where you differ')
+    expect(m.text()).toContain('Summary and questions')
+    expect(m.text()).toContain('Questions worth asking')
+    // Already chosen each other: no second decision to make, and a way to the conversation.
+    expect(m.has('I’m interested')).toBe(false)
+    expect(m.has('Not for me')).toBe(false)
+    expect(m.has('Open conversation with Abdi')).toBe(true)
+    expect(backName(m)).toBe('Back to your people')
+    await back(m)
+    expect(h1s(m)).toEqual(['Your people.'])
+    m.unmount()
+  })
+
+  it('is one tap from the conversation, and Back returns there with the thread and an unsent draft kept', async () => {
+    const m = await mount(<MatchPrototype />)
+    await mutualWithAbdi(m)
+    await m.press('Open conversation with Abdi')
+    expect(m.has('View profile of Abdi')).toBe(true)
+    await m.type('Write to Abdi', 'Salaam. A sent line.')
+    await m.press('Send')
+    await m.press(/Simulate: Abdi writes “Salaam\. I read your words/)
+    await m.type('Write to Abdi', 'A line not sent yet')
+    await m.press('View profile of Abdi')
+    expect(h1s(m)).toEqual(['Abdi'])
+    expect(m.text()).toContain('Questions worth asking')
+    expect(backName(m)).toBe('Back to conversation')
+    await back(m)
+    expect(h1s(m)).toEqual(['Abdi'])
+    expect(m.has('Write to Abdi')).toBe(false) // a label, not a button
+    expect(draftOf(m, 'Write to Abdi')).toBe('A line not sent yet')
+    expect(m.text()).toContain('Salaam. A sent line.')
+    expect(m.text()).toContain('Abdi (simulated)')
+    // Sending clears the draft, and it stays cleared after another look at the profile.
+    await m.press('Send')
+    expect(draftOf(m, 'Write to Abdi')).toBe('')
+    await m.press('View profile of Abdi')
+    await back(m)
+    expect(draftOf(m, 'Write to Abdi')).toBe('')
+    expect(m.text()).toContain('A line not sent yet')
+    m.unmount()
+  })
+
+  it('keeps one draft for each person', async () => {
+    const m = await mount(<MatchPrototype />)
+    await mutualWithAbdi(m)
+    await back(m)
+    await m.press('Read more about Yusuf')
+    await m.press('I’m interested')
+    await m.press('Open conversation with Abdi')
+    await m.type('Write to Abdi', 'for Abdi')
+    await back(m)
+    await m.press('Open conversation with Yusuf')
+    expect(draftOf(m, 'Write to Yusuf')).toBe('')
+    await m.type('Write to Yusuf', 'for Yusuf')
+    await m.press('View profile of Yusuf')
+    await back(m)
+    expect(draftOf(m, 'Write to Yusuf')).toBe('for Yusuf')
+    await back(m)
+    await m.press('Open conversation with Abdi')
+    expect(draftOf(m, 'Write to Abdi')).toBe('for Abdi')
+    m.unmount()
+  })
+
+  it('does not change the choice, the conversation or what was shared, and shows no photo', async () => {
+    const m = await mount(<MatchPrototype />)
+    await mutualWithAbdi(m)
+    await m.press('Open conversation with Abdi')
+    await m.press('Share my photo with Abdi')
+    await m.press('Share with Abdi')
+    await tick(m, /Simulate: Abdi shares his photo/)
+    expect(m.text().match(/photo — placeholder/g)).toHaveLength(2)
+    await m.press('View profile of Abdi')
+    expect(m.text()).toContain('No photo is part of a suggestion.')
+    expect(m.text()).not.toMatch(/photo — placeholder/)
+    expect(m.has('Share my photo')).toBe(false)
+    for (const name of ['Disconnect', 'Block', 'Report']) expect(m.has(name), name).toBe(true)
+    await back(m)
+    expect(m.text()).toContain('Shared with Abdi only')
+    expect(m.text().match(/photo — placeholder/g)).toHaveLength(2)
+    await back(m)
+    expect(m.has('Withdraw interest in Abdi')).toBe(false)
+    expect(m.has('Open conversation with Abdi')).toBe(true)
+    m.unmount()
+  })
+
+  it.each(['Block', 'Disconnect'] as const)('offers no profile once the conversation is ended from it by %s', async (how) => {
+    const m = await mount(<MatchPrototype />)
+    await mutualWithAbdi(m)
+    await m.press('Open conversation with Abdi')
+    await m.press(how)
+    await pressLast(m, how === 'Block' ? 'Block Abdi' : 'Disconnect')
+    expect(h1s(m)).toEqual(['Your people.'])
+    expect(m.has('View profile of Abdi')).toBe(false)
+    expect(m.has('Open conversation with Abdi')).toBe(false)
+    expect(under(m, 'Not shown again')).toEqual([how === 'Block' ? 'Abdi: blocked' : 'Abdi: conversation ended'])
+    m.unmount()
+  })
+
+  it.each(['Block', 'Disconnect'] as const)('leaves the profile, for Your people, when %s is chosen from it', async (how) => {
+    const m = await mount(<MatchPrototype />)
+    await mutualWithAbdi(m)
+    await m.press('View profile of Abdi')
+    await m.press(how)
+    await pressLast(m, how === 'Block' ? 'Block Abdi' : 'Disconnect')
+    expect(h1s(m)).toEqual(['Your people.'])
+    expect(m.has('View profile of Abdi')).toBe(false)
+    m.unmount()
+  })
+
+  it('leaves the profile when the simulated person ends the conversation while it is open', async () => {
+    const m = await mount(<MatchPrototype />)
+    await mutualWithAbdi(m)
+    await m.press('View profile of Abdi')
+    await m.press(/Simulate: Abdi ends the conversation/)
+    expect(h1s(m)).toEqual(['Your people.'])
+    expect(m.has('View profile of Abdi')).toBe(false)
+    m.unmount()
+  })
+
+  it('returns a person chosen privately, and one still to decide, to the screen they were opened from', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m)
+    await m.press('Read more about Liban')
+    expect(backName(m)).toBe('Back')
+    await back(m)
+    expect(h1s(m)).toEqual(['Your suggestions.'])
+    await m.press('Read more about Liban')
+    await m.press('I’m interested')
+    await m.press('Read more about Liban') // from the private choices
+    expect(backName(m)).toBe('Back to your people')
+    await back(m)
+    expect(h1s(m)).toEqual(['Your people.'])
+    m.unmount()
+  })
+
+  it('clears a draft with Start again, so nothing is carried into a new session', async () => {
+    const m = await mount(<MatchPrototype />)
+    await mutualWithAbdi(m)
+    await m.press('Open conversation with Abdi')
+    await m.type('Write to Abdi', 'left over')
+    await m.press('Start again')
+    await toSuggestions(m)
+    await m.press('Read more about Abdi')
+    await m.press('I’m interested')
+    await m.press('Open conversation with Abdi')
+    expect(draftOf(m, 'Write to Abdi')).toBe('')
+    m.unmount()
+  })
+})
+
+describe('the answers disclosure on a profile (MATCH-04)', () => {
+  it('is a native disclosure with a 44px minimum target, and keeps its default keyboard focus', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m)
+    await m.press('Read more about Liban')
+    const details = m.container.querySelector('main details') as HTMLDetailsElement
+    const summary = details.querySelector('summary')!
+    expect(norm(summary.textContent)).toBe('Liban’s answers on each point')
+    expect(summary.className).toContain('min-h-11')
+    // Focus is the browser's own, never removed, and the summary stays in the tab order.
+    expect(summary.className).not.toMatch(/outline-none|focus:outline-0/)
+    expect(summary.getAttribute('tabindex')).toBeNull()
+    expect(details.open).toBe(false)
+    await act(async () => {
+      summary.click()
+    })
+    await m.settle()
+    expect(details.open).toBe(true)
+    expect(details.textContent).toContain('Timing. Liban said: “In one to two years”. That works for you.')
+    m.unmount()
+  })
+})
+
+describe('the basis of the fixed text, on request (MATCH-04)', () => {
+  const based = (m: Mounted) => m.container.querySelector('section[aria-labelledby="fx-notes"] details') as HTMLDetailsElement
+  const basisText = (m: Mounted) => norm(based(m).textContent)
+
+  it('keeps the summary and questions readable, and puts what they are based on behind one native disclosure, closed', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m)
+    await m.press('Read more about Liban')
+    const details = based(m)
+    expect(details).not.toBeNull()
+    expect(details.open).toBe(false)
+    const summary = details.querySelector('summary')!
+    expect(norm(summary.textContent)).toBe('What this is based on')
+    // Keyboard: a native summary is in the tab order and opens with Enter or Space; nothing removes it from the order.
+    expect(summary.getAttribute('tabindex')).toBeNull()
+    expect(m.container.querySelectorAll('section[aria-labelledby="fx-notes"] details')).toHaveLength(1)
+    // One block, one label, still said once, with no model called.
+    expect(m.container.querySelectorAll('section[aria-labelledby^="fx-"]')).toHaveLength(1)
+    expect(m.text().match(/Prototype fixture/g)).toHaveLength(1)
+    expect(m.text()).toContain('No model was called.')
+    // The questions are a numbered list, readable without opening anything.
+    const items = [...m.container.querySelector('section[aria-labelledby="fx-notes"] ol')!.querySelectorAll(':scope > li')].map((li) => norm(li.textContent))
+    expect(items).toHaveLength(3)
+    expect(items[0]).toContain('Liban chose “I plan to be at home”. What would you want to understand about that day to day?')
+    m.unmount()
+  })
+
+  it('says when a summary uses structured answers only, and names them', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m)
+    await m.press('Read more about Liban')
+    expect(basisText(m)).toContain('Summary. This summary uses structured answers only: your answers and Liban’s on timing, children, work. It does not use anything either of you wrote.')
+    m.unmount()
+  })
+
+  it('resolves each question’s answers from the data, for the right person, in the first person for what they chose', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m)
+    await m.press('Read more about Liban')
+    expect(basisText(m)).toContain('Question 1. Work. Liban: “I plan to be at home”.')
+    expect(basisText(m)).toContain('Question 2. Timing. You: “Within a year”. Liban: “In one to two years”.')
+    expect(basisText(m)).toContain('Question 3. Children. You: “I want children”. Liban: “I am open to them, and would decide together”.')
+    m.unmount()
+  })
+
+  it('quotes a written answer in full, as the person wrote it, with the prompt it answers', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m, 'woman', 1)
+    await m.press('Read more about Hassan')
+    expect(m.text()).toContain('Hassan wrote about “a pace that suits both of us”. What does a good pace look like for you?')
+    expect(basisText(m)).toContain('Hassan’s written answer, Looking for: “I have taken my time, and I would like to keep a pace that suits both of us.”')
+    expect(basisText(m)).toContain('Timing. You: “Later than that”. Hassan: “Later than that”.')
+    m.unmount()
+  })
+
+  it('labels a general question as general, in view and in the disclosure, and does not dress it up with answers', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m)
+    await m.press('Read more about Abdi')
+    expect(screenText(m).match(/General question\./g)).toHaveLength(1)
+    expect(basisText(m)).toContain('Question 2. General question. It is not drawn from either person’s answers.')
+    expect(basisText(m)).toContain('Question 3. Abdi’s written answer, Families: “I expect our families to know us both well, and to leave the daily decisions to us.”')
+    m.unmount()
+  })
+
+  it('says what a reference does not show', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m)
+    await m.press('Read more about Yusuf')
+    expect(basisText(m)).toContain('These show what each line was written from. They do not show that a line follows from them.')
+    m.unmount()
+  })
+
+  it('gives the right name and pronouns on the other side, and the corrected wording', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m, 'man')
+    await m.press('Read more about Ladan')
+    expect(m.text()).toContain('Ladan chose “With family” and you chose “Our own home” for where to live at first. What does each of you picture?')
+    expect(m.text()).toContain('You live in different cities. How does each of you see where you would live?')
+    expect(m.text()).not.toMatch(/give up|family nearby/)
+    expect(basisText(m)).toContain('Household. You: “Our own home”. Ladan: “With family”.')
+    m.unmount()
+  })
+
+  it('quotes the other person’s own words on the other side too', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m, 'man', 1)
+    await m.press('Read more about Ifrah')
+    expect(m.text()).toContain('Ifrah wrote about “a pace that suits both of us”. What does a good pace look like for you?')
+    expect(basisText(m)).toContain('Ifrah’s written answer, Looking for: “I have taken my time, and I would like to keep a pace that suits both of us.”')
+    expect(m.text()).toContain('On practice, Ifrah chose “I practise occasionally”, where you chose “Prayer is steady and central to my days”, and you marked practice as a preference.')
+    m.unmount()
+  })
+
+  it('attributes a chosen practice answer to the person who chose it, not as something they described', async () => {
+    const m = await mount(<MatchPrototype />)
+    await toSuggestions(m)
+    await m.press('Read more about Abdi')
+    expect(m.text()).toContain('On practice, Abdi chose “Prayer is steady and central to my days”, a steadier answer than your “I am building the habit”.')
+    expect(m.text()).not.toMatch(/describes (his|her)/)
     m.unmount()
   })
 })

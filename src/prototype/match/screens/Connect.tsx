@@ -17,10 +17,9 @@ function PhotoTile({ whose }: { whose: string }) {
   )
 }
 
-export function Conversation({ s, dispatch }: { s: Session; dispatch: D }) {
+export function Conversation({ s, dispatch, draft, setDraft }: { s: Session; dispatch: D; draft: string; setDraft: (text: string) => void }) {
   const p = s.focus ? personOf(s, s.focus) : undefined
   const link = p ? s.links[p.id] : undefined
-  const [draft, setDraft] = useState('')
   const [confirming, setConfirming] = useState(false)
   // Where focus goes when the control it was on is replaced: a keyboard user is never dropped on the page.
   const photos = useRef<HTMLDivElement>(null)
@@ -48,6 +47,13 @@ export function Conversation({ s, dispatch }: { s: Session; dispatch: D }) {
       <p className="mt-2 text-[0.95rem] text-muted">
         {p.age} · Made up
       </p>
+      {open && (
+        <div className="mt-3">
+          <Button variant="outline" className="!px-5 !py-2.5" onClick={() => dispatch({ type: 'go', stage: 'suggestion', focus: p.id })}>
+            {`View profile of ${p.firstName}`}
+          </Button>
+        </div>
+      )}
       {!open ? (
         <Note>{t(link.status === 'blocked' ? '{name} is blocked in this tab.' : 'This conversation has ended. Messages and photos are no longer shown.')}</Note>
       ) : (
