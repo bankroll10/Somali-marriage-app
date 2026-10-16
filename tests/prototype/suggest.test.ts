@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { CRITERIA } from '../../src/prototype/match/criteria'
-import { SCENARIOS, fingerprint, peopleFor, scenarioOf } from '../../src/prototype/match/fixtures'
-import { SHOWN_LIMIT, compare, evaluate, judge, looksLikeContact, pairFixture, type Self } from '../../src/prototype/match/suggest'
+import { PAIR_TEXT, SCENARIOS, fingerprint, pairTextFor, peopleFor, scenarioOf } from '../../src/prototype/match/fixtures'
+import { SHOWN_LIMIT, compare, evaluate, judge, looksLikeContact, orList, pairFixture, type Self } from '../../src/prototype/match/suggest'
 import { CRITERION_IDS, type Asks, type Side } from '../../src/prototype/match/types'
 
 /**
@@ -80,6 +80,8 @@ describe('a requirement works in both directions, and a preference never exclude
   })
 })
 
+const selfWith = (me: Self, asks: Partial<Asks>): Self => ({ ...me, asks: { ...me.asks, ...asks } })
+
 describe('where two sets of answers line up and differ', () => {
   const me = selfOf('three', 'woman')
   const [p1, p2, p3] = peopleFor('woman')
@@ -91,10 +93,37 @@ describe('where two sets of answers line up and differ', () => {
     for (const p of [p1, p2, p3]) for (const d of compare(me, p).differ) expect(me.asks[d.id].firm).toBe('preference')
   })
 
-  it('attributes each answer to the person who gave it, and shows no number', () => {
+  it('attributes each answer to the person who gave it, against what the tester said would work, and shows no number', () => {
     const c = compare(me, p2)
-    expect(c.differ[0].text).toBe('Liban said: “I plan to be at home”. You said: “I plan to work”. You marked this a preference.')
-    for (const x of [...c.lineUp, ...c.differ]) expect(x.text).not.toMatch(/\d/)
+    expect(c.differ[0]).toEqual({ id: 'work', theirs: 'I plan to be at home', preferred: ['I plan to work', 'I am open to either'] })
+    for (const x of c.lineUp) expect(x.text).not.toMatch(/\d/)
+    expect(orList(c.differ[0].preferred)).toBe('“I plan to work” or “I am open to either”')
+    expect(orList(['A', 'B', 'C'])).toBe('“A”, “B” or “C”')
+    expect(orList(['A'])).toBe('“A”')
+  })
+
+  // MATCH-02, refinement 1: the comparison is with the answers the tester accepted, not with their own answer.
+  describe('regression: a preference is compared with the accepted answers, not with the tester’s own answer', () => {
+    it('a different personal answer that the tester accepted still lines up, and is not a difference', () => {
+      // Liban said “In one to two years”; the tester said “Within a year”, and accepts both.
+      expect(p2.answers.timeline).not.toBe(me.answers.timeline)
+      const c = compare(selfWith(me, { timeline: { accept: ['t-year', 't-two'], firm: 'preference' } }), p2)
+      expect(c.lineUp.find((x) => x.id === 'timeline')).toMatchObject({ theirs: 'In one to two years' })
+      expect(c.differ.map((d) => d.id)).not.toContain('timeline')
+    })
+
+    it('the same answer as the tester’s own is still a difference when the tester did not accept it', () => {
+      // The tester answers “I plan to work” but would prefer someone “open to either”; Abdi plans to work.
+      expect(p1.answers.work).toBe(me.answers.work)
+      const c = compare(selfWith(me, { work: { accept: ['w-either'], firm: 'preference' } }), p1)
+      expect(c.differ.find((d) => d.id === 'work')).toEqual({ id: 'work', theirs: 'I plan to work', preferred: ['I am open to either'] })
+      expect(c.lineUp.map((x) => x.id)).not.toContain('work')
+    })
+
+    it('reports exactly the answers the tester selected as preferred, in the order the form lists them and not the order they were ticked', () => {
+      const c = compare(selfWith(me, { household: { accept: ['h-open', 'h-own'], firm: 'preference' } }), p3)
+      expect(c.differ.find((d) => d.id === 'household')!.preferred).toEqual(['Our own home', 'Open to living with family for a time'])
+    })
   })
 
   it('does not compare a point the tester said does not matter', () => {
@@ -105,8 +134,9 @@ describe('where two sets of answers line up and differ', () => {
   })
 
   it('updates when the answers change', () => {
+    // Changing only the tester's own answer changes nothing: the comparison reads what they accepted.
     const edited: Self = { ...me, answers: { ...me.answers, work: 'w-either' } }
-    expect(compare(edited, p2).differ.find((d) => d.id === 'work')!.text).toContain('You said: “I am open to either”')
+    expect(compare(edited, p2).differ.find((d) => d.id === 'work')).toEqual(compare(me, p2).differ.find((d) => d.id === 'work'))
     const accepting: Self = { ...me, asks: { ...me.asks, work: { accept: ['w-work', 'w-either', 'w-home'], firm: 'preference' } } }
     expect(compare(accepting, p2).differ.map((d) => d.id)).toEqual([])
   })
@@ -152,6 +182,85 @@ describe('fixed pair text', () => {
         for (const p of shown) expect(pairFixture(self, sc.id, p).available, `${sc.id}/${p.id}`).toBe(true)
       }
     }
+  })
+})
+
+describe('the hand-written summaries, held against the answers they were written for', () => {
+  // The structured facts are metadata the writer keeps beside the prose. These tests catch drift between the
+  // prose, the facts and the answers; they cannot show that every sentence is accurate. Each sentence was read
+  // against the scenario's answers when it was written, and the claims below pin the specific phrases.
+  const cases = SIDES.flatMap((side) =>
+    SCENARIOS.flatMap((sc) => {
+      const self = selfOf(sc.id, side)
+      return evaluate(self, peopleFor(side)).shown.map((p) => ({ side, sc, self, p }))
+    }),
+  )
+
+  it('every person each scenario shows has a text whose facts match the comparison', () => {
+    expect(cases.length).toBeGreaterThan(0)
+    for (const { sc, self, p } of cases) {
+      const text = pairTextFor(sc.id, p.id)!
+      const c = compare(self, p)
+      const why = `${sc.id}/${p.id}`
+      expect([...text.facts.differs].sort(), why).toEqual(c.differ.map((d) => d.id).sort())
+      for (const id of text.facts.same) expect(p.answers[id], `${why} same ${id}`).toBe(self.answers[id])
+      for (const id of text.facts.workable) {
+        expect(p.answers[id], `${why} workable ${id}`).not.toBe(self.answers[id])
+        expect(c.lineUp.map((x) => x.id), `${why} workable ${id}`).toContain(id)
+      }
+      // No point is claimed twice.
+      const all = [...text.facts.same, ...text.facts.workable, ...text.facts.differs]
+      expect(new Set(all).size, why).toBe(all.length)
+    }
+  })
+
+  it('the points a summary names are exactly the points its facts claim', () => {
+    const WORDS: Record<(typeof CRITERION_IDS)[number], RegExp> = {
+      timeline: /\btiming\b|\btimeline\b/i,
+      children: /\bchildren\b/i,
+      practice: /\bpractice\b/i,
+      city: /\bcity\b|\bToronto\b|\bLondon\b/i,
+      work: /\bwork\b|at home/i,
+      household: /\bhousehold\b/i,
+    }
+    for (const [sc, byPerson] of Object.entries(PAIR_TEXT)) {
+      for (const [key, text] of Object.entries(byPerson!)) {
+        const claimed = new Set([...text.facts.same, ...text.facts.workable, ...text.facts.differs])
+        const named = new Set(CRITERION_IDS.filter((id) => WORDS[id].test(text.summary)))
+        expect([...named].sort(), `${sc}/${key}`).toEqual([...claimed].sort())
+      }
+    }
+  })
+
+  // Each entry is a sentence of prose and what it says about the answers, written by reading the sentence.
+  const CLAIMS: { sc: 'three' | 'one'; key: string; says: string; holds: (self: Self, p: ReturnType<typeof peopleFor>[number]) => boolean }[] = [
+    { sc: 'three', key: 'p1', says: 'give the same answers on timing, children, city, work and household', holds: (m, p) => (['timeline', 'children', 'city', 'work', 'household'] as const).every((id) => p.answers[id] === m.answers[id]) },
+    { sc: 'three', key: 'p1', says: 'you both want to marry within a year', holds: (m, p) => p.answers.timeline === 't-year' && m.answers.timeline === 't-year' },
+    { sc: 'three', key: 'p1', says: 'practice as steadier than yours', holds: (m, p) => p.answers.practice === 'p-steady' && m.answers.practice === 'p-build' },
+    { sc: 'three', key: 'p2', says: 'a little later on timing (one to two years, where you said within a year)', holds: (m, p) => p.answers.timeline === 't-two' && m.answers.timeline === 't-year' },
+    { sc: 'three', key: 'p2', says: 'open on children where you said you want them', holds: (m, p) => p.answers.children === 'c-open' && m.answers.children === 'c-want' },
+    { sc: 'three', key: 'p2', says: 'plans to be at home and you plan to work', holds: (m, p) => p.answers.work === 'w-home' && m.answers.work === 'w-work' },
+    { sc: 'three', key: 'p2', says: 'The one difference you marked as a preference is work', holds: (m, p) => compare(m, p).differ.length === 1 && compare(m, p).differ[0].id === 'work' },
+    { sc: 'three', key: 'p3', says: 'meets your requirements on timing and children', holds: (m, p) => judge(m, p).byYou.length === 0 && m.asks.timeline.firm === 'requirement' && m.asks.children.firm === 'requirement' },
+    { sc: 'three', key: 'p3', says: 'differs from your preferences on practice, city, work and household', holds: (m, p) => compare(m, p).differ.map((d) => d.id).join() === 'practice,city,work,household' },
+    { sc: 'three', key: 'p3', says: 'lives in Toronto, where you do not', holds: (m, p) => p.answers.city === 'toronto' && m.answers.city !== 'toronto' },
+    { sc: 'one', key: 'p4', says: 'give the same answers on timing, children, city and household', holds: (m, p) => (['timeline', 'children', 'city', 'household'] as const).every((id) => p.answers[id] === m.answers[id]) },
+    { sc: 'one', key: 'p4', says: 'practice as occasional, where you describe yours as steady, which you marked as a preference', holds: (m, p) => p.answers.practice === 'p-occasional' && m.answers.practice === 'p-steady' && m.asks.practice.firm === 'preference' },
+  ]
+
+  it.each(SIDES)('the specific claims each summary makes are true of the answers, for a tester who is a %s', (side) => {
+    for (const c of CLAIMS) {
+      const self = selfOf(c.sc, side)
+      const p = peopleFor(side).find((x) => x.id.endsWith(c.key))!
+      const f = pairFixture(self, c.sc, p)
+      expect(f.available).toBe(true)
+      if (f.available) expect(f.text.summary, `${c.sc}/${c.key}`).toContain(c.says)
+      expect(c.holds(self, p), `${c.sc}/${c.key}: ${c.says}`).toBe(true)
+    }
+  })
+
+  it('every sentence-level claim table entry belongs to a text that exists, and every text has at least one claim', () => {
+    for (const [sc, byPerson] of Object.entries(PAIR_TEXT)) for (const key of Object.keys(byPerson!)) expect(CLAIMS.some((c) => c.sc === sc && c.key === key), `${sc}/${key}`).toBe(true)
   })
 })
 

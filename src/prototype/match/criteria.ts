@@ -107,3 +107,13 @@ export function labelOf(id: CriterionId, option: string): string {
 
 /** Words for the point, lower case, for use inside a sentence. */
 export const nameOf = (id: CriterionId): string => criterionOf(id).name
+
+/**
+ * The three written prompts. `label` is what the tester is asked; `short` is the small
+ * heading over the same answer when another person's words are read.
+ */
+export const PROMPTS = [
+  { label: 'What are you looking for in a marriage?', short: 'Looking for', required: true },
+  { label: 'What should the person you marry know about how you live?', short: 'How they live', required: true },
+  { label: 'How involved do you expect your families to be? (optional)', short: 'Families', required: false },
+] as const

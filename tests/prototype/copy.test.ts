@@ -70,7 +70,7 @@ describe('the prototype’s copy', () => {
     expect(readers.map((f) => f.slice(ROOT.length + 1))).toEqual([`${PROTOTYPE}/screens/Browse.tsx`])
     // And in that file, only inside the block that carries the label.
     const browse = readFileSync(readers[0], 'utf8')
-    expect([...browse.matchAll(/<FixtureBlock/g)]).toHaveLength(2)
+    expect([...browse.matchAll(/<FixtureBlock/g)]).toHaveLength(1)
     expect(browse).not.toMatch(/pairTextFor|PAIR_TEXT/)
   })
 

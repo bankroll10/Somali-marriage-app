@@ -6,8 +6,8 @@ import { H1, H2, P, Screen } from '../parts'
 const WORKING = [
   'The forms, and what requirement, preference and doesn’t matter each do.',
   'Eligibility in both directions, the limit of three, and no refill.',
-  'Where your answers line up with a person’s and where they differ, worked out from the answers you give.',
-  'Private interest, and a conversation that opens only when both of you have chosen.',
+  'Where a person’s answers fit what you asked for and where they differ, worked out from the answers you give.',
+  'Private interest, withdrawing it until a conversation exists, undoing “Not for me” straight away, and a conversation that opens only when both of you have chosen.',
   'Writing first from either side, kept in this tab.',
   'Photo sharing: per conversation, per direction, and only by an explicit choice.',
   'Disconnect, block and report, as changes to this tab’s state.',

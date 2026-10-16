@@ -1,6 +1,6 @@
-# MATCH-01: the first member-journey prototype
+# MATCH-01 and MATCH-02: the member-journey prototype
 
-Status: a development-only prototype of how meeting someone could work, built on 2026-10-15. **It is not part of
+Status: a development-only prototype of how meeting someone could work, built on 2026-10-15 (MATCH-01) and revised after the founder's review the same day (MATCH-02, below). **It is not part of
 the app, is not built or deployed, and promises nothing to anyone.** Introductions in the live app stay closed
 (release R3). The exception that allowed it is recorded at the end of `docs/DECISIONS.md`.
 
@@ -30,21 +30,28 @@ spies that fail on any fetch, XHR, WebSocket, beacon, storage access or cookie w
 
 One journey, from a made-up person's side, as a woman or as a man:
 
-1. **Answers.** Intentions (timing, children, practice) and practical points (city, work, household), then written
-   answers in the person's own words. Everything is made up, and the screens say so.
-2. **Requirement or preference, per point.** Each of the six points gets one of *requirement* (only people who fit
-   are shown), *preference* (people who differ are shown, and the difference is pointed out) or *doesn't matter*
-   (not used), plus the answers that would work. Nothing is pre-sorted and there is no default: the kind belongs to
-   the person, per point, never to the topic (`docs/DECISIONS.md` Part 8).
+1. **Answers, in eight steps.** A made-up name and age; then one step for each of six points (timing,
+   children, practice, city, work, household); then written answers in the person's own words. Everything is made up,
+   and the screens say so. The steps are more focused than the earlier two long screens, but **setup is not shorter
+   overall** (see MATCH-02 below).
+2. **Requirement or preference, per point.** On each point step the person gives their own answer, then chooses
+   which answers would work for them, and only then how firm that is: *requirement* (only people who fit are shown),
+   *preference* (people who differ are shown, and the difference is pointed out) or *doesn't matter* (not used; the
+   answers chosen above are set aside and shown as not used). Nothing is pre-sorted and there is no default: the
+   kind belongs to the person, per point, never to the topic (`docs/DECISIONS.md` Part 8).
 3. **A limited set of suggestions, no photos.** Eligibility runs both ways. At most three people are shown, in a
    fixed order that is not a ranking, and there is no refill. Nothing is relaxed to fill the screen. When no one
-   fits, the person may review what they ask for, keep it as it is, or leave.
-4. **An explanation.** Where answers line up and where they differ is worked out from the structured answers and
-   updates when they change. A plain-language summary and three questions are **fixed text labelled "Prototype
-   fixture"**, written for one sample scenario each; if the person's answers no longer match that scenario the text
-   is shown as unavailable and never says what the answers no longer say.
-5. **Private interest.** Interest is recorded in the prototype and the other person is not told. "Not for me" is
-   never shown to the other person.
+   fits, the screen says so plainly and offers two equal choices, seeing what was asked or stopping; nothing on it
+   suggests changing a requirement.
+4. **An explanation.** The person's own words come first. Where they differ is the person's answer against the
+   answers the tester *selected as preferred* (never against the tester's own answer: a different personal answer
+   can still be one that would work), worked out from the structured answers and updating when they change. One
+   block carries a plain-language summary and three questions as **fixed text labelled "Prototype fixture"**,
+   written for one sample scenario each; if the person's answers no longer match that scenario the text is shown as
+   unavailable and never says what the answers no longer say.
+5. **Private interest, which can be taken back.** Interest is recorded in the prototype and the other person is not
+   told. It can be withdrawn, privately, until a conversation exists. "Not for me" is never shown to the other
+   person and can be undone on the confirmation screen that follows it.
 6. **A conversation, opened by mutual interest.** Either person may write first.
 7. **Photos are optional, explicit and per connection.** Mutual interest never shares one, in either direction. Each
    person shares, or stops sharing, for one conversation only, and the two directions are independent. There is no
@@ -79,9 +86,61 @@ conversation) and lists why made-up people were left out; it says that a product
 A pure reducer over plain data (`src/prototype/match/flow.ts`). A conversation exists only while both people have
 chosen; it opens when the second of the two does, in either order, with no photo shared in either direction. Photo
 flags and messages are per person; an action about one person changes nothing about another. Once the tester has
-chosen or passed on anyone, what they asked for is read-only until a fresh start. Passed and blocked people are never
-shown again; ended and blocked conversations show no thread and no photo. These are held by example and by random
-sequences of every action (`tests/prototype/flow.test.ts`).
+chosen or passed on anyone, what they asked for is read-only until a fresh start (withdrawing or undoing back to no
+decisions lifts that, as if nothing was done). People passed on stay out of the suggestions and are listed as **Passed on**
+(a pass can be undone straight away, so that heading stays true while Undo is on offer); blocked people and ended
+conversations are final and are listed apart as **Not shown again**; a block is never undone. Ended and blocked conversations show no thread and no photo and
+are never reopened by anything. These are held by example and by random sequences of every action
+(`tests/prototype/flow.test.ts`).
+
+### Withdrawing interest and undoing "Not for me" (MATCH-02)
+
+Per shown person: a decision (undecided, interested, passed, blocked), a conversation (none, open, ended, blocked),
+and the other person's hidden choice. The tester has one pending `undo`.
+
+| Action | Allowed when | Result |
+|---|---|---|
+| decide interested | undecided | interested; if the other person has chosen, the conversation opens (the second event opens it) |
+| decide passed | undecided | passed; this person becomes the pending `undo` |
+| `withdraw` | interested and no conversation | undecided. Nobody is told; what the other person chose is untouched |
+| `undoPass` | passed, pending `undo`, no conversation | undecided. Never restores interest and never opens anything |
+| the simulated person acts | | the pending `undo` is kept |
+| disconnect, block, report, a safety sheet, a message, a photo | | the pending `undo` is cleared |
+
+If mutual interest came first, `withdraw` changes nothing: the conversation is open and the ways out are Disconnect
+and Block, each explicit and neither undone. If the tester withdraws first, a later choice by the other person opens
+nothing, and choosing again opens it at once if they have chosen. `undo` has no timer. Which actions keep it and which
+clear it is written out once for every action (`UNDO_POLICY`), so adding an action without deciding is a type error.
+Focus moving, scrolling and opening a disclosure send no action, so they cannot end it. It ends on a later deliberate
+decision, on leaving the screen (a `go` to the screen already shown is not leaving it), on any safety action, and on
+editing. On the confirmation screen the confirmation and the Undo button follow the heading directly.
+
+## MATCH-02: what changed after the founder's review
+
+Four changes, nothing else: more focused setup steps with the answers that would work chosen before how firm they are
+(Review lists each point, with a Change link that returns to Review; a "doesn't matter" point is shown as not used and
+its set-aside selections are not shown as active); a suggestion screen that leads with their words, shows concrete
+differences against what was preferred and carries one labelled simulated block; withdrawing interest and undoing
+"Not for me"; and plain empty states.
+
+**Setup simplification is unfinished.** The steps are more focused (the longest is about 1,470 px at 390 px, where the
+old Ask screen was 4,264 px), but total scrolling **increased**: the six point steps and the About step come to about
+9,200 px, against about 6,600 px for the old About and Ask screens, because each step repeats its header and the
+always-visible hints. The shorter-setup goal was not met and should not be reported as met.
+
+On the suggestion screen the line naming the points that suit the person reads "Fits what you asked for on: …",
+because a different personal answer can still be one the person said would work. The individual-answer disclosure
+and the simulated summary keep those differences visible (for example, a person's practice is steadier than the
+tester's own, and it fits what the tester asked for). The list screen no longer names which requirements left people out. Messaging,
+per-connection photo consent and the safety row are unchanged and have regression tests.
+
+**How the simulated text is checked, and what that does not prove.** Each hand-written summary carries structured
+`facts` (what it claims is the same, what differs but would work, what differs outside what was preferred). Tests
+hold those facts against the comparison for every scenario and both sides, hold the points named in the prose
+against the points claimed, and pin each specific claim in the prose (for example "one to two years, where you said
+within a year") to the answers. That catches a text drifting from the data it was written for. **It is metadata
+consistency, not proof that the prose is accurate**: each sentence was also read against the scenario's answers when
+checked, and that reading found them accurate. A reworded or new text needs the same reading.
 
 ## What is not covered
 
@@ -103,7 +162,9 @@ credit and the evaluation gates) · legal review under decision 34 (matchmaking,
 data, minors) · admission size, gender and city balance, bootstrapping · a real selection policy, refill cadence,
 expiry of interest and conversations · notifications · wali and family involvement · which criteria are admissible,
 and in which languages · how members return without an account · whether any pool-size disclosure is acceptable
-(decision 27) · usability testing with real participants (consent, data handling).
+(decision 27) · usability testing with real participants (consent, data handling) · withdrawing interest while the other
+person's choice arrives at the same moment (a product with a server would have to treat that as a race and tell the
+person which came first; here the reducer applies whichever arrives first).
 
 ## What the existing guards protect, and how this stays inside them
 

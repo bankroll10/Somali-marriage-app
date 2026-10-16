@@ -15,11 +15,22 @@ import { CRITERION_IDS, type Answers, type Ask, type Asks, type CriterionId, typ
  *  - mutual interest never turns on a photo in either direction;
  *  - a photo is shared per conversation and per direction, by its owner only;
  *  - the people shown are fixed once, at most three, never refilled;
- *  - a person who passed, was blocked or was disconnected is never shown again;
- *  - nothing the tester chose, passed or ignored is readable from the other side.
+ *  - a person who passed, was blocked or was disconnected is never shown again,
+ *    unless the tester undoes a pass straight away (`undo`, below);
+ *  - interest can be withdrawn only before a conversation exists, and a conversation
+ *    that has ended or been blocked is never reopened by anything;
+ *  - nothing the tester chose, passed, withdrew or ignored is readable from the other side.
  */
 
-export type Stage = 'front' | 'about' | 'ask' | 'words' | 'review' | 'suggestions' | 'suggestion' | 'people' | 'conversation' | 'notes'
+export type Stage = 'front' | 'about' | 'point' | 'words' | 'review' | 'suggestions' | 'suggestion' | 'people' | 'conversation' | 'notes'
+
+/**
+ * The setup steps for the six points. One point to a step; the groups are data, so
+ * pairing two points on a step later is a change to this list and nothing else.
+ */
+export const POINT_STEPS: CriterionId[][] = CRITERION_IDS.map((c) => [c])
+/** About you, each point step, and the written answers. Review comes after and is not numbered. */
+export const SETUP_STEPS = POINT_STEPS.length + 2
 
 export interface DraftAsk {
   accept: string[]
@@ -59,10 +70,21 @@ export interface Report {
 
 export type SheetKind = 'disconnect' | 'block' | 'report'
 
+/** What the last transition was, for the status line on Your people and on a suggestion. One at a time. */
+export type NoticeKind = 'interest' | 'withdrawn' | 'undone' | 'mutual' | 'ended' | 'blocked'
+export interface Notice {
+  kind: NoticeKind
+  person: PersonId
+}
+
 export interface Session {
   stage: Stage
   /** The suggestion or conversation on screen. */
   focus: PersonId | null
+  /** Which setup step the `point` stage shows: an index into POINT_STEPS. */
+  point: number
+  /** True when a setup step was opened from Review: Continue and Back return there. */
+  editing: boolean
   /** Where the notes page returns to. */
   from: Stage
   me: Me
@@ -74,6 +96,14 @@ export interface Session {
   links: Record<PersonId, Link>
   sheet: { kind: SheetKind; person: PersonId } | null
   reports: Report[]
+  /**
+   * The one person whose “Not for me” can be undone right now, or null. Set by that
+   * choice, used by `undoPass`, and ended only by the explicit rules in UNDO_POLICY.
+   * There is no timer: nothing about it depends on time, focus, scrolling or what
+   * the screen shows.
+   */
+  undo: PersonId | null
+  notice: Notice | null
 }
 
 /**
@@ -98,6 +128,8 @@ export const emptyMe = (): Me => ({
 export const initial = (): Session => ({
   stage: 'front',
   focus: null,
+  point: 0,
+  editing: false,
   from: 'front',
   me: emptyMe(),
   shown: [],
@@ -106,11 +138,13 @@ export const initial = (): Session => ({
   links: {},
   sheet: null,
   reports: [],
+  undo: null,
+  notice: null,
 })
 
 export type Action =
   | { type: 'start'; side: Side; scenario?: ScenarioId }
-  | { type: 'go'; stage: Stage; focus?: PersonId }
+  | { type: 'go'; stage: Stage; focus?: PersonId; point?: number; editing?: boolean }
   | { type: 'name'; value: string }
   | { type: 'age'; value: string }
   | { type: 'answer'; id: CriterionId; value: string }
@@ -119,6 +153,8 @@ export type Action =
   | { type: 'words'; index: 0 | 1 | 2; value: string }
   | { type: 'show' }
   | { type: 'decide'; person: PersonId; choice: 'interested' | 'passed' }
+  | { type: 'withdraw'; person: PersonId }
+  | { type: 'undoPass'; person: PersonId }
   | { type: 'send'; person: PersonId; text: string }
   | { type: 'sharePhoto'; person: PersonId }
   | { type: 'stopSharing'; person: PersonId }
@@ -154,15 +190,22 @@ export const missingAbout = (me: Me): string[] => {
   if (!me.name.trim()) out.push('a made-up first name')
   const age = Number(me.age)
   if (!Number.isInteger(age) || age < 18 || age > 99) out.push('a made-up age, 18 or over')
-  for (const c of CRITERION_IDS) if (!me.answers[c]) out.push(c)
   return out
 }
 
-export const missingAsk = (me: Me): CriterionId[] =>
-  CRITERION_IDS.filter((c) => {
-    const k = me.asks[c]
-    return !k.firm || (k.firm !== 'any' && k.accept.length === 0)
-  })
+export type PointGap = 'answer' | 'accept' | 'firm'
+
+/** What is still missing on one point. Answers that would work are not needed when the point does not matter. */
+export const missingPoint = (me: Me, id: CriterionId): PointGap[] => {
+  const out: PointGap[] = []
+  if (!me.answers[id]) out.push('answer')
+  const k = me.asks[id]
+  if (k.firm !== 'any' && k.accept.length === 0) out.push('accept')
+  if (!k.firm) out.push('firm')
+  return out
+}
+
+export const missingPoints = (me: Me): CriterionId[] => CRITERION_IDS.filter((c) => missingPoint(me, c).length > 0)
 
 export const missingWords = (me: Me): string[] => {
   const out: string[] = []
@@ -184,6 +227,7 @@ function openIfMutual(s: Session, person: PersonId): Session {
     links: { ...s.links, [person]: { status: 'open', messages: [], youShare: false } },
     // Mutual interest never shares a photo, in either direction.
     they: { ...s.they, [person]: { ...s.they[person], sharePhoto: false } },
+    notice: { kind: 'mutual', person },
   }
 }
 
@@ -195,7 +239,57 @@ const withLink = (s: Session, person: PersonId, f: (l: Link) => Link): Session =
 
 const nextN = (l: Link) => (l.messages.at(-1)?.n ?? 0) + 1
 
+/**
+ * What each action does to the pending undo, written out for every action so that
+ * adding one without deciding is a type error.
+ *  - keep: the simulated person acting (Prototype controls). The tester did nothing.
+ *  - clear: any deliberate act of the tester (an edit, a decision, leaving the screen,
+ *    a safety action). A `go` to the screen already shown is not leaving it.
+ *  - own: the action sets or uses the undo itself (`decide`, `withdraw`, `undoPass`).
+ * Focus movement, scrolling and opening a disclosure send no action at all, so none
+ * of them can end an undo.
+ */
+export const UNDO_POLICY: Record<Action['type'], 'keep' | 'clear' | 'own'> = {
+  start: 'clear',
+  reset: 'clear',
+  go: 'clear',
+  name: 'clear',
+  age: 'clear',
+  answer: 'clear',
+  accept: 'clear',
+  firm: 'clear',
+  words: 'clear',
+  show: 'clear',
+  decide: 'own',
+  withdraw: 'own',
+  undoPass: 'own',
+  send: 'clear',
+  sharePhoto: 'clear',
+  stopSharing: 'clear',
+  theyChoose: 'keep',
+  theySend: 'keep',
+  theyShare: 'keep',
+  theyEnd: 'keep',
+  openSheet: 'clear',
+  closeSheet: 'clear',
+  disconnect: 'clear',
+  block: 'clear',
+  report: 'clear',
+}
+
+const navigates = (s: Session, a: Extract<Action, { type: 'go' }>): boolean =>
+  a.stage !== s.stage || (a.focus ?? s.focus) !== s.focus || (a.point ?? s.point) !== s.point
+
 export function reduce(s: Session, a: Action): Session {
+  const next = step(s, a)
+  if (next === s) return s
+  const policy = UNDO_POLICY[a.type]
+  if (policy !== 'clear' || (a.type === 'go' && !navigates(s, a))) return next
+  // Ends the undo, and the last status line unless this action wrote a new one.
+  return { ...next, undo: null, notice: next.notice === s.notice ? null : next.notice }
+}
+
+function step(s: Session, a: Action): Session {
   switch (a.type) {
     case 'reset':
       return initial()
@@ -217,8 +311,18 @@ export function reduce(s: Session, a: Action): Session {
       return { ...initial(), stage: 'about', from: 'about', me, they }
     }
 
-    case 'go':
-      return { ...s, stage: a.stage, focus: a.focus ?? s.focus, sheet: null, from: a.stage === 'notes' ? s.stage : s.from }
+    case 'go': {
+      const setup = a.stage === 'about' || a.stage === 'point' || a.stage === 'words'
+      return {
+        ...s,
+        stage: a.stage,
+        focus: a.focus ?? s.focus,
+        point: a.point ?? s.point,
+        editing: a.editing ?? (setup || a.stage === 'notes' ? s.editing : false),
+        sheet: null,
+        from: a.stage === 'notes' ? s.stage : s.from,
+      }
+    }
 
     case 'name':
       return { ...s, me: { ...s.me, name: a.value } }
@@ -259,8 +363,27 @@ export function reduce(s: Session, a: Action): Session {
 
     case 'decide': {
       if (!s.shown.includes(a.person) || s.decision[a.person] !== 'undecided') return s
-      const next: Session = { ...s, decision: { ...s.decision, [a.person]: a.choice }, stage: 'people', focus: a.person }
+      const next: Session = {
+        ...s,
+        decision: { ...s.decision, [a.person]: a.choice },
+        stage: 'people',
+        focus: a.person,
+        undo: a.choice === 'passed' ? a.person : null,
+        notice: a.choice === 'interested' ? { kind: 'interest', person: a.person } : null,
+      }
       return a.choice === 'interested' ? openIfMutual(next, a.person) : next
+    }
+
+    // Before a conversation exists, and only then. Whether it was a choice made first or
+    // second, an open conversation is left only by disconnecting or blocking.
+    case 'withdraw': {
+      if (s.decision[a.person] !== 'interested' || s.links[a.person]) return s
+      return { ...s, decision: { ...s.decision, [a.person]: 'undecided' }, undo: null, notice: { kind: 'withdrawn', person: a.person } }
+    }
+
+    case 'undoPass': {
+      if (s.undo !== a.person || s.decision[a.person] !== 'passed' || s.links[a.person]) return s
+      return { ...s, decision: { ...s.decision, [a.person]: 'undecided' }, undo: null, notice: { kind: 'undone', person: a.person } }
     }
 
     case 'theyChoose': {
@@ -307,6 +430,8 @@ export function reduce(s: Session, a: Action): Session {
         decision: { ...s.decision, [a.person]: 'blocked' },
         sheet: null,
         stage: s.stage === 'conversation' || s.stage === 'suggestion' ? 'people' : s.stage,
+        focus: a.person,
+        notice: { kind: 'blocked', person: a.person },
       }
       return l ? endLink(next, a.person, 'blocked') : next
     }
@@ -324,6 +449,8 @@ function endLink(s: Session, person: PersonId, status: 'ended' | 'blocked'): Ses
     stage: s.stage === 'conversation' && s.focus === person ? 'people' : s.stage,
     links: { ...s.links, [person]: { status, messages: [], youShare: false } },
     they: { ...s.they, [person]: { ...s.they[person], sharePhoto: false } },
+    focus: person,
+    notice: { kind: status === 'blocked' ? 'blocked' : 'ended', person },
   }
 }
 

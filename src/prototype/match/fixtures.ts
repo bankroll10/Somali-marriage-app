@@ -253,11 +253,29 @@ export function fingerprint(side: Side, answers: Partial<Answers>, a: Partial<As
   ])
 }
 
+/**
+ * What a hand-written summary claims, point by point, so a test can hold it against the
+ * answers. This is metadata the writer keeps in step with the prose: it catches a text that
+ * drifts from the data it was written for (a point named that is not claimed, a claim the
+ * answers do not support), and it is not a proof that every sentence is accurate. Each
+ * text was also read against the scenario's answers when it was written
+ * (docs/MATCH-PROTOTYPE.md records how).
+ */
+export interface PairFacts {
+  /** Points the summary says the two answered identically. */
+  same: CriterionId[]
+  /** Points where the answers differ, but the person's is one the tester said would work. */
+  workable: CriterionId[]
+  /** Points marked a preference where the person's answer is not one the tester said would work. All of them are named. */
+  differs: CriterionId[]
+}
+
 export interface PairText {
   /** Two sentences, standing in for an AI summary. Written only from the scenario's structured answers. */
   summary: string
   /** Three questions, standing in for AI-suggested questions. */
   questions: string[]
+  facts: PairFacts
 }
 
 /** Fixed pair texts: [scenario][person template key]. Only people who are eligible in a scenario have one. */
@@ -271,6 +289,7 @@ export const PAIR_TEXT: Partial<Record<ScenarioId, Record<string, PairText>>> = 
         'What would you want settled before you marry, and what can wait?',
         'What do you each want your families to know about you, and when?',
       ],
+      facts: { same: ['timeline', 'children', 'city', 'work', 'household'], workable: ['practice'], differs: [] },
     },
     p2: {
       summary:
@@ -280,6 +299,7 @@ export const PAIR_TEXT: Partial<Record<ScenarioId, Record<string, PairText>>> = 
         'What would you want in place before the wedding, given your different timing?',
         'What would you each want to decide together about children?',
       ],
+      facts: { same: [], workable: ['timeline', 'children'], differs: ['work'] },
     },
     p3: {
       summary:
@@ -289,6 +309,7 @@ export const PAIR_TEXT: Partial<Record<ScenarioId, Record<string, PairText>>> = 
         'Where would each of you want to live, and what would you give up for it?',
         'How do you each picture daily life with family nearby?',
       ],
+      facts: { same: [], workable: ['timeline', 'children'], differs: ['practice', 'city', 'work', 'household'] },
     },
   },
   one: {
@@ -300,6 +321,7 @@ export const PAIR_TEXT: Partial<Record<ScenarioId, Record<string, PairText>>> = 
         'What would you each want from the other around prayer and the home?',
         'What would make a longer timeline feel right to you both?',
       ],
+      facts: { same: ['timeline', 'children', 'city', 'household'], workable: [], differs: ['practice'] },
     },
   },
 }

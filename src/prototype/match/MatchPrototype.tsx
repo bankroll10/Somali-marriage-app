@@ -4,7 +4,7 @@ import { FocusHeading } from '../../hooks/useFocusHeading'
 import { initial, reduce } from './flow'
 import { Conversation } from './screens/Connect'
 import { Notes } from './screens/Notes'
-import { About, Ask, Front, Review, Words } from './screens/Setup'
+import { About, Front, Point, Review, Words } from './screens/Setup'
 import { People, Suggestion, Suggestions } from './screens/Browse'
 
 /**
@@ -22,8 +22,8 @@ export default function MatchPrototype() {
         return <Front dispatch={dispatch} />
       case 'about':
         return <About s={s} dispatch={dispatch} />
-      case 'ask':
-        return <Ask s={s} dispatch={dispatch} />
+      case 'point':
+        return <Point s={s} dispatch={dispatch} />
       case 'words':
         return <Words s={s} dispatch={dispatch} />
       case 'review':
@@ -64,7 +64,7 @@ export default function MatchPrototype() {
           )}
         </p>
       </div>
-      <div key={`${s.stage}:${s.focus ?? ''}`} ref={ref}>
+      <div key={`${s.stage}:${s.focus ?? ''}:${s.stage === 'point' ? s.point : ''}`} ref={ref}>
         {screen}
         <FocusHeading within={ref} />
       </div>

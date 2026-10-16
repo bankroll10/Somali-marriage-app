@@ -1,4 +1,4 @@
-import { labelOf, nameOf } from './criteria'
+import { criterionOf, labelOf, nameOf } from './criteria'
 import { fill, fingerprint, pairTextFor, scenarioFingerprint, type PairText } from './fixtures'
 import { CRITERION_IDS, type Answers, type Asks, type CriterionId, type Person, type ScenarioId, type Side } from './types'
 
@@ -56,23 +56,32 @@ export function evaluate(me: Self, people: Person[]): Evaluation {
   return { eligible, shown: eligible.slice(0, SHOWN_LIMIT), leftOut: judged.filter((j) => !isEligible(j)) }
 }
 
-/** The points the tester's own requirements left people out on, for one honest sentence. Never counts. */
-export function requirementsThatLeftPeopleOut(leftOut: Judged[]): CriterionId[] {
-  return CRITERION_IDS.filter((c) => leftOut.some((j) => j.byYou.includes(c)))
+export interface Difference {
+  id: CriterionId
+  /** What the person answered, as its label. */
+  theirs: string
+  /** The answers the tester said would work, as labels: what they preferred. */
+  preferred: string[]
 }
 
 export interface Comparison {
-  lineUp: { id: CriterionId; text: string }[]
-  differ: { id: CriterionId; text: string }[]
+  /** Points where the person’s answer is one the tester said would work. */
+  lineUp: { id: CriterionId; text: string; theirs: string }[]
+  /** Points marked a preference where the person’s answer is not one the tester said would work. */
+  differ: Difference[]
   /** Points the tester said do not matter. Not compared. */
   unused: CriterionId[]
 }
 
 /**
- * Where the answers are the same and where they differ, from the tester's side.
- * Only the tester's own asks are read: what the other person asked is never
- * shown. A difference can appear only on a point the tester marked a
- * preference, because a requirement that failed would have left the person out.
+ * Where the person’s answers fall inside or outside what the tester said would work.
+ *
+ * The comparison is with the answers the tester accepted for each point, never just
+ * with the tester’s own answer: a different personal answer can still be one the
+ * tester said would work (the person fits what the tester asked for), and the tester’s own answer is not
+ * automatically one they accepted. Only the tester’s own asks are read: what the other
+ * person asked is never shown. A difference can appear only on a point the tester
+ * marked a preference, because a failed requirement would have left the person out.
  */
 export function compare(me: Self, person: Person): Comparison {
   const lineUp: Comparison['lineUp'] = []
@@ -88,13 +97,21 @@ export function compare(me: Self, person: Person): Comparison {
     if (ask.accept.includes(theirs)) {
       lineUp.push({
         id: c,
+        theirs: labelOf(c, theirs),
         text: theirs === me.answers[c] ? `You both said: “${labelOf(c, theirs)}”.` : `${person.firstName} said: “${labelOf(c, theirs)}”. That works for you.`,
       })
     } else {
-      differ.push({ id: c, text: `${person.firstName} said: “${labelOf(c, theirs)}”. You said: “${labelOf(c, me.answers[c])}”. You marked this a preference.` })
+      // In the order the answers are listed on the form, not the order they were ticked.
+      differ.push({ id: c, theirs: labelOf(c, theirs), preferred: criterionOf(c).options.filter((o) => ask.accept.includes(o.id)).map((o) => o.label) })
     }
   }
   return { lineUp, differ, unused }
+}
+
+/** “A”, “A” or “B”, “A”, “B” or “C”: a list of quoted answers in a sentence. */
+export function orList(labels: string[]): string {
+  const q = labels.map((l) => `“${l}”`)
+  return q.length <= 1 ? (q[0] ?? '') : `${q.slice(0, -1).join(', ')} or ${q.at(-1)}`
 }
 
 /**
@@ -112,6 +129,7 @@ export function pairFixture(me: Self, scenario: ScenarioId | null, person: Perso
   const filled: PairText = {
     summary: fill(text.summary, person.side, person.firstName),
     questions: text.questions.map((q) => fill(q, person.side, person.firstName)),
+    facts: text.facts,
   }
   return { available: true, text: filled, scenario }
 }

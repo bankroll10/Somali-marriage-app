@@ -1,55 +1,72 @@
-import { useState, type Dispatch } from 'react'
+import { useEffect, useRef, type Dispatch } from 'react'
 import { Button, TextButton } from '../../../components/ui'
-import { labelOf, nameOf } from '../criteria'
+import { PROMPTS, labelOf, nameOf } from '../criteria'
 import { ControlsPanel } from '../ControlsPanel'
 import { FixtureBlock } from '../Fixture'
 import { fill } from '../fixtures'
-import { completeSelf, locked, openLinks, person as personOf, visibleSuggestions, type Action, type Session } from '../flow'
+import { completeSelf, openLinks, person as personOf, visibleSuggestions, type Action, type Notice, type Session } from '../flow'
 import { H1, H2, Note, P, Screen } from '../parts'
-import { compare, evaluate, pairFixture, pointNames, requirementsThatLeftPeopleOut } from '../suggest'
-import type { Person } from '../types'
-import { peopleFor } from '../fixtures'
+import { compare, orList, pairFixture, pointNames } from '../suggest'
+import { CRITERION_IDS, type Person } from '../types'
 import { SafetyRow } from './Safety'
 
 type D = Dispatch<Action>
 
+/** What each last transition says, with the person's name and pronouns filled in. */
+const NOTICE: Record<Notice['kind'], string> = {
+  interest: 'Interest recorded in this prototype. {name} is not told. If {he} also chooses you, a conversation opens.',
+  withdrawn: 'You withdrew your interest in {name}. {He} was not told, and is not told now. {name} is back in your suggestions.',
+  undone: '{name} is back in your suggestions.',
+  mutual: 'You chose each other. A conversation with {name} is open, and either of you can write first. No photos have been shared: each of you decides that separately.',
+  ended: 'The conversation with {name} has ended. In a product {name} would be told; here that is simulated.',
+  blocked: '{name} is blocked in this tab and will not be suggested again.',
+}
+
+/**
+ * Where focus goes when the control that was pressed is replaced by what it did: onto the
+ * status line, so a keyboard or screen-reader user is neither dropped on the page nor left
+ * on a control that has gone. `ask()` is called by the press; the effect runs once the
+ * new status is on screen.
+ */
+function useStatusFocus(trigger: unknown) {
+  const ref = useRef<HTMLDivElement>(null)
+  const want = useRef(false)
+  useEffect(() => {
+    if (want.current) ref.current?.focus()
+    want.current = false
+  }, [trigger])
+  return { ref, ask: () => void (want.current = true) }
+}
+
 const cityOf = (p: Person) => labelOf('city', p.answers.city)
 
 export function Suggestions({ s, dispatch }: { s: Session; dispatch: D }) {
-  const [kept, setKept] = useState(false)
   const self = completeSelf(s.me)
-  const people = s.me.side ? peopleFor(s.me.side) : []
-  const left = self ? evaluate(self, people).leftOut : []
-  const yours = requirementsThatLeftPeopleOut(left)
   const visible = visibleSuggestions(s).map((id) => personOf(s, id)!)
   const decided = s.shown.length - visible.length
-  const anyActed = locked(s)
 
   return (
     <Screen onBack={() => dispatch({ type: 'go', stage: 'review' })}>
       <H1>Your suggestions.</H1>
       {s.shown.length === 0 ? (
         <>
-          <P>No one fits what you have asked for right now.</P>
-          <P muted>Nothing has been relaxed to fill this screen, and nothing here suggests you should change what you ask for. It is your choice.</P>
+          <P>No one is suggested to you right now.</P>
+          <P muted>
+            Suggestions appear only when you and the other person each meet the other’s requirements. Nothing is added to this list for any other reason, and
+            nothing refreshes by itself.
+          </P>
           <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Button onClick={() => dispatch({ type: 'go', stage: 'ask' })}>Review what you ask for</Button>
-            <Button variant="outline" onClick={() => setKept(true)}>
-              Keep it as it is
+            <Button variant="outline" onClick={() => dispatch({ type: 'go', stage: 'review' })}>
+              See what I asked for
             </Button>
             <Button variant="outline" onClick={() => dispatch({ type: 'reset' })}>
-              Leave
+              Stop here
             </Button>
-          </div>
-          <div role="status" className="min-h-[1.5rem]">
-            {kept && <Note>Kept as it is. Nothing changes unless you change it.</Note>}
           </div>
         </>
       ) : (
         <>
-          <P>
-            Up to three people who meet your requirements and whose own requirements you meet. Shown in no particular order. There is no score and no ranking.
-          </P>
+          <P>People who meet your requirements, and whose requirements you meet. Up to three, in no particular order. There is no score and no ranking.</P>
           {visible.length === 0 ? (
             <Note>That is all for now. Nothing refreshes by itself.</Note>
           ) : (
@@ -62,10 +79,20 @@ export function Suggestions({ s, dispatch }: { s: Session; dispatch: D }) {
                     <p className="text-[0.9rem] text-muted">
                       {p.age} · {cityOf(p)}
                     </p>
-                    <p className="mt-3 text-[0.95rem] text-ink-soft">Meets your requirements.</p>
-                    <p className="mt-1 text-[0.95rem] text-ink-soft">
-                      {c.differ.length ? `Differs from your preferences on: ${pointNames(c.differ.map((d) => d.id))}.` : 'No differences from your preferences.'}
-                    </p>
+                    <p className="mt-3 line-clamp-3 text-[0.95rem] leading-snug text-ink-soft text-pretty">“{p.words[0]}”</p>
+                    {c.differ.length ? (
+                      <div className="mt-3 text-[0.92rem] leading-snug text-ink-soft">
+                        <p className="font-medium text-ink">Differs from what you preferred:</p>
+                        <ul className="mt-1 grid gap-0.5">
+                          {c.differ.slice(0, 2).map((d) => (
+                            <li key={d.id}>{`${nameOf(d.id)}: “${d.theirs}”`}</li>
+                          ))}
+                        </ul>
+                        {c.differ.length > 2 && <p className="mt-0.5 text-muted">{`and ${c.differ.length - 2} more ${c.differ.length - 2 === 1 ? 'point' : 'points'}`}</p>}
+                      </div>
+                    ) : (
+                      <p className="mt-3 text-[0.92rem] text-ink-soft">No differences on your preferences.</p>
+                    )}
                     <Button variant="soft" className="mt-4" onClick={() => dispatch({ type: 'go', stage: 'suggestion', focus: p.id })}>
                       {`Read more about ${p.firstName}`}
                     </Button>
@@ -82,16 +109,8 @@ export function Suggestions({ s, dispatch }: { s: Session; dispatch: D }) {
             </p>
           )}
           <p className="mt-6 text-[0.88rem] leading-snug text-muted text-pretty">
-            {yours.length > 0 ? `Your requirements on ${pointNames(yours)} left some people out. ` : ''}
-            Eligibility works both ways, and covers only the six points in this prototype.
+            People appear here only when you and they each meet the other’s requirements. This prototype checks six points only.
           </p>
-          {!anyActed && (
-            <p className="mt-2">
-              <TextButton className="text-forest underline" onClick={() => dispatch({ type: 'go', stage: 'ask' })}>
-                Review what you ask for
-              </TextButton>
-            </p>
-          )}
         </>
       )}
       <ControlsPanel s={s} dispatch={dispatch} where="suggestions" />
@@ -102,12 +121,20 @@ export function Suggestions({ s, dispatch }: { s: Session; dispatch: D }) {
 export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
   const p = s.focus ? personOf(s, s.focus) : undefined
   const self = completeSelf(s.me)
+  const status = useStatusFocus(s.notice)
   if (!p || !self) return null
   const t = (x: string) => fill(x, p.side, p.firstName)
   const c = compare(self, p)
   const fixture = pairFixture(self, s.me.scenario, p)
   const decision = s.decision[p.id]
   const link = s.links[p.id]
+  const notice = s.notice && s.notice.person === p.id && (s.notice.kind === 'withdrawn' || s.notice.kind === 'mutual') ? s.notice : null
+  const answered = CRITERION_IDS.flatMap((id) => {
+    const l = c.lineUp.find((x) => x.id === id)
+    if (l) return [{ id, text: l.text }]
+    const d = c.differ.find((x) => x.id === id)
+    return d ? [{ id, text: `${p.firstName}’s answer: “${d.theirs}”. You preferred: ${orList(d.preferred)}.` }] : []
+  })
   return (
     <Screen onBack={() => dispatch({ type: 'go', stage: 'suggestions' })}>
       <H1>{p.firstName}</H1>
@@ -116,58 +143,67 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
       </p>
       <P muted>No photo is part of a suggestion.</P>
 
-      <H2 id="line-up">Where you line up</H2>
-      {c.lineUp.length ? (
-        <ul className="mt-3 list-disc pl-5 text-[0.98rem] leading-relaxed text-ink-soft">
-          {c.lineUp.map((x) => (
-            <li key={x.id}>
-              <span className="font-medium text-ink">{nameOf(x.id)}.</span> {x.text}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <P muted>Nothing you marked as firm or preferred.</P>
-      )}
-
-      <H2 id="differ">Where you differ</H2>
-      {c.differ.length ? (
-        <ul className="mt-3 list-disc pl-5 text-[0.98rem] leading-relaxed text-ink-soft">
-          {c.differ.map((x) => (
-            <li key={x.id}>
-              <span className="font-medium text-ink">{nameOf(x.id)}.</span> {x.text}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <P muted>Nothing you marked as a preference.</P>
-      )}
-      {c.unused.length > 0 && <P muted>{`You said these do not matter, so they are not compared: ${pointNames(c.unused)}.`}</P>}
-
       <H2>{`In ${p.firstName}’s words`}</H2>
       <ul className="mt-3 grid gap-3">
-        {p.words.map((w) => (
+        {p.words.map((w, i) => (
           <li key={w} className="rounded-2xl border border-line bg-white/50 px-4 py-3 text-[0.97rem] leading-relaxed text-ink-soft text-pretty">
+            <span className="block text-[0.74rem] uppercase tracking-wide text-muted">{PROMPTS[i]?.short}</span>
             {w}
           </li>
         ))}
       </ul>
 
-      <div className="mt-8 grid gap-4">
-        <FixtureBlock id="fx-summary" title="A plain-language summary" result={fixture}>
-          {(f) => <p className="text-[0.98rem] leading-relaxed text-ink-soft text-pretty">{f.text.summary}</p>}
-        </FixtureBlock>
-        <FixtureBlock id="fx-questions" title="Questions worth asking" result={fixture}>
+      <H2 id="differ">Where you differ</H2>
+      <p className="mt-1 text-[0.9rem] text-muted">On points you marked as a preference.</p>
+      {c.differ.length ? (
+        <ul className="mt-3 divide-y divide-line rounded-2xl border border-line bg-white/50 px-4 text-[0.97rem] leading-snug text-ink-soft">
+          {c.differ.map((x) => (
+            <li key={x.id} className="py-2.5">
+              <span className="font-medium text-ink">{nameOf(x.id)}.</span>
+              <span className="mt-0.5 block">{`${p.firstName}’s answer: “${x.theirs}”`}</span>
+              <span className="block">{`You preferred: ${orList(x.preferred)}`}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <P muted>No differences on your preferences.</P>
+      )}
+
+      <p className="mt-5 text-[0.95rem] leading-snug text-ink-soft">
+        {c.lineUp.length ? `Fits what you asked for on: ${pointNames(c.lineUp.map((x) => x.id))}.` : 'None of the points you compared fit what you asked for.'}
+      </p>
+      <details className="mt-2 rounded-2xl border border-line bg-white/40 px-4 py-2.5">
+        <summary className="cursor-pointer py-1 text-[0.92rem] font-medium text-ink">{`${p.firstName}’s answers on each point`}</summary>
+        <ul className="mt-2 grid gap-1.5 pb-2 text-[0.93rem] leading-snug text-ink-soft">
+          {answered.map((x) => (
+            <li key={x.id}>
+              <span className="font-medium text-ink">{nameOf(x.id)}.</span> {x.text}
+            </li>
+          ))}
+        </ul>
+        {c.unused.length > 0 && <p className="pb-2 text-[0.88rem] text-muted">{`You said these do not matter, so they are not compared: ${pointNames(c.unused)}.`}</p>}
+      </details>
+
+      <div className="mt-8">
+        <FixtureBlock id="fx-notes" title="Summary and questions" result={fixture}>
           {(f) => (
-            <ul className="list-disc pl-5 text-[0.98rem] leading-relaxed text-ink-soft">
-              {f.text.questions.map((q) => (
-                <li key={q}>{q}</li>
-              ))}
-            </ul>
+            <>
+              <p className="text-[0.98rem] leading-relaxed text-ink-soft text-pretty">{f.text.summary}</p>
+              <h4 className="mt-4 font-medium text-ink">Questions worth asking</h4>
+              <ul className="mt-1.5 list-disc pl-5 text-[0.98rem] leading-relaxed text-ink-soft">
+                {f.text.questions.map((q) => (
+                  <li key={q}>{q}</li>
+                ))}
+              </ul>
+            </>
           )}
         </FixtureBlock>
       </div>
 
-      <section aria-label="Your choice" className="mt-8">
+      <div ref={status.ref} tabIndex={-1} role="status" className="mt-8 outline-none">
+        {notice && <Note>{t(NOTICE[notice.kind])}</Note>}
+      </div>
+      <section aria-label="Your choice" className="mt-4">
         {decision === 'undecided' ? (
           <>
             <div className="flex flex-wrap gap-3">
@@ -177,11 +213,35 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
               </Button>
             </div>
             <p className="mt-3 text-[0.88rem] leading-snug text-muted text-pretty">
-              {t('Interest is private. {name} is told only if {he} also chooses you. “Not for me” removes {name} from your suggestions, and {he} is not told.')}
+              {t(
+                'Interest is private: {name} is told only if {he} also chooses you, and you can withdraw it until then. “Not for me” removes {name} from your suggestions, and {he} is not told. You can undo it on the next screen.',
+              )}
             </p>
           </>
+        ) : decision === 'interested' && !link ? (
+          <>
+            <Note>{t('Interest recorded in this prototype. {name} is not told.')}</Note>
+            <Button
+              variant="outline"
+              className="mt-3"
+              onClick={() => {
+                status.ask()
+                dispatch({ type: 'withdraw', person: p.id })
+              }}
+            >
+              {`Withdraw interest in ${p.firstName}`}
+            </Button>
+            <p className="mt-2 text-[0.88rem] leading-snug text-muted text-pretty">{t('Withdrawing is private too: {name} is not told. You can do this until a conversation opens.')}</p>
+          </>
+        ) : decision === 'interested' && link?.status === 'open' ? (
+          <>
+            <Note>You chose each other.</Note>
+            <Button variant="soft" className="mt-3" onClick={() => dispatch({ type: 'go', stage: 'conversation', focus: p.id })}>
+              {`Open conversation with ${p.firstName}`}
+            </Button>
+          </>
         ) : (
-          <Note>{decision === 'interested' ? (link ? 'You chose each other.' : 'Interest recorded in this prototype.') : 'You chose not to go further.'}</Note>
+          <Note>{decision === 'interested' ? 'You chose each other.' : 'You chose not to go further.'}</Note>
         )}
       </section>
 
@@ -192,7 +252,6 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
 }
 
 export function People({ s, dispatch }: { s: Session; dispatch: D }) {
-  const focus = s.focus ? personOf(s, s.focus) : undefined
   const open = openLinks(s)
   const waiting = s.shown.filter((id) => s.decision[id] === 'interested' && !s.links[id])
   const undecided = visibleSuggestions(s)
@@ -200,22 +259,30 @@ export function People({ s, dispatch }: { s: Session; dispatch: D }) {
   const blockedBefore = s.shown.filter((id) => s.decision[id] === 'blocked' && !s.links[id])
   const passed = s.shown.filter((id) => s.decision[id] === 'passed')
   const name = (id: string) => personOf(s, id)!.firstName
-  const t = focus ? (x: string) => fill(x, focus.side, focus.firstName) : (x: string) => x
-  const focusLink = focus ? s.links[focus.id] : undefined
+  const status = useStatusFocus(s.notice)
+  const undoP = s.undo && s.decision[s.undo] === 'passed' ? personOf(s, s.undo) : undefined
+  const noticeP = s.notice ? personOf(s, s.notice.person) : undefined
+  const tf = (p: Person, x: string) => fill(x, p.side, p.firstName)
   return (
     <Screen onBack={() => dispatch({ type: 'go', stage: 'suggestions' })}>
       <H1>Your people.</H1>
-      <div role="status">
-        {focus && s.decision[focus.id] === 'interested' && !focusLink && (
-          <Note>{t('Interest recorded in this prototype. {name} is not told. If {he} also chooses you, a conversation opens.')}</Note>
-        )}
-        {focus && focusLink?.status === 'open' && (
-          <Note>{t('You chose each other. A conversation with {name} is open, and either of you can write first. No photos have been shared: each of you decides that separately.')}</Note>
-        )}
-        {focus && s.decision[focus.id] === 'passed' && <Note>{t('{name} is removed from your suggestions. {He} is not told.')}</Note>}
-        {focus && s.decision[focus.id] === 'blocked' && <Note>{t('{name} is blocked in this tab and will not be suggested again.')}</Note>}
-        {focus && focusLink?.status === 'ended' && <Note>{t('The conversation with {name} has ended. In a product {name} would be told; here that is simulated.')}</Note>}
+      <div ref={status.ref} tabIndex={-1} role="status" className="outline-none">
+        {undoP && <Note>{tf(undoP, '{name} is removed from your suggestions. {He} is not told.')}</Note>}
+        {s.notice && noticeP && <Note>{tf(noticeP, NOTICE[s.notice.kind])}</Note>}
       </div>
+      {undoP && (
+        <div className="mt-3">
+          <Button
+            variant="outline"
+            onClick={() => {
+              status.ask()
+              dispatch({ type: 'undoPass', person: undoP.id })
+            }}
+          >
+            {`Undo: bring ${undoP.firstName} back`}
+          </Button>
+        </div>
+      )}
 
       <H2>Open conversations</H2>
       {open.length ? (
@@ -234,9 +301,26 @@ export function People({ s, dispatch }: { s: Session; dispatch: D }) {
 
       <H2>Chosen by you, privately</H2>
       {waiting.length ? (
-        <ul className="mt-3 list-disc pl-5 text-[0.98rem] text-ink-soft">
+        <ul className="mt-3 grid gap-4">
           {waiting.map((id) => (
-            <li key={id}>{name(id)}</li>
+            <li key={id}>
+              <p className="font-medium text-ink">{name(id)}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Button variant="outline" className="!px-5 !py-2.5" onClick={() => dispatch({ type: 'go', stage: 'suggestion', focus: id })}>
+                  {`Read more about ${name(id)}`}
+                </Button>
+                <Button
+                  variant="outline"
+                  className="!px-5 !py-2.5"
+                  onClick={() => {
+                    status.ask()
+                    dispatch({ type: 'withdraw', person: id })
+                  }}
+                >
+                  {`Withdraw interest in ${name(id)}`}
+                </Button>
+              </div>
+            </li>
           ))}
         </ul>
       ) : (
@@ -258,7 +342,19 @@ export function People({ s, dispatch }: { s: Session; dispatch: D }) {
         <P muted>No one. That is all for now; nothing refreshes by itself.</P>
       )}
 
-      {(ended.length > 0 || blockedBefore.length > 0 || passed.length > 0) && (
+      {/* Named for what happened, so it stays true while Undo is on offer. Blocked people and ended conversations are final, and are listed apart. */}
+      {passed.length > 0 && (
+        <>
+          <H2>Passed on</H2>
+          <ul className="mt-3 list-disc pl-5 text-[0.98rem] text-ink-soft">
+            {passed.map((id) => (
+              <li key={id}>{name(id)}</li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {(ended.length > 0 || blockedBefore.length > 0) && (
         <>
           <H2>Not shown again</H2>
           <ul className="mt-3 list-disc pl-5 text-[0.98rem] text-ink-soft">
@@ -267,9 +363,6 @@ export function People({ s, dispatch }: { s: Session; dispatch: D }) {
             ))}
             {blockedBefore.map((id) => (
               <li key={id}>{`${name(id)}: blocked`}</li>
-            ))}
-            {passed.map((id) => (
-              <li key={id}>{`${name(id)}: not for me`}</li>
             ))}
           </ul>
         </>

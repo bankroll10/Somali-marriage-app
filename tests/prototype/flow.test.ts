@@ -1,7 +1,7 @@
 import fc from 'fast-check'
 import { describe, expect, it } from 'vitest'
 import { peopleFor } from '../../src/prototype/match/fixtures'
-import { initial, locked, reduce, type Action, type Session } from '../../src/prototype/match/flow'
+import { UNDO_POLICY, initial, locked, reduce, type Action, type Session } from '../../src/prototype/match/flow'
 import { SHOWN_LIMIT, evaluate } from '../../src/prototype/match/suggest'
 import { completeSelf } from '../../src/prototype/match/flow'
 import type { ScenarioId, Side } from '../../src/prototype/match/types'
@@ -161,6 +161,211 @@ describe('reports and the sheets', () => {
   })
 })
 
+// ── Withdrawing interest and undoing “Not for me” (MATCH-02) ────────────────────
+
+describe('withdrawing interest before a conversation exists', () => {
+  it('returns the person to undecided, tells no one, and leaves what they chose untouched', () => {
+    const s0 = session('woman', 'three')
+    const chose = apply(s0, { type: 'decide', person: C, choice: 'interested' })
+    expect(chose.decision[C]).toBe('interested')
+    const out = apply(chose, { type: 'withdraw', person: C })
+    expect(out.decision[C]).toBe('undecided')
+    expect(out.links[C]).toBeUndefined()
+    expect(out.they[C]).toEqual(chose.they[C])
+    expect(out.notice).toEqual({ kind: 'withdrawn', person: C })
+    expect(out.shown).toEqual(chose.shown)
+  })
+
+  it('is refused when mutual interest came first: the conversation is open, nothing changes', () => {
+    const s0 = session('woman', 'three')
+    // The other person had already chosen the tester; the tester's choice made it mutual.
+    const open = apply(s0, { type: 'decide', person: A, choice: 'interested' })
+    expect(open.links[A]?.status).toBe('open')
+    expect(reduce(open, { type: 'withdraw', person: A })).toBe(open)
+    // The other order: the tester chose first, then the other person did.
+    const second = apply(s0, { type: 'decide', person: C, choice: 'interested' }, { type: 'theyChoose', person: C, on: true })
+    expect(second.links[C]?.status).toBe('open')
+    expect(second.notice).toEqual({ kind: 'mutual', person: C })
+    expect(reduce(second, { type: 'withdraw', person: C })).toBe(second)
+  })
+
+  it('when the tester withdraws first, a later choice by the other person opens nothing; choosing again opens at once', () => {
+    const s0 = session('woman', 'three')
+    const s1 = apply(s0, { type: 'decide', person: C, choice: 'interested' }, { type: 'withdraw', person: C }, { type: 'theyChoose', person: C, on: true })
+    expect(s1.links[C]).toBeUndefined()
+    expect(s1.decision[C]).toBe('undecided')
+    const s2 = apply(s1, { type: 'decide', person: C, choice: 'interested' })
+    expect(s2.links[C]?.status).toBe('open')
+    // And with no photo shared in either direction, as for any new conversation.
+    expect(s2.links[C].youShare).toBe(false)
+    expect(s2.they[C].sharePhoto).toBe(false)
+  })
+
+  it('cannot bring back a conversation that ended: withdraw, decide and a new choice all leave it ended', () => {
+    const s0 = session('woman', 'three')
+    const ended = apply(s0, { type: 'decide', person: A, choice: 'interested' }, { type: 'disconnect', person: A })
+    expect(ended.links[A].status).toBe('ended')
+    for (const a of [{ type: 'withdraw', person: A }, { type: 'decide', person: A, choice: 'interested' }, { type: 'theyChoose', person: A, on: false }, { type: 'theyChoose', person: A, on: true }] as Action[]) {
+      expect(apply(ended, a).links[A].status).toBe('ended')
+    }
+    expect(reduce(ended, { type: 'withdraw', person: A })).toBe(ended)
+    const theyEnded = apply(s0, { type: 'decide', person: A, choice: 'interested' }, { type: 'theyEnd', person: A }, { type: 'theyChoose', person: A, on: true })
+    expect(theyEnded.links[A].status).toBe('ended')
+  })
+
+  it('does nothing for a person who was not chosen, was passed on, or was blocked', () => {
+    const s0 = session('woman', 'three')
+    expect(reduce(s0, { type: 'withdraw', person: C })).toBe(s0)
+    const passed = apply(s0, { type: 'decide', person: C, choice: 'passed' })
+    expect(reduce(passed, { type: 'withdraw', person: C })).toBe(passed)
+    const blocked = apply(s0, { type: 'decide', person: C, choice: 'interested' }, { type: 'block', person: C })
+    expect(reduce(blocked, { type: 'withdraw', person: C })).toBe(blocked)
+    expect(blocked.decision[C]).toBe('blocked')
+  })
+
+  it('does not move the tester to another screen, and touches no other person', () => {
+    const s0 = apply(session('woman', 'three'), { type: 'decide', person: B, choice: 'interested' }, { type: 'decide', person: C, choice: 'interested' }, { type: 'go', stage: 'suggestion', focus: C })
+    const out = reduce(s0, { type: 'withdraw', person: C })
+    expect(out.stage).toBe('suggestion')
+    expect(out.focus).toBe(C)
+    expect(out.decision[B]).toBe(s0.decision[B])
+    expect(out.links[B]).toEqual(s0.links[B])
+  })
+
+  it('lets the answers be edited again only when nothing irreversible has happened', () => {
+    const s0 = session('woman', 'three')
+    expect(locked(apply(s0, { type: 'decide', person: C, choice: 'interested' }))).toBe(true)
+    expect(locked(apply(s0, { type: 'decide', person: C, choice: 'interested' }, { type: 'withdraw', person: C }))).toBe(false)
+    expect(locked(apply(s0, { type: 'decide', person: A, choice: 'interested' }, { type: 'disconnect', person: A }))).toBe(true)
+    expect(locked(apply(s0, { type: 'decide', person: C, choice: 'passed' }, { type: 'block', person: C }))).toBe(true)
+  })
+})
+
+describe('undoing “Not for me”', () => {
+  const passC = (s: Session) => apply(s, { type: 'decide', person: C, choice: 'passed' })
+
+  it('restores undecided and changes nothing else; the person is not told and stays in the same place', () => {
+    const s0 = session('woman', 'three')
+    const passed = passC(s0)
+    expect(passed.decision[C]).toBe('passed')
+    expect(passed.undo).toBe(C)
+    const back = reduce(passed, { type: 'undoPass', person: C })
+    expect(back.decision[C]).toBe('undecided')
+    expect(back.undo).toBeNull()
+    expect(back.notice).toEqual({ kind: 'undone', person: C })
+    expect(back.shown).toEqual(s0.shown)
+    expect(back.they).toEqual(s0.they)
+    expect(back.links).toEqual(s0.links)
+  })
+
+  it('is on offer at once: passing moves to the confirmation screen with the undo already in place', () => {
+    const passed = passC(session('woman', 'three'))
+    expect(passed.stage).toBe('people')
+    expect(passed.focus).toBe(C)
+    expect(passed.undo).toBe(C)
+  })
+
+  it('survives everything a person can do without deciding: focus, scrolling and disclosures send no action, and the simulated person’s actions keep it', () => {
+    const base = apply(session('woman', 'three'), { type: 'decide', person: A, choice: 'interested' })
+    const passed = passC(base)
+    const kept = apply(
+      passed,
+      { type: 'theyChoose', person: C, on: true },
+      { type: 'theyChoose', person: C, on: false },
+      { type: 'theyChoose', person: B, on: true },
+      { type: 'theySend', person: A, text: 'Salaam' },
+      { type: 'theyShare', person: A, on: true },
+      { type: 'theyShare', person: A, on: false },
+      { type: 'theyEnd', person: A },
+      { type: 'go', stage: 'people' }, // the screen already shown is not navigating away
+    )
+    expect(kept.undo).toBe(C)
+    expect(kept.decision[C]).toBe('passed')
+    expect(reduce(kept, { type: 'undoPass', person: C }).decision[C]).toBe('undecided')
+  })
+
+  it('is cleared by the next deliberate decision, by leaving the screen, by every safety action, and by editing', () => {
+    const base = session('woman', 'three')
+    const cleared: [string, Action][] = [
+      ['a later decision', { type: 'decide', person: A, choice: 'interested' }],
+      ['a later pass', { type: 'decide', person: B, choice: 'passed' }],
+      ['a withdrawal', { type: 'withdraw', person: A }],
+      ['leaving the screen', { type: 'go', stage: 'suggestions' }],
+      ['a different person’s page', { type: 'go', stage: 'people', focus: A }],
+      ['opening the notes', { type: 'go', stage: 'notes' }],
+      ['opening a safety sheet', { type: 'openSheet', kind: 'report', person: A }],
+      ['closing a safety sheet', { type: 'closeSheet' }],
+      ['a block', { type: 'block', person: B }],
+      ['a report', { type: 'report', person: A, reason: 'Something else', note: '' }],
+      ['a disconnect', { type: 'disconnect', person: A }],
+      ['sending a message', { type: 'send', person: A, text: 'Salaam' }],
+      ['sharing a photo', { type: 'sharePhoto', person: A }],
+      ['editing a name', { type: 'name', value: 'Maryam' }],
+    ]
+    for (const [why, a] of cleared) {
+      // A person to withdraw, disconnect, message or share with must exist, so give every case the same starting history.
+      const start = apply(passC(apply(base, { type: 'decide', person: A, choice: 'interested' }, { type: 'decide', person: B, choice: 'interested' })), { type: 'go', stage: 'people', focus: C })
+      expect(start.undo, why).toBe(C)
+      const out = reduce(start, a)
+      if (out !== start) expect(out.undo, why).toBeNull()
+    }
+    // The ones that must change state, change it and clear.
+    expect(reduce(passC(base), { type: 'go', stage: 'suggestions' }).undo).toBeNull()
+    expect(reduce(passC(base), { type: 'openSheet', kind: 'block', person: C }).undo).toBeNull()
+    expect(reduce(passC(base), { type: 'block', person: C }).undo).toBeNull()
+    expect(reduce(passC(base), { type: 'decide', person: A, choice: 'interested' }).undo).toBeNull()
+  })
+
+  it('names every action in one explicit policy, so a new action cannot quietly keep or lose it', () => {
+    const types = ['start', 'go', 'name', 'age', 'answer', 'accept', 'firm', 'words', 'show', 'decide', 'withdraw', 'undoPass', 'send', 'sharePhoto', 'stopSharing', 'theyChoose', 'theySend', 'theyShare', 'theyEnd', 'openSheet', 'closeSheet', 'disconnect', 'block', 'report', 'reset']
+    expect(Object.keys(UNDO_POLICY).sort()).toEqual([...types].sort())
+    const kept = Object.entries(UNDO_POLICY).filter(([, v]) => v === 'keep').map(([k]) => k)
+    expect(kept.sort()).toEqual(['theyChoose', 'theyEnd', 'theySend', 'theyShare'])
+  })
+
+  it('after mutual interest came first for someone else, still restores only this person', () => {
+    const s = apply(session('woman', 'three'), { type: 'decide', person: C, choice: 'passed' }, { type: 'theyChoose', person: C, on: true })
+    expect(s.links[C]).toBeUndefined() // a pass stands even when the other person has chosen
+    const back = reduce(s, { type: 'undoPass', person: C })
+    expect(back.decision[C]).toBe('undecided')
+    expect(back.links[C]).toBeUndefined() // undoing never opens anything by itself
+    expect(reduce(back, { type: 'decide', person: C, choice: 'interested' }).links[C]?.status).toBe('open')
+  })
+
+  it('is refused for anyone not just passed on, and never undoes a block', () => {
+    const base = session('woman', 'three')
+    expect(reduce(base, { type: 'undoPass', person: C })).toBe(base)
+    const passed = passC(base)
+    expect(reduce(passed, { type: 'undoPass', person: A })).toBe(passed)
+    const blocked = apply(passed, { type: 'block', person: C })
+    expect(blocked.decision[C]).toBe('blocked')
+    expect(reduce(blocked, { type: 'undoPass', person: C })).toBe(blocked)
+  })
+})
+
+describe('regression: what MATCH-02 must not change', () => {
+  it('keeps either-person-first messaging, per-connection photos and safety actions working after a withdraw and an undo elsewhere', () => {
+    let s = session('woman', 'three')
+    s = apply(s, { type: 'decide', person: A, choice: 'interested' }, { type: 'decide', person: B, choice: 'interested' })
+    s = apply(s, { type: 'decide', person: C, choice: 'interested' }, { type: 'withdraw', person: C })
+    s = apply(s, { type: 'send', person: A, text: 'Salaam' }, { type: 'theySend', person: B, text: 'Hello' })
+    expect(s.links[A].messages.map((m) => m.from)).toEqual(['you'])
+    expect(s.links[B].messages.map((m) => m.from)).toEqual(['them'])
+    s = apply(s, { type: 'sharePhoto', person: A }, { type: 'theyShare', person: B, on: true })
+    expect(s.links[A].youShare).toBe(true)
+    expect(s.links[B].youShare).toBe(false)
+    expect(s.they[A].sharePhoto).toBe(false)
+    expect(s.they[B].sharePhoto).toBe(true)
+    s = apply(s, { type: 'disconnect', person: A })
+    expect(s.links[A]).toEqual({ status: 'ended', messages: [], youShare: false })
+    expect(s.links[B].status).toBe('open')
+    expect(s.they[B].sharePhoto).toBe(true)
+    s = apply(s, { type: 'block', person: B })
+    expect(s.decision[B]).toBe('blocked')
+    expect(s.links[B].status).toBe('blocked')
+  })
+})
+
 // ── Properties, over random sequences of every action ────────────────────────────
 
 const IDS = peopleFor('woman').map((p) => p.id)
@@ -169,6 +374,8 @@ const text = fc.constantFrom('Salaam', 'A made-up line', '  ', 'Another one')
 
 const action: fc.Arbitrary<Action> = fc.oneof(
   fc.record({ type: fc.constant('decide' as const), person, choice: fc.constantFrom('interested' as const, 'passed' as const) }),
+  fc.record({ type: fc.constant('withdraw' as const), person }),
+  fc.record({ type: fc.constant('undoPass' as const), person }),
   fc.record({ type: fc.constant('theyChoose' as const), person, on: fc.boolean() }),
   fc.record({ type: fc.constant('send' as const), person, text }),
   fc.record({ type: fc.constant('theySend' as const), person, text }),
@@ -185,7 +392,7 @@ const action: fc.Arbitrary<Action> = fc.oneof(
   fc.record({ type: fc.constant('show' as const) }),
 )
 
-const TESTER_ACTIONS = new Set(['decide', 'send', 'sharePhoto', 'stopSharing', 'disconnect', 'block', 'report', 'openSheet', 'closeSheet', 'go', 'show'])
+const TESTER_ACTIONS = new Set(['decide', 'withdraw', 'undoPass', 'send', 'sharePhoto', 'stopSharing', 'disconnect', 'block', 'report', 'openSheet', 'closeSheet', 'go', 'show'])
 
 function check(prev: Session, next: Session, a: Action) {
   // A conversation exists only because both chose.
@@ -229,11 +436,32 @@ function check(prev: Session, next: Session, a: Action) {
   const eligible = new Set(evaluate(self, peopleFor('woman')).eligible.map((p) => p.id))
   for (const id of next.shown) expect(eligible.has(id)).toBe(true)
   if (locked(prev)) expect(next.shown).toEqual(prev.shown)
-  // Passed and blocked are never undone: a pass may become a block, and a block stays.
+  // A block stays. A pass is undone only by `undoPass` on the person just passed on, and interest is withdrawn only by `withdraw`.
   for (const [id, d] of Object.entries(prev.decision)) {
-    if (d === 'passed') expect(['passed', 'blocked']).toContain(next.decision[id])
     if (d === 'blocked') expect(next.decision[id]).toBe('blocked')
+    if (d === 'passed' && next.decision[id] === 'undecided') {
+      expect(a.type).toBe('undoPass')
+      expect(prev.undo).toBe(id)
+    }
+    if (d === 'interested' && next.decision[id] === 'undecided') {
+      expect(a.type).toBe('withdraw')
+      expect(prev.links[id]).toBeUndefined()
+    }
   }
+  // The pending undo names only someone currently passed on, and no link ever exists for them.
+  if (next.undo) {
+    expect(next.decision[next.undo]).toBe('passed')
+    expect(next.links[next.undo]).toBeUndefined()
+  }
+  // A withdraw or an undo changes the decision, the undo and the notice, and nothing else.
+  if (a.type === 'withdraw' || a.type === 'undoPass') {
+    expect({ ...next, decision: 0, undo: 0, notice: 0 }).toEqual({ ...prev, decision: 0, undo: 0, notice: 0 })
+  }
+  // The undo ends only by the explicit policy: kept by the simulated person, cleared by a deliberate act.
+  if (prev.undo && UNDO_POLICY[a.type] === 'keep') expect(next.undo).toBe(prev.undo)
+  if (prev.undo && UNDO_POLICY[a.type] === 'clear' && next !== prev && !(a.type === 'go' && next.stage === prev.stage && next.focus === prev.focus)) expect(next.undo).toBeNull()
+  // A conversation that has ended or been blocked is never reopened, whatever the sequence.
+  for (const [id, l] of Object.entries(prev.links)) if (l.status !== 'open') expect(next.links[id].status).toBe(l.status)
   // A report never changes who is blocked or connected.
   if (a.type === 'report') {
     expect(next.links).toEqual(prev.links)
