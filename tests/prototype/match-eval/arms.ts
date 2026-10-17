@@ -24,9 +24,15 @@ import type { EvalCase, EvalRef, ModelOutput } from './types'
 /** Every verbatim line is shown behind this, so text inside an answer can never read as the document's own structure. */
 export const QUOTE = '| '
 
-/** The verbatim lines of an answer, framed. */
+/**
+ * Every character a renderer might treat as the end of a line. Text is split at all of them, so no line of quoted data
+ * can start anywhere but behind the frame. The line breaks themselves are kept as line breaks.
+ */
+export const LINE_BREAKS = /\r\n|\r|\n|\u2028|\u2029|\u0085/
+
+/** The verbatim lines of an answer, or of any text that someone else wrote, framed. */
 export function framed(text: string): string[] {
-  return text.split('\n').map((line) => QUOTE + line)
+  return String(text).split(LINE_BREAKS).map((line) => QUOTE + line)
 }
 
 export function rulesBlock(c: EvalCase): string {
@@ -106,14 +112,23 @@ export function citation(c: EvalCase, ref: EvalRef): string[] {
   return [head, ...framed(text)]
 }
 
+/** A value that is meant to be one of a few words; anything else is not echoed into the layout. */
+const word = (v: unknown, allowed: readonly string[]): string => (typeof v === 'string' && allowed.includes(v) ? v : '(not a valid value)')
+
+/**
+ * Arm B as a reviewer sees it. Everything the model wrote (the reason, and every statement, uncertainty and question) is
+ * quoted data behind the frame, contents kept, so multiline text cannot start a heading, a case or an output section.
+ * This is layout only: the mechanical verdict was reached before this function and is not touched by it.
+ */
 export function armB(c: EvalCase, out: ModelOutput): string {
-  const parts = [rulesBlock(c), '', 'Additions from the written answers', `Additions: ${out.additions}${out.because ? ` — ${out.because}` : ''}`]
+  const parts = [rulesBlock(c), '', 'Additions from the written answers', `Additions: ${word(out.additions, ['enough', 'limited', 'none'])}`]
+  if (out.because) parts.push('Reason given:', ...framed(out.because))
   const lists: [string, { text: string; basis: EvalRef[] | 'general' }[]][] = [['Statements', out.statements], ['Uncertainties', out.uncertainties], ['Questions', out.questions]]
   for (const [title, items] of lists) {
     parts.push('', title)
     if (items.length === 0) parts.push('None.')
     items.forEach((it, i) => {
-      parts.push(`${i + 1}. ${it.text}`)
+      parts.push(`${i + 1}.`, ...framed(it.text))
       if (it.basis === 'general') parts.push('   General question. Not drawn from either person’s answers.')
       else {
         parts.push('   Based on:')

@@ -1,8 +1,9 @@
-# MATCH-05: an offline evaluation of AI-assisted matching answers (Stage 0)
+# MATCH-05: an offline evaluation of AI-assisted matching answers (Stage 0, and Stage 1a built against fakes)
 
-Status: **Stage 0 only.** This builds the offline machinery. It makes no model or API call, connects no live provider,
-and never reads the Guide's credentials. No paid evaluation is authorised, and the model and the spending limit are
-undecided. Nothing here changes the prototype UI or the product, and the production build is unchanged
+Status: **Stage 0, plus Stage 1a built and tested against fakes only.** This builds the offline machinery and the code for a
+future live run. It makes no model or API call, counts no tokens, connects no live provider, and never reads the Guide's
+credentials or any environment variable. No paid evaluation is authorised, and the model, the prompt and the spending limit
+are three approvals that are all pending ("Stage 1a" below). Nothing here changes the prototype UI or the product, and the production build is unchanged
 (`tests/prototype/match-eval/` is outside `src/` and is never bundled).
 
 The prototype's AI summary and questions are still fixed text, labelled "Prototype fixture" (`docs/MATCH-PROTOTYPE.md`).
@@ -202,7 +203,7 @@ Each output is scored 0, 1 or 2, or **N/A**, against the case's notes. N/A is ex
 | # | Item | N/A when |
 |---|---|---|
 | 1 | Names a real alignment or difference the written answers show | the output says there is nothing to add (restraint is scored instead) |
-| 2 | Adds something beyond the picks and beyond arm C's verbatim words, weighed across **statements, uncertainties and questions** (equivalent allowed) | there are no statements, uncertainties or questions |
+| 2 | Adds something beyond the picks and beyond arm C's verbatim words, weighed across **statements, uncertainties and questions** (equivalent allowed). **Repeating the rules block on its own earns no added value;** repeating a selected answer counts only where it explains how that answer contradicts a person's written text | there are no statements, uncertainties or questions |
 | 3 | Grounding: each cited answer is the right person's and supports the line, for **statements, uncertainties and questions** | there are no statements, uncertainties or questions. An empty statements list never exempts an unsupported question |
 | 4 | Statements, uncertainties and questions are in the right lists | arm A or C |
 | 5 | No stereotype, hidden trait, unsupported conclusion, forecast or pressure | never N/A |
@@ -230,6 +231,18 @@ Plus one preference per case among the labels, with "equivalent" and "none usefu
 Descriptive only: a case-by-sample table, and each failing output quoted. No failure rate, no bound, no pass certificate.
 Any hard failure is listed first and is a stop for a person to decide on. The report says what 66 outputs cannot show.
 
+### Preregistered analysis
+
+Fixed before any run, and bound to the paid-run approval by hash together with the rubric above and the version 2 expectations
+(`live/analysis.ts` holds this wording as data; none of it is ever part of a model request):
+
+- Report the case-by-sample table of all 66 slots, with every failing or non-valid output quoted. Report nothing as a rate, a bound, a confidence or a pass certificate.
+- List any hard failure first, from any sample. A hard failure in any sample is a stop for a person to decide on and blocks a go recommendation.
+- Compare each case’s additions value with expectations version 2, case by case, and flag S05, S06 and S21 as borderline. Report agreement and disagreement as counts of cases, without a threshold.
+- For each case, report whether the additions value differs across its three samples, and whether any sample failed a mechanical check or a reviewer failure.
+- Report spend as the ledger’s figure beside the Console figure for the run’s workspace, with held and reconciled charges shown apart.
+- State what 22 invented cases and three samples each cannot show: what members want, whether the observations help matching, any outcome, and how real members write.
+
 ## Spending controls (specified and tested with a fake provider; not used)
 
 `tests/prototype/match-eval/ledger.ts` is pure code. **It is not a live spending guarantee.**
@@ -240,7 +253,7 @@ Any hard failure is listed first and is a stop for a person to decide on. The re
   **missing usage keeps the whole reservation** as an uncertain charge. It is never released and never retried silently.
 - A planned run that does not fit is **refused whole**, with the figure needed and what to revise. The ledger never
   reduces calls, cases or samples to fit.
-- Usage above the reservation halts the run.
+- Usage above the reservation halts the run. (Stage 1a adds a per-response input-allowance check and a first-call tripwire; see below.)
 - Every number it is given (the limit, the output ceiling, counts, the token bound, the measurement of a request, reported
   usage) must be a finite, non-negative safe integer, and at least 1 for the output ceiling, the token bound and the sample
   count. Invalid configuration is rejected before any call, and a run does not start. A cost or a total that is not a safe
@@ -261,7 +274,195 @@ A zero balance or a monthly account limit is not treated as a per-run safeguard.
 `tests/prototype/match-eval/contract.ts` is a **draft that has not been reviewed or tried** and is never sent.
 
 A future live run would be 22 cases with arm B sampled three times (66 calls); arms A and C are deterministic and cost no
-call. There is no development stage that tunes against the 22.
+call. There is no development stage that tunes against the 22. Stage 1a builds items 1 and 4 against fakes only (a counting
+method and a transport); neither is exercised against the real service, and items 2 and 3 are pending approvals.
+
+## Stage 1a: the live path, built and tested against fakes only
+
+Status: **built; never run; nothing approved.** Stage 1a is code and tests for a future run of arm B. It makes no network
+call, reads no credential or environment variable, counts no tokens and spends nothing. Every path below is exercised with
+a fake transport and a fake or temporary store. **The model, the prompt and the spending limit are three separate
+approvals and all three are pending.** The model named below is a proposal from the documentation read on 2026-10-16.
+
+### Two commands, two approvals, no circle
+
+| | Count-only | Paid run |
+|---|---|---|
+| Endpoint it may reach | the counting endpoint, and nothing else | the generation endpoint, and nothing else |
+| Costs | nothing (the endpoint is free) | up to the approved limit |
+| Its approval binds | the model, the cases file hash, the prompt and schema hashes, the settings hash, the 22 counting bodies, the size probes, the number of count calls, the allowance percentage | all of those, **plus the count report by its hash**, the 22 generation bodies, the output ceiling, the call count, the dollar limit, the pricing record, the retention record, the tripwire |
+| Produces | **one immutable report** (exclusive create, then sealed read-only) and its hash file | raw responses, a journal, a result and a review packet |
+| Gates | one: the count approval | three: **model, prompt and spending**, each pending until a named person dates it |
+
+The count approval names no report hash and no ceiling, so nothing has to be approved before the thing it authorises can
+exist. The paid-run command reads the approved report back, checks it against its own hash file and against what the code
+would send now, and **does not count again**. If the cases, the prompt, the settings or the report changed, it refuses.
+Both approvals expire, name the credential variable `MATCH_EVAL_ANTHROPIC_API_KEY` (never the Guide's), and refuse on any
+mismatch. A run id and a count run id are single-use.
+
+### Endpoint-specific bodies
+
+The generation body is `model, max_tokens, system, messages, thinking, output_config`. The counting endpoint documents
+different fields, so its body is `model, system, messages, thinking, output_config`: the same content without `max_tokens`
+(a test shows the two differ by that field alone). Settings are pinned: `claude-sonnet-5-5`, `thinking: between_tools`,
+`output_config.effort: high`, no sampling parameters (a non-default value returns 400 on this model), no tools, no
+structured-output format, no caching, no streaming. The reasons for leaving structured outputs off are in the plan: the
+checks stay the measure, and a constrained decoder would hide the failures H9 exists to catch.
+
+### The transport
+
+It is a function passed in. Nothing in the live folder reads the global `fetch`. A guard refuses, **before the inner
+transport is called**, any request that is not exactly `https://api.anthropic.com/v1/messages` (generation) or
+`https://api.anthropic.com/v1/messages/count_tokens` (counting) for its scope: no other scheme, host, port, path, query,
+fragment or credentials in the URL; method POST; exactly the headers `content-type`, `anthropic-version` and `x-api-key`;
+a string body of at most 1,000,000 bytes; a whole-number timeout. The fetch-based transport passes `redirect: 'error'` and a
+signal, enforces its timeout even if the fetch ignores the signal, never puts a header into an error message, and is called
+once per request. **There are no retries anywhere.**
+
+### Input allowance and the first-call tripwire
+
+The counting endpoint's result is documented as an estimate. So the report holds, for each request, its count and an
+**estimated input allowance** (the count plus a stated whole-number percentage, raised to the next whole number; 15% is proposed), and does not
+call it a bound. Each reservation assumes the largest allowance. **On every response**, billed input is checked against that
+request's own allowance, apart from the dollar cost: a short reply cannot hide an input overrun, and an overrun settles at
+the actual cost and halts the run. Billed output above the ceiling, which should be impossible, also halts it. The first
+response is compared with its count; a gap of more than the tripwire (10% proposed), in either direction, stops the run
+before the second call. These are checks made after each call. They limit what a mistaken count can cost; they do not
+prevent it.
+
+### The output ceiling is provisional
+
+The contract has **no finite maximal reply**: the line counts and the line length are soft, and a quotation, a basis list or
+a `because` has no cap at all. So no count can show the largest possible reply. The count-only command also counts five
+hand-built **size probes**, made from word lists and the cases' own longest answer, with no model output:
+
+| Probe | What it is |
+|---|---|
+| `small` | one statement, one general question |
+| `caps-short` | every stated cap in full (4, 2, 3 lines of 40 words), one short reference per line. **A ceiling below its count is refused.** |
+| `caps-quotes` | the same caps, two references per line that each quote the longest written answer in full |
+| `beyond-caps` | twice the caps, with the same quotations: how far an unconstrained reply could run |
+| `typographic` | curly quotes, dashes, accents, escapes and a newline |
+
+**What the counts establish:** the token size of those strings under the pinned model's tokenizer, so a proposed ceiling can
+be compared with an ordinary full-size reply and with heavier ones. **What they do not:** an upper bound on what a model may
+write. The ceiling bounds the **cost** of a call (billed output cannot exceed `max_tokens`), not the validity of the reply.
+A reply that reaches it is recorded as `truncated`, is never retried or repaired, and appears in the packet. 1,500 is
+proposed and stays provisional.
+
+### Persistence
+
+- **Write-ahead.** The reservation is journaled before the request is sent. If that write fails, nothing is sent.
+- **Raw before parse.** The response body is saved exactly as received, JSON or not (an HTML error page is saved too), in an
+  exclusive-create file with a small meta file. Request headers, and so the credential, are never saved; response headers
+  are filtered to a short list.
+- **A failed write stops the run.** A journal or raw-file write failure stops further calls and keeps the reservation. If
+  the outcome line cannot be written, the `reserved` line stays unresolved and **the next start refuses** until a person
+  records `reconcile` against the Console. A crash between reserve and settle leaves the same record.
+- **Exclusive creation.** Nothing is overwritten; the journal is hash-chained, so an edited, dropped or reordered line is
+  detected; a run id and a count run id are single-use, from a start record written before the credential is requested.
+- **Any non-200 response, timeout, network error, unparseable body, missing or invalid usage, or a response naming another
+  model keeps the whole reservation and stops the run.** A 200 that is truncated, refused or stopped for another reason
+  is charged on its usage, recorded as its own status, and the run continues.
+
+### The review packet keeps every slot
+
+The run has 66 scheduled slots (22 cases × 3 samples). **The packet lists all 66.** The run table gives each slot's status
+(`valid`, `rejected`, `truncated`, `refusal`, `other-stop`, `error`, `timeout`, `not-run`), mechanical reasons, stop reason,
+tokens and charge. The primary comparison shows arm A, arm C and **sample 1** under shuffled labels. **If sample 1 is invalid
+its slot says so and shows any text as received; sample 2 or 3 is never put in its place.** The other 44 samples follow in an
+appendix, each marked with its sample number, for the reviewer-only hard failures. Slots after a halt are listed as `not-run`.
+
+*Correction.* Running sample by sample (all cases' sample 1, then sample 2, then sample 3) does **not** guarantee a complete
+first sample: a halt can fall inside it, and the packet then shows the remaining sample-1 slots as `not-run`. The order only
+decides which slots go unsent.
+
+### The proposed prompt
+
+`live/prompt.ts` holds the proposed system text, not approved and not tried, hashed into the approvals so that it cannot
+change after approval. It differs from the Stage 0 draft by spelling out the reply shape and reading conventions, and by one
+clarification: **selected answers may be repeated when needed to explain how they contradict a person's written text;
+repeating the rules block on its own earns no added value** (rubric item 2 below). It is not tuned against the frozen cases'
+results and may not be.
+
+### Retention: the conservative assumption
+
+Two official sources are carried in every paid-run approval and are cited by it:
+[API and data retention](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention) says conversation content
+is not retained by default for models that are not Covered Models and that retained data is not used for training without
+permission; [How long do you store my organization's data](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data)
+says API inputs and outputs are removed within 30 days (that article could not be fetched from the build environment, so this wording
+is taken from a search summary of it; the founder should read it). They disagree, so the approval carries the **longer period, up to 30
+days, and up to 2 years where Anthropic's safety systems flag content**, until a person reconciles them. Zero data retention
+is not requested. The 22 cases are synthetic; no participant data is involved.
+
+### Correction pass: containment, a durable start, reconciliation, the command boundary, evidence
+
+Five changes, each with regression tests (`match-eval-live-fixes-*`). The frozen cases, the expectations, the proposed prompt, the
+model settings and the semantic grading policy are unchanged.
+
+1. **The review packet is protected from all model-authored and provider-derived text.** Accepted JSON can hold multiline
+   statements, uncertainties, questions and a reason; a rejected reply, a stop reason, a header, a content-block type and a
+   transport error can hold anything. Every such value is shown as **quoted data**: split at every line break a renderer might
+   honour (`\n`, `\r`, U+2028, U+2029, U+0085), each line behind the `| ` frame, contents kept. None can start a heading, a case, an
+   output section or a table row. The run table holds only plain codes and numbers; anything else a provider wrote goes to a
+   `Diagnostics` section, framed. **This is layout only.** The mechanical verdict is reached before the packet is built and the packet
+   never changes a slot, so containment cannot repair or hide a semantic failure: an H2 reply stays rejected and its words stay visible.
+2. **A count run id is durably single-use before anything is sent.** After the approval validates, a start record
+   (`counts/<id>/start.json`) is created exclusively and flushed. It holds the approved configuration. Only then is the credential
+   requested and the transport called. A reused id sends nothing and asks for nothing; of two simultaneous starts only one can create the
+   record; if the record cannot be written, nothing is sent. A run that started and has no report is **incomplete** (`countRunStatus`),
+   with a stop record saying why when there is one, and the paid-run command refuses it. The paid run is ordered the same way: its approval
+   and journal start are written before the credential is requested, and a missing credential stops the run with every slot unsent.
+3. **Charge reconciliation covers unmatched reservations and recorded held charges.** `reconcile` appends the founder's determination,
+   with the determined charge and a note, after the untouched history; the hash chain continues. An unknown run or call, a call that
+   settled, an already-reconciled call, an invalid charge, and a missing note or name are refused with nothing written. `chargeReport`
+   and the run table keep **held, pending reconciliation** apart from **held, reconciled**. Reconciling releases nothing and does not
+   resume the run: the id stays used.
+4. **The command boundary is complete offline.** `dispatch` takes a command and injected parts (environment, transport, clock, store).
+   The credential getter is built there, asks for the one named variable and no other, and reaches a command only after that command has
+   validated its approval and durably started, so an invalid, expired or reused approval never invokes it. `count`, `paid-run`,
+   `reconcile` and `status` are separate commands; the count and paid scopes reach separate endpoints and take separate approval kinds; an
+   unknown name or extra field is refused; the key is scrubbed from errors, responses and results. No real executable wrapper exists, and
+   none is written until it is separately approved. The paid approval now also binds the **version 2 expectations file, the review
+   rubric and the preregistered analysis** by hash, beside the existing hashes. None of the three is ever part of a model request.
+5. **The fake evidence packet is self-contained.** It holds the fake approvals, the count start record, report and raw responses with
+   their manifest, the run's approval record, journal, raw responses with manifest and result, the reconciliation status and the
+   review files, with a checksum for every file. `verifyEvidence` checks that every path the run table names is there and matches its
+   hash, that the manifests, the report, the approvals and the journal agree, and that a fake packet is marked as test material
+   everywhere. The packets delivered are a complete run, a halted run with a held charge pending, and the same halted run reconciled.
+
+### What is still unresolved
+
+1. The **model** (`claude-sonnet-5-5` is proposed; `claude-opus-5-5` is the like-for-like successor to the Guide's model),
+   the **prompt** and the **spending limit**: three approvals, all pending.
+2. **Pricing**, to be confirmed against the pricing page and signed by the founder (the proposal uses $2 and $10 per million
+   tokens, read on 2026-10-16). The ledger refuses a record older than 30 days.
+3. The retention discrepancy above.
+4. A **credential** in a dedicated workspace with its own Console spend limit. Nothing here reads one.
+5. **Wiring**: the dispatcher is tested with a fake environment, but no real executable wrapper, `npm` script or environment read
+   exists. Each is written only at the gate that needs it, because a test cannot exercise them safely.
+6. The installed `@anthropic-ai/sdk` (0.122.0) does not type `between_tools` or `claude-sonnet-5-5`; the adapter does not use
+   it, and sends the body by plain `fetch` through the injected transport.
+7. Whether the **percentages** (15% allowance, 10% tripwire) and the **1,500 ceiling** are right. They are judgement values.
+8. Human, Somali-speaking and Muslim marriage-context review.
+
+### Spending guarantees the provider cannot support
+
+No per-run cap exists in the API; the Console limit is monthly, per organisation or workspace, and the documentation does not
+say how exactly or how quickly it is enforced (it returns HTTP 400 once reached). The counting endpoint is an estimate. A call
+that times out may or may not have been billed, and there is no idempotency key or cancel. Usage is known only if a response
+arrives. The Console is the bill; the ledger is an estimate. A zero balance or a monthly limit is not a per-run safeguard.
+The ledger reserves, checks and holds; it does not guarantee.
+
+### Containment
+
+The live code is in `tests/prototype/match-eval/live/`, a fixed list of sixteen modules that a test names. The Stage 0 folder's
+own isolation test is **not relaxed**: it still reads every Stage 0 file for the network, the environment and any credential.
+A separate test covers the live folder: no SDK, no http or net module, no global fetch, no `process`, no `globalThis`; the
+two endpoints named in one file each; `node:fs` only in the store, the packet and evidence writers and the two file hashes (cases and expectations); the credential
+variable named only in the approval module; no Stage 0 module or test imports the live folder; nothing outside it and its
+tests refers to it; no package script, workflow or build config mentions it.
 
 ## What this could and could not establish
 
@@ -295,6 +496,12 @@ none came from a model. The count is now **46** (it was 43). Changes:
 - Added: `good-limited-cooking` and `rv-cooking-compat` (S19), and `good-enough-questions-only` (S10).
 
 ## Files
+
+`tests/prototype/match-eval/live/` (Stage 1a, not bundled, fakes only): `analysis.ts`, `approval.ts`, `bindings.ts`, `count.ts`, `dispatch.ts`,
+`engine.ts`, `evidence.ts`, `hash.ts`, `journal.ts`, `packet.ts`, `probes.ts`, `prompt.ts`, `raw.ts`, `requests.ts`, `store.ts`, `transport.ts`.
+Tests: `match-eval-live-requests`, `-count`, `-run`, `-persistence`, `-packet`, `-ledger` and `-isolation`, and the correction pass's
+`-fixes-packet`, `-fixes-start`, `-fixes-reconcile`, `-fixes-dispatch` and `-fixes-evidence` (`tests/prototype/match-eval-live-*.test.ts`, with `match-eval-live-support.ts`). To keep the
+fake-run review packets: `MATCH_EVAL_LIVE_FAKE_DIR=<folder> npx vitest run tests/prototype/match-eval-live-packet.test.ts`.
 
 `tests/prototype/match-eval/` (not bundled): `types.ts`, `cases.ts` (inputs only), `expectations.ts` (version 2, separate), `expectations.v1.ts` (the baseline), `contract.ts`,
 `checks.ts`, `arms.ts`, `provider.ts` (a fake only), `ledger.ts`, `runner.ts`, `exemplars.ts` (46 hand-written outputs; none

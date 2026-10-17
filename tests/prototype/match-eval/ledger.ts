@@ -87,7 +87,17 @@ export type Reserve =
   | { ok: true; id: number; micros: number }
   | { ok: false; reason: 'request-over-bound' | 'invalid-measurement' | 'reservation-does-not-fit' | 'halted'; needMicros: number; availableMicros: number }
 
-export type Settle = { ok: true; charge: 'settled' | 'held'; overrun: boolean; invalid: boolean } | { ok: false; reason: 'unknown-reservation' }
+export type Settle =
+  | { ok: true; charge: 'settled' | 'held'; overrun: boolean; inputOverrun: boolean; outputOverrun: boolean; invalid: boolean }
+  | { ok: false; reason: 'unknown-reservation' }
+
+/** Checks a live run makes on every response, apart from the dollar cost. Stage 0 callers pass none. */
+export interface SettleOptions {
+  /** The input tokens this request was allowed (its counted size plus the stated allowance). Billed input above it halts the ledger even when the cost is small. */
+  inputAllowance?: number
+  /** Billed output above the ceiling should be impossible; if it happens, halt. */
+  enforceOutputCeiling?: boolean
+}
 
 export interface Snapshot {
   limitMicros: number
@@ -189,8 +199,12 @@ export class Ledger {
    * The call reported usage. Valid usage is charged and the rest released; usage above the reservation halts the ledger.
    * Usage that is not a pair of finite, non-negative safe integers (or whose cost is not one) is not trusted: the whole
    * reservation is kept as an uncertain charge and the ledger halts. An id that is not open changes nothing.
+   *
+   * With `inputAllowance`, billed input above the allowance halts the ledger on its own, whatever the dollar cost: a
+   * small output cannot hide an input overrun.
    */
-  settle(id: number, usage: { inputTokens: number; outputTokens: number }): Settle {
+  settle(id: number, usage: { inputTokens: number; outputTokens: number }, o: SettleOptions = {}): Settle {
+    if (o.inputAllowance !== undefined && !isCount(o.inputAllowance, 1)) throw new LedgerRefusal(['the input allowance must be a finite safe integer of at least 1'])
     const reserved = this.open.get(id)
     if (reserved === undefined) return { ok: false, reason: 'unknown-reservation' }
     this.open.delete(id)
@@ -200,12 +214,19 @@ export class Ledger {
     if (!valid || !isCount(actual)) {
       this.held += reserved
       this.stopped = true
-      return { ok: true, charge: 'held', overrun: false, invalid: true }
+      return { ok: true, charge: 'held', overrun: false, inputOverrun: false, outputOverrun: false, invalid: true }
     }
     this.spent += actual
     const overrun = actual > reserved
-    if (overrun) this.stopped = true
-    return { ok: true, charge: 'settled', overrun, invalid: false }
+    const inputOverrun = o.inputAllowance !== undefined && (u.inputTokens as number) > o.inputAllowance
+    const outputOverrun = o.enforceOutputCeiling === true && (u.outputTokens as number) > this.maxOutputTokens
+    if (overrun || inputOverrun || outputOverrun) this.stopped = true
+    return { ok: true, charge: 'settled', overrun, inputOverrun, outputOverrun, invalid: false }
+  }
+
+  /** Stops the ledger: every later reservation is refused. Used when a run must stop for a reason the ledger cannot see. */
+  halt(): void {
+    this.stopped = true
   }
 
   /** The charge is uncertain: keep the whole reservation. It is never released. An id that is not open changes nothing. */

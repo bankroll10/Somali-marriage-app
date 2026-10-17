@@ -33,9 +33,9 @@ function rng(seed: string): () => number {
   }
 }
 
-const LABELS = ['X', 'Y', 'Z']
+export const LABELS = ['X', 'Y', 'Z']
 
-function shuffled<T>(items: T[], seed: string): T[] {
+export function shuffled<T>(items: T[], seed: string): T[] {
   const r = rng(seed)
   const a = [...items]
   for (let i = a.length - 1; i > 0; i--) {
@@ -61,7 +61,7 @@ const HEADER = [
   '',
 ].join('\n')
 
-function sourceBlock(c: EvalCase): string {
+export function sourceBlock(c: EvalCase): string {
   const input = buildInput(c)
   const rows = input.points.map((p) => {
     const ask = p.yourAsk.firm === 'any' ? 'Doesn’t matter' : `${p.yourAsk.firm}: ${p.yourAsk.accepts.join('; ')}`

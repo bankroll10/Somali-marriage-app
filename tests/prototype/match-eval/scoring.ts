@@ -28,6 +28,8 @@ const isReply = (s: Subject | undefined): s is ModelOutput => !!s && 'statements
  * - Grounding applies to statements, uncertainties and questions alike, and is N/A only when an output has none of the
  *   three, so an empty statements list never exempts a question.
  * - Added value beyond arm C (item 2) is weighed across statements, uncertainties and questions, not statements alone.
+ *   Repeating the rules block on its own earns none; repeating a selected answer counts only where it explains a
+ *   contradiction with written text.
  */
 export function applicability(arm: Arm, subject?: Subject): Applicability {
   if (arm !== 'B') {
