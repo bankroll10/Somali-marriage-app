@@ -58,6 +58,16 @@
 
 @import 'tailwindcss';
 
+/*
+ * The public demo (docs/MATCH-PROTOTYPE.md, docs/DECISIONS.md release R4) is styled by its own stylesheet,
+ * src/prototype/match/prototype.css, and built by its own config. Tailwind reads every file under the project
+ * root, so without these three lines the demo's utility classes, and any class name its tests mention, would be
+ * generated into the app's stylesheet. tests/prototype/build.test.ts builds both and holds that none were.
+ */
+@source not "./prototype";
+@source not "../demo";
+@source not "../tests/prototype";
+
 @theme {
   /* Palette — warm, grounded, intentional */
   --color-cream: #f7f2e8;

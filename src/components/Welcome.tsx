@@ -10,7 +10,7 @@ interface Props {
   onBegin: () => void
   /** An earlier introduction request: new requests are closed, so this only manages one (src/components/Looking.tsx). */
   onLooking: () => void
-  /** The second door: already talking to someone (src/components/Talking.tsx). */
+  /** The tools, for someone already considering a person (src/components/Talking.tsx). */
   onTalking: () => void
   hasProgress: boolean
   completed: boolean
@@ -26,6 +26,10 @@ interface Props {
   onAskGuide?: (text: string) => void
 }
 
+
+/** The primary action's look: the Button's onDark variant, as a link (src/components/ui.tsx). */
+const DEMO_LINK =
+  'inline-flex items-center justify-center gap-2 rounded-full px-7 py-3.5 text-[0.95rem] font-medium transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 bg-cream text-forest-deep hover:bg-white hover:-translate-y-0.5 shadow-lift focus-visible:ring-offset-forest-deep'
 
 export default function Welcome({
   onBegin,
@@ -62,27 +66,26 @@ export default function Welcome({
             {EYEBROW}
           </p>
 
-          {/* The headline says what the product is for, in a sentence a
-              first-time visitor can repeat. It used to promise "Meet someone
-              serious" as well; new introduction requests are closed and
-              matching is not available, so it no longer does
-              (docs/DECISIONS.md, release R3). */}
+          {/* The headline says what Niyyah is for and where it starts. Nothing
+              here says introductions work: the demo is fictional and the first
+              screen says so once, in the line under its button (docs/DECISIONS.md,
+              release R4). It used to say "Think marriage through." (release R3). */}
           <h1 className="animate-rise font-display text-[2.6rem] font-medium leading-[1.06] tracking-tight text-balance sm:text-[3.4rem]">
-            Think marriage through.
+            Meet with marriage in mind.
           </h1>
 
           <p
             className="animate-rise mt-5 max-w-lg text-[1.05rem] leading-relaxed text-cream/80 text-pretty"
             style={{ animationDelay: '80ms' }}
           >
-            Niyyah has tools for people who are already considering someone for marriage. New
-            introduction requests are closed, and matching is not available.
+            We’re building Niyyah to help Somali singles meet, learn about each other, and decide about
+            marriage. Starting with Minneapolis–St. Paul.
           </p>
 
-          {/* One door now (docs/DECISIONS.md Parts 22 and 25, then release R3):
-              the situation in a person's own words, ending in what the tap
-              does. The introduction door is gone; the map's path and a way to
-              manage an earlier request are the quieter lines under it. */}
+          {/* The demo is a separate page (/demo/, a second build), so this is a
+              plain link: a full load into a bundle that shares nothing with the
+              app. For someone who has finished the map, Enter Niyyah is still
+              the first thing offered. */}
           <div className="animate-rise mt-8" style={{ animationDelay: '160ms' }}>
             {completed ? (
               <Button variant="onDark" onClick={onEnter} className="group">
@@ -90,33 +93,43 @@ export default function Welcome({
                 <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
               </Button>
             ) : (
+              <a href="/demo/" className={`group ${DEMO_LINK}`}>
+                Explore the demo
+                <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+              </a>
+            )}
+            {completed ? (
+              <p className="mt-4">
+                <a
+                  href="/demo/"
+                  className="inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-cream/75 underline-offset-4 transition hover:text-cream hover:underline"
+                >
+                  Explore the demo
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </p>
+            ) : null}
+            <p className="mt-3 max-w-md text-[0.92rem] leading-snug text-cream/70 text-pretty">
+              Try the experience with fictional people. Real introductions and messaging aren’t open yet.
+            </p>
+
+            {!completed && (
               <>
-                <div className="grid gap-3">
-                  {(
-                    [
-                      {
-                        eyebrow: 'Tools',
-                        title: 'I’m already talking to someone.',
-                        desc: 'Understand what they have shown you, talk through the big questions before the families do, and find the words for them.',
-                        action: 'Choose where to start',
-                        go: onTalking,
-                      },
-                    ] as { eyebrow: string; title: string; desc: string; action: string; go: () => void }[]
-                  ).map((door) => (
-                    <button
-                      key={door.title}
-                      onClick={door.go}
-                      className="group flex w-full flex-col items-start rounded-card border border-cream/30 bg-cream/[0.07] p-5 text-left transition hover:-translate-y-0.5 hover:bg-cream/[0.14]"
-                    >
-                      <span className="text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-gold-soft">{door.eyebrow}</span>
-                      <span className="mt-2 font-display text-[1.25rem] font-medium leading-snug text-cream text-balance">{door.title}</span>
-                      <span className="mt-2 text-[0.92rem] leading-snug text-cream/75 text-pretty">{door.desc}</span>
-                      <span className="mt-4 inline-flex items-center gap-1.5 text-[0.92rem] font-medium text-gold-soft">
-                        {door.action}
-                        <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
-                      </span>
-                    </button>
-                  ))}
+                {/* The tools, for someone who is already considering a person
+                    (docs/DECISIONS.md Parts 22 and 25, then releases R3 and R4):
+                    the same handler, now the second door. */}
+                <div className="mt-10 max-w-md border-t border-cream/30 pt-6">
+                  <h2 className="font-display text-[1.25rem] font-medium leading-snug text-cream">Already considering someone?</h2>
+                  <p className="mt-2 text-[0.92rem] leading-snug text-cream/75 text-pretty">
+                    Explore tools for the conversations and decisions ahead.
+                  </p>
+                  <button
+                    onClick={onTalking}
+                    className="group mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-full border border-cream/30 bg-cream/[0.07] px-6 py-2.5 text-[0.95rem] font-medium text-cream transition hover:-translate-y-0.5 hover:bg-cream/[0.14] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60 focus-visible:ring-offset-2 focus-visible:ring-offset-forest-deep"
+                  >
+                    Use the tools
+                    <ArrowRight className="transition-transform group-hover:translate-x-0.5" />
+                  </button>
                 </div>
                 <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-5">
                   <button

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="A demo with fictional people. Nothing you do here is saved or sent." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Niyyah demo (fictional)</title>
+    <!--
+      The public demo (docs/MATCH-PROTOTYPE.md, docs/DECISIONS.md release R4): a separate page, built by
+      vite.demo.config.ts into /demo/ with its assets in /demo-assets/, and served with its own strict
+      Content-Security-Policy (netlify.toml). No manifest, no service worker, no analytics, no storage, no network.
+      Not in the sitemap; it says noindex itself, as the rest of the site tells crawlers what to do (docs/OPS.md).
+    -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/prototype/match/main.tsx"></script>
+  </body>
+</html>

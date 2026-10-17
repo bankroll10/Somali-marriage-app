@@ -56,8 +56,8 @@ describe('a person with no earlier request', () => {
     onPhone(new Phone('hers'))
     const m = await mount(<App />)
     const welcome = m.text()
-    expect(welcome).toContain('Think marriage through.')
-    expect(welcome).toContain('New introduction requests are closed, and matching is not available.')
+    expect(welcome).toContain('Meet with marriage in mind.')
+    expect(welcome).toContain('Real introductions and messaging aren’t open yet.')
     expect(welcome).not.toMatch(/looking for someone serious|made by hand|founder/i)
 
     await m.press(/Manage an earlier introduction request/)
@@ -609,7 +609,7 @@ describe('already talking to someone', () => {
   it.each(doors)('%s lands on its instrument', async (door, lands) => {
     onPhone(new Phone('theirs'))
     const m = await mount(<App />)
-    await m.press(/I’m already talking to someone/)
+    await m.press(/^Use the tools/)
     expect(m.text()).toContain('Where are you with it?')
     expect(m.text()).not.toMatch(/introduction/i)
     await m.press(door)

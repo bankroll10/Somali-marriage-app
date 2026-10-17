@@ -4471,3 +4471,102 @@ Production and Deploy Previews separately; this change lists no environment valu
 and relationship-judgment evaluations were **not evaluated: insufficient credit** (the API answered
 `credit balance is too low` and the workflow's credit grep exits 0). No credit was added and nothing was run by
 hand.
+
+## Release candidate R4: a first screen about meeting, and a public fictional demo (2026-10-17)
+
+The founder directed (2026-10-17) a bounded public-site update so that a visitor can understand where Niyyah is going and
+see it: lead with helping Somali singles meet, learn about each other and decide about marriage, Minneapolis–St. Paul
+first; make **exploring a clearly labelled fictional demo** the primary action and the existing tools the secondary one;
+keep real introductions and messaging closed; say nothing that implies working AI matching or real available members.
+Decisions 22 and 26 and decision 35's "never restored" list require the founder's explicit approval, written here, before
+anything marketplace-shaped is shown: this entry is that record, and it covers **a fictional demo only**. It is built on
+`origin/main` (`3eb7f64`) as R1 to R3 were, carrying only the reviewed demo UI from the prototype branch
+(`f0daa17`); the prototype branch was not merged and its evaluation work (MATCH-05) is not in this release.
+
+**What changes for a visitor.** Welcome's headline is "Meet with marriage in mind.", with one sentence of what is being
+built and where it starts; **Explore the demo** (a link to `/demo/`) is first, with one line saying the people are
+fictional and that real introductions and messaging aren't open yet; the tools follow under "Already considering
+someone?" with the same handler as before; "Not sure? Start where you are", "Pick up where you left off", "Manage an
+earlier introduction request" and "Bring your map back" are as they were. This reverses R3's wording ("Think marriage
+through." and the second paragraph about closed requests) on purpose; the status is said once, not twice. A person who has
+finished the map still sees **Enter Niyyah** first. The server's closure of new requests, the withdrawal client and every
+earlier-request screen are untouched. The description, link-preview text, social card alt, manifest description and
+`public/og.png` move to the same sentence (`src/data/brand.ts`); a chat app that cached the old card keeps it until it
+refreshes.
+
+**The demo is a separate build.** `vite.demo.config.ts` builds `demo/index.html` after the app, into the same `dist/`, as
+`/demo/` with assets in `/demo-assets/`. `vite.config.ts` is not touched, so the sitemap, `robots.txt`, worker and version
+file stay the app's. It is `noindex` in the page itself and not in the sitemap; `netlify.toml` sends no `X-Robots-Tag`,
+because the site's own rule (`docs/OPS.md`) forbids it. It is served with a strict Content-Security-Policy
+(`connect-src 'none'`, own script and style only, no forms, base, objects or framing), so "sends nothing" is enforced by the
+browser, not only promised. `/demo` redirects to `/demo/` ahead of the catch-all.
+
+**What was safe only because the prototype was development-only, and what now holds it.** (1) Its copy was outside the
+voice scan: `tests/prototype/copy.test.ts` applies the voice list and adds a check that it claims no real members, no open
+introductions, no working AI (AI is named only to say no model is involved) and no live messaging. The site-wide
+`tests/voice.test.ts` scan is unchanged, because its promise list ("conversation opens", "and blocking") describes the
+live product and the demo shows those as simulation. (2) Messaging, photos, block and report conflict with PRODUCT.md's
+not-built list: the demo says they are simulated, says nobody receives a message or report, never calls a simulated report
+moderation, and **commits to building none of them**. (3) It was never built or served: it now has a CSP, noindex and no
+sitemap entry. (4) The worker would have cached it, and it shares an origin's storage with the app: the worker leaves
+`/demo/` and `/demo-assets/` alone, and a source and build scan holds that the demo touches no storage, network, beacon,
+cookie, worker or build variable. (5) Its copy said "Prototype" and pointed at a repository file: it says "Demo" and points at
+nothing. (6) Its tests assumed it was never built: they now assert the separate build, the import boundary
+(`src/prototype/match/**` plus three shared modules, nothing under `tests/`, `netlify/` or `scripts/`) and that the built
+demo files carry no evaluation, vendor or credential name. Existing `/?demo` (the internal "Hodan" seed) is a different
+thing with the same word and is not linked.
+
+**The demo's entrance.** A review of the first build found its entrance read like a testing screen on a phone: several
+paragraphs, three scenarios and exclusion detail before the product was experienced. The first screen is now one short
+paragraph of disclosure (fictional people, no personal information, nothing sent or kept, real introductions and messaging
+not open), a choice of side and **Start the demo**, which starts the three-suggestion sample. The other samples and blank
+answers are under "Try another scenario", closed; the rules, the private-tools note and the cases left out are on "What's
+real here?". The disclosures stay in view; only the detail moved. No dedicated tools route is added: "Leave the demo" returns
+to the homepage, where "Use the tools" is.
+
+**A flaw found in a carried test.** The prototype's random-sequence property test (`tests/prototype/flow.test.ts`, unseeded)
+failed once in four full runs of `npm run verify`, on the sequence interested, disconnect, block of the same person (seed
+1248232921): its first check allows a block after an ending, and its last check forbade any change from a conversation that
+was not open. The reducer (`flow.ts`, unchanged from the reviewed branch) was right and the property was too strict. The last
+check now allows exactly that one change, and a deterministic example pins the sequence; fifteen further runs with fresh
+random seeds passed. This is a change to a reviewed test, made because it contradicted itself, not to make a result pass.
+
+**Service worker: before and after the new worker activates.** `src/lib/serviceWorker.ts` returns early for `/demo`, `/demo/*`
+and `/demo-assets/*`, so **once this worker is active** those are never answered, cached or replaced by the app shell. Until
+then they are not covered. A browser that holds the previous worker (3eb7f64, which has no such rule) answers demo loads
+itself, network first, and writes the demo's static files into its own cache, **for as long as that worker stays in charge**.
+It stays in charge until the browser fetches `/sw.js`, finds it changed, installs the new worker, and the new worker activates
+(`skipWaiting`, then `claim`). Activation deletes every cache the previous worker wrote, copies of the demo included; after it,
+demo loads go to the network. When the browser looks for the new worker is the browser's decision and is not changed by this
+release, so no claim is made that only one load can be answered by the previous worker. The demo keeps nothing of a visitor's,
+so nothing personal is in those copies, and a load the previous worker answers is still the demo, with its policy applied.
+Nothing needs sequencing for correctness.
+
+The evidence is kept in three parts, and each says only what it shows:
+1. **Sandbox (`tests/service-worker.test.ts`).** Both real workers, run as a browser would run them: the previous one answers
+   and caches `/demo/` and its assets; the new one answers neither; the new one's `activate` deletes the previous one's cache.
+2. **Natural navigation (`pub-sw-natural.mjs`; nothing in it asks the browser for an update).** Chromium 141.0.7390.37, headless,
+   one machine, a loopback server applying `netlify.toml`'s headers. A profile held the previous worker; the new build was then
+   served. *Direct to `/demo/`, the homepage never visited:* the first ordinary navigation was answered by the previous worker
+   (five demo files were in its cache); on that navigation the browser fetched `/sw.js` once and, sampled each second with the
+   page left idle, the new worker was active with the previous cache gone **at 4 s**; four further ordinary navigations over 45
+   to 90 s were each left to the network and cached nothing of the demo. *Through the homepage* (which registers `/sw.js` on
+   load): active with the previous cache gone **at 4 s**, and a later `/demo/` load went to the network. Every ordinary
+   navigation fetched `/sw.js` again. These are observations from one browser engine and one network, not a guarantee: other
+   browsers, a slow or failing network, and how long a profile that is never navigated would wait are **not** shown.
+3. **Forced update (`pub-browser.mjs`, "forced update" checks).** The harness calls `registration.update()`, so this shows what
+   holds **once the new worker is installed and active**: the previous cache and every copy of the demo in it are gone, later
+   loads of `/demo/` go to the network, offline `/demo/` is unavailable (no stale copy, no app shell) and the app shell still
+   loads after its first online visit. **It says nothing about when the browser would have updated unprompted.**
+
+**Evaluation gate (record, not authority).** `guide-eval.yml` runs on `workflow_dispatch` and on any **pull request** whose
+diff touches `netlify/shared/prompt.ts`, `netlify/functions/guide.ts`, `src/lib/{coach,read,beforeYes,couple}.ts`,
+`src/data/**`, `tests/guide-eval/**` or `tests/judgment/**`, and again on every later push to that PR. This release changes
+`src/data/brand.ts`, so **opening a pull request would start a paid run (about $4) if the `ANTHROPIC_API_KEY` secret is set
+and has credit**; without them it warns and passes, as it did on PR #86. Pushing a branch does not trigger it. No pull
+request was opened, nothing was run, and the workflow is unchanged.
+
+**Not covered.** No screen reader was run. Content-Security-Policy was verified against a local server that applies
+`netlify.toml`'s header and redirect rules, not against Netlify itself: the headers, the `/demo` redirect and the Deploy
+Preview must be read with `curl -I` before a production deploy (`docs/OPS.md`). The Somali-language and cultural review of the
+demo's wording is outstanding, as it is for every screen.

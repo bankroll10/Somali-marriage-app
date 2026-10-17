@@ -52,7 +52,7 @@ const START = ['Start where you are', /^I am a woman/, /I confirm I am 18/, /^Co
 const HOOK = [...START, /^I’m not talking to anyone/, /^Continue/]
 
 const VISITS: Record<string, Visit> = {
-  welcome: { who: 'stranger', lands: /Think marriage through\./ },
+  welcome: { who: 'stranger', lands: /Meet with marriage in mind\./ },
   // The one door, and the way to manage an earlier introduction request
   // (docs/DECISIONS.md Parts 22 and 25, then release R3).
   looking: { who: 'stranger', taps: [/Manage an earlier introduction request/], lands: /This phone is not holding a request code/ },
@@ -69,7 +69,7 @@ const VISITS: Record<string, Visit> = {
     taps: [/^Your privacy/, /^Manage an earlier request/],
     lands: /This phone is not holding a request code/,
   },
-  talking: { who: 'stranger', taps: [/I’m already talking to someone/], lands: /Where are you with it\?/ },
+  talking: { who: 'stranger', taps: [/^Use the tools/], lands: /Where are you with it\?/ },
   identity: { who: 'stranger', taps: ['Start where you are'], lands: /Let’s start with you/ },
   situation: { who: 'stranger', taps: START, lands: /What’s happening right now\?/ },
   'situation — getting ready': { who: 'stranger', taps: [...START, /^I’m not talking to anyone/], lands: /Get yourself ready first/ },

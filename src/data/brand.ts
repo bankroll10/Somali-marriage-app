@@ -34,6 +34,12 @@
  * so the description and the card name only the tools. A chat app or search
  * engine that cached the earlier text keeps showing it until it refreshes.
  *
+ * On 2026-10-17 (docs/DECISIONS.md, release R4) all three moved to the homepage's new first
+ * sentence: Somali singles, meeting, learning about each other and deciding about marriage,
+ * starting in Minneapolis–St. Paul, with a fictional demo to try and the tools for someone
+ * already considering a person. They say "is being built" and "demo": introductions and
+ * messaging are not open, and nothing here says a model chooses anyone.
+ *
  * "Powered by AI" is gone from all three surfaces that still carried it after
  * docs/PRODUCT.md recorded it removed — the model may add a sentence, never
  * be the reason (tests/durable.test.ts). No imports: vite.config.ts loads
@@ -50,11 +56,11 @@ export const TITLE = `${NAME} — marriage for the Somali diaspora, done in the 
 
 /** The meta description and the manifest's description. */
 export const DESCRIPTION =
-  'Already talking to someone? Read what they have shown you, the conversations to have before you marry, and the words for them. For the Somali diaspora. No account.'
+  'Niyyah is being built to help Somali singles meet, learn about each other, and decide about marriage, starting in Minneapolis–St. Paul. Try the demo or the tools.'
 
 /** What the social card says when a link is pasted into a chat. */
 export const TAGLINE =
-  'Already talking to someone? What they have shown you; the conversation to have next.'
+  'Being built to help Somali singles meet and decide about marriage. Try the fictional demo.'
 
 /** The social card's alt text. */
-export const OG_ALT = `${NAME} — built for the Somali diaspora. What’s in your way?`
+export const OG_ALT = `${NAME} — built for the Somali diaspora. Meet with marriage in mind.`
