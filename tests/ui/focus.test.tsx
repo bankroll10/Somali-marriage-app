@@ -55,7 +55,7 @@ const tick = (ms = 50) => new Promise((r) => setTimeout(r, ms))
 describe('App, on a cold load of a lazy screen', () => {
   it('moves focus to the heading when the held chunk resolves, and not before', async () => {
     screen = await mount(<App />)
-    await screen.press(/Choose where to start/)
+    await screen.press(/^Use the tools/)
     // The chunk is still in flight: the screen is the blank fallback, there is
     // nothing to focus, and focus is on the page, not on a stale control.
     expect(screen.text()).not.toMatch(/Where are you with it\?/)
@@ -72,7 +72,7 @@ describe('App, on a cold load of a lazy screen', () => {
 
   it('does not take focus back once the person moves on the screen', async () => {
     screen = await mount(<App />)
-    await screen.press(/Choose where to start/) // warm now: Talking has resolved
+    await screen.press(/^Use the tools/) // warm now: Talking has resolved
     await screen.until(() => onHeading(/Where are you with it\?/), 'focus to reach the heading')
     const card = [...screen.container.querySelectorAll('button')].find((b) => /We’re getting serious/.test(b.textContent ?? ''))!
     act(() => card.focus())

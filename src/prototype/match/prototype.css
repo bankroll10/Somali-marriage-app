@@ -1,0 +1,178 @@
+/*
+ * The matching prototype's stylesheet (docs/MATCH-PROTOTYPE.md).
+ *
+ * It is its own Tailwind stylesheet, with its own sources, and does not import src/index.css. Tailwind reads
+ * every file under the project, so src/index.css keeps the prototype out of the app's stylesheet with
+ * `@source not`, and a stylesheet that imported it would inherit that and lose the prototype's own classes.
+ * What follows is the app's typefaces, theme and base styles, copied verbatim so the prototype looks like the
+ * app; tests/prototype/styles.test.ts holds every block equal to its original, so they cannot drift.
+ * Sources: the prototype, its page, and the one shared component file it draws (ui.tsx).
+ */
+@import 'tailwindcss' source(none);
+@source '.';
+@source '../../../demo/index.html';
+@source '../../components/ui.tsx';
+
+/* latin */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('../../assets/fonts/fraunces-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* latin-ext */
+@font-face {
+  font-family: 'Fraunces';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('../../assets/fonts/fraunces-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* latin */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('../../assets/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* latin-ext */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('../../assets/fonts/inter-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@theme {
+  /* Palette — warm, grounded, intentional */
+  --color-cream: #f7f2e8;
+  --color-cream-deep: #efe7d6;
+  --color-sand: #e7dcc6;
+  --color-ink: #1f2420;
+  --color-ink-soft: #3c423b;
+  /* Darkened 2026-09-20 (docs/DESIGN.md) from #75726a — 4.30:1 on cream,
+     just under WCAG AA's 4.5:1 for normal text, in the single most-used
+     text color in the product. Same hue and near-identical to the eye;
+     4.63:1 now. */
+  --color-muted: #706d65;
+
+  --color-forest: #1d3a2c;
+  --color-forest-deep: #16271f;
+  --color-forest-soft: #2c4d3c;
+
+  --color-gold: #c19a4b;
+  --color-gold-soft: #d9c189;
+  /* gold and gold-soft stay as they were — both pass comfortably on the
+     dark forest-deep surfaces they were built for (5.95:1 and 8.89:1) and
+     both fail badly on cream (2.35:1 and 1.58:1), where the same two
+     colors are used just as often as a small-caps kicker label. Rather
+     than compromise the value that works, gold-ink exists for the cream
+     case: same family, dark enough to read there (4.69:1). */
+  --color-gold-ink: #85682e;
+  /* Darkened 2026-09-20 from #b06a4f — 3.74:1 on cream, under AA, on every
+     destructive/error message in the product. 4.65:1 now. */
+  --color-clay: #9b5d46;
+
+  --color-line: #ddd2bd;
+  /* For a border that is the only way a component's boundary is seen — a
+     text field, most directly — rather than a decorative divider between
+     sections. line itself is 1.34:1 on cream, under WCAG 1.4.11's 3:1 for
+     a UI component boundary; line-strong is 3.34:1. */
+  --color-line-strong: #9a8150;
+
+  /* Type */
+  --font-display: 'Fraunces', ui-serif, Georgia, serif;
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* Radii */
+  --radius-card: 1.25rem;
+
+  /* Elevation — one soft, diffuse lift everywhere. Restraint: a quiet float,
+     not a hard drop shadow. */
+  --shadow-lift: 0 20px 45px -24px rgba(22, 39, 31, 0.42);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    /* A hair of negative tracking refines Inter at UI sizes — the quiet mark
+       of considered type. */
+    letter-spacing: -0.006em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background-color: color-mix(in srgb, var(--color-gold) 35%, transparent);
+  }
+
+  /* One calm, consistent focus treatment everywhere — keyboard users are users. */
+  :where(button, a, [role='switch']):focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-gold) 70%, transparent);
+    outline-offset: 2px;
+    border-radius: 0.75rem;
+  }
+
+  /* The app focuses a screen's heading when the screen appears so a screen
+     reader hears it (src/hooks/useFocusHeading.ts), which sets tabindex="-1"
+     for the moment. A heading is not a control, so that programmatic focus
+     gets no ring: the browser's default drew a white box round the Welcome
+     headline on first load. Scoped to headings inside a screen's own wrapper,
+     and to :focus on a -1 tabindex only; nothing interactive matches it. */
+  .animate-screen :where(h1, h2)[tabindex='-1']:focus {
+    outline: none;
+  }
+
+  /* Quiet, universal pressed feedback. */
+  :where(button):active {
+    transform: scale(0.99);
+  }
+
+  /* Quiet scrollbars — chrome shouldn't shout on a calm page. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-line) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-line);
+    border-radius: 8px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Respect users who ask for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}

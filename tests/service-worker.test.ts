@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import vm from 'node:vm'
 import { describe, expect, it } from 'vitest'
 import { serviceWorkerJs } from '../src/lib/serviceWorker'
 
@@ -80,5 +81,136 @@ describe('what serves it', () => {
     const toml = readFileSync('netlify.toml', 'utf8')
     expect(toml).toMatch(/for = "\/sw\.js"/)
     expect(toml).toMatch(/Cache-Control = "no-cache"/)
+  })
+})
+
+/**
+ * The demo (docs/DECISIONS.md, release R4) is a separate page at /demo/ with
+ * assets under /demo-assets/. The worker runs the real script in a sandbox, as
+ * a browser would: for those paths it must not answer at all, so nothing of the
+ * demo is cached and the app shell is never served in its place.
+ */
+
+const ORIGIN = 'https://niyyah.test'
+
+/** Runs a worker script against a fake Cache Storage, and offers the events a browser would send it. */
+function sandbox(src: string, existing: string[] = []) {
+  const store = new Map<string, Map<string, unknown>>(existing.map((k) => [k, new Map()]))
+  const fetched: string[] = []
+  const listeners: Record<string, (event: unknown) => void> = {}
+  const self = {
+    location: { origin: ORIGIN },
+    clients: { claim: async () => undefined },
+    skipWaiting: () => undefined,
+    addEventListener: (type: string, fn: (event: unknown) => void) => {
+      listeners[type] = fn
+    },
+  }
+  const caches = {
+    keys: async () => [...store.keys()],
+    delete: async (k: string) => store.delete(k),
+    match: async () => undefined,
+    open: async (name: string) => {
+      if (!store.has(name)) store.set(name, new Map())
+      return { put: async (req: { url: string }) => void store.get(name)!.set(req.url, true) }
+    },
+  }
+  const fetchStub = async (req: { url: string }) => {
+    fetched.push(req.url)
+    return new Response('ok', { status: 200 })
+  }
+  vm.runInNewContext(src, { self, caches, fetch: fetchStub, Request, Response, URL })
+  return {
+    store,
+    fetched,
+    /** A GET for `path`. `handled` says whether the worker took it over; `cached` lists what it wrote to Cache Storage. */
+    async get(path: string, mode: 'navigate' | 'no-cors' = 'navigate') {
+      let handled = false
+      let answer: Promise<unknown> | undefined
+      listeners.fetch({
+        request: { method: 'GET', url: ORIGIN + path, mode },
+        respondWith: (p: Promise<unknown>) => {
+          handled = true
+          answer = p
+        },
+      })
+      if (answer) await answer
+      await new Promise((r) => setImmediate(r))
+      return { handled, cached: [...store.values()].flatMap((m) => [...m.keys()]) }
+    },
+    async activate() {
+      let done: Promise<unknown> = Promise.resolve()
+      listeners.activate({ waitUntil: (p: Promise<unknown>) => void (done = p) })
+      await done
+    },
+  }
+}
+
+const DEMO_PATHS = ['/demo', '/demo/', '/demo/index.html', '/demo/?x=1', '/demo-assets/index-abc123.js', '/demo-assets/index-abc123.css', '/demo-assets/font-1.woff2']
+
+describe('the demo is never answered or cached by the worker', () => {
+  const js = serviceWorkerJs('abc123')
+
+  it('says so in the script, by exact path and prefix', () => {
+    expect(js).toContain("url.pathname === '/demo'")
+    expect(js).toContain("url.pathname.startsWith('/demo/')")
+    expect(js).toContain("url.pathname.startsWith('/demo-assets/')")
+  })
+
+  it('leaves the demo page and its assets to the network: no respondWith, nothing written to Cache Storage', async () => {
+    for (const path of DEMO_PATHS) {
+      const w = sandbox(js)
+      const r = await w.get(path, path.startsWith('/demo-assets/') ? 'no-cors' : 'navigate')
+      expect(r.handled, path).toBe(false)
+      expect(r.cached, path).toEqual([])
+      expect(w.fetched, path).toEqual([])
+    }
+  })
+
+  it('still answers the app, a tool page and a look-alike path, and caches them by path', async () => {
+    for (const path of ['/', '/tools/read/', '/demonstration', '/demo-assetsx/a.js', '/assets/index-xyz.js']) {
+      const w = sandbox(js)
+      const r = await w.get(path)
+      expect(r.handled, path).toBe(true)
+      expect(r.cached, path).toEqual([ORIGIN + path])
+    }
+  })
+
+  it('still never touches the API', async () => {
+    const w = sandbox(js)
+    expect((await w.get('/.netlify/functions/guide')).handled).toBe(false)
+  })
+})
+
+describe('a visitor who already has the previous worker (docs/DECISIONS.md, release R4)', () => {
+  const old = readFileSync('tests/fixtures/sw/shell-3eb7f64.txt', 'utf8')
+  const next = serviceWorkerJs('after-demo')
+
+  it('the previous worker, as shipped on 3eb7f64, answers and caches /demo/ and its assets for as long as it stays in charge: before the new worker activates, the demo is not covered', async () => {
+    const w = sandbox(old)
+    const page = await w.get('/demo/')
+    expect(page.handled).toBe(true)
+    expect(page.cached).toContain(ORIGIN + '/demo/')
+    const asset = await w.get('/demo-assets/index-abc123.js', 'no-cors')
+    expect(asset.handled).toBe(true)
+    // What it caches is the demo’s own static files; the demo reads and writes no storage, so no answer is in them.
+    expect(asset.cached).toContain(ORIGIN + '/demo-assets/index-abc123.js')
+  })
+
+  it('the new worker, once it takes over, deletes every cache the previous one wrote, including any copy of the demo', async () => {
+    const w = sandbox(next, ['niyyah-shell-before-demo', 'niyyah-shell-after-demo'])
+    await w.activate()
+    expect([...w.store.keys()]).toEqual(['niyyah-shell-after-demo'])
+  })
+
+  it('takes over at once: install skips waiting and activate claims open pages', () => {
+    expect(next).toContain('self.skipWaiting()')
+    expect(next).toContain('self.clients.claim()')
+  })
+
+  it('a changed worker rotates its cache name through the build hash, so every returning visitor picks it up', () => {
+    const vite = readFileSync('vite.config.ts', 'utf8')
+    expect(vite).toContain('.update(serviceWorkerJs(\'\'))')
+    expect(serviceWorkerJs('')).not.toBe(old.replace('before-demo', ''))
   })
 })

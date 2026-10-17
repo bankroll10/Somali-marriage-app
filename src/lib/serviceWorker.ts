@@ -47,6 +47,18 @@
  * code-bearing keys the first version wrote — without a manifest to maintain
  * by hand.
  *
+ *  4. **The demo is left alone.** `/demo/` and `/demo-assets/` are a separate,
+ *     fictional page that reads and writes nothing (docs/DECISIONS.md, release
+ *     R4). The worker neither answers nor caches them, so the demo is never
+ *     stale, never offline, and never replaced by the app shell. That holds
+ *     once this worker is active. A browser that still holds the previous
+ *     worker, which has no such rule, answers and caches demo loads itself,
+ *     network first, for as long as that worker stays in charge; when the
+ *     browser replaces it is the browser's decision. This worker takes over at
+ *     once when it is installed (`skipWaiting`, then `claim`), and `activate`
+ *     deletes every cache the previous one wrote, demo copies included
+ *     (tests/service-worker.test.ts, docs/DECISIONS.md release R4).
+ *
  * Offline, a navigation to a path this device never cached falls back to the
  * root shell as it was actually cached, at `/`. A member who only ever opened
  * `/tools/<slug>` has that page under its own path instead, which serves.
@@ -74,6 +86,9 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return
   // The API: live data only, never served from a cache.
   if (url.pathname.startsWith('/.netlify/')) return
+  // The demo is its own page with its own headers and keeps nothing: straight
+  // to the network, never cached, never answered with the app shell.
+  if (url.pathname === '/demo' || url.pathname.startsWith('/demo/') || url.pathname.startsWith('/demo-assets/')) return
   // A navigation by its path alone — a code in the query never reaches disk.
   const key = request.mode === 'navigate' ? new Request(url.origin + url.pathname) : request
 

@@ -1,0 +1,48 @@
+const CACHE = 'niyyah-shell-before-demo'
+
+self.addEventListener('install', () => {
+  self.skipWaiting()
+})
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim()),
+  )
+})
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event
+  if (request.method !== 'GET') return
+  const url = new URL(request.url)
+  if (url.origin !== self.location.origin) return
+  // The API: live data only, never served from a cache.
+  if (url.pathname.startsWith('/.netlify/')) return
+  // A navigation by its path alone — a code in the query never reaches disk.
+  const key = request.mode === 'navigate' ? new Request(url.origin + url.pathname) : request
+
+  event.respondWith(
+    fetch(request)
+      .then((response) => {
+        if (response.ok) {
+          const copy = response.clone()
+          caches.open(CACHE).then((cache) => cache.put(key, copy))
+        }
+        return response
+      })
+      .catch(async () => {
+        const cached = await caches.match(key)
+        if (cached) return cached
+        // A navigation to a path this device never cached, offline: the app
+        // shell itself, as it was cached at the root, so the SPA can at least
+        // render — what the single-page rewrite does for any path online.
+        if (request.mode === 'navigate') {
+          const shell = await caches.match('/')
+          if (shell) return shell
+        }
+        return Response.error()
+      }),
+  )
+})

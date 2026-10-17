@@ -6,14 +6,15 @@ import { familyScript } from '../../src/data/families'
 import { mount, type Mounted } from '../support/render'
 
 /**
- * The first screen (docs/DECISIONS.md Part 25, then release R3): a headline
- * that says what Niyyah is for, one door that says what the tap does, a way to
- * manage an earlier introduction request, and no promise the product cannot
- * keep. New introduction requests are closed and matching is not available, so
- * nothing here offers either. A promise about privacy is the one thing that
- * must not outrun the code (docs/PRIVACY.md): the eleven is sent to another
- * person on purpose, so neither "No one else sees it" nor "Private to you" is
- * true of the page as a whole.
+ * The first screen (docs/DECISIONS.md Part 25, release R3, then release R4):
+ * a headline that says what Niyyah is for, a way into a clearly labelled
+ * fictional demo, the existing tools for someone already considering a person,
+ * and a way to manage an earlier introduction request. Real introductions and
+ * messaging are not open, and nothing here implies matching that works or
+ * members who are there. A promise about privacy is the one thing that must not
+ * outrun the code (docs/PRIVACY.md): the eleven is sent to another person on
+ * purpose, so neither "No one else sees it" nor "Private to you" is true of the
+ * page as a whole.
  */
 
 let screen: Mounted | undefined
@@ -33,40 +34,73 @@ const props = () => ({
 })
 
 describe('Welcome', () => {
-  it('names what Niyyah is for, says introductions are closed, and keeps the one door and the quieter paths', async () => {
+  it('leads with meeting, learning about each other and deciding about marriage, starting in Minneapolis–St. Paul', async () => {
     screen = await mount(<Welcome {...props()} />)
     const text = screen.text()
-    expect(text).toMatch(/Think marriage through\./)
-    expect(text).toMatch(/New introduction requests are closed, and matching is not available\./)
-    // Nothing that promises the discontinued service, or a date.
-    expect(text).not.toMatch(/Meet someone serious|founder-led|made by hand|founder speaks with you|Minneapolis|looking for someone serious|See how introductions work/i)
-    expect(text).not.toMatch(/\b(soon|opens|launch|coming)\b/i)
-    for (const name of [/I’m already talking to someone/, /Choose where to start/, 'Start where you are', /Manage an earlier introduction request/, /Bring your map back/]) {
-      expect(screen.has(name), String(name)).toBe(true)
-    }
-    for (const gone of [/I’m looking for someone serious/, /See how introductions work/]) expect(screen.has(gone), String(gone)).toBe(false)
+    expect(screen.container.querySelector('h1')?.textContent).toBe('Meet with marriage in mind.')
+    expect(text).toContain('We’re building Niyyah to help Somali singles meet, learn about each other, and decide about marriage. Starting with Minneapolis–St. Paul.')
+    expect(text).not.toMatch(/Think marriage through/)
   })
 
-  it('sends the door where it says, the map path where it says, and an earlier request to its screen', async () => {
+  it('offers the fictional demo first, as a link to /demo/, and says what it is and what is not open, once', async () => {
+    screen = await mount(<Welcome {...props()} />)
+    const demo = screen.container.querySelector('a[href="/demo/"]') as HTMLAnchorElement
+    expect(demo).not.toBeNull()
+    expect(demo.textContent).toMatch(/^Explore the demo/)
+    expect(screen.has(/^Explore the demo/)).toBe(true)
+    // First in reading and tab order among the controls.
+    const first = screen.container.querySelector('a[href], button')
+    expect(first).toBe(demo)
+    const text = screen.text()
+    expect(text).toContain('Try the experience with fictional people. Real introductions and messaging aren’t open yet.')
+    // The closed status is said once on this screen: no second paragraph repeating it.
+    expect(text.match(/aren’t open|not available|are closed|isn’t open/g)).toHaveLength(1)
+    expect(text).not.toMatch(/New introduction requests are closed/)
+  })
+
+  it('keeps the existing tools as the second door, with the same handler, and the quieter paths', async () => {
+    screen = await mount(<Welcome {...props()} />)
+    const text = screen.text()
+    expect(text).toContain('Already considering someone?')
+    expect(text).toContain('Explore tools for the conversations and decisions ahead.')
+    for (const name of [/^Use the tools/, 'Start where you are', /Manage an earlier introduction request/, /Bring your map back/]) {
+      expect(screen.has(name), String(name)).toBe(true)
+    }
+    for (const gone of [/I’m looking for someone serious/, /See how introductions work/, /Choose where to start/]) expect(screen.has(gone), String(gone)).toBe(false)
+  })
+
+  it('claims no members, no open introductions, no working AI and no date', async () => {
+    screen = await mount(<Welcome {...props()} />)
+    const text = screen.text()
+    expect(text).not.toMatch(/\bAI\b|artificial|algorithm|your matches|matched with|available (members|singles|people)|members (near|in|you)|browse (members|profiles)|waitlist|sign up/i)
+    expect(text).not.toMatch(/Meet someone serious|founder-led|made by hand|founder speaks with you|looking for someone serious|See how introductions work/i)
+    expect(text).not.toMatch(/\b(soon|opens|launch|coming)\b/i)
+  })
+
+  it('sends the tools door where it did, the map path where it says, and an earlier request to its screen', async () => {
     const p = props()
     screen = await mount(<Welcome {...p} />)
     await screen.press(/Manage an earlier introduction request/)
     expect(p.onLooking).toHaveBeenCalledTimes(1)
-    await screen.press(/Choose where to start/)
+    await screen.press(/^Use the tools/)
     expect(p.onTalking).toHaveBeenCalledTimes(1)
     await screen.press('Start where you are')
     expect(p.onBegin).toHaveBeenCalledTimes(1)
+    expect(p.onEnter).not.toHaveBeenCalled()
   })
 
-  it('offers resuming only to someone with progress, and Enter to someone finished', async () => {
+  it('offers resuming only to someone with progress, and Enter to someone finished; the demo is offered to all', async () => {
     screen = await mount(<Welcome {...props()} />)
     expect(screen.has('Pick up where you left off')).toBe(false)
+    expect(screen.container.querySelector('a[href="/demo/"]')).not.toBeNull()
     screen.unmount()
     screen = await mount(<Welcome {...props()} hasProgress />)
     expect(screen.has('Pick up where you left off')).toBe(true)
+    expect(screen.container.querySelector('a[href="/demo/"]')).not.toBeNull()
     screen.unmount()
     screen = await mount(<Welcome {...props()} completed />)
     expect(screen.has(/^Enter Niyyah/)).toBe(true)
+    expect(screen.container.querySelector('a[href="/demo/"]')).not.toBeNull()
     // A returning member can still reach an earlier request.
     expect(screen.has(/Manage an earlier introduction request/)).toBe(true)
   })

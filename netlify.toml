@@ -25,6 +25,14 @@
   # clone; this flag is what makes it pass.
   NPM_FLAGS = "--include=dev"
 
+# The public demo is a separate build at /demo/ (docs/DECISIONS.md, release R4).
+# Stated outright, and ahead of the catch-all below, rather than left to the
+# host's handling of a folder: /demo can never be answered with the app.
+[[redirects]]
+  from = "/demo"
+  to = "/demo/"
+  status = 301
+
 # A single-page app: every path that isn't a real file or a function is the app.
 # Kept below the automatic /.netlify/functions/* handling.
 [[redirects]]
@@ -80,3 +88,14 @@
 # index.html's canonical tag keeps ?read, ?eleven and ?via= from being indexed
 # as separate thin pages. The tools at /tools/* are real files, written from
 # index.html at build with their own head, and the rewrite below yields to them.
+
+# The demo sends nothing anywhere, and the browser holds it to that: connect-src
+# is 'none', so no request can leave the page whatever the code does, and the
+# only script and style it may run are its own files. Headers from the block
+# above also apply, so frame-ancestors is repeated here and checked on a real
+# response, not assumed (docs/DECISIONS.md, release R4). It is not told to hide
+# from search here: the page says noindex itself, as the note above explains.
+[[headers]]
+  for = "/demo/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'"
