@@ -66,7 +66,8 @@ site and the server follow.
 - `/thanks?order=…` — "checking your payment" until Stripe confirms, then
   the confirmed order (reference, items, total paid, pickup date, place and
   hours). Every check is server-side; refreshing is always safe.
-- `/api/health` — how the deployed site is wired: database migrated, Stripe
+- `/api/health` — how the deployed site is wired (and, under `runtime`, the exact Node
+  and Stripe SDK versions the functions run on): database migrated, Stripe
   mode, admin configured, when the scheduled reconcile last ran and the last
   webhook arrived, whether test data is present, which live credentials are
   staged. Nothing about any customer, and no key values.

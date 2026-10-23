@@ -283,3 +283,13 @@ Settings → Pricing.
 - `npm run db:export` for her records; `pg_dump` for a backup.
 - Rotate `ADMIN_PASSWORD` if a phone is lost (Netlify → variable → save → *Trigger deploy*;
   everyone signs in again).
+- **Node.js security releases** (nodejs.org/en/blog/vulnerability). The functions run on
+  Netlify's managed Node 22 runtime (`nodejs22.x` in every deploy record; chosen by
+  `NODE_VERSION = "22"` in `netlify.toml`). The exact patch version is applied by Netlify and
+  AWS, not by this repo — nothing here pins it, so there is nothing to "patch" on our side.
+  Read what is actually running at `/api/health` → `runtime.node`; if it lags a security
+  release by more than a few days, that is a question for Netlify support, not a code change.
+  `npm audit` covers the packages we ship; findings in `vite`/`launch-editor` are the local dev
+  server only and never reach the deployed site. (First checked 2026-10-23 after the
+  October 2026 Node releases: highest severity High, the site's exposure low — it makes
+  outbound calls only to Stripe and Neon by hostname and uses none of the affected APIs.)

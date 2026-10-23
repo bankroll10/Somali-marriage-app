@@ -1,6 +1,6 @@
 import { PRODUCT_IDS } from '../../shared/config.ts'
 import type { Db, Queryable } from './db/client.ts'
-import type { StripeGateway } from './stripe/gateway.ts'
+import { STRIPE_SDK_VERSION, type StripeGateway } from './stripe/gateway.ts'
 
 /**
  * Operating the deployed site without log access: a record of each
@@ -56,6 +56,12 @@ export interface HealthReport extends OpsState {
   liveHolds: number
   /** Orders or payments from Stripe's test mode are in this database. Must be false before live payments are taken. */
   testDataPresent: boolean
+  /**
+   * What the functions are running on. Node's exact version is chosen and
+   * patched by Netlify's managed runtime, not by this repo; reporting it is
+   * how anyone checks a Node security release against the live site.
+   */
+  runtime: { node: string; stripeSdk: string }
 }
 
 /** What a browser, a script or a person can read about the deployed site — nothing about any customer. */
@@ -81,6 +87,7 @@ export async function healthReport(
     adminConfigured,
     liveHolds: holds,
     testDataPresent: await testDataPresent(db, ops.livemode),
+    runtime: { node: process.version, stripeSdk: STRIPE_SDK_VERSION },
   }
 }
 

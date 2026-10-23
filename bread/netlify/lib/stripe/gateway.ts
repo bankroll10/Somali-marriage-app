@@ -81,6 +81,9 @@ export const CURRENCY = 'usd'
  * the order. `npm run stripe:verify` checks a live endpoint against this
  * list, so the docs, the dashboard and the code cannot drift apart.
  */
+/** The stripe-node release this deploy was built with; the health page reports it next to the Node version. */
+export const STRIPE_SDK_VERSION: string = Stripe.PACKAGE_VERSION
+
 export const REQUIRED_WEBHOOK_EVENTS = [
   'checkout.session.completed',
   'checkout.session.expired',

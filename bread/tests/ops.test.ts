@@ -53,6 +53,9 @@ describe('health and the job record', () => {
     const { orderId } = await (await buy({ name: 'Private Person', phone: '6125559999' })).json()
     const before = await (await get(app.health, '/api/health')).json()
     expect(before).toMatchObject({ ok: true, migrations: loadMigrations().length, livemode: false, stripeConfigured: true, adminConfigured: true, lastReconcileAt: null, lastWebhookAt: null, liveHolds: 1, testDataPresent: true })
+    // The runtime the functions are on, so a Node security release can be checked against the live site from its own health page.
+    expect(before.runtime).toEqual({ node: process.version, stripeSdk: expect.stringMatching(/^\d+\.\d+\.\d+$/) })
+    expect(before.runtime.node).toMatch(/^v\d+\.\d+\.\d+$/)
     expect(JSON.stringify(before)).not.toMatch(/Private Person|6125559999|cs_test|[0-9a-f]{8}-[0-9a-f]{4}-4/)
     expect((await get(app.health, '/api/health')).headers.get('cache-control')).toBe('no-store')
 
