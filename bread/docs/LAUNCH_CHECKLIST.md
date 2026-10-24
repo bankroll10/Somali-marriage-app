@@ -109,9 +109,13 @@ the Zelle handle are constants in `bread/shared/config.ts` and the `products` ta
    **Never** text an unrestricted `sk_live_` key: it is full access to her money.
 
    **Received 2026-09-23** and staged in Netlify as `STRIPE_LIVE_SECRET_KEY` (not in the
-   repository, which is public). Optional hardening after the webhook exists: the key no longer
-   needs **Webhook Endpoints: Write** — Biz can set that to None in Stripe → Developers → API
-   keys → the key → Edit, and the site loses nothing.
+   repository, which is public).
+
+   **Rotated 2026-10 on Stripe's advice** (§6b). The replacement key is smaller: **Checkout
+   Sessions: Write, Refunds: Read, Webhook Endpoints: Read, Account: Read.** Write on webhook
+   endpoints was only ever needed to create the endpoint, which `stripe:setup-webhook` did once;
+   every call the site makes today is covered by the four above. A key with Read-only endpoints
+   could not even add a listener if it leaked.
 8. **Apple Pay**: on Stripe's hosted Checkout page no domain registration is needed (the page is
    on Stripe's domain). The on-device check is in section 7.
 9. **Radar** (default rules) and **Disputes** need nothing.
@@ -212,13 +216,15 @@ Do this if a key may have been seen by anyone else — including after it travel
 or whenever Stripe advises it. The old key keeps working until step 4, so checkout never
 stops.
 
-1. **Biz**: Stripe → Developers → API keys → *Create restricted key*, the same four
-   permissions as before (**Checkout Sessions: Write, Refunds: Read, Webhook Endpoints:
-   Write, Account: Read** — the walkthrough in `BIZ_MESSAGES.md` §1b), named with the date.
-   She sends the new key the same way as before, and nothing else.
-2. **Owner**: Netlify → Site configuration → Environment variables →
-   `STRIPE_LIVE_SECRET_KEY` → edit → paste → save (all scopes, see §1) → Deploys →
-   *Trigger deploy*. `STRIPE_LIVE_WEBHOOK_SECRET` does not change: the endpoint is the same.
+1. **Biz**: Stripe → Developers → API keys → *Create restricted key*, named with the date,
+   with exactly **Checkout Sessions: Write, Refunds: Read, Webhook Endpoints: Read, Account:
+   Read** (the text to send her is in `BIZ_MESSAGES.md` §2c). She sends the new key to the
+   owner the same way as before, and nothing else.
+2. **Owner**: pastes it **straight into Netlify**, never into a chat or a document:
+   app.netlify.com → bread-pickup → Site configuration → Environment variables →
+   `STRIPE_LIVE_SECRET_KEY` → Options → Edit → replace the value (scopes stay "All", see §1)
+   → Save → Deploys → *Trigger deploy* → *Deploy site*. `STRIPE_LIVE_WEBHOOK_SECRET` and
+   `STRIPE_MODE` do not change: the endpoint and the mode are the same.
 3. **Owner**: `/api/health` shows `"liveKeyStaged":true,"livemode":true`; `/admin` →
    **Stripe check →** is all green, and the row *no webhook endpoint other than this site's*
    says every endpoint is ours.

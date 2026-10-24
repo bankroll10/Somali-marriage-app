@@ -189,8 +189,27 @@ name are visible to anyone who starts a checkout, so they prove nothing either w
 
 **Done regardless:** a read-only *Stripe check* in `/admin` that lists every webhook endpoint
 and flags any the site did not create (the one thing a leaked restricted key could add); the
-rotation runbook in `LAUNCH_CHECKLIST.md` §6b. **Not done without the owner's word:** the
-rotation itself.
+rotation runbook in `LAUNCH_CHECKLIST.md` §6b.
+
+**Verdict 2026-10-24: genuine.** From and Reply-To are `alerts@stripe.com`; it reached the
+Inbox (Gmail enforces Stripe's anti-spoofing policy); and in her Dashboard, API keys →
+*Suspicious API activity* shows *No suspicious activity found* with automatic blocking on.
+What Stripe saw is the Node version the site's API calls report: AWS's managed `nodejs22.x`
+had not yet rolled the 22.23.4 build the day after the release. Nothing to patch in the repo;
+the notice may repeat until AWS rolls it. Rotation approved by the owner the same day, with a
+smaller key (Webhook Endpoints: Read instead of Write). Text sent to her:
+
+> Good news: that email is really from Stripe (the address is alerts@stripe.com, and your
+> dashboard shows no suspicious activity). There's nothing to patch on our side — the site runs
+> on Netlify's managed Node, and Amazon applies that patch — but Stripe suggests a fresh key
+> anyway, and it takes 5 minutes with nothing going down:
+> 1. dashboard.stripe.com → Developers → API keys → **Create restricted key**
+> 2. Name: **bread-pickup 2026-10**
+> 3. Set these four, everything else None: **Checkout Sessions → Write**, **Refunds → Read**,
+>    **Webhook Endpoints → Read**, **Account → Read**
+> 4. Create, then send me the key like last time.
+> Don't delete the old key yet — I'll tell you when the site is on the new one, then you delete
+> the old one and the text.
 
 Text sent to her (the 2-minute check):
 
