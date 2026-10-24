@@ -40,6 +40,12 @@ Tap **QR code & link →** under the date at the top. That page has your link wi
 button, your QR code (point a phone camera at it to test), and downloads: the QR code as an image,
 a print version that stays sharp at any size, a letter-size sign, and a phone/story card.
 
+## Stripe check
+
+Tap **Stripe check →** under the date at the top, then **Check now**. It asks Stripe about the
+account and lists every webhook endpoint. Every row should be ✓; the one to watch is *no
+webhook endpoint other than this site's*. Nothing on that page changes anything.
+
 ## Marking bread picked up
 
 Tick the box next to the customer when you hand the bread over. Ticked customers fade down the

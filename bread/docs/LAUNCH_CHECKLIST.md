@@ -206,6 +206,33 @@ Only with Biz's explicit go-ahead. Pick a moment with no customer mid-checkout (
 - **Data**: restore from the pre-launch dump per `OWNER_GUIDE.md` only if the database itself
   is damaged; a wrong key or a bad deploy never needs a data restore.
 
+## 6b. Rotating the Stripe key (zero downtime)
+
+Do this if a key may have been seen by anyone else — including after it travelled by text —
+or whenever Stripe advises it. The old key keeps working until step 4, so checkout never
+stops.
+
+1. **Biz**: Stripe → Developers → API keys → *Create restricted key*, the same four
+   permissions as before (**Checkout Sessions: Write, Refunds: Read, Webhook Endpoints:
+   Write, Account: Read** — the walkthrough in `BIZ_MESSAGES.md` §1b), named with the date.
+   She sends the new key the same way as before, and nothing else.
+2. **Owner**: Netlify → Site configuration → Environment variables →
+   `STRIPE_LIVE_SECRET_KEY` → edit → paste → save (all scopes, see §1) → Deploys →
+   *Trigger deploy*. `STRIPE_LIVE_WEBHOOK_SECRET` does not change: the endpoint is the same.
+3. **Owner**: `/api/health` shows `"liveKeyStaged":true,"livemode":true`; `/admin` →
+   **Stripe check →** is all green, and the row *no webhook endpoint other than this site's*
+   says every endpoint is ours.
+4. **Biz**: delete the old key in Stripe → Developers → API keys. Then delete the text that
+   carried the new one. The old key is now useless to anyone who had it.
+
+If step 3 is not green, nothing has been lost: the old key is still valid, so put it back in
+Netlify and trigger a deploy while looking into it.
+
+**Reviewing for misuse** (Biz, in the Dashboard): Developers → API keys (only keys she made),
+Developers → Webhooks (only `bread-pickup.netlify.app/api/stripe-webhook`), Settings → Team
+(only her), Payments and Balance → Payouts (nothing unfamiliar). The site's own check covers
+the webhook list; the rest needs her login.
+
 ## 7. Manual verification that remains (owner, on the live site, **still in test mode**)
 
 Each is a minute. Test card `4242 4242 4242 4242`, any future date, any CVC.

@@ -35,6 +35,13 @@ describe('is her Stripe account actually ready', () => {
     expect(detail(checks, 'webhook sends every event the site needs')).toBe(`all ${REQUIRED_WEBHOOK_EVENTS.length} present`)
   })
 
+  it('flags a webhook endpoint the site did not create — the one thing a leaked restricted key could add', () => {
+    const checks = run(ready(), [endpoint(), endpoint({ id: 'we_2', url: 'https://example.net/hook', status: 'enabled' })])
+    expect(failures(checks)).toEqual(['no webhook endpoint other than this site’s'])
+    expect(detail(checks, 'no webhook endpoint other than this site’s')).toContain('https://example.net/hook')
+    expect(detail(run(ready(), [endpoint()]), 'no webhook endpoint other than this site’s')).toBe('1 endpoint(s), all pointing at this site')
+  })
+
   it('says plainly when the key is a test key, without pretending the rest is about real money', () => {
     const checks = run(ready(), [endpoint()], 'sk_test_')
     expect(failures(checks)).toEqual(['key is a LIVE key'])
@@ -64,7 +71,8 @@ describe('is her Stripe account actually ready', () => {
 
   it('catches an endpoint pointed somewhere else, a disabled one, and no endpoint at all', () => {
     const elsewhere = run(ready(), [endpoint({ url: 'https://example.com/hook' })])
-    expect(failures(elsewhere)).toEqual(['webhook endpoint for this site exists'])
+    // An endpoint pointed elsewhere is both "not ours" and "ours is missing".
+    expect(failures(elsewhere)).toEqual(['no webhook endpoint other than this site’s', 'webhook endpoint for this site exists'])
     expect(detail(elsewhere, 'webhook endpoint for this site exists')).toContain('none of the 1 endpoint(s)')
     expect(failures(run(ready(), [endpoint({ status: 'disabled' })]))).toEqual(['webhook endpoint is enabled'])
     expect(failures(run(ready(), []))).toEqual(['webhook endpoint for this site exists'])

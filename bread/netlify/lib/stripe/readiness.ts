@@ -72,6 +72,17 @@ export function stripeAccountChecks(
     return checks
   }
   const ours = endpoints.filter((e) => typeof e.url === 'string' && e.url.replace(/\/$/, '') === hookUrl)
+  // A leaked key with Webhook Endpoints: Write could add an endpoint of its own and
+  // receive every payment event. This row is how that would show.
+  const foreign = endpoints.filter((e) => !ours.includes(e))
+  checks.push({
+    name: 'no webhook endpoint other than this site’s',
+    ok: foreign.length === 0,
+    detail:
+      foreign.length === 0
+        ? `${endpoints.length} endpoint(s), all pointing at this site`
+        : `${foreign.length} endpoint(s) this site did not create: ${foreign.map((e) => `${String(e.url)} (${String(e.status ?? 'unknown')})`).join(', ')}. If Biz did not add it herself, delete it in Stripe → Developers → Webhooks and rotate the key.`,
+  })
   if (ours.length === 0) {
     checks.push({ name: 'webhook endpoint for this site exists', ok: false, detail: `none of the ${endpoints.length} endpoint(s) points at ${hookUrl} — run: npm run stripe:setup-webhook` })
     return checks

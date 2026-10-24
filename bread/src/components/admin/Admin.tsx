@@ -330,11 +330,9 @@ export default function Admin() {
             <Button variant="secondary" onClick={() => setView('share')}>
               QR code &amp; link →
             </Button>
-            {load.ops.mode !== 'live' && (
-              <Button variant="secondary" onClick={() => setView('golive')}>
-                Going live →
-              </Button>
-            )}
+            <Button variant="secondary" onClick={() => setView('golive')}>
+              {load.ops.mode === 'live' ? 'Stripe check →' : 'Going live →'}
+            </Button>
           </div>
           <p className="mb-3 text-[12px] text-cocoa-soft" title="The site checks abandoned card sessions with Stripe every half hour on its own; Stripe also sends the site a message about each payment, which is what normally frees held bread within the hour.">
             Automatic check ran {ago(load.ops.lastReconcileAt, load.now)} · last message from Stripe {ago(load.ops.lastWebhookAt, load.now)}

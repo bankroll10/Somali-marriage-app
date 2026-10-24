@@ -172,6 +172,40 @@ Mon / Wed / Thu, 5–11 PM, best after 9 PM still hold now that pickup isn't at 
 
 ---
 
+## 2c — The "Stripe Alerts" email (received 2026-10-23, 12:41 AM)
+
+An email to Biz, display name *Stripe Alerts*, said Stripe's telemetry showed the site on a
+Node.js version with a "critical remote code execution vulnerability", that her API keys "may
+have been exposed", and to patch, review logs, and roll the keys. It named her account ID and
+business name ("Bizzy Bread") and carried Stripe's HQ address and three Stripe docs links.
+
+**Verified 2026-10-23/24:** the Node advisory is real (Oct 21; worst item rated High, not
+critical; fixed versions as the email said). The site's functions run on Netlify's managed
+`nodejs22.x`; AWS applies the patch, nothing in the repo pins it (`/api/health` →
+`runtime.node`). Netlify's request log for the day showed only the scheduled reconcile — no
+unknown traffic. Not verified from here: the sender address and DKIM (only visible on her
+phone); whether the same notice appears in her Dashboard. Both the account ID and the business
+name are visible to anyone who starts a checkout, so they prove nothing either way.
+
+**Done regardless:** a read-only *Stripe check* in `/admin` that lists every webhook endpoint
+and flags any the site did not create (the one thing a leaked restricted key could add); the
+rotation runbook in `LAUNCH_CHECKLIST.md` §6b. **Not done without the owner's word:** the
+rotation itself.
+
+Text sent to her (the 2-minute check):
+
+> Thanks for sending it! Two quick checks on that email, right from your phone, before we do
+> anything:
+> 1. Tap the name "Stripe Alerts" at the top so it shows the full email address. The real thing
+>    ends in exactly @stripe.com — not stripe-alerts.com, not stripe.com.anything.
+> 2. Type dashboard.stripe.com into your browser yourself (don't tap any link in the email) and
+>    log in. If the notice is real, it's also there under the bell. While you're in: Developers →
+>    API keys should show only keys you made, and Developers → Webhooks should show only the
+>    bread-pickup one.
+> Don't reply to the email. If the address isn't @stripe.com, it's a scam — delete it.
+> Either way, I'd like to swap the key you sent me for a fresh one (takes 5 minutes, nothing
+> goes down). I'll send you the steps when you're ready.
+
 ## 3 — Once she's signed in to the admin (send at cutover)
 
 > The orders page is https://bread-pickup.netlify.app/admin — I'll text you the password

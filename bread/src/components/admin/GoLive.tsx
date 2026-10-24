@@ -20,6 +20,9 @@ export default function GoLive({ token, ops, onBack, onSessionEnded }: { token: 
   const [clear, setClear] = useState<Step<ClearPracticeResult>>({ state: 'idle' })
   const [typed, setTyped] = useState('')
   const [copied, setCopied] = useState(false)
+  // Once live, this page is only the read-only check: what Stripe says about
+  // the account and which webhook endpoints exist. The set-up steps are gone.
+  const live = ops.mode === 'live'
 
   async function run<T>(set: (s: Step<T>) => void, fn: () => Promise<T>) {
     set({ state: 'running' })
@@ -49,8 +52,11 @@ export default function GoLive({ token, ops, onBack, onSessionEnded }: { token: 
   return (
     <Page width="max-w-2xl">
       <div className="mb-4 flex items-start justify-between gap-3">
-        <Title kicker="Fresh Bread" sub="Everything before real payments are switched on. Nothing on this page takes a payment.">
-          Going live
+        <Title
+          kicker="Fresh Bread"
+          sub={live ? "Asks Stripe about Biz's account and lists every webhook endpoint, using the site's own key. Nothing on this page changes anything." : 'Everything before real payments are switched on. Nothing on this page takes a payment.'}
+        >
+          {live ? 'Stripe check' : 'Going live'}
         </Title>
         <Button variant="ghost" className="shrink-0" onClick={onBack}>
           ← Orders
@@ -78,8 +84,12 @@ export default function GoLive({ token, ops, onBack, onSessionEnded }: { token: 
         <ol className="space-y-6">
           {/* 1 */}
           <li className="rounded-2xl border border-line bg-white p-4">
-            <h2 className="text-[17px] font-semibold text-cocoa">1. Check Biz's Stripe account</h2>
-            <p className="mt-1 text-[14px] text-cocoa-soft">Asks Stripe whether her account can really take a card payment and pay it out to her bank. Reads only.</p>
+            <h2 className="text-[17px] font-semibold text-cocoa">{live ? '' : '1. '}Check Biz's Stripe account</h2>
+            <p className="mt-1 text-[14px] text-cocoa-soft">
+              {live
+                ? 'Asks Stripe whether her account is in good standing, and whether any webhook endpoint exists that this site did not create. Reads only.'
+                : 'Asks Stripe whether her account can really take a card payment and pay it out to her bank. Reads only.'}
+            </p>
             <Button className="mt-3" disabled={status.state === 'running'} onClick={() => run(setStatus, () => goLive.status(token))}>
               {status.state === 'running' ? 'Asking Stripe…' : status.state === 'done' ? 'Check again' : 'Check now'}
             </Button>
@@ -93,7 +103,7 @@ export default function GoLive({ token, ops, onBack, onSessionEnded }: { token: 
                     <span className="block pl-5 text-[13px] text-cocoa-soft">{c.detail}</span>
                   </li>
                 ))}
-                {!status.result.webhookExists && <li className="pt-1 text-[13px] text-cocoa-soft">The webhook rows fail until step 3 — that's expected.</li>}
+                {!live && !status.result.webhookExists && <li className="pt-1 text-[13px] text-cocoa-soft">The webhook rows fail until step 3 — that's expected.</li>}
                 {status.result.errors.map((e) => (
                   <li key={e.message} className="text-[13px] text-berry">Stripe said: {e.message}</li>
                 ))}
@@ -101,6 +111,8 @@ export default function GoLive({ token, ops, onBack, onSessionEnded }: { token: 
             )}
           </li>
 
+          {!live && (
+            <>
           {/* 2 */}
           <li className="rounded-2xl border border-line bg-white p-4">
             <h2 className="text-[17px] font-semibold text-cocoa">2. Test the checkout</h2>
@@ -214,6 +226,8 @@ export default function GoLive({ token, ops, onBack, onSessionEnded }: { token: 
               <p className="mt-2 text-[13px] text-cocoa-soft">Not ready to switch yet: {!secretSaved ? 'the webhook secret isn’t saved (a saved secret shows ✓ after the next deploy).' : 'the live key is missing.'}</p>
             )}
           </li>
+            </>
+          )}
         </ol>
       )}
     </Page>
