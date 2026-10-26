@@ -42,8 +42,10 @@ describe('a part-finished instrument', () => {
   })
 
   it('records a day and never a time', () => {
-    saveDraft('read', { a: '1' }, 'woman', new Date('2026-09-19T21:43:07.918Z'))
-    expect(loadDraft('read')?.at).toBe('2026-09-19')
+    const at = new Date('2026-09-19T21:43:07.918Z')
+    saveDraft('read', { a: '1' }, 'woman', at)
+    // Read back at the moment it was saved: a draft expires, so reading it at the real clock fails once it is old enough.
+    expect(loadDraft('read', at.getTime())?.at).toBe('2026-09-19')
   })
 
   it('expires, and clears itself on the way past', () => {

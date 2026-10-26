@@ -4570,3 +4570,37 @@ request was opened, nothing was run, and the workflow is unchanged.
 `netlify.toml`'s header and redirect rules, not against Netlify itself: the headers, the `/demo` redirect and the Deploy
 Preview must be read with `curl -I` before a production deploy (`docs/OPS.md`). The Somali-language and cultural review of the
 demo's wording is outstanding, as it is for every screen.
+
+## The money conversation sheet: a Download PDF button (2026-10-26)
+
+**Decision.** `public/niyyah-money-conversation-sheet.html` (the English four-page sheet, and only it) gets a Download PDF button near the
+top and again at the bottom. It makes the PDF in the reader's own browser, from what is typed in the fields, and hands it over as
+`niyyah-money-conversation.pdf`. Nothing is sent and nothing is stored. The existing "Nothing on this page is saved or sent" note stays
+and now adds that the PDF is made on the reader's own device. A couple fills the sheet in, downloads the PDF and brings it to a session.
+
+**What it contains.** Every question with both people's answers in full. A long answer wraps in its column and carries on to as many
+pages as it needs, under a repeat of the question number and the two column headings, so nothing is cut off. Names and a session date,
+if given, are printed at the top of the first page and in a running header; every page carries "Niyyah, joinniyyah.com" and "Page n of N".
+A blank answer says "Not answered". Paper is US Letter in the US and Canada and A4 elsewhere, chosen from the device's region.
+
+**Why the old warning is gone.** The note that long typed answers "may be cut off when printed" is removed because the PDF is now the
+way to keep what is typed. Printing the page still clips a long typed answer, so the screen now says: use Download PDF to keep what you
+type, and print only to write by hand.
+
+**This ends "no scripts" on this one page, on purpose, and narrowly.** The page was written to open from a USB stick with the network
+off. It still opens, can be typed in and printed with no script at all. The button needs two files served from this site:
+`vendor/jspdf.umd.min.js` (jsPDF 4.2.1, MIT, licence beside it) and `niyyah-money-conversation-sheet-pdf.js` (ours). Nothing is
+loaded from anywhere else, nothing is written inline, and if the library is missing the button says so and points to Print. The one-page,
+Somali and facilitator pages are unchanged and still have no script. `tests/sheet.test.ts` now allows exactly those two scripts and
+nothing else; `tests/sheet-pdf.test.ts` loads the real page and the real library, types answers in, presses the button and reads the PDF
+back, and reads the generator for any network or storage call.
+
+**Scripts jsPDF's built-in fonts cannot draw.** The PDF's own fonts cover Latin letters, accents, curly quotes and dashes. If any name or
+answer holds anything else (Arabic, other scripts, emoji) the pages are drawn by the browser, which has the fonts, and put in the PDF as
+pictures, so the text is right but is not selectable and the file is larger. Right-to-left lines are right-aligned in their column.
+
+**On phones.** On an iPhone or iPad the button opens the share sheet (Save to Files, Mail, Print) when the browser offers it, and
+downloads otherwise or if sharing fails; on Android it downloads. The status line carries an "open it here" link as a last resort.
+
+**Not done.** The Somali sheet has no PDF button. Only the four-page English sheet was asked for. A real iPhone Safari run was not
+possible in the environment used; what was run is Chromium with an iPhone profile and a stubbed share sheet, and with a Pixel profile.

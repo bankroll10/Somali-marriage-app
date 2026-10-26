@@ -9,9 +9,12 @@
       content="A printable sheet for two adults considering marriage: mahr, the wedding, existing debt and ongoing family obligations, kept apart on purpose."
     />
     <!--
-      Self-contained on purpose. No fonts, no scripts, no images, no CDN, no
-      analytics — one file that opens from a USB stick, an email attachment or
-      a printer's desktop with the network off. Nothing here is saved or sent.
+      Self-contained on purpose. No fonts, no images, no CDN, no analytics, and
+      nothing here is saved or sent. The only scripts are the two that make the
+      Download PDF button work, both served from this site and run on the
+      reader's own device: vendor/jspdf.umd.min.js (jsPDF, MIT) and
+      niyyah-money-conversation-sheet-pdf.js. Without them the sheet still opens,
+      can be typed in and printed, and the button says the PDF maker is missing.
     -->
     <style>
       :root {
@@ -172,6 +175,39 @@
         border-radius: 0.25rem;
         padding: 0.4rem 0.5rem;
         resize: vertical;
+      }
+
+      /* The Download PDF buttons. Shown by the script once it runs; never printed. */
+      .pdf-actions {
+        margin: 1.25rem 0 0;
+      }
+
+      .pdf-button {
+        font: inherit;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #fff;
+        background: var(--ink);
+        border: 2px solid var(--ink);
+        border-radius: 0.35rem;
+        padding: 0.6rem 1.4rem;
+        min-height: 2.75rem;
+        cursor: pointer;
+      }
+
+      .pdf-button:hover {
+        background: var(--body);
+      }
+
+      .pdf-status {
+        margin: 0.6rem 0 0;
+        font-size: 0.9rem;
+        color: #4a564f;
+        max-width: 38rem;
+      }
+
+      .pdf-status a {
+        color: var(--ink);
       }
 
       :focus-visible {
@@ -408,11 +444,12 @@
         </p>
         <p class="note screen-only">
           Nothing on this page is saved or sent. What you type stays in this
-          window until you close it, and there is nothing to submit.
+          window until you close it, and there is nothing to submit. The PDF is
+          made on your own device.
         </p>
         <p class="note screen-only">
-          Print this and write on it — typing here is fine, but long answers may
-          be cut off when printed.
+          To keep what you type, use Download PDF: every answer is in it in
+          full. Print this page only to write on it by hand.
         </p>
         <p class="note screen-only">
           This is the four-page version — a full page per subject, room to
@@ -433,9 +470,17 @@
             <input id="name-b" type="text" autocomplete="off" />
           </div>
           <div>
-            <label for="sheet-date">Date</label>
+            <label for="sheet-date">Session date</label>
             <input id="sheet-date" type="text" autocomplete="off" />
           </div>
+        </div>
+        <p class="note screen-only">
+          Names and a session date are optional. If you add them, they are
+          printed at the top of the PDF.
+        </p>
+        <div class="pdf-actions screen-only" hidden>
+          <button type="button" class="pdf-button" data-pdf-button>Download PDF</button>
+          <p class="pdf-status" role="status" aria-live="polite"></p>
         </div>
       </header>
 
@@ -657,6 +702,11 @@
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
 
+      <div class="pdf-actions screen-only" hidden>
+        <button type="button" class="pdf-button" data-pdf-button>Download PDF</button>
+        <p class="pdf-status" role="status" aria-live="polite"></p>
+      </div>
+
       <footer>
         <p>Published by Niyyah — <a href="https://joinniyyah.com/">joinniyyah.com</a></p>
         <p>
@@ -666,5 +716,7 @@
         <p class="version">v1.0 — 2026-09-20</p>
       </footer>
     </main>
+    <script src="vendor/jspdf.umd.min.js" defer></script>
+    <script src="niyyah-money-conversation-sheet-pdf.js" defer></script>
   </body>
 </html>
