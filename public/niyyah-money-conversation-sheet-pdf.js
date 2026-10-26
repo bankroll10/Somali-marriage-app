@@ -17,7 +17,8 @@
 ;(function () {
   'use strict'
 
-  var FILE_NAME = 'niyyah-money-conversation.pdf'
+  // money-conversation-<NameA>-<NameB>-<date>.pdf, leaving out whatever was not filled in (fileName, below).
+  var FILE_STEM = 'money-conversation'
   var FOOTER = 'Niyyah, joinniyyah.com'
 
   var INK = [22, 39, 31]
@@ -81,7 +82,8 @@
   function read() {
     var nameA = squash(answer('name-a'))
     var nameB = squash(answer('name-b'))
-    var date = prettyDate(answer('sheet-date'))
+    var rawDate = squash(answer('sheet-date'))
+    var date = prettyDate(rawDate)
     var lede = document.querySelector('header .lede')
     var model = {
       title: squash(document.querySelector('h1').textContent),
@@ -89,6 +91,7 @@
       nameA: nameA,
       nameB: nameB,
       date: date,
+      rawDate: rawDate,
       sections: [],
       closing: []
     }
@@ -379,7 +382,10 @@
     var GAP = 20
     var COLW = (W - GAP) / 2
     var y = TOP
+    var pageTop = TOP
     var page = 1
+    var RULED_ROWS = 6 // about four lines to write on, at WRITE_GAP apart
+    var WRITE_GAP = 22
 
     var who = []
     if (model.nameA) who.push('Person A: ' + model.nameA)
@@ -401,6 +407,7 @@
       }
       be.line(L, TOP + 15, R, TOP + 15, 0.5, RULE)
       y = TOP + 34
+      pageTop = y
     }
 
     function newPage() {
@@ -425,7 +432,8 @@
     }
 
     function colHeading(col, x) {
-      var label = col.label + (col.name ? ' \u00B7 ' + col.name : '')
+      // The name in place of Person A or Person B, as on the page.
+      var label = col.name || col.label
       be.text(fit(be, label, F.label, COLW), x, y + 8, F.label, MUTED, { w: COLW })
     }
 
@@ -440,7 +448,9 @@
       var cols = item.cols.map(function (c) {
         return c.text ? wrap(be, c.text, F.a, COLW) : null
       })
-      var rows = Math.max.apply(null, cols.map(function (c) { return c ? c.length : 1 }))
+      // A closing box left empty gets lines to write on at the session, not "Not answered".
+      var ruled = !item.number
+      var rows = Math.max.apply(null, cols.map(function (c) { return c ? c.length : ruled ? RULED_ROWS : 1 }))
       ensure(qLines.length * LH + 6 + 16 + Math.min(rows, 2) * LH + 8)
 
       qLines.forEach(function (line, i) {
@@ -464,7 +474,11 @@
       }
       function close() {
         item.cols.forEach(function (c, k) {
-          be.line(L + k * (COLW + GAP) - 7, top - 3, L + k * (COLW + GAP) - 7, y, 1, LIGHT)
+          var x = L + k * (COLW + GAP)
+          be.line(x - 7, top - 3, x - 7, y, 1, LIGHT)
+          if (ruled && cols[k] === null) {
+            for (var ly = top + WRITE_GAP - 4; ly <= y; ly += WRITE_GAP) be.line(x, ly, x + COLW, ly, 0.5, RULE)
+          }
         })
       }
 
@@ -478,7 +492,7 @@
         cols.forEach(function (lines, k) {
           var x = L + k * (COLW + GAP)
           if (lines === null) {
-            if (i === 0) be.text('Not answered', x, y + 10, F.none, MUTED)
+            if (i === 0 && !ruled) be.text('Not answered', x, y + 10, F.none, MUTED)
           } else if (lines[i]) be.text(lines[i], x, y + 10, F.a, BODY, { w: COLW })
         })
         y += LH
@@ -506,9 +520,14 @@
     be.line(L, y + 4, R, y + 4, 1.5, INK)
     y += 24
 
+    // The subjects follow one another; a new one starts a page only when its heading, its framing line
+    // and the start of its first question would not fit, so no page is left nearly empty.
     model.sections.forEach(function (sec, i) {
-      if (i > 0) newPage()
-      ensure(60)
+      var framing = sec.framing ? wrap(be, sec.framing, F.framing, W - 10).length : 0
+      var first = sec.items[0]
+      var firstNeed = first ? (first.text ? wrap(be, first.text, F.q, W - 20).length * LH : 0) + 6 + 16 + 2 * LH + 8 : 0
+      if (i > 0 && y > pageTop) y += 18
+      ensure(24 + framing * LH + 20 + firstNeed)
       be.text(sec.title, L, y + 14, F.h2, INK, { w: W })
       y += 24
       if (sec.framing) paragraph(sec.framing, F.framing, MUTED, W - 10, 0)
@@ -539,7 +558,24 @@
     layout(counter, P, model, 0)
     var be = make(P)
     layout(be, P, model, counter.pages())
-    return be.finish()
+    return { blob: be.finish(), name: fileName(model) }
+  }
+
+  /** money-conversation-Amina-Omar-2026-10-31.pdf: the names as typed, in any script, and the date. */
+  function fileName(model) {
+    function part(text) {
+      var t = String(text || '')
+      if (t.normalize) t = t.normalize('NFC')
+      var out
+      try {
+        out = t.replace(new RegExp('[^\\p{L}\\p{N}]+', 'gu'), '-')
+      } catch {
+        out = t.replace(/[^A-Za-z0-9]+/g, '-')
+      }
+      return Array.from(out.replace(/^-+|-+$/g, '')).slice(0, 40).join('').replace(/-+$/, '')
+    }
+    var date = /^\d{4}-\d{2}-\d{2}$/.test(model.rawDate) ? model.rawDate : part(model.rawDate)
+    return [FILE_STEM, part(model.nameA), part(model.nameB), date].filter(Boolean).join('-') + '.pdf'
   }
 
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
@@ -560,12 +596,12 @@
     }
   }
 
-  function saveAsLink(blob, status) {
+  function saveAsLink(blob, name, status) {
     if (lastUrl) URL.revokeObjectURL(lastUrl)
     lastUrl = URL.createObjectURL(blob)
     var a = document.createElement('a')
     a.href = lastUrl
-    a.download = FILE_NAME
+    a.download = name
     a.rel = 'noopener'
     a.style.display = 'none'
     document.body.appendChild(a)
@@ -574,10 +610,12 @@
     say(status, 'Your PDF was made on this device and should be in your downloads.', lastUrl)
   }
 
-  function deliver(blob, status) {
+  function deliver(made, status) {
+    var blob = made.blob
+    var name = made.name
     var file = null
     try {
-      file = new File([blob], FILE_NAME, { type: 'application/pdf' })
+      file = new File([blob], name, { type: 'application/pdf' })
     } catch {
       file = null
     }
@@ -590,13 +628,13 @@
         },
         function (err) {
           if (err && err.name === 'AbortError') {
-            say(status, 'Nothing was saved. Tap Download PDF to try again.')
-          } else saveAsLink(blob, status)
+            say(status, 'The PDF was not saved. Tap Download PDF to try again.')
+          } else saveAsLink(blob, name, status)
         }
       )
       return
     }
-    saveAsLink(blob, status)
+    saveAsLink(blob, name, status)
   }
 
   function onPress(button) {
