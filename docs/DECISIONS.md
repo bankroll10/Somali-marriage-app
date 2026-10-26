@@ -4604,3 +4604,43 @@ downloads otherwise or if sharing fails; on Android it downloads. The status lin
 
 **Not done.** The Somali sheet has no PDF button. Only the four-page English sheet was asked for. A real iPhone Safari run was not
 possible in the environment used; what was run is Chromium with an iPhone profile and a stubbed share sheet, and with a Pixel profile.
+
+## The money conversation sheet, before an imam links it (2026-10-26, second change)
+
+**Answers are now kept on the device.** Until now the sheet kept nothing: close the tab and the answers were gone. At the founder's
+request it now keeps what is typed in this browser, under one key, `niyyah.moneysheet.v1`, and puts it back on a reload with the note
+"We restored your answers on this device". The promise moves from "nothing is saved or sent" to **"saved only on this device"**:
+nothing is sent anywhere, and the PDF is still made on the device. Where it is kept is said in a box of its own near the top, not in
+small print. Three ways to remove it: **Clear my answers** on the sheet (asks first), the browser, and the app's **Forget me**, which
+now names the key in `LOCAL_KEYS` (`src/lib/forget.ts`), because Forget me says it "clears this phone" and the sheet is on this
+site. That one line is the only change outside the sheet's own files; `docs/PRIVACY.md` lists the key.
+
+**What this costs, and what was decided against.** Answers about mahr, debt and money sent to family now stay on a device until
+someone clears them. On a shared or mosque device the next person who opens the page sees them. The box says so in plain words
+("On a shared or public device, tap Clear my answers when you finish"). An automatic expiry (the app's drafts expire after 30 days)
+was considered and not added: a couple working over several weeks would lose their answers without being told. It is a one-line
+change if the founder wants it.
+
+**The leave-page warning.** It asks before leaving only when the answers are **not** kept: when the browser refuses to save
+(private browsing on some phones, storage full or blocked). Saved answers need no warning, since they come back. A save still
+waiting is written on the way out. iPhone Safari does not show leave-page warnings at all, so there the on-page message ("This
+browser is not letting the page save. Download the PDF before you close or reload it") is what tells them.
+
+**The rest of the change.** A short How to use this box (real names in place of Person A and Person B, each answers their own
+column, about 30 to 40 minutes, any question can be skipped, the two closing boxes together, then Download PDF to bring to the
+session with the imam). The name fields relabel every column, on the page and in the PDF. On a phone the two columns stack with the
+name above each box, and every answer box grows to fit what is written (checked at 375 px). The session date is a date picker. Jump
+links to the four sections, and "Section 1 of 4" above each heading (screen only: printed, page one had no line to spare). The PDF no
+longer starts a page for each subject, so no page is left nearly empty when an answer spills over; an empty closing box is ruled to
+write on instead of saying "Not answered"; and the file is `money-conversation-<NameA>-<NameB>-<date>.pdf`, with whatever was not
+filled in left out. The introduction no longer says "four subjects" and then "none of the three"; the one-page version is a link,
+not a file name in the text; the note about printing only to write by hand is gone; the version line and disclaimer sit in a quiet
+footer.
+
+**One rule relaxed on purpose.** `tests/sheet.test.ts` kept the sheet from naming any religious authority. The how-to now says
+"bring it to your session with the imam", at the founder's request, for couples sent by an imam at Dar Al-Hijrah. It is the only
+mention, and the test pins that. If the sheet is also handed out where the session is not with an imam (the facilitator note
+suggests it can be), "your session" alone would fit both.
+
+**Unchanged.** The one-page, Somali and facilitator pages; the `.txt` version of this sheet (it still has the old introduction
+sentence); printing a blank copy (still four pages, one subject each, on Letter and A4).

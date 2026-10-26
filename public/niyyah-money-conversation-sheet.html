@@ -10,11 +10,14 @@
     />
     <!--
       Self-contained on purpose. No fonts, no images, no CDN, no analytics, and
-      nothing here is saved or sent. The only scripts are the two that make the
-      Download PDF button work, both served from this site and run on the
-      reader's own device: vendor/jspdf.umd.min.js (jsPDF, MIT) and
-      niyyah-money-conversation-sheet-pdf.js. Without them the sheet still opens,
-      can be typed in and printed, and the button says the PDF maker is missing.
+      nothing here is sent anywhere. Three scripts, all served from this site
+      and run on the reader's own device: niyyah-money-conversation-sheet.js
+      (keeps the answers in this browser under one key, niyyah.moneysheet.v1,
+      which Clear my answers and the app's Forget me both remove; puts the names
+      on the columns; grows the boxes), vendor/jspdf.umd.min.js (jsPDF, MIT) and
+      niyyah-money-conversation-sheet-pdf.js (the Download PDF button). Without
+      them the sheet still opens, can be typed in and printed, keeps nothing,
+      and says so.
     -->
     <style>
       :root {
@@ -210,6 +213,116 @@
         color: var(--ink);
       }
 
+      /* Where the answers are kept. Shown by the script, since without it nothing is kept. */
+      .privacy {
+        margin: 1.25rem 0 0;
+        padding: 0.85rem 1rem;
+        border: 2px solid var(--ink);
+        border-left-width: 6px;
+        border-radius: 0.35rem;
+        background: #fff;
+        max-width: 40rem;
+      }
+
+      .privacy p {
+        margin: 0 0 0.45rem;
+        font-size: 0.95rem;
+      }
+
+      .privacy p:last-child {
+        margin-bottom: 0;
+      }
+
+      .privacy-title {
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .privacy .restored {
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .privacy .save-problem {
+        font-weight: 600;
+        color: #8a2d1c;
+      }
+
+      .quiet-button {
+        font: inherit;
+        font-size: 0.95rem;
+        color: var(--ink);
+        background: transparent;
+        border: 1px solid var(--rule);
+        border-radius: 0.35rem;
+        padding: 0.45rem 0.9rem;
+        min-height: 2.75rem;
+        cursor: pointer;
+      }
+
+      .howto {
+        margin: 1.25rem 0 0;
+        padding: 0.85rem 1rem 0.6rem;
+        border: 1px solid var(--rule);
+        border-radius: 0.35rem;
+        background: #f5f3ec;
+        max-width: 40rem;
+      }
+
+      .howto h2 {
+        font-size: 1.05rem;
+        margin: 0 0 0.4rem;
+      }
+
+      .howto ol {
+        margin: 0;
+        padding-left: 1.3rem;
+      }
+
+      .howto li {
+        margin: 0 0 0.35rem;
+      }
+
+      .jump {
+        margin: 1.5rem 0 0;
+      }
+
+      .jump-title {
+        margin: 0 0 0.35rem;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #4a564f;
+      }
+
+      .jump ol {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem 1.25rem;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .jump a {
+        display: inline-block;
+        padding: 0.4rem 0;
+        color: var(--ink);
+      }
+
+      .section-of {
+        margin: 0 0 0.2rem;
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #4a564f;
+      }
+
+      /* The script grows each answer box to fit what is in it. */
+      .js-grow textarea {
+        overflow-y: hidden;
+      }
+
       :focus-visible {
         outline: 2px solid var(--ink);
         outline-offset: 2px;
@@ -231,15 +344,18 @@
         min-width: 0;
       }
 
+      /* Quiet on purpose: who published it, what it is not, which version. */
       footer {
-        border-top: 2px solid var(--ink);
-        padding-top: 1rem;
+        margin-top: 3rem;
+        border-top: 1px solid var(--rule);
+        padding-top: 0.75rem;
         max-width: 40rem;
+        color: #4a564f;
       }
 
       footer p {
-        margin: 0 0 0.4rem;
-        font-size: 0.9rem;
+        margin: 0 0 0.3rem;
+        font-size: 0.8rem;
       }
 
       footer a {
@@ -278,6 +394,16 @@
         .cols > div + div,
         .box > div + div {
           margin-top: 0.85rem;
+        }
+
+        /* Stacked, each box says whose it is: the name (or Person A, Person B) above it. */
+        .cols label,
+        .box label {
+          font-size: 0.9rem;
+          font-weight: 600;
+          letter-spacing: 0;
+          text-transform: none;
+          color: var(--ink);
         }
       }
 
@@ -416,6 +542,15 @@
           display: none;
         }
 
+        input[type='date'].is-empty {
+          color: transparent;
+        }
+
+        /* On paper the heading's own number says which subject it is, and page one has no line to spare. */
+        .section-of {
+          display: none;
+        }
+
         .print-footer {
           display: block;
           margin-top: 2mm;
@@ -438,54 +573,83 @@
         </p>
         <p class="lede">
           The four subjects are kept apart on purpose. Mahr is not the wedding.
-          The wedding is not what either of you already owes. And none of the
-          three is the money that leaves your account every month for people at
-          home or abroad.
+          The wedding is not a debt either of you already carries. And the money
+          you send to family every month, at home or abroad, is a subject of its
+          own.
         </p>
-        <p class="note screen-only">
+        <p class="note screen-only" data-without-script>
           Nothing on this page is saved or sent. What you type stays in this
-          window until you close it, and there is nothing to submit. The PDF is
-          made on your own device.
+          window until you close it, and there is nothing to submit.
         </p>
+
+        <div class="privacy screen-only" id="privacy" hidden>
+          <p class="privacy-title">Saved only on this device</p>
+          <p>
+            What you type is saved in this browser on this device, so you can
+            close the page and come back to it. Nothing on this page is sent
+            anywhere, and the PDF is made here too.
+          </p>
+          <p>On a shared or public device, tap Clear my answers when you finish.</p>
+          <p class="restored" role="status" aria-live="polite"></p>
+          <p class="save-problem" role="alert" hidden>
+            This browser is not letting the page save. Download the PDF before
+            you close or reload it, or your answers will be lost.
+          </p>
+          <p><button type="button" class="quiet-button" data-clear-answers>Clear my answers</button></p>
+        </div>
+
+        <aside class="howto screen-only" aria-labelledby="howto-h">
+          <h2 id="howto-h">How to use this</h2>
+          <ol>
+            <li>Put your real names in the two name fields below. The columns then show your names instead of Person A and Person B.</li>
+            <li>Each of you answers your own column, in your own words.</li>
+            <li>It takes about 30 to 40 minutes. You can skip any question.</li>
+            <li>At the end of each section, fill in the two shared boxes together: <em>What we agree on</em> and <em>What we’re still deciding</em>.</li>
+            <li>Then tap Download PDF and bring it to your session with the imam.</li>
+          </ol>
+        </aside>
+
         <p class="note screen-only">
-          To keep what you type, use Download PDF: every answer is in it in
-          full. Print this page only to write on it by hand.
-        </p>
-        <p class="note screen-only">
-          This is the four-page version — a full page per subject, room to
-          write. For the same questions on a single printed page, use
-          niyyah-money-conversation-sheet-1page.html instead.
-        </p>
-        <p class="note screen-only">
-          Also: <a href="niyyah-money-conversation-sheet-1page.html">the one-page version</a> · <a href="niyyah-money-conversation-sheet-so.html">in Somali</a>.
+          Also: <a href="niyyah-money-conversation-sheet-1page.html">the one-page version</a>, to print a blank copy and write on it by hand, and <a href="niyyah-money-conversation-sheet-so.html">in Somali</a>.
         </p>
 
         <div class="who">
           <div>
-            <label for="name-a">Person A</label>
+            <label for="name-a">Person A’s name</label>
             <input id="name-a" type="text" autocomplete="off" />
           </div>
           <div>
-            <label for="name-b">Person B</label>
+            <label for="name-b">Person B’s name</label>
             <input id="name-b" type="text" autocomplete="off" />
           </div>
           <div>
             <label for="sheet-date">Session date</label>
-            <input id="sheet-date" type="text" autocomplete="off" />
+            <input id="sheet-date" type="date" autocomplete="off" />
           </div>
         </div>
         <p class="note screen-only">
-          Names and a session date are optional. If you add them, they are
-          printed at the top of the PDF.
+          Names and the date are optional. They are printed at the top of the
+          PDF, and the names go on the columns.
         </p>
         <div class="pdf-actions screen-only" hidden>
           <button type="button" class="pdf-button" data-pdf-button>Download PDF</button>
           <p class="pdf-status" role="status" aria-live="polite"></p>
         </div>
+
+        <nav class="jump screen-only" aria-label="Sections">
+          <p class="jump-title">Jump to a section</p>
+          <ol>
+            <li><a href="#s1-h">1. Mahr</a></li>
+            <li><a href="#s2-h">2. The wedding</a></li>
+            <li><a href="#s3-h">3. Debt</a></li>
+            <li><a href="#s4-h">4. Family obligations</a></li>
+          </ol>
+        </nav>
       </header>
 
       <!-- 1 -->
       <section aria-labelledby="s1-h">
+        <p class="section-of">Section 1 of 4</p>
         <h2 id="s1-h">1. Mahr</h2>
         <p class="framing">
           This section is about mahr only — what each of you expects, and who has
@@ -540,6 +704,7 @@
 
       <!-- 2 -->
       <section aria-labelledby="s2-h">
+        <p class="section-of">Section 2 of 4</p>
         <h2 id="s2-h">2. The wedding — one-time expenses</h2>
         <p class="framing">
           This section is about the one-time cost of the wedding itself — the
@@ -595,6 +760,7 @@
 
       <!-- 3 -->
       <section aria-labelledby="s3-h">
+        <p class="section-of">Section 3 of 4</p>
         <h2 id="s3-h">3. Debt either of you already carries</h2>
         <p class="framing">
           This section is about money either of you already owes, from before
@@ -649,6 +815,7 @@
 
       <!-- 4 -->
       <section aria-labelledby="s4-h">
+        <p class="section-of">Section 4 of 4</p>
         <h2 id="s4-h">4. Ongoing obligations to family</h2>
         <p class="framing">
           This section is about money that leaves your account regularly for
@@ -716,6 +883,7 @@
         <p class="version">v1.0 — 2026-09-20</p>
       </footer>
     </main>
+    <script src="niyyah-money-conversation-sheet.js" defer></script>
     <script src="vendor/jspdf.umd.min.js" defer></script>
     <script src="niyyah-money-conversation-sheet-pdf.js" defer></script>
   </body>

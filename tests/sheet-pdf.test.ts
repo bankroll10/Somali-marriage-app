@@ -9,7 +9,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * The real page, the real generator script and the real jsPDF are loaded, a person's answers are typed
  * in, the button is pressed, and the PDF it hands over is read back. What this holds:
  *  - every question and both people's answers are in the file, in full, across as many pages as they need;
- *  - the name, the date and the footer are in it, the file is called niyyah-money-conversation.pdf;
+ *  - the names, the date and the footer are in it, and the file is money-conversation-<NameA>-<NameB>-<date>.pdf;
+ *  - the subjects follow one another with no page left nearly empty, and an empty closing box is ruled to write on;
  *  - nothing is sent and nothing is stored while it is made.
  * The picture-of-the-page fallback for scripts the PDF's own fonts cannot draw (Arabic, say) needs a
  * real canvas, so it is exercised in a browser, not here (docs/ASSETS.md).
@@ -42,8 +43,8 @@ describe('what the generator is allowed to do', () => {
     expect(GENERATOR).toMatch(/^[\x00-\x7F]*$/)
   })
 
-  it('is called niyyah-money-conversation.pdf and signs every page Niyyah, joinniyyah.com', () => {
-    expect(CODE).toContain("'niyyah-money-conversation.pdf'")
+  it('names the file from money-conversation and signs every page Niyyah, joinniyyah.com', () => {
+    expect(CODE).toContain("var FILE_STEM = 'money-conversation'")
     expect(CODE).toContain("'Niyyah, joinniyyah.com'")
   })
 
@@ -71,20 +72,36 @@ describe('the buttons', () => {
   })
 
   it('use no dash in any new words', () => {
-    const copy = [...PAGE.matchAll(/class="pdf-actions[\s\S]*?<\/div>/g)].map((m) => m[0].replace(/<[^>]+>/g, ' ')).join(' ')
-    const notes = flat(PAGE).match(/Nothing on this page is saved or sent[^<]*?own device\.|To keep what you type[^<]*?by hand\.|Names and a session date are optional[^<]*?PDF\./g) ?? []
-    expect(notes).toHaveLength(3)
-    for (const text of [copy, ...notes, ...(GENERATOR.match(/say\(status, '[^']*'/g) ?? [])]) expect(text).not.toMatch(/[–—]|--/)
+    // Every block of words this work added to the page, and every message either script can show.
+    const blocks = [
+      /<div class="privacy screen-only"[\s\S]*?<\/div>/,
+      /<aside class="howto[\s\S]*?<\/aside>/,
+      /<nav class="jump[\s\S]*?<\/nav>/,
+      /Names and the date are optional[\s\S]*?<\/p>/,
+      /Also: <a[\s\S]*?<\/p>/,
+    ].map((re) => PAGE.match(re)![0].replace(/<[^>]+>/g, ' '))
+    const actions = [...PAGE.matchAll(/class="pdf-actions[\s\S]*?<\/div>/g)].map((m) => m[0].replace(/<[^>]+>/g, ' '))
+    expect(actions).toHaveLength(2)
+    const sections = PAGE.match(/Section \d of 4/g) ?? []
+    expect(sections).toHaveLength(4)
+    const PAGE_SCRIPT = readFileSync('public/niyyah-money-conversation-sheet.js', 'utf8')
+    const messages = [...`${GENERATOR}\n${PAGE_SCRIPT}`.matchAll(/(?:say\((?:status, )?|confirm\()'([^']*)'/g)].map((m) => m[1])
+    expect(messages.length).toBeGreaterThan(5)
+    for (const text of [...blocks, ...actions, ...sections, ...messages]) expect(text).not.toMatch(/[\u2013\u2014]|--/)
   })
 })
 
 // ── Running it ────────────────────────────────────────────────────────────────
 
 /** The text strings drawn on each page, read back out of the PDF's own streams. */
-function pdfText(bytes: Uint8Array): { pages: number; text: string } {
+function pdfText(bytes: Uint8Array): { pages: number; text: string; lows: number[]; rules: number } {
   const raw = Buffer.from(bytes).toString('latin1')
   const pages = (raw.match(/\/Type\s*\/Page\b(?!s)/g) ?? []).length
   let text = ''
+  // For each page's content stream, the lowest line of text above the footer, in PDF points from the bottom.
+  const lows: number[] = []
+  // Thin horizontal strokes: the lines left to write on in an empty closing box.
+  let rules = 0
   for (const m of raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
     let body: string
     try {
@@ -92,11 +109,14 @@ function pdfText(bytes: Uint8Array): { pages: number; text: string } {
     } catch {
       continue
     }
+    const ys = [...body.matchAll(/([\d.]+) ([\d.]+) Td/g)].map((t) => Number(t[2])).filter((y) => y > 50)
+    if (ys.length) lows.push(Math.min(...ys))
+    rules += [...body.matchAll(/0\.5 w\n[\d.]+ ([\d.]+) m\n[\d.]+ \1 l\nS/g)].length
     for (const s of body.matchAll(/\(((?:\\.|[^\\)])*)\)\s*Tj/g)) {
       text += `${s[1].replace(/\\([()\\])/g, '$1').replace(/\\(\d{3})/g, (_, o) => String.fromCharCode(parseInt(o, 8)))}\n`
     }
   }
-  return { pages, text }
+  return { pages, text, lows, rules }
 }
 
 let made: Blob | null = null
@@ -155,10 +175,10 @@ async function bytes() {
 }
 
 describe('pressing Download PDF', () => {
-  it('shows the buttons only once the script has run, and downloads a PDF called niyyah-money-conversation.pdf', async () => {
+  it('shows the buttons only once the script has run, and downloads money-conversation.pdf when no name or date was given', async () => {
     for (const block of document.querySelectorAll('.pdf-actions')) expect((block as HTMLElement).hidden).toBe(false)
     press()
-    expect(downloadName).toBe('niyyah-money-conversation.pdf')
+    expect(downloadName).toBe('money-conversation.pdf')
     const b = await bytes()
     expect(Buffer.from(b.subarray(0, 5)).toString()).toBe('%PDF-')
     expect(made!.type).toBe('application/pdf')
@@ -167,14 +187,14 @@ describe('pressing Download PDF', () => {
 
   it('works from the button at the bottom as well, and is the same file', async () => {
     press('last')
-    expect(downloadName).toBe('niyyah-money-conversation.pdf')
+    expect(downloadName).toBe('money-conversation.pdf')
     expect(Buffer.from((await bytes()).subarray(0, 5)).toString()).toBe('%PDF-')
     expect(document.querySelectorAll('.pdf-status')[1].textContent).toContain('Your PDF was made on this device')
   })
 
-  it('holds all twenty questions, and says “Not answered” where a column is empty, on a blank sheet', async () => {
+  it('holds all twenty questions, says “Not answered” where a column is empty, and leaves empty closing boxes ruled to write on', async () => {
     press()
-    const { text, pages } = pdfText(await bytes())
+    const { text, pages, lows, rules } = pdfText(await bytes())
     const questions = [...PAGE.matchAll(/<p class="q"[^>]*>([\s\S]*?)<\/p>/g)].map((m) => flat(m[1]))
     expect(questions).toHaveLength(20)
     for (const q of questions) {
@@ -182,9 +202,13 @@ describe('pressing Download PDF', () => {
       const flatText = flat(text.replace(/\n/g, ' '))
       for (const word of q.split(' ')) expect(flatText, word).toContain(win1252(word))
     }
-    // Two columns for each of the twenty questions, and the two closing boxes of each of the four subjects.
-    expect(text.match(/Not answered/g)).toHaveLength(20 * 2 + 4 * 2)
-    expect(pages).toBeGreaterThanOrEqual(4)
+    // Two columns for each of the twenty questions. The closing boxes say nothing: they are ruled.
+    expect(text.match(/Not answered/g)).toHaveLength(20 * 2)
+    expect(rules).toBeGreaterThanOrEqual(4 * 2 * 4) // four subjects, two boxes, about four lines each
+    // The subjects follow one another: every page but the last carries text into its lower half.
+    expect(pages).toBeLessThanOrEqual(4)
+    expect(lows).toHaveLength(pages)
+    for (const low of lows.slice(0, -1)) expect(low).toBeLessThan(792 / 2)
     for (const heading of ['1. Mahr', '4. Ongoing obligations to family']) expect(text).toContain(heading)
     expect(text).toContain('What we agree on')
     expect(text).toContain('This sheet is for conversation.')
@@ -199,7 +223,12 @@ describe('pressing Download PDF', () => {
     expect(text).toContain('Amina')
     expect(text).toContain('Omar')
     expect(text).toContain('October 31, 2026')
-    expect(text).toContain('Person A · Amina'.replace('·', '\\267') === '' ? '' : 'Person A')
+    // The columns carry the names, as on the page, not Person A and Person B.
+    const lines = text.split('\n')
+    expect(lines.filter((l) => l === 'Amina').length).toBeGreaterThanOrEqual(20)
+    expect(lines.filter((l) => l === 'Omar').length).toBeGreaterThanOrEqual(20)
+    expect(lines).not.toContain('Person A')
+    expect(downloadName).toBe('money-conversation-Amina-Omar-2026-10-31.pdf')
     expect(text.match(/Niyyah, joinniyyah\.com/g)).toHaveLength(pages)
     for (let n = 1; n <= pages; n++) expect(text, `page ${n}`).toContain(`Page ${n} of ${pages}`)
   })
@@ -209,6 +238,20 @@ describe('pressing Download PDF', () => {
     const { text } = pdfText(await bytes())
     expect(text).not.toContain('SESSION DATE')
     expect(text).not.toContain('PERSON A')
+  })
+
+  it.each([
+    [{ 'sheet-date': '2026-10-31' }, 'money-conversation-2026-10-31.pdf'],
+    [{ 'name-a': 'Amina' }, 'money-conversation-Amina.pdf'],
+    [{ 'name-a': '  Amina  Yusuf ', 'name-b': "O'Brien / Omar" }, 'money-conversation-Amina-Yusuf-O-Brien-Omar.pdf'],
+    // Accented Latin stays as typed. (A name in Arabic script is checked in a browser: it needs a canvas.)
+    [{ 'name-a': 'Ladan Café', 'name-b': 'Çelik' }, 'money-conversation-Ladan-Café-Çelik.pdf'],
+    [{ 'name-a': 'A'.repeat(80) }, `money-conversation-${'A'.repeat(40)}.pdf`],
+    [{ 'name-a': '../../etc', 'name-b': 'a\\b:c*d' }, 'money-conversation-etc-a-b-c-d.pdf'],
+  ])('names the file from what was typed: %o', async (typed, name) => {
+    for (const [id, value] of Object.entries(typed)) write(id, value as string)
+    press()
+    expect(downloadName).toBe(name)
   })
 
   it('carries a long answer in full, in order, across pages, and a long single word too, and never loses the end', async () => {
@@ -234,6 +277,18 @@ describe('pressing Download PDF', () => {
     // The first answer filled its page and ran on; the fourth question of the second subject did too.
     expect(text).toContain('Question 1, continued')
     expect(text).toContain('Question 4, continued')
+  })
+
+  it('does not leave a nearly empty page when an answer spills over: the next subject carries on there', async () => {
+    // The last answer of the first subject runs onto a new page. One page a subject would have left that
+    // page holding a few lines and nothing else; now the wedding starts on it.
+    write('q1e-a', `${words('spill', 140)} END-SPILL`)
+    press()
+    const { text, pages, lows } = pdfText(await bytes())
+    expect(text).toContain('END-SPILL')
+    expect(text).toContain('Question 5, continued')
+    expect(lows).toHaveLength(pages)
+    for (const low of lows.slice(0, -1)) expect(low, String(lows)).toBeLessThan(792 / 2)
   })
 
   it('keeps line breaks the person typed, curly quotes, dashes and accents', async () => {

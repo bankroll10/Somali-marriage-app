@@ -76,6 +76,11 @@ export const LOCAL_KEYS = [
   'niyyah.draft.v1',
   // The coded link this device is part-way through — see src/lib/entry.ts.
   'niyyah.entry.v1',
+  // The money conversation sheet's typed answers, names and session date,
+  // kept in this browser so a couple can come back to them
+  // (public/niyyah-money-conversation-sheet.js). The sheet is on this site,
+  // so "clears this phone" has to include it.
+  'niyyah.moneysheet.v1',
   // Receipts from before 2026-09-23, when forget me still withdrew reports.
   // Nothing writes it now; it is cleared from phones that still hold it.
   'niyyah.reports.v1',

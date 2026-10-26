@@ -25,20 +25,21 @@ const QUESTIONS = [...HTML.matchAll(/<p class="q"[^>]*>([\s\S]*?)<\/p>/g)].map((
 const CSS = HTML.match(/<style>([\s\S]*?)<\/style>/)![1]
 
 describe('it opens from disk, with the network off', () => {
-  it('fetches nothing: no external font, stylesheet, image or frame, and no script but the two that make the PDF button work', () => {
+  it('fetches nothing: no external font, stylesheet, image or frame, and no script but the three that run the page and the PDF button', () => {
     for (const forbidden of ['<iframe', '<img', '<link ', '@import', 'srcset', 'url(', 'integrity=', 'crossorigin']) {
       expect(HTML, forbidden).not.toContain(forbidden)
     }
-    // The Download PDF button (tests/sheet-pdf.test.ts) is the one reason this page runs any code. Both
-    // scripts are files on this site, named relative to the page, and nothing is written inline, so
-    // what runs is exactly what those two files contain and nothing is pulled from anywhere else.
+    // The page script (keeping answers on this device, the names on the columns, growing boxes:
+    // tests/sheet-page.test.ts) and the Download PDF button (tests/sheet-pdf.test.ts) are the only code.
+    // All three are files on this site, named relative to the page, and nothing is written inline, so
+    // what runs is exactly what those files contain and nothing is pulled from anywhere else.
     const scripts = [...HTML.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
-    expect(scripts.map((m) => m[1].match(/\ssrc="([^"]*)"/)?.[1])).toEqual(['vendor/jspdf.umd.min.js', 'niyyah-money-conversation-sheet-pdf.js'])
+    expect(scripts.map((m) => m[1].match(/\ssrc="([^"]*)"/)?.[1])).toEqual(['niyyah-money-conversation-sheet.js', 'vendor/jspdf.umd.min.js', 'niyyah-money-conversation-sheet-pdf.js'])
     for (const [, attrs, body] of scripts) {
       expect(body.trim(), 'no inline script').toBe('')
       expect(attrs).toContain('defer')
     }
-    expect(HTML.match(/\ssrc=/g)).toHaveLength(2)
+    expect(HTML.match(/\ssrc=/g)).toHaveLength(3)
   })
 
   it('carries exactly one absolute link, and it is the one address we own', () => {
@@ -50,7 +51,8 @@ describe('it opens from disk, with the network off', () => {
   })
 
   it('the version switcher is the only other link, and every href is relative', () => {
-    const anchors = [...HTML.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1])
+    // In-page jump links (#s1-h …) open nothing outside this file; they are held by their own test below.
+    const anchors = [...HTML.matchAll(/<a\s[^>]*href="([^"]*)"/g)].map((m) => m[1]).filter((h) => !h.startsWith('#'))
     expect(anchors).toEqual([
       'niyyah-money-conversation-sheet-1page.html',
       'niyyah-money-conversation-sheet-so.html',
@@ -68,25 +70,81 @@ describe('it opens from disk, with the network off', () => {
     expect(HTML).toContain('Nothing on this page is saved or sent')
   })
 
-  it('tells the reader, on screen only, to use Download PDF to keep what they type, and to print only to write by hand', () => {
-    // The old warning (long typed answers "may be cut off when printed") is gone because the PDF carries
-    // every answer in full. Printing this page still clips a long typed answer, so what is said instead
-    // is where typing belongs and where handwriting does. Print never shows it: .screen-only is
-    // display:none there.
-    expect(flat(HTML)).toContain('To keep what you type, use Download PDF: every answer is in it in full. Print this page only to write on it by hand.')
+  it('says, in a box near the top, that answers are saved only on this device and nothing is sent', () => {
+    // The founder's change of 2026-10-26: answers are kept in this browser so a couple can come back to
+    // them. The promise is now "saved only on this device", and it is in a box of its own, not small print.
+    const box = HTML.match(/<div class="privacy screen-only" id="privacy" hidden>([\s\S]*?)<\/div>/)![1]
+    expect(flat(box)).toContain('Saved only on this device')
+    expect(flat(box)).toContain('What you type is saved in this browser on this device, so you can close the page and come back to it. Nothing on this page is sent anywhere, and the PDF is made here too.')
+    expect(flat(box)).toContain('On a shared or public device, tap Clear my answers when you finish.')
+    expect(box).toContain('data-clear-answers')
+    expect(box).toMatch(/class="restored" role="status"/)
+    // Before the how-to and before the first question: the first thing after the two introductory paragraphs.
+    expect(HTML.indexOf('id="privacy"')).toBeLessThan(HTML.indexOf('class="howto'))
+  })
+
+  it('without its script, keeps nothing and says exactly that, and the saved-on-this-device box stays hidden', () => {
+    // The box is hidden in the markup and shown by the script that does the saving, so the page never
+    // claims to keep what it is not keeping.
+    expect(HTML).toMatch(/<p class="note screen-only" data-without-script>\s*Nothing on this page is saved or sent\./)
+    expect(HTML).toMatch(/<div class="privacy screen-only" id="privacy" hidden>/)
+  })
+
+  it('no longer warns that long answers are cut off, or tells anyone to print only to write by hand', () => {
     expect(HTML).not.toContain('cut off')
     expect(HTML).not.toContain('long answers may')
+    expect(HTML).not.toContain('Print this page only')
+    expect(HTML).not.toContain('only to write on it by hand')
     expect(HTML).toMatch(/screen-only[\s\S]*?\{\s*display: none;/)
-    expect(HTML).toMatch(/<p class="note screen-only">\s*To keep what you type/)
   })
 
-  it('keeps the note that nothing is saved or sent, and adds that the PDF is made on the reader’s own device', () => {
-    expect(flat(HTML)).toContain('Nothing on this page is saved or sent. What you type stays in this window until you close it, and there is nothing to submit. The PDF is made on your own device.')
+  it('explains how to use it in a short box at the top', () => {
+    const howto = flat(HTML.match(/<aside class="howto screen-only" aria-labelledby="howto-h">([\s\S]*?)<\/aside>/)![1].replace(/<[^>]+>/g, ' '))
+    for (const line of [
+      'How to use this',
+      'Put your real names in the two name fields below. The columns then show your names instead of Person A and Person B.',
+      'Each of you answers your own column, in your own words.',
+      'It takes about 30 to 40 minutes. You can skip any question.',
+      "At the end of each section, fill in the two shared boxes together: What we agree on and What we're still deciding .",
+      'Then tap Download PDF and bring it to your session with the imam.',
+    ]) {
+      expect(howto, line).toContain(line)
+    }
+    expect(howto).not.toMatch(/[\u2013\u2014]/)
   })
 
-  it('points to the one-page twin, both in plain text and as a real relative link', () => {
-    expect(HTML).toContain('niyyah-money-conversation-sheet-1page.html')
-    expect(HTML).toContain('<a href="niyyah-money-conversation-sheet-1page.html">')
+  it('jumps to the four sections, and says which of the four each one is', () => {
+    const jumps = [...HTML.matchAll(/<a href="(#[^"]+)">([^<]+)<\/a>/g)].map((m) => [m[1], m[2]])
+    expect(jumps).toEqual([
+      ['#s1-h', '1. Mahr'],
+      ['#s2-h', '2. The wedding'],
+      ['#s3-h', '3. Debt'],
+      ['#s4-h', '4. Family obligations'],
+    ])
+    for (const [href] of jumps) expect(HTML).toContain(`id="${href.slice(1)}"`)
+    expect(HTML).toMatch(/<nav class="jump screen-only" aria-label="Sections">/)
+    for (const n of [1, 2, 3, 4]) expect(HTML).toMatch(new RegExp(`<section aria-labelledby="s${n}-h">\\s*<p class="section-of">Section ${n} of 4</p>`))
+  })
+
+  it('introduces the four subjects without counting them as three', () => {
+    // It used to say "the four subjects", then "none of the three", which read as a mistake.
+    expect(flat(HTML)).toContain('The four subjects are kept apart on purpose. Mahr is not the wedding. The wedding is not a debt either of you already carries. And the money you send to family every month, at home or abroad, is a subject of its own.')
+    expect(HTML).not.toContain('none of the three')
+  })
+
+  it('asks for the session date with a date picker', () => {
+    expect(HTML).toContain('<input id="sheet-date" type="date" autocomplete="off" />')
+  })
+
+  it('keeps the version and the disclaimer in a quiet footer', () => {
+    expect(CSS).toMatch(/footer \{[^}]*border-top: 1px solid var\(--rule\)[^}]*color: #4a564f;/)
+    expect(CSS).toMatch(/footer p \{[^}]*font-size: 0\.8rem;/)
+  })
+
+  it('points to the one-page twin as a real relative link, never as a bare file name in the text', () => {
+    expect(HTML).toContain('<a href="niyyah-money-conversation-sheet-1page.html">the one-page version</a>')
+    const prose = HTML.replace(/<style>[\s\S]*?<\/style>/, '').replace(/<!--[\s\S]*?-->/g, '').replace(/<[^>]+>/g, ' ')
+    expect(prose).not.toContain('niyyah-money-conversation-sheet-1page.html')
   })
 })
 
@@ -146,9 +204,14 @@ describe('what it refuses to say', () => {
   const BOTH = `${PROSE} ${flat(TXT)}`
 
   it('gives no ruling and cites no source', () => {
-    for (const word of ['fiqh', 'madhhab', 'hadith', 'ayah', 'ayat', 'Quran', "Qur'an", 'Sunnah', 'scholar', 'sheikh', 'imam', 'halal', 'haram', 'sharia', 'permissible', 'obligatory', 'correct amount']) {
+    for (const word of ['fiqh', 'madhhab', 'hadith', 'ayah', 'ayat', 'Quran', "Qur'an", 'Sunnah', 'scholar', 'sheikh', 'halal', 'haram', 'sharia', 'permissible', 'obligatory', 'correct amount']) {
       expect(BOTH.toLowerCase(), word).not.toContain(word.toLowerCase())
     }
+    // One exception, at the founder's request (2026-10-26), for couples sent by an imam at Dar Al-Hijrah:
+    // the how-to says to bring the PDF to "your session with the imam". It names where the sheet goes,
+    // not anyone's ruling, and it is the only mention.
+    expect(BOTH.toLowerCase().match(/\bimam\b/g)).toHaveLength(1)
+    expect(BOTH).toContain('Then tap Download PDF and bring it to your session with the imam.')
   })
 
   it('names no figure, range, average or benchmark', () => {
@@ -241,7 +304,7 @@ describe('on paper', () => {
     // No extra <a>: repeating the name four times must not repeat the link,
     // and the version switcher's two links stay screen-only, so print never
     // shows more than the one clickable address in the real footer.
-    expect([...HTML.matchAll(/<a\s[^>]*href=/g)]).toHaveLength(3)
+    expect([...HTML.matchAll(/<a\s[^>]*href="(?!#)/g)]).toHaveLength(3)
     const switcher = HTML.match(/<p class="note screen-only">\s*Also:[\s\S]*?<\/p>/)![0]
     expect(switcher).toMatch(/class="note screen-only"/)
   })
@@ -268,8 +331,12 @@ describe('on a phone, and to a screen reader', () => {
   })
 
   it('labels the two columns without naming a gender or a role', () => {
-    expect(HTML.match(/>Person A</g)).toHaveLength(20 + 1) // one per question, plus the name field
-    expect(HTML.match(/>Person B</g)).toHaveLength(20 + 1)
+    // One per question. The name fields are "Person A’s name" and "Person B’s name", and once a name is
+    // typed the script puts it on the column in place of these (tests/sheet-page.test.ts).
+    expect(HTML.match(/>Person A</g)).toHaveLength(20)
+    expect(HTML.match(/>Person B</g)).toHaveLength(20)
+    expect(HTML).toContain('<label for="name-a">Person A’s name</label>')
+    expect(HTML).toContain('<label for="name-b">Person B’s name</label>')
     for (const word of ['husband', 'wife', 'groom', 'bride', 'his ', 'her ', 'he ', 'she ']) {
       expect(flat(HTML).toLowerCase(), word).not.toContain(` ${word.trim()} `)
     }
@@ -505,7 +572,7 @@ describe('the link graph across the whole N3 family', () => {
   const rel = (doc: string) =>
     [...doc.matchAll(/<a\s[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g)]
       .map((m) => ({ href: m[1], text: m[2].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim() }))
-      .filter((l) => !/^https?:/.test(l.href))
+      .filter((l) => !/^https?:/.test(l.href) && !l.href.startsWith('#'))
 
   const SHEETS = [
     [FOUR_EN, HTML, [ONE_EN, FOUR_SO]],

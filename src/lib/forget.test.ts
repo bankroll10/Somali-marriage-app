@@ -174,6 +174,8 @@ describe('forget me', () => {
         'niyyah.keep.code.v1',
         'niyyah.keep.once.v1',
         'niyyah.keep.rev.v1',
+        // The money conversation sheet's answers (public/niyyah-money-conversation-sheet.js).
+        'niyyah.moneysheet.v1',
         'niyyah.reports.v1',
         'niyyah.via.v1',
         'niyyah.waitlist.queue.v1',
