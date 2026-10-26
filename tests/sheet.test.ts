@@ -25,10 +25,20 @@ const QUESTIONS = [...HTML.matchAll(/<p class="q"[^>]*>([\s\S]*?)<\/p>/g)].map((
 const CSS = HTML.match(/<style>([\s\S]*?)<\/style>/)![1]
 
 describe('it opens from disk, with the network off', () => {
-  it('fetches nothing: no script, no external font, stylesheet, image or frame', () => {
-    for (const forbidden of ['<script', '<iframe', '<img', '<link ', '@import', 'src=', 'srcset', 'url(', 'integrity=', 'crossorigin']) {
+  it('fetches nothing: no external font, stylesheet, image or frame, and no script but the two that make the PDF button work', () => {
+    for (const forbidden of ['<iframe', '<img', '<link ', '@import', 'srcset', 'url(', 'integrity=', 'crossorigin']) {
       expect(HTML, forbidden).not.toContain(forbidden)
     }
+    // The Download PDF button (tests/sheet-pdf.test.ts) is the one reason this page runs any code. Both
+    // scripts are files on this site, named relative to the page, and nothing is written inline, so
+    // what runs is exactly what those two files contain and nothing is pulled from anywhere else.
+    const scripts = [...HTML.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
+    expect(scripts.map((m) => m[1].match(/\ssrc="([^"]*)"/)?.[1])).toEqual(['vendor/jspdf.umd.min.js', 'niyyah-money-conversation-sheet-pdf.js'])
+    for (const [, attrs, body] of scripts) {
+      expect(body.trim(), 'no inline script').toBe('')
+      expect(attrs).toContain('defer')
+    }
+    expect(HTML.match(/\ssrc=/g)).toHaveLength(2)
   })
 
   it('carries exactly one absolute link, and it is the one address we own', () => {
@@ -58,14 +68,20 @@ describe('it opens from disk, with the network off', () => {
     expect(HTML).toContain('Nothing on this page is saved or sent')
   })
 
-  it('warns, on screen only, that a printed copy can clip a long typed answer', () => {
-    // No script is allowed to auto-grow a textarea for print, so the honest
-    // fix is telling the reader, not pretending the box will always be
-    // enough. Print never shows it — .screen-only is display:none there —
-    // because by then it's too late to matter.
-    expect(HTML).toContain('Print this and write on it')
-    expect(HTML).toContain('long answers may')
+  it('tells the reader, on screen only, to use Download PDF to keep what they type, and to print only to write by hand', () => {
+    // The old warning (long typed answers "may be cut off when printed") is gone because the PDF carries
+    // every answer in full. Printing this page still clips a long typed answer, so what is said instead
+    // is where typing belongs and where handwriting does. Print never shows it: .screen-only is
+    // display:none there.
+    expect(flat(HTML)).toContain('To keep what you type, use Download PDF: every answer is in it in full. Print this page only to write on it by hand.')
+    expect(HTML).not.toContain('cut off')
+    expect(HTML).not.toContain('long answers may')
     expect(HTML).toMatch(/screen-only[\s\S]*?\{\s*display: none;/)
+    expect(HTML).toMatch(/<p class="note screen-only">\s*To keep what you type/)
+  })
+
+  it('keeps the note that nothing is saved or sent, and adds that the PDF is made on the reader’s own device', () => {
+    expect(flat(HTML)).toContain('Nothing on this page is saved or sent. What you type stays in this window until you close it, and there is nothing to submit. The PDF is made on your own device.')
   })
 
   it('points to the one-page twin, both in plain text and as a real relative link', () => {
