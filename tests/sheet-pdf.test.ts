@@ -4,27 +4,33 @@ import { inflateSync } from 'node:zlib'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 /**
- * The Download PDF button on the money conversation sheet.
+ * The PDFs the money conversation sheet makes: one person's answers, and the combined one.
  *
- * The real page, the real generator script and the real jsPDF are loaded, a person's answers are typed
- * in, the button is pressed, and the PDF it hands over is read back. What this holds:
- *  - every question and both people's answers are in the file, in full, across as many pages as they need;
- *  - the names, the date and the footer are in it, and the file is money-conversation-<NameA>-<NameB>-<date>.pdf;
- *  - the subjects follow one another with no page left nearly empty, and an empty closing box is ruled to write on;
- *  - nothing is sent and nothing is stored while it is made.
+ * The real page, its own script, the real jsPDF and the real generator are loaded; answers are typed in,
+ * a partner's answers are added the way a person adds them, a button is pressed, and the PDF it hands
+ * over is read back. What this holds:
+ *  - every question is in the file, with each person's answers in full, across as many pages as they need;
+ *  - the combined PDF opens with what to talk about: a different yes or no, a different choice, a Not sure
+ *    yet or amounts far apart are marked Talk about this, the same choice or a near amount Likely agree,
+ *    and nothing anyone wrote in their own words is marked;
+ *  - a No that hides a section prints one line instead, and each section ends with lines for notes;
+ *  - both people get the same file, named money-conversation-<Person 1>-<Person 2>-<date>.pdf;
+ *  - nothing is sent while it is made.
  * The picture-of-the-page fallback for scripts the PDF's own fonts cannot draw (Arabic, say) needs a
- * real canvas, so it is exercised in a browser, not here (docs/ASSETS.md).
+ * real canvas, so it is exercised in a browser, not here (docs/DECISIONS.md).
  */
 
 const PAGE = readFileSync('public/niyyah-money-conversation-sheet.html', 'utf8')
+const PAGE_SCRIPT = readFileSync('public/niyyah-money-conversation-sheet.js', 'utf8')
 const GENERATOR = readFileSync('public/niyyah-money-conversation-sheet-pdf.js', 'utf8')
 const JSPDF = readFileSync('public/vendor/jspdf.umd.min.js', 'utf8')
+const QR = readFileSync('public/vendor/qrcode.js', 'utf8')
 
 const flat = (s: string) => s.replace(/\s+/g, ' ').trim()
 
 /** How the PDF's own fonts store the punctuation a sheet is full of: Windows-1252 bytes, not Unicode. */
-const WIN1252: Record<string, string> = { '\u2018': '\u0091', '\u2019': '\u0092', '\u201C': '\u0093', '\u201D': '\u0094', '\u2022': '\u0095', '\u2013': '\u0096', '\u2014': '\u0097', '\u2026': '\u0085' }
-const win1252 = (s: string) => s.replace(/[\u2018\u2019\u201C\u201D\u2022\u2013\u2014\u2026]/g, (c) => WIN1252[c])
+const WIN1252: Record<string, string> = { '‘': '\u0091', '’': '\u0092', '“': '\u0093', '”': '\u0094', '•': '\u0095', '–': '\u0096', '—': '\u0097', '…': '\u0085' }
+const win1252 = (s: string) => s.replace(/[‘’“”•–—…]/g, (c) => WIN1252[c])
 
 describe('what the generator is allowed to do', () => {
   const CODE = GENERATOR.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
@@ -48,59 +54,46 @@ describe('what the generator is allowed to do', () => {
     expect(CODE).toContain("'Niyyah, joinniyyah.com'")
   })
 
-  it('carries the library’s licence with it', () => {
+  it('carries both libraries’ licences with them', () => {
     expect(JSPDF.slice(0, 200)).toContain('@license')
     expect(readFileSync('public/vendor/jspdf-LICENSE.txt', 'utf8')).toContain('Permission is hereby granted')
+    expect(QR.slice(0, 600)).toMatch(/Licensed under the MIT license/i)
+    expect(readFileSync('public/vendor/qrcode-LICENSE.txt', 'utf8')).toContain('Permission is hereby granted')
   })
 })
 
 describe('the buttons', () => {
-  const buttons = [...PAGE.matchAll(/<button[^>]*data-pdf-button[^>]*>([^<]*)<\/button>/g)]
+  const buttons = [...PAGE.matchAll(/<button([^>]*data-pdf-button[^>]*)>([^<]*)<\/button>/g)]
 
-  it('are two, both labelled Download PDF, one near the top and one at the bottom, never printed', () => {
-    expect(buttons.map((m) => m[1])).toEqual(['Download PDF', 'Download PDF'])
-    for (const [tag] of buttons) expect(tag).toContain('type="button"')
-    const at = (i: number) => PAGE.indexOf('data-pdf-button', i)
-    const first = at(0)
-    const second = at(first + 1)
-    expect(first).toBeLessThan(PAGE.indexOf('<!-- 1 -->'))
-    expect(second).toBeGreaterThan(PAGE.indexOf('<!-- 4 -->'))
-    expect(second).toBeLessThan(PAGE.indexOf('<footer>'))
-    // Each sits in a block that is hidden until the script runs and is screen-only.
-    expect([...PAGE.matchAll(/<div class="pdf-actions screen-only" hidden>/g)]).toHaveLength(2)
+  it('are two: only my answers, under Finish, and the combined PDF, under your partner’s answers, which starts switched off', () => {
+    expect(buttons.map((m) => m[2])).toEqual(['Download only my answers', 'Download our combined PDF'])
+    for (const [, attrs] of buttons) expect(attrs).toContain('type="button"')
+    expect(buttons[0][1]).toContain('data-pdf="mine"')
+    expect(buttons[1][1]).toContain('data-pdf="combined"')
+    expect(buttons[1][1]).toContain('disabled')
+    expect(PAGE.indexOf('data-pdf="mine"')).toBeGreaterThan(PAGE.indexOf('id="finish"'))
+    expect(PAGE.indexOf('data-pdf="combined"')).toBeGreaterThan(PAGE.indexOf('id="partner"'))
     expect(PAGE.match(/class="pdf-status" role="status" aria-live="polite"/g)).toHaveLength(2)
   })
 
-  it('use no dash in any new words', () => {
-    // Every block of words this work added to the page, and every message either script can show.
-    const blocks = [
-      /<div class="privacy screen-only"[\s\S]*?<\/div>/,
-      /<aside class="howto[\s\S]*?<\/aside>/,
-      /<nav class="jump[\s\S]*?<\/nav>/,
-      /Names and the date are optional[\s\S]*?<\/p>/,
-      /Also: <a[\s\S]*?<\/p>/,
-    ].map((re) => PAGE.match(re)![0].replace(/<[^>]+>/g, ' '))
-    const actions = [...PAGE.matchAll(/class="pdf-actions[\s\S]*?<\/div>/g)].map((m) => m[0].replace(/<[^>]+>/g, ' '))
-    expect(actions).toHaveLength(2)
-    const sections = PAGE.match(/Section \d of 4/g) ?? []
-    expect(sections).toHaveLength(4)
-    const PAGE_SCRIPT = readFileSync('public/niyyah-money-conversation-sheet.js', 'utf8')
-    const messages = [...`${GENERATOR}\n${PAGE_SCRIPT}`.matchAll(/(?:say\((?:status, )?|confirm\()'([^']*)'/g)].map((m) => m[1])
-    expect(messages.length).toBeGreaterThan(5)
-    for (const text of [...blocks, ...actions, ...sections, ...messages]) expect(text).not.toMatch(/[\u2013\u2014]|--/)
+  it('and every message either script can show use no dash', () => {
+    const messages = [...`${GENERATOR}\n${PAGE_SCRIPT}`.matchAll(/'([A-Z][^'\n]* [^'\n]*)'|"([A-Z][^"\n]* [^"\n]*)"/g)].map((m) => m[1] ?? m[2])
+    expect(messages.length).toBeGreaterThan(20)
+    for (const text of messages) expect(text).not.toMatch(/\\u201[34]|[–—]|--/)
   })
 })
 
 // ── Running it ────────────────────────────────────────────────────────────────
 
 /** The text strings drawn on each page, read back out of the PDF's own streams. */
-function pdfText(bytes: Uint8Array): { pages: number; text: string; lows: number[]; rules: number } {
+function pdfText(bytes: Uint8Array): { pages: number; text: string; pageTexts: string[]; lows: number[]; rules: number } {
   const raw = Buffer.from(bytes).toString('latin1')
   const pages = (raw.match(/\/Type\s*\/Page\b(?!s)/g) ?? []).length
   let text = ''
+  const pageTexts: string[] = []
   // For each page's content stream, the lowest line of text above the footer, in PDF points from the bottom.
   const lows: number[] = []
-  // Thin horizontal strokes: the lines left to write on in an empty closing box.
+  // Thin horizontal strokes: the lines left to write notes on.
   let rules = 0
   for (const m of raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
     let body: string
@@ -109,49 +102,84 @@ function pdfText(bytes: Uint8Array): { pages: number; text: string; lows: number
     } catch {
       continue
     }
+    if (!/Tj/.test(body)) continue
     const ys = [...body.matchAll(/([\d.]+) ([\d.]+) Td/g)].map((t) => Number(t[2])).filter((y) => y > 50)
     if (ys.length) lows.push(Math.min(...ys))
     rules += [...body.matchAll(/0\.5 w\n[\d.]+ ([\d.]+) m\n[\d.]+ \1 l\nS/g)].length
+    let page = ''
     for (const s of body.matchAll(/\(((?:\\.|[^\\)])*)\)\s*Tj/g)) {
-      text += `${s[1].replace(/\\([()\\])/g, '$1').replace(/\\(\d{3})/g, (_, o) => String.fromCharCode(parseInt(o, 8)))}\n`
+      page += `${s[1].replace(/\\([()\\])/g, '$1').replace(/\\(\d{3})/g, (_, o) => String.fromCharCode(parseInt(o, 8)))}\n`
     }
+    pageTexts.push(page)
+    text += page
   }
-  return { pages, text, lows, rules }
+  return { pages, text, pageTexts, lows, rules }
 }
 
 let made: Blob | null = null
 let downloadName: string | null = null
-const touched: string[] = []
+const sent: string[] = []
 
+/** The page as a browser shows it: markup, then the page script, jsPDF and the generator. */
 function load() {
   document.documentElement.innerHTML = PAGE.replace(/<script[\s\S]*?<\/script>/g, '')
+  ;(0, eval)(PAGE_SCRIPT)
   ;(0, eval)(JSPDF)
   ;(0, eval)(GENERATOR)
 }
 
-const write = (id: string, value: string) => {
-  ;(document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement).value = value
+const $ = <T extends Element = HTMLElement>(sel: string) => document.querySelector(sel) as unknown as T
+function write(id: string, value: string) {
+  const el = document.getElementById(id) as HTMLInputElement | HTMLTextAreaElement
+  el.value = value
+  el.dispatchEvent(new Event('input', { bubbles: true }))
 }
-const press = (which: 'first' | 'last' = 'first') => {
-  const all = document.querySelectorAll<HTMLButtonElement>('[data-pdf-button]')
-  ;(which === 'first' ? all[0] : all[all.length - 1]).click()
+function choose(name: string, value: string) {
+  const el = $<HTMLInputElement>(`input[name="${name}"][value="${value}"]`)
+  el.checked = true
+  el.dispatchEvent(new Event('change', { bubbles: true }))
 }
+const settle = async () => {
+  for (let i = 0; i < 50; i++) await new Promise((r) => process.nextTick(r))
+}
+const press = (which: 'mine' | 'combined') => $<HTMLButtonElement>(`[data-pdf="${which}"]`).click()
+const status = (which: 'mine' | 'combined') => flat($(which === 'mine' ? '#finish .pdf-status' : '#partner .pdf-status').textContent ?? '')
 const words = (stem: string, n: number) => Array.from({ length: n }, (_, i) => `${stem}${i + 1}`).join(' ')
 
+/** Who you are, on this device. */
+function me(person: '1' | '2', name = '', date = '') {
+  choose('role', person)
+  if (name) write('my-name', name)
+  if (date) write('sheet-date', date)
+}
+
+/** Your partner's answers, added by pasting what they sent. */
+async function partnerSent(person: 1 | 2, name: string, answers: Record<string, string>, date = '') {
+  write('partner-code', JSON.stringify({ format: 'niyyah-money-conversation', v: 1, person, name, date, day: '2026-10-27', answers }))
+  $<HTMLButtonElement>('[data-import]').click()
+  await settle()
+  expect(flat($('.import-status').textContent ?? '')).toMatch(/^Answers from /)
+}
+
+async function finish() {
+  $<HTMLButtonElement>('[data-finish]').click()
+  await settle()
+  expect(flat($('.finish-status').textContent ?? '')).toMatch(/^Done\./)
+}
+
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+  localStorage.clear()
   made = null
   downloadName = null
-  touched.length = 0
+  sent.length = 0
   vi.stubGlobal('fetch', (...a: unknown[]) => {
-    touched.push(`fetch ${String(a[0])}`)
+    sent.push(`fetch ${String(a[0])}`)
     return Promise.reject(new Error('the sheet must not use the network'))
   })
-  for (const m of ['getItem', 'setItem', 'removeItem', 'clear', 'key'] as const) {
-    vi.spyOn(Storage.prototype, m).mockImplementation(() => {
-      touched.push(`Storage.${m}`)
-      return null as never
-    })
-  }
+  // happy-dom's streams do not settle; the deflated link is checked in Chromium (docs/DECISIONS.md).
+  vi.stubGlobal('CompressionStream', undefined)
+  vi.stubGlobal('DecompressionStream', undefined)
   URL.createObjectURL = (b: Blob) => {
     made = b
     return 'blob:made-in-the-page'
@@ -164,127 +192,109 @@ beforeEach(() => {
 })
 
 afterEach(() => {
-  expect(touched).toEqual([])
+  expect(sent).toEqual([])
+  vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+  localStorage.clear()
 })
 
-async function bytes() {
+async function read() {
   expect(made).not.toBeNull()
-  return new Uint8Array(await made!.arrayBuffer())
+  const b = new Uint8Array(await made!.arrayBuffer())
+  expect(Buffer.from(b.subarray(0, 5)).toString()).toBe('%PDF-')
+  return pdfText(b)
 }
 
-describe('pressing Download PDF', () => {
-  it('shows the buttons only once the script has run, and downloads money-conversation.pdf when no name or date was given', async () => {
-    for (const block of document.querySelectorAll('.pdf-actions')) expect((block as HTMLElement).hidden).toBe(false)
-    press()
+describe('only my answers', () => {
+  it('downloads money-conversation.pdf when no name or date was given, made on this device', async () => {
+    me('1')
+    press('mine')
     expect(downloadName).toBe('money-conversation.pdf')
-    const b = await bytes()
-    expect(Buffer.from(b.subarray(0, 5)).toString()).toBe('%PDF-')
     expect(made!.type).toBe('application/pdf')
-    expect(document.querySelector('.pdf-status')!.textContent).toContain('Your PDF was made on this device')
+    await read()
+    expect(status('mine')).toContain('Your PDF was made on this device')
   })
 
-  it('works from the button at the bottom as well, and is the same file', async () => {
-    press('last')
-    expect(downloadName).toBe('money-conversation.pdf')
-    expect(Buffer.from((await bytes()).subarray(0, 5)).toString()).toBe('%PDF-')
-    expect(document.querySelectorAll('.pdf-status')[1].textContent).toContain('Your PDF was made on this device')
-  })
-
-  it('holds all twenty questions, says “Not answered” where a column is empty, and leaves empty closing boxes ruled to write on', async () => {
-    press()
-    const { text, pages, lows, rules } = pdfText(await bytes())
+  it('holds all twenty questions and the yes or no questions, one column, no marks, and lines for notes after each section', async () => {
+    me('1', 'Amina', '2026-11-02')
+    choose('g1', 'yes')
+    write('a-q1a', 'Gold and a sum of money.')
+    press('mine')
+    const { text, pages, lows, rules } = await read()
+    const flatText = flat(text.replace(/\n/g, ' '))
     const questions = [...PAGE.matchAll(/<p class="q"[^>]*>([\s\S]*?)<\/p>/g)].map((m) => flat(m[1]))
     expect(questions).toHaveLength(20)
-    for (const q of questions) {
-      // Questions wrap, so each is read as the words it is made of, in order, across its lines.
-      const flatText = flat(text.replace(/\n/g, ' '))
-      for (const word of q.split(' ')) expect(flatText, word).toContain(win1252(word))
-    }
-    // Two columns for each of the twenty questions. The closing boxes say nothing: they are ruled.
-    expect(text.match(/Not answered/g)).toHaveLength(20 * 2)
-    expect(rules).toBeGreaterThanOrEqual(4 * 2 * 4) // four subjects, two boxes, about four lines each
+    // Questions wrap, so each is read as the words it is made of, in order, across its lines.
+    for (const q of questions) for (const word of q.split(' ')) expect(flatText, word).toContain(win1252(word))
+    expect(flatText).toContain('Have the two of you discussed the mahr amount yet? Yes.')
+    expect(flatText).toContain('Do you have any debts right now? Not answered.')
+    expect(flatText).toContain('Gold and a sum of money.')
+    for (const mark of ['Likely agree', 'Talk about this', 'Compare in session', 'What to talk about']) expect(text).not.toContain(mark)
+    expect(text.match(/NOTES FROM THE SESSION/g)).toHaveLength(4)
+    expect(rules).toBeGreaterThanOrEqual(4 * 5)
     // The subjects follow one another: every page but the last carries text into its lower half.
-    expect(pages).toBeLessThanOrEqual(4)
     expect(lows).toHaveLength(pages)
     for (const low of lows.slice(0, -1)) expect(low).toBeLessThan(792 / 2)
-    for (const heading of ['1. Mahr', '4. Ongoing obligations to family']) expect(text).toContain(heading)
-    expect(text).toContain('What we agree on')
     expect(text).toContain('This sheet is for conversation.')
-  })
-
-  it('puts the names and the session date in the header, and Niyyah, joinniyyah.com and the page number on every page', async () => {
-    write('name-a', 'Amina')
-    write('name-b', 'Omar')
-    write('sheet-date', '2026-10-31')
-    press()
-    const { text, pages } = pdfText(await bytes())
     expect(text).toContain('Amina')
-    expect(text).toContain('Omar')
-    expect(text).toContain('October 31, 2026')
-    // The columns carry the names, as on the page, not Person A and Person B.
-    const lines = text.split('\n')
-    expect(lines.filter((l) => l === 'Amina').length).toBeGreaterThanOrEqual(20)
-    expect(lines.filter((l) => l === 'Omar').length).toBeGreaterThanOrEqual(20)
-    expect(lines).not.toContain('Person A')
-    expect(downloadName).toBe('money-conversation-Amina-Omar-2026-10-31.pdf')
+    expect(text).toContain('November 2, 2026')
+    expect(downloadName).toBe('money-conversation-Amina-2026-11-02.pdf')
     expect(text.match(/Niyyah, joinniyyah\.com/g)).toHaveLength(pages)
     for (let n = 1; n <= pages; n++) expect(text, `page ${n}`).toContain(`Page ${n} of ${pages}`)
   })
 
-  it('leaves the header out when no name or date was given, rather than printing blanks', async () => {
-    press()
-    const { text } = pdfText(await bytes())
-    expect(text).not.toContain('SESSION DATE')
-    expect(text).not.toContain('PERSON A')
+  it('prints one line for a section a No hid, and leaves out what had been typed there', async () => {
+    me('1', 'Amina')
+    choose('g3', 'yes')
+    write('a-q3a', 'A CAR LOAN THAT WAS HIDDEN')
+    choose('g3', 'no')
+    press('mine')
+    const { text } = await read()
+    const flatText = flat(text.replace(/\n/g, ' '))
+    expect(flatText).toContain('Do you have any debts right now? No. No debts.')
+    expect(text).not.toContain('CAR LOAN')
+    expect(text).not.toContain('Do you currently have any debts')
   })
 
   it.each([
-    [{ 'sheet-date': '2026-10-31' }, 'money-conversation-2026-10-31.pdf'],
-    [{ 'name-a': 'Amina' }, 'money-conversation-Amina.pdf'],
-    [{ 'name-a': '  Amina  Yusuf ', 'name-b': "O'Brien / Omar" }, 'money-conversation-Amina-Yusuf-O-Brien-Omar.pdf'],
+    [{ 'my-name': '  Amina  Yusuf ' }, 'money-conversation-Amina-Yusuf.pdf'],
     // Accented Latin stays as typed. (A name in Arabic script is checked in a browser: it needs a canvas.)
-    [{ 'name-a': 'Ladan Café', 'name-b': 'Çelik' }, 'money-conversation-Ladan-Café-Çelik.pdf'],
-    [{ 'name-a': 'A'.repeat(80) }, `money-conversation-${'A'.repeat(40)}.pdf`],
-    [{ 'name-a': '../../etc', 'name-b': 'a\\b:c*d' }, 'money-conversation-etc-a-b-c-d.pdf'],
+    [{ 'my-name': 'Ladan Café' }, 'money-conversation-Ladan-Café.pdf'],
+    [{ 'my-name': 'A'.repeat(80) }, `money-conversation-${'A'.repeat(40)}.pdf`],
+    [{ 'my-name': '../../etc/a\\b:c*d' }, 'money-conversation-etc-a-b-c-d.pdf'],
+    [{ 'sheet-date': '2026-10-31' }, 'money-conversation-2026-10-31.pdf'],
   ])('names the file from what was typed: %o', async (typed, name) => {
+    me('1')
     for (const [id, value] of Object.entries(typed)) write(id, value as string)
-    press()
+    press('mine')
     expect(downloadName).toBe(name)
   })
 
   it('carries a long answer in full, in order, across pages, and a long single word too, and never loses the end', async () => {
-    const long = `${words('alpha', 260)} END-A`
-    write('q1a-a', `First paragraph.\n\n${long}`)
-    write('q1a-b', 'A short one. END-B')
-    write('q2d-a', `${words('beta', 700)} END-C`)
-    write('q2d-b', `${words('gamma', 120)} END-D`)
-    write('q1b-a', `${'x'.repeat(400)} END-E`)
-    write('s1-agree', `${words('agree', 90)} END-F`)
-    write('s4-open', `${words('open', 160)} END-G`)
-    press()
-    const { text, pages } = pdfText(await bytes())
-    // More pages than the blank sheet needs: the answers carried over rather than being cut.
-    expect(pages).toBeGreaterThan(6)
-    for (const [stem, n] of [['alpha', 260], ['beta', 700], ['gamma', 120], ['agree', 90], ['open', 160]] as const) {
+    me('1')
+    write('a-q1a', `First paragraph.\n\n${words('alpha', 260)} END-A`)
+    write('a-q2d', `${words('beta', 700)} END-C`)
+    write('a-q1b', `${'x'.repeat(400)} END-E`)
+    write('a-q4d', `${words('open', 160)} END-G`)
+    press('mine')
+    const { text, pages } = await read()
+    expect(pages).toBeGreaterThan(5)
+    for (const [stem, n] of [['alpha', 260], ['beta', 700], ['open', 160]] as const) {
       const found = [...text.matchAll(new RegExp(`\\b${stem}(\\d+)\\b`, 'g'))].map((m) => Number(m[1]))
       expect(found, stem).toEqual(Array.from({ length: n }, (_, i) => i + 1))
     }
-    for (const end of ['END-A', 'END-B', 'END-C', 'END-D', 'END-E', 'END-F', 'END-G']) expect(text, end).toContain(end)
+    for (const end of ['END-A', 'END-C', 'END-E', 'END-G']) expect(text, end).toContain(end)
     // The 400-letter word was wrapped to the column, every letter kept.
     expect([...text.matchAll(/\bx+\b/g)].map((m) => m[0].length).reduce((a, b) => a + b, 0)).toBe(400)
-    // The first answer filled its page and ran on; the fourth question of the second subject did too.
-    expect(text).toContain('Question 1, continued')
     expect(text).toContain('Question 4, continued')
   })
 
   it('does not leave a nearly empty page when an answer spills over: the next subject carries on there', async () => {
-    // The last answer of the first subject runs onto a new page. One page a subject would have left that
-    // page holding a few lines and nothing else; now the wedding starts on it.
-    write('q1e-a', `${words('spill', 140)} END-SPILL`)
-    press()
-    const { text, pages, lows } = pdfText(await bytes())
+    me('1')
+    write('a-q1e', `${words('spill', 300)} END-SPILL`)
+    press('mine')
+    const { text, pages, lows } = await read()
     expect(text).toContain('END-SPILL')
     expect(text).toContain('Question 5, continued')
     expect(lows).toHaveLength(pages)
@@ -292,19 +302,148 @@ describe('pressing Download PDF', () => {
   })
 
   it('keeps line breaks the person typed, curly quotes, dashes and accents', async () => {
-    write('q3a-a', 'Line one\nLine two\n\n\nLine five café — “quoted” naïve')
-    press()
-    const { text } = pdfText(await bytes())
+    me('1')
+    choose('g3', 'yes')
+    write('a-q3a', 'Line one\nLine two\n\n\nLine five café — “quoted” naïve')
+    press('mine')
+    const { text } = await read()
     expect(text).toContain('Line one')
     expect(text).toContain('Line two')
     expect(text).toContain('Line five café \u0097 \u0093quoted\u0094 naïve')
   })
 
   it('says so, and does not pretend, if the PDF maker did not load', () => {
+    me('1')
     delete (window as { jspdf?: unknown }).jspdf
-    press()
+    press('mine')
     expect(made).toBeNull()
-    expect(document.querySelector('.pdf-status')!.textContent).toContain('did not load')
-    expect(document.querySelector('.pdf-status')!.textContent).toContain('Save as PDF')
+    expect(status('mine')).toContain('did not load')
+    expect(status('mine')).toContain('Save as PDF')
+  })
+})
+
+describe('the combined PDF', () => {
+  // Amina is Person 1, Omar Person 2. They differ on four things: whether the mahr was discussed, when it
+  // is given, whether there are debts and the wedding budget; they are near on the mahr amount and
+  // agree on who pays, though each put it in their own words ("Me" and "My partner").
+  const AMINA = { g1: 'yes', 'n-q1a': '5,000', 'c-q1c': 'part', q1a: 'Gold and a sum of money.', 'c-pay': 'me', 'n-q2d': '20000', g3: 'yes', q3a: 'A car loan.', 'c-q3d': 'mine', g4: 'no' }
+  const OMAR = { g1: 'no', 'n-q1a': '4800', 'c-q1c': 'all-later', q1a: 'Gold and a sum of money.', 'c-pay': 'partner', 'n-q2d': '12000', g3: 'no', g4: 'no' }
+
+  async function aminaWithOmar() {
+    me('1', 'Amina', '2026-11-02')
+    for (const [k, v] of Object.entries(AMINA)) {
+      if (/^[gc]/.test(k)) choose(k, v)
+      else write(k.startsWith('n-') ? k : `a-${k}`, v)
+    }
+    await finish()
+    await partnerSent(2, 'Omar', OMAR)
+  }
+
+  it('is made only once you have finished yours and your partner’s answers are in', async () => {
+    me('1', 'Amina')
+    expect($<HTMLButtonElement>('[data-pdf="combined"]').disabled).toBe(true)
+    // Pressed anyway, the generator still asks for the partner's answers first.
+    $<HTMLButtonElement>('[data-pdf="combined"]').disabled = false
+    press('combined')
+    expect(made).toBeNull()
+    expect(status('combined')).toBe("Add your partner's answers first.")
+    await aminaWithOmar()
+    expect($<HTMLButtonElement>('[data-pdf="combined"]').disabled).toBe(false)
+    press('combined')
+    await read()
+    expect(status('combined')).toContain('Your PDF was made on this device')
+  })
+
+  it('opens with what to talk about, then what you likely agree on, then what to read together', async () => {
+    await aminaWithOmar()
+    press('combined')
+    const { pageTexts } = await read()
+    const first = flat(pageTexts[0])
+    expect(first).toContain('What to talk about')
+    expect(first).toMatch(/PERSON 1 Amina PERSON 2 Omar/)
+    const talk = first.indexOf('Talk about this (4)')
+    const agree = first.indexOf('Likely agree (2)')
+    const compare = first.indexOf('Compare in session')
+    expect(talk).toBeGreaterThan(0)
+    expect(agree).toBeGreaterThan(talk)
+    expect(compare).toBeGreaterThan(agree)
+    const talkPart = first.slice(talk, agree)
+    for (const line of [
+      '1. Mahr amount discussed: Amina: Yes. Omar: No.',
+      '1. Mahr at the nikah or deferred: Amina:',
+      '2. Most to spend on the wedding: Amina: 20000. Omar: 12000.',
+      '3. Has debts: Amina: Yes. Omar: No.',
+    ]) expect(talkPart, line).toContain(line)
+    const agreePart = first.slice(agree, compare)
+    expect(agreePart).toContain('1. Mahr amount: Amina: 5,000. Omar: 4800.')
+    expect(agreePart).toContain('2. Who pays for most of the wedding: Amina: Me (Amina). Omar: My partner (Amina).')
+    // Both said No to sending money to family: nothing to flag.
+    expect(first).not.toContain('Sends money to family')
+    // Free text is never guessed at, even word for word the same: it is counted, not marked.
+    expect(first).toContain('1. Mahr: 1 question with written answers')
+    expect(first).toMatch(/3\. Debt either of you already carries: 1 question with written answers/)
+    expect(first).toMatch(/2\. The wedding [^:]*: nothing written/)
+    expect(first).toContain('How the marks are made')
+  })
+
+  it('puts the answers side by side, marks each, and prints one line where a No hid a section', async () => {
+    await aminaWithOmar()
+    press('combined')
+    const { text, pageTexts } = await read()
+    const rest = flat(pageTexts.slice(1).join(' '))
+    expect(rest).toContain('Have the two of you discussed the mahr amount yet? Amina: Yes. Omar: No. Talk about this')
+    expect(rest).toMatch(/Amina Omar Chose: Part at the nikah/)
+    expect(rest).toContain('Amount: 5,000 Amount: 4800')
+    expect(rest).toContain('Do you have any debts right now? Amina: Yes. Omar: No. Talk about this Omar: No debts. Only Amina answered the questions below.')
+    expect(rest).toContain('A car loan.')
+    expect(rest).toContain('Do you send money to family regularly? Amina: No. Omar: No. Amina: Does not send money to family. Omar: Does not send money to family.')
+    // Section 4 had no questions to show, so it goes straight to its notes.
+    expect(rest).toMatch(/Omar: Does not send money to family\. NOTES FROM THE SESSION/)
+    expect(text.match(/NOTES FROM THE SESSION/g)).toHaveLength(4)
+    // A question nobody touched gets no mark at all.
+    expect(rest).toMatch(/Who have you said that to so far[^?]*\? Amina Omar Not answered Not answered/)
+  })
+
+  it('is the same file, with the same name, from either phone: Person 1 is always on the left', async () => {
+    await aminaWithOmar()
+    press('combined')
+    const fromAmina = (await read()).text
+    const nameOnAmina = downloadName
+
+    localStorage.clear()
+    made = null
+    load()
+    me('2', 'Omar')
+    for (const [k, v] of Object.entries(OMAR)) {
+      if (/^[gc]/.test(k)) choose(k, v)
+      else write(k.startsWith('n-') ? k : `a-${k}`, v)
+    }
+    await finish()
+    await partnerSent(1, 'Amina', Object.fromEntries(Object.entries(AMINA)), '2026-11-02')
+    press('combined')
+    const fromOmar = (await read()).text
+    expect(downloadName).toBe(nameOnAmina)
+    expect(downloadName).toBe('money-conversation-Amina-Omar-2026-11-02.pdf')
+    expect(fromOmar).toBe(fromAmina)
+  })
+
+  it('calls you Person 1 and Person 2 when no names were given, and copes with two people choosing the same number', async () => {
+    me('2')
+    write('a-q1a', 'Mine.')
+    await finish()
+    await partnerSent(2, '', { q1a: 'Theirs.' })
+    press('combined')
+    const { pageTexts } = await read()
+    expect(flat(pageTexts[0])).toMatch(/PERSON 1 Person 1 PERSON 2 Person 2/)
+    expect(downloadName).toBe('money-conversation.pdf')
+  })
+
+  it('names the file from both names, cleaned the same way', async () => {
+    me('1', '  Amina  Yusuf ')
+    write('a-q1a', 'x')
+    await finish()
+    await partnerSent(2, "O'Brien / Omar", { q1a: 'y' })
+    press('combined')
+    expect(downloadName).toBe('money-conversation-Amina-Yusuf-O-Brien-Omar.pdf')
   })
 })

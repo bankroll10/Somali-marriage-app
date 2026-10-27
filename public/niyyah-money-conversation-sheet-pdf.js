@@ -1,18 +1,22 @@
 /*
- * The "Download PDF" button on niyyah-money-conversation-sheet.html.
+ * The PDF buttons on niyyah-money-conversation-sheet.html.
  *
- * Everything happens in this page, on this device. The sheet is read out of the
- * fields on screen, laid out here, and handed to the browser as a file. Nothing
- * is sent anywhere, nothing is stored, and nothing is kept once the tab closes.
- * (tests/sheet-pdf.test.ts reads this file for any network or storage call.)
+ * "Download only my answers" makes one person's answers into a PDF. "Download our combined PDF" puts
+ * both partners' answers side by side, after a first page that lists what to talk about: each choice
+ * or amount marked Likely agree or Talk about this by the simple rules under "marks" below, anything in
+ * someone's own words marked Compare in session, and a yes/no answered differently marked Talk about
+ * this. Each subject ends with lines for notes at the session.
  *
- * Needs vendor/jspdf.umd.min.js (jsPDF, MIT). Without it the rest of the page
- * works as before and the button says so.
+ * Everything happens in this page, on this device. The questions are read from the page, the answers
+ * from niyyah-money-conversation-sheet.js (window.NiyyahMoneySheet), and the file is handed to the
+ * browser. Nothing is sent anywhere and nothing is stored. (tests/sheet-pdf.test.ts reads this file for
+ * any network or storage call.)
  *
- * The layout is done here, not by the library, so that a long answer can never be
- * cut off: every answer is wrapped to its column and carried onto as many pages
- * as it needs, with the question and the two column headings repeated at the top
- * of each new page.
+ * Needs vendor/jspdf.umd.min.js (jsPDF, MIT). Without it the rest of the page works and the button says so.
+ *
+ * The layout is done here, not by the library, so that a long answer can never be cut off: every answer
+ * is wrapped to its column and carried onto as many pages as it needs, with the question number and the
+ * names repeated at the top of each new page.
  */
 ;(function () {
   'use strict'
@@ -26,6 +30,7 @@
   var MUTED = [74, 86, 79]
   var RULE = [154, 163, 157]
   var LIGHT = [208, 213, 209]
+  var TALK_INK = [138, 45, 28]
 
   var F = {
     title: { f: 'times', s: 'bold', z: 22 },
@@ -36,6 +41,9 @@
     a: { f: 'helvetica', s: 'normal', z: 10.5 },
     none: { f: 'helvetica', s: 'italic', z: 10 },
     label: { f: 'helvetica', s: 'bold', z: 8.5 },
+    h3: { f: 'times', s: 'bold', z: 13 },
+    badge: { f: 'helvetica', s: 'bold', z: 9 },
+    pick: { f: 'helvetica', s: 'bold', z: 10 },
     small: { f: 'helvetica', s: 'normal', z: 8.5 }
   }
 
@@ -59,10 +67,9 @@
     return clean(s).replace(/\s+/g, ' ').trim()
   }
 
-  function answer(id) {
-    var el = document.getElementById(id)
-    // Leading and trailing blank lines are not part of an answer; the ones inside are.
-    return el ? clean(el.value).replace(/^\s*\n/, '').replace(/\s+$/, '') : ''
+  /** An answer as written: inner line breaks kept, blank lines at either end dropped. */
+  function answerText(v) {
+    return clean(v || '').replace(/^\s*\n/, '').replace(/\s+$/, '')
   }
 
   function prettyDate(raw) {
@@ -78,51 +85,49 @@
     }
   }
 
-  /** The whole sheet as plain data: the questions as printed, and what each person wrote. */
-  function read() {
-    var nameA = squash(answer('name-a'))
-    var nameB = squash(answer('name-b'))
-    var rawDate = squash(answer('sheet-date'))
-    var date = prettyDate(rawDate)
-    var lede = document.querySelector('header .lede')
-    var model = {
-      title: squash(document.querySelector('h1').textContent),
-      lede: lede ? squash(lede.textContent) : '',
-      nameA: nameA,
-      nameB: nameB,
-      date: date,
-      rawDate: rawDate,
-      sections: [],
-      closing: []
+  function choiceOf(el) {
+    return {
+      key: el.getAttribute('data-key'),
+      short: el.getAttribute('data-short') || '',
+      options: Array.prototype.map.call(el.querySelectorAll('input[type="radio"]'), function (r) {
+        return { v: r.value, label: squash(r.parentNode.textContent) }
+      }),
     }
+  }
+
+  /**
+   * The sheet as data, read from the page itself: each section, its yes/no question, and each question with
+   * the choice or number attached to it. The words are the page's own, so the PDF can never ask something else.
+   */
+  function schema() {
+    var lede = document.querySelector('header .lede')
+    var model = { title: squash(document.querySelector('h1').textContent), lede: lede ? squash(lede.textContent) : '', sections: [], closing: [] }
     Array.prototype.forEach.call(document.querySelectorAll('main section'), function (sec) {
       var framing = sec.querySelector('.framing')
-      var out = { title: squash(sec.querySelector('h2').textContent), framing: framing ? squash(framing.textContent) : '', items: [] }
+      var out = { title: squash(sec.querySelector('h2').textContent), framing: framing ? squash(framing.textContent) : '', gate: null, items: [] }
+      var g = sec.querySelector('.gate')
+      if (g) {
+        out.gate = {
+          key: g.getAttribute('data-key'),
+          ask: squash(g.querySelector('legend').textContent),
+          short: g.getAttribute('data-short') || '',
+          hides: g.getAttribute('data-hides') === 'true',
+          noLine: g.getAttribute('data-no-line') || '',
+        }
+      }
+      var block = sec.querySelector('.ask-block')
+      if (block) out.items.push({ number: 0, text: squash(block.querySelector('legend').textContent), choice: choiceOf(block), num: null, textKey: null })
       Array.prototype.forEach.call(sec.querySelectorAll('ol.qs > li'), function (li, i) {
-        var q = li.querySelector('.q')
-        var a = li.querySelector('textarea[id$="-a"]')
-        var b = li.querySelector('textarea[id$="-b"]')
+        var ch = li.querySelector('[data-kind="choice"]')
+        var nm = li.querySelector('[data-kind="number"]')
         out.items.push({
           number: i + 1,
-          text: squash(q.textContent),
-          cols: [
-            { label: 'Person A', name: nameA, text: a ? answer(a.id) : '' },
-            { label: 'Person B', name: nameB, text: b ? answer(b.id) : '' }
-          ]
+          text: squash(li.querySelector('.q').textContent),
+          choice: ch ? choiceOf(ch) : null,
+          num: nm ? { key: nm.getAttribute('data-key'), short: nm.getAttribute('data-short') || '' } : null,
+          textKey: li.getAttribute('data-q'),
         })
       })
-      var box = sec.querySelector('.box')
-      if (box) {
-        out.items.push({
-          number: 0,
-          text: '',
-          cols: Array.prototype.map.call(box.querySelectorAll(':scope > div'), function (d) {
-            var label = d.querySelector('label')
-            var area = d.querySelector('textarea')
-            return { label: squash(label.textContent), name: '', text: answer(area.id) }
-          })
-        })
-      }
       model.sections.push(out)
     })
     Array.prototype.forEach.call(document.querySelectorAll('footer p'), function (p) {
@@ -131,18 +136,127 @@
     return model
   }
 
-  function everyString(model) {
-    var all = [model.title, model.lede, model.nameA, model.nameB, model.date].concat(model.closing, [FOOTER])
+  /** One person, or the two, in the order of the columns: Person 1 on the left. */
+  function people(mode) {
+    var api = window.NiyyahMoneySheet
+    var mine = api ? api.mine() : { person: 0, name: '', date: '', answers: {} }
+    if (mode !== 'combined') return [mine]
+    var other = api.partner()
+    return other.person === 1 && mine.person !== 1 ? [other, mine] : [mine, other]
+  }
+
+  function nameOf(p, i, pair) {
+    var n = squash(p.name)
+    if (n) return n
+    var same = pair.length === 2 && pair[0].person === pair[1].person
+    return 'Person ' + (p.person && !same ? p.person : i + 1)
+  }
+
+  function everyString(model, pair) {
+    var all = [model.title, model.lede, FOOTER].concat(model.closing)
     model.sections.forEach(function (s) {
       all.push(s.title, s.framing)
+      if (s.gate) all.push(s.gate.ask, s.gate.short, s.gate.noLine)
       s.items.forEach(function (it) {
         all.push(it.text)
-        it.cols.forEach(function (c) {
-          all.push(c.label, c.text)
-        })
+        if (it.choice) {
+          all.push(it.choice.short)
+          it.choice.options.forEach(function (o) {
+            all.push(o.label)
+          })
+        }
+        if (it.num) all.push(it.num.short)
+      })
+    })
+    pair.forEach(function (p) {
+      all.push(p.name, p.date)
+      Object.keys(p.answers).forEach(function (k) {
+        all.push(p.answers[k])
       })
     })
     return all
+  }
+
+  // ------------------------------------------------------------------- marks
+
+  // Simple rules, written down so a couple can see them: the same choice, or numbers within a tenth of each
+  // other, is likely agreement; a different choice, a "Not sure yet" or numbers further apart is something to
+  // talk about; anything in someone's own words is never guessed at.
+  var AGREE = 'Likely agree'
+  var TALK = 'Talk about this'
+  var COMPARE = 'Compare in session'
+  var NEAR = 0.1
+
+  function parseNumber(text) {
+    var t = String(text || '').replace(/[\s,']/g, '')
+    if (!/^\d+(\.\d+)?$/.test(t)) return null
+    return Number(t)
+  }
+
+  // "Me" from one and "My partner" from the other are the same person: compare who, not the words.
+  function whoPays(v, i) {
+    if (v === 'me') return 'person' + i
+    if (v === 'partner') return 'person' + (1 - i)
+    return v
+  }
+
+  function choiceMark(ch, pair) {
+    var a = pair[0].answers[ch.key]
+    var b = pair[1].answers[ch.key]
+    if (!a || !b) return COMPARE
+    if (a === 'unsure' || b === 'unsure') return TALK
+    if (ch.key === 'c-pay') return whoPays(a, 0) === whoPays(b, 1) ? AGREE : TALK
+    return a === b ? AGREE : TALK
+  }
+
+  function numberMark(nm, pair) {
+    var a = parseNumber(pair[0].answers[nm.key])
+    var b = parseNumber(pair[1].answers[nm.key])
+    if (a === null || b === null) return COMPARE
+    var big = Math.max(a, b)
+    return big === 0 || Math.abs(a - b) <= big * NEAR ? AGREE : TALK
+  }
+
+  function itemMark(item, pair) {
+    if (item.choice) return choiceMark(item.choice, pair)
+    if (item.num) return numberMark(item.num, pair)
+    return COMPARE
+  }
+
+  /** A gate answered differently is to be talked about; answered the same, it needs no mark. */
+  function gateMark(gate, pair) {
+    var a = pair[0].answers[gate.key]
+    var b = pair[1].answers[gate.key]
+    if (!a || !b) return COMPARE
+    return a === b ? '' : TALK
+  }
+
+  function yesNo(v) {
+    return v === 'yes' ? 'Yes' : v === 'no' ? 'No' : 'Not answered'
+  }
+
+  function choiceLabel(ch, v, i, pair) {
+    var o = ch.options.filter(function (x) {
+      return x.v === v
+    })[0]
+    if (!o) return ''
+    if (ch.key === 'c-pay' && pair.length === 2 && (v === 'me' || v === 'partner')) {
+      return o.label + ' (' + nameOf(pair[v === 'me' ? i : 1 - i], v === 'me' ? i : 1 - i, pair) + ')'
+    }
+    return o.label
+  }
+
+  /** What one person gave for a choice or number, as a short line, or ''. */
+  function pickLine(item, p, i, pair) {
+    if (item.choice) {
+      var label = choiceLabel(item.choice, p.answers[item.choice.key], i, pair)
+      return label ? 'Chose: ' + label : ''
+    }
+    if (item.num) {
+      var n = squash(p.answers[item.num.key])
+      return n ? 'Amount: ' + n : ''
+    }
+    return ''
   }
 
   // ------------------------------------------------------- what the built-in fonts can draw
@@ -372,7 +486,7 @@
     return out.join('') + '\u2026'
   }
 
-  function layout(be, P, model, total) {
+  function layout(be, P, model, pair, mode, total) {
     var L = 54
     var R = P.w - 54
     var W = R - L
@@ -380,18 +494,17 @@
     var BOTTOM = P.h - 62
     var LH = 14.5
     var GAP = 20
-    var COLW = (W - GAP) / 2
     var y = TOP
     var pageTop = TOP
     var page = 1
-    var RULED_ROWS = 6 // about four lines to write on, at WRITE_GAP apart
     var WRITE_GAP = 22
-
-    var who = []
-    if (model.nameA) who.push('Person A: ' + model.nameA)
-    if (model.nameB) who.push('Person B: ' + model.nameB)
-    if (model.date) who.push('Session date: ' + model.date)
-    var meta = who.join('   \u00B7   ')
+    var NOTE_LINES = 5
+    var combined = mode === 'combined'
+    var names = pair.map(function (p, i) {
+      return nameOf(p, i, pair)
+    })
+    var date = prettyDate((pair[0] && pair[0].date) || (pair[1] && pair[1].date) || '')
+    var meta = [names.join(' and '), date ? 'Session date: ' + date : ''].filter(Boolean).join('   \u00B7   ')
 
     function footer() {
       be.line(L, P.h - 44, R, P.h - 44, 0.5, LIGHT)
@@ -401,10 +514,8 @@
 
     function runningHeader() {
       be.text(model.title, L, TOP + 8, F.label, MUTED)
-      if (meta) {
-        var room = W - be.measure(model.title, F.label) - 24
-        be.text(fit(be, meta, F.small, room), R, TOP + 8, F.small, MUTED, { right: true })
-      }
+      var room = W - be.measure(model.title, F.label) - 24
+      be.text(fit(be, meta, F.small, room), R, TOP + 8, F.small, MUTED, { right: true })
       be.line(L, TOP + 15, R, TOP + 15, 0.5, RULE)
       y = TOP + 34
       pageTop = y
@@ -422,78 +533,68 @@
       if (y + h > BOTTOM) newPage()
     }
 
-    function paragraph(text, font, color, width, after) {
+    function paragraph(text, font, color, width, after, x) {
       wrap(be, text, font, width).forEach(function (line) {
         ensure(LH)
-        if (line) be.text(line, L, y + 10, font, color, { w: width })
+        if (line) be.text(line, x || L, y + 10, font, color, { w: width })
         y += LH
       })
       y += after || 0
     }
 
-    function colHeading(col, x) {
-      // The name in place of Person A or Person B, as on the page.
-      var label = col.name || col.label
-      be.text(fit(be, label, F.label, COLW), x, y + 8, F.label, MUTED, { w: COLW })
+    function badge(mark) {
+      if (!mark) return
+      var color = mark === TALK ? TALK_INK : mark === AGREE ? INK : MUTED
+      be.text(mark, L + 20, y + 9, mark === COMPARE ? F.small : F.badge, color)
+      y += 14
     }
 
-    /**
-     * One question, or one of the two closing boxes: the question, then both answers side by side,
-     * line by line. When a page runs out the rows carry on to the next one under a repeat of the
-     * question's number and the two headings, so nothing is ever cut off.
-     */
-    function block(item) {
-      var indent = item.number ? 20 : 0
-      var qLines = item.text ? wrap(be, item.text, F.q, W - indent) : []
-      var cols = item.cols.map(function (c) {
-        return c.text ? wrap(be, c.text, F.a, COLW) : null
+    /** The columns of one question: each person's choice or amount, then their own words. */
+    function columns(item, who) {
+      var n = who.length
+      var cw = n === 1 ? W : (W - GAP) / 2
+      var cols = who.map(function (w) {
+        var lines = []
+        var pick = item ? pickLine(item, w.p, w.i, pair) : ''
+        if (pick) wrap(be, pick, F.pick, cw).forEach(function (t) {
+          lines.push({ t: t, f: F.pick, c: INK })
+        })
+        var text = item && item.textKey ? answerText(w.p.answers[item.textKey]) : ''
+        if (text) wrap(be, text, F.a, cw).forEach(function (t) {
+          lines.push({ t: t, f: F.a, c: BODY })
+        })
+        if (!lines.length) lines.push({ t: 'Not answered', f: F.none, c: MUTED })
+        return lines
       })
-      // A closing box left empty gets lines to write on at the session, not "Not answered".
-      var ruled = !item.number
-      var rows = Math.max.apply(null, cols.map(function (c) { return c ? c.length : ruled ? RULED_ROWS : 1 }))
-      ensure(qLines.length * LH + 6 + 16 + Math.min(rows, 2) * LH + 8)
-
-      qLines.forEach(function (line, i) {
-        if (i === 0 && item.number) be.text(item.number + '.', L, y + 10, F.q, INK)
-        be.text(line, L + indent, y + 10, F.q, INK, { w: W - indent })
-        y += LH
-      })
-      y += 6
-
+      var rows = Math.max.apply(null, cols.map(function (c) { return c.length }))
       var top
       function open(continued) {
         if (continued) {
-          be.text((item.number ? 'Question ' + item.number : 'Closing notes') + ', continued', L, y + 8, F.small, MUTED)
+          be.text((item && item.number ? 'Question ' + item.number : 'This question') + ', continued', L, y + 8, F.small, MUTED)
           y += 14
         }
-        item.cols.forEach(function (c, k) {
-          colHeading(c, L + k * (COLW + GAP))
+        who.forEach(function (w, k) {
+          be.text(fit(be, names[w.i], F.label, cw), L + k * (cw + GAP), y + 8, F.label, MUTED, { w: cw })
         })
         y += 16
         top = y
       }
       function close() {
-        item.cols.forEach(function (c, k) {
-          var x = L + k * (COLW + GAP)
+        who.forEach(function (w, k) {
+          var x = L + k * (cw + GAP)
           be.line(x - 7, top - 3, x - 7, y, 1, LIGHT)
-          if (ruled && cols[k] === null) {
-            for (var ly = top + WRITE_GAP - 4; ly <= y; ly += WRITE_GAP) be.line(x, ly, x + COLW, ly, 0.5, RULE)
-          }
         })
       }
-
       open(false)
-      for (var i = 0; i < rows; i++) {
+      for (var r = 0; r < rows; r++) {
         if (y + LH > BOTTOM) {
           close()
           newPage()
           open(true)
         }
         cols.forEach(function (lines, k) {
-          var x = L + k * (COLW + GAP)
-          if (lines === null) {
-            if (i === 0 && !ruled) be.text('Not answered', x, y + 10, F.none, MUTED)
-          } else if (lines[i]) be.text(lines[i], x, y + 10, F.a, BODY, { w: COLW })
+          var l = lines[r]
+          if (l && l.t) be.text(l.t, L + k * (cw + GAP), y + 10, l.f, l.c, { w: cw })
         })
         y += LH
       }
@@ -501,39 +602,168 @@
       y += 14
     }
 
-    // The first page: the sheet's name, who it is for, and the date.
-    be.text(model.title, L, y + 22, F.title, INK)
-    y += 34
-    if (model.lede) paragraph(model.lede, F.lede, BODY, W, 6)
-    function row(label, value) {
-      var lines = wrap(be, value, F.a, W - 96)
-      be.text(label, L, y + 10, F.label, MUTED)
-      lines.forEach(function (line) {
-        ensure(LH)
-        be.text(line, L + 96, y + 10, F.a, INK)
+    function question(item, who, mark) {
+      var indent = item.number ? 20 : 0
+      var qLines = wrap(be, item.text, F.q, W - indent)
+      ensure(qLines.length * LH + (mark ? 14 : 0) + 6 + 16 + 2 * LH + 8)
+      qLines.forEach(function (line, i) {
+        if (i === 0 && item.number) be.text(item.number + '.', L, y + 10, F.q, INK)
+        be.text(line, L + indent, y + 10, F.q, INK, { w: W - indent })
         y += LH
       })
+      if (mark) badge(mark)
+      y += 6
+      columns(item, who)
     }
-    if (model.nameA) row('PERSON A', model.nameA)
-    if (model.nameB) row('PERSON B', model.nameB)
-    if (model.date) row('SESSION DATE', model.date)
-    be.line(L, y + 4, R, y + 4, 1.5, INK)
-    y += 24
 
-    // The subjects follow one another; a new one starts a page only when its heading, its framing line
-    // and the start of its first question would not fit, so no page is left nearly empty.
+    function notes() {
+      ensure(16 + NOTE_LINES * WRITE_GAP + 8)
+      be.text('NOTES FROM THE SESSION', L, y + 8, F.label, MUTED)
+      y += 14
+      for (var i = 1; i <= NOTE_LINES; i++) be.line(L, y + i * WRITE_GAP, R, y + i * WRITE_GAP, 0.5, RULE)
+      y += NOTE_LINES * WRITE_GAP + 22
+    }
+
+    function titleBlock(subtitle) {
+      be.text(model.title, L, y + 22, F.title, INK)
+      y += 34
+      if (subtitle) {
+        be.text(subtitle, L, y + 14, F.h2, INK)
+        y += 26
+      }
+      pair.forEach(function (p, i) {
+        be.text(combined ? 'PERSON ' + (i + 1) : 'NAME', L, y + 10, F.label, MUTED)
+        be.text(fit(be, names[i], F.a, W - 110), L + 110, y + 10, F.a, INK)
+        y += LH
+      })
+      if (date) {
+        be.text('SESSION DATE', L, y + 10, F.label, MUTED)
+        be.text(date, L + 110, y + 10, F.a, INK)
+        y += LH
+      }
+      be.line(L, y + 4, R, y + 4, 1.5, INK)
+      y += 24
+    }
+
+    // ---- the first page of a combined PDF: what to talk about, first
+    var lists = { talk: [], agree: [], compare: [] }
+    if (combined) {
+      model.sections.forEach(function (sec, si) {
+        var g = sec.gate
+        var hidden = [false, false]
+        if (g) {
+          var gm = gateMark(g, pair)
+          if (gm === TALK) lists.talk.push({ sec: sec, what: g.short, vals: pair.map(function (p) { return yesNo(p.answers[g.key]) }) })
+          if (g.hides) hidden = pair.map(function (p) { return p.answers[g.key] === 'no' })
+        }
+        var counted = 0
+        sec.items.forEach(function (it) {
+          var wrote = it.textKey && pair.some(function (p, k) { return !hidden[k] && answerText(p.answers[it.textKey]) })
+          if (wrote) counted += 1
+          if (hidden[0] || hidden[1]) return
+          var mark = itemMark(it, pair)
+          var short = it.choice ? it.choice.short : it.num ? it.num.short : ''
+          if (short && mark !== COMPARE) {
+            ;(mark === TALK ? lists.talk : lists.agree).push({
+              sec: sec,
+              what: short,
+              vals: pair.map(function (p, i) {
+                return pickLine(it, p, i, pair).replace(/^(Chose|Amount): /, '') || 'Not answered'
+              }),
+            })
+          }
+        })
+        lists.compare.push({ sec: sec, n: counted, si: si })
+      })
+
+      titleBlock('What to talk about')
+      function list(heading, items, color) {
+        ensure(40)
+        be.text(heading + ' (' + items.length + ')', L, y + 12, F.h3, color)
+        y += 22
+        if (!items.length) {
+          paragraph('Nothing here.', F.none, MUTED, W, 8)
+          return
+        }
+        items.forEach(function (e) {
+          var line = e.sec.title.split('.')[0] + '. ' + e.what + ': ' + names[0] + ': ' + e.vals[0] + '. ' + names[1] + ': ' + e.vals[1] + '.'
+          wrap(be, line, F.a, W - 14).forEach(function (t, i) {
+            ensure(LH)
+            if (i === 0) be.text('\u2022', L, y + 10, F.a, color)
+            be.text(t, L + 14, y + 10, F.a, BODY, { w: W - 14 })
+            y += LH
+          })
+          y += 3
+        })
+        y += 10
+      }
+      list(TALK, lists.talk, TALK_INK)
+      list(AGREE, lists.agree, INK)
+      ensure(40)
+      be.text(COMPARE, L, y + 12, F.h3, MUTED)
+      y += 22
+      paragraph('Answers written in your own words are not marked. Read them together in the session:', F.a, BODY, W, 4)
+      lists.compare.forEach(function (c) {
+        paragraph('\u2022  ' + c.sec.title + ': ' + (c.n ? c.n + (c.n === 1 ? ' question' : ' questions') + ' with written answers' : 'nothing written'), F.a, BODY, W - 14, 0, L + 4)
+      })
+      y += 12
+      paragraph(
+        'How the marks are made: the same choice from both of you, or amounts within a tenth of each other, is marked Likely agree. A different choice, a Not sure yet, or amounts further apart is marked Talk about this. The marks are a place to start, not a judgement.',
+        F.small,
+        MUTED,
+        W,
+        0
+      )
+      newPage()
+    } else {
+      titleBlock('')
+    }
+
+    // ---- every subject, one after another
     model.sections.forEach(function (sec, i) {
       var framing = sec.framing ? wrap(be, sec.framing, F.framing, W - 10).length : 0
-      var first = sec.items[0]
-      var firstNeed = first ? (first.text ? wrap(be, first.text, F.q, W - 20).length * LH : 0) + 6 + 16 + 2 * LH + 8 : 0
       if (i > 0 && y > pageTop) y += 18
-      ensure(24 + framing * LH + 20 + firstNeed)
+      ensure(24 + framing * LH + 20 + 90)
       be.text(sec.title, L, y + 14, F.h2, INK, { w: W })
       y += 24
       if (sec.framing) paragraph(sec.framing, F.framing, MUTED, W - 10, 0)
       be.line(L, y + 2, R, y + 2, 0.5, RULE)
       y += 18
-      sec.items.forEach(block)
+
+      var who = pair.map(function (p, k) {
+        return { p: p, i: k }
+      })
+      var g = sec.gate
+      if (g) {
+        var gm = combined ? gateMark(g, pair) : ''
+        var line = g.ask + '  ' + pair.map(function (p, k) { return (combined ? names[k] + ': ' : '') + yesNo(p.answers[g.key]) + '.' }).join('  ')
+        paragraph(line, F.q, INK, W, 0)
+        if (gm) badge(gm)
+        y += 8
+        if (g.hides) {
+          var no = who.filter(function (w) { return w.p.answers[g.key] === 'no' })
+          var yes = who.filter(function (w) { return w.p.answers[g.key] !== 'no' })
+          if (no.length) {
+            paragraph(no.map(function (w) { return (combined ? names[w.i] + ': ' : '') + g.noLine + '.' }).join('  '), F.pick, BODY, W, 6)
+          }
+          if (!yes.length) {
+            notes()
+            return
+          }
+          if (no.length) {
+            paragraph('Only ' + names[yes[0].i] + ' answered the questions below.', F.small, MUTED, W, 6)
+          }
+          who = yes
+        }
+      }
+      sec.items.forEach(function (it) {
+        var touched = who.some(function (w) {
+          var a = w.p.answers
+          return (it.textKey && answerText(a[it.textKey])) || (it.choice && a[it.choice.key]) || (it.num && squash(a[it.num.key]))
+        })
+        question(it, who, combined && who.length === 2 && touched ? itemMark(it, pair) : '')
+      })
+      notes()
     })
 
     if (model.closing.length) {
@@ -549,20 +779,21 @@
 
   // --------------------------------------------------------------- making the file
 
-  function makePdf() {
-    var model = read()
+  function makePdf(mode) {
+    var model = schema()
+    var pair = people(mode)
     var P = paper()
-    var make = needsImages(everyString(model)) ? imageBackend : textBackend
+    var make = needsImages(everyString(model, pair)) ? imageBackend : textBackend
     // Two passes: the first only counts the pages, so every footer can say "Page 2 of 6".
     var counter = countingBackend(make(P))
-    layout(counter, P, model, 0)
+    layout(counter, P, model, pair, mode, 0)
     var be = make(P)
-    layout(be, P, model, counter.pages())
-    return { blob: be.finish(), name: fileName(model) }
+    layout(be, P, model, pair, mode, counter.pages())
+    return { blob: be.finish(), name: fileName(pair) }
   }
 
   /** money-conversation-Amina-Omar-2026-10-31.pdf: the names as typed, in any script, and the date. */
-  function fileName(model) {
+  function fileName(pair) {
     function part(text) {
       var t = String(text || '')
       if (t.normalize) t = t.normalize('NFC')
@@ -574,8 +805,12 @@
       }
       return Array.from(out.replace(/^-+|-+$/g, '')).slice(0, 40).join('').replace(/-+$/, '')
     }
-    var date = /^\d{4}-\d{2}-\d{2}$/.test(model.rawDate) ? model.rawDate : part(model.rawDate)
-    return [FILE_STEM, part(model.nameA), part(model.nameB), date].filter(Boolean).join('-') + '.pdf'
+    var raw = squash((pair[0] && pair[0].date) || (pair[1] && pair[1].date) || '')
+    var date = /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : part(raw)
+    var names = pair.map(function (p) {
+      return part(p.name)
+    })
+    return [FILE_STEM].concat(names, [date]).filter(Boolean).join('-') + '.pdf'
   }
 
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
@@ -638,21 +873,27 @@
   }
 
   function onPress(button) {
-    var status = button.parentNode.querySelector('.pdf-status')
+    var holder = button.closest('.finish, .partner') || button.parentNode
+    var status = holder.querySelector('.pdf-status')
+    var mode = button.getAttribute('data-pdf') === 'combined' ? 'combined' : 'mine'
     if (!(window.jspdf && window.jspdf.jsPDF)) {
       say(status, 'The PDF maker did not load. Reload this page, or print it and choose Save as PDF.')
       return
     }
+    var api = window.NiyyahMoneySheet
+    if (mode === 'combined' && !(api && api.partner())) {
+      say(status, "Add your partner's answers first.")
+      return
+    }
     // Made and handed over inside the tap itself, so a phone still counts it as the person's own action.
     try {
-      deliver(makePdf(), status)
+      deliver(makePdf(mode), status)
     } catch {
       say(status, 'Sorry, the PDF could not be made. You can still print this page.')
     }
   }
 
   Array.prototype.forEach.call(document.querySelectorAll('[data-pdf-button]'), function (button) {
-    button.parentNode.hidden = false
     button.addEventListener('click', function () {
       onPress(button)
     })
