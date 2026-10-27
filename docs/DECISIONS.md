@@ -4644,3 +4644,11 @@ suggests it can be), "your session" alone would fit both.
 
 **Unchanged.** The one-page, Somali and facilitator pages; the `.txt` version of this sheet (it still has the old introduction
 sentence); printing a blank copy (still four pages, one subject each, on Letter and A4).
+
+**Amendment, 2026-10-27: saved answers expire after 14 days.** The founder chose an expiry after all. The sheet's saved answers
+are kept for 14 full days after the **last change** and removed on the next opening after that (so between 14 and 15 days, since only
+the day is stored, never a time). Each change restarts the 14 days, so a couple still working on it keeps it. When answers are removed
+the page says "Answers saved on this device more than 14 days ago were removed." A record kept before this rule, which has no day,
+gets today's and starts its 14 days on its next opening, so nothing saved since the first release stays forever. The box says it
+beside Clear my answers: "Saved answers are removed from this device 14 days after the last change." Removal happens when the page
+is opened: a copy on a device where the sheet is never opened again stays in that browser until the browser or Forget me clears it.

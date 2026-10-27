@@ -13,7 +13,8 @@
       nothing here is sent anywhere. Three scripts, all served from this site
       and run on the reader's own device: niyyah-money-conversation-sheet.js
       (keeps the answers in this browser under one key, niyyah.moneysheet.v1,
-      which Clear my answers and the app's Forget me both remove; puts the names
+      for 14 days after the last change, and Clear my answers and the app's
+      Forget me both remove it; puts the names
       on the columns; grows the boxes), vendor/jspdf.umd.min.js (jsPDF, MIT) and
       niyyah-money-conversation-sheet-pdf.js (the Download PDF button). Without
       them the sheet still opens, can be typed in and printed, keeps nothing,
@@ -589,7 +590,11 @@
             close the page and come back to it. Nothing on this page is sent
             anywhere, and the PDF is made here too.
           </p>
-          <p>On a shared or public device, tap Clear my answers when you finish.</p>
+          <p>
+            Saved answers are removed from this device 14 days after the last
+            change. On a shared or public device, tap Clear my answers when you
+            finish.
+          </p>
           <p class="restored" role="status" aria-live="polite"></p>
           <p class="save-problem" role="alert" hidden>
             This browser is not letting the page save. Download the PDF before
