@@ -111,18 +111,6 @@
           ]
         })
       })
-      var box = sec.querySelector('.box')
-      if (box) {
-        out.items.push({
-          number: 0,
-          text: '',
-          cols: Array.prototype.map.call(box.querySelectorAll(':scope > div'), function (d) {
-            var label = d.querySelector('label')
-            var area = d.querySelector('textarea')
-            return { label: squash(label.textContent), name: '', text: answer(area.id) }
-          })
-        })
-      }
       model.sections.push(out)
     })
     Array.prototype.forEach.call(document.querySelectorAll('footer p'), function (p) {
@@ -384,8 +372,6 @@
     var y = TOP
     var pageTop = TOP
     var page = 1
-    var RULED_ROWS = 6 // about four lines to write on, at WRITE_GAP apart
-    var WRITE_GAP = 22
 
     var who = []
     if (model.nameA) who.push('Person A: ' + model.nameA)
@@ -438,7 +424,7 @@
     }
 
     /**
-     * One question, or one of the two closing boxes: the question, then both answers side by side,
+     * One question: the question, then both answers side by side,
      * line by line. When a page runs out the rows carry on to the next one under a repeat of the
      * question's number and the two headings, so nothing is ever cut off.
      */
@@ -448,9 +434,7 @@
       var cols = item.cols.map(function (c) {
         return c.text ? wrap(be, c.text, F.a, COLW) : null
       })
-      // A closing box left empty gets lines to write on at the session, not "Not answered".
-      var ruled = !item.number
-      var rows = Math.max.apply(null, cols.map(function (c) { return c ? c.length : ruled ? RULED_ROWS : 1 }))
+      var rows = Math.max.apply(null, cols.map(function (c) { return c ? c.length : 1 }))
       ensure(qLines.length * LH + 6 + 16 + Math.min(rows, 2) * LH + 8)
 
       qLines.forEach(function (line, i) {
@@ -463,7 +447,7 @@
       var top
       function open(continued) {
         if (continued) {
-          be.text((item.number ? 'Question ' + item.number : 'Closing notes') + ', continued', L, y + 8, F.small, MUTED)
+          be.text('Question ' + item.number + ', continued', L, y + 8, F.small, MUTED)
           y += 14
         }
         item.cols.forEach(function (c, k) {
@@ -476,9 +460,6 @@
         item.cols.forEach(function (c, k) {
           var x = L + k * (COLW + GAP)
           be.line(x - 7, top - 3, x - 7, y, 1, LIGHT)
-          if (ruled && cols[k] === null) {
-            for (var ly = top + WRITE_GAP - 4; ly <= y; ly += WRITE_GAP) be.line(x, ly, x + COLW, ly, 0.5, RULE)
-          }
         })
       }
 
@@ -492,7 +473,7 @@
         cols.forEach(function (lines, k) {
           var x = L + k * (COLW + GAP)
           if (lines === null) {
-            if (i === 0 && !ruled) be.text('Not answered', x, y + 10, F.none, MUTED)
+            if (i === 0) be.text('Not answered', x, y + 10, F.none, MUTED)
           } else if (lines[i]) be.text(lines[i], x, y + 10, F.a, BODY, { w: COLW })
         })
         y += LH

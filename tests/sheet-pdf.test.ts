@@ -10,7 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
  * in, the button is pressed, and the PDF it hands over is read back. What this holds:
  *  - every question and both people's answers are in the file, in full, across as many pages as they need;
  *  - the names, the date and the footer are in it, and the file is money-conversation-<NameA>-<NameB>-<date>.pdf;
- *  - the subjects follow one another with no page left nearly empty, and an empty closing box is ruled to write on;
+ *  - the subjects follow one another with no page left nearly empty, and there are no shared closing boxes;
  *  - nothing is sent and nothing is stored while it is made.
  * The picture-of-the-page fallback for scripts the PDF's own fonts cannot draw (Arabic, say) needs a
  * real canvas, so it is exercised in a browser, not here (docs/ASSETS.md).
@@ -94,14 +94,12 @@ describe('the buttons', () => {
 // ── Running it ────────────────────────────────────────────────────────────────
 
 /** The text strings drawn on each page, read back out of the PDF's own streams. */
-function pdfText(bytes: Uint8Array): { pages: number; text: string; lows: number[]; rules: number } {
+function pdfText(bytes: Uint8Array): { pages: number; text: string; lows: number[] } {
   const raw = Buffer.from(bytes).toString('latin1')
   const pages = (raw.match(/\/Type\s*\/Page\b(?!s)/g) ?? []).length
   let text = ''
   // For each page's content stream, the lowest line of text above the footer, in PDF points from the bottom.
   const lows: number[] = []
-  // Thin horizontal strokes: the lines left to write on in an empty closing box.
-  let rules = 0
   for (const m of raw.matchAll(/stream\r?\n([\s\S]*?)\r?\nendstream/g)) {
     let body: string
     try {
@@ -111,12 +109,11 @@ function pdfText(bytes: Uint8Array): { pages: number; text: string; lows: number
     }
     const ys = [...body.matchAll(/([\d.]+) ([\d.]+) Td/g)].map((t) => Number(t[2])).filter((y) => y > 50)
     if (ys.length) lows.push(Math.min(...ys))
-    rules += [...body.matchAll(/0\.5 w\n[\d.]+ ([\d.]+) m\n[\d.]+ \1 l\nS/g)].length
     for (const s of body.matchAll(/\(((?:\\.|[^\\)])*)\)\s*Tj/g)) {
       text += `${s[1].replace(/\\([()\\])/g, '$1').replace(/\\(\d{3})/g, (_, o) => String.fromCharCode(parseInt(o, 8)))}\n`
     }
   }
-  return { pages, text, lows, rules }
+  return { pages, text, lows }
 }
 
 let made: Blob | null = null
@@ -192,9 +189,9 @@ describe('pressing Download PDF', () => {
     expect(document.querySelectorAll('.pdf-status')[1].textContent).toContain('Your PDF was made on this device')
   })
 
-  it('holds all twenty questions, says “Not answered” where a column is empty, and leaves empty closing boxes ruled to write on', async () => {
+  it('holds all twenty questions, says “Not answered” where a column is empty, and has no shared closing boxes', async () => {
     press()
-    const { text, pages, lows, rules } = pdfText(await bytes())
+    const { text, pages, lows } = pdfText(await bytes())
     const questions = [...PAGE.matchAll(/<p class="q"[^>]*>([\s\S]*?)<\/p>/g)].map((m) => flat(m[1]))
     expect(questions).toHaveLength(20)
     for (const q of questions) {
@@ -202,15 +199,15 @@ describe('pressing Download PDF', () => {
       const flatText = flat(text.replace(/\n/g, ' '))
       for (const word of q.split(' ')) expect(flatText, word).toContain(win1252(word))
     }
-    // Two columns for each of the twenty questions. The closing boxes say nothing: they are ruled.
+    // Two columns for each of the twenty questions, and nothing else to fill in.
     expect(text.match(/Not answered/g)).toHaveLength(20 * 2)
-    expect(rules).toBeGreaterThanOrEqual(4 * 2 * 4) // four subjects, two boxes, about four lines each
     // The subjects follow one another: every page but the last carries text into its lower half.
     expect(pages).toBeLessThanOrEqual(4)
     expect(lows).toHaveLength(pages)
     for (const low of lows.slice(0, -1)) expect(low).toBeLessThan(792 / 2)
     for (const heading of ['1. Mahr', '4. Ongoing obligations to family']) expect(text).toContain(heading)
-    expect(text).toContain('What we agree on')
+    expect(text).not.toContain('What we agree on')
+    expect(text).not.toContain('still deciding')
     expect(text).toContain('This sheet is for conversation.')
   })
 
@@ -261,17 +258,16 @@ describe('pressing Download PDF', () => {
     write('q2d-a', `${words('beta', 700)} END-C`)
     write('q2d-b', `${words('gamma', 120)} END-D`)
     write('q1b-a', `${'x'.repeat(400)} END-E`)
-    write('s1-agree', `${words('agree', 90)} END-F`)
-    write('s4-open', `${words('open', 160)} END-G`)
+    write('q4d-b', `${words('open', 160)} END-G`)
     press()
     const { text, pages } = pdfText(await bytes())
     // More pages than the blank sheet needs: the answers carried over rather than being cut.
     expect(pages).toBeGreaterThan(6)
-    for (const [stem, n] of [['alpha', 260], ['beta', 700], ['gamma', 120], ['agree', 90], ['open', 160]] as const) {
+    for (const [stem, n] of [['alpha', 260], ['beta', 700], ['gamma', 120], ['open', 160]] as const) {
       const found = [...text.matchAll(new RegExp(`\\b${stem}(\\d+)\\b`, 'g'))].map((m) => Number(m[1]))
       expect(found, stem).toEqual(Array.from({ length: n }, (_, i) => i + 1))
     }
-    for (const end of ['END-A', 'END-B', 'END-C', 'END-D', 'END-E', 'END-F', 'END-G']) expect(text, end).toContain(end)
+    for (const end of ['END-A', 'END-B', 'END-C', 'END-D', 'END-E', 'END-G']) expect(text, end).toContain(end)
     // The 400-letter word was wrapped to the column, every letter kept.
     expect([...text.matchAll(/\bx+\b/g)].map((m) => m[0].length).reduce((a, b) => a + b, 0)).toBe(400)
     // The first answer filled its page and ran on; the fourth question of the second subject did too.

@@ -111,25 +111,34 @@ describe('keeping the answers on this device', () => {
     expect(Object.keys(localStorage)).toEqual([KEY])
   })
 
-  it('keeps names, the date, both columns and the closing boxes, and nothing that was left empty', () => {
+  it('keeps names, the date and both columns, and nothing that was left empty', () => {
     type('name-a', 'Amina')
     type('name-b', 'Omar')
     type('sheet-date', '2026-10-31')
     type('q3b-b', 'Two years left.')
-    type('s4-agree', 'We send the same.')
     vi.advanceTimersByTime(500)
-    expect(saved().fields).toEqual({ 'name-a': 'Amina', 'name-b': 'Omar', 'sheet-date': '2026-10-31', 'q3b-b': 'Two years left.', 's4-agree': 'We send the same.' })
+    expect(saved().fields).toEqual({ 'name-a': 'Amina', 'name-b': 'Omar', 'sheet-date': '2026-10-31', 'q3b-b': 'Two years left.' })
+  })
+
+  it('ignores what was typed in the closing boxes before they were removed, and drops it on the next save', () => {
+    localStorage.setItem(KEY, JSON.stringify({ v: 1, at: '2026-10-27', fields: { 'q1a-a': 'Kept', 's1-agree': 'From the old box' } }))
+    open()
+    expect(field('q1a-a').value).toBe('Kept')
+    expect(document.body.textContent).not.toContain('From the old box')
+    type('q1a-b', 'Added')
+    vi.advanceTimersByTime(500)
+    expect(saved().fields).toEqual({ 'q1a-a': 'Kept', 'q1a-b': 'Added' })
   })
 
   it('puts the answers back on a reload, and says so', () => {
     type('name-a', 'Amina')
     type('q1a-a', 'First line\nSecond line')
-    type('s2-open', 'The guest list.')
+    type('q2e-b', 'The guest list.')
     vi.advanceTimersByTime(500)
     open() // the same tab, reloaded
     expect(field('name-a').value).toBe('Amina')
     expect(field('q1a-a').value).toBe('First line\nSecond line')
-    expect(field('s2-open').value).toBe('The guest list.')
+    expect(field('q2e-b').value).toBe('The guest list.')
     expect(restoredNote()).toBe('We restored your answers on this device.')
     // The names went back on the columns too.
     expect(columnLabel('q1a-a')).toBe('Amina')
@@ -308,11 +317,9 @@ describe('the names on the columns', () => {
     expect(columnLabel('q1a-b')).toBe('Omar')
   })
 
-  it('leave the name fields and the shared closing boxes labelled as they were', () => {
+  it('leave the name fields labelled as they were', () => {
     type('name-a', 'Amina')
     expect(columnLabel('name-a')).toBe('Person A’s name')
-    expect(columnLabel('s1-agree')).toBe('What we agree on')
-    expect(columnLabel('s1-open')).toBe('What we’re still deciding')
   })
 
   it('keep each column’s label tied to its own box, so a screen reader still hears whose answer it is', () => {
