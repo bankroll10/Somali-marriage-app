@@ -105,7 +105,6 @@ describe('it opens from disk, with the network off', () => {
       'Put your real names in the two name fields below. The columns then show your names instead of Person A and Person B.',
       'Each of you answers your own column, in your own words.',
       'It takes about 30 to 40 minutes. You can skip any question.',
-      "At the end of each section, fill in the two shared boxes together: What we agree on and What we're still deciding .",
       'Then tap Download PDF and bring it to your session with the imam.',
     ]) {
       expect(howto, line).toContain(line)
@@ -186,13 +185,9 @@ describe('the four subjects stay four subjects', () => {
     for (const q of QUESTIONS) expect(q, q).toMatch(/^(What|Who|Which|How|If|Is|After|Of)\b/)
   })
 
-  it('closes each section with the two-box landing, and nothing scored', () => {
-    const boxes = [...HTML.matchAll(/<div class="box">[\s\S]*?<\/div>\s*<\/div>/g)]
-    expect(boxes).toHaveLength(4)
-    for (const [box] of boxes.map((m) => [m[0]])) {
-      expect(box).toContain('>What we agree on<')
-      expect(box).toContain('>What we’re still deciding<')
-    }
+  it('has no shared closing boxes (removed 2026-10-27, at the imam’s request), and nothing scored', () => {
+    expect(HTML).not.toContain('class="box"')
+    expect(HTML).not.toMatch(/What we agree on|still deciding|s\d-(agree|open)/)
     for (const scored of ['score', 'Score', 'total out of', 'points', 'result']) {
       expect(HTML, scored).not.toContain(scored)
     }
@@ -313,7 +308,7 @@ describe('on paper', () => {
 describe('on a phone, and to a screen reader', () => {
   it('drops to one column below 700px, and nothing scrolls sideways', () => {
     expect(CSS).toContain('@media (max-width: 700px)')
-    expect(CSS).toMatch(/@media \(max-width: 700px\) \{[\s\S]*?\.cols,\s*\.box \{\s*display: block/)
+    expect(CSS).toMatch(/@media \(max-width: 700px\) \{[\s\S]*?\.cols \{\s*display: block/)
     expect(CSS).toContain('min-width: 0')
   })
 
@@ -325,7 +320,7 @@ describe('on a phone, and to a screen reader', () => {
   it('labels every field for real, with no orphaned for= and no bare column', () => {
     const fors = [...HTML.matchAll(/<label for="([^"]+)"/g)].map((m) => m[1])
     const ids = new Set([...HTML.matchAll(/<(?:textarea|input)[^>]*\sid="([^"]+)"/g)].map((m) => m[1]))
-    expect(fors).toHaveLength(20 * 2 + 4 * 2 + 3) // questions, agree boxes, the two names and the date
+    expect(fors).toHaveLength(20 * 2 + 3) // questions, the two names and the date
     for (const f of fors) expect(ids, f).toContain(f)
     expect(new Set(fors).size).toBe(fors.length)
   })

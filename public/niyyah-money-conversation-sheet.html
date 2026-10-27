@@ -329,22 +329,6 @@
         outline-offset: 2px;
       }
 
-      .box {
-        margin-top: 1.5rem;
-        border: 2px solid var(--ink);
-        border-radius: 0.35rem;
-        padding: 1rem;
-        display: flex;
-        gap: 1rem;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-
-      .box > div {
-        flex: 1 1 0;
-        min-width: 0;
-      }
-
       /* Quiet on purpose: who published it, what it is not, which version. */
       footer {
         margin-top: 3rem;
@@ -387,19 +371,16 @@
 
       /* One column on a phone, and nothing that scrolls sideways. */
       @media (max-width: 700px) {
-        .cols,
-        .box {
+        .cols {
           display: block;
         }
 
-        .cols > div + div,
-        .box > div + div {
+        .cols > div + div {
           margin-top: 0.85rem;
         }
 
         /* Stacked, each box says whose it is: the name (or Person A, Person B) above it. */
-        .cols label,
-        .box label {
+        .cols label {
           font-size: 0.9rem;
           font-weight: 600;
           letter-spacing: 0;
@@ -494,11 +475,6 @@
           padding-bottom: 2mm;
         }
 
-        .box {
-          margin-top: 4mm;
-          padding: 3mm;
-        }
-
         /* Lines to write on, not fills to soak up toner. */
         input[type='text'],
         input[type='date'],
@@ -519,11 +495,6 @@
 
         textarea::-webkit-resizer {
           display: none;
-        }
-
-        .box textarea {
-          min-height: 15mm;
-          height: 15mm;
         }
 
         ol.qs > li {
@@ -609,7 +580,6 @@
             <li>Put your real names in the two name fields below. The columns then show your names instead of Person A and Person B.</li>
             <li>Each of you answers your own column, in your own words.</li>
             <li>It takes about 30 to 40 minutes. You can skip any question.</li>
-            <li>At the end of each section, fill in the two shared boxes together: <em>What we agree on</em> and <em>What we’re still deciding</em>.</li>
             <li>Then tap Download PDF and bring it to your session with the imam.</li>
           </ol>
         </aside>
@@ -699,10 +669,6 @@
           </li>
         </ol>
 
-        <div class="box">
-          <div><label for="s1-agree">What we agree on</label><textarea id="s1-agree" rows="3" autocomplete="off"></textarea></div>
-          <div><label for="s1-open">What we’re still deciding</label><textarea id="s1-open" rows="3" autocomplete="off"></textarea></div>
-        </div>
 
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
@@ -755,10 +721,6 @@
           </li>
         </ol>
 
-        <div class="box">
-          <div><label for="s2-agree">What we agree on</label><textarea id="s2-agree" rows="3" autocomplete="off"></textarea></div>
-          <div><label for="s2-open">What we’re still deciding</label><textarea id="s2-open" rows="3" autocomplete="off"></textarea></div>
-        </div>
 
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
@@ -810,10 +772,6 @@
           </li>
         </ol>
 
-        <div class="box">
-          <div><label for="s3-agree">What we agree on</label><textarea id="s3-agree" rows="3" autocomplete="off"></textarea></div>
-          <div><label for="s3-open">What we’re still deciding</label><textarea id="s3-open" rows="3" autocomplete="off"></textarea></div>
-        </div>
 
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
@@ -866,10 +824,6 @@
           </li>
         </ol>
 
-        <div class="box">
-          <div><label for="s4-agree">What we agree on</label><textarea id="s4-agree" rows="3" autocomplete="off"></textarea></div>
-          <div><label for="s4-open">What we’re still deciding</label><textarea id="s4-open" rows="3" autocomplete="off"></textarea></div>
-        </div>
 
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
