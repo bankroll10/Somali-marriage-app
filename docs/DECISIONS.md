@@ -4653,6 +4653,11 @@ gets today's and starts its 14 days on its next opening, so nothing saved since 
 beside Clear my answers: "Saved answers are removed from this device 14 days after the last change." Removal happens when the page
 is opened: a copy on a device where the sheet is never opened again stays in that browser until the browser or Forget me clears it.
 
+**Amendment, 2026-10-27: the shared closing boxes are gone.** At the imam's request, "What we agree on" and "What we're still
+deciding" are removed from the end of every section of this sheet, on the page and in its Download PDF, along with the how-to line
+that pointed to them. What anyone had typed in them is no longer shown or put in the PDF, and is dropped from this device on the next
+save. The one-page and Somali sheets, the `.txt` version and the printable `niyyah-money-conversation-sheet.pdf` keep their boxes.
+
 ## The money conversation sheet, filled blind by each of you (2026-10-27)
 
 **Decision.** At the imam's request, `public/niyyah-money-conversation-sheet.html` stops being one page with two columns. Each
