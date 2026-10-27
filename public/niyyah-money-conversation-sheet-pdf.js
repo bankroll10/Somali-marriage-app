@@ -499,6 +499,8 @@
     var page = 1
     var WRITE_GAP = 22
     var NOTE_LINES = 5
+    // The room a section's notes take, so the end of a section can be kept on the same page as them.
+    var NOTES_H = 16 + NOTE_LINES * WRITE_GAP + 8
     var combined = mode === 'combined'
     var names = pair.map(function (p, i) {
       return nameOf(p, i, pair)
@@ -550,7 +552,8 @@
     }
 
     /** The columns of one question: each person's choice or amount, then their own words. */
-    function columns(item, who) {
+    /** tail: the room that must follow on the same page (a section's notes), so they never start a page alone. */
+    function columns(item, who, tail) {
       var n = who.length
       var cw = n === 1 ? W : (W - GAP) / 2
       var cols = who.map(function (w) {
@@ -587,7 +590,9 @@
       }
       open(false)
       for (var r = 0; r < rows; r++) {
-        if (y + LH > BOTTOM) {
+        var left = rows - r
+        var room = tail && r > 0 && left <= 2 ? left * LH + 14 + tail : LH
+        if (y + room > BOTTOM) {
           close()
           newPage()
           open(true)
@@ -602,10 +607,10 @@
       y += 14
     }
 
-    function question(item, who, mark) {
+    function question(item, who, mark, tail) {
       var indent = item.number ? 20 : 0
       var qLines = wrap(be, item.text, F.q, W - indent)
-      ensure(qLines.length * LH + (mark ? 14 : 0) + 6 + 16 + 2 * LH + 8)
+      ensure(qLines.length * LH + (mark ? 14 : 0) + 6 + 16 + 2 * LH + 8 + (tail ? 14 + tail : 0))
       qLines.forEach(function (line, i) {
         if (i === 0 && item.number) be.text(item.number + '.', L, y + 10, F.q, INK)
         be.text(line, L + indent, y + 10, F.q, INK, { w: W - indent })
@@ -613,11 +618,23 @@
       })
       if (mark) badge(mark)
       y += 6
-      columns(item, who)
+      columns(item, who, tail)
+    }
+
+    /** The height a paragraph will take, to keep it with what follows. */
+    function heightOf(text, font, width, after) {
+      return wrap(be, text, font, width).length * LH + (after || 0)
+    }
+
+    function touchedBy(item, who) {
+      return who.some(function (w) {
+        var a = w.p.answers
+        return (item.textKey && answerText(a[item.textKey])) || (item.choice && a[item.choice.key]) || (item.num && squash(a[item.num.key]))
+      })
     }
 
     function notes() {
-      ensure(16 + NOTE_LINES * WRITE_GAP + 8)
+      ensure(NOTES_H)
       be.text('NOTES FROM THE SESSION', L, y + 8, F.label, MUTED)
       y += 14
       for (var i = 1; i <= NOTE_LINES; i++) be.line(L, y + i * WRITE_GAP, R, y + i * WRITE_GAP, 0.5, RULE)
@@ -651,10 +668,12 @@
       model.sections.forEach(function (sec, si) {
         var g = sec.gate
         var hidden = [false, false]
+        var bothNo = false
         if (g) {
           var gm = gateMark(g, pair)
           if (gm === TALK) lists.talk.push({ sec: sec, what: g.short, vals: pair.map(function (p) { return yesNo(p.answers[g.key]) }) })
           if (g.hides) hidden = pair.map(function (p) { return p.answers[g.key] === 'no' })
+          bothNo = hidden[0] && hidden[1]
         }
         var counted = 0
         sec.items.forEach(function (it) {
@@ -673,7 +692,7 @@
             })
           }
         })
-        lists.compare.push({ sec: sec, n: counted, si: si })
+        lists.compare.push({ sec: sec, n: counted, si: si, bothNo: bothNo })
       })
 
       titleBlock('What to talk about')
@@ -704,7 +723,7 @@
       y += 22
       paragraph('Answers written in your own words are not marked. Read them together in the session:', F.a, BODY, W, 4)
       lists.compare.forEach(function (c) {
-        paragraph('\u2022  ' + c.sec.title + ': ' + (c.n ? c.n + (c.n === 1 ? ' question' : ' questions') + ' with written answers' : 'nothing written'), F.a, BODY, W - 14, 0, L + 4)
+        paragraph('\u2022  ' + c.sec.title + ': ' + (c.n ? c.n + (c.n === 1 ? ' question' : ' questions') + ' with written answers' : c.bothNo ? 'both answered No' : 'no written answers'), F.a, BODY, W - 14, 0, L + 4)
       })
       y += 12
       paragraph(
@@ -734,35 +753,52 @@
         return { p: p, i: k }
       })
       var g = sec.gate
+      var items = sec.items
+      // Questions left blank by the one person who answered Yes, when the other answered No: listed once, not as
+      // a column of "Not answered" under someone who was never asked them.
+      var blank = []
       if (g) {
         var gm = combined ? gateMark(g, pair) : ''
         var line = g.ask + '  ' + pair.map(function (p, k) { return (combined ? names[k] + ': ' : '') + yesNo(p.answers[g.key]) + '.' }).join('  ')
+        var no = g.hides ? who.filter(function (w) { return w.p.answers[g.key] === 'no' }) : []
+        var yes = who.filter(function (w) { return no.indexOf(w) === -1 })
+        var noLine = no.map(function (w) { return (combined ? names[w.i] + ': ' : '') + g.noLine + '.' }).join('  ')
+        // A section a No closes is a few lines and its notes: kept on one page together.
+        if (!yes.length) ensure(heightOf(line, F.q, W) + (gm ? 14 : 0) + 8 + heightOf(noLine, F.pick, W, 6) + NOTES_H)
         paragraph(line, F.q, INK, W, 0)
         if (gm) badge(gm)
         y += 8
-        if (g.hides) {
-          var no = who.filter(function (w) { return w.p.answers[g.key] === 'no' })
-          var yes = who.filter(function (w) { return w.p.answers[g.key] !== 'no' })
-          if (no.length) {
-            paragraph(no.map(function (w) { return (combined ? names[w.i] + ': ' : '') + g.noLine + '.' }).join('  '), F.pick, BODY, W, 6)
-          }
-          if (!yes.length) {
-            notes()
-            return
-          }
-          if (no.length) {
-            paragraph('Only ' + names[yes[0].i] + ' answered the questions below.', F.small, MUTED, W, 6)
-          }
+        if (no.length) paragraph(noLine, F.pick, BODY, W, 6)
+        if (!yes.length) {
+          notes()
+          return
+        }
+        if (no.length) {
           who = yes
+          items = sec.items.filter(function (it) {
+            if (touchedBy(it, who)) return true
+            blank.push(it)
+            return false
+          })
+          if (items.length) paragraph('Only ' + names[who[0].i] + ' answered the questions below.', F.small, MUTED, W, 6)
         }
       }
-      sec.items.forEach(function (it) {
-        var touched = who.some(function (w) {
-          var a = w.p.answers
-          return (it.textKey && answerText(a[it.textKey])) || (it.choice && a[it.choice.key]) || (it.num && squash(a[it.num.key]))
-        })
-        question(it, who, combined && who.length === 2 && touched ? itemMark(it, pair) : '')
+      items.forEach(function (it, k) {
+        var last = k === items.length - 1 && !blank.length
+        question(it, who, combined && who.length === 2 && touchedBy(it, who) ? itemMark(it, pair) : '', last ? NOTES_H : 0)
       })
+      if (blank.length) {
+        var head = names[who[0].i] + (items.length ? ' left these blank:' : ' answered Yes and left these questions blank:')
+        var listed = blank.map(function (it) { return it.number + '.  ' + it.text })
+        // The heading goes with the first question it lists, and the last question with the notes.
+        ensure(heightOf(head, F.small, W, 4) + heightOf(listed[0], F.a, W - 20, 3) + (listed.length === 1 ? 12 + NOTES_H : 0))
+        paragraph(head, F.small, MUTED, W, 4)
+        listed.forEach(function (t, k) {
+          if (k > 0 && k === listed.length - 1) ensure(heightOf(t, F.a, W - 20, 3) + 12 + NOTES_H)
+          paragraph(t, F.a, BODY, W - 20, 3, L + 20)
+        })
+        y += 12
+      }
       notes()
     })
 

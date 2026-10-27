@@ -280,6 +280,28 @@ describe('Finish and share', () => {
     expect(stored().finished).toBe('2026-10-27')
   })
 
+  it('says Copied on the button when the link is copied, then goes back to Copy the link', async () => {
+    await finishAs('1', 'Amina', () => type('a-q1a', 'Gold.'))
+    const button = $<HTMLButtonElement>('[data-copy-link]')
+    expect(button.textContent).toBe('Copied')
+    expect(button.classList.contains('is-copied')).toBe(true)
+    expect(text('.share-status')).toBe('Copied. Paste the link into a message to your partner.')
+    vi.advanceTimersByTime(2600)
+    expect(button.textContent).toBe('Copy the link')
+    expect(button.classList.contains('is-copied')).toBe(false)
+  })
+
+  it('shows the link to copy by hand where the browser cannot copy it', async () => {
+    await finishAs('1', 'Amina', () => type('a-q1a', 'Gold.'))
+    vi.advanceTimersByTime(2600)
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined })
+    ;(document as unknown as { execCommand: () => boolean }).execCommand = () => false
+    press('[data-copy-link]')
+    expect($<HTMLTextAreaElement>('textarea.link-out').value).toMatch(/#a=1j\./)
+    expect(text('.share-status')).toBe('Copy the link below and send it to your partner.')
+    expect($('[data-copy-link]').textContent).toBe('Copy the link')
+  })
+
   it('says the link is out of date when an answer changes after Finish', async () => {
     await finishAs('1', 'Amina', () => type('a-q1a', 'Gold.'))
     type('a-q1b', 'My mother.')
