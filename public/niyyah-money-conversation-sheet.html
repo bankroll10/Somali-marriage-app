@@ -157,14 +157,157 @@
         color: var(--ink);
       }
 
-      .cols {
-        display: flex;
-        gap: 1rem;
+      /* Each answer box says what it is for, small, above the box. */
+      .answer-label {
+        margin-top: 0.4rem;
       }
 
-      .cols > div {
-        flex: 1 1 0;
+      .hint {
+        margin: 0.25rem 0 0;
+        font-size: 0.85rem;
+        color: #4a564f;
+      }
+
+      /* Choices and Yes / No: big rows that are easy to tap on a phone. */
+      fieldset {
+        margin: 0;
+        padding: 0;
+        border: 0;
         min-width: 0;
+      }
+
+      fieldset legend {
+        padding: 0;
+      }
+
+      .options,
+      .toggle {
+        display: grid;
+        gap: 0.4rem;
+        margin-top: 0.4rem;
+      }
+
+      .toggle {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        max-width: 24rem;
+      }
+
+      .option {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        min-height: 2.75rem;
+        margin: 0;
+        padding: 0.5rem 0.75rem;
+        font-size: 1rem;
+        letter-spacing: 0;
+        text-transform: none;
+        color: var(--body);
+        background: #fff;
+        border: 1px solid var(--rule);
+        border-radius: 0.35rem;
+        cursor: pointer;
+      }
+
+      .option input {
+        width: 1.15rem;
+        height: 1.15rem;
+        margin: 0;
+        flex: none;
+        accent-color: var(--ink);
+      }
+
+      .option:has(input:checked) {
+        border-color: var(--ink);
+        box-shadow: inset 0 0 0 1px var(--ink);
+      }
+
+      .gate,
+      .ask-block {
+        margin: 0 0 1.5rem;
+        padding: 0.85rem 1rem;
+        background: #f5f3ec;
+        border-radius: 0.35rem;
+      }
+
+      .gate legend,
+      .ask-block legend {
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      .extra {
+        margin: 0.25rem 0 0.4rem;
+      }
+
+      .extra legend {
+        font-size: 0.8rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #4a564f;
+      }
+
+      .extra input[type='text'] {
+        max-width: 16rem;
+      }
+
+      .setup,
+      .finish,
+      .partner {
+        margin: 1.5rem 0 0;
+        max-width: 40rem;
+      }
+
+      .setup h2,
+      .finish h2,
+      .partner h2 {
+        margin-bottom: 0.5rem;
+      }
+
+      .finish,
+      .partner {
+        margin-top: 2.5rem;
+        padding-top: 1.25rem;
+        border-top: 2px solid var(--ink);
+      }
+
+      .share-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .file-button {
+        display: inline-flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .file-button input {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .qr {
+        display: block;
+        width: 14rem;
+        height: 14rem;
+        image-rendering: pixelated;
+        background: #fff;
+      }
+
+      .howto-note {
+        margin: 0.3rem 0 0;
+        font-size: 0.9rem;
+        color: #4a564f;
+      }
+
+      .pdf-button[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
       }
 
       textarea {
@@ -371,21 +514,8 @@
 
       /* One column on a phone, and nothing that scrolls sideways. */
       @media (max-width: 700px) {
-        .cols {
-          display: block;
-        }
-
-        .cols > div + div {
-          margin-top: 0.85rem;
-        }
-
-        /* Stacked, each box says whose it is: the name (or Person A, Person B) above it. */
-        .cols label {
-          font-size: 0.9rem;
-          font-weight: 600;
-          letter-spacing: 0;
-          text-transform: none;
-          color: var(--ink);
+        .who > div {
+          flex-basis: 100%;
         }
       }
 
@@ -497,6 +627,39 @@
           display: none;
         }
 
+        /* On paper a choice is a box to tick, and the Yes / No sits on one line. */
+        .option {
+          min-height: 0;
+          padding: 0.5mm 2mm;
+          border: 0;
+          background: transparent;
+        }
+
+        .options,
+        .toggle {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1mm 4mm;
+          margin-top: 1mm;
+        }
+
+        .gate,
+        .ask-block {
+          margin-bottom: 3mm;
+          padding: 2mm 3mm;
+          background: transparent;
+          border: 0.75pt solid #000;
+        }
+
+        .extra input[type='text'] {
+          height: 8mm;
+          min-height: 8mm;
+        }
+
+        .hint {
+          display: none;
+        }
+
         ol.qs > li {
           margin-bottom: 2mm;
         }
@@ -541,7 +704,8 @@
         <h1>The money conversation</h1>
         <p class="lede">
           A sheet for two adults considering marriage, to work through before the
-          families discuss numbers. Each of you answers in your own column.
+          families discuss numbers. Each of you answers on your own phone, and
+          neither sees the other’s answers until you have both finished.
         </p>
         <p class="lede">
           The four subjects are kept apart on purpose. Mahr is not the wedding.
@@ -577,38 +741,43 @@
         <aside class="howto screen-only" aria-labelledby="howto-h">
           <h2 id="howto-h">How to use this</h2>
           <ol>
-            <li>Put your real names in the two name fields below. The columns then show your names instead of Person A and Person B.</li>
-            <li>Each of you answers your own column, in your own words.</li>
-            <li>It takes about 30 to 40 minutes. You can skip any question.</li>
-            <li>Then tap Download PDF and bring it to your session with the imam.</li>
+            <li>Each of you opens this page on your own phone and chooses Person 1 or Person 2. It does not matter who is which.</li>
+            <li>Answer on your own, without showing each other. It takes about 30 to 40 minutes, and you can skip any question.</li>
+            <li>Tap Finish at the end. Send the link it gives you to your partner by text, or save the file and send that.</li>
+            <li>When your partner’s link or file arrives, open it on this page. You get one PDF with both of your answers side by side, and a first page listing what to talk about.</li>
+            <li>Bring that PDF to your session with the imam.</li>
           </ol>
+          <p class="howto-note">Sharing one phone? The first person taps Finish, saves the file, then taps Clear my answers so the second person can start.</p>
         </aside>
 
         <p class="note screen-only">
           Also: <a href="niyyah-money-conversation-sheet-1page.html">the one-page version</a>, to print a blank copy and write on it by hand, and <a href="niyyah-money-conversation-sheet-so.html">in Somali</a>.
         </p>
 
-        <div class="who">
-          <div>
-            <label for="name-a">Person A’s name</label>
-            <input id="name-a" type="text" autocomplete="off" />
+        <div class="setup" role="group" aria-labelledby="who-h">
+          <h2 id="who-h">Who is filling this in?</h2>
+          <fieldset class="role">
+            <legend>Choose one. Your partner chooses the other.</legend>
+            <div class="toggle">
+              <label class="option"><input type="radio" name="role" value="1" data-key="role" /> I am Person 1</label>
+              <label class="option"><input type="radio" name="role" value="2" data-key="role" /> I am Person 2</label>
+            </div>
+          </fieldset>
+          <div class="who">
+            <div>
+              <label for="my-name">Your first name</label>
+              <input id="my-name" data-key="name" type="text" autocomplete="off" />
+            </div>
+            <div>
+              <label for="sheet-date">Session date</label>
+              <input id="sheet-date" data-key="date" type="date" autocomplete="off" />
+            </div>
           </div>
-          <div>
-            <label for="name-b">Person B’s name</label>
-            <input id="name-b" type="text" autocomplete="off" />
-          </div>
-          <div>
-            <label for="sheet-date">Session date</label>
-            <input id="sheet-date" type="date" autocomplete="off" />
-          </div>
-        </div>
-        <p class="note screen-only">
-          Names and the date are optional. They are printed at the top of the
-          PDF, and the names go on the columns.
-        </p>
-        <div class="pdf-actions screen-only" hidden>
-          <button type="button" class="pdf-button" data-pdf-button>Download PDF</button>
-          <p class="pdf-status" role="status" aria-live="polite"></p>
+          <p class="note screen-only">
+            Your name and the date are optional. They are printed on the PDF, and
+            your name goes above your answers.
+          </p>
+          <p class="arrived" role="status" aria-live="polite" hidden></p>
         </div>
 
         <nav class="jump screen-only" aria-label="Sections">
@@ -618,6 +787,7 @@
             <li><a href="#s2-h">2. The wedding</a></li>
             <li><a href="#s3-h">3. Debt</a></li>
             <li><a href="#s4-h">4. Family obligations</a></li>
+            <li><a href="#finish-h">Finish and share</a></li>
           </ol>
         </nav>
       </header>
@@ -627,48 +797,56 @@
         <p class="section-of">Section 1 of 4</p>
         <h2 id="s1-h">1. Mahr</h2>
         <p class="framing">
-          This section is about mahr only — what each of you expects, and who has
-          heard that expectation so far.
+          This section is about mahr only — what each of you expects, and who has heard that expectation so far.
         </p>
-
+        <fieldset class="gate" data-kind="gate" data-key="g1" data-short="Mahr amount discussed">
+          <legend>Have the two of you discussed the mahr amount yet?</legend>
+          <div class="toggle">
+            <label class="option"><input type="radio" name="g1" value="yes" data-key="g1" /> Yes</label>
+            <label class="option"><input type="radio" name="g1" value="no" data-key="g1" /> No</label>
+          </div>
+        </fieldset>
         <ol class="qs">
-          <li>
+          <li class="qitem" data-q="q1a">
             <p class="q" id="q1a">What do you expect the mahr to be? Write it in your own words, in whatever form you expect it.</p>
-            <div class="cols">
-              <div><label for="q1a-a">Person A</label><textarea id="q1a-a" rows="2" aria-describedby="q1a" autocomplete="off"></textarea></div>
-              <div><label for="q1a-b">Person B</label><textarea id="q1a-b" rows="2" aria-describedby="q1a" autocomplete="off"></textarea></div>
+            <label class="answer-label" for="a-q1a">In your own words</label>
+            <textarea id="a-q1a" data-key="q1a" rows="2" aria-describedby="q1a" autocomplete="off"></textarea>
+            <div class="extra" data-kind="number" data-key="n-q1a" data-short="Mahr amount">
+              <label for="n-q1a">If it is money: the amount, as a number</label>
+              <input id="n-q1a" data-key="n-q1a" type="text" inputmode="decimal" autocomplete="off" />
+              <p class="hint">Digits only. Use the same currency as your partner.</p>
             </div>
           </li>
-          <li>
+          <li class="qitem" data-q="q1b">
             <p class="q" id="q1b">Who have you said that to so far — your partner, your own family, anyone else?</p>
-            <div class="cols">
-              <div><label for="q1b-a">Person A</label><textarea id="q1b-a" rows="2" aria-describedby="q1b" autocomplete="off"></textarea></div>
-              <div><label for="q1b-b">Person B</label><textarea id="q1b-b" rows="2" aria-describedby="q1b" autocomplete="off"></textarea></div>
-            </div>
+            <label class="answer-label" for="a-q1b">Your answer</label>
+            <textarea id="a-q1b" data-key="q1b" rows="2" aria-describedby="q1b" autocomplete="off"></textarea>
           </li>
-          <li>
+          <li class="qitem" data-q="q1c">
             <p class="q" id="q1c">How much of it do you expect at the nikah, and how much deferred?</p>
-            <div class="cols">
-              <div><label for="q1c-a">Person A</label><textarea id="q1c-a" rows="2" aria-describedby="q1c" autocomplete="off"></textarea></div>
-              <div><label for="q1c-b">Person B</label><textarea id="q1c-b" rows="2" aria-describedby="q1c" autocomplete="off"></textarea></div>
-            </div>
+            <fieldset class="extra" data-kind="choice" data-key="c-q1c" data-short="Mahr at the nikah or deferred">
+              <legend>Choose the closest</legend>
+              <div class="options">
+                <label class="option"><input type="radio" name="c-q1c" value="all-now" data-key="c-q1c" /> All at the nikah</label>
+                <label class="option"><input type="radio" name="c-q1c" value="part" data-key="c-q1c" /> Part at the nikah, part deferred</label>
+                <label class="option"><input type="radio" name="c-q1c" value="all-later" data-key="c-q1c" /> All deferred</label>
+                <label class="option"><input type="radio" name="c-q1c" value="unsure" data-key="c-q1c" /> Not sure yet</label>
+              </div>
+            </fieldset>
+            <label class="answer-label" for="a-q1c">In your own words</label>
+            <textarea id="a-q1c" data-key="q1c" rows="2" aria-describedby="q1c" autocomplete="off"></textarea>
           </li>
-          <li>
+          <li class="qitem" data-q="q1d">
             <p class="q" id="q1d">If your family names something different from what you just wrote, what would you want to happen next?</p>
-            <div class="cols">
-              <div><label for="q1d-a">Person A</label><textarea id="q1d-a" rows="2" aria-describedby="q1d" autocomplete="off"></textarea></div>
-              <div><label for="q1d-b">Person B</label><textarea id="q1d-b" rows="2" aria-describedby="q1d" autocomplete="off"></textarea></div>
-            </div>
+            <label class="answer-label" for="a-q1d">Your answer</label>
+            <textarea id="a-q1d" data-key="q1d" rows="2" aria-describedby="q1d" autocomplete="off"></textarea>
           </li>
-          <li>
+          <li class="qitem" data-q="q1e">
             <p class="q" id="q1e">Who speaks for you when that conversation happens, and have you asked them?</p>
-            <div class="cols">
-              <div><label for="q1e-a">Person A</label><textarea id="q1e-a" rows="2" aria-describedby="q1e" autocomplete="off"></textarea></div>
-              <div><label for="q1e-b">Person B</label><textarea id="q1e-b" rows="2" aria-describedby="q1e" autocomplete="off"></textarea></div>
-            </div>
+            <label class="answer-label" for="a-q1e">Your answer</label>
+            <textarea id="a-q1e" data-key="q1e" rows="2" aria-describedby="q1e" autocomplete="off"></textarea>
           </li>
         </ol>
-
 
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
@@ -678,49 +856,50 @@
         <p class="section-of">Section 2 of 4</p>
         <h2 id="s2-h">2. The wedding — one-time expenses</h2>
         <p class="framing">
-          This section is about the one-time cost of the wedding itself — the
-          nikah, the walima, and whatever either side expects around them. It is
-          separate from mahr.
+          This section is about the one-time cost of the wedding itself — the nikah, the walima, and whatever either side expects around them. It is separate from mahr.
         </p>
-
+        <fieldset class="ask-block" data-kind="choice" data-key="c-pay" data-short="Who pays for most of the wedding">
+          <legend>Who do you expect to pay for most of the wedding?</legend>
+          <div class="options">
+            <label class="option"><input type="radio" name="c-pay" value="me" data-key="c-pay" /> Me</label>
+            <label class="option"><input type="radio" name="c-pay" value="partner" data-key="c-pay" /> My partner</label>
+            <label class="option"><input type="radio" name="c-pay" value="both" data-key="c-pay" /> Both of us together</label>
+            <label class="option"><input type="radio" name="c-pay" value="families" data-key="c-pay" /> Our families</label>
+            <label class="option"><input type="radio" name="c-pay" value="unsure" data-key="c-pay" /> Not sure yet</label>
+          </div>
+        </fieldset>
         <ol class="qs">
-          <li>
+          <li class="qitem" data-q="q2a">
             <p class="q" id="q2a">Which parts of the wedding do you expect to pay for yourself?</p>
-            <div class="cols">
-              <div><label for="q2a-a">Person A</label><textarea id="q2a-a" rows="2" aria-describedby="q2a" autocomplete="off"></textarea></div>
-              <div><label for="q2a-b">Person B</label><textarea id="q2a-b" rows="2" aria-describedby="q2a" autocomplete="off"></textarea></div>
-            </div>
+            <label class="answer-label" for="a-q2a">Your answer</label>
+            <textarea id="a-q2a" data-key="q2a" rows="2" aria-describedby="q2a" autocomplete="off"></textarea>
           </li>
-          <li>
+          <li class="qitem" data-q="q2b">
             <p class="q" id="q2b">Which parts do you expect someone else to pay for, and have you asked them?</p>
-            <div class="cols">
-              <div><label for="q2b-a">Person A</label><textarea id="q2b-a" rows="2" aria-describedby="q2b" autocomplete="off"></textarea></div>
-              <div><label for="q2b-b">Person B</label><textarea id="q2b-b" rows="2" aria-describedby="q2b" autocomplete="off"></textarea></div>
-            </div>
+            <label class="answer-label" for="a-q2b">Your answer</label>
+            <textarea id="a-q2b" data-key="q2b" rows="2" aria-describedby="q2b" autocomplete="off"></textarea>
           </li>
-          <li>
+          <li class="qitem" data-q="q2c">
             <p class="q" id="q2c">Of the people who would be there, how many are there because of you?</p>
-            <div class="cols">
-              <div><label for="q2c-a">Person A</label><textarea id="q2c-a" rows="2" aria-describedby="q2c" autocomplete="off"></textarea></div>
-              <div><label for="q2c-b">Person B</label><textarea id="q2c-b" rows="2" aria-describedby="q2c" autocomplete="off"></textarea></div>
-            </div>
+            <label class="answer-label" for="a-q2c">Your answer</label>
+            <textarea id="a-q2c" data-key="q2c" rows="2" aria-describedby="q2c" autocomplete="off"></textarea>
           </li>
-          <li>
+          <li class="qitem" data-q="q2d">
             <p class="q" id="q2d">What is the most you are willing to spend in total? Write your own ceiling, not a guess at what it will cost.</p>
-            <div class="cols">
-              <div><label for="q2d-a">Person A</label><textarea id="q2d-a" rows="2" aria-describedby="q2d" autocomplete="off"></textarea></div>
-              <div><label for="q2d-b">Person B</label><textarea id="q2d-b" rows="2" aria-describedby="q2d" autocomplete="off"></textarea></div>
+            <div class="extra" data-kind="number" data-key="n-q2d" data-short="Most to spend on the wedding">
+              <label for="n-q2d">The most you would spend, as a number</label>
+              <input id="n-q2d" data-key="n-q2d" type="text" inputmode="decimal" autocomplete="off" />
+              <p class="hint">Digits only. Use the same currency as your partner.</p>
             </div>
+            <label class="answer-label" for="a-q2d">In your own words</label>
+            <textarea id="a-q2d" data-key="q2d" rows="2" aria-describedby="q2d" autocomplete="off"></textarea>
           </li>
-          <li>
+          <li class="qitem" data-q="q2e">
             <p class="q" id="q2e">If the cost goes past that ceiling, what is the first thing you would cut — and what would you cut last?</p>
-            <div class="cols">
-              <div><label for="q2e-a">Person A</label><textarea id="q2e-a" rows="2" aria-describedby="q2e" autocomplete="off"></textarea></div>
-              <div><label for="q2e-b">Person B</label><textarea id="q2e-b" rows="2" aria-describedby="q2e" autocomplete="off"></textarea></div>
-            </div>
+            <label class="answer-label" for="a-q2e">Your answer</label>
+            <textarea id="a-q2e" data-key="q2e" rows="2" aria-describedby="q2e" autocomplete="off"></textarea>
           </li>
         </ol>
-
 
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
@@ -730,48 +909,52 @@
         <p class="section-of">Section 3 of 4</p>
         <h2 id="s3-h">3. Debt either of you already carries</h2>
         <p class="framing">
-          This section is about money either of you already owes, from before
-          anything about this marriage was decided.
+          This section is about money either of you already owes, from before anything about this marriage was decided.
         </p>
-
-        <ol class="qs">
-          <li>
-            <p class="q" id="q3a">What do you owe right now, and to whom? Include anything that has someone else’s name on it.</p>
-            <div class="cols">
-              <div><label for="q3a-a">Person A</label><textarea id="q3a-a" rows="2" aria-describedby="q3a" autocomplete="off"></textarea></div>
-              <div><label for="q3a-b">Person B</label><textarea id="q3a-b" rows="2" aria-describedby="q3a" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-          <li>
-            <p class="q" id="q3b">What are you paying toward it each month, and how long is left?</p>
-            <div class="cols">
-              <div><label for="q3b-a">Person A</label><textarea id="q3b-a" rows="2" aria-describedby="q3b" autocomplete="off"></textarea></div>
-              <div><label for="q3b-b">Person B</label><textarea id="q3b-b" rows="2" aria-describedby="q3b" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-          <li>
-            <p class="q" id="q3c">Who already knows about it — your partner, your own family, your partner’s family?</p>
-            <div class="cols">
-              <div><label for="q3c-a">Person A</label><textarea id="q3c-a" rows="2" aria-describedby="q3c" autocomplete="off"></textarea></div>
-              <div><label for="q3c-b">Person B</label><textarea id="q3c-b" rows="2" aria-describedby="q3c" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-          <li>
-            <p class="q" id="q3d">After the marriage, do you expect this to stay yours, or to be something you both handle?</p>
-            <div class="cols">
-              <div><label for="q3d-a">Person A</label><textarea id="q3d-a" rows="2" aria-describedby="q3d" autocomplete="off"></textarea></div>
-              <div><label for="q3d-b">Person B</label><textarea id="q3d-b" rows="2" aria-describedby="q3d" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-          <li>
-            <p class="q" id="q3e">Is there anything here you would want settled before the nikah rather than after?</p>
-            <div class="cols">
-              <div><label for="q3e-a">Person A</label><textarea id="q3e-a" rows="2" aria-describedby="q3e" autocomplete="off"></textarea></div>
-              <div><label for="q3e-b">Person B</label><textarea id="q3e-b" rows="2" aria-describedby="q3e" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-        </ol>
-
+        <fieldset class="gate" data-kind="gate" data-key="g3" data-short="Has debts" data-hides="true" data-no-line="No debts">
+          <legend>Do you have any debts right now?</legend>
+          <div class="toggle">
+            <label class="option"><input type="radio" name="g3" value="yes" data-key="g3" /> Yes</label>
+            <label class="option"><input type="radio" name="g3" value="no" data-key="g3" /> No</label>
+          </div>
+        </fieldset>
+        <div class="follow" data-follows="g3">
+          <ol class="qs">
+            <li class="qitem" data-q="q3a">
+              <p class="q" id="q3a">What do you owe right now, and to whom? Include anything that has someone else’s name on it.</p>
+              <label class="answer-label" for="a-q3a">Your answer</label>
+              <textarea id="a-q3a" data-key="q3a" rows="2" aria-describedby="q3a" autocomplete="off"></textarea>
+            </li>
+            <li class="qitem" data-q="q3b">
+              <p class="q" id="q3b">What are you paying toward it each month, and how long is left?</p>
+              <label class="answer-label" for="a-q3b">Your answer</label>
+              <textarea id="a-q3b" data-key="q3b" rows="2" aria-describedby="q3b" autocomplete="off"></textarea>
+            </li>
+            <li class="qitem" data-q="q3c">
+              <p class="q" id="q3c">Who already knows about it — your partner, your own family, your partner’s family?</p>
+              <label class="answer-label" for="a-q3c">Your answer</label>
+              <textarea id="a-q3c" data-key="q3c" rows="2" aria-describedby="q3c" autocomplete="off"></textarea>
+            </li>
+            <li class="qitem" data-q="q3d">
+              <p class="q" id="q3d">After the marriage, do you expect this to stay yours, or to be something you both handle?</p>
+              <fieldset class="extra" data-kind="choice" data-key="c-q3d" data-short="Debt after the marriage">
+                <legend>Choose the closest</legend>
+                <div class="options">
+                  <label class="option"><input type="radio" name="c-q3d" value="mine" data-key="c-q3d" /> Stays mine to pay</label>
+                  <label class="option"><input type="radio" name="c-q3d" value="both" data-key="c-q3d" /> Something we both handle</label>
+                  <label class="option"><input type="radio" name="c-q3d" value="unsure" data-key="c-q3d" /> Not sure yet</label>
+                </div>
+              </fieldset>
+              <label class="answer-label" for="a-q3d">In your own words</label>
+              <textarea id="a-q3d" data-key="q3d" rows="2" aria-describedby="q3d" autocomplete="off"></textarea>
+            </li>
+            <li class="qitem" data-q="q3e">
+              <p class="q" id="q3e">Is there anything here you would want settled before the nikah rather than after?</p>
+              <label class="answer-label" for="a-q3e">Your answer</label>
+              <textarea id="a-q3e" data-key="q3e" rows="2" aria-describedby="q3e" autocomplete="off"></textarea>
+            </li>
+          </ol>
+        </div>
 
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
@@ -781,55 +964,103 @@
         <p class="section-of">Section 4 of 4</p>
         <h2 id="s4-h">4. Ongoing obligations to family</h2>
         <p class="framing">
-          This section is about money that leaves your account regularly for
-          people outside this marriage — parents, siblings, relatives here or
-          abroad.
+          This section is about money that leaves your account regularly for people outside this marriage — parents, siblings, relatives here or abroad.
         </p>
-
-        <ol class="qs">
-          <li>
-            <p class="q" id="q4a">Who do you send money to now, and how often?</p>
-            <div class="cols">
-              <div><label for="q4a-a">Person A</label><textarea id="q4a-a" rows="2" aria-describedby="q4a" autocomplete="off"></textarea></div>
-              <div><label for="q4a-b">Person B</label><textarea id="q4a-b" rows="2" aria-describedby="q4a" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-          <li>
-            <p class="q" id="q4b">What does that come to, against what you earn?</p>
-            <div class="cols">
-              <div><label for="q4b-a">Person A</label><textarea id="q4b-a" rows="2" aria-describedby="q4b" autocomplete="off"></textarea></div>
-              <div><label for="q4b-b">Person B</label><textarea id="q4b-b" rows="2" aria-describedby="q4b" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-          <li>
-            <p class="q" id="q4c">Is the amount fixed, or does it change when something happens?</p>
-            <div class="cols">
-              <div><label for="q4c-a">Person A</label><textarea id="q4c-a" rows="2" aria-describedby="q4c" autocomplete="off"></textarea></div>
-              <div><label for="q4c-b">Person B</label><textarea id="q4c-b" rows="2" aria-describedby="q4c" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-          <li>
-            <p class="q" id="q4d">Who knows what you send — your partner, your own family, the people you send it to?</p>
-            <div class="cols">
-              <div><label for="q4d-a">Person A</label><textarea id="q4d-a" rows="2" aria-describedby="q4d" autocomplete="off"></textarea></div>
-              <div><label for="q4d-b">Person B</label><textarea id="q4d-b" rows="2" aria-describedby="q4d" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-          <li>
-            <p class="q" id="q4e">After the marriage, do you expect this to stay the same, go up, or come down — and if yours and your partner’s are different sizes, how do you want that handled?</p>
-            <div class="cols">
-              <div><label for="q4e-a">Person A</label><textarea id="q4e-a" rows="2" aria-describedby="q4e" autocomplete="off"></textarea></div>
-              <div><label for="q4e-b">Person B</label><textarea id="q4e-b" rows="2" aria-describedby="q4e" autocomplete="off"></textarea></div>
-            </div>
-          </li>
-        </ol>
-
+        <fieldset class="gate" data-kind="gate" data-key="g4" data-short="Sends money to family" data-hides="true" data-no-line="Does not send money to family">
+          <legend>Do you send money to family regularly?</legend>
+          <div class="toggle">
+            <label class="option"><input type="radio" name="g4" value="yes" data-key="g4" /> Yes</label>
+            <label class="option"><input type="radio" name="g4" value="no" data-key="g4" /> No</label>
+          </div>
+        </fieldset>
+        <div class="follow" data-follows="g4">
+          <ol class="qs">
+            <li class="qitem" data-q="q4a">
+              <p class="q" id="q4a">Who do you send money to now, and how often?</p>
+              <label class="answer-label" for="a-q4a">Your answer</label>
+              <textarea id="a-q4a" data-key="q4a" rows="2" aria-describedby="q4a" autocomplete="off"></textarea>
+            </li>
+            <li class="qitem" data-q="q4b">
+              <p class="q" id="q4b">What does that come to, against what you earn?</p>
+              <label class="answer-label" for="a-q4b">Your answer</label>
+              <textarea id="a-q4b" data-key="q4b" rows="2" aria-describedby="q4b" autocomplete="off"></textarea>
+            </li>
+            <li class="qitem" data-q="q4c">
+              <p class="q" id="q4c">Is the amount fixed, or does it change when something happens?</p>
+              <label class="answer-label" for="a-q4c">Your answer</label>
+              <textarea id="a-q4c" data-key="q4c" rows="2" aria-describedby="q4c" autocomplete="off"></textarea>
+            </li>
+            <li class="qitem" data-q="q4d">
+              <p class="q" id="q4d">Who knows what you send — your partner, your own family, the people you send it to?</p>
+              <label class="answer-label" for="a-q4d">Your answer</label>
+              <textarea id="a-q4d" data-key="q4d" rows="2" aria-describedby="q4d" autocomplete="off"></textarea>
+            </li>
+            <li class="qitem" data-q="q4e">
+              <p class="q" id="q4e">After the marriage, do you expect this to stay the same, go up, or come down — and if yours and your partner’s are different sizes, how do you want that handled?</p>
+              <fieldset class="extra" data-kind="choice" data-key="c-q4e" data-short="Money to family after the marriage">
+                <legend>Choose the closest</legend>
+                <div class="options">
+                  <label class="option"><input type="radio" name="c-q4e" value="same" data-key="c-q4e" /> Stay the same</label>
+                  <label class="option"><input type="radio" name="c-q4e" value="up" data-key="c-q4e" /> Go up</label>
+                  <label class="option"><input type="radio" name="c-q4e" value="down" data-key="c-q4e" /> Come down</label>
+                  <label class="option"><input type="radio" name="c-q4e" value="unsure" data-key="c-q4e" /> Not sure yet</label>
+                </div>
+              </fieldset>
+              <label class="answer-label" for="a-q4e">In your own words</label>
+              <textarea id="a-q4e" data-key="q4e" rows="2" aria-describedby="q4e" autocomplete="off"></textarea>
+            </li>
+          </ol>
+        </div>
 
         <p class="print-footer">Niyyah — joinniyyah.com &nbsp;·&nbsp; v1.0 — 2026-09-20</p>
       </section>
 
-      <div class="pdf-actions screen-only" hidden>
-        <button type="button" class="pdf-button" data-pdf-button>Download PDF</button>
+      <div class="finish screen-only" id="finish" hidden>
+        <h2 id="finish-h">Finish and share</h2>
+        <p>
+          When you have answered what you want to, tap Finish. You get a link with
+          your answers to send to your partner, and a file you can send instead.
+          Your partner sees them only in the PDF you make together.
+        </p>
+        <p><button type="button" class="pdf-button" data-finish>Finish</button></p>
+        <p class="finish-status" role="status" aria-live="polite"></p>
+        <div class="share" hidden>
+          <p class="share-buttons">
+            <button type="button" class="quiet-button" data-share-link>Send the link</button>
+            <button type="button" class="quiet-button" data-copy-link>Copy the link</button>
+            <button type="button" class="quiet-button" data-save-file>Save as a file</button>
+          </p>
+          <p class="share-status" role="status" aria-live="polite"></p>
+          <div class="qr-box" hidden>
+            <p>Or your partner can point their phone camera at this code.</p>
+            <canvas class="qr" role="img" aria-label="QR code that opens this page with your answers"></canvas>
+          </div>
+          <p class="qr-note" hidden>Your answers are too long for a QR code. Send the link or the file instead.</p>
+          <p class="pdf-actions">
+            <button type="button" class="quiet-button" data-pdf-button data-pdf="mine">Download only my answers</button>
+          </p>
+          <p class="pdf-status" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <div class="partner screen-only" id="partner" hidden>
+        <h2 id="partner-h">Your partner’s answers</h2>
+        <p>
+          Paste the link your partner sent, or open their file. Their answers are
+          used only to make your combined PDF. They are not shown on this page and
+          not saved on this device: to make the PDF again later, open their link
+          or file again.
+        </p>
+        <label for="partner-code">Your partner’s link</label>
+        <textarea id="partner-code" rows="3" autocomplete="off" spellcheck="false"></textarea>
+        <p>
+          <button type="button" class="quiet-button" data-import>Add their answers</button>
+          <label class="quiet-button file-button">Open their file<input type="file" id="partner-file" accept=".json,application/json" /></label>
+        </p>
+        <p class="import-status" role="status" aria-live="polite"></p>
+        <p class="pdf-actions">
+          <button type="button" class="pdf-button" data-pdf-button data-pdf="combined" disabled>Download our combined PDF</button>
+        </p>
         <p class="pdf-status" role="status" aria-live="polite"></p>
       </div>
 
@@ -843,6 +1074,7 @@
       </footer>
     </main>
     <script src="niyyah-money-conversation-sheet.js" defer></script>
+    <script src="vendor/qrcode.js" defer></script>
     <script src="vendor/jspdf.umd.min.js" defer></script>
     <script src="niyyah-money-conversation-sheet-pdf.js" defer></script>
   </body>

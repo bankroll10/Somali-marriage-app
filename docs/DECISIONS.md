@@ -4657,3 +4657,47 @@ is opened: a copy on a device where the sheet is never opened again stays in tha
 deciding" are removed from the end of every section of this sheet, on the page and in its Download PDF, along with the how-to line
 that pointed to them. What anyone had typed in them is no longer shown or put in the PDF, and is dropped from this device on the next
 save. The one-page and Somali sheets, the `.txt` version and the printable `niyyah-money-conversation-sheet.pdf` keep their boxes.
+
+## The money conversation sheet, filled blind by each of you (2026-10-27)
+
+**Decision.** At the imam's request, `public/niyyah-money-conversation-sheet.html` stops being one page with two columns. Each
+person opens it on their own phone, says whether they are Person 1 or Person 2, and answers the same questions alone; neither
+sees the other's answers on the page. **Finish** makes a link to the sheet with that person's answers after the `#`
+(`#a=1z.` and the answers deflated and base64url-encoded, or `#a=1j.` uncompressed where the browser cannot compress), a QR code
+of it when the link is short enough to scan (up to 1,100 characters), and a small `.json` file. They send the link or file to
+their partner by text. Opening the partner's link (or pasting it, or choosing the file) adds the partner's answers, and the
+combined PDF can be downloaded once your own are finished. Each person can also download only their own answers.
+
+**No server, still.** The part of a link after `#` is never sent to a server by the browser, and the page removes it from the
+address bar as soon as it has read it. A partner's answers are kept only while the page is open: never saved, never shown on the
+page (the page says only that they arrived and whose they are), gone on a reload or Clear my answers. What is read is checked
+strictly: only this sheet's format and version, Person 1 or 2, only keys the sheet asks, only text up to 6,000 characters a
+field, a name up to 60 and a date only if it is a date. Your own answers keep the same key, `niyyah.moneysheet.v1`, now as
+`{v: 2, at, finished, fields}`, with the 14-day removal, Clear my answers and Forget me as before. Answers kept by the two-column
+sheet are brought over for whichever person this turns out to be, once Person 1 or 2 is chosen.
+
+**What is asked.** The twenty open questions are unchanged, word for word, so the one-page and `.txt` versions still match.
+Added, only where both people state an expectation that can be compared without guessing: three yes or no questions (has the mahr
+amount been discussed; any debts now; money sent to family regularly), a mahr amount and a wedding budget as numbers, and four
+"choose the closest" questions (mahr at the nikah or deferred; who pays for most of the wedding; debt after the marriage; money to
+family after the marriage). Every one has "Not sure yet" where it fits, and nothing is preselected. A No on debts or on money to
+family hides the rest of that section; what was typed there stays on the device in case the answer changes back, but is not sent.
+The mahr question hides nothing, at the founder's choice. The "What we agree on" and "Still deciding" boxes are gone.
+
+**The marks.** The combined PDF opens with a page of what to talk about. The rules are printed on it: the same choice, or amounts
+within a tenth of each other, is **Likely agree**; a different choice, a "Not sure yet", or amounts further apart is **Talk about
+this**; a yes or no answered differently is Talk about this. "Me" from one and "My partner" from the other on who pays are the same
+answer. Anything written in a person's own words is never guessed at: it is listed as **Compare in session**, counted per section,
+and printed side by side. A section a No hid prints one line ("Omar: No debts.") and, if only one person answered it, says so. Each
+section ends with five lines headed "Notes from the session". Person 1 is always on the left, so both phones make the same file,
+`money-conversation-<Person 1>-<Person 2>-<date>.pdf`.
+
+**Libraries.** `public/vendor/qrcode.js` (qrcode-generator 2.0.4, MIT, licence beside it) draws the QR code on a canvas; jsPDF as
+before. Both scripts stay plain ASCII.
+
+**Checked.** `tests/sheet.test.ts`, `tests/sheet-page.test.ts` and `tests/sheet-pdf.test.ts` in happy-dom, whose streams do not
+settle, so those tests use the uncompressed link. The compressed link, the QR code (decoded back to the exact link), two phones at
+375 px exchanging links and a file, the hash being removed, nothing stored from the partner and no request leaving the page were
+checked in Chromium.
+
+**Unchanged.** The one-page, Somali and facilitator pages, and the `.txt` version.

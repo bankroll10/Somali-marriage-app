@@ -25,7 +25,7 @@ const QUESTIONS = [...HTML.matchAll(/<p class="q"[^>]*>([\s\S]*?)<\/p>/g)].map((
 const CSS = HTML.match(/<style>([\s\S]*?)<\/style>/)![1]
 
 describe('it opens from disk, with the network off', () => {
-  it('fetches nothing: no external font, stylesheet, image or frame, and no script but the three that run the page and the PDF button', () => {
+  it('fetches nothing: no external font, stylesheet, image or frame, and no script but the four that run the page, the QR code and the PDF', () => {
     for (const forbidden of ['<iframe', '<img', '<link ', '@import', 'srcset', 'url(', 'integrity=', 'crossorigin']) {
       expect(HTML, forbidden).not.toContain(forbidden)
     }
@@ -34,12 +34,12 @@ describe('it opens from disk, with the network off', () => {
     // All three are files on this site, named relative to the page, and nothing is written inline, so
     // what runs is exactly what those files contain and nothing is pulled from anywhere else.
     const scripts = [...HTML.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
-    expect(scripts.map((m) => m[1].match(/\ssrc="([^"]*)"/)?.[1])).toEqual(['niyyah-money-conversation-sheet.js', 'vendor/jspdf.umd.min.js', 'niyyah-money-conversation-sheet-pdf.js'])
+    expect(scripts.map((m) => m[1].match(/\ssrc="([^"]*)"/)?.[1])).toEqual(['niyyah-money-conversation-sheet.js', 'vendor/qrcode.js', 'vendor/jspdf.umd.min.js', 'niyyah-money-conversation-sheet-pdf.js'])
     for (const [, attrs, body] of scripts) {
       expect(body.trim(), 'no inline script').toBe('')
       expect(attrs).toContain('defer')
     }
-    expect(HTML.match(/\ssrc=/g)).toHaveLength(3)
+    expect(HTML.match(/\ssrc=/g)).toHaveLength(4)
   })
 
   it('carries exactly one absolute link, and it is the one address we own', () => {
@@ -102,10 +102,12 @@ describe('it opens from disk, with the network off', () => {
     const howto = flat(HTML.match(/<aside class="howto screen-only" aria-labelledby="howto-h">([\s\S]*?)<\/aside>/)![1].replace(/<[^>]+>/g, ' '))
     for (const line of [
       'How to use this',
-      'Put your real names in the two name fields below. The columns then show your names instead of Person A and Person B.',
-      'Each of you answers your own column, in your own words.',
-      'It takes about 30 to 40 minutes. You can skip any question.',
-      'Then tap Download PDF and bring it to your session with the imam.',
+      'Each of you opens this page on your own phone and chooses Person 1 or Person 2. It does not matter who is which.',
+      'Answer on your own, without showing each other. It takes about 30 to 40 minutes, and you can skip any question.',
+      'Tap Finish at the end. Send the link it gives you to your partner by text, or save the file and send that.',
+      "When your partner's link or file arrives, open it on this page. You get one PDF with both of your answers side by side, and a first page listing what to talk about.",
+      'Bring that PDF to your session with the imam.',
+      'Sharing one phone? The first person taps Finish, saves the file, then taps Clear my answers so the second person can start.',
     ]) {
       expect(howto, line).toContain(line)
     }
@@ -119,6 +121,7 @@ describe('it opens from disk, with the network off', () => {
       ['#s2-h', '2. The wedding'],
       ['#s3-h', '3. Debt'],
       ['#s4-h', '4. Family obligations'],
+      ['#finish-h', 'Finish and share'],
     ])
     for (const [href] of jumps) expect(HTML).toContain(`id="${href.slice(1)}"`)
     expect(HTML).toMatch(/<nav class="jump screen-only" aria-label="Sections">/)
@@ -132,7 +135,7 @@ describe('it opens from disk, with the network off', () => {
   })
 
   it('asks for the session date with a date picker', () => {
-    expect(HTML).toContain('<input id="sheet-date" type="date" autocomplete="off" />')
+    expect(HTML).toContain('<input id="sheet-date" data-key="date" type="date" autocomplete="off" />')
   })
 
   it('keeps the version and the disclaimer in a quiet footer', () => {
@@ -176,7 +179,7 @@ describe('the four subjects stay four subjects', () => {
   })
 
   it('asks five open questions per section, twenty in all', () => {
-    expect([...HTML.matchAll(/<ol class="qs">[\s\S]*?<\/ol>/g)].map((m) => (m[0].match(/<li>/g) ?? []).length)).toEqual([5, 5, 5, 5])
+    expect([...HTML.matchAll(/<ol class="qs">[\s\S]*?<\/ol>/g)].map((m) => (m[0].match(/<li class="qitem"/g) ?? []).length)).toEqual([5, 5, 5, 5])
     expect(QUESTIONS).toHaveLength(20)
     // A question, never an instruction. Four of them add a clarifier after
     // the question mark ("Write your own ceiling, not a guess") — the ask is
@@ -185,12 +188,72 @@ describe('the four subjects stay four subjects', () => {
     for (const q of QUESTIONS) expect(q, q).toMatch(/^(What|Who|Which|How|If|Is|After|Of)\b/)
   })
 
-  it('has no shared closing boxes (removed 2026-10-27, at the imam’s request), and nothing scored', () => {
+  it('has no closing boxes any more: the combined PDF’s first page lists what to talk about, and each subject ends with lines for notes', () => {
+    // Removed at the imam's request (2026-10-27): with two people answering apart, nobody fills a shared
+    // box. The PDF works out what lines up from the answers (tests/sheet-pdf.test.ts).
     expect(HTML).not.toContain('class="box"')
-    expect(HTML).not.toMatch(/What we agree on|still deciding|s\d-(agree|open)/)
+    expect(HTML).not.toContain('What we agree on')
+    expect(HTML).not.toContain('still deciding')
     for (const scored of ['score', 'Score', 'total out of', 'points', 'result']) {
       expect(HTML, scored).not.toContain(scored)
     }
+  })
+
+  it('asks three yes or no questions, and two of them hide their subject’s questions on a No', () => {
+    const gates = [...HTML.matchAll(/<fieldset class="gate" data-kind="gate" data-key="(g\d)" data-short="([^"]*)"( data-hides="true")?( data-no-line="([^"]*)")?>\s*<legend>([^<]*)<\/legend>/g)].map((m) => ({
+      key: m[1],
+      hides: !!m[3],
+      noLine: m[5] ?? '',
+      ask: m[6],
+    }))
+    expect(gates).toEqual([
+      // Mahr: a No hides nothing, because a couple who have not discussed it is who the sheet is for.
+      { key: 'g1', hides: false, noLine: '', ask: 'Have the two of you discussed the mahr amount yet?' },
+      { key: 'g3', hides: true, noLine: 'No debts', ask: 'Do you have any debts right now?' },
+      { key: 'g4', hides: true, noLine: 'Does not send money to family', ask: 'Do you send money to family regularly?' },
+    ])
+    // Each is a Yes and a No, nothing preselected, inside the section it belongs to.
+    for (const { key } of gates) {
+      expect(HTML.match(new RegExp(`name="${key}" value="(yes|no)"`, 'g'))).toHaveLength(2)
+      expect(HTML).not.toMatch(new RegExp(`name="${key}"[^>]*checked`))
+    }
+    // What a No hides is the rest of its own section, and only that.
+    for (const n of [3, 4]) {
+      const sec = HTML.match(new RegExp(`<section aria-labelledby="s${n}-h">[\\s\\S]*?</section>`))![0]
+      expect(sec).toMatch(new RegExp(`<div class="follow" data-follows="g${n}">\\s*<ol class="qs">`))
+    }
+  })
+
+  it('adds a choice or a number only where both people state an expectation, attached to the question that already asks it', () => {
+    const extra = (q: string) => HTML.match(new RegExp(`<li class="qitem" data-q="${q}">[\\s\\S]*?</li>`))![0]
+    expect(extra('q1a')).toContain('data-kind="number" data-key="n-q1a"')
+    expect(extra('q2d')).toContain('data-kind="number" data-key="n-q2d"')
+    expect(extra('q1c')).toMatch(/data-kind="choice" data-key="c-q1c"[\s\S]*All at the nikah[\s\S]*Part at the nikah, part deferred[\s\S]*All deferred[\s\S]*Not sure yet/)
+    expect(extra('q3d')).toMatch(/data-kind="choice" data-key="c-q3d"[\s\S]*Stays mine to pay[\s\S]*Something we both handle[\s\S]*Not sure yet/)
+    expect(extra('q4e')).toMatch(/data-kind="choice" data-key="c-q4e"[\s\S]*Stay the same[\s\S]*Go up[\s\S]*Come down[\s\S]*Not sure yet/)
+    // And one question of its own, before the wedding's five.
+    expect(HTML).toMatch(/<fieldset class="ask-block" data-kind="choice" data-key="c-pay"[^>]*>\s*<legend>Who do you expect to pay for most of the wedding\?<\/legend>/)
+    // Every choice offers Not sure yet, so nobody has to pretend to an answer.
+    for (const key of ['c-q1c', 'c-q3d', 'c-q4e', 'c-pay']) expect(HTML).toContain(`name="${key}" value="unsure"`)
+    // Nothing else: nine extra fields in all, three gates, four choices, two numbers.
+    expect(HTML.match(/data-kind="(gate|choice|number)"/g)).toHaveLength(9)
+  })
+
+  it('lets each person say who they are, and keeps the partner’s answers for the PDF only', () => {
+    expect(HTML).toMatch(/name="role" value="1" data-key="role" \/> I am Person 1/)
+    expect(HTML).toMatch(/name="role" value="2" data-key="role" \/> I am Person 2/)
+    const partner = flat(HTML.match(/<div class="partner screen-only" id="partner" hidden>([\s\S]*?)<\/div>\s*<footer>/)![1].replace(/<[^>]+>/g, ' '))
+    expect(partner).toContain("They are not shown on this page and not saved on this device")
+    // The partner's link box is not one of the answers: nothing marks it to be kept.
+    expect(HTML).toMatch(/<textarea id="partner-code" rows="3" autocomplete="off" spellcheck="false"><\/textarea>/)
+  })
+
+  it('uses no dash in any of its new words', () => {
+    for (const re of [/<aside class="howto[\s\S]*?<\/aside>/, /<div class="setup"[\s\S]*?<\/div>\s*<nav/, /<div class="finish[\s\S]*?<div class="partner/, /<div class="partner[\s\S]*?<footer>/]) {
+      const block = HTML.match(re)![0].replace(/<[^>]+>/g, ' ')
+      expect(block, String(re)).not.toMatch(/[\u2013\u2014]/)
+    }
+    for (const m of HTML.matchAll(/<(?:legend|label class="option"[^>]*)>([^<]*)</g)) expect(m[1]).not.toMatch(/[\u2013\u2014]/)
   })
 })
 
@@ -206,7 +269,7 @@ describe('what it refuses to say', () => {
     // the how-to says to bring the PDF to "your session with the imam". It names where the sheet goes,
     // not anyone's ruling, and it is the only mention.
     expect(BOTH.toLowerCase().match(/\bimam\b/g)).toHaveLength(1)
-    expect(BOTH).toContain('Then tap Download PDF and bring it to your session with the imam.')
+    expect(BOTH).toContain('Bring that PDF to your session with the imam.')
   })
 
   it('names no figure, range, average or benchmark', () => {
@@ -264,9 +327,11 @@ describe('the two versions ask the same twenty questions', () => {
   it('opens with the same lede in both, "numbers" not "involved"', () => {
     // The founder's own correction: the families are involved either way —
     // what this sheet is for is having the numbers settled before they are.
-    const lede = "A sheet for two adults considering marriage, to work through before the families discuss numbers. Each of you answers in your own column."
+    const lede = 'A sheet for two adults considering marriage, to work through before the families discuss numbers.'
     expect(flat(HTML)).toContain(lede)
     expect(flat(TXT)).toContain(lede)
+    // The second sentence says how this page is answered now; the pasteable text, a separate page, is unchanged.
+    expect(flat(HTML)).toContain("Each of you answers on your own phone, and neither sees the other's answers until you have both finished.")
     expect(flat(HTML)).not.toContain('families are involved')
   })
 })
@@ -306,9 +371,11 @@ describe('on paper', () => {
 })
 
 describe('on a phone, and to a screen reader', () => {
-  it('drops to one column below 700px, and nothing scrolls sideways', () => {
+  it('is one column for one person, with Yes and No large enough to tap, and nothing scrolls sideways', () => {
+    // One person a device: there are no side-by-side columns left to stack (checked at 375 px in a browser).
+    expect(HTML).not.toContain('class="cols"')
     expect(CSS).toContain('@media (max-width: 700px)')
-    expect(CSS).toMatch(/@media \(max-width: 700px\) \{[\s\S]*?\.cols \{\s*display: block/)
+    expect(CSS).toMatch(/\.option \{[^}]*min-height: 2\.75rem;/)
     expect(CSS).toContain('min-width: 0')
   })
 
@@ -318,20 +385,17 @@ describe('on a phone, and to a screen reader', () => {
   })
 
   it('labels every field for real, with no orphaned for= and no bare column', () => {
-    const fors = [...HTML.matchAll(/<label for="([^"]+)"/g)].map((m) => m[1])
+    const fors = [...HTML.matchAll(/<label[^>]*\sfor="([^"]+)"/g)].map((m) => m[1])
     const ids = new Set([...HTML.matchAll(/<(?:textarea|input)[^>]*\sid="([^"]+)"/g)].map((m) => m[1]))
-    expect(fors).toHaveLength(20 * 2 + 3) // questions, the two names and the date
+    expect(fors).toHaveLength(20 + 2 + 2 + 1) // an answer to each question, the two amounts, your name and the date, the partner's link
+    // Every Yes, No and choice is a real input inside its own label.
+    for (const m of HTML.matchAll(/<input type="radio"[^>]*>/g)) expect(HTML).toContain(`<label class="option">${m[0]}`)
     for (const f of fors) expect(ids, f).toContain(f)
     expect(new Set(fors).size).toBe(fors.length)
   })
 
-  it('labels the two columns without naming a gender or a role', () => {
-    // One per question. The name fields are "Person A’s name" and "Person B’s name", and once a name is
-    // typed the script puts it on the column in place of these (tests/sheet-page.test.ts).
-    expect(HTML.match(/>Person A</g)).toHaveLength(20)
-    expect(HTML.match(/>Person B</g)).toHaveLength(20)
-    expect(HTML).toContain('<label for="name-a">Person A’s name</label>')
-    expect(HTML).toContain('<label for="name-b">Person B’s name</label>')
+  it('names the two people without a gender or a role: Person 1 and Person 2, or their own names', () => {
+    expect(HTML).not.toMatch(/>Person [AB]</)
     for (const word of ['husband', 'wife', 'groom', 'bride', 'his ', 'her ', 'he ', 'she ']) {
       expect(flat(HTML).toLowerCase(), word).not.toContain(` ${word.trim()} `)
     }
