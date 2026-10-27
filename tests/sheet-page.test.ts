@@ -10,6 +10,7 @@ import { LOCAL_KEYS } from '../src/lib/forget'
  *  - what they type is kept in this browser, on this device, under one key, and put back on a reload,
  *    with a note that says so;
  *  - "Clear my answers" removes it from the page and from the device, and so does the app's Forget me;
+ *  - on its own it goes 14 days after the last change, and the page says so;
  *  - leaving asks first only if the browser would not keep the answers;
  *  - the two names go on the columns in place of Person A and Person B;
  *  - nothing is sent anywhere.
@@ -45,8 +46,12 @@ const leave = () => {
   return e.defaultPrevented
 }
 
+const NOW = new Date('2026-10-27T10:00:00Z')
+const DAY = 24 * 60 * 60 * 1000
+
 beforeEach(() => {
   vi.useFakeTimers()
+  vi.setSystemTime(NOW)
   localStorage.clear()
   sent.length = 0
   vi.stubGlobal('fetch', (...a: unknown[]) => {
@@ -101,7 +106,8 @@ describe('keeping the answers on this device', () => {
     type('q1a-a', 'What I expect, in my own words.')
     expect(localStorage.getItem(KEY)).toBeNull() // not on every keystroke
     vi.advanceTimersByTime(500)
-    expect(saved()).toEqual({ v: 1, fields: { 'q1a-a': 'What I expect, in my own words.' } })
+    // The day, and never the time.
+    expect(saved()).toEqual({ v: 1, at: '2026-10-27', fields: { 'q1a-a': 'What I expect, in my own words.' } })
     expect(Object.keys(localStorage)).toEqual([KEY])
   })
 
@@ -155,6 +161,68 @@ describe('keeping the answers on this device', () => {
     type('q2a-a', 'The walima.')
     window.dispatchEvent(new Event('pagehide'))
     expect(saved().fields['q2a-a']).toBe('The walima.')
+  })
+})
+
+describe('removed on their own, 14 days after the last change', () => {
+  /** Answers saved now, then the page opened `days` later. */
+  function after(days: number, hours = 0) {
+    type('q1a-a', 'Kept for a while')
+    vi.advanceTimersByTime(500)
+    vi.setSystemTime(new Date(NOW.getTime() + days * DAY + hours * 60 * 60 * 1000))
+    open()
+  }
+
+  it('are still there 14 days later', () => {
+    after(14)
+    expect(field('q1a-a').value).toBe('Kept for a while')
+    expect(restoredNote()).toBe('We restored your answers on this device.')
+  })
+
+  it('are gone from the page and the device on the 15th day, and the page says why', () => {
+    after(15)
+    expect(field('q1a-a').value).toBe('')
+    expect(localStorage.getItem(KEY)).toBeNull()
+    expect(restoredNote()).toBe('Answers saved on this device more than 14 days ago were removed.')
+    // And it does not say so again next time: there is nothing left to remove.
+    open()
+    expect(restoredNote()).toBe('')
+  })
+
+  it('count from the last change, so a couple still working on it keeps it', () => {
+    type('q1a-a', 'Started')
+    vi.advanceTimersByTime(500)
+    vi.setSystemTime(new Date(NOW.getTime() + 10 * DAY))
+    open()
+    type('q1b-a', 'Added ten days later')
+    vi.advanceTimersByTime(500)
+    expect(saved().at).toBe('2026-11-06')
+    vi.setSystemTime(new Date(NOW.getTime() + 20 * DAY))
+    open()
+    expect(field('q1a-a').value).toBe('Started')
+    expect(field('q1b-a').value).toBe('Added ten days later')
+  })
+
+  it('start counting for answers kept before this rule, instead of keeping them forever', () => {
+    localStorage.setItem(KEY, JSON.stringify({ v: 1, fields: { 'q1a-a': 'Saved before the 14 days' } }))
+    open()
+    expect(field('q1a-a').value).toBe('Saved before the 14 days')
+    expect(saved().at).toBe('2026-10-27')
+    vi.setSystemTime(new Date(NOW.getTime() + 15 * DAY))
+    open()
+    expect(field('q1a-a').value).toBe('')
+    expect(localStorage.getItem(KEY)).toBeNull()
+  })
+
+  it('treat a record with a day that cannot be read as past its time', () => {
+    localStorage.setItem(KEY, JSON.stringify({ v: 1, at: 'someday', fields: { 'q1a-a': 'Unreadable day' } }))
+    open()
+    expect(field('q1a-a').value).toBe('')
+    expect(localStorage.getItem(KEY)).toBeNull()
+  })
+
+  it('are said on the page, beside Clear my answers', () => {
+    expect(document.getElementById('privacy')!.textContent!.replace(/\s+/g, ' ')).toContain('Saved answers are removed from this device 14 days after the last change.')
   })
 })
 

@@ -4,7 +4,8 @@
  *  - Keeps the answers in this browser, on this device, under one key
  *    (niyyah.moneysheet.v1), so the page can be closed and come back. Nothing
  *    is sent anywhere. "Clear my answers" removes the key, and so does the
- *    app's Forget me (src/lib/forget.ts names it).
+ *    app's Forget me (src/lib/forget.ts names it). On its own the key goes 14
+ *    days after the last change: a copy left on a shared device does not stay.
  *  - Says so when it puts answers back, and warns before leaving if the browser
  *    refused to keep them.
  *  - Puts the two names on the columns in place of Person A and Person B.
@@ -18,6 +19,18 @@
 
   var KEY = 'niyyah.moneysheet.v1'
   var SAVE_DELAY = 400
+  // Kept for 14 full days after the last change, and gone on the day after. Only the day is stored, never a time.
+  var KEEP_DAYS = 14
+  var DAY_MS = 24 * 60 * 60 * 1000
+
+  function today() {
+    return new Date(Date.now()).toISOString().slice(0, 10)
+  }
+
+  function expired(day) {
+    var at = Date.parse(day)
+    return !isFinite(at) || Date.now() >= at + (KEEP_DAYS + 1) * DAY_MS
+  }
 
   var root = document.documentElement
   var fields = Array.prototype.slice.call(document.querySelectorAll('main input[id], main textarea[id]'))
@@ -40,6 +53,7 @@
     }
   }
 
+  /** What is kept, or 'expired' after removing a record past its 14 days, or null. */
   function readSaved() {
     var s = storage()
     if (!s) return null
@@ -47,7 +61,15 @@
       var raw = s.getItem(KEY)
       if (!raw) return null
       var data = JSON.parse(raw)
-      return data && data.v === 1 && data.fields && typeof data.fields === 'object' ? data.fields : null
+      if (!(data && data.v === 1 && data.fields && typeof data.fields === 'object')) return null
+      if (typeof data.at !== 'string') {
+        // Kept before answers expired (until 2026-10-27): the 14 days start now, so it cannot stay forever.
+        s.setItem(KEY, JSON.stringify({ v: 1, at: today(), fields: data.fields }))
+      } else if (expired(data.at)) {
+        s.removeItem(KEY)
+        return 'expired'
+      }
+      return data.fields
     } catch {
       return null
     }
@@ -78,7 +100,7 @@
     try {
       if (!s) throw new Error('no storage')
       if (Object.keys(values).length === 0) s.removeItem(KEY)
-      else s.setItem(KEY, JSON.stringify({ v: 1, fields: values }))
+      else s.setItem(KEY, JSON.stringify({ v: 1, at: today(), fields: values }))
       unsaved = false
       if (problem) problem.hidden = true
     } catch {
@@ -170,7 +192,9 @@
     if (box) box.hidden = false
 
     var saved = readSaved()
-    if (saved) {
+    if (saved === 'expired') {
+      say('Answers saved on this device more than 14 days ago were removed.')
+    } else if (saved) {
       var any = false
       fields.forEach(function (f) {
         if (typeof saved[f.id] === 'string') {

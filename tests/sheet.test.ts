@@ -76,7 +76,7 @@ describe('it opens from disk, with the network off', () => {
     const box = HTML.match(/<div class="privacy screen-only" id="privacy" hidden>([\s\S]*?)<\/div>/)![1]
     expect(flat(box)).toContain('Saved only on this device')
     expect(flat(box)).toContain('What you type is saved in this browser on this device, so you can close the page and come back to it. Nothing on this page is sent anywhere, and the PDF is made here too.')
-    expect(flat(box)).toContain('On a shared or public device, tap Clear my answers when you finish.')
+    expect(flat(box)).toContain('Saved answers are removed from this device 14 days after the last change. On a shared or public device, tap Clear my answers when you finish.')
     expect(box).toContain('data-clear-answers')
     expect(box).toMatch(/class="restored" role="status"/)
     // Before the how-to and before the first question: the first thing after the two introductory paragraphs.
