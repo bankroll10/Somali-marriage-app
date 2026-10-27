@@ -4701,3 +4701,11 @@ settle, so those tests use the uncompressed link. The compressed link, the QR co
 checked in Chromium.
 
 **Unchanged.** The one-page, Somali and facilitator pages, and the `.txt` version.
+
+**Amendment, 2026-10-27: polish on the combined PDF.** Each section's "Notes from the session" now stays on the same page as the
+end of its section: the last question (or the last two lines of its answer) moves to the next page with the notes rather than leave
+them alone at the top of a page. When one of you answered No to a yes or no question that hides a section, that person gets only
+the one line ("Omar: No debts."), and the questions the other left blank there are listed once under "Amina left these blank:"
+instead of a column of "Not answered". In "Compare in session", a section with no written answers says "no written answers", and
+one you both closed with a No says "both answered No". Copy the link says "Copied" on the button for a moment; where the browser
+has no clipboard it still tries to copy the selected link, and otherwise shows it to copy by hand.

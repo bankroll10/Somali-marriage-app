@@ -33,6 +33,8 @@
   // What a partner's link or file may hold, at most: enough for long answers, not enough to hurt the page.
   var MAX_CODE = 200000
   var MAX_VALUE = 6000
+  // How long Copy the link says Copied before it goes back to its own words.
+  var COPIED_FOR = 2500
 
   var root = document.documentElement
   var main = document.querySelector('main')
@@ -448,16 +450,41 @@
     out.value = shared.link
     out.focus()
     out.select()
-    setText(status, 'Copy the link below and send it to your partner.')
+    // Older browsers without the clipboard API can still copy what is selected.
+    var copied = false
+    try {
+      copied = document.execCommand('copy')
+    } catch {
+      copied = false
+    }
+    if (copied) showCopied()
+    else setText(status, 'Copy the link below and send it to your partner.')
+  }
+
+  var copiedTimer = null
+
+  /** Said on the button itself, where the eye already is, and in the line below for a screen reader. */
+  function showCopied() {
+    var button = finishBlock.querySelector('[data-copy-link]')
+    setText(finishBlock.querySelector('.share-status'), 'Copied. Paste the link into a message to your partner.')
+    if (!button) return
+    if (!copiedTimer) button.style.minWidth = button.offsetWidth ? button.offsetWidth + 'px' : ''
+    button.textContent = 'Copied'
+    button.classList.add('is-copied')
+    if (copiedTimer) clearTimeout(copiedTimer)
+    copiedTimer = setTimeout(function () {
+      copiedTimer = null
+      button.textContent = 'Copy the link'
+      button.classList.remove('is-copied')
+      button.style.minWidth = ''
+    }, COPIED_FOR)
   }
 
   function copyLink() {
     var status = finishBlock.querySelector('.share-status')
     if (!shared.link) return setText(status, 'Tap Finish first.')
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(shared.link).then(function () {
-        setText(status, 'Link copied. Paste it into a message to your partner.')
-      }, showLinkToCopy)
+      navigator.clipboard.writeText(shared.link).then(showCopied, showLinkToCopy)
       return
     }
     showLinkToCopy()

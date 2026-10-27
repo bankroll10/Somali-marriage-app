@@ -301,6 +301,17 @@ describe('only my answers', () => {
     for (const low of lows.slice(0, -1)) expect(low, String(lows)).toBeLessThan(792 / 2)
   })
 
+  it('never starts a page with a section’s notes, however long the last answer before them is', async () => {
+    me('1')
+    for (let n = 0; n <= 240; n += 12) {
+      write('a-q2e', words('w', n))
+      made = null
+      press('mine')
+      const { pageTexts } = await read()
+      for (const [k, page] of pageTexts.entries()) expect(page, `${n} words, page ${k + 1}`).not.toMatch(/^The money conversation\n(?:[^\n]*\n)?NOTES FROM THE SESSION/)
+    }
+  })
+
   it('keeps line breaks the person typed, curly quotes, dashes and accents', async () => {
     me('1')
     choose('g3', 'yes')
@@ -382,11 +393,14 @@ describe('the combined PDF', () => {
     // Free text is never guessed at, even word for word the same: it is counted, not marked.
     expect(first).toContain('1. Mahr: 1 question with written answers')
     expect(first).toMatch(/3\. Debt either of you already carries: 1 question with written answers/)
-    expect(first).toMatch(/2\. The wedding [^:]*: nothing written/)
+    // A section with questions to answer and none written in says so plainly; one both closed with a No, that.
+    expect(first).toMatch(/2\. The wedding [^:]*: no written answers/)
+    expect(first).toContain('4. Ongoing obligations to family: both answered No')
+    expect(first).not.toContain('nothing written')
     expect(first).toContain('How the marks are made')
   })
 
-  it('puts the answers side by side, marks each, and prints one line where a No hid a section', async () => {
+  it('puts the answers side by side, marks each, and prints one line, not a column of blanks, for whoever said No', async () => {
     await aminaWithOmar()
     press('combined')
     const { text, pageTexts } = await read()
@@ -394,14 +408,56 @@ describe('the combined PDF', () => {
     expect(rest).toContain('Have the two of you discussed the mahr amount yet? Amina: Yes. Omar: No. Talk about this')
     expect(rest).toMatch(/Amina Omar Chose: Part at the nikah/)
     expect(rest).toContain('Amount: 5,000 Amount: 4800')
-    expect(rest).toContain('Do you have any debts right now? Amina: Yes. Omar: No. Talk about this Omar: No debts. Only Amina answered the questions below.')
+    expect(rest).toContain(
+      'Do you have any debts right now? Amina: Yes. Omar: No. Talk about this Omar: No debts. Only Amina answered the questions below. 1. What do you owe right now',
+    )
     expect(rest).toContain('A car loan.')
+    // What Amina left blank there is listed once, without a column of "Not answered" for anyone.
+    const debt = rest.slice(rest.indexOf('Do you have any debts right now?'), rest.indexOf('4. Ongoing obligations to family'))
+    expect(debt).not.toContain('Not answered')
+    // (The list may carry over a page, under the running header, so it is read in order rather than as one run.)
+    const listed = debt.slice(debt.indexOf('Amina left these blank:'))
+    expect(listed.indexOf('2. What are you paying toward it each month')).toBeGreaterThan(0)
+    expect(listed.indexOf('3. Who already knows about it')).toBeGreaterThan(listed.indexOf('2. What are you paying'))
+    expect(listed.indexOf('5. Is there anything here')).toBeGreaterThan(listed.indexOf('3. Who already knows'))
+    expect(listed).not.toContain('1. What do you owe')
+    expect(debt).toMatch(/Chose: Stays mine to pay/)
     expect(rest).toContain('Do you send money to family regularly? Amina: No. Omar: No. Amina: Does not send money to family. Omar: Does not send money to family.')
     // Section 4 had no questions to show, so it goes straight to its notes.
     expect(rest).toMatch(/Omar: Does not send money to family\. NOTES FROM THE SESSION/)
     expect(text.match(/NOTES FROM THE SESSION/g)).toHaveLength(4)
     // A question nobody touched gets no mark at all.
     expect(rest).toMatch(/Who have you said that to so far[^?]*\? Amina Omar Not answered Not answered/)
+  })
+
+  it('says so in one line when the one who said Yes answered none of the questions after it', async () => {
+    me('1', 'Amina')
+    choose('g3', 'yes')
+    write('a-q1a', 'Gold.')
+    await finish()
+    await partnerSent(2, 'Omar', { g3: 'no', q1a: 'Money.' })
+    press('combined')
+    const { pageTexts } = await read()
+    const rest = flat(pageTexts.slice(1).join(' '))
+    const debt = rest.slice(rest.indexOf('Do you have any debts right now?'), rest.indexOf('4. Ongoing obligations to family'))
+    expect(debt).toMatch(/^Do you have any debts right now\? Amina: Yes\. Omar: No\. Talk about this Omar: No debts\. Amina answered Yes and left these questions blank: 1\. What do you owe/)
+    expect(debt).not.toContain('Only Amina answered')
+    expect(debt).not.toContain('Not answered')
+  })
+
+  it('never starts a page with a section’s notes: they stay with the end of their section', async () => {
+    // These answers once left the notes of the wedding and of debt alone at the top of the next page.
+    me('1', 'Amina', '2026-11-02')
+    for (const [k, v] of Object.entries({ ...AMINA, q1a: 'Gold and a sum of money, agreed with my family.', q1c: 'Half at the nikah.', q3a: 'A car loan, about two years left.' })) {
+      if (/^[gc]/.test(k)) choose(k, v)
+      else write(k.startsWith('n-') ? k : `a-${k}`, v)
+    }
+    await finish()
+    await partnerSent(2, 'Omar', { ...OMAR, q1a: 'Money, the amount is for the families to agree.', g4: 'yes', q4a: 'My mother, every month.', 'c-q4e': 'same' })
+    press('combined')
+    const { pageTexts } = await read()
+    expect(pageTexts.join('').match(/NOTES FROM THE SESSION/g)).toHaveLength(4)
+    for (const [n, page] of pageTexts.entries()) expect(page, `page ${n + 1}`).not.toMatch(/^The money conversation\n(?:[^\n]*\n)?NOTES FROM THE SESSION/)
   })
 
   it('is the same file, with the same name, from either phone: Person 1 is always on the left', async () => {
