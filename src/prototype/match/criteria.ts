@@ -1,4 +1,4 @@
-import type { CriterionId, Firmness } from './types'
+import type { CriterionId, Firmness, PointId } from './types'
 
 export interface Option {
   id: string
@@ -107,6 +107,9 @@ export function partnerLabelOf(id: CriterionId, option: string): string {
 
 /** Words for the point, lower case, for use inside a sentence. */
 export const nameOf = (id: CriterionId): string => criterionOf(id).name
+
+/** The name of a point that can include or leave someone out: one of the six, or Age. */
+export const pointName = (id: PointId): string => (id === 'age' ? 'Age' : nameOf(id))
 
 /**
  * The three written prompts. `label` is what the tester is asked; `short` is the small

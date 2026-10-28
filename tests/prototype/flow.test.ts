@@ -317,7 +317,7 @@ describe('undoing “Not for me”', () => {
   })
 
   it('names every action in one explicit policy, so a new action cannot quietly keep or lose it', () => {
-    const types = ['start', 'go', 'name', 'age', 'answer', 'accept', 'firm', 'words', 'show', 'decide', 'withdraw', 'undoPass', 'send', 'sharePhoto', 'stopSharing', 'theyChoose', 'theySend', 'theyShare', 'theyEnd', 'openSheet', 'closeSheet', 'disconnect', 'block', 'report', 'reset']
+    const types = ['start', 'go', 'name', 'age', 'ageMin', 'ageMax', 'ageFirm', 'answer', 'accept', 'firm', 'words', 'show', 'decide', 'withdraw', 'undoPass', 'send', 'sharePhoto', 'stopSharing', 'theyChoose', 'theySend', 'theyShare', 'theyEnd', 'openSheet', 'closeSheet', 'disconnect', 'block', 'report', 'reset']
     expect(Object.keys(UNDO_POLICY).sort()).toEqual([...types].sort())
     const kept = Object.entries(UNDO_POLICY).filter(([, v]) => v === 'keep').map(([k]) => k)
     expect(kept.sort()).toEqual(['theyChoose', 'theyEnd', 'theySend', 'theyShare'])

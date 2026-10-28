@@ -29,14 +29,25 @@ export interface Ask {
 }
 export type Asks = Record<CriterionId, Ask>
 
+/** A point that can include or leave someone out: one of the six, or age. */
+export type PointId = CriterionId | 'age'
+
+/**
+ * The ages a person would consider in a partner, and how firm that is. The range is whole years
+ * and includes both ends. `any` has no range: the person's range is ignored, not stored.
+ */
+export type AgeAsk = { firm: 'any' } | { firm: Exclude<Firmness, 'any'>; min: number; max: number }
+
 export type PersonId = string
 
-/** A made-up person. Ages are fictional and adult. */
+/** A made-up person. Ages are fictional and adult (docs/MATCH-PROTOTYPE.md: the bounds are demo constraints). */
 export interface Person {
   id: PersonId
   firstName: string
   side: Side
   age: number
+  /** The ages this person would consider, and how firm. Private: never shown to the tester. */
+  ageAsk: AgeAsk
   answers: Answers
   asks: Asks
   /** Their written answers, first person. */
@@ -56,6 +67,7 @@ export interface Scenario {
   expect: string
   name: string
   age: number
+  ageAsk: AgeAsk
   answers: Answers
   asks: Asks
   words: string[]

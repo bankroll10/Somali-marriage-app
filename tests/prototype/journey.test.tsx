@@ -138,7 +138,7 @@ describe('the whole journey, as a woman', () => {
     expect(m.text()).toContain('in no particular order. There is no score and no ranking.')
     expect(m.text()).not.toMatch(/\d\s?%|compatib|match(es)? for you|swipe/i)
     expect(m.container.querySelector('img')).toBeNull()
-    expect(m.text()).toContain('People appear here only when you and they each meet the other’s requirements. This demo checks six points only.')
+    expect(m.text()).toContain('People appear here only when you and they each meet the other’s requirements. This demo checks age and six points only.')
 
     // A suggestion: derived comparisons, labelled fixtures, no photo, a private choice.
     await m.press('Read more about Abdi')
@@ -386,9 +386,9 @@ describe('honest sample scenarios', () => {
     await tick(m, 'I am a man')
     await m.press('Start with blank answers')
     await m.press('Continue')
-    expect(m.text()).toContain('Still to fill in: a made-up first name, a made-up age, 18 or over.')
+    expect(m.text()).toContain('Still to fill in: a made-up first name, a made-up age from 18 to 99.')
     expect(h1s(m)).toEqual(['About you.'])
-    await m.type('A made-up age (18 or over)', '17')
+    await m.type('A made-up age (18 to 99)', '17')
     await m.press('Continue')
     expect(h1s(m)).toEqual(['About you.'])
     m.unmount()
@@ -457,7 +457,7 @@ describe('every screen', () => {
     await m.press('See what’s real and what isn’t')
     check()
     expect(m.text()).toContain('There is no upload and no image.')
-    expect(m.text()).toContain('Age is shown but not used. Age preferences are not built in this demo')
+    expect(m.text()).toContain('Ages from 18 to 99 are the limits of this demo, not a policy')
     expect(m.text()).toContain('provisional demo choices, not policy')
     expect(m.text()).toContain('No AI model generates them here.')
     await m.press('Start again')
@@ -498,7 +498,11 @@ async function startBlank(m: Mounted, side: 'woman' | 'man' = 'woman') {
   await tick(m, side === 'woman' ? 'I am a woman' : 'I am a man')
   await m.press('Start with blank answers')
   await m.type('A made-up first name', 'Maryan')
-  await m.type('A made-up age (18 or over)', '30')
+  await m.type('A made-up age (18 to 99)', '30')
+  // The ages Maryan would consider are asked on the same step and nothing is chosen for her (tests/prototype/age-journey.test.tsx).
+  await m.type('Youngest age', '28')
+  await m.type('Oldest age', '34')
+  await tick(m, 'Preference')
 }
 const statusText = (m: Mounted) => [...m.container.querySelectorAll('[role="status"]')].map((e) => e.textContent).join(' ')
 
@@ -562,7 +566,7 @@ describe('setup, in short steps (MATCH-02)', () => {
     await back(m)
     expect(h1s(m)).toEqual(['About you.'])
     expect(field(m, 'A made-up first name')!.value).toBe('Maryan')
-    expect(field(m, 'A made-up age (18 or over)')!.value).toBe('30')
+    expect(field(m, 'A made-up age (18 to 99)')!.value).toBe('30')
     await m.press('Continue')
     await m.press('Continue')
     expect(h1s(m)).toEqual(['Children.'])
@@ -660,7 +664,7 @@ describe('the suggestion screen, shorter and led by their words (MATCH-02)', () 
     // The list shows their own first words and the concrete difference, not only the topic.
     expect(m.text()).toContain('“I am looking for someone kind and patient who wants to build slowly.”')
     expect(m.text()).toContain('Work: “I plan to be at home”')
-    expect(m.text()).toContain('and 2 more points')
+    expect(m.text()).toContain('and 3 more points')
     expect(m.text()).not.toContain('Meets your requirements.')
     await m.press('Read more about Liban')
     const main = m.container.querySelector('main')!
@@ -696,7 +700,7 @@ describe('the suggestion screen, shorter and led by their words (MATCH-02)', () 
     await toSuggestions(m)
     await m.press('Read more about Abdi')
     expect(m.text()).toContain('No differences on your preferences.')
-    expect(m.text()).toContain('Fits what you asked for on: timing, children, practice, city, work, household.')
+    expect(m.text()).toContain('Fits what you asked for on: age, timing, children, practice, city, work, household.')
     expect(m.text()).not.toMatch(/line up/i)
     // Abdi’s practice answer is not the tester’s own (steady, where hers is building the habit), and it fits what she asked for. The difference stays visible.
     const details = m.container.querySelector('main details')!
@@ -1063,7 +1067,8 @@ describe('setup: whose answer it is, and what each firmness means (MATCH-03)', (
     for (let i = 0; i < 8; i++) await m.press('Continue')
     expect(h1s(m)).toEqual(['Check before you see anyone.'])
     const rows = [...m.container.querySelectorAll('main ul li')].filter((li) => li.querySelector('h3'))
-    expect(rows).toHaveLength(6)
+    // Age first, as in setup, then the six points: the same three lines for each.
+    expect(rows.map((r) => r.querySelector('h3')!.textContent)).toEqual(['Age', 'Timing', 'Children', 'Practice', 'City', 'Work', 'Household'])
     for (const row of rows) {
       const heading = row.querySelector('h3')!
       const change = row.querySelector('button')!

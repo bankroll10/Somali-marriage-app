@@ -1,13 +1,13 @@
 import { useEffect, useRef, type Dispatch } from 'react'
 import { Button, TextButton } from '../../../components/ui'
-import { PROMPTS, labelOf, nameOf } from '../criteria'
+import { PROMPTS, labelOf, pointName } from '../criteria'
 import { ControlsPanel } from '../ControlsPanel'
 import { FixtureBlock } from '../Fixture'
 import { fill } from '../fixtures'
 import { completeSelf, openLinks, person as personOf, visibleSuggestions, type Action, type Notice, type Session } from '../flow'
 import { H1, H2, Note, P, Screen } from '../parts'
-import { basisLine, compare, orList, pairFixture, pointNames, resolveBasis, summaryPoints } from '../suggest'
-import { CRITERION_IDS, type Person } from '../types'
+import { basisLine, compare, differenceLines, pairFixture, pointNames, resolveBasis, summaryPoints } from '../suggest'
+import { CRITERION_IDS, type PointId, type Person } from '../types'
 import { SafetyRow } from './Safety'
 
 type D = Dispatch<Action>
@@ -72,7 +72,7 @@ export function Suggestions({ s, dispatch }: { s: Session; dispatch: D }) {
           ) : (
             <ul className="mt-6 grid gap-4">
               {visible.map((p) => {
-                const c = compare(self!, p)
+                const differences = differenceLines(compare(self!, p), p.firstName)
                 return (
                   <li key={p.id} className="rounded-card border border-line bg-white/60 px-5 py-5 shadow-sm">
                     <h2 className="font-display text-[1.3rem] font-medium text-ink">{p.firstName}</h2>
@@ -80,15 +80,15 @@ export function Suggestions({ s, dispatch }: { s: Session; dispatch: D }) {
                       {p.age} · {cityOf(p)}
                     </p>
                     <p className="mt-3 line-clamp-3 text-[0.95rem] leading-snug text-ink-soft text-pretty">“{p.words[0]}”</p>
-                    {c.differ.length ? (
+                    {differences.length ? (
                       <div className="mt-3 text-[0.92rem] leading-snug text-ink-soft">
                         <p className="font-medium text-ink">Differs from what you preferred:</p>
                         <ul className="mt-1 grid gap-0.5">
-                          {c.differ.slice(0, 2).map((d) => (
-                            <li key={d.id}>{`${nameOf(d.id)}: “${d.theirs}”`}</li>
+                          {differences.slice(0, 2).map((d) => (
+                            <li key={d.id}>{d.short}</li>
                           ))}
                         </ul>
-                        {c.differ.length > 2 && <p className="mt-0.5 text-muted">{`and ${c.differ.length - 2} more ${c.differ.length - 2 === 1 ? 'point' : 'points'}`}</p>}
+                        {differences.length > 2 && <p className="mt-0.5 text-muted">{`and ${differences.length - 2} more ${differences.length - 2 === 1 ? 'point' : 'points'}`}</p>}
                       </div>
                     ) : (
                       <p className="mt-3 text-[0.92rem] text-ink-soft">No differences on your preferences.</p>
@@ -109,7 +109,7 @@ export function Suggestions({ s, dispatch }: { s: Session; dispatch: D }) {
             </p>
           )}
           <p className="mt-6 text-[0.88rem] leading-snug text-muted text-pretty">
-            People appear here only when you and they each meet the other’s requirements. This demo checks six points only.
+            People appear here only when you and they each meet the other’s requirements. This demo checks age and six points only.
           </p>
         </>
       )}
@@ -129,12 +129,28 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
   const decision = s.decision[p.id]
   const link = s.links[p.id]
   const notice = s.notice && s.notice.person === p.id && (s.notice.kind === 'withdrawn' || s.notice.kind === 'mutual') ? s.notice : null
-  const answered = CRITERION_IDS.flatMap((id) => {
-    const l = c.lineUp.find((x) => x.id === id)
-    if (l) return [{ id, text: l.text }]
-    const d = c.differ.find((x) => x.id === id)
-    return d ? [{ id, text: `${p.firstName}’s answer: “${d.theirs}”. You preferred: ${orList(d.preferred)}.` }] : []
-  })
+  const differences = differenceLines(c, p.firstName)
+  const answered: { id: PointId; text: string }[] = [
+    ...(c.age.state === 'unused'
+      ? []
+      : [
+          {
+            id: 'age' as const,
+            text:
+              c.age.state === 'fits'
+                ? `${p.firstName} is ${c.age.theirs}, within the ${c.age.min} to ${c.age.max} you asked for.`
+                : `${differences[0].theirs}. You preferred: ${differences[0].preferred}.`,
+          },
+        ]),
+    ...CRITERION_IDS.flatMap((id) => {
+      const l = c.lineUp.find((x) => x.id === id)
+      if (l) return [{ id, text: l.text }]
+      const d = differences.find((x) => x.id === id)
+      return d ? [{ id, text: `${d.theirs}. You preferred: ${d.preferred}.` }] : []
+    }),
+  ]
+  const fits: PointId[] = [...(c.age.state === 'fits' ? (['age'] as const) : []), ...c.lineUp.map((x) => x.id)]
+  const unused: PointId[] = [...(c.age.state === 'unused' ? (['age'] as const) : []), ...c.unused]
   // Back returns to the screen that opened the profile: the conversation, Your people, or the list.
   const backTo = s.origin === 'conversation' && link?.status === 'open' ? 'conversation' : s.origin === 'people' || s.origin === 'conversation' ? 'people' : 'suggestions'
   return (
@@ -160,13 +176,13 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
 
       <H2 id="differ">Where you differ</H2>
       <p className="mt-1 text-[0.9rem] text-muted">On points you marked as a preference.</p>
-      {c.differ.length ? (
+      {differences.length ? (
         <ul className="mt-3 divide-y divide-line rounded-2xl border border-line bg-white/50 px-4 text-[0.97rem] leading-snug text-ink-soft">
-          {c.differ.map((x) => (
+          {differences.map((x) => (
             <li key={x.id} className="py-2.5">
-              <span className="font-medium text-ink">{nameOf(x.id)}.</span>
-              <span className="mt-0.5 block">{`${p.firstName}’s answer: “${x.theirs}”`}</span>
-              <span className="block">{`You preferred: ${orList(x.preferred)}`}</span>
+              <span className="font-medium text-ink">{`${pointName(x.id)}.`}</span>
+              <span className="mt-0.5 block">{x.theirs}</span>
+              <span className="block">{`You preferred: ${x.preferred}`}</span>
             </li>
           ))}
         </ul>
@@ -175,18 +191,18 @@ export function Suggestion({ s, dispatch }: { s: Session; dispatch: D }) {
       )}
 
       <p className="mt-5 text-[0.95rem] leading-snug text-ink-soft">
-        {c.lineUp.length ? `Fits what you asked for on: ${pointNames(c.lineUp.map((x) => x.id))}.` : 'None of the points you compared fit what you asked for.'}
+        {fits.length ? `Fits what you asked for on: ${pointNames(fits)}.` : 'None of the points you compared fit what you asked for.'}
       </p>
       <details className="mt-2 rounded-2xl border border-line bg-white/40 px-4">
         <summary className="min-h-11 cursor-pointer py-3 text-[0.92rem] font-medium text-ink">{`${p.firstName}’s answers on each point`}</summary>
         <ul className="mt-2 grid gap-1.5 pb-2 text-[0.93rem] leading-snug text-ink-soft">
           {answered.map((x) => (
             <li key={x.id}>
-              <span className="font-medium text-ink">{nameOf(x.id)}.</span> {x.text}
+              <span className="font-medium text-ink">{pointName(x.id)}.</span> {x.text}
             </li>
           ))}
         </ul>
-        {c.unused.length > 0 && <p className="pb-2 text-[0.88rem] text-muted">{`You said these do not matter, so they are not compared: ${pointNames(c.unused)}.`}</p>}
+        {unused.length > 0 && <p className="pb-2 text-[0.88rem] text-muted">{`You said these do not matter, so they are not compared: ${pointNames(unused)}.`}</p>}
       </details>
 
       <div className="mt-8">

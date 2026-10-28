@@ -1,11 +1,12 @@
-import { CRITERION_IDS, type Answers, type Ask, type Asks, type CriterionId, type Firmness, type Person, type Scenario, type ScenarioId, type Side } from './types'
+import { CRITERION_IDS, type AgeAsk, type Answers, type Ask, type Asks, type CriterionId, type Firmness, type Person, type PointId, type Scenario, type ScenarioId, type Side } from './types'
 
 /**
  * Everything made up in the matching prototype (docs/MATCH-PROTOTYPE.md).
  *
- * Five people per side, with fictional first names, adult fictional ages and
- * answers chosen so that the three sample scenarios below produce three, one
- * and no suggestions. Nothing here is real, and nothing is relaxed to fill a
+ * Five people per side, with fictional first names, adult fictional ages, an explicit
+ * choice about the ages they would consider (a requirement, a preference or "doesn't
+ * matter") and answers chosen so that the three sample scenarios below produce three,
+ * one and no suggestions. Nothing here is real, and nothing is relaxed to fill a
  * screen: the scenario test (tests/prototype/suggest.test.ts) pins the counts.
  *
  * The pair texts at the bottom are fixed text standing in for what an AI model
@@ -16,10 +17,13 @@ import { CRITERION_IDS, type Answers, type Ask, type Asks, type CriterionId, typ
 const ask = (accept: string[], firm: Firmness): Ask => ({ accept, firm })
 const any = (): Ask => ask([], 'any')
 const asks = (a: Record<CriterionId, Ask>): Asks => a
+const ages = (firm: 'requirement' | 'preference', min: number, max: number): AgeAsk => ({ firm, min, max })
+const anyAge: AgeAsk = { firm: 'any' }
 
 interface Template {
   key: string
   age: number
+  ageAsk: AgeAsk
   answers: Answers
   asks: Asks
   words: string[]
@@ -31,6 +35,7 @@ const TEMPLATES: Template[] = [
   {
     key: 'p1',
     age: 29,
+    ageAsk: ages('requirement', 27, 35),
     answers: { timeline: 't-year', children: 'c-want', practice: 'p-steady', city: 'mpls', work: 'w-work', household: 'h-own' },
     asks: asks({
       timeline: ask(['t-year', 't-two'], 'requirement'),
@@ -51,6 +56,7 @@ const TEMPLATES: Template[] = [
   {
     key: 'p2',
     age: 31,
+    ageAsk: ages('preference', 28, 32),
     answers: { timeline: 't-two', children: 'c-open', practice: 'p-build', city: 'mpls', work: 'w-home', household: 'h-open' },
     asks: asks({
       timeline: ask(['t-year', 't-two', 't-later'], 'requirement'),
@@ -71,6 +77,7 @@ const TEMPLATES: Template[] = [
   {
     key: 'p3',
     age: 27,
+    ageAsk: anyAge,
     answers: { timeline: 't-two', children: 'c-open', practice: 'p-occasional', city: 'toronto', work: 'w-home', household: 'h-family' },
     asks: asks({
       timeline: ask(['t-year', 't-two'], 'preference'),
@@ -91,6 +98,7 @@ const TEMPLATES: Template[] = [
   {
     key: 'p4',
     age: 34,
+    ageAsk: ages('requirement', 30, 40),
     answers: { timeline: 't-later', children: 'c-open', practice: 'p-occasional', city: 'mpls', work: 'w-home', household: 'h-open' },
     asks: asks({
       timeline: ask(['t-two', 't-later', 't-unsure'], 'requirement'),
@@ -111,6 +119,7 @@ const TEMPLATES: Template[] = [
   {
     key: 'p5',
     age: 38,
+    ageAsk: ages('requirement', 33, 45),
     answers: { timeline: 't-year', children: 'c-want', practice: 'p-steady', city: 'mpls', work: 'w-work', household: 'h-own' },
     asks: asks({
       timeline: ask(['t-year', 't-two'], 'preference'),
@@ -143,6 +152,7 @@ export function peopleFor(viewer: Side): Person[] {
     firstName: NAMES[side][i],
     side,
     age: t.age,
+    ageAsk: t.ageAsk,
     answers: t.answers,
     asks: t.asks,
     words: t.words,
@@ -171,6 +181,8 @@ export const SCENARIOS: Scenario[] = [
     expect: 'Three people meet everyone’s requirements. One person is left out by your requirement and by their own; one is left out by their requirement alone.',
     name: 'Maryan',
     age: 30,
+    // A preference: nobody is left out for their age, and a person outside 28 to 34 is shown as different.
+    ageAsk: ages('preference', 28, 34),
     answers: { timeline: 't-year', children: 'c-want', practice: 'p-build', city: 'mpls', work: 'w-work', household: 'h-own' },
     asks: asks({
       timeline: ask(['t-year', 't-two'], 'requirement'),
@@ -192,6 +204,8 @@ export const SCENARIOS: Scenario[] = [
     expect: 'One person meets everyone’s requirements. The rest are left out: most by your requirements, and one by both sides’.',
     name: 'Maryan',
     age: 35,
+    // A requirement. The four people it leaves out were already left out by another requirement.
+    ageAsk: ages('requirement', 32, 40),
     answers: { timeline: 't-later', children: 'c-open', practice: 'p-steady', city: 'mpls', work: 'w-either', household: 'h-open' },
     asks: asks({
       timeline: ask(['t-later', 't-unsure'], 'requirement'),
@@ -213,6 +227,8 @@ export const SCENARIOS: Scenario[] = [
     expect: 'No one meets everyone’s requirements. Three people are left out by your requirements; two are left out by their own. Nothing is relaxed.',
     name: 'Maryan',
     age: 33,
+    // Doesn't matter: the range is not used. Her own age is still checked against what others require.
+    ageAsk: anyAge,
     answers: { timeline: 't-unsure', children: 'c-none', practice: 'p-occasional', city: 'london', work: 'w-either', household: 'h-family' },
     asks: asks({
       timeline: ask(['t-year'], 'requirement'),
@@ -242,14 +258,19 @@ export const SAMPLE_NAME: Record<Side, string> = { woman: 'Maryan', man: 'Guled'
  */
 export function scenarioFingerprint(id: ScenarioId, side: Side): string {
   const s = scenarioOf(id)
-  return fingerprint(side, s.answers, s.asks)
+  return fingerprint(side, s.answers, s.asks, s.ageAsk)
 }
 
-export function fingerprint(side: Side, answers: Partial<Answers>, a: Partial<Asks>): string {
+/**
+ * The tester's own age is not in it, and neither is the name or the words: no text mentions them.
+ * The ages they would consider are, because a text says whether a person is inside them.
+ */
+export function fingerprint(side: Side, answers: Partial<Answers>, a: Partial<Asks>, ageAsk: AgeAsk): string {
   return JSON.stringify([
     side,
     CRITERION_IDS.map((c) => answers[c] ?? null),
     CRITERION_IDS.map((c) => (a[c] ? [a[c]!.firm, [...a[c]!.accept].sort()] : null)),
+    ageAsk.firm === 'any' ? ['any'] : [ageAsk.firm, ageAsk.min, ageAsk.max],
   ])
 }
 
@@ -266,8 +287,8 @@ export interface PairFacts {
   same: CriterionId[]
   /** Points where the answers differ, but the person's is one the tester said would work. */
   workable: CriterionId[]
-  /** Points marked a preference where the person's answer is not one the tester said would work. All of them are named. */
-  differs: CriterionId[]
+  /** Points marked a preference where the person's answer is not one the tester said would work (age included). All of them are named. */
+  differs: PointId[]
 }
 
 /**
@@ -327,14 +348,14 @@ export const PAIR_TEXT: Partial<Record<ScenarioId, Record<string, PairText>>> = 
     },
     p3: {
       summary:
-        '{name} meets your requirements on timing and children. {He} differs from your preferences on practice, city, work and household, and lives in Toronto, where you do not.',
+        '{name} meets your requirements on timing and children. {He} differs from your preferences on age, practice, city, work and household: {he} is 27, outside the 28 to 34 you preferred, and lives in Toronto, where you do not.',
       summaryWords: [],
       questions: [
         { text: 'Which of these differences would you each want to talk through first?', basis: general },
         { text: 'You live in different cities. How does each of you see where you would live?', basis: both('city') },
         { text: '{name} chose “With family” and you chose “Our own home” for where to live at first. What does each of you picture?', basis: both('household') },
       ],
-      facts: { same: [], workable: ['timeline', 'children'], differs: ['practice', 'city', 'work', 'household'] },
+      facts: { same: [], workable: ['timeline', 'children'], differs: ['age', 'practice', 'city', 'work', 'household'] },
     },
   },
   one: {

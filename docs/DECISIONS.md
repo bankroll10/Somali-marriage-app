@@ -4709,3 +4709,40 @@ the one line ("Omar: No debts."), and the questions the other left blank there a
 instead of a column of "Not answered". In "Compare in session", a section with no written answers says "no written answers", and
 one you both closed with a No says "both answered No". Copy the link says "Copied" on the button for a moment; where the browser
 has no clipboard it still tries to copy the selected link, and otherwise shows it to copy by hand.
+
+## Demo: age preferences (2026-10-23)
+
+**Decision.** In the fictional public demo (`/demo/`), age is no longer displayed and ignored. The tester's own age and the ages
+they would consider in a partner are separate answers on the existing About step; the latter is an inclusive range with an
+explicit Requirement, Preference or Doesn't matter that is never pre-selected. A requirement leaves out anyone outside the range
+in each direction independently; a preference keeps the person and points out the difference; doesn't matter ignores the range
+while the tester's own age is still checked against the other person's requirement. Nothing is relaxed to fill the suggestions,
+and the other person's range and reasons are not shown to the tester: the Prototype controls panel lists nobody who was left
+out and no reason (below). Details, numbers and what changed in the fixed text: `docs/MATCH-PROTOTYPE.md`, "Age".
+
+**Bounds are demo constraints, not launch policy.** Whole years, 18 to 99, for the tester, the range and every made-up person.
+This decides nothing about a real service: who may be introduced across which ages, how age is verified, or whether age may be a
+requirement at all remain open (docs/MATCH-PROTOTYPE.md, launch questions). The prototype's own age is now read-only once the
+tester has chosen or passed on someone, because it is an input to eligibility.
+
+**Boundaries kept.** Memory-only state, no network, no storage, the strict CSP, no accounts, no real profiles, no AI call. The
+MATCH-05 evaluation is untouched. The app's own build output is byte-identical to main's at `75097bf`, checked on 2026-10-27
+by building both and comparing every file under `dist/`: only the demo page, its script and its stylesheet differ. (Tailwind
+reads Markdown as well as source, so one ordinary English word in the age notes, in a sentence about refusing fractional
+ages, once added a utility rule to the *app's* stylesheet; it was reworded, and the comparison above is the check.)
+
+**Decided (2026-10-27, the founder; corrected 2026-10-28 on review).** (1) Age may appear in the fictional scenario
+explanations, but another person's age requirement, and their reason for leaving someone out, are never shown. The first
+version of this rule kept the controls panel's "Why these made-up people are not shown" subsection and only left another
+person's age requirement out of it. Review found the subsection itself was the disclosure, so it is **removed with its rows and
+footnote**: the panel keeps the simulation controls for the people who are shown and lists nobody who was left out, for age or
+for any of the six points. The eligibility diagnostics (`evaluate`, `byYou`, `byThem`) stay in the code and tests, on no
+screen. This is a demo rule for fictional people: it is not a design for a real service, where a person who stops appearing
+could still learn something from the absence. (2) The
+three-suggestion sample keeps Yusuf at 27, outside the 28 to 34 the tester preferred, as an example of a difference that a
+preference shows and a requirement removes; his summary was checked clause by clause against the data (timing and children
+met; age, practice, city, work and household differ; Toronto against Minneapolis–St. Paul).
+
+**Verification note, replaced.** The earlier note that `npm run verify` was red on an untouched checkout, because
+`src/lib/draft.test.ts` failed on any date more than 30 days after 2026-09-19, is out of date: main fixed that test
+(`671ef9b`), and verify passes on the integrated tree.
