@@ -1,6 +1,7 @@
+import { AGE_MAX, AGE_MIN, parseAge } from './age'
 import { SAMPLE_NAME, peopleFor, scenarioOf } from './fixtures'
 import { evaluate, looksLikeContact, type Self } from './suggest'
-import { CRITERION_IDS, type Answers, type Ask, type Asks, type CriterionId, type Firmness, type PersonId, type ScenarioId, type Side } from './types'
+import { CRITERION_IDS, type AgeAsk, type Answers, type Ask, type Asks, type CriterionId, type Firmness, type PersonId, type ScenarioId, type Side } from './types'
 
 /**
  * The state of the matching prototype and every way it changes.
@@ -37,11 +38,20 @@ export interface DraftAsk {
   firm: Firmness | null
 }
 
+/** The ages the tester would consider in a partner, as typed: text until it is checked, no choice until one is made. */
+export interface DraftAgeAsk {
+  min: string
+  max: string
+  firm: Firmness | null
+}
+
 export interface Me {
   side: Side | null
   scenario: ScenarioId | null
   name: string
+  /** The tester's own age, as typed. Apart from the ages they would consider. */
   age: string
+  ageAsk: DraftAgeAsk
   answers: Partial<Answers>
   asks: Record<CriterionId, DraftAsk>
   words: [string, string, string]
@@ -109,9 +119,10 @@ export interface Session {
 }
 
 /**
- * Once the tester has chosen or passed on anyone, what they asked for is read-only
+ * Once the tester has chosen or passed on anyone, what they asked for (and their own
+ * age and answers, which the other people's requirements are read against) is read-only
  * until a fresh start: a changed requirement must not quietly reshape a list they
- * have already acted on.
+ * have already acted on. The name and the written answers are not part of any rule.
  */
 export const locked = (s: Session): boolean => Object.values(s.decision).some((d) => d !== 'undecided')
 
@@ -122,6 +133,7 @@ export const emptyMe = (): Me => ({
   scenario: null,
   name: '',
   age: '',
+  ageAsk: { min: '', max: '', firm: null },
   answers: {},
   asks: { timeline: emptyAsk(), children: emptyAsk(), practice: emptyAsk(), city: emptyAsk(), work: emptyAsk(), household: emptyAsk() },
   words: ['', '', ''],
@@ -150,6 +162,9 @@ export type Action =
   | { type: 'go'; stage: Stage; focus?: PersonId; point?: number; editing?: boolean }
   | { type: 'name'; value: string }
   | { type: 'age'; value: string }
+  | { type: 'ageMin'; value: string }
+  | { type: 'ageMax'; value: string }
+  | { type: 'ageFirm'; value: Firmness }
   | { type: 'answer'; id: CriterionId; value: string }
   | { type: 'accept'; id: CriterionId; option: string; on: boolean }
   | { type: 'firm'; id: CriterionId; value: Firmness }
@@ -175,6 +190,9 @@ export type Action =
 /** What the tester has said, as the whole of `Self`, or null while something is missing. */
 export function completeSelf(me: Me): Self | null {
   if (!me.side) return null
+  const age = parseAge(me.age)
+  const ageAsk = ageAskOf(me.ageAsk)
+  if (age === null || !ageAsk) return null
   const answers = {} as Answers
   const asks = {} as Asks
   for (const c of CRITERION_IDS) {
@@ -185,15 +203,45 @@ export function completeSelf(me: Me): Self | null {
     answers[c] = a
     asks[c] = { accept: k.firm === 'any' ? [] : k.accept, firm: k.firm } satisfies Ask
   }
-  return { side: me.side, answers, asks }
+  return { side: me.side, age, ageAsk, answers, asks }
 }
 
 export const missingAbout = (me: Me): string[] => {
   const out: string[] = []
   if (!me.name.trim()) out.push('a made-up first name')
-  const age = Number(me.age)
-  if (!Number.isInteger(age) || age < 18 || age > 99) out.push('a made-up age, 18 or over')
+  if (parseAge(me.age) === null) out.push(`a made-up age from ${AGE_MIN} to ${AGE_MAX}`)
   return out
+}
+
+/** What is wrong with the ages the tester would consider: which end, a reversed range, or no choice yet. */
+export type AgeGap = 'min' | 'max' | 'order' | 'firm'
+
+/**
+ * What still needs fixing in the ages the tester would consider. No range is needed when it does not
+ * matter, whatever is left in the boxes. Otherwise both ends must be whole ages from AGE_MIN to
+ * AGE_MAX, the youngest no older than the oldest, and the choice must be made.
+ */
+export function missingAgeAsk(me: Me): AgeGap[] {
+  const { min, max, firm } = me.ageAsk
+  const out: AgeGap[] = []
+  if (firm !== 'any') {
+    const lo = parseAge(min)
+    const hi = parseAge(max)
+    if (lo === null) out.push('min')
+    if (hi === null) out.push('max')
+    if (lo !== null && hi !== null && lo > hi) out.push('order')
+  }
+  if (!firm) out.push('firm')
+  return out
+}
+
+/** The tester's ages as the data the rules read, or null while any part is missing or invalid. */
+function ageAskOf(draft: DraftAgeAsk): AgeAsk | null {
+  if (draft.firm === 'any') return { firm: 'any' }
+  const min = parseAge(draft.min)
+  const max = parseAge(draft.max)
+  if (!draft.firm || min === null || max === null || min > max) return null
+  return { firm: draft.firm, min, max }
 }
 
 export type PointGap = 'answer' | 'accept' | 'firm'
@@ -258,6 +306,9 @@ export const UNDO_POLICY: Record<Action['type'], 'keep' | 'clear' | 'own'> = {
   go: 'clear',
   name: 'clear',
   age: 'clear',
+  ageMin: 'clear',
+  ageMax: 'clear',
+  ageFirm: 'clear',
   answer: 'clear',
   accept: 'clear',
   firm: 'clear',
@@ -311,6 +362,7 @@ function step(s: Session, a: Action): Session {
         me.scenario = sc.id
         me.name = SAMPLE_NAME[a.side]
         me.age = String(sc.age)
+        me.ageAsk = sc.ageAsk.firm === 'any' ? { min: '', max: '', firm: 'any' } : { min: String(sc.ageAsk.min), max: String(sc.ageAsk.max), firm: sc.ageAsk.firm }
         me.answers = { ...sc.answers }
         for (const c of CRITERION_IDS) me.asks[c] = { accept: [...sc.asks[c].accept], firm: sc.asks[c].firm }
         me.words = [sc.words[0] ?? '', sc.words[1] ?? '', sc.words[2] ?? '']
@@ -339,8 +391,15 @@ function step(s: Session, a: Action): Session {
 
     case 'name':
       return { ...s, me: { ...s.me, name: a.value } }
+    // The tester's own age decides who can be suggested to whom, so it is read-only with the asks once they have chosen or passed on anyone.
     case 'age':
-      return { ...s, me: { ...s.me, age: a.value } }
+      return locked(s) ? s : { ...s, me: { ...s.me, age: a.value } }
+    case 'ageMin':
+      return locked(s) ? s : { ...s, me: { ...s.me, ageAsk: { ...s.me.ageAsk, min: a.value } } }
+    case 'ageMax':
+      return locked(s) ? s : { ...s, me: { ...s.me, ageAsk: { ...s.me.ageAsk, max: a.value } } }
+    case 'ageFirm':
+      return locked(s) ? s : { ...s, me: { ...s.me, ageAsk: { ...s.me.ageAsk, firm: a.value } } }
 
     case 'answer':
       return locked(s) ? s : { ...s, me: { ...s.me, answers: { ...s.me.answers, [a.id]: a.value } } }

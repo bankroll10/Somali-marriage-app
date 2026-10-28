@@ -1,8 +1,6 @@
 import type { Dispatch } from 'react'
 import { Button } from '../../components/ui'
-import { pointNames } from './suggest'
-import { completeSelf, openLinks, type Action, type Session } from './flow'
-import { evaluate } from './suggest'
+import { openLinks, type Action, type Session } from './flow'
 import { fill, peopleFor } from './fixtures'
 import type { Person } from './types'
 
@@ -19,11 +17,9 @@ import type { Person } from './types'
 type Where = 'suggestions' | 'suggestion' | 'people' | 'conversation'
 
 export function ControlsPanel({ s, dispatch, where, person }: { s: Session; dispatch: Dispatch<Action>; where: Where; person?: Person }) {
-  const self = completeSelf(s.me)
   const people = s.me.side ? peopleFor(s.me.side) : []
   const shown = s.shown.map((id) => people.find((p) => p.id === id)!).filter(Boolean)
   const subjects = person ? [person] : where === 'suggestions' || where === 'people' ? shown : []
-  const left = self && where === 'suggestions' ? evaluate(self, people).leftOut : []
   return (
     <details className="mt-10 rounded-card border border-dashed border-gold/60 bg-gold/[0.06]">
       <summary className="cursor-pointer px-4 py-3 text-[0.92rem] font-medium text-ink">
@@ -76,23 +72,6 @@ export function ControlsPanel({ s, dispatch, where, person }: { s: Session; disp
             </div>
           )
         })}
-        {where === 'suggestions' && left.length > 0 && (
-          <div className="mt-4">
-            <p className="text-[0.92rem] font-medium text-ink">Why these made-up people are not shown</p>
-            <ul className="mt-2 grid gap-1.5 text-[0.88rem] leading-snug text-ink-soft">
-              {left.map((j) => (
-                <li key={j.person.id}>
-                  {j.person.firstName}:{' '}
-                  {[j.byYou.length ? `your requirement on ${pointNames(j.byYou)}` : '', j.byThem.length ? `${fill('{his}', j.person.side, '')} requirement on ${pointNames(j.byThem)}` : '']
-                    .filter(Boolean)
-                    .join('; ')}
-                  .
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2 text-[0.82rem] text-muted">A product would never show you this list, or tell you that someone’s requirement left you out.</p>
-          </div>
-        )}
         {where === 'conversation' && openLinks(s).length > 1 && (
           <p className="mt-3 text-[0.82rem] text-muted">Photo sharing is per conversation: what you do here changes nothing in your other conversations.</p>
         )}

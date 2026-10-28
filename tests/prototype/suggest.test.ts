@@ -12,7 +12,7 @@ import { CRITERION_IDS, type Asks, type Side } from '../../src/prototype/match/t
 
 const selfOf = (id: 'three' | 'one' | 'none', side: Side): Self => {
   const s = scenarioOf(id)
-  return { side, answers: s.answers, asks: s.asks }
+  return { side, age: s.age, ageAsk: s.ageAsk, answers: s.answers, asks: s.asks }
 }
 const SIDES: Side[] = ['woman', 'man']
 
@@ -39,10 +39,12 @@ describe('the sample scenarios', () => {
   it('never show more than the limit, however many are eligible, and never reorder by anything but the fixed order', () => {
     const everyoneWelcome: Self = {
       side: 'woman',
+      age: 30,
+      ageAsk: { firm: 'any' },
       answers: scenarioOf('three').answers,
       asks: CRITERION_IDS.reduce((a, c) => ({ ...a, [c]: { accept: [], firm: 'any' as const } }), {} as Asks),
     }
-    const people = peopleFor('woman').map((p) => ({ ...p, asks: everyoneWelcome.asks }))
+    const people = peopleFor('woman').map((p) => ({ ...p, asks: everyoneWelcome.asks, ageAsk: { firm: 'any' as const } }))
     const out = evaluate(everyoneWelcome, people)
     expect(out.eligible).toHaveLength(5)
     expect(out.shown).toHaveLength(SHOWN_LIMIT)
@@ -76,7 +78,8 @@ describe('a requirement works in both directions, and a preference never exclude
 
   it('the other person’s requirement leaves the tester out of their suggestions', () => {
     const p5 = people.find((p) => p.id.endsWith('p5'))!
-    expect(judge(me, p5)).toMatchObject({ byYou: [], byThem: ['practice'] })
+    // Said asks for 33 to 45 as well as steady prayer; the tester is 30.
+    expect(judge(me, p5)).toMatchObject({ byYou: [], byThem: ['age', 'practice'] })
   })
 })
 
@@ -170,8 +173,8 @@ describe('fixed pair text', () => {
   })
 
   it('does not depend on the words, the name or the age, which no pair text mentions', () => {
-    // The fingerprint covers only answers and asks.
-    expect(fingerprint('woman', me.answers, me.asks)).toBe(fingerprint('woman', { ...me.answers }, { ...me.asks }))
+    // The fingerprint covers only answers and asks, and the ages the tester would consider (tests/prototype/age.test.ts).
+    expect(fingerprint('woman', me.answers, me.asks, me.ageAsk)).toBe(fingerprint('woman', { ...me.answers }, { ...me.asks }, { ...me.ageAsk }))
   })
 
   it('has a text for every person each scenario shows, and none for a person it does not show', () => {
@@ -202,7 +205,7 @@ describe('the hand-written summaries, held against the answers they were written
       const text = pairTextFor(sc.id, p.id)!
       const c = compare(self, p)
       const why = `${sc.id}/${p.id}`
-      expect([...text.facts.differs].sort(), why).toEqual(c.differ.map((d) => d.id).sort())
+      expect([...text.facts.differs].sort(), why).toEqual([...c.differ.map((d) => d.id as string), ...(c.age.state === 'differs' ? ['age'] : [])].sort())
       for (const id of text.facts.same) expect(p.answers[id], `${why} same ${id}`).toBe(self.answers[id])
       for (const id of text.facts.workable) {
         expect(p.answers[id], `${why} workable ${id}`).not.toBe(self.answers[id])
@@ -215,7 +218,8 @@ describe('the hand-written summaries, held against the answers they were written
   })
 
   it('the points a summary names are exactly the points its facts claim', () => {
-    const WORDS: Record<(typeof CRITERION_IDS)[number], RegExp> = {
+    const WORDS: Record<(typeof CRITERION_IDS)[number] | 'age', RegExp> = {
+      age: /\bage\b/i,
       timeline: /\btiming\b|\btimeline\b/i,
       children: /\bchildren\b/i,
       practice: /\bpractice\b/i,
@@ -226,7 +230,7 @@ describe('the hand-written summaries, held against the answers they were written
     for (const [sc, byPerson] of Object.entries(PAIR_TEXT)) {
       for (const [key, text] of Object.entries(byPerson!)) {
         const claimed = new Set([...text.facts.same, ...text.facts.workable, ...text.facts.differs])
-        const named = new Set(CRITERION_IDS.filter((id) => WORDS[id].test(text.summary)))
+        const named = new Set(([...CRITERION_IDS, 'age'] as const).filter((id) => WORDS[id].test(text.summary)))
         expect([...named].sort(), `${sc}/${key}`).toEqual([...claimed].sort())
       }
     }
@@ -242,7 +246,8 @@ describe('the hand-written summaries, held against the answers they were written
     { sc: 'three', key: 'p2', says: 'plans to be at home and you plan to work', holds: (m, p) => p.answers.work === 'w-home' && m.answers.work === 'w-work' },
     { sc: 'three', key: 'p2', says: 'The one difference you marked as a preference is work', holds: (m, p) => compare(m, p).differ.length === 1 && compare(m, p).differ[0].id === 'work' },
     { sc: 'three', key: 'p3', says: 'meets your requirements on timing and children', holds: (m, p) => judge(m, p).byYou.length === 0 && m.asks.timeline.firm === 'requirement' && m.asks.children.firm === 'requirement' },
-    { sc: 'three', key: 'p3', says: 'differs from your preferences on practice, city, work and household', holds: (m, p) => compare(m, p).differ.map((d) => d.id).join() === 'practice,city,work,household' },
+    { sc: 'three', key: 'p3', says: 'differs from your preferences on age, practice, city, work and household', holds: (m, p) => compare(m, p).differ.map((d) => d.id).join() === 'practice,city,work,household' && compare(m, p).age.state === 'differs' },
+    { sc: 'three', key: 'p3', says: 'he is 27, outside the 28 to 34 you preferred', holds: (m, p) => p.age === 27 && m.ageAsk.firm === 'preference' && m.ageAsk.min === 28 && m.ageAsk.max === 34 },
     { sc: 'three', key: 'p3', says: 'lives in Toronto, where you do not', holds: (m, p) => p.answers.city === 'toronto' && m.answers.city !== 'toronto' },
     { sc: 'one', key: 'p4', says: 'give the same answers on timing, children, city and household', holds: (m, p) => (['timeline', 'children', 'city', 'household'] as const).every((id) => p.answers[id] === m.answers[id]) },
     { sc: 'one', key: 'p4', says: 'chose “I practise occasionally”, where you chose “Prayer is steady and central to my days”, and you marked practice as a preference', holds: (m, p) => p.answers.practice === 'p-occasional' && m.answers.practice === 'p-steady' && m.asks.practice.firm === 'preference' },
@@ -341,7 +346,7 @@ describe('what the fixed text is based on (MATCH-04)', () => {
       if (!filled.available) throw new Error(why)
       const labelsOf = (points: (typeof CRITERION_IDS)[number][]) => points.flatMap((id) => [labelOf(id, self.answers[id]), labelOf(id, p.answers[id])])
       // The summary: labels of the points its facts claim; a quotation from a written answer only if summaryWords names it.
-      const claimed = [...raw.facts.same, ...raw.facts.workable, ...raw.facts.differs]
+      const claimed = [...raw.facts.same, ...raw.facts.workable, ...raw.facts.differs].filter((id): id is (typeof CRITERION_IDS)[number] => id !== 'age')
       for (const quote of quotes(filled.text.summary)) {
         if (labelsOf(claimed).includes(quote)) continue
         const from = p.words.findIndex((w) => w.includes(quote))

@@ -58,7 +58,8 @@ rules-based comparison exists and is used), and never describes a simulated repo
 
 One journey, from a made-up person's side, as a woman or as a man:
 
-1. **Answers, in eight steps.** A made-up name and age; then one step for each of six points (timing,
+1. **Answers, in eight steps.** A made-up name and age, and the ages the person would consider in a partner (see
+   "Age" below); then one step for each of six points (timing,
    children, practice, city, work, household); then written answers in the person's own words. Everything is made up,
    and the screens say so. The steps are more focused than the earlier two long screens, but **setup is not shorter
    overall** (see MATCH-02 and MATCH-03 below).
@@ -90,12 +91,13 @@ One journey, from a made-up person's side, as a woman or as a man:
 
 ## Sample scenarios and fictional people
 
-Ten made-up people (five per side) with fictional first names and adult ages (27 to 38). Three sample answer sets
-for the tester give **three, one and no** suggestions, on either side, and they cover people left out by the
+Ten made-up people (five per side) with fictional first names, adult ages (27 to 38) and an explicit choice about the
+ages they would consider (see "Age" below). Three sample answer sets for the tester give **three, one and no** suggestions, on either side, and they cover people left out by the
 tester's requirement, by the other person's, and by both (`tests/prototype/suggest.test.ts`). A tester who starts
 with blank answers gets honest results for whatever they enter, and no fixed text. The **Prototype controls**
 disclosure stands in for the other people (choosing the tester, writing, sharing a placeholder, ending a
-conversation) and lists why made-up people were left out; it says that a product would never show that list.
+conversation). It has controls for the people who are shown and no list of who was left out or why: the eligibility
+diagnostics (who was left out, and by whose requirement) stay in the code and its tests and are on no screen.
 
 ## Working, and simulated
 
@@ -275,10 +277,65 @@ One thing this does not settle: Yusuf's new third answer is my paraphrase of the
 without being run by them"), so his first and third now say much the same (kept as delivered). The summaries were re-read
 sentence by sentence, as before.
 
+## Age: requirements and preferences (demo age preferences)
+
+Until this change the demo displayed age and ignored it ("Age is shown and not used"). Age is now part of the same two-way
+requirements and preferences system, with fictional data only. Nothing else about setup, interest, messaging, photos or the
+safety row changed.
+
+- **Two separate things, on the About step.** The tester's own age ("A made-up age (18 to 99)") and the ages they would
+  consider in a partner: a youngest and an oldest age, both included, and an explicit **Requirement / Preference / Doesn't
+  matter** with nothing pre-selected for someone starting blank. It stays one About screen (no extra step; the setup is still
+  "Step n of 8"); About is taller than before (page heights of about 1,475 px against 897 at 320 px, 1,412 against 833 at 390 px, measured on the built page and measured
+  again on 2026-10-27 against main at `75097bf`), still shorter than the Timing step. The three firmness meanings are one tap away ("What these three
+  mean"); the full text at first use is still on Timing.
+- **Rules.** A *requirement* leaves out anyone outside the range, and applies independently in both directions: the tester's
+  range against the person's age, and the person's range against the tester's own age. A *preference* never leaves anyone out;
+  a person outside the range is shown with the difference ("Age: 27, where you preferred 28 to 34", and first under "Where you
+  differ" on the profile). *Doesn't matter* ignores the tester's range (kept in the form, not used), and the tester's own age is
+  still checked against the other person's requirement. Nothing is relaxed to fill the suggestions.
+- **What is never shown.** Another person's range and firmness, and which of their requirements left the tester out, are not on
+  any screen the tester uses. The "Try another scenario" panel simulates the people who are shown and nothing more: its
+  "Why these made-up people are not shown" subsection, rows and footnote are gone, so it lists nobody who was left out and gives
+  no reason for anyone, for age or for the six points. Tests hold this for both sides, all three samples and tester ages 18
+  and 41, and that the controls for shown people remain (`tests/prototype/age-journey.test.tsx`). The diagnostics in
+  `suggest.ts` (`evaluate`, `byYou`, `byThem`) are unchanged and are tested where they always were. The tester's own range is
+  shown to them on About, Review and the profile.
+- **Bounds (demo constraints, not launch policy).** Whole years, **18 to 99**, for the tester's own age, both ends of the
+  range and every made-up person (`src/prototype/match/age.ts`: `AGE_MIN`, `AGE_MAX`, `parseAge`). They keep every made-up age
+  an adult age; they are not a statement of who a real service would introduce, how age would be verified, or whether a gap
+  between two people would be allowed. The 99 was already the upper bound of the old own-age check. Invalid, fractional
+  (`30.5`), signed, exponent, leading-zero, non-ASCII-digit, blank, incomplete or reversed (`40` to `34`) input is refused with a
+  message naming what to fix; nothing is approximated or clipped into range. A range of one age (`31` to `31`) is valid. The age
+  fields no longer strip non-digits as the old own-age field did, which silently turned `30.5` into `30`.
+- **Editing.** Under the existing rules: editable until the tester has chosen or passed on someone, read-only after (the whole
+  About group except the name), lifted again if that is undone. The tester's own age is now read-only with the asks, because it
+  is an input to eligibility (before, it stayed editable and did nothing). Review shows an **Age** block first (About you / In a
+  partner / How firm) with **Change age**, and says the ages the tester would consider are not shown to anyone.
+- **Fictional people and samples.** Each person has an explicit choice: Abdi requirement 27 to 35, Liban preference 28 to 32,
+  Yusuf doesn't matter, Hassan requirement 30 to 40, Said requirement 33 to 45 (and the same on the other side). The samples:
+  three (30) preference 28 to 34; one (35) requirement 32 to 40; none (33) doesn't matter. Counts are still **three, one and none**
+  on both sides, and who is left out by whom is unchanged. Age adds a reason only to people already left out for another
+  reason: Said, by his or her own requirement, in the three-suggestion sample (the tester is 30, outside 33 to 45), and the
+  three people aged 27 to 31 in the one-suggestion sample (outside the tester's 32 to 40). In the other places the tester's age
+  sits exactly on the end of a range and is not left out (35 on Abdi's, 33 on Said's, 30 on Hassan's), which is the inclusive
+  boundary on show.
+- **The fixed text.** The three-suggestion sample now shows an age difference: Yusuf is 27, outside the 28 to 34 preferred.
+  His summary was the only one that listed the differences exhaustively, so it now names age ("differs from your preferences on
+  age, practice, city, work and household: he is 27, outside the 28 to 34 you preferred, and lives in Toronto, where you do
+  not") and its facts list `age`. Every other summary and question is unchanged and still true: nobody else in any sample is
+  outside the tester's preferred ages, and the one summary that says "the one difference you marked as a preference is work"
+  (Liban) is still the only one. The fingerprint that decides whether fixed text applies now includes the ages the tester would
+  consider (not their own age, which no text mentions), so editing the range shows the text as unavailable rather than saying
+  what the answers no longer say. Tests hold each `facts.differs` against the comparison including age, and pin the new
+  sentence. As before this is metadata consistency; the new sentence was also read against the data.
+- **Not decided here:** whether a real product would allow age as a requirement at all, what range limits it would use, and
+  whether a real product would show a person why someone is not shown (the demo shows no one a reason).
+
 ## What is not covered
 
-- **Age is shown and not used.** Age preferences are not built in this slice, so the eligibility checks do not cover
-  every requirement a real product would need.
+- Eligibility reads age and the six points only (see "Age" below), so it does not cover every requirement a real
+  product would need. Age is not verified.
 - The six points are **provisional prototype choices, not launch policy.** Clan, mahr, plans to move back and how
   families would disagree are left out because the research ledger keeps them as conversations that never become a
   matching signal.

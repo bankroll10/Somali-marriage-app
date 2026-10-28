@@ -2,7 +2,8 @@ import { useState, type Dispatch, type FormEvent } from 'react'
 import { Button, fieldClass, TextButton } from '../../../components/ui'
 import { BOTH_WAYS, CRITERIA, FIRMNESS, PROMPTS, labelOf, nameOf, criterionOf, partnerLabelOf } from '../criteria'
 import { SCENARIOS } from '../fixtures'
-import { POINT_STEPS, SETUP_STEPS, completeSelf, locked, missingAbout, missingPoint, missingPoints, missingWords, type Action, type Me, type PointGap, type Session } from '../flow'
+import { AGE_MAX, AGE_MIN, parseAge } from '../age'
+import { POINT_STEPS, SETUP_STEPS, completeSelf, locked, missingAbout, missingAgeAsk, missingPoint, missingPoints, missingWords, type Action, type AgeGap, type Me, type PointGap, type Session } from '../flow'
 import { Choice, H1, H2, Note, P, Screen } from '../parts'
 import { looksLikeContact } from '../suggest'
 import type { Side } from '../types'
@@ -83,65 +84,6 @@ const StepLine = ({ n }: { n: number }) => <p className="mt-1 text-[0.9rem] text
 
 const stepOf = (id: Parameters<typeof criterionOf>[0]) => POINT_STEPS.findIndex((g) => g.includes(id))
 
-export function About({ s, dispatch }: { s: Session; dispatch: D }) {
-  const [error, setError] = useState('')
-  const me = s.me
-  const submit = (e: FormEvent) => {
-    e.preventDefault()
-    const missing = missingAbout(me)
-    if (missing.length) {
-      setError(`Still to fill in: ${missing.join(', ')}.`)
-      return
-    }
-    setError('')
-    dispatch(s.editing ? { type: 'go', stage: 'review' } : { type: 'go', stage: 'point', point: 0 })
-  }
-  return (
-    <Screen onBack={() => dispatch(s.editing ? { type: 'go', stage: 'review' } : { type: 'go', stage: 'front' })}>
-      <H1>About you.</H1>
-      <StepLine n={1} />
-      <P>Use a made-up first name and age. They are used only in this demo, and the people you meet see both.</P>
-      <form onSubmit={submit} noValidate>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2">
-          <label className="block text-sm font-medium text-ink-soft">
-            A made-up first name
-            <input
-              className={`${fieldClass} mt-1.5 block w-full px-4 py-3 text-base`}
-              value={me.name}
-              maxLength={20}
-              autoComplete="off"
-              onChange={(e) => dispatch({ type: 'name', value: e.target.value })}
-            />
-          </label>
-          <label className="block text-sm font-medium text-ink-soft">
-            A made-up age (18 or over)
-            <input
-              className={`${fieldClass} mt-1.5 block w-full px-4 py-3 text-base`}
-              value={me.age}
-              inputMode="numeric"
-              autoComplete="off"
-              onChange={(e) => dispatch({ type: 'age', value: e.target.value.replace(/\D/g, '').slice(0, 2) })}
-            />
-          </label>
-        </div>
-        <Note>Age is shown to the people you meet. It is not used to include or leave anyone out: age preferences are not built in this demo.</Note>
-        <div role="status" className="mt-5 min-h-[1.5rem] text-[0.9rem] text-clay">
-          {error}
-        </div>
-        <Button type="submit" className="mt-2">
-          Continue
-        </Button>
-      </form>
-    </Screen>
-  )
-}
-
-const GAP_WORDS: Record<PointGap, string> = {
-  answer: 'your answer',
-  accept: 'an answer that would work (or choose “Doesn’t matter”)',
-  firm: 'how firm this is',
-}
-
 /** A group's name in the first line of its legend, so a screen reader and a glance both hear whose answer it is. */
 const GroupName = ({ children }: { children: string }) => <span className="block text-[0.9rem] font-medium text-forest">{children}</span>
 const legendClass = 'text-[0.98rem] font-medium leading-snug text-ink'
@@ -162,6 +104,159 @@ function FirmnessMeaning() {
     </div>
   )
 }
+
+/** What is left to do for the ages, in words: a blank end is asked for, a typed one that cannot be used says what can be. */
+function ageGapWord(gap: AgeGap, me: Me): string {
+  const whole = `a whole number from ${AGE_MIN} to ${AGE_MAX}`
+  switch (gap) {
+    case 'min':
+      return me.ageAsk.min.trim() ? `a youngest age that is ${whole}` : 'the youngest age you would consider'
+    case 'max':
+      return me.ageAsk.max.trim() ? `an oldest age that is ${whole}` : 'the oldest age you would consider'
+    case 'order':
+      return 'a youngest age that is not above the oldest age'
+    case 'firm':
+      return 'how firm this is'
+  }
+}
+
+const ageField = 'mt-1.5 block w-full px-4 py-3 text-base'
+
+/**
+ * Who the person is and what ages they would consider, on one step: their name, their own age,
+ * then the ages that would work for them in a partner and how firm that is. The two ages are kept
+ * apart, and nothing is chosen for the person. A message appears after the first Continue and
+ * follows the fields, so it clears when they are fixed.
+ */
+export function About({ s, dispatch }: { s: Session; dispatch: D }) {
+  const [tried, setTried] = useState(false)
+  const me = s.me
+  const frozen = locked(s)
+  const own = missingAbout(me)
+  const gaps = missingAgeAsk(me)
+  const unused = me.ageAsk.firm === 'any'
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    setTried(true)
+    if (own.length || gaps.length) return
+    dispatch(s.editing ? { type: 'go', stage: 'review' } : { type: 'go', stage: 'point', point: 0 })
+  }
+  const bad = (on: boolean) => (tried && on ? true : undefined)
+  const ownAgeBad = parseAge(me.age) === null
+  return (
+    <Screen onBack={() => dispatch(s.editing ? { type: 'go', stage: 'review' } : { type: 'go', stage: 'front' })}>
+      <H1>About you.</H1>
+      <StepLine n={1} />
+      <P>Use a made-up first name and age. They are used only in this demo, and the people you meet see both.</P>
+      {frozen && <Note tone="clay">You have already chosen or passed on someone, so your age and the ages you ask for are read-only now. Start again to change them. Your name can still be changed.</Note>}
+      <form onSubmit={submit} noValidate>
+        <div className="mt-6 grid gap-4 sm:grid-cols-2">
+          <label className="block text-sm font-medium text-ink-soft">
+            A made-up first name
+            <input
+              className={`${fieldClass} ${ageField}`}
+              value={me.name}
+              maxLength={20}
+              autoComplete="off"
+              aria-invalid={bad(!me.name.trim())}
+              aria-describedby="about-own-error"
+              onChange={(e) => dispatch({ type: 'name', value: e.target.value })}
+            />
+          </label>
+          <label className="block text-sm font-medium text-ink-soft">
+            {`A made-up age (${AGE_MIN} to ${AGE_MAX})`}
+            <input
+              className={`${fieldClass} ${ageField}`}
+              value={me.age}
+              inputMode="numeric"
+              maxLength={3}
+              autoComplete="off"
+              disabled={frozen}
+              aria-invalid={bad(ownAgeBad)}
+              aria-describedby="about-own-error"
+              onChange={(e) => dispatch({ type: 'age', value: e.target.value })}
+            />
+          </label>
+        </div>
+        <div id="about-own-error" role="status" className="mt-3 min-h-[1.5rem] text-[0.9rem] text-clay">
+          {tried && own.length ? `Still to fill in: ${own.join(', ')}.` : ''}
+        </div>
+        <Note>Your age is shown to the people you meet. The ages you would consider, and how firm you are about them, are not shown to anyone.</Note>
+
+        <div className="mt-5 border-t border-line/70 pt-5">
+          <fieldset disabled={frozen || unused}>
+            <legend className={legendClass}>
+              <GroupName>What would work for you in a partner</GroupName>{' '}
+              <span className="font-normal text-muted">
+                {unused ? 'Set aside while this does not matter to you.' : `The youngest and the oldest age you would consider, in whole years from ${AGE_MIN} to ${AGE_MAX}. Both ends are included.`}
+              </span>
+            </legend>
+            <div className={`mt-2.5 grid grid-cols-2 gap-4 ${unused ? 'opacity-60' : ''}`}>
+              <label className="block text-sm font-medium text-ink-soft">
+                Youngest age
+                <input
+                  className={`${fieldClass} ${ageField}`}
+                  value={me.ageAsk.min}
+                  inputMode="numeric"
+                  maxLength={3}
+                  autoComplete="off"
+                  aria-invalid={bad(gaps.includes('min') || gaps.includes('order'))}
+                  aria-describedby="about-age-error"
+                  onChange={(e) => dispatch({ type: 'ageMin', value: e.target.value })}
+                />
+              </label>
+              <label className="block text-sm font-medium text-ink-soft">
+                Oldest age
+                <input
+                  className={`${fieldClass} ${ageField}`}
+                  value={me.ageAsk.max}
+                  inputMode="numeric"
+                  maxLength={3}
+                  autoComplete="off"
+                  aria-invalid={bad(gaps.includes('max') || gaps.includes('order'))}
+                  aria-describedby="about-age-error"
+                  onChange={(e) => dispatch({ type: 'ageMax', value: e.target.value })}
+                />
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        <div className="mt-5 border-t border-line/70 pt-5">
+          <fieldset disabled={frozen}>
+            <legend className={legendClass}>
+              <GroupName>How firm is this?</GroupName>
+            </legend>
+            <div className="mt-2.5 grid gap-2">
+              {FIRMNESS.map((f) => (
+                <Choice key={f.id} type="radio" name="firm-age" checked={me.ageAsk.firm === f.id} onChange={() => dispatch({ type: 'ageFirm', value: f.id })} hint={f.short}>
+                  {f.name}
+                </Choice>
+              ))}
+            </div>
+          </fieldset>
+          <details className="mt-1.5">
+            <summary className="flex min-h-11 cursor-pointer items-center text-[0.95rem] text-forest underline underline-offset-4">What these three mean</summary>
+            <FirmnessMeaning />
+          </details>
+        </div>
+        <div id="about-age-error" role="status" className="mt-3 min-h-[1.5rem] text-[0.9rem] text-clay">
+          {tried && gaps.length ? `Still to do: ${gaps.map((g) => ageGapWord(g, me)).join('; ')}.` : ''}
+        </div>
+        <Button type="submit" className="mt-2">
+          Continue
+        </Button>
+      </form>
+    </Screen>
+  )
+}
+
+const GAP_WORDS: Record<PointGap, string> = {
+  answer: 'your answer',
+  accept: 'an answer that would work (or choose “Doesn’t matter”)',
+  firm: 'how firm this is',
+}
+
 
 /**
  * One setup step: a point (or a few, when POINT_STEPS groups them) asked in the order
@@ -331,13 +426,36 @@ export function Words({ s, dispatch }: { s: Session; dispatch: D }) {
 
 export function Review({ s, dispatch }: { s: Session; dispatch: D }) {
   const me: Me = s.me
-  const ready = !!completeSelf(me) && missingAbout(me).length === 0 && missingPoints(me).length === 0 && missingWords(me).length === 0
+  const ready = !!completeSelf(me) && missingAbout(me).length === 0 && missingAgeAsk(me).length === 0 && missingPoints(me).length === 0 && missingWords(me).length === 0
   const change = (i: number) => dispatch({ type: 'go', stage: 'point', point: i, editing: true })
   return (
     <Screen onBack={() => dispatch({ type: 'go', stage: 'words' })}>
       <H1>Check before you see anyone.</H1>
       <H2>Your answers</H2>
       <ul className="mt-3 grid gap-4">
+        <li className="text-[0.95rem] leading-snug text-ink-soft">
+          <div className="flex flex-wrap items-center justify-between gap-x-4">
+            <h3 className="font-display text-[1.1rem] font-medium text-ink">Age</h3>
+            <TextButton className="-mr-2 text-forest underline" onClick={() => dispatch({ type: 'go', stage: 'about', editing: true })}>
+              Change age
+            </TextButton>
+          </div>
+          <p>
+            <span className="font-medium text-ink">About you</span> {parseAge(me.age) ?? 'No answer yet.'}
+          </p>
+          <p className="mt-0.5">
+            <span className="font-medium text-ink">In a partner</span>{' '}
+            {me.ageAsk.firm === 'any'
+              ? 'Not used: this does not matter to you.'
+              : parseAge(me.ageAsk.min) !== null && parseAge(me.ageAsk.max) !== null
+                ? `Ages ${me.ageAsk.min.trim()} to ${me.ageAsk.max.trim()}, both included.`
+                : 'No ages chosen yet.'}
+          </p>
+          <p className="mt-0.5">
+            <span className="font-medium text-ink">How firm</span>{' '}
+            {me.ageAsk.firm === 'requirement' ? 'Requirement' : me.ageAsk.firm === 'preference' ? 'Preference' : me.ageAsk.firm === 'any' ? 'Doesn’t matter' : 'Not decided yet.'}
+          </p>
+        </li>
         {CRITERIA.map((c) => {
           const k = me.asks[c.id]
           const mine = me.answers[c.id]
@@ -382,7 +500,7 @@ export function Review({ s, dispatch }: { s: Session; dispatch: D }) {
       <H2>They will not see</H2>
       <ul className="mt-3 list-disc pl-5 text-[0.98rem] leading-relaxed text-ink-soft">
         <li>Any photo.</li>
-        <li>How firm you were on each point.</li>
+        <li>The ages you would consider, and how firm you were on each point.</li>
         <li>Anyone you passed on.</li>
         <li>How to reach you.</li>
       </ul>

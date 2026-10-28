@@ -1,15 +1,18 @@
-import { PROMPTS, criterionOf, labelOf, nameOf } from './criteria'
+import { outsideAges } from './age'
+import { PROMPTS, criterionOf, labelOf, pointName } from './criteria'
 import { fill, fingerprint, pairTextFor, scenarioFingerprint, type PairFacts, type PairText, type Ref } from './fixtures'
-import { CRITERION_IDS, type Answers, type Asks, type CriterionId, type Person, type ScenarioId, type Side } from './types'
+import { CRITERION_IDS, type AgeAsk, type Answers, type Asks, type CriterionId, type Person, type PointId, type ScenarioId, type Side } from './types'
 
 /**
  * Who may be suggested, and how two sets of answers compare.
  *
  * No score exists anywhere in here. Eligibility is yes or no and runs both
  * ways: a person is shown only if they meet the tester's requirements and the
- * tester meets theirs. Nothing is ever relaxed to fill the screen. Age is not
- * a point here, so these checks do not cover every requirement a real product
- * would need (docs/MATCH-PROTOTYPE.md).
+ * tester meets theirs. Nothing is ever relaxed to fill the screen. Age works
+ * like the six points: the ages a person would consider are a requirement, a
+ * preference or do not matter, and a person's own age is checked against what
+ * the other person asked. These checks still do not cover every requirement a
+ * real product would need (docs/MATCH-PROTOTYPE.md).
  */
 
 /** The most people shown at once. There is no refill. */
@@ -17,6 +20,9 @@ export const SHOWN_LIMIT = 3
 
 export interface Self {
   side: Side
+  /** The tester's own age. Not the ages they would consider: that is `ageAsk`. */
+  age: number
+  ageAsk: AgeAsk
   answers: Answers
   asks: Asks
 }
@@ -28,16 +34,22 @@ export function failedRequirements(asker: Asks, other: Answers): CriterionId[] {
 
 export interface Judged {
   person: Person
-  /** Points where the tester's own requirement leaves this person out. */
-  byYou: CriterionId[]
+  /** Points (age first, as in setup) where the tester's own requirement leaves this person out. */
+  byYou: PointId[]
   /** Points where this person's own requirement leaves the tester out. */
-  byThem: CriterionId[]
+  byThem: PointId[]
 }
+
+/** Age, then the six points, where `asker` set a requirement that someone of `age` and with `other` answers does not meet. */
+const failed = (asker: { ageAsk: AgeAsk; asks: Asks }, age: number, other: Answers): PointId[] => [
+  ...(asker.ageAsk.firm === 'requirement' && outsideAges(asker.ageAsk, age) ? (['age'] as const) : []),
+  ...failedRequirements(asker.asks, other),
+]
 
 export const judge = (me: Self, person: Person): Judged => ({
   person,
-  byYou: failedRequirements(me.asks, person.answers),
-  byThem: failedRequirements(person.asks, me.answers),
+  byYou: failed(me, person.age, person.answers),
+  byThem: failed(person, me.age, me.answers),
 })
 
 export const isEligible = (j: Judged): boolean => j.byYou.length === 0 && j.byThem.length === 0
@@ -64,6 +76,9 @@ export interface Difference {
   preferred: string[]
 }
 
+/** The person's age against the ages the tester would consider: only the tester's own range is read. */
+export type AgeComparison = { state: 'unused' } | { state: 'fits' | 'differs'; theirs: number; min: number; max: number }
+
 export interface Comparison {
   /** Points where the person’s answer is one the tester said would work. */
   lineUp: { id: CriterionId; text: string; theirs: string }[]
@@ -71,6 +86,8 @@ export interface Comparison {
   differ: Difference[]
   /** Points the tester said do not matter. Not compared. */
   unused: CriterionId[]
+  /** Age is kept apart from the six: it is a number against a range, not an answer against a list. */
+  age: AgeComparison
 }
 
 /**
@@ -105,7 +122,32 @@ export function compare(me: Self, person: Person): Comparison {
       differ.push({ id: c, theirs: labelOf(c, theirs), preferred: criterionOf(c).options.filter((o) => ask.accept.includes(o.id)).map((o) => o.partner) })
     }
   }
-  return { lineUp, differ, unused }
+  const range = me.ageAsk
+  const age: AgeComparison =
+    range.firm === 'any' ? { state: 'unused' } : { state: outsideAges(range, person.age) ? 'differs' : 'fits', theirs: person.age, min: range.min, max: range.max }
+  return { lineUp, differ, unused, age }
+}
+
+/** One point where the person differs from what the tester preferred, worded for a list card and for the profile. */
+export interface DifferenceLine {
+  id: PointId
+  /** One line, for a card. */
+  short: string
+  /** The person's own answer or age, for the profile. */
+  theirs: string
+  /** What the tester preferred, for the profile. */
+  preferred: string
+}
+
+/** The differences in one list, age first as in setup. Only the tester's own preferences are named. */
+export function differenceLines(c: Comparison, name: string): DifferenceLine[] {
+  const out: DifferenceLine[] = []
+  if (c.age.state === 'differs') {
+    const range = `${c.age.min} to ${c.age.max}`
+    out.push({ id: 'age', short: `Age: ${c.age.theirs}, where you preferred ${range}`, theirs: `${name}’s age: ${c.age.theirs}`, preferred: `ages ${range}` })
+  }
+  for (const d of c.differ) out.push({ id: d.id, short: `${pointName(d.id)}: “${d.theirs}”`, theirs: `${name}’s answer: “${d.theirs}”`, preferred: orList(d.preferred) })
+  return out
 }
 
 /** “A”, “A” or “B”, “A”, “B” or “C”: a list of quoted answers in a sentence. */
@@ -123,7 +165,7 @@ export type Fixture = { available: true; text: PairText; scenario: ScenarioId } 
 
 export function pairFixture(me: Self, scenario: ScenarioId | null, person: Person): Fixture {
   if (!scenario) return { available: false, reason: 'no-scenario' }
-  if (fingerprint(me.side, me.answers, me.asks) !== scenarioFingerprint(scenario, me.side)) return { available: false, reason: 'edited' }
+  if (fingerprint(me.side, me.answers, me.asks, me.ageAsk) !== scenarioFingerprint(scenario, me.side)) return { available: false, reason: 'edited' }
   const text = pairTextFor(scenario, person.id)
   if (!text) return { available: false, reason: 'none-written' }
   const filled: PairText = {
@@ -164,13 +206,13 @@ export function resolveBasis(refs: Ref[], me: Self, person: Person): Resolved[] 
 /** A resolved citation as one line: “Work. You: “I plan to work”. Liban: “I plan to be at home”.” */
 export function basisLine(r: Resolved, name: string): string {
   if (r.kind === 'words') return `${name}’s written answer, ${r.prompt}: “${r.text}”`
-  return [`${nameOf(r.point)}.`, r.you !== undefined ? `You: “${r.you}”.` : '', r.them !== undefined ? `${name}: “${r.them}”.` : ''].filter(Boolean).join(' ')
+  return [`${pointName(r.point)}.`, r.you !== undefined ? `You: “${r.you}”.` : '', r.them !== undefined ? `${name}: “${r.them}”.` : ''].filter(Boolean).join(' ')
 }
 
-/** The points a summary’s facts claim, in the order the form lists them. */
-export function summaryPoints(facts: PairFacts): CriterionId[] {
-  const claimed = new Set([...facts.same, ...facts.workable, ...facts.differs])
-  return CRITERION_IDS.filter((c) => claimed.has(c))
+/** The points a summary’s facts claim, in the order the form lists them (age first). */
+export function summaryPoints(facts: PairFacts): PointId[] {
+  const claimed = new Set<PointId>([...facts.same, ...facts.workable, ...facts.differs])
+  return ['age' as const, ...CRITERION_IDS].filter((c) => claimed.has(c))
 }
 
 /** A way to reach someone: an email, a phone number, a handle or a link. Kept out of the written answers. */
@@ -178,5 +220,5 @@ export function looksLikeContact(text: string): boolean {
   return /[^\s@]+@[^\s@]+\.[^\s@]+|(?:\+?\d[\s().-]*){7,}|(?:^|\s)@\w{2,}|https?:\/\/|www\.|\b\w+\.(?:com|net|org|io|me)\b/i.test(text)
 }
 
-export const pointNames = (ids: CriterionId[]): string => ids.map((c) => nameOf(c).toLowerCase()).join(', ')
+export const pointNames = (ids: PointId[]): string => ids.map((c) => pointName(c).toLowerCase()).join(', ')
 

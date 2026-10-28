@@ -14,6 +14,7 @@ const REAL = [
 const WORKING = [
   'The forms, and what requirement, preference and doesn’t matter each do.',
   'Eligibility in both directions, the limit of three, and no refill.',
+  'Age works like the six points. Your own age is kept apart from the ages you would consider in a partner, which you give as a youngest and an oldest age (both included) and as a requirement, a preference or doesn’t matter. A requirement leaves out anyone outside the range, in both directions. A preference shows the person and points out the difference. Doesn’t matter ignores your range, and your own age is still checked against what others require.',
   'Where a person’s answers fit what you asked for and where they differ, worked out from the answers you give.',
   'Private interest, withdrawing it until a conversation exists, undoing “Not for me” straight away, and a conversation that opens only when both of you have chosen.',
   'Writing first from either side, kept in this tab.',
@@ -23,7 +24,7 @@ const WORKING = [
 ]
 
 const SIMULATED = [
-  'The other people: ten made-up fixtures, with fictional names and adult fictional ages.',
+  'The other people: ten made-up fixtures, with fictional names, adult fictional ages and their own made-up choices about the ages they would consider.',
   'What they choose, write and share. The “Try another scenario” controls do it, one explicit action at a time.',
   'The plain-language summary and the questions worth asking: prewritten examples under a “Demo example” label, written for one sample scenario each. No AI model generates them. If you change your answers the text is marked unavailable; it never claims something your answers no longer say.',
   'Messages: nothing is delivered. Notifications: none, including the one a disconnect would send.',
@@ -33,7 +34,8 @@ const SIMULATED = [
 ]
 
 const NOT_COVERED = [
-  'Age is shown but not used. Age preferences are not built in this demo, so eligibility here does not cover every requirement a real product would need.',
+  'Ages from 18 to 99 are the limits of this demo, not a policy. No age is checked or verified: the demo takes whatever made-up age you give it. A real service would have to decide its own limits, how to check them, and whether a person may be introduced across them.',
+  'Eligibility here reads age and the six points only, so it does not cover every requirement a real product would need.',
   'The six points (timing, children, practice, city, work, household) are provisional demo choices, not policy. Some topics, such as clan, mahr, plans to move back and how families would disagree, are left out: they are conversations for two people, not signals for sorting them.',
   'The choice of which three people are shown is a fixed order among those who are eligible. It is not a selection policy.',
   'Questions a real service would have to answer first, such as identity checks, moderation and who is admitted, are not answered here.',
